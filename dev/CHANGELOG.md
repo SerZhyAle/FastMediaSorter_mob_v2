@@ -1742,3 +1742,10 @@ Format: | datetime | file | target | description |
 | 2026-04-10 02:16:00 | `PLAN/spec_decompose-giant-files.md` | `spec` | Update Wave 1 status to COMPLETE; BrowseViewModel 4010->683 lines |
 | 2026-04-10 02:35:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceLoadManager.kt` | `BrowseResourceLoadManager` | Fix recursive type checking: qualify updateResourceMetadata and startFileObserver with this@ |
 | 2026-04-10 02:35:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Fix recursive type checking: extract launchSubfolderReload helper to break type inference cycle |
+| 2026-04-10 03:33:45 | `PLAN/spec_decompose-giant-files.md` | `PLAN/spec_decompose-giant-files.md` | Updated progress tracking for Wave 4 Data Layer (local operations extracted) and BrowseActivity lines reduction |
+| 2026-04-10 09:53:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `BrowseEventHandler` | Extract event dispatch from BrowseActivity.observeData() |
+| 2026-04-10 09:53:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseStateUiUpdater.kt` | `BrowseStateUiUpdater` | Extract state→UI binding from BrowseActivity state collector |
+| 2026-04-10 09:53:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt` | `BrowseButtonSetupHelper` | Extract toolbar button click setup from BrowseActivity.setupViews() |
+| 2026-04-10 09:53:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEdgeToEdgeHelper.kt` | `BrowseEdgeToEdgeHelper` | Extract edge-to-edge insets logic from BrowseActivity |
+| 2026-04-10 09:53:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleHelper.kt` | `BrowseLifecycleHelper` | Extract scroll restore and storage permission from BrowseActivity lifecycle |
+| 2026-04-10 09:53:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Wave 1.5: reduce from 2872 to 1680 lines via manager extraction |

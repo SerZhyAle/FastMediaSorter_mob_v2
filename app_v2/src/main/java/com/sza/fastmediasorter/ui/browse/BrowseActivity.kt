@@ -11,7 +11,6 @@ import android.view.InputDevice
 import android.view.View
 import android.view.KeyEvent
 import android.view.MotionEvent
-import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
@@ -23,7 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
@@ -53,12 +51,9 @@ import com.sza.fastmediasorter.utils.UserActionLogger
 import dagger.hilt.android.AndroidEntryPoint
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
-import com.sza.fastmediasorter.utils.setBadgeText
-import com.sza.fastmediasorter.utils.clearBadge
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import timber.log.Timber
 import java.io.File
@@ -242,15 +237,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // Flag to prevent duplicate file loading on first onResume after onCreate
     private var isFirstResume = true
     
-    // Track whether storage permission dialog was already shown this session
-    private var hasShownStoragePermissionDialog = false
-    // Track whether storage permission was missing when activity started (to detect grant on return from Settings)
-    private var wasStoragePermissionMissing = false
-    
-    // Cache current display mode to avoid redundant updateDisplayMode() calls
-    private var currentDisplayMode: DisplayMode? = null
-    // Cache current audio-only mode to force layout refresh when resource media types change
-    private var currentAudioOnlyMode: Boolean? = null
     // Track last submitted sort mode to force adapter refresh when the user changes sorting
     private var lastSubmittedSortMode: SortMode? = null
     
@@ -491,7 +477,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             resources = resources,
             callbacks = object : BrowseRecyclerViewManager.RecyclerViewCallbacks {
                 override fun onDisplayModeChanged(displayMode: DisplayMode) {
-                    currentDisplayMode = displayMode
+                    stateUiUpdater.currentDisplayMode = displayMode
                 }
                 override fun updateToggleButtonIcon(iconResId: Int) {
                     binding.btnToggleView.setIconResource(iconResId)
@@ -798,6 +784,32 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             listSubmitManager = listSubmitManager
         )
 
+        stateUiUpdater = com.sza.fastmediasorter.ui.browse.managers.BrowseStateUiUpdater(
+            activity = this,
+            binding = binding,
+            adapter = mediaFileAdapter,
+            viewModel = viewModel,
+            passwordManager = passwordManager,
+            smallControlsManager = smallControlsManager,
+            onUpdateDisplayMode = { mode -> updateDisplayMode(mode) },
+            onUpdateBreadcrumb = { state -> updateBreadcrumb(state) },
+            onBuildResourceInfo = { state -> buildResourceInfo(state) },
+            onLaunchEditResource = { id -> launchEditResource(id) },
+            onUpdateToggleViewAvailability = { disable -> updateToggleViewAvailability(disable) }
+        )
+
+        eventHandler = com.sza.fastmediasorter.ui.browse.managers.BrowseEventHandler(
+            activity = this,
+            viewModel = viewModel,
+            errorDisplayManager = errorDisplayManager,
+            archiveDialogManager = archiveDialogManager,
+            resourceOpsMenuManager = resourceOpsMenuManager,
+            permissionRequestLauncher = permissionRequestLauncher,
+            playerActivityLauncher = playerActivityLauncher,
+            onShowCloudAuthDialog = { provider -> showCloudAuthenticationDialog(provider) },
+            skipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
+        )
+
         buttonSetupHelper = com.sza.fastmediasorter.ui.browse.managers.BrowseButtonSetupHelper(
             binding = binding,
             adapter = mediaFileAdapter,
@@ -869,171 +881,51 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
         setupSortButton()
 
-        binding.btnFilter.setOnClickListener {
-            UserActionLogger.logButtonClick("Filter", "BrowseActivity")
-            showFilterDialog()
-        }
-
-        binding.btnRefresh.setOnClickListener {
-            UserActionLogger.logButtonClick("Refresh", "BrowseActivity")
-            performRefresh()
-        }
-        
-        // Pull-to-refresh handler
-        binding.swipeRefreshLayout.setOnRefreshListener {
-            UserActionLogger.logButtonClick("PullToRefresh", "BrowseActivity")
-            performRefresh()
-        }
-        
-        // Set SwipeRefreshLayout colors using theme colors
-        binding.swipeRefreshLayout.setColorSchemeResources(
-            R.color.blue_500,
-            R.color.teal_700
-        )
-        
-        binding.btnStopScan.setOnClickListener {
-            UserActionLogger.logButtonClick("StopScan", "BrowseActivity")
-            Timber.d("Stop scan requested by user")
-            viewModel.cancelScan(forceCancel = true)
-            val fileCount = viewModel.state.value.mediaFiles.size
-            Toast.makeText(this, getString(R.string.scan_stopped, fileCount), Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnToggleView.setOnClickListener {
-            val resource = viewModel.state.value.resource
-            if (resource?.isAudioOnly() == true) {
-                return@setOnClickListener
+        buttonSetupHelper.setupAllButtons(object : com.sza.fastmediasorter.ui.browse.managers.BrowseButtonSetupHelper.ButtonCallbacks {
+            override fun onFilterClicked() = showFilterDialog()
+            override fun onRefreshClicked() = performRefresh()
+            override fun onToggleViewClicked() = viewModel.toggleDisplayMode()
+            override fun onSelectAllClicked() = performSelectAllWithToast()
+            override fun onDeselectAllClicked() = viewModel.clearSelection()
+            override fun onCopyClicked() = showCopyDialog()
+            override fun onMoveClicked() = showMoveDialog()
+            override fun onRenameClicked() = showRenameDialog()
+            override fun onDeleteClicked() = showDeleteConfirmation()
+            override fun onUndoClicked() = viewModel.undoLastOperation()
+            override fun onShareClicked() = shareSelectedFiles()
+            override fun onArchiveClicked() = showArchiveConfigurationDialog()
+            override fun onPlayClicked() = startSlideshow()
+            override fun onRetryClicked() {
+                viewModel.clearError()
+                viewModel.reloadFiles()
             }
-            UserActionLogger.logButtonClick("ToggleView", "BrowseActivity")
-            viewModel.toggleDisplayMode()
-        }
-        
-        binding.btnSelectAll.setOnClickListener {
-            UserActionLogger.logButtonClick("SelectAll", "BrowseActivity")
-            performSelectAllWithToast()
-        }
-        
-        binding.btnDeselectAll.setOnClickListener {
-            UserActionLogger.logButtonClick("DeselectAll", "BrowseActivity")
-            viewModel.clearSelection()
-        }
-
-        binding.btnCopy.setOnClickListener {
-            UserActionLogger.logButtonClick("Copy", "BrowseActivity - Toolbar")
-            showCopyDialog()
-        }
-
-        binding.btnMove.setOnClickListener {
-            UserActionLogger.logButtonClick("Move", "BrowseActivity - Toolbar")
-            showMoveDialog()
-        }
-
-        binding.btnRename.setOnClickListener {
-            UserActionLogger.logButtonClick("Rename", "BrowseActivity - Toolbar")
-            showRenameDialog()
-        }
-
-        binding.btnDelete.setOnClickListener {
-            UserActionLogger.logButtonClick("Delete", "BrowseActivity - Toolbar")
-            showDeleteConfirmation()
-        }
-        
-        binding.btnUndo.setOnClickListener {
-            UserActionLogger.logButtonClick("Undo", "BrowseActivity")
-            viewModel.undoLastOperation()
-        }
-        
-        binding.btnShare.setOnClickListener {
-            UserActionLogger.logButtonClick("Share", "BrowseActivity")
-            shareSelectedFiles()
-        }
-
-        binding.btnArchive?.setOnClickListener {
-            UserActionLogger.logButtonClick("Archive", "BrowseActivity")
-            showArchiveConfigurationDialog()
-        }
-
-        binding.btnPlay.setOnClickListener {
-            UserActionLogger.logButtonClick("Play", "BrowseActivity - Toolbar")
-            startSlideshow()
-        }
-        
-        binding.btnResourceOps?.setOnClickListener {
-            UserActionLogger.logButtonClick("ResourceOps", "BrowseActivity - Toolbar")
-            val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS
-                    && viewModel.scheduledOperationsEnabled
-            resourceOpsMenuManager.showMenu(
-                anchor = it,
-                viewModel = viewModel,
-                isScheduleEnabled = isScheduleEnabled,
-                onAutomateSource = if (isScheduleEnabled) {
-                    {
-                        val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
-                        startActivity(
-                            Intent(this, SettingsActivity::class.java).apply {
+            override fun onStopScanClicked() {
+                Timber.d("Stop scan requested by user")
+                viewModel.cancelScan(forceCancel = true)
+                val fileCount = viewModel.state.value.mediaFiles.size
+                Toast.makeText(this@BrowseActivity, getString(R.string.scan_stopped, fileCount), Toast.LENGTH_SHORT).show()
+            }
+            override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
+            override fun onResourceOpsClicked(anchor: android.view.View) {
+                val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
+                resourceOpsMenuManager.showMenu(
+                    anchor = anchor,
+                    viewModel = viewModel,
+                    isScheduleEnabled = isScheduleEnabled,
+                    onAutomateSource = if (isScheduleEnabled) {
+                        {
+                            val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
+                            startActivity(Intent(this@BrowseActivity, SettingsActivity::class.java).apply {
                                 putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
-                            }
-                        )
-                    }
-                } else null,
-                onAddToDestinations = { viewModel.addCurrentResourceAsDestination() }
-            )
-        }
-        
-        binding.btnRetry.setOnClickListener {
-            UserActionLogger.logButtonClick("Retry", "BrowseActivity")
-            viewModel.clearError()
-            viewModel.reloadFiles()
-        }
-        
-        // Scroll to top button
-        binding.fabScrollToTop.setOnClickListener {
-            UserActionLogger.logButtonClick("ScrollToTop", "BrowseActivity")
-            val layoutManager = binding.rvMediaFiles.layoutManager
-            when (layoutManager) {
-                is LinearLayoutManager -> layoutManager.scrollToPositionWithOffset(0, 0)
-                is GridLayoutManager -> layoutManager.scrollToPositionWithOffset(0, 0)
-                else -> binding.rvMediaFiles.scrollToPosition(0)
+                            })
+                        }
+                    } else null,
+                    onAddToDestinations = { viewModel.addCurrentResourceAsDestination() }
+                )
             }
-            Timber.d("Scrolled to top (position 0)")
-            // scrollToPositionWithOffset is instant — positions update after layout, not during onScrolled
-            binding.rvMediaFiles.post { updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }
-        }
-        
-        // Scroll to bottom button
-        binding.fabScrollToBottom.setOnClickListener {
-            UserActionLogger.logButtonClick("ScrollToBottom", "BrowseActivity")
-            val itemCount = mediaFileAdapter.itemCount
-            if (itemCount > 0) {
-                val layoutManager = binding.rvMediaFiles.layoutManager
-                when (layoutManager) {
-                    is LinearLayoutManager -> layoutManager.scrollToPositionWithOffset(itemCount - 1, 0)
-                    is GridLayoutManager -> layoutManager.scrollToPositionWithOffset(itemCount - 1, 0)
-                    else -> binding.rvMediaFiles.scrollToPosition(itemCount - 1)
-                }
-                Timber.d("Scrolled to bottom (position ${itemCount - 1})")
-                binding.rvMediaFiles.post { updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }
-            }
-        }
+        })
 
-        // Page Up button — scroll up by one viewport height
-        binding.fabPageUp.setOnClickListener {
-            UserActionLogger.logButtonClick("PageUp", "BrowseActivity")
-            val viewportHeight = binding.rvMediaFiles.height
-            binding.rvMediaFiles.smoothScrollBy(0, -viewportHeight)
-            Timber.d("Page up: smoothScrollBy(0, -$viewportHeight)")
-        }
-
-        // Page Down button — scroll down by one viewport height
-        binding.fabPageDown.setOnClickListener {
-            UserActionLogger.logButtonClick("PageDown", "BrowseActivity")
-            val viewportHeight = binding.rvMediaFiles.height
-            binding.rvMediaFiles.smoothScrollBy(0, viewportHeight)
-            Timber.d("Page down: smoothScrollBy(0, $viewportHeight)")
-        }
-        
-        // Set initial button labels based on current orientation
-        updateToolbarButtonLabels(resources.configuration)
+        buttonSetupHelper.updateToolbarButtonLabels(resources.configuration)
     }
 
     /**
@@ -1041,44 +933,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
      * Recalculates grid layout and updates toolbar button labels.
      */
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
-        // Update toolbar button labels based on orientation
-        updateToolbarButtonLabels(newConfig)
-        
+        buttonSetupHelper.updateToolbarButtonLabels(newConfig)
+
         // Force display mode recalculation with new screen dimensions
         lifecycleScope.launch {
-            currentDisplayMode?.let { mode ->
-                // Reset cached mode to force recalculation
-                currentDisplayMode = null
+            stateUiUpdater.currentDisplayMode?.let { mode ->
+                stateUiUpdater.currentDisplayMode = null
                 updateDisplayMode(mode)
                 Timber.d("onLayoutConfigurationChanged: Recalculated display mode for screenWidthDp=${newConfig.screenWidthDp}")
             }
-        }
-    }
-    
-    /**
-     * Show or hide text labels on toolbar buttons depending on orientation.
-     * In landscape: show icon + text (TextButton style).
-     * In portrait: show icon only (IconButton style).
-     */
-    private fun updateToolbarButtonLabels(config: Configuration) {
-        val isLandscape = config.orientation == Configuration.ORIENTATION_LANDSCAPE
-        Timber.d("updateToolbarButtonLabels: isLandscape=$isLandscape")
-        
-        if (isLandscape) {
-            binding.btnBack.text = getString(R.string.back)
-            binding.btnFilter.text = getString(R.string.search)
-            binding.btnRefresh.text = getString(R.string.refresh)
-            binding.btnToggleView.text = getString(R.string.toggle_view_short)
-            binding.btnSelectAll.text = getString(R.string.select_all_short)
-            binding.btnPlay.text = getString(R.string.slideshow)
-        } else {
-            binding.btnBack.text = null
-            binding.btnFilter.text = null
-            binding.btnRefresh.text = null
-            binding.btnToggleView.text = null
-            binding.btnSelectAll.text = null
-            binding.btnPlay.text = null
-            binding.btnResourceOps?.text = null
         }
     }
 
@@ -1097,70 +960,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private fun notifyItemRangeChangedSafely(start: Int, count: Int, payload: Any, source: String) =
         scrollButtonManager.notifyItemRangeChangedSafely(start, count, payload, source)
-
-    private fun applyEdgeToEdgeInsets() {
-        // Capture original padding values from XML before any insets are applied.
-        // These are used as the base so repeated insets dispatches don't accumulate.
-        val topBarOrigPaddingLeft   = binding.layoutControls.paddingLeft
-        val topBarOrigPaddingTop    = binding.layoutControls.paddingTop
-        val topBarOrigPaddingRight  = binding.layoutControls.paddingRight
-        val topBarOrigPaddingBottom = binding.layoutControls.paddingBottom
-
-        val bottomBarOrigPaddingLeft   = binding.layoutOperations.paddingLeft
-        val bottomBarOrigPaddingTop    = binding.layoutOperations.paddingTop
-        val bottomBarOrigPaddingRight  = binding.layoutOperations.paddingRight
-        val bottomBarOrigPaddingBottom = binding.layoutOperations.paddingBottom
-
-        val filterOrigPaddingLeft   = binding.tvFilterWarning.paddingLeft
-        val filterOrigPaddingTop    = binding.tvFilterWarning.paddingTop
-        val filterOrigPaddingRight  = binding.tvFilterWarning.paddingRight
-        val filterOrigPaddingBottom = binding.tvFilterWarning.paddingBottom
-
-        val fabOrigBottomMargin = (binding.fabScrollToBottom.layoutParams as? android.view.ViewGroup.MarginLayoutParams)
-            ?.bottomMargin ?: resources.getDimensionPixelSize(R.dimen.margin_small)
-
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
-            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-
-            // Top toolbar below status bar
-            binding.layoutControls.setPadding(
-                topBarOrigPaddingLeft,
-                topBarOrigPaddingTop + statusBar.top,
-                topBarOrigPaddingRight,
-                topBarOrigPaddingBottom
-            )
-
-            // Bottom bar above navigation bar
-            binding.layoutOperations.setPadding(
-                bottomBarOrigPaddingLeft,
-                bottomBarOrigPaddingTop,
-                bottomBarOrigPaddingRight,
-                bottomBarOrigPaddingBottom + navBar.bottom
-            )
-
-            // Filter warning at very bottom
-            binding.tvFilterWarning.setPadding(
-                filterOrigPaddingLeft,
-                filterOrigPaddingTop,
-                filterOrigPaddingRight,
-                filterOrigPaddingBottom + navBar.bottom
-            )
-
-            // Scroll FABs need nav bar offset
-            val fabBottomMargin = fabOrigBottomMargin + navBar.bottom
-            (binding.fabScrollToBottom.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
-                it.bottomMargin = fabBottomMargin
-                binding.fabScrollToBottom.layoutParams = it
-            }
-
-            insets
-        }
-        // setupViews() runs inside binding.root.post{}, meaning the initial insets dispatch
-        // has already happened before this listener was registered. Force re-dispatch so the
-        // listener fires immediately and padding is applied on first render.
-        androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
-    }
 
     override fun observeData() {
         lifecycleScope.launch {
@@ -1229,104 +1028,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         }
                     }
 
-                    // Show filter warning ONLY for user-defined filters (not resource type restrictions)
-                    // Filter is considered user-defined if it has ANY criteria beyond mediaTypes
-                    // OR if mediaTypes differ from resource.supportedMediaTypes
-                    val filter = state.filter
-                    val resource = state.resource
-                    
-                    val isUserFilter = filter != null && !filter.isEmpty() && (
-                        !filter.nameContains.isNullOrBlank() ||
-                        filter.minDate != null ||
-                        filter.maxDate != null ||
-                        filter.minSizeMb != null ||
-                        filter.maxSizeMb != null ||
-                        (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
-                    )
-                    
-                    if (isUserFilter) {
-                        // Show short toast instead of permanent warning line
-                        // Toast already shown when filter is applied, no need to repeat
-                        binding.tvFilterWarning.isVisible = false
-                    } else {
-                        binding.tvFilterWarning.isVisible = false
-                    }
-                    
-                    // Update filter badge (show red circle ONLY for user-defined filters)
-                    if (isUserFilter) {
-                        val filterCount = state.filter?.activeFilterCount() ?: 0
-                        binding.btnFilter.setBadgeText(filterCount.toString())
-                    } else {
-                        binding.btnFilter.clearBadge()
-                    }
-
-                    val hasSelection = state.selectedFiles.isNotEmpty()
-                    // resource is already defined above
-                    val isWritable = (resource?.isWritable ?: false) && (resource?.isReadOnly != true)
-                    
-                    // Show operations panel only when there are selected files or undo available
-                    binding.layoutOperations.isVisible = hasSelection || state.lastOperation != null
-                    
-                    binding.btnCopy.isVisible = hasSelection
-                    binding.btnMove.isVisible = hasSelection && isWritable
-                    binding.btnRename.isVisible = hasSelection && isWritable
-                    binding.btnDelete.isVisible = hasSelection && isWritable
-                    binding.btnUndo.isVisible = state.lastOperation != null
-                    binding.btnShare.isVisible = hasSelection
-                    val isLocalResource = resource?.type == ResourceType.LOCAL
-                    binding.btnArchive?.isVisible = hasSelection && isLocalResource
-
-                    val shouldDisableToggle = resource?.isAudioOnly() == true
-                    updateToggleViewAvailability(shouldDisableToggle)
-
-                    // Update display mode when either mode OR audio-only state changed.
-                    // This is required to restore normal thumbnail sizing after leaving audio-only resources.
-                    if (state.displayMode != currentDisplayMode || shouldDisableToggle != currentAudioOnlyMode) {
-                        currentAudioOnlyMode = shouldDisableToggle
-                        currentDisplayMode = state.displayMode
-                        updateDisplayMode(state.displayMode)
-                    }
-                    
-                    // Apply or restore small controls based on setting
-                    if (state.showSmallControls) {
-                        smallControlsManager.applySmallControlsIfNeeded()
-                    } else {
-                        smallControlsManager.restoreCommandButtonHeightsIfNeeded()
-                    }
-                    
-                    // Update breadcrumb visibility and text for subfolder navigation
-                    updateBreadcrumb(state)
-                    
-                    // Update resource action button (edit/folder icon)
-                    val stateResource = state.resource
-                    if (stateResource != null) {
-                        binding.tvResourceInfo.text = buildResourceInfo(state)
-                        
-                        // currentPath == null means root of resource (not a subfolder)
-                        val isSubfolder = state.isSubfolderMode && state.currentPath != null && state.currentPath != stateResource.path
-                        if (isSubfolder) {
-                            // Subfolder: show folder icon, no click action
-                            binding.btnResourceAction.setImageResource(R.drawable.ic_folder_24)
-                            binding.btnResourceAction.isClickable = false
-                            binding.btnResourceAction.isFocusable = false
-                            binding.btnResourceAction.visibility = android.view.View.VISIBLE
-                        } else {
-                            // Root resource: show edit icon, clickable
-                            binding.btnResourceAction.setImageResource(R.drawable.ic_edit_20)
-                            binding.btnResourceAction.isClickable = true
-                            binding.btnResourceAction.isFocusable = true
-                            binding.btnResourceAction.visibility = android.view.View.VISIBLE
-                            binding.btnResourceAction.setOnClickListener {
-                                if (!stateResource.accessPin.isNullOrBlank()) {
-                                    passwordManager.checkResourcePin(stateResource) {
-                                        launchEditResource(stateResource.id)
-                                    }
-                                } else {
-                                    launchEditResource(stateResource.id)
-                                }
-                            }
-                        }
-                    }
+                    stateUiUpdater.onStateChanged(state)
                 }
             }
         }
@@ -1530,122 +1232,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.events.collect { event ->
-                    when (event) {
-                        is BrowseEvent.ShowError -> {
-                            showError(event.message, event.details, event.exception)
-                        }
-                        is BrowseEvent.ShowMessage -> {
-                            Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_SHORT).show()
-                        }
-                        is BrowseEvent.ShowUndoToast -> {
-                            // Replaced Toast with Snackbar for better UX
-                            val operation = viewModel.state.value.lastOperation
-                            if (operation != null) {
-                                showUndoSnackbar(operation)
-                            }
-                        }
-                        is BrowseEvent.NavigateToPlayer -> {
-                            viewModel.inlineStop()
-                            val resourceId = viewModel.state.value.resource?.id ?: 0L
-                            // Pass skipAvailabilityCheck to prevent redundant checks
-                            val skipCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
-                            val playerIntent = PlayerActivity.createIntent(
-                                this@BrowseActivity,
-                                resourceId,
-                                event.fileIndex,
-                                skipCheck,
-                                event.filePath // Pass file path for pagination mode
-                            )
-                            playerActivityLauncher.launch(playerIntent)
-                            @Suppress("DEPRECATION")
-                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                        }
-                        is BrowseEvent.ShowCloudAuthenticationRequired -> {
-                            showCloudAuthenticationDialog(event.provider)
-                        }
-                        is BrowseEvent.CloudAuthRequired -> {
-                            // This event includes a custom message - show it directly
-                            Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_LONG).show()
-                        }
-                        is BrowseEvent.NoFilesFound -> {
-                            val msg = if (event.messageResId != null) {
-                                getString(event.messageResId)
-                            } else {
-                                event.message ?: ""
-                            }
-                            Toast.makeText(this@BrowseActivity, msg, Toast.LENGTH_LONG).show()
-                            finish()
-                        }
-                        is BrowseEvent.PermissionRequired -> {
-                            Timber.i("BrowseActivity: ========================================")
-                            Timber.i("BrowseActivity: PERMISSION REQUIRED EVENT RECEIVED")
-                            Timber.i("BrowseActivity: PendingIntent: ${event.pendingIntent}")
-                            try {
-                                Timber.i("BrowseActivity: Building IntentSenderRequest...")
-                                val intentSenderRequest = IntentSenderRequest.Builder(event.pendingIntent).build()
-                                Timber.i("BrowseActivity: Launching permission request...")
-                                permissionRequestLauncher.launch(intentSenderRequest)
-                                Timber.i("BrowseActivity: Permission request launched successfully")
-                            } catch (e: Exception) {
-                                Timber.e(e, "BrowseActivity: FAILED to launch permission request")
-                                Toast.makeText(this@BrowseActivity, "Failed to request permission", Toast.LENGTH_SHORT).show()
-                            }
-                            Timber.i("BrowseActivity: ========================================")
-                        }
-                        is BrowseEvent.ShowDeleteBySizePreview -> {
-                            resourceOpsMenuManager.showDeleteBySizeConfirm(
-                                viewModel,
-                                event.count,
-                                event.totalBytes,
-                                event.matchedFiles
-                            )
-                        }
-                        is BrowseEvent.ArchiveProgress ->
-                            archiveDialogManager.updateArchiveProgress(event.current, event.total, event.fileName)
-                        is BrowseEvent.ArchiveSuccess -> {
-                            archiveDialogManager.onArchiveSuccess(event.archivePath, event.archivedCount)
-                        }
-                        is BrowseEvent.ArchiveError -> {
-                            archiveDialogManager.onArchiveError(event.message)
-                            showError(getString(R.string.archive_error, event.message), details = null, exception = event.exception)
-                        }
-                        is BrowseEvent.ShowExtractConfirmDialog ->
-                            archiveDialogManager.showUnarchiveConfirmDialog(event.file, event.targetDirName)
-                        is BrowseEvent.ExtractionProgress ->
-                            archiveDialogManager.updateExtractProgress(event)
-                        is BrowseEvent.ExtractionSuccess ->
-                            archiveDialogManager.onExtractionSuccess(event.targetPath)
-                        is BrowseEvent.ExtractionFailed ->
-                            archiveDialogManager.onExtractionFailed(event.message)
-                        is BrowseEvent.ResourceAddedAsDestination -> {
-                            showAddedAsDestinationSnackbar()
-                        }
-                    }
+                    eventHandler.handleEvent(event)
                 }
             }
         }
     }
-    
-    /**
-     * Shows a Snackbar confirming that the current resource was added as a Quick Sort destination.
-     * The action button navigates to the Destinations tab in Settings.
-     */
-    private fun showAddedAsDestinationSnackbar() {
-        com.google.android.material.snackbar.Snackbar
-            .make(binding.root, getString(R.string.msg_added_as_receiver), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
-            .setAction(getString(R.string.btn_edit_receiver)) {
-                startActivity(Intent(this, SettingsActivity::class.java).apply {
-                    putExtra(SettingsActivity.EXTRA_INITIAL_TAB, 3)
-                })
-            }
-            .show()
-    }
 
     private fun showError(message: String, details: String?, exception: Throwable? = null) =
         errorDisplayManager.showError(message, details, exception)
-
-    private fun showUndoSnackbar(operation: UndoOperation) =
-        errorDisplayManager.showUndoSnackbar(operation)
     
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -1751,7 +1345,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
         
         recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnails)
-        currentDisplayMode = effectiveMode
+        stateUiUpdater.currentDisplayMode = effectiveMode
         updateToggleViewAvailability(shouldForceList)
         // After layout manager / span count changes, visible item range may differ — re-check
         binding.rvMediaFiles.post { updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }
@@ -1929,11 +1523,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
         
         // Check storage permission for local resources
-        checkAndRequestStoragePermission()
-        
+        lifecycleHelper.checkAndRequestStoragePermission(
+            resource = viewModel.state.value.resource,
+            onReloadFiles = { viewModel.reloadFiles(clearList = true) }
+        )
+
         // Adapter is no longer cleared in onPause - no need to restore
         // Memory cache (1GB) persists across PlayerActivity navigation
-        
+
         // Skip reload on first onResume - files already loaded in ViewModel.init{}
         if (isFirstResume) {
             isFirstResume = false
@@ -1941,44 +1538,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         } else {
             Timber.d("BrowseActivity.onResume: Returned to BrowseActivity, checking for changes")
             // Check if resource settings changed (supportedMediaTypes, scanSubfolders)
-            // If changed, reloads files automatically. If not, syncs with PlayerActivity cache.
             viewModel.checkAndReloadIfResourceChanged()
 
-            // Direct scroll restoration for "return from PlayerActivity" case.
-            // When the file list has NOT changed (same instance), submitList won't be called
-            // and its callback (where restoration normally happens) will never fire.
-            // We post the restoration here so it runs on the next frame, before any async
-            // reload's submitList could fire — the first one to execute resets the flag,
-            // making the second attempt a no-op.
-            if (listSubmitManager.shouldScrollToLastViewed && mediaFileAdapter.itemCount > 0) {
-                val currentState = viewModel.state.value
-                val lastViewedPath = currentState.resource?.lastViewedFile
-                val pathPosition = if (lastViewedPath != null)
-                    currentState.mediaFiles.indexOfFirst { it.path == lastViewedPath }
-                else -1
-                val targetPosition = if (pathPosition >= 0) {
-                    pathPosition
-                } else {
-                    val savedPos = currentState.resource?.lastScrollPosition ?: 0
-                    if (savedPos > 0 && savedPos < mediaFileAdapter.itemCount) savedPos else -1
-                }
-                if (targetPosition >= 0) {
-                    listSubmitManager.shouldScrollToLastViewed = false
-                    binding.rvMediaFiles.post {
-                        if (isDestroyed || isFinishing) return@post
-                        val lm = binding.rvMediaFiles.layoutManager
-                        when (lm) {
-                            is LinearLayoutManager -> lm.scrollToPositionWithOffset(targetPosition, 0)
-                            is GridLayoutManager -> lm.scrollToPositionWithOffset(targetPosition, 0)
-                            else -> binding.rvMediaFiles.scrollToPosition(targetPosition)
-                        }
-                        Timber.i("onResume: ✓ Restored scroll to position $targetPosition (pathBased=${pathPosition >= 0}, file=${currentState.mediaFiles.getOrNull(targetPosition)?.name})")
-                    }
-                } else {
-                    listSubmitManager.shouldScrollToLastViewed = false
-                    Timber.d("onResume: No valid restore position (lastViewedPath=$lastViewedPath, itemCount=${mediaFileAdapter.itemCount})")
-                }
-            }
+            // Secondary scroll restore path: fires when list unchanged (submitList callback won't fire)
+            lifecycleHelper.restoreScrollOnResume(viewModel.state.value)
         }
         
         // Clear expired undo operations (older than 5 minutes)
@@ -2015,46 +1578,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Memory cache (up to 1GB) survives until BrowseActivity exits (onDestroy)
     }
 
-    /**
-     * Check if MANAGE_EXTERNAL_STORAGE is granted for local resources.
-     * On Android 11+ the app needs this permission to read files via direct file paths.
-     * Shows an explanation dialog once per session; if the user returns from Settings
-     * after granting, reloads the file list.
-     */
-    private fun checkAndRequestStoragePermission() {
-        val resource = viewModel.state.value.resource ?: return
-        // Only relevant for local storage resources
-        if (resource.type != ResourceType.LOCAL) return
-        // Only relevant on Android 11+
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) return
-
-        val hasPermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)
-
-        // If permission was missing and is now granted (user returned from Settings), reload
-        if (wasStoragePermissionMissing && hasPermission) {
-            Timber.i("BrowseActivity: MANAGE_EXTERNAL_STORAGE granted after Settings, reloading files")
-            wasStoragePermissionMissing = false
-            viewModel.reloadFiles(clearList = true)
-            return
-        }
-
-        if (!hasPermission && !hasShownStoragePermissionDialog) {
-            hasShownStoragePermissionDialog = true
-            wasStoragePermissionMissing = true
-            Timber.w("BrowseActivity: MANAGE_EXTERNAL_STORAGE not granted for local resource, showing dialog")
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle(R.string.all_files_access_required)
-                .setMessage(R.string.all_files_access_explanation)
-                .setPositiveButton(R.string.grant_permission) { _, _ ->
-                    com.sza.fastmediasorter.core.util.PermissionHelper.requestAllFilesAccessPermission(this)
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .setCancelable(true)
-                .show()
-        } else if (!hasPermission) {
-            wasStoragePermissionMissing = true
-        }
-    }
     
     override fun onStop() {
         Timber.d("BrowseActivity.onStop: isFinishing=$isFinishing, isChangingConfigurations=$isChangingConfigurations")

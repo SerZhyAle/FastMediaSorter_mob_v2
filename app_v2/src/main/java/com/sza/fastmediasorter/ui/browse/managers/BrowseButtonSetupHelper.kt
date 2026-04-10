@@ -23,7 +23,6 @@ class BrowseButtonSetupHelper(
 ) {
 
     interface ButtonCallbacks {
-        fun onBackPressed()
         fun onFilterClicked()
         fun onRefreshClicked()
         fun onToggleViewClicked()
@@ -44,11 +43,6 @@ class BrowseButtonSetupHelper(
     }
 
     fun setupAllButtons(callbacks: ButtonCallbacks) {
-        binding.btnBack.setOnClickListener {
-            UserActionLogger.logButtonClick("Back", "BrowseActivity")
-            callbacks.onBackPressed()
-        }
-
         binding.btnFilter.setOnClickListener {
             UserActionLogger.logButtonClick("Filter", "BrowseActivity")
             callbacks.onFilterClicked()

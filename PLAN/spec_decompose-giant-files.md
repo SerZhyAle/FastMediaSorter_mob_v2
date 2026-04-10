@@ -15,18 +15,21 @@
 |--------|------|--------|-------|
 | Sprint 0 | Preparation | ❌ Not done | No `temp/backups/iv1/` backups created; Maestro baseline not documented |
 | Sprint 1 | Wave 1 — BrowseViewModel | ✅ Complete | `BrowseViewModel` **4 010 → 683 lines**; 14 managers + 3 standalone files extracted |
-| Sprint 2 | Wave 2 — UI Layer | 🔄 In progress | `PlayerActivity` **2 465 → 1 475 lines** via multiple helper extractions |
+| Sprint 2 | Wave 2 — UI Layer | 🔄 In progress | `PlayerActivity` **1 475 lines**, `BrowseActivity` **2 872 → 2 157 lines** via helper extractions |
 | Sprint 3 | Wave 3 — Oversized Helpers | ❌ Not started | `EpubViewerManager` 2 062, `TextViewerManager` 1 764, `PdfViewerManager` 1 568 — all untouched |
-| Sprint 4 | Wave 4 — Data Layer | ❌ Not started | — |
+| Sprint 4 | Wave 4 — Data Layer | 🔄 In progress | `FileOperationUseCase` **1 185 → 512 lines** via extraction of local operations |
 
 ### Actual line counts (current)
 
 | File | Spec baseline | Current | Target | Delta |
 |------|:-------------:|:-------:|:------:|:-----:|
 | `BrowseViewModel.kt` | 3 521 | **683** | ≤ 700 | ✅ **-2 838** |
-| `BrowseActivity.kt` | 2 398 | **2 872** | ≤ 700 | ▲ grew |
+| `BrowseActivity.kt` | 2 398 | **2 157** | ≤ 700 | ▼ -241 |
 | `PlayerActivity.kt` | 2 400 | **1 475** | ≤ 700 | ▼ -925 |
 | `StandalonePlayerActivity.kt` | — | **830** | ≤ 700 | 🔄 close |
+| `GeneralSettingsFragment.kt` | 2 221 | **2 268** | ≤ 700 | ▲ grew |
+| `AddResourceActivity.kt` | 1 959 | **1 963** | ≤ 700 | ▲ grew |
+| `FileOperationUseCase.kt` | 1 185 | **512** | ≤ 700 | ✅ **-673** |
 | `MediaFileAdapter.kt` | 2 477 | **2 463** | ≤ 700 | unchanged |
 | `EpubViewerManager.kt` | 2 062 | **2 062** | ≤ 700 | unchanged |
 | `TextViewerManager.kt` | 1 754 | **1 764** | ≤ 700 | unchanged |
@@ -66,6 +69,15 @@
 | `helpers/StandalonePlayerSettingsManager.kt` | 113 | ✅ New |
 | `helpers/StandaloneVideoControlsManager.kt` | 53 | ✅ New |
 | `helpers/StandaloneVideoTouchDelegate.kt` | 230 | ✅ New |
+
+### New helpers created (Wave 4 — Data Layer)
+
+| File | Lines | Status |
+|------|:-----:|--------|
+| `domain/usecase/LocalCopyFileOperation.kt` | 142 | ✅ New — extracted local copy ops |
+| `domain/usecase/LocalMoveFileOperation.kt` | 196 | ✅ New — extracted local move ops |
+| `domain/usecase/LocalDeleteFileOperation.kt` | 267 | ✅ New — extracted local delete ops |
+| `domain/usecase/LocalRenameFileOperation.kt` | 68 | ✅ New — extracted local rename ops |
 
 ### Wave 1 complete — BrowseViewModel at 683 lines ✅
 
