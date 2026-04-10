@@ -345,11 +345,11 @@ class PlayerGestureSetupManager(
                 val isPdf = viewModel.state.value.currentFile?.type == MediaType.PDF
                 Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - isPdf=$isPdf")
                 
-                // PDF (REG-DOC): No tap zones, single tap does nothing
+                // PDF: forward tap to link detector (opens URLs); falls through to false if no link
                 // IMAGE: Use touch zones (REG-3100 command panel / REG-9100 fullscreen)
                 if (isPdf) {
-                    Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - PDF active, returning false")
-                    return false // PDF spec: no tap zones
+                    Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - PDF active, checking link tap x=${e.x} y=${e.y}")
+                    return activity._pdfViewerManager?.handlePdfTap(e.x, e.y) ?: false
                 }
                 
                 Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - routing to handleImageSingleTap")

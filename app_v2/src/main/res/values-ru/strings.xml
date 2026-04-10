@@ -257,6 +257,16 @@
     <string name="error_smb_mobile_network">SMB-ресурс недоступен через мобильный интернет. SMB работает только в локальной Wi&#8209;Fi сети. Подключитесь к одной сети с устройством (%1$s).</string>
     <string name="error_smb_not_on_local_network">Не удалось подключиться к SMB ресурсу. Убедитесь, что устройство включено и вы находитесь с ним в одной локальной сети.</string>
 
+    <!-- Standalone player playback error messages -->
+    <string name="error_file_not_found">Файл не найден или не может быть открыт.</string>
+    <string name="error_network_connection">Ошибка подключения к сети. Проверьте соединение и повторите попытку.</string>
+    <string name="error_codec_unsupported">Этот формат не поддерживается вашим устройством.</string>
+    <string name="error_playback_timeout">Время воспроизведения истекло. Проверьте соединение и повторите попытку.</string>
+    <string name="error_network_playback">Ошибка удалённого сервера. Воспроизведение невозможно.</string>
+    <string name="error_behind_live_window">Пропущена позиция прямой трансляции. Переход к последнему фрагменту.</string>
+    <string name="error_invalid_format">Неверный или повреждённый медиафайл.</string>
+    <string name="error_playback_failed">Воспроизведение не удалось. Файл может быть повреждён или не поддерживается.</string>
+
     <!-- Connection Error Details -->
     <string name="error_details_resource">Ресурс</string>
     <string name="error_details_path">Путь</string>
@@ -1846,6 +1856,9 @@
     <string name="slideshow_keep_awake">Экран останется включённым во время слайдшоу</string>
     <string name="source_path">Источник</string>
     <string name="subtitle_off">Выкл</string>
+    <string name="cd_playback_speed">Скорость воспроизведения</string>
+    <string name="cd_audio_track">Аудиодорожка</string>
+    <string name="cd_subtitle_track">Субтитры</string>
     <string name="subtitle_track">Субтитры</string>
     <string name="success_count">Успешно: %d</string>
     <string name="table_of_contents">Содержание</string>

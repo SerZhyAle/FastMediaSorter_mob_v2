@@ -1,9 +1,75 @@
 # Specification: IV.1 — Decompose Giant Files
 
-**Status:** Draft
-**Date:** 2026-03-28
+**Status:** In Progress — Wave 1 COMPLETE (BrowseViewModel ≤700 lines achieved); Wave 2 active (PlayerActivity)
+**Date:** 2026-03-28 | **Last updated:** 2026-04-10
 **Tier:** 5 — Complex (16–50h, high risk)
 **Roadmap entry:** Decompose 11+ files exceeding 1000 LOC (25k+ total) | Touches core flows; BrowseViewModel 3.4k LOC
+
+---
+
+## 0. Current Status (as of 2026-04-10)
+
+### Sprint progress
+
+| Sprint | Wave | Status | Notes |
+|--------|------|--------|-------|
+| Sprint 0 | Preparation | ❌ Not done | No `temp/backups/iv1/` backups created; Maestro baseline not documented |
+| Sprint 1 | Wave 1 — BrowseViewModel | ✅ Complete | `BrowseViewModel` **4 010 → 683 lines**; 14 managers + 3 standalone files extracted |
+| Sprint 2 | Wave 2 — UI Layer | 🔄 In progress | `PlayerActivity` **2 465 → 1 475 lines** via multiple helper extractions |
+| Sprint 3 | Wave 3 — Oversized Helpers | ❌ Not started | `EpubViewerManager` 2 062, `TextViewerManager` 1 764, `PdfViewerManager` 1 568 — all untouched |
+| Sprint 4 | Wave 4 — Data Layer | ❌ Not started | — |
+
+### Actual line counts (current)
+
+| File | Spec baseline | Current | Target | Delta |
+|------|:-------------:|:-------:|:------:|:-----:|
+| `BrowseViewModel.kt` | 3 521 | **683** | ≤ 700 | ✅ **-2 838** |
+| `BrowseActivity.kt` | 2 398 | **2 872** | ≤ 700 | ▲ grew |
+| `PlayerActivity.kt` | 2 400 | **1 475** | ≤ 700 | ▼ -925 |
+| `StandalonePlayerActivity.kt` | — | **830** | ≤ 700 | 🔄 close |
+| `MediaFileAdapter.kt` | 2 477 | **2 463** | ≤ 700 | unchanged |
+| `EpubViewerManager.kt` | 2 062 | **2 062** | ≤ 700 | unchanged |
+| `TextViewerManager.kt` | 1 754 | **1 764** | ≤ 700 | unchanged |
+| `PdfViewerManager.kt` | 1 407 | **1 568** | ≤ 700 | ▲ grew |
+| `MainActivity.kt` | 1 148 | **1 153** | ≤ 700 | unchanged |
+
+### New helpers created (Wave 1 — BrowseViewModel) — COMPLETE
+
+| File | Lines | Status |
+|------|:-----:|--------|
+| `managers/BrowseInlineAudioManager.kt` | 344 | ✅ New — inline audio playback, SMB download, prefetch |
+| `managers/BrowseArchiveManager.kt` | 307 | ✅ New — ZIP archive creation and extraction |
+| `managers/BrowseFileObserverManager.kt` | 227 | ✅ New — OS-level file watching + debounce + rename |
+| `managers/BrowseNavigationManager.kt` | 462 | ✅ New — subfolder nav, breadcrumbs, directory cache |
+| `managers/BrowseDeleteManager.kt` | 300 | ✅ New — selected-file delete flow, permission callback, delete-by-size |
+| `managers/BrowseSortFilterManager.kt` | 255 | ✅ New — sort mode, display mode, session filter application |
+| `managers/BrowseFileOpenManager.kt` | 165 | ✅ New — open-file routing and SMB cache-miss recovery |
+| `managers/BrowseDirectoryOpsManager.kt` | 82 | ✅ New — create folder and rename directory |
+| `managers/BrowseStateSyncManager.kt` | 142 | ✅ New — favorites loading, cache sync, resource settings drift check |
+| `managers/BrowseRefreshManager.kt` | 169 | ✅ New — explicit reload, local/network trash cleanup, MediaStore sync |
+| `managers/BrowseResourceLoadManager.kt` | 448 | ✅ New — full resource+file loading pipeline |
+| `managers/BrowseFileListMutationManager.kt` | 171 | ✅ New — file-list mutations (add/remove/update) |
+| `managers/BrowseResourceStateManager.kt` | 168 | ✅ New — favorites, scroll position, last-viewed, resource-as-destination |
+| `managers/BrowseLifecycleSetupManager.kt` | 155 | ✅ New — init tasks, settings, filter restore, observer wiring |
+| `BrowseState.kt` | 40 | ✅ New — BrowseState + ExtractionState data classes |
+| `BrowseEvent.kt` | 45 | ✅ New — BrowseEvent sealed class |
+
+### New helpers created (Wave 2 — PlayerActivity)
+
+| File | Lines | Status |
+|------|:-----:|--------|
+| `PlayerManagerInitializer.kt` | 659 | ✅ New — initializes all helpers |
+| `PlayerViewerFactory.kt` | 153 | ✅ New — lazy viewer creation |
+| `helpers/AudioFocusManager.kt` | 99 | ✅ New |
+| `helpers/StandaloneFullscreenManager.kt` | 55 | ✅ New |
+| `helpers/StandalonePlayerLifecycleManager.kt` | 36 | ✅ New |
+| `helpers/StandalonePlayerSettingsManager.kt` | 113 | ✅ New |
+| `helpers/StandaloneVideoControlsManager.kt` | 53 | ✅ New |
+| `helpers/StandaloneVideoTouchDelegate.kt` | 230 | ✅ New |
+
+### Wave 1 complete — BrowseViewModel at 683 lines ✅
+
+All business logic extracted. ViewModel now contains only: manager declarations, Job refs, init block, and thin public-API delegates. No further extractions needed.
 
 ---
 

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
@@ -13,6 +15,10 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -39,7 +45,14 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneFullscreenManager
+import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerLifecycleManager
+import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
+import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -53,6 +66,10 @@ import javax.inject.Inject
  *
  * All viewer routing is delegated to StandaloneViewManager.
  */
+// StandalonePlayerActivity is intentionally exported and unprotected to work as an "Open With"
+// handler for any app. UnsafeIntentLaunch is suppressed because no intent data is forwarded
+// to startActivity/startService — received URIs are only passed to ExoPlayer/Glide as media.
+@SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
@@ -122,6 +139,12 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
 
     private lateinit var viewManager: StandaloneViewManager
+    private var pipManager: PictureInPictureManager? = null
+    private lateinit var lifecycleManager: StandalonePlayerLifecycleManager
+    private var videoControlsManager: StandaloneVideoControlsManager? = null
+    private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
+    private var playerSettingsManager: StandalonePlayerSettingsManager? = null
+    private var fullscreenManager: StandaloneFullscreenManager? = null
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
@@ -132,6 +155,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     override fun setupViews() {
         val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
+        setupWindowAndInsets()
 
         // DEBUG: detect probe URI BEFORE StandaloneViewManager construction to understand
         // whether WebView/ExoPlayer init happens needlessly for probe-only launches.
@@ -174,6 +198,19 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         )
         if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: StandaloneViewManager() constructor done in ${SystemClock.uptimeMillis() - viewManagerT0}ms")
 
+        lifecycleManager = StandalonePlayerLifecycleManager(activity = this, viewManager = viewManager)
+        lifecycleManager.onCreate(null)
+
+        pipManager = PictureInPictureManager(
+            activity = this,
+            binding = binding,
+            getPlayer = { viewManager.getExoPlayer() },
+            onPlay = { viewManager.getExoPlayer()?.play() },
+            onPause = { viewManager.getExoPlayer()?.pause() },
+            isVideoPlaying = { viewManager.isVideoPlaying() }
+        )
+        pipManager?.setupPipButton(enablePip = true)
+
         setupCloseButton()
         setupBackPressHandler()
         hidePlaylistControls()
@@ -190,9 +227,50 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         observeFavoriteState()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::lifecycleManager.isInitialized) lifecycleManager.onResume()
+    }
+
+    override fun onPause() {
+        if (::lifecycleManager.isInitialized) lifecycleManager.onPause()
+        super.onPause()
+    }
+
     override fun onDestroy() {
+        if (::lifecycleManager.isInitialized) lifecycleManager.onDestroy()
+        pipManager?.release()
+        pipManager = null
+        fullscreenManager?.exitFullscreen()
+        fullscreenManager = null
+        videoControlsManager = null
+        videoTouchDelegate = null
+        playerSettingsManager = null
         viewManager.release()
         super.onDestroy()
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        pipManager?.onUserLeaveHint(enablePip = true)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Re-apply insets after orientation change so panels don't overlap OS bars
+        binding.topCommandPanel.post {
+            binding.topCommandPanel.requestApplyInsets()
+            Timber.d("StandalonePlayer: insets reapplied after orientation change")
+        }
+        binding.root.findViewById<android.view.View?>(R.id.bottomPanelsContainer)?.also {
+            it.post { it.requestApplyInsets() }
+        }
+        // playerView re-measures itself via ExoPlayer's internal SurfaceView listener — no manual action needed
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
     }
 
     // ── Intent Parsing ────────────────────────────────────────────────────
@@ -253,6 +331,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         viewModel.loadFromUri(uri, mimeType, displayName)
     }
 
+    @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here
     private fun debugLogLaunchConditions(incomingIntent: Intent?) {
         if (!BuildConfig.DEBUG) return
 
@@ -357,6 +436,32 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         Timber.i("StandalonePlayer[debug]: default-player components: %s", aliasStates)
     }
 
+    // ── Window / Insets Setup ─────────────────────────────────────────────
+
+    private fun setupWindowAndInsets() {
+        // Mirror PlayerActivity: opt out of auto-fit, handle insets manually
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // topCommandPanel: pad for status bar (top) + nav bar (left/right in landscape)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
+            val statusBar = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val navBar   = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(navBar.left, statusBar.top, navBar.right, view.paddingBottom)
+            insets
+        }
+        binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
+
+        // bottomPanelsContainer: pad for nav bar (bottom + sides) — only exists in landscape layout
+        binding.root.findViewById<android.view.View?>(R.id.bottomPanelsContainer)?.also { container ->
+            ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+                val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                view.setPadding(sys.left, view.paddingTop, sys.right, sys.bottom)
+                insets
+            }
+            container.post { container.requestApplyInsets() }
+        }
+    }
+
     // ── Close Button & Back Navigation ────────────────────────────────────
 
     private fun setupCloseButton() {
@@ -409,7 +514,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             .setTitle(R.string.confirm_delete_title)
             .setMessage(getString(R.string.confirm_delete_standalone, file.name))
             .setPositiveButton(R.string.delete) { _, _ ->
-                performDelete(Uri.parse(file.contentUri ?: file.path), file.name)
+                performDelete((file.contentUri ?: file.path).toUri(), file.name)
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -511,7 +616,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun shareCurrentFile() {
         val file = viewModel.state.value.mediaFile ?: return
-        val uri = Uri.parse(file.contentUri ?: file.path)
+        val uri = (file.contentUri ?: file.path).toUri()
         val mimeType = contentResolver.getType(uri) ?: "*/*"
 
         val shareUri = if (uri.scheme == "file") {
@@ -537,7 +642,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun openInFms() {
         val file = viewModel.state.value.mediaFile ?: return
-        val uri = Uri.parse(file.contentUri ?: file.path)
+        val uri = (file.contentUri ?: file.path).toUri()
         val localPath = resolveToLocalPath(uri)
 
         if (localPath != null) {
@@ -601,6 +706,71 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
 
+    // ── Video Controls Setup ─────────────────────────────────────────────
+
+    private fun setupVideoControls(pv: androidx.media3.ui.PlayerView) {
+        if (!BuildConfig.SUPPORT_VIDEO) return
+
+        val fsManager = StandaloneFullscreenManager(this)
+        fullscreenManager = fsManager
+        fsManager.enterFullscreen()
+
+        val trackManager = VideoTrackSelectionManager(
+            getPlayer = { viewManager.getExoPlayer() },
+            getPlayerView = { pv }
+        )
+
+        val settingsManager = StandalonePlayerSettingsManager(
+            activity = this,
+            playerView = pv,
+            settingsRepository = settingsRepository,
+            trackSelectionManager = trackManager,
+            lifecycleScope = lifecycleScope
+        )
+        playerSettingsManager = settingsManager
+
+        val controlsManager = StandaloneVideoControlsManager(
+            playerView = pv,
+            callback = object : StandaloneVideoControlsManager.StandaloneVideoControlsCallback {
+                override fun showPlaybackSpeedDialog() = settingsManager.showPlaybackSpeedDialog()
+                override fun showAudioTrackDialog() = settingsManager.showAudioTrackDialog()
+                override fun showSubtitleTrackDialog() = settingsManager.showSubtitleTrackDialog()
+            }
+        )
+        videoControlsManager = controlsManager
+        controlsManager.setupVideoControls()
+
+        // Detect track availability once media is ready via a listener
+        viewManager.getExoPlayer()?.addListener(object : androidx.media3.common.Player.Listener {
+            override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+                controlsManager.updateTrackButtonsVisibility(
+                    hasMultipleAudio = trackManager.hasMultipleAudioTracks(),
+                    hasSubtitles = trackManager.hasSubtitleTracks()
+                )
+            }
+        })
+
+        val touchDelegate = StandaloneVideoTouchDelegate(
+            activity = this,
+            playerView = pv,
+            rootView = binding.root
+        )
+        touchDelegate.attachIndicator(binding.tvVideoGestureIndicator)
+        videoTouchDelegate = touchDelegate
+
+        @SuppressLint("ClickableViewAccessibility")
+        val touchListener = android.view.View.OnTouchListener { _, event ->
+            val consumed = touchDelegate.handleTouchEvent(event)
+            if (!consumed && event.actionMasked == android.view.MotionEvent.ACTION_UP) {
+                pv.performClick()
+            }
+            consumed
+        }
+        pv.setOnTouchListener(touchListener)
+
+        Timber.d("StandalonePlayer: video controls setup complete")
+    }
+
     // ── Media Type Routing ────────────────────────────────────────────────
 
     private fun observeViewModelState() {
@@ -633,7 +803,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         return@collect
                     }
 
-                    viewManager.show(file, type)
+                    val onVideoReady: ((androidx.media3.ui.PlayerView) -> Unit)? =
+                        if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
+                    viewManager.show(file, type, onVideoReady)
                 }
             }
         }

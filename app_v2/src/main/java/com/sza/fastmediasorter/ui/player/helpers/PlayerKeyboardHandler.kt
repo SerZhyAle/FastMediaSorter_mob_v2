@@ -55,6 +55,10 @@ class PlayerKeyboardHandler(
         fun onTextEnd()
         fun onSeekForward(seconds: Int)
         fun onSeekBackward(seconds: Int)
+        /** Mouse-wheel scroll on EPUB — positive = scroll up (previous chapter), negative = down (next chapter). */
+        fun onEpubScrollDelta(verticalScroll: Float)
+        /** Mouse-wheel scroll on non-document media — delegate to navigation manager. */
+        fun onNavigationScroll(verticalScroll: Float)
     }
     
     /**
@@ -434,32 +438,34 @@ class PlayerKeyboardHandler(
     }
     
     /**
-     * Handle mouse scroll events for PDF/TXT page navigation
+     * Handle mouse scroll events for all media types:
+     * - PDF: page navigation
+     * - TEXT: scroll up/down
+     * - EPUB: chapter navigation
+     * - Other: navigate between files via navigation manager
      */
     fun handleGenericMotionEvent(event: MotionEvent?): Boolean {
         if (event?.action != MotionEvent.ACTION_SCROLL) return false
-        
-        val currentType = callback.getCurrentMediaType()
         val scrollY = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
-        
-        when (currentType) {
+        if (scrollY == 0f) return false
+
+        when (callback.getCurrentMediaType()) {
             MediaType.PDF -> {
-                if (scrollY > 0) {
-                    callback.onPdfPreviousPage()
-                } else if (scrollY < 0) {
-                    callback.onPdfNextPage()
-                }
+                if (scrollY > 0) callback.onPdfPreviousPage() else callback.onPdfNextPage()
                 return true
             }
             MediaType.TEXT -> {
-                if (scrollY > 0) {
-                    callback.onTextScrollUp()
-                } else if (scrollY < 0) {
-                    callback.onTextScrollDown()
-                }
+                if (scrollY > 0) callback.onTextScrollUp() else callback.onTextScrollDown()
                 return true
             }
-            else -> return false
+            MediaType.EPUB -> {
+                callback.onEpubScrollDelta(scrollY)
+                return true
+            }
+            else -> {
+                callback.onNavigationScroll(scrollY)
+                return true
+            }
         }
     }
 }

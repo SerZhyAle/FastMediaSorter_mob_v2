@@ -130,4 +130,15 @@ class PlayerKeyboardCallbackImpl(
     override fun onSeekBackward(seconds: Int) {
         if (activity._videoPlayerManager != null) activity.videoPlayerManager.seekBackward(seconds)
     }
+
+    override fun onEpubScrollDelta(verticalScroll: Float) {
+        if (activity._epubViewerManager != null) {
+            if (verticalScroll > 0) activity.epubViewerManager.showPreviousChapter()
+            else activity.epubViewerManager.showNextChapter()
+        }
+    }
+
+    override fun onNavigationScroll(verticalScroll: Float) {
+        activity.navigationManager.handleMouseWheelScroll(verticalScroll)
+    }
 }

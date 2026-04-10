@@ -488,6 +488,9 @@
     <string name="select_audio_track">Select Audio Track</string>
     <string name="select_subtitle_track">Select Subtitles</string>
     <string name="subtitle_off">Off</string>
+    <string name="cd_playback_speed">Playback speed</string>
+    <string name="cd_audio_track">Audio track</string>
+    <string name="cd_subtitle_track">Subtitles</string>
     <string name="track_unknown">Track %d</string>
     <string name="repeat_mode">Repeat</string>
     <string name="resource_name">Folder Name</string>
@@ -745,6 +748,16 @@
     <string name="error_network_generic">Network error. Please try again.</string>
     <string name="error_smb_mobile_network">SMB resource is not accessible via mobile network. SMB works only on a local Wi&#8209;Fi network. Connect to the same network as the device (%1$s).</string>
     <string name="error_smb_not_on_local_network">Cannot connect to SMB resource. Make sure you are on the same local network as the device and that it is powered on.</string>
+
+    <!-- Standalone player playback error messages -->
+    <string name="error_file_not_found">File not found or cannot be opened.</string>
+    <string name="error_network_connection">Network connection failed. Check your connection and try again.</string>
+    <string name="error_codec_unsupported">This format is not supported on your device.</string>
+    <string name="error_playback_timeout">Playback timed out. Check your connection and try again.</string>
+    <string name="error_network_playback">Remote server error. Playback failed.</string>
+    <string name="error_behind_live_window">Missed live position. Seeking to live edge.</string>
+    <string name="error_invalid_format">Invalid or corrupted media file.</string>
+    <string name="error_playback_failed">Playback failed. The file may be corrupted or unsupported.</string>
 
     <!-- Welcome Screen -->
     <string name="skip">Skip</string>

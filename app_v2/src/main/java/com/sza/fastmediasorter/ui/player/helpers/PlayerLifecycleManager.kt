@@ -4,12 +4,18 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -139,6 +145,23 @@ class PlayerLifecycleManager(
      * Prevents memory leaks and ensures proper resource disposal.
      */
     private fun releaseResources() {
+        // Dismiss all tracked dialogs to prevent WindowLeaked
+        try { activity.dialogHelper.dismissAll() } catch (_: UninitializedPropertyAccessException) {}
+
+        // Release managers with explicit teardown
+        activity.backgroundMusicManager.release()
+        activity.audioBackgroundPhotosManager.release()
+        activity.audioServiceController?.release()
+        activity.audioServiceController = null
+        activity.sleepTimerManager?.release()
+        activity.sleepTimerManager = null
+        activity.audioEmptyStateController?.release()
+        activity.audioEmptyStateController = null
+        activity.pipManager?.release()
+        activity.pipManager = null
+        if (activity._textViewerManager != null) activity.textViewerManager.release()
+        try { activity.castMediaManager.release() } catch (_: UninitializedPropertyAccessException) {}
+
         // Cancel all active network operations for current resource
         activeResourceKey?.let { resourceKey ->
             com.sza.fastmediasorter.data.network.ConnectionThrottleManager.cancelAllForResource(resourceKey)
@@ -241,5 +264,65 @@ class PlayerLifecycleManager(
      */
     fun removePreloadJob(job: Job) {
         preloadJobs.remove(job)
+    }
+
+    /**
+     * Save current playback position for video/audio files.
+     * Called from PlayerActivity.onPause().
+     */
+    fun saveCurrentPlaybackPosition() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        if (currentFile.type != MediaType.VIDEO && currentFile.type != MediaType.AUDIO) return
+        viewModel.saveResumeState()
+        val player = if (activity._videoPlayerManager != null) activity.videoPlayerManager.getPlayer() else null
+        val position = player?.currentPosition ?: return
+        val duration = player.duration
+        if (duration <= 0 || position < 0) return
+        activity.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                activity.playbackPositionRepository.savePosition(currentFile.path, position, duration)
+                Timber.d("PlayerLifecycleManager: Saved playback position $position/$duration for ${currentFile.name}")
+            } catch (e: Exception) {
+                Timber.e(e, "PlayerLifecycleManager: Failed to save playback position for ${currentFile.name}")
+            }
+        }
+    }
+
+    /**
+     * Register back-press handler for fullscreen viewers and overlay dismissal.
+     * Called from PlayerActivity.setupViews() after all managers are initialized.
+     */
+    fun setupBackPressHandler() {
+        activity.onBackPressedDispatcher.addCallback(activity, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (activity._pdfViewerManager != null && activity.pdfViewerManager.isInFullscreenMode()) {
+                    activity.pdfViewerManager.exitFullscreenMode()
+                    return
+                }
+                if (activity._epubViewerManager != null && activity.epubViewerManager.isInFullscreenMode()) {
+                    activity.epubViewerManager.onExitFullscreenRequest()
+                    return
+                }
+                if (activity.isOverlayBlocking()) {
+                    val safeViews = activity.safeViews
+                    val binding = activity.activityBinding
+                    when {
+                        safeViews.translationOverlay.isVisible || binding.translationLensOverlay.isVisible -> {
+                            activity.stopTranslation()
+                            return
+                        }
+                        safeViews.textViewerContainer.isVisible -> {
+                            safeViews.textViewerContainer.isVisible = false
+                            return
+                        }
+                        safeViews.lyricsViewerContainer.isVisible -> {
+                            activity.hideLyricsViewer()
+                            return
+                        }
+                    }
+                }
+                activity.exitPlayerWithAudioCheck()
+            }
+        })
     }
 }

@@ -529,6 +529,16 @@ class TextViewerManager(
         
         // Show text action buttons in command panel
         binding.btnCopyTextCmd.isVisible = true
+        // Restore text-copy handler (may have been overridden by PdfViewerManager)
+        binding.btnCopyTextCmd.setOnClickListener {
+            val text = safeViews.tvTextContent.text.toString()
+            if (text.isNotEmpty()) {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("text", text)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show()
+            }
+        }
         binding.btnSearchTextCmd.isVisible = true
         
         // Apply saved font size (persists during session)

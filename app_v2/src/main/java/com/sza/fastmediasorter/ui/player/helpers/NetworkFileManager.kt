@@ -69,9 +69,25 @@ class NetworkFileManager(
             if (f.exists()) return f
             throw java.io.FileNotFoundException("Local file not found: ${mediaFile.path}")
         }
-        
+
+        // Content URIs from external intents (e.g. "Open With") — copy to temp file
+        if (mediaFile.path.startsWith("content://")) {
+            return copyContentUriToTemp(mediaFile)
+        }
+
         // Network files - download to temp cache
         return downloadNetworkFileForRead(mediaFile)
+    }
+
+    private suspend fun copyContentUriToTemp(mediaFile: MediaFile): File = withContext(Dispatchers.IO) {
+        val uri = android.net.Uri.parse(mediaFile.path)
+        val ext = mediaFile.name.substringAfterLast('.', "bin")
+        val tempFile = File(context.cacheDir, "standalone_content_${System.currentTimeMillis()}.$ext")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            tempFile.outputStream().use { output -> input.copyTo(output) }
+        } ?: throw java.io.IOException("Cannot open content URI: ${mediaFile.path}")
+        Timber.d("NetworkFileManager: content URI copied to temp file: ${tempFile.path}")
+        tempFile
     }
     
     /**

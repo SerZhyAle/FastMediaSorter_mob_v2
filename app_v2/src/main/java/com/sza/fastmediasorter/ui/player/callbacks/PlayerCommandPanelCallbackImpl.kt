@@ -169,7 +169,12 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onCopyTextClicked() {
-        activity.activityBinding.btnCopyTextCmd.performClick()
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile?.type == MediaType.PDF) {
+            activity.pdfViewerManager.copyPageTextToClipboard()
+        } else {
+            activity.activityBinding.btnCopyTextCmd.performClick()
+        }
     }
 
     override fun onEditTextClicked() {

@@ -1,0 +1,448 @@
+package com.sza.fastmediasorter.ui.browse.managers
+
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.FileFilter
+import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.usecase.CleanupOrphanedTempFilesUseCase
+import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
+import com.sza.fastmediasorter.ui.browse.BrowseEvent
+import com.sza.fastmediasorter.ui.browse.BrowseState
+import com.sza.fastmediasorter.ui.browse.cache.BrowseCacheManager
+import com.sza.fastmediasorter.ui.browse.loading.BrowseLoadingManager
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import androidx.paging.PagingData
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
+
+/**
+ * Manages the main resource and media-file loading pipeline in the Browse screen.
+ *
+ * Responsibilities:
+ * - Load [MediaResource] from DB, restore state, check DB/TTL cache ([loadResource]).
+ * - Scan media files with optional pagination ([loadMediaFiles]).
+ * - Delegate standard scan and pagination setup to [BrowseLoadingManager].
+ * - Own [loadFilesJob], [loadResourceJob], [stopButtonTimerJob], [shouldStopScan].
+ *
+ * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
+ */
+class BrowseResourceLoadManager(
+    private val updateResourceUseCase: UpdateResourceUseCase,
+    private val cachedFileListRepository: CachedFileListRepository,
+    private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
+    private val favoritesUseCase: FavoritesUseCase,
+    private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
+    private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
+    private val getResourcesUseCase: com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase,
+    private val cacheManager: BrowseCacheManager,
+    private val loadingManager: BrowseLoadingManager,
+    private val scope: CoroutineScope,
+    private val ioDispatcher: CoroutineDispatcher,
+    private val exceptionHandler: CoroutineContext,
+    private val stateFlow: StateFlow<BrowseState>,
+    private val updateState: ((BrowseState) -> BrowseState) -> Unit,
+    private val sendEvent: (BrowseEvent) -> Unit,
+    private val setLoading: (Boolean) -> Unit,
+    private val isLoading: () -> Boolean,
+    private val getSettings: suspend () -> AppSettings,
+    private val resourceId: Long,
+    private val skipAvailabilityCheck: Boolean,
+    private val paginationThreshold: Int,
+    // — Job-reference setters (fields owned by BrowseViewModel) —
+    private val setLoadFilesJobRef: (Job?) -> Unit,
+    private val setLoadResourceJobRef: (Job?) -> Unit,
+    private val setStopButtonTimerJobRef: (Job?) -> Unit,
+    private val shouldStopScanRef: AtomicBoolean,
+    // — Cross-manager callbacks —
+    private val loadFavorites: () -> Unit,
+    private val onFilesLoadedSaveAndEnrich: suspend (MediaResource, List<MediaFile>) -> Unit,
+    private val onHandleLoadingError: (MediaResource, Throwable) -> Unit,
+    private val schedulePlayerWarmup: suspend (List<MediaFile>) -> Unit,
+    private val updateResourceMetadata: suspend (MediaResource, Int, Int) -> Unit,
+    private val startFileObserver: () -> Unit,
+    private val sortFiles: (List<MediaFile>, SortMode, Boolean) -> List<MediaFile>,
+    private val setPagingDataFlow: (Flow<PagingData<MediaFile>>?) -> Unit
+) {
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    /**
+     * Load (or restore from cache) the resource identified by [resourceId].
+     * Calls [loadMediaFiles] internally when a fresh scan is needed.
+     */
+    fun loadResource(forceRescan: Boolean = false) {
+        Timber.d("BrowseResourceLoadManager.loadResource: START — resourceId=$resourceId")
+        val job = scope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+
+            if (resourceId == -100L) { // FAVORITES_RESOURCE_ID
+                Timber.d("BrowseResourceLoadManager.loadResource: Favorites resource")
+                val favoritesResource = MediaResource(
+                    id = -100L, name = "Favorites", path = "Favorites",
+                    type = ResourceType.LOCAL, isAvailable = true,
+                    fileCount = 0, isWritable = false
+                )
+                updateState {
+                    it.copy(
+                        resource = favoritesResource,
+                        sortMode = SortMode.DATE_DESC,
+                        displayMode = DisplayMode.LIST,
+                        isCloudResource = false,
+                        filter = null
+                    )
+                }
+                loadFavorites()
+                return@launch
+            }
+
+            val resource = getResourcesUseCase.getById(resourceId)
+            if (resource == null) {
+                Timber.e("BrowseResourceLoadManager.loadResource: resource not found for id=$resourceId")
+                sendEvent(BrowseEvent.ShowError("Resource not found"))
+                setLoading(false)
+                return@launch
+            }
+
+            // Configure ConnectionThrottleManager thread count for this resource
+            if (resource.recommendedThreads != null) {
+                val key = when {
+                    resource.path.startsWith("smb://") -> resource.path.substringBefore("/", resource.path)
+                    resource.path.startsWith("ftp://") -> "ftp://" + resource.path.substringAfter("://").substringBefore("/")
+                    resource.path.startsWith("sftp://") -> "sftp://" + resource.path.substringAfter("://").substringBefore("/")
+                    else -> resource.path
+                }
+                ConnectionThrottleManager.setRecommendedThreads(key, resource.recommendedThreads)
+                Timber.d("BrowseResourceLoadManager: configured throttle for $key × ${resource.recommendedThreads}")
+            }
+
+            Timber.d("BrowseResourceLoadManager.loadResource: '${resource.name}' type=${resource.type} fileCount=${resource.fileCount}")
+            Timber.i("║ supportedMediaTypes: ${resource.supportedMediaTypes.map { it.name }}")
+
+            val isNetworkResource = resource.type in setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)
+            if (!skipAvailabilityCheck && !isNetworkResource && resource.fileCount == 0 && !resource.isWritable) {
+                Timber.w("BrowseResourceLoadManager.loadResource: unavailable resource")
+                sendEvent(BrowseEvent.ShowError(
+                    message = "Resource '${resource.name}' is unavailable. Check network connection or resource settings.",
+                    details = "Resource ID: ${resource.id}\nType: ${resource.type}\nPath: ${resource.path}"
+                ))
+                setLoading(false)
+                return@launch
+            }
+
+            val isCloudResource = resource.type == ResourceType.CLOUD
+            val restoredFilter = if (resource.supportedMediaTypes.size < 7) {
+                FileFilter(mediaTypes = resource.supportedMediaTypes)
+            } else null
+
+            Timber.d("BrowseResourceLoadManager.loadResource: restoredFilter=${restoredFilter != null}, sortMode=${resource.sortMode}")
+
+            val initialSubfolderMode = resource.scanSubdirectories && resource.showSubfoldersAsItems
+            val effectiveDisplayMode = if (resource.isAudioOnly()) DisplayMode.LIST else resource.displayMode
+            val effectiveResource = if (resource.displayMode != effectiveDisplayMode) resource.copy(displayMode = effectiveDisplayMode) else resource
+
+            val effectiveSortMode = if (resource.sortMode == SortMode.NAME_ASC) {
+                when (resource.profile) {
+                    ResourceProfile.AUDIO_LIBRARY -> SortMode.ARTIST_ASC
+                    ResourceProfile.PHOTO_STORAGE -> SortMode.DATE_TAKEN_DESC
+                    else -> resource.sortMode
+                }
+            } else resource.sortMode
+
+            updateState {
+                it.copy(
+                    resource = effectiveResource,
+                    sortMode = effectiveSortMode,
+                    displayMode = effectiveDisplayMode,
+                    isCloudResource = isCloudResource,
+                    filter = restoredFilter,
+                    isSubfolderMode = initialSubfolderMode,
+                    currentPath = null,
+                    pathStack = emptyList()
+                )
+            }
+
+            if (effectiveResource != resource) updateResourceUseCase(effectiveResource)
+
+            // Try DB-cached file list (rememberFileList mode)
+            if (resource.rememberFileList && !forceRescan && !initialSubfolderMode) {
+                try {
+                    val dbCache = cachedFileListRepository.getCachedFiles(resource.id)
+                    if (!dbCache.isNullOrEmpty()) {
+                        val filtered = if (!resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
+                            dbCache.filter { it.isDirectory || resource.supportedMediaTypes.contains(it.type) }
+                        } else dbCache
+                        audioMetadataLoader.warmMemoryCacheForResource(resource.id)
+                        MediaFilesCacheManager.setCachedList(resource.id, filtered)
+                        updateState { it.copy(mediaFiles = filtered, totalFileCount = filtered.size) }
+                        schedulePlayerWarmup(filtered)
+                        setLoading(false)
+                        updateResourceMetadata(resource, filtered.size, -1)
+                        onFilesLoadedSaveAndEnrich(resource, filtered)
+                        Timber.i("BrowseResourceLoadManager.loadResource: loaded ${filtered.size} from DB cache")
+                        return@launch
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "BrowseResourceLoadManager.loadResource: DB cache load failed")
+                }
+            }
+
+            // Google Drive: verify authentication
+            if (resource.type == ResourceType.CLOUD && resource.cloudProvider == CloudProvider.GOOGLE_DRIVE) {
+                if (!googleDriveClient.isAuthenticated()) {
+                    val restored = googleDriveClient.tryRestoreFromStorage()
+                    Timber.d("BrowseResourceLoadManager.loadResource: GDrive auth restore=${restored}")
+                }
+                val testResult = googleDriveClient.listFiles(resource.cloudFolderId ?: "root")
+                if (testResult is com.sza.fastmediasorter.data.cloud.CloudResult.Error) {
+                    val msg = testResult.message
+                    if (msg.contains("401", ignoreCase = true) || msg.contains("unauthorized", ignoreCase = true) ||
+                        msg.contains("authentication", ignoreCase = true) || msg.contains("not authenticated", ignoreCase = true)
+                    ) {
+                        sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(resource.cloudProvider))
+                        setLoading(false)
+                        return@launch
+                    }
+                }
+            }
+
+            // TTL-based RAM cache check
+            when (val cacheResult = cacheManager.checkCache(
+                filter = restoredFilter ?: FileFilter(),
+                lastBrowseDate = resource.lastBrowseDate
+            )) {
+                is BrowseCacheManager.CacheCheckResult.UseCache -> {
+                    var filteredFiles = if (resource.scanSubdirectories) {
+                        cacheResult.files
+                    } else {
+                        val rootPath = resource.path.trimEnd('/')
+                        cacheResult.files.filter { file ->
+                            if (file.isDirectory) return@filter false
+                            file.path.trimEnd('/').substringBeforeLast('/', "").trimEnd('/') == rootPath
+                        }
+                    }
+                    if (!resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
+                        filteredFiles = filteredFiles.filter { it.isDirectory || resource.supportedMediaTypes.contains(it.type) }
+                    }
+                    val reconciledFiles = try {
+                        val paths = filteredFiles.filter { !it.isDirectory }.map { it.path }
+                        if (paths.isEmpty()) filteredFiles
+                        else {
+                            val favMap = favoritesUseCase.getFavoritesForPaths(paths)
+                            filteredFiles.map { if (it.isDirectory) it else it.copy(isFavorite = favMap[it.path] == true) }
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "BrowseResourceLoadManager.loadResource: favorites reconcile failed")
+                        filteredFiles
+                    }
+                    audioMetadataLoader.warmMemoryCacheForResource(resource.id)
+                    updateState { it.copy(mediaFiles = reconciledFiles, totalFileCount = reconciledFiles.size) }
+                    schedulePlayerWarmup(reconciledFiles)
+                    setLoading(false)
+                    updateResourceMetadata(resource, reconciledFiles.size, -1)
+                    onFilesLoadedSaveAndEnrich(resource, reconciledFiles)
+                    Timber.d("BrowseResourceLoadManager.loadResource: cache hit — ${reconciledFiles.size} files")
+                    return@launch
+                }
+                is BrowseCacheManager.CacheCheckResult.Rescan ->
+                    Timber.d("BrowseResourceLoadManager.loadResource: cache rejected — ${cacheResult.reason}")
+            }
+
+            Timber.d("BrowseResourceLoadManager.loadResource: starting fresh scan")
+            loadMediaFiles()
+        }
+        setLoadResourceJobRef(job)
+    }
+
+    /**
+     * Scan the current resource's media files.
+     * Cancels any in-flight scan, starts a new [loadFilesJob].
+     */
+    fun loadMediaFiles() {
+        val resource = stateFlow.value.resource ?: return
+
+        if (resource.id == -100L) { loadFavorites(); return }
+
+        Timber.d("BrowseResourceLoadManager.loadMediaFiles: '${resource.name}' (id=${resource.id})")
+
+        // Cancel any previous load
+        // (loadFilesJob is owned externally via setLoadFilesJobRef — we cancel the current before launching)
+        updateState { it.copy(loadingProgress = 0, isScanCancellable = false) }
+
+        var lastProgressUpdate = 0
+        val progressJob = scope.launch(ioDispatcher) {
+            while (true) {
+                delay(2000)
+                val p = stateFlow.value.loadingProgress
+                if (p > 0 && p != lastProgressUpdate) lastProgressUpdate = p
+            }
+        }
+
+        val filesJob = scope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            shouldStopScanRef.set(false)
+
+            // Cleanup orphaned temp files (non-blocking)
+            try {
+                cleanupOrphanedTempFilesUseCase(resource.path).fold(
+                    onSuccess = { n -> if (n > 0) Timber.i("BrowseResourceLoadManager: cleaned $n orphaned temp file(s)") },
+                    onFailure = { e -> Timber.w(e, "BrowseResourceLoadManager: temp cleanup failed (non-critical)") }
+                )
+            } catch (e: Exception) {
+                Timber.w(e, "BrowseResourceLoadManager: temp cleanup exception (non-critical)")
+            }
+
+            // Show STOP button after 5 s
+            val stopTimerJob = launch {
+                delay(5_000L)
+                if (isLoading()) {
+                    updateState { it.copy(isScanCancellable = true) }
+                    Timber.d("BrowseResourceLoadManager: scan >5s, showing STOP button")
+                }
+            }
+            setStopButtonTimerJobRef(stopTimerJob)
+
+            val settings = getSettings()
+            val sizeFilter = SizeFilter(
+                imageSizeMin = settings.imageSizeMin, imageSizeMax = settings.imageSizeMax,
+                videoSizeMin = settings.videoSizeMin, videoSizeMax = settings.videoSizeMax,
+                audioSizeMin = settings.audioSizeMin, audioSizeMax = settings.audioSizeMax
+            )
+
+            val effectiveMediaTypes = if (resource.allFiles) {
+                MediaType.entries.toSet()
+            } else {
+                resource.supportedMediaTypes.intersect(settings.getGloballyEnabledMediaTypes())
+            }
+            val resourceForScan = if (effectiveMediaTypes != resource.supportedMediaTypes) {
+                resource.copy(supportedMediaTypes = effectiveMediaTypes)
+            } else resource
+
+            if (resource.fileCount > 0 && resource.lastBrowseDate != null) {
+                updateState { it.copy(totalFileCount = resource.fileCount) }
+            }
+
+            try {
+                loadMediaFilesStandard(resourceForScan, sizeFilter, progressJob)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Timber.e(e, "BrowseResourceLoadManager.loadMediaFiles: error")
+                progressJob.cancel()
+                loadMediaFilesStandard(resourceForScan, sizeFilter, progressJob)
+            } finally {
+                stopTimerJob.cancel()
+            }
+        }
+        setLoadFilesJobRef(filesJob)
+    }
+
+    /** Cancel [loadFilesJob] and set [shouldStopScan] (used by navigation manager). */
+    fun cancelLoad(loadFilesJob: Job?) {
+        loadFilesJob?.cancel()
+        shouldStopScanRef.set(true)
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private suspend fun loadMediaFilesStandard(
+        resource: MediaResource,
+        sizeFilter: SizeFilter,
+        progressJob: Job? = null
+    ) {
+        val settings = getSettings()
+        val showHiddenFiles = settings.showHiddenFiles || resource.showHiddenFiles
+
+        val callbacks = object : BrowseLoadingManager.LoadingCallbacks {
+            override suspend fun updateLoadingProgress(progress: Int) {
+                updateState { it.copy(loadingProgress = progress) }
+            }
+
+            override suspend fun updateState(
+                mediaFiles: List<MediaFile>,
+                usePagination: Boolean,
+                loadingProgress: Int,
+                totalFileCount: Int,
+                isScanCancellable: Boolean
+            ) {
+                this@BrowseResourceLoadManager.updateState {
+                    it.copy(
+                        mediaFiles = mediaFiles,
+                        usePagination = usePagination,
+                        loadingProgress = loadingProgress,
+                        totalFileCount = totalFileCount,
+                        isScanCancellable = isScanCancellable
+                    )
+                }
+                schedulePlayerWarmup(mediaFiles)
+            }
+
+            override fun setLoading(loading: Boolean) = this@BrowseResourceLoadManager.setLoading(loading)
+
+            override suspend fun handleLoadingError(resource: MediaResource, error: Throwable) =
+                onHandleLoadingError(resource, error)
+
+            override suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int, subfolderCount: Int) =
+                this@BrowseResourceLoadManager.updateResourceMetadata(resource, fileCount, subfolderCount)
+
+            override suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>) =
+                onFilesLoadedSaveAndEnrich(resource, files)
+
+            override fun startFileObserver() = this@BrowseResourceLoadManager.startFileObserver()
+
+            override fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean): List<MediaFile> =
+                this@BrowseResourceLoadManager.sortFiles(files, sortMode, forceSort)
+        }
+
+        val currentState = stateFlow.value
+        loadingManager.loadFilesStandard(
+            resource = resource,
+            sortMode = currentState.sortMode,
+            sizeFilter = sizeFilter,
+            shouldStopScan = shouldStopScanRef,
+            progressJob = progressJob,
+            showHiddenFiles = showHiddenFiles,
+            currentPath = currentState.currentPath,
+            isSubfolderMode = currentState.isSubfolderMode,
+            callbacks = callbacks
+        )
+    }
+
+    private fun loadMediaFilesWithPagination(resource: MediaResource, sizeFilter: SizeFilter) {
+        try {
+            val newFlow = loadingManager.setupPagination(
+                resource = resource,
+                sortMode = stateFlow.value.sortMode,
+                sizeFilter = sizeFilter
+            )
+            setPagingDataFlow(newFlow)
+            updateState { it.copy(usePagination = true, mediaFiles = emptyList()) }
+            setLoading(false)
+            scope.launch(ioDispatcher) {
+                val actualFileCount = stateFlow.value.totalFileCount ?: 0
+                updateResourceMetadata(resource, actualFileCount, -1)
+            }
+            Timber.d("BrowseResourceLoadManager: pagination enabled for '${resource.name}'")
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Timber.e(e, "BrowseResourceLoadManager: pagination setup failed")
+            onHandleLoadingError(resource, e)
+            setLoading(false)
+        }
+    }
+}

@@ -205,9 +205,11 @@
         <!-- Standalone Player for external intents -->
         <activity
             android:name=".ui.player.StandalonePlayerActivity"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:exported="true"
-            android:theme="@style/Theme.FastMediaSorter" />
+            android:screenOrientation="sensor"
+            android:supportsPictureInPicture="true"
+            android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 

@@ -14,13 +14,13 @@ import android.widget.ImageButton
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
-import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
 /**
- * Manages Picture-in-Picture mode for PlayerActivity.
+ * Manages Picture-in-Picture mode for PlayerActivity and StandalonePlayerActivity.
  *
  * Scope: Android 12+ (API 31+) only.
  * - Auto-enter PiP on home button press (when video playing)
@@ -31,7 +31,9 @@ import timber.log.Timber
 class PictureInPictureManager(
     private val activity: android.app.Activity,
     private val binding: ActivityPlayerUnifiedBinding,
-    private val videoPlayerManager: VideoPlayerManager,
+    private val getPlayer: () -> ExoPlayer?,
+    private val onPlay: () -> Unit,
+    private val onPause: () -> Unit,
     private val isVideoPlaying: () -> Boolean
 ) {
     private var pipReceiver: BroadcastReceiver? = null
@@ -139,7 +141,7 @@ class PictureInPictureManager(
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun buildPipParams(): PictureInPictureParams {
-        val isPlaying = videoPlayerManager.getPlayer()?.isPlaying == true
+        val isPlaying = getPlayer()?.isPlaying == true
 
         val playAction = createRemoteAction(
             if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
@@ -186,12 +188,12 @@ class PictureInPictureManager(
                 val controlType = intent?.getIntExtra(EXTRA_CONTROL_TYPE, 0) ?: return
                 when (controlType) {
                     CONTROL_PLAY -> {
-                        videoPlayerManager.play()
+                        onPlay()
                         updatePipActions()
                         Timber.d("PiPManager: remote action PLAY")
                     }
                     CONTROL_PAUSE -> {
-                        videoPlayerManager.pause()
+                        onPause()
                         updatePipActions()
                         Timber.d("PiPManager: remote action PAUSE")
                     }

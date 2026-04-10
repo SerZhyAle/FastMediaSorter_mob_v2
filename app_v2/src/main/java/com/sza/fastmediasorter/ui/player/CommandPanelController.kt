@@ -325,7 +325,7 @@ class CommandPanelController(
             safeViews.btnSearchPdfCmd.isVisible = isPdf && isLandscapeMode
             
             // Text Actions
-            safeViews.btnCopyTextCmd.isVisible = isText && isLandscapeMode
+            safeViews.btnCopyTextCmd.isVisible = (isText || isPdf) && isLandscapeMode
             safeViews.btnEditTextCmd.isVisible = isText && isLandscapeMode && canWrite // Edit text requires write
             safeViews.btnTranslateTextCmd.isVisible = isText && isLandscapeMode
             safeViews.btnTextSettingsCmd.isVisible = isText && isLandscapeMode
@@ -764,7 +764,7 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_text_settings)?.isVisible = true // Always visible
         popup.menu.findItem(R.id.menu_ocr)?.isVisible = (isPdf || isImage || isEpub) && state.enableOcr
         popup.menu.findItem(R.id.menu_google_lens)?.isVisible = (isPdf || isImage) && state.enableGoogleLens
-        popup.menu.findItem(R.id.menu_copy_text)?.isVisible = isText
+        popup.menu.findItem(R.id.menu_copy_text)?.isVisible = isText || isPdf
         popup.menu.findItem(R.id.menu_edit_text)?.isVisible = isText && !isReadOnly
         popup.menu.findItem(R.id.menu_undo)?.isVisible = state.lastOperation != null && !isReadOnly
         popup.menu.findItem(R.id.menu_sleep_timer)?.isVisible = currentFile.type == MediaType.AUDIO || currentFile.type == MediaType.VIDEO

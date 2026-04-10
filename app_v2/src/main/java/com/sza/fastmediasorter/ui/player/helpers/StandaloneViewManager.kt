@@ -4,10 +4,14 @@ import android.app.Activity
 import android.content.res.Configuration
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
@@ -27,6 +31,12 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -102,7 +112,11 @@ class StandaloneViewManager(
     }
 
     private var exoPlayer: ExoPlayer? = null
+    private var videoPositionSaveJob: Job? = null
+    private var lastSavedPosition: Long = -1L
+    private var currentVideoFilePath: String? = null
     private var audioServiceController: AudioServiceController? = null
+    private var audioFocusManager: AudioFocusManager? = null
 
     private var _pdfViewerManager: PdfViewerManager? = null
     private val pdfViewerManager: PdfViewerManager
@@ -118,13 +132,17 @@ class StandaloneViewManager(
 
     // ── Public API ──────────────────────────────────────────────────────────
 
-    fun show(mediaFile: MediaFile, mediaType: MediaType) {
+    fun getExoPlayer(): ExoPlayer? = exoPlayer
+
+    fun isVideoPlaying(): Boolean = exoPlayer?.isPlaying == true
+
+    fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
         Timber.d("StandaloneViewManager: showing $mediaType — ${mediaFile.name}")
         hidePhotoAndPlayerViews()
         when (mediaType) {
             MediaType.IMAGE -> showImage(mediaFile)
             MediaType.GIF   -> showGif(mediaFile)
-            MediaType.VIDEO -> playVideo(mediaFile)
+            MediaType.VIDEO -> playVideo(mediaFile, onVideoReady)
             MediaType.AUDIO -> playAudio(mediaFile)
             MediaType.PDF   -> showPdf(mediaFile)
             MediaType.EPUB  -> showEpub(mediaFile)
@@ -137,8 +155,42 @@ class StandaloneViewManager(
         }
     }
 
+    // ── Lifecycle hooks ──────────────────────────────────────────────────────
+
+    fun onResume() {
+        exoPlayer?.playWhenReady = true
+        audioServiceController?.player?.playWhenReady = true
+        acquireWakeLock()
+    }
+
+    fun onPause() {
+        exoPlayer?.playWhenReady = false
+        audioServiceController?.player?.playWhenReady = false
+        releaseWakeLock()
+        lifecycleScope.launch { saveCurrentPosition() }
+        stopPositionAutoSave()
+    }
+
     fun release() {
         Timber.d("StandaloneViewManager: release")
+        stopPositionAutoSave()
+        // Capture position before releasing the player — a coroutine launched after release() would arrive too late.
+        val pathToSave = currentVideoFilePath
+        val pos = exoPlayer?.currentPosition ?: -1L
+        val dur = exoPlayer?.duration ?: -1L
+        if (pathToSave != null && pos > 0L && dur > 0L && pos != lastSavedPosition) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    playbackPositionRepository.savePosition(pathToSave, pos, dur)
+                    Timber.d("StandaloneViewManager: Saved position on release ${pos}ms/${dur}ms")
+                } catch (e: Exception) {
+                    Timber.e(e, "StandaloneViewManager: Failed to save position on release")
+                }
+            }
+        }
+        releaseWakeLock()
+        audioFocusManager?.releaseFocus()
+        audioFocusManager = null
         exoPlayer?.release()
         exoPlayer = null
         // Standalone mode must never continue audio in background — stop before releasing the service controller.
@@ -161,7 +213,7 @@ class StandaloneViewManager(
         binding.photoDualSurfaceContainer?.let { it.isVisible = true }
         binding.photoView.isVisible = true
         Glide.with(activity.applicationContext)
-            .load(Uri.parse(mediaFile.path))
+            .load(mediaFile.path.toUri())
             .into(binding.photoView)
     }
 
@@ -170,20 +222,34 @@ class StandaloneViewManager(
         binding.photoView.isVisible = true
         Glide.with(activity.applicationContext)
             .asGif()
-            .load(Uri.parse(mediaFile.path))
+            .load(mediaFile.path.toUri())
             .into(binding.photoView)
     }
 
     // ── Video ───────────────────────────────────────────────────────────────
 
-    private fun playVideo(mediaFile: MediaFile) {
+    private fun playVideo(mediaFile: MediaFile, onVideoReady: ((PlayerView) -> Unit)? = null) {
         binding.playerView.isVisible = true
+        binding.playerView.controllerShowTimeoutMs = 5000
         val player = ExoPlayer.Builder(activity).build()
         exoPlayer = player
         binding.playerView.player = player
-        player.setMediaItem(MediaItem.fromUri(Uri.parse(mediaFile.path)))
+        player.addListener(createPlayerErrorListener())
+        audioFocusManager = AudioFocusManager(activity) { isPermanent ->
+            if (isPermanent) player.stop() else player.pause()
+        }
+        audioFocusManager?.requestFocus()
+        currentVideoFilePath = mediaFile.path
+        lastSavedPosition = -1L
+        player.setMediaItem(MediaItem.fromUri(mediaFile.path.toUri()))
         player.prepare()
+        lifecycleScope.launch {
+            restorePlaybackPosition(mediaFile.path)
+            startPositionAutoSave(mediaFile.path)
+        }
         player.playWhenReady = true
+        acquireWakeLock()
+        onVideoReady?.invoke(binding.playerView)
     }
 
     // ── Audio ───────────────────────────────────────────────────────────────
@@ -194,9 +260,14 @@ class StandaloneViewManager(
         binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
         val controller = AudioServiceController(activity)
         audioServiceController = controller
-        controller.playAudio(Uri.parse(mediaFile.path)) { player ->
+        audioFocusManager = AudioFocusManager(activity) { isPermanent ->
+            if (isPermanent) controller.player?.stop() else controller.player?.pause()
+        }
+        audioFocusManager?.requestFocus()
+        controller.playAudio(mediaFile.path.toUri()) { player ->
             binding.playerView.player = player
             binding.playerView.showController()
+            acquireWakeLock()
         }
     }
 
@@ -232,6 +303,85 @@ class StandaloneViewManager(
 
     private fun showToastError(message: String) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun acquireWakeLock() {
+        if (binding.playerView.isVisible) {
+            binding.playerView.keepScreenOn = true
+            Timber.d("StandaloneViewManager: screen wake lock acquired")
+        }
+    }
+
+    private fun releaseWakeLock() {
+        binding.playerView.keepScreenOn = false
+        Timber.d("StandaloneViewManager: screen wake lock released")
+    }
+
+    private fun createPlayerErrorListener(): Player.Listener = object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) {
+            val msg = when (error.errorCode) {
+                PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND           -> activity.getString(R.string.error_file_not_found)
+                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> activity.getString(R.string.error_network_connection)
+                PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK        -> activity.getString(R.string.error_codec_unsupported)
+                PlaybackException.ERROR_CODE_TIMEOUT                     -> activity.getString(R.string.error_playback_timeout)
+                PlaybackException.ERROR_CODE_REMOTE_ERROR                -> activity.getString(R.string.error_network_playback)
+                PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW          -> activity.getString(R.string.error_behind_live_window)
+                PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED  -> activity.getString(R.string.error_invalid_format)
+                else -> error.message ?: activity.getString(R.string.error_playback_failed)
+            }
+            showToastError(msg)
+            Timber.e(error, "StandaloneViewManager: playback error — $msg")
+        }
+    }
+
+    // ── Position tracking ────────────────────────────────────────────────────
+
+    private suspend fun restorePlaybackPosition(filePath: String) {
+        try {
+            val savedPos = playbackPositionRepository.getPosition(filePath)
+            if (savedPos != null && savedPos > 0L) {
+                exoPlayer?.seekTo(savedPos)
+                Timber.d("StandaloneViewManager: Restored position ${savedPos}ms for $filePath")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "StandaloneViewManager: Failed to restore position for $filePath")
+        }
+    }
+
+    private fun startPositionAutoSave(filePath: String) {
+        stopPositionAutoSave()
+        videoPositionSaveJob = lifecycleScope.launch {
+            while (isActive) {
+                delay(POSITION_SAVE_INTERVAL_MS)
+                saveCurrentPosition()
+            }
+        }
+    }
+
+    private fun stopPositionAutoSave() {
+        videoPositionSaveJob?.cancel()
+        videoPositionSaveJob = null
+    }
+
+    private suspend fun saveCurrentPosition() {
+        val path = currentVideoFilePath ?: return
+        val player = exoPlayer ?: return
+        val position = player.currentPosition
+        val duration = player.duration
+        if (position == lastSavedPosition || duration <= 0L || position < 0L) return
+        lastSavedPosition = position
+        try {
+            withContext(Dispatchers.IO) {
+                playbackPositionRepository.savePosition(path, position, duration)
+            }
+            Timber.d("StandaloneViewManager: Saved position ${position}ms/${duration}ms")
+        } catch (e: Exception) {
+            Timber.e(e, "StandaloneViewManager: Failed to save position")
+        }
+    }
+
+    private companion object {
+        const val POSITION_SAVE_INTERVAL_MS = 5_000L
     }
 
     // ── Factory methods ──────────────────────────────────────────────────────

@@ -104,7 +104,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         get() {
             if (_videoPlayerManager == null) {
                 Timber.d("PERFORMANCE: Lazy initializing VideoPlayerManager")
-                _videoPlayerManager = createVideoPlayerManager()
+                _videoPlayerManager = PlayerViewerFactory(this).createVideoPlayerManager()
             }
             return _videoPlayerManager!!
         }
@@ -114,17 +114,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var navigationManager: PlayerNavigationManager
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
-    private var audioEmptyStateController: com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController? = null
-    private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
+    internal var audioEmptyStateController: com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController? = null
+    internal lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
     internal var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
     internal var nowPlayingManager: com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager? = null
     internal var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
-    private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
+    internal var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     internal val safeViews by lazy { PlayerBindingSafeViews(binding) }
-    private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
+    internal lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
 
     internal lateinit var audioSlideshowPhotoModeManager: com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
-    private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
+    internal lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
     
     // LAZY INITIALIZATION: Document viewers only created when needed
@@ -133,7 +133,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         get() {
             if (_pdfViewerManager == null) {
                 Timber.d("PERFORMANCE: Lazy initializing PdfViewerManager")
-                _pdfViewerManager = createPdfViewerManager()
+                _pdfViewerManager = PlayerViewerFactory(this).createPdfViewerManager()
             }
             return _pdfViewerManager!!
         }
@@ -149,7 +149,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         get() {
             if (_epubViewerManager == null) {
                 Timber.d("PERFORMANCE: Lazy initializing EpubViewerManager")
-                _epubViewerManager = createEpubViewerManager()
+                _epubViewerManager = PlayerViewerFactory(this).createEpubViewerManager()
             }
             return _epubViewerManager!!
         }
@@ -159,33 +159,35 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         get() {
             if (_textViewerManager == null) {
                 Timber.d("PERFORMANCE: Lazy initializing TextViewerManager")
-                _textViewerManager = createTextViewerManager()
+                _textViewerManager = PlayerViewerFactory(this).createTextViewerManager()
             }
             return _textViewerManager!!
         }
-    private lateinit var uiStateCoordinator: com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator
+    internal lateinit var uiStateCoordinator: com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator
     internal lateinit var undoOperationManager: com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
     internal lateinit var playerSettingsManager: com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
     internal lateinit var cloudAuthManager: com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
     internal lateinit var translationManager: com.sza.fastmediasorter.ui.player.helpers.TranslationManager
-    private lateinit var touchZoneGestureManager: com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager
+    internal lateinit var touchZoneGestureManager: com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager
     internal lateinit var translationButtonManager: com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager
-    private lateinit var exoPlayerControlsManager: com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
+    internal val isTranslationButtonManagerInitialized: Boolean
+        get() = ::translationButtonManager.isInitialized
+    internal lateinit var exoPlayerControlsManager: com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
     internal lateinit var searchControlsManager: com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
     internal lateinit var lifecycleManager: com.sza.fastmediasorter.ui.player.helpers.PlayerLifecycleManager
-    private lateinit var controlsSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager
-    private lateinit var gestureSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
-    private lateinit var imageOcrManager: com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
-    private lateinit var lyricsManager: com.sza.fastmediasorter.ui.player.helpers.LyricsManager
-    private lateinit var googleLensButtonsManager: com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
-    private lateinit var systemBarsManager: com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
+    internal lateinit var controlsSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager
+    internal lateinit var gestureSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
+    internal lateinit var imageOcrManager: com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
+    internal lateinit var lyricsManager: com.sza.fastmediasorter.ui.player.helpers.LyricsManager
+    internal lateinit var googleLensButtonsManager: com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
+    internal lateinit var systemBarsManager: com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
     internal lateinit var imageTranslationManager: com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
     internal lateinit var shareManager: com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
     internal lateinit var printManager: com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
     internal lateinit var castMediaManager: com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 
-    private val googleSignInLauncher = registerForActivityResult(
+    internal val googleSignInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (::cloudAuthManager.isInitialized) {
@@ -194,7 +196,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
     
     // For handling Android 11+ batch delete permission requests (createDeleteRequest)
-    private val batchDeletePermissionLauncher = registerForActivityResult(
+    internal val batchDeletePermissionLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -228,9 +230,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal val loadingIndicatorHandler = Handler(Looper.getMainLooper())
     
     // Track preload jobs to cancel on destroy (managed by lifecycleManager); keyed by file path for smart cancellation
-    private val preloadJobs = mutableMapOf<String, Job>()
+    internal val preloadJobs = mutableMapOf<String, Job>()
     private lateinit var gestureDetector: GestureDetector
-    private val touchZoneDetector = TouchZoneDetector()
+    internal val touchZoneDetector = TouchZoneDetector()
     internal var useTouchZones = true // Use touch zones for images, gestures for video
     internal var loadFullSizeImages = false // Load full-size images with PhotoView (3-zone mode)
     private var isFirstResume = true // Track first onResume to avoid duplicate load
@@ -374,52 +376,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
     
-    override fun onGenericMotionEvent(event: android.view.MotionEvent): Boolean {
-        // Handle mouse wheel scroll
-        if (event.action == android.view.MotionEvent.ACTION_SCROLL) {
-            val verticalScroll = event.getAxisValue(android.view.MotionEvent.AXIS_VSCROLL)
-            if (verticalScroll != 0f) {
-                val currentType = viewModel.state.value.currentFile?.type
-                
-                // For documents, scroll within the document
-                when (currentType) {
-                    MediaType.PDF -> {
-                        if (_pdfViewerManager != null) {
-                            if (verticalScroll > 0) {
-                                pdfViewerManager.showPreviousPage()
-                            } else {
-                                pdfViewerManager.showNextPage()
-                            }
-                            return true
-                        }
-                    }
-                    MediaType.TEXT -> {
-                        if (_textViewerManager != null) {
-                            textViewerManager.handleMouseWheelScroll(verticalScroll)
-                            return true
-                        }
-                    }
-                    MediaType.EPUB -> {
-                        if (_epubViewerManager != null) {
-                            if (verticalScroll > 0) {
-                                epubViewerManager.showPreviousChapter()
-                            } else {
-                                epubViewerManager.showNextChapter()
-                            }
-                            return true
-                        }
-                    }
-                    else -> {
-                        // For other media types (images, videos), navigate between files
-                        navigationManager.handleMouseWheelScroll(verticalScroll)
-                        return true
-                    }
-                }
-            }
-        }
-        return super.onGenericMotionEvent(event)
-    }
-
     /**
      * ExoPlayer listener for video/audio playback events
      * Handles: STATE_READY (hide loading indicator), STATE_ENDED (auto-advance in slideshow)
@@ -481,671 +437,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     /**
      * Initialize all helper managers and controllers.
-     * Centralized initialization to keep onCreate clean and organized.
+     * Delegates to PlayerManagerInitializer to keep this file small.
      */
     private fun initializeManagers() {
-        initBackgroundMedia()
-        initCoreCoordination()
-        initDialogHelper()
-        initFileOps()
-        initCommandPanelAndImageLoading()
-        initNetworkAndTranslation()
-        initPlayerControlsAndOcr()
-        initAudioAndMediaServices()
-        initUiCoordinators()
-        initSetupManagers()
-    }
-
-    private fun initBackgroundMedia() {
-        // Initialize Background Music Manager
-        backgroundMusicManager.initialize()
-        
-        // Set listener for background music track name display
-        backgroundMusicManager.setOnTrackChangedListener { trackName ->
-            runOnUiThread {
-                updateBackgroundMusicTrackDisplay(trackName)
-            }
-        }
-        
-        // Set listener for background music errors
-        backgroundMusicManager.setOnMusicErrorListener { errorMessage ->
-            runOnUiThread {
-                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        }
-        
-        // Click on track name to skip to another random track
-        safeViews.tvBackgroundMusicTrack.setOnClickListener {
-            Timber.d("BackgroundMusic: User clicked track name - skipping to next random")
-            backgroundMusicManager.skipToNextRandomTrack()
-        }
-
-        // Initialize Audio Background Photos Manager
-        audioBackgroundPhotosManager.initialize()
-        audioBackgroundPhotosManager.setOnPhotoChangedListener { photo ->
-            if (photo != null && audioSlideshowPhotoModeManager.isActive) {
-                audioSlideshowPhotoModeManager.loadBackgroundPhoto(photo)
-                audioSlideshowPhotoModeManager.updatePhotoLabel(photo)
-            } else if (photo == null) {
-                // Clear ImageView when feature is deactivated
-                binding.imageView.setImageDrawable(null)
-                if (audioSlideshowPhotoModeManager.isActive) {
-                    audioSlideshowPhotoModeManager.updatePhotoLabel(null)
-                    audioSlideshowPhotoModeManager.exit()
-                }
-            }
-        }
-        audioBackgroundPhotosManager.setOnErrorListener { errorMessage ->
-            Toast.makeText(this@PlayerActivity, errorMessage, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun initCoreCoordination() {
-        cloudAuthManager = com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager(
-            context = this,
-            coroutineScope = lifecycleScope,
-            googleDriveClient = googleDriveClient,
-            dropboxClient = dropboxClient,
-            oneDriveClient = oneDriveClient,
-            googleSignInLauncher = googleSignInLauncher,
-            callbacks = object : com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager.CloudAuthCallbacks {
-                override fun onAuthenticationSuccess() {
-                    // Authentication successful
-                }
-                override fun onAuthenticationFailure() {
-                    // Handled by manager
-                }
-            }
-        )
-        
-        // Initialize Navigation Manager (includes SlideshowController)
-        navigationManager = PlayerNavigationManager(
-            activity = this,
-            viewModel = viewModel,
-            lifecycle = lifecycle
-        )
-        slideshowController = navigationManager.getSlideshowController()
-
-        keyboardHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler(
-            viewModel = viewModel,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerKeyboardCallbackImpl(
-                activity = this,
-                viewModel = viewModel
-            )
-        )
-
-        uiStateCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator(
-            binding = binding,
-            settingsRepository = settingsRepository,
-            coroutineScope = lifecycleScope,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerUiStateCoordinatorCallbackImpl(
-                activity = this,
-                viewModel = viewModel
-            )
-        )
-
-        undoOperationManager = com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager(
-            rootView = binding.root,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager.Callback {
-                override fun isActivityAlive(): Boolean = !(isFinishing || isDestroyed)
-
-                override fun getUndoActionText(): String =
-                    com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager.defaultUndoActionText(binding.root)
-
-                override fun onUndoRequested() {
-                    viewModel.undoLastOperation()
-                }
-            }
-        )
-        
-        // Initialize SystemBarsManager for fullscreen mode
-        systemBarsManager = com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager(
-            activity = this
-        )
-
-        imageTranslationManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager(activity = this)
-        shareManager = com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager(activity = this)
-        printManager = com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager(activity = this)
-        eventHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler(activity = this)
-    }
-
-    private fun initDialogHelper() {
-        dialogHelper = PlayerDialogHelper(
-            activity = this,
-            viewModel = viewModel,
-            settingsRepository = settingsRepository,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            credentialsRepository = credentialsRepository,
-            unifiedCache = unifiedCache,
-            rotateImageUseCase = rotateImageUseCase,
-            flipImageUseCase = flipImageUseCase,
-            networkImageEditUseCase = networkImageEditUseCase,
-            applyImageFilterUseCase = applyImageFilterUseCase,
-            adjustImageUseCase = adjustImageUseCase,
-            extractGifFramesUseCase = extractGifFramesUseCase,
-            saveGifFirstFrameUseCase = saveGifFirstFrameUseCase,
-            changeGifSpeedUseCase = changeGifSpeedUseCase,
-            downloadNetworkFileUseCase = downloadNetworkFileUseCase,
-            dialogCallback = object : PlayerDialogHelper.DialogCallback {
-                override fun onImageEditComplete() {
-                    // Update file size in ViewModel (triggers cache invalidation due to size change)
-                    viewModel.refreshCurrentFileInfo()
-
-                    // Reload image after edit to show changes
-                    reloadCurrentImage()
-                    Toast.makeText(this@PlayerActivity, getString(R.string.msg_image_edit_completed), Toast.LENGTH_SHORT).show()
-                }
-
-                override fun onGifEditComplete() {
-                    // Update file size in ViewModel (GIF speed change modifies file)
-                    viewModel.refreshCurrentFileInfo()
-
-                    // Reload GIF after speed change
-                    reloadCurrentImage()
-                    Toast.makeText(this@PlayerActivity, R.string.gif_edit_completed, Toast.LENGTH_SHORT).show()
-                }
-
-                override fun onRenameComplete() {
-                    // Reload file in player after rename
-                    viewModel.reloadAfterRename()
-                }
-            },
-            videoPlayerManagerProvider = { videoPlayerManager },
-            textViewerManagerProvider = { textViewerManager },
-            sleepTimerManagerProvider = { sleepTimerManager }
-        )
-        
-        dialogHelper.setAuthCallback { provider ->
-            when (provider.lowercase()) {
-                "dropbox" -> cloudAuthManager.launchDropboxSignIn()
-                "google drive", "google_drive" -> cloudAuthManager.launchGoogleSignIn()
-                "onedrive" -> cloudAuthManager.launchOneDriveSignIn()
-                else -> Timber.w("Unknown provider for auth request: $provider")
-            }
-        }
-    }
-
-    private fun initFileOps() {
-        fileOperationsHandler = FileOperationsHandler(
-            context = this,
-            lifecycleScope = lifecycleScope,
-            settingsRepository = settingsRepository,
-            fileOperationUseCase = viewModel.fileOperationUseCase,
-            callback = object : FileOperationsHandler.FileOperationCallback {
-                override fun onCopySuccess(destination: MediaResource, goToNext: Boolean) {
-                    if (goToNext) {
-                        navigationManager.navigateNextAfterOperation("Copy success with goToNext=true")
-                    }
-                }
-                
-                override fun onMoveSuccess(destination: MediaResource, movedFilePath: String, goToNext: Boolean) {
-                    // Track moved file
-                    lifecycleManager.trackModifiedFile(movedFilePath)
-                    
-                    // Remove from cache
-                    viewModel.state.value.resource?.let { resource ->
-                        MediaFilesCacheManager.removeFile(resource.id, movedFilePath)
-                    }
-                    
-                    // Remove from ViewModel list and navigate
-                    val hasRemainingFiles = viewModel.removeMovedFile(movedFilePath)
-                    if (!hasRemainingFiles) {
-                        finish()
-                    } else if (goToNext) {
-                        navigationManager.navigateNextAfterOperation("Move success with goToNext=true")
-                    }
-                }
-                
-                override fun onDeleteSuccess(deletedFilePath: String) {
-                    handleDeleteSuccess(deletedFilePath)
-                }
-                
-                override fun onOperationError(message: String, throwable: Throwable?) {
-                    showError(message, throwable)
-                }
-                
-                override fun onAuthenticationRequired(provider: String, message: String) {
-                    showCloudAuthenticationError(provider)
-                }
-                
-                override fun onBatchDeletePermissionRequired(pendingIntent: android.app.PendingIntent) {
-                    // Android 11+ batch delete - launch system permission dialog
-                    timber.log.Timber.i("PlayerActivity: Launching batch delete permission dialog")
-                    try {
-                        batchDeletePermissionLauncher.launch(
-                            androidx.activity.result.IntentSenderRequest.Builder(pendingIntent.intentSender).build()
-                        )
-                    } catch (e: Exception) {
-                        timber.log.Timber.e(e, "PlayerActivity: Failed to launch batch delete permission request")
-                        showError(getString(R.string.error_delete_failed, e.message))
-                    }
-                }
-                
-                override fun getCurrentFile(): MediaFile? {
-                    return viewModel.state.value.currentFile
-                }
-                
-                override fun getCurrentResource(): MediaResource? {
-                    return viewModel.state.value.resource
-                }
-            }
-        )
-        
-        // Initialize DestinationButtonsManager
-        destinationButtonsManager = DestinationButtonsManager(
-            binding = binding,
-            settingsRepository = settingsRepository,
-            getDestinationsUseCase = viewModel.getDestinationsUseCase,
-            lifecycleScope = lifecycleScope,
-            callback = object : DestinationButtonsManager.DestinationButtonsCallback {
-                override fun onCopyClicked(destination: MediaResource) {
-                    fileOperationsHandler.performCopy(destination)
-                }
-                
-                override fun onMoveClicked(destination: MediaResource) {
-                    Timber.d("PlayerActivity: onMoveClicked - destination=${destination.name}")
-                    performMoveOperation(destination)
-                }
-                
-                override fun getCurrentResourceId(): Long {
-                    return intent.getLongExtra("resourceId", -1)
-                }
-                
-                override fun onUpdateCommandAvailability() {
-                    val state = viewModel.state.value
-                    Timber.d("PlayerActivity.onUpdateCommandAvailability: showCommandPanel=${state.showCommandPanel}, enableCopying=${state.enableCopying}, enableMoving=${state.enableMoving}")
-                    updateCommandAvailability(state)
-                }
-                
-                override fun isCommandPanelVisible(): Boolean {
-                    // Mirror the audio override from updatePanelVisibility:
-                    // audio files always show the command panel
-                    val state = viewModel.state.value
-                    return state.showCommandPanel || state.currentFile?.type == MediaType.AUDIO
-                }
-            }
-        )
-        
-    }
-
-    private fun initCommandPanelAndImageLoading() {
-        commandPanelController = CommandPanelController(
-            binding = binding,
-            settingsRepository = settingsRepository,
-            coroutineScope = lifecycleScope,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerCommandPanelCallbackImpl(
-                activity = this,
-                viewModel = viewModel
-            )
-        )
-        // Initialize orientation on startup
-        commandPanelController.updateOrientation(resources.configuration)
-
-        imageLoadingManager = ImageLoadingManager(
-            binding = binding,
-            settingsRepository = settingsRepository,
-            searchAudioCoverUseCase = searchAudioCoverUseCase,
-            audioMetadataCacheRepository = audioMetadataCacheRepository,
-            okHttpClient = okHttpClient,
-            lifecycleScope = lifecycleScope,
-            loadingIndicatorHandler = loadingIndicatorHandler,
-            showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
-            preloadJobs = preloadJobs,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerImageLoadingCallbackImpl(
-                activity = this,
-                viewModel = viewModel
-            )
-        )
-
-        // Create and inject AudioEmptyStateController now that binding views are available
-        audioEmptyStateController = com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController(
-            context = this,
-            audioCoverArtView = binding.audioCoverArtView,
-            barsView = binding.audioBarsView,
-            videoView = binding.audioVideoView,
-            wavesView = binding.audioWaveParticleView
-        )
-        imageLoadingManager.setAudioEmptyStateController(audioEmptyStateController!!)
-    }
-
-    private fun initNetworkAndTranslation() {
-        networkFileManager = com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager(
-            context = this,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            googleDriveClient = googleDriveClient,
-            dropboxClient = dropboxClient,
-            oneDriveClient = oneDriveClient,
-            credentialsRepository = credentialsRepository,
-            smbFileOperationHandler = smbFileOperationHandler,
-            sftpFileOperationHandler = sftpFileOperationHandler,
-            ftpFileOperationHandler = ftpFileOperationHandler,
-            cloudFileOperationHandler = cloudFileOperationHandler,
-            unifiedCache = unifiedCache,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager.NetworkFileCallback {
-                override fun getCurrentResource(): MediaResource? = viewModel.state.value.resource
-                
-                override fun showError(message: String) {
-                    this@PlayerActivity.showError(message)
-                }
-            }
-        )
-
-        translationManager = com.sza.fastmediasorter.ui.player.helpers.TranslationManager(
-            context = this,
-            settingsRepository = settingsRepository,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
-                override fun showError(message: String) {
-                    this@PlayerActivity.showError(message)
-                }
-                
-                override fun showModelDownloadPrompt(
-                    languageName: String,
-                    onConfirm: () -> Unit,
-                    onCancel: () -> Unit
-                ) {
-                    runOnUiThread {
-                        AlertDialog.Builder(this@PlayerActivity)
-                            .setTitle("Download Translation Model")
-                            .setMessage("Translation to $languageName requires downloading ~30MB model. Download now?")
-                            .setPositiveButton("Download") { _, _ -> onConfirm() }
-                            .setNegativeButton("Cancel") { _, _ -> onCancel() }
-                            .setCancelable(false)
-                            .show()
-                    }
-                }
-            }
-        )
-
-    }
-
-    private fun initPlayerControlsAndOcr() {
-        // OPTIMIZATION: Document Viewers (PDF, EPUB, Text) and VideoPlayerManager use lazy initialization
-        // They are created only when files of those types are opened (see createXxxManager() methods)
-        playerGestureCallback = com.sza.fastmediasorter.ui.player.callbacks.PlayerGestureCallbackImpl(
-            activity = this,
-            viewModel = viewModel,
-            binding = binding,
-            pdfViewerManagerProvider = { pdfViewerManager },
-            epubViewerManagerProvider = { epubViewerManager }
-        )
-        
-        lyricsManager = com.sza.fastmediasorter.ui.player.helpers.LyricsManager(
-            context = this,
-            binding = binding,
-            lifecycleScope = lifecycleScope,
-            searchLyricsUseCase = searchLyricsUseCase,
-            getTranslationSessionSettings = { translationSessionSettings }
-        )
-        
-        gestureHelper = PlayerGestureHelper(
-            context = this,
-            gestureCallback = playerGestureCallback
-        )
-
-        touchZoneGestureManager = com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager(
-            binding = binding,
-            viewModel = viewModel,
-            touchZoneDetector = touchZoneDetector,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerTouchZoneCallbackImpl(
-                activity = this,
-                viewModel = viewModel
-            )
-        )
-
-        translationButtonManager = com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager(
-            context = this,
-            lifecycleOwner = this,
-            binding = binding,
-            settingsRepository = settingsRepository,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerTranslationButtonCallbackImpl(
-                activity = this,
-                viewModel = viewModel
-            )
-        )
-
-        // OPTIMIZATION: VideoPlayerManager uses lazy initialization (see createVideoPlayerManager())
-        // Only created when VIDEO/AUDIO file is opened
-
-        playerSettingsManager = com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager(
-            activity = this,
-            dialogHelper = dialogHelper,
-            videoPlayerManagerProvider = { videoPlayerManager },
-            settingsRepository = settingsRepository,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager.Callback {
-                // Currently no callbacks needed
-            }
-        )
-
-        exoPlayerControlsManager = com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager(
-            binding = binding,
-            videoPlayerManager = videoPlayerManager,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager.ExoPlayerControlsCallback {
-                override fun onPreviousFile() = navigationManager.navigatePreviousFromControl()
-                override fun onNextFile() = navigationManager.navigateNextFromControl()
-                override fun showPlaybackSpeedDialog() = playerSettingsManager.showPlaybackSpeedDialog()
-                override fun showAudioTrackDialog() = dialogHelper.showAudioTrackDialog()
-                override fun showSubtitleTrackDialog() = dialogHelper.showSubtitleTrackDialog()
-            }
-        )
-        
-        searchControlsManager = com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager(
-            binding = binding,
-            textViewerManagerProvider = { textViewerManager },
-            pdfViewerManagerProvider = { pdfViewerManager },
-            epubViewerManagerProvider = { epubViewerManager },
-            lifecycleScope = lifecycleScope,
-            inputMethodManager = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager.SearchControlsCallback {
-                override fun getCurrentMediaFile() = viewModel.state.value.currentFile
-                override fun scheduleHideControls() = this@PlayerActivity.scheduleHideControls()
-                override fun onEpubTranslate() {
-                    if (_epubViewerManager != null) epubViewerManager.toggleTranslation()
-                }
-                override fun showTranslationSettingsDialog() = translationButtonManager.showTranslationSettingsDialog()
-            }
-        )
-
-        imageOcrManager = com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager(
-            binding = binding,
-            lifecycleScope = lifecycleScope,
-            settingsRepository = settingsRepository,
-            translationManager = translationManager,
-            textViewerManager = textViewerManager,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager.ImageOcrCallback {
-                override fun showError(message: String) {
-                    this@PlayerActivity.showError(message)
-                }
-                override fun getString(resId: Int): String {
-                    return this@PlayerActivity.getString(resId)
-                }
-                override fun getString(resId: Int, vararg formatArgs: Any): String {
-                    return this@PlayerActivity.getString(resId, *formatArgs)
-                }
-            }
-        )
-
-        googleLensButtonsManager = com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager(
-            binding = binding,
-            onShareToGoogleLens = { shareCurrentFileToGoogleLens() },
-            onSharePdfPageToGoogleLens = { 
-                if (_pdfViewerManager != null) {
-                    pdfViewerManager.shareCurrentPageToGoogleLens()
-                }
-            },
-            onExtractImageText = { extractTextFromCurrentImage() },
-            onExtractPdfText = { 
-                if (_pdfViewerManager != null) {
-                    pdfViewerManager.extractTextFromCurrentPage()
-                }
-            },
-            onExtractEpubText = { 
-                if (_epubViewerManager != null) {
-                    epubViewerManager.extractTextFromCurrentChapter()
-                }
-            },
-            onShowTranslationSettings = { 
-                if (::translationButtonManager.isInitialized) {
-                    translationButtonManager.showTranslationSettingsDialog()
-                }
-            }
-        )
-
-    }
-
-    private fun initAudioAndMediaServices() {
-        castMediaManager = com.sza.fastmediasorter.ui.player.helpers.CastMediaManager(
-            context = this,
-            lifecycleScope = lifecycleScope,
-            onCastStateChanged = { isCasting, deviceName ->
-                viewModel.updateCastState(isCasting, deviceName)
-                if (isCasting) {
-                    val currentFile = viewModel.state.value.currentFile
-                    if (currentFile != null) castMediaManager.sendCurrentMedia(currentFile)
-                }
-            }
-        )
-        castMediaManager.init()
-        audioServiceController = com.sza.fastmediasorter.ui.player.helpers.AudioServiceController(this)
-        nowPlayingManager = com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager(
-            activityBinding = binding,
-            fragmentManager = supportFragmentManager,
-            audioServiceController = audioServiceController!!
-        )
-        sleepTimerManager = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager(
-            vinylView = binding.vinylIndicator,
-            sleepTimerBadge = binding.sleepTimerBadge,
-            playerProvider = { videoPlayerManager.getPlayer() }
-        )
-        pipManager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
-            activity = this,
-            binding = binding,
-            videoPlayerManager = videoPlayerManager,
-            isVideoPlaying = {
-                val currentFile = viewModel.state.value.currentFile
-                currentFile?.type == MediaType.VIDEO && videoPlayerManager.getPlayer()?.isPlaying == true
-            }
-        )
-        mediaLoaderManager = com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager(
-            activity = this,
-            binding = binding,
-            viewModel = viewModel,
-            imageLoadingManager = imageLoadingManager,
-            videoPlayerManager = videoPlayerManager,
-            pdfViewerManager = pdfViewerManager,
-            epubViewerManager = epubViewerManager,
-            textViewerManager = textViewerManager,
-            exoPlayerControlsManager = exoPlayerControlsManager,
-            lifecycleScope = lifecycleScope,
-            loadingIndicatorHandler = loadingIndicatorHandler,
-            showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
-            mediaFilesCacheManager = mediaFilesCacheManager,
-            audioServiceController = audioServiceController,
-            onAudioServicePlaybackChanged = { isPlaying ->
-                val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
-                sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
-                if (isAudioFile) {
-                    audioEmptyStateController?.onIsPlayingChanged(isPlaying)
-                }
-            },
-            onAudioServiceReady = {
-                val currentFile = viewModel.state.value.currentFile
-                if (currentFile?.type == MediaType.AUDIO) {
-                    updateAudioFormatInfo()
-                    imageLoadingManager.loadAudioCoverArt(currentFile)
-                    prefetchNextAudio()
-                    // Refresh song label in audio slideshow photo mode (covers auto-advance case)
-                    updateAudioSlideshowCurrentSongLabel()
-                }
-            },
-            onAudioServicePlaybackEnded = {
-                // Read and reset direction flag set by ForwardingPlayer for NEXT/PREV buttons
-                val direction = AudioPlaybackService.pendingDirection
-                AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
-
-                val wasAudio = viewModel.state.value.currentFile?.type == MediaType.AUDIO
-                if (viewModel.state.value.isSlideShowActive) {
-                    viewModel.nextFile(skipDocuments = true)
-                    slideshowController.restartTimer()
-                } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
-                    viewModel.previousFile()
-                } else {
-                    viewModel.nextFile()
-                }
-                // Advance background photo on audio track auto-advance (mirrors navigateNext behaviour)
-                if (wasAudio) {
-                    advanceAudioBackgroundPhoto()
-                }
-            },
-            onAudioServicePlaybackError = { _ ->
-                handleMediaLoadErrorAndSkip()
-            }
-        )
-        
-    }
-
-    private fun initUiCoordinators() {
-        dialogAndUiStateManager = PlayerDialogAndUiStateManager(
-            activity = this,
-            viewModel = viewModel,
-            binding = binding,
-            dialogHelper = dialogHelper,
-            destinationButtonsManager = destinationButtonsManager,
-            commandPanelController = commandPanelController,
-            textViewerManager = textViewerManager,
-            mediaLoaderManager = mediaLoaderManager,
-            networkFileManager = networkFileManager,
-            imageLoadingManager = imageLoadingManager,
-            lifecycleScope = lifecycleScope
-        )
-
-        audioSlideshowPhotoModeManager = com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager(
-            activity = this,
-            binding = binding,
-            viewModel = viewModel,
-            audioBackgroundPhotosManager = audioBackgroundPhotosManager,
-            backgroundMusicManager = backgroundMusicManager,
-            dialogAndUiStateManager = dialogAndUiStateManager,
-            settingsRepository = settingsRepository,
-            lifecycleScope = lifecycleScope,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager.Callback {
-                override fun updateSlideShowButton() = this@PlayerActivity.updateSlideShowButton()
-                override fun updateSystemBarsForPlayer(showCommandPanel: Boolean) = this@PlayerActivity.updateSystemBarsForPlayer(showCommandPanel)
-                override fun toggleSlideshow() = navigationManager.toggleSlideshow()
-                override fun updateSlideshowState() = navigationManager.updateSlideshowState()
-                override fun getSupportActionBar() = this@PlayerActivity.supportActionBar
-            }
-        )
-
-        // Wire audioSlideshowPhotoModeManager into dialogAndUiStateManager (created earlier)
-        dialogAndUiStateManager.audioSlideshowPhotoModeManager = audioSlideshowPhotoModeManager
-    }
-
-    private fun initSetupManagers() {
-        controlsSetupManager = com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager(
-            activity = this,
-            binding = binding,
-            viewModel = viewModel,
-            lifecycleScope = lifecycleScope,
-            slideshowController = slideshowController,
-            pdfViewerManager = pdfViewerManager,
-            epubViewerManager = epubViewerManager,
-            textViewerManager = textViewerManager,
-            translationManager = translationManager,
-            translationButtonManager = translationButtonManager,
-            exoPlayerControlsManager = exoPlayerControlsManager,
-            searchControlsManager = searchControlsManager
-        )
-        
-        gestureSetupManager = com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager(
-            activity = this,
-            binding = binding,
-            viewModel = viewModel,
-            touchZoneGestureManager = touchZoneGestureManager
-        )
+        PlayerManagerInitializer(this).initialize()
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -1194,46 +489,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         setupControls()
         setupCommandPanelControls()
         setupTouchZones()
-        setupBackPressHandler()
-    }
-    
-    /**
-     * Setup back press handler for PDF fullscreen mode
-     */
-    private fun setupBackPressHandler() {
-        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                // Check if PDF fullscreen mode is active
-                if (_pdfViewerManager != null && pdfViewerManager.isInFullscreenMode()) {
-                    pdfViewerManager.exitFullscreenMode()
-                    return
-                }
-                // Check if EPUB fullscreen mode is active
-                if (_epubViewerManager != null && epubViewerManager.isInFullscreenMode()) {
-                    epubViewerManager.onExitFullscreenRequest()
-                    return
-                }
-                
-                // Check if overlays are blocking (Translation, OCR, Lyrics)
-                if (isOverlayBlocking()) {
-                    if (safeViews.translationOverlay.isVisible || binding.translationLensOverlay.isVisible) {
-                        stopTranslation()
-                        return
-                    }
-                    if (safeViews.textViewerContainer.isVisible) {
-                        safeViews.textViewerContainer.isVisible = false
-                        return
-                    }
-                    if (safeViews.lyricsViewerContainer.isVisible) {
-                        hideLyricsViewer()
-                        return
-                    }
-                }
-
-                // Check if background audio service is playing — ask user to stop or keep
-                exitPlayerWithAudioCheck()
-            }
-        })
+        lifecycleManager.setupBackPressHandler()
     }
 
     override fun observeData() {
@@ -1895,7 +1151,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     /**
      * Handle successful file deletion (called from batch delete permission launcher or callback)
      */
-    private fun handleDeleteSuccess(deletedFilePath: String) {
+    internal fun handleDeleteSuccess(deletedFilePath: String) {
         // Track deleted file
         lifecycleManager.trackModifiedFile(deletedFilePath)
         
@@ -2013,25 +1269,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     override fun onPause() {
         super.onPause()
-        // Skip pause logic when entering PiP (video should keep playing)
         if (isInPictureInPictureMode) return
         lifecycleManager.onPause()
-
-        // Detach PlayerView from the service MediaController BEFORE any pause logic.
-        // TextureView loses its surface when Activity goes to background; if a MediaController
-        // is still bound at that point, PlayerView automatically calls player.pause() on it,
-        // which sets playWhenReady=false in AudioPlaybackService and breaks background audio.
         val serviceAudioActiveOnPause = ::mediaLoaderManager.isInitialized && mediaLoaderManager.isServiceAudioActive
         if (serviceAudioActiveOnPause) {
             binding.playerView.player = null
         } else {
             viewModel.togglePause()
         }
-
         audioEmptyStateController?.onPause()
-        
-        // Save playback position for video/audio
-        saveCurrentPlaybackPosition()
+        lifecycleManager.saveCurrentPlaybackPosition()
     }
 
     override fun onUserLeaveHint() {
@@ -2114,81 +1361,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal fun updateAudioSlideshowCurrentSongLabel() = audioSlideshowPhotoModeManager.updateCurrentSongLabel()
 
     override fun onDestroy() {
-        // Dismiss all tracked dialogs to prevent WindowLeaked
-        if (::dialogHelper.isInitialized) {
-            dialogHelper.dismissAll()
-        }
-
-        // Release background music manager
-        backgroundMusicManager.release()
-        
-        // Release audio background photos manager
-        audioBackgroundPhotosManager.release()
-        
-        // Release audio service controller (disconnect from AudioPlaybackService)
-        audioServiceController?.release()
-        audioServiceController = null
-        
-        // Release sleep timer manager (stop animations and timer)
-        sleepTimerManager?.release()
-        sleepTimerManager = null
-
-        // Release audio empty-state controller (stop animations, clear Glide)
-        audioEmptyStateController?.release()
-        audioEmptyStateController = null
-        
-        // Release PiP manager (unregister receiver)
-        pipManager?.release()
-        pipManager = null
-
-        // Release text file pager
-        if (_textViewerManager != null) {
-            textViewerManager.release()
-        }
-
-        // Release Cast manager (stop proxy server, cancel downloads, unregister listener)
-        if (::castMediaManager.isInitialized) {
-            castMediaManager.release()
-        }
-
-        // Delegate to lifecycle manager
         lifecycleManager.onDestroy()
-
         super.onDestroy()
-    }
-    
-    /**
-     * Save current playback position for video/audio files.
-     */
-    private fun saveCurrentPlaybackPosition() {
-        val currentFile = viewModel.state.value.currentFile ?: return
-        
-        // Only save for video/audio files
-        if (currentFile.type != MediaType.VIDEO && currentFile.type != MediaType.AUDIO) {
-            return
-        }
-
-        // Save resume state alongside playback position
-        viewModel.saveResumeState()
-
-        val player = videoPlayerManager.getPlayer() ?: return
-        val position = player.currentPosition
-        val duration = player.duration
-        
-        // Don't save if duration is unknown or position is invalid
-        if (duration <= 0 || position < 0) {
-            return
-        }
-        
-        // Save position asynchronously
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                playbackPositionRepository.savePosition(currentFile.path, position, duration)
-                Timber.d("PlayerActivity: Saved playback position $position/$duration for ${currentFile.name}")
-            } catch (e: Exception) {
-                Timber.e(e, "PlayerActivity: Failed to save playback position for ${currentFile.name}")
-            }
-        }
     }
     
     private fun setupGoogleLensButtons() {
@@ -2270,168 +1444,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
             // else: keep existing embedded metadata visible, do nothing
         }
-    }
-
-    // ==================== LAZY INITIALIZATION FACTORY METHODS ====================
-    
-    /**
-     * Factory method for lazy VideoPlayerManager initialization.
-     * Only called when VIDEO file is opened.
-     */
-    private fun createVideoPlayerManager(): VideoPlayerManager {
-        return VideoPlayerManager(
-            context = this,
-            lifecycle = lifecycle,
-            playerCallback = com.sza.fastmediasorter.ui.player.callbacks.PlayerPlaybackCallbackImpl(
-                activity = this,
-                viewModel = viewModel,
-                binding = binding,
-                loadingIndicatorHandler = loadingIndicatorHandler,
-                showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
-                playerSettingsManagerProvider = { playerSettingsManager },
-                imageLoadingManagerProvider = { imageLoadingManager },
-                slideshowController = slideshowController,
-                sleepTimerManagerProvider = { sleepTimerManager },
-                audioEmptyStateControllerProvider = { audioEmptyStateController }
-            ),
-            credentialsRepository = credentialsRepository,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            googleDriveClient = googleDriveClient,
-            oneDriveClient = oneDriveClient,
-            dropboxClient = dropboxClient,
-            playbackPositionRepository = playbackPositionRepository
-        ).also {
-            it.onPositionSaved = { viewModel.saveResumeState() }
-        }
-    }
-    
-    /**
-     * Factory method for lazy PdfViewerManager initialization.
-     * Only called when PDF file is opened.
-     */
-    private fun createPdfViewerManager(): com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager {
-        return com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager(
-            binding = binding,
-            networkFileManager = networkFileManager,
-            settingsRepository = settingsRepository,
-            coroutineScope = lifecycleScope,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager.PdfViewerCallback {
-                override fun showError(message: String) {
-                    this@PlayerActivity.showError(message)
-                }
-                
-                override fun displayOcrText(text: String) {
-                    textViewerManager.displayOcrText(text)
-                }
-                
-                override fun displayTranslatedText(text: String) {
-                    textViewerManager.displayTranslatedText(text)
-                }
-                
-                override fun shareFileToGoogleLens(file: File) {
-                    shareManager.shareFileToGoogleLens(file)
-                }
-                
-                override fun isLandscapeMode(): Boolean {
-                    return resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-                }
-                
-                override fun onEnterFullscreenMode() {
-                    if (currentSettings?.hideSystemUiInFullscreen != false) {
-                        systemBarsManager.enterFullscreenMode()
-                    }
-                    binding.toolbar.isVisible = false
-                    safeViews.copyToPanel.isVisible = false
-                    safeViews.moveToPanel.isVisible = false
-                    safeViews.pdfControlsLayout.isVisible = false
-                    safeViews.translationOverlay.isVisible = false
-                    binding.translationLensOverlay.isVisible = false
-                }
-                
-                override fun onExitFullscreenMode() {
-                    systemBarsManager.exitFullscreenMode()
-                    binding.toolbar.isVisible = true
-                    safeViews.pdfControlsLayout.isVisible = true
-                }
-            },
-            translationManager = translationManager,
-            playbackPositionRepository = playbackPositionRepository
-        )
-    }
-    
-    /**
-     * Factory method for lazy EpubViewerManager initialization.
-     * Only called when EPUB file is opened.
-     */
-    private fun createEpubViewerManager(): com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager {
-        return com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager(
-            binding = binding,
-            networkFileManager = networkFileManager,
-            settingsRepository = settingsRepository,
-            coroutineScope = lifecycleScope,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager.EpubViewerCallback {
-                override fun showError(message: String) {
-                    this@PlayerActivity.showError(message)
-                }
-                
-                override fun displayTranslatedText(text: String) {
-                    textViewerManager.displayTranslatedText(text)
-                }
-                
-                override fun onEnterFullscreenMode() {
-                    if (currentSettings?.hideSystemUiInFullscreen != false) {
-                        systemBarsManager.enterFullscreenMode()
-                    }
-                }
-                
-                override fun onExitFullscreenMode() {
-                    systemBarsManager.exitFullscreenMode()
-                }
-            },
-            playbackPositionRepository = playbackPositionRepository,
-            translationManager = translationManager
-        )
-    }
-    
-    /**
-     * Factory method for lazy TextViewerManager initialization.
-     * Only called when TEXT file is opened.
-     */
-    private fun createTextViewerManager(): com.sza.fastmediasorter.ui.player.helpers.TextViewerManager {
-        return com.sza.fastmediasorter.ui.player.helpers.TextViewerManager(
-            context = this,
-            binding = binding,
-            networkFileManager = networkFileManager,
-            settingsRepository = settingsRepository,
-            coroutineScope = lifecycleScope,
-            callback = object : com.sza.fastmediasorter.ui.player.helpers.TextViewerManager.TextViewerCallback {
-                override fun showError(message: String) {
-                    this@PlayerActivity.showError(message)
-                }
-                
-                override fun showTranslationSettingsDialog() {
-                    if (::translationButtonManager.isInitialized) {
-                        translationButtonManager.showTranslationSettingsDialog()
-                    }
-                }
-                
-                override fun exitFullscreenMode() {
-                    systemBarsManager.exitFullscreenMode()
-                    viewModel.toggleCommandPanel()
-                }
-
-                override fun setTouchZonesEnabled(enabled: Boolean) {
-                    safeViews.touchZonesOverlay.isVisible = enabled && useTouchZones
-                }
-
-                override fun showEncodingDialog() {
-                    this@PlayerActivity.showEncodingDialog()
-                }
-            },
-            translationManager = translationManager
-        )
     }
 
     companion object {

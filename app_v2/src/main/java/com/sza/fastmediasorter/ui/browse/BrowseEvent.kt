@@ -1,0 +1,42 @@
+package com.sza.fastmediasorter.ui.browse
+
+import android.app.PendingIntent
+import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.domain.model.MediaFile
+
+sealed class BrowseEvent {
+    data class ShowError(val message: String, val details: String? = null, val exception: Throwable? = null) : BrowseEvent()
+    data class ShowMessage(val message: String) : BrowseEvent()
+    data class ShowUndoToast(val operationType: String) : BrowseEvent()
+    data class NavigateToPlayer(val filePath: String, val fileIndex: Int) : BrowseEvent()
+    data class ShowCloudAuthenticationRequired(val provider: CloudProvider) : BrowseEvent()
+    data class CloudAuthRequired(val provider: String, val message: String) : BrowseEvent()
+    data class PermissionRequired(val pendingIntent: PendingIntent) : BrowseEvent()
+    data class NoFilesFound(val message: String? = null, val messageResId: Int? = null) : BrowseEvent()
+    /**
+     * Fired after scanning files for delete-by-size so the UI can show a confirmation dialog.
+     * [matchedFiles] holds the candidate list; the UI passes it back via [executeBySizeDeleteConfirmed].
+     */
+    data class ShowDeleteBySizePreview(
+        val count: Int,
+        val totalBytes: Long,
+        val matchedFiles: List<MediaFile>
+    ) : BrowseEvent()
+    /** Archive operation progress — emitted during ZIP creation. */
+    data class ArchiveProgress(val current: Int, val total: Int, val fileName: String) : BrowseEvent()
+    /** Archive completed successfully. */
+    data class ArchiveSuccess(val archivePath: String, val archivedCount: Int) : BrowseEvent()
+    /** Archive failed or had a fatal error. */
+    data class ArchiveError(val message: String, val exception: Throwable? = null) : BrowseEvent()
+    data class ShowExtractConfirmDialog(val file: MediaFile, val targetDirName: String) : BrowseEvent()
+    data class ExtractionProgress(
+        val entryName: String,
+        val done: Int,
+        val total: Int,
+        val percent: Int
+    ) : BrowseEvent()
+    data class ExtractionSuccess(val targetPath: String, val extractedCount: Int) : BrowseEvent()
+    data class ExtractionFailed(val message: String) : BrowseEvent()
+    /** Fired after the current resource was successfully added as a Quick Sort destination. */
+    data class ResourceAddedAsDestination(val resourceId: Long) : BrowseEvent()
+}

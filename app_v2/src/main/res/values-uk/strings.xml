@@ -251,6 +251,16 @@
     <string name="error_smb_mobile_network">SMB-ресурс недоступний через мобільний інтернет. SMB працює лише у локальній Wi&#8209;Fi мережі. Підключіться до тієї ж мережі, що й пристрій (%1$s).</string>
     <string name="error_smb_not_on_local_network">Не вдалося підключитися до SMB ресурсу. Переконайтеся, що пристрій увімкнено і ви перебуваєте з ним в одній локальній мережі.</string>
 
+    <!-- Standalone player playback error messages -->
+    <string name="error_file_not_found">Файл не знайдено або не вдається відкрити.</string>
+    <string name="error_network_connection">Помилка підключення до мережі. Перевірте з\'єднання та повторіть спробу.</string>
+    <string name="error_codec_unsupported">Цей формат не підтримується вашим пристроєм.</string>
+    <string name="error_playback_timeout">Час відтворення вичерпано. Перевірте з\'єднання та повторіть спробу.</string>
+    <string name="error_network_playback">Помилка віддаленого сервера. Відтворення неможливе.</string>
+    <string name="error_behind_live_window">Пропущено позицію прямої трансляції. Перехід до останнього фрагмента.</string>
+    <string name="error_invalid_format">Невірний або пошкоджений медіафайл.</string>
+    <string name="error_playback_failed">Відтворення не вдалося. Файл може бути пошкоджений або не підтримується.</string>
+
     <!-- Connection Error Details -->
     <string name="error_details_resource">Ресурс</string>
     <string name="error_details_path">Шлях</string>
@@ -1848,6 +1858,9 @@
     <string name="slideshow_keep_awake">Екран залишиться увімкненим під час слайдшоу</string>
     <string name="source_path">Джерело</string>
     <string name="subtitle_off">Вимк</string>
+    <string name="cd_playback_speed">Швидкість відтворення</string>
+    <string name="cd_audio_track">Аудіодоріжка</string>
+    <string name="cd_subtitle_track">Субтитри</string>
     <string name="subtitle_track">Субтитри</string>
     <string name="success_count">Успішно: %d</string>
     <string name="table_of_contents">Зміст</string>

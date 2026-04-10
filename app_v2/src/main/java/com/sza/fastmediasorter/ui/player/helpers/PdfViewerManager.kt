@@ -1,16 +1,21 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Matrix
+import android.graphics.RectF
 import android.graphics.pdf.PdfRenderer
+import android.net.Uri
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.view.GestureDetector
 import android.view.MotionEvent
+import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -94,6 +99,9 @@ class PdfViewerManager(
     
     // Single-thread dispatcher for PdfRenderer (non-thread-safe API)
     private val pdfDispatcher = Dispatchers.IO.limitedParallelism(1)
+
+    // URL link detection cache: pageIndex → list of (boundingBoxInBitmapPx, url)
+    private val urlBoxCache = mutableMapOf<Int, List<Pair<RectF, String>>>()
     
     init {
         
@@ -249,8 +257,10 @@ class PdfViewerManager(
         binding.progressBar.isVisible = true
         Timber.d("PDF PROGRESS: progressBar.isVisible = TRUE (before coroutine)")
         
-        // Hide text action buttons (they are for TXT files only)
+        // Hide text-only action buttons; btnCopyTextCmd is re-shown by CommandPanelController
+        // in landscape mode and routes to copyPageTextToClipboard() via the handler below
         binding.btnCopyTextCmd.isVisible = false
+        binding.btnCopyTextCmd.setOnClickListener { copyPageTextToClipboard() }
         binding.btnEditTextCmd.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
@@ -260,6 +270,7 @@ class PdfViewerManager(
         binding.btnTranslateEpubCmd.isVisible = false
         
         closePdfRenderer()
+        urlBoxCache.clear()
         // Note: Translation cache is NOT cleared here - preserves translations when switching files
         
         // Show immediate toast for network files (they always take time to download)
@@ -744,6 +755,46 @@ class PdfViewerManager(
     }
     
     /**
+     * OCR current PDF page and copy extracted text to clipboard.
+     * Does not switch views — stays on the PDF page.
+     */
+    fun copyPageTextToClipboard() {
+        if (currentPageBitmap == null) {
+            callback.showError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
+            return
+        }
+
+        coroutineScope.launch(Dispatchers.IO) {
+            val settings = settingsRepository.getSettings().first()
+            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
+
+            val originalBitmap = currentPageBitmap ?: return@launch
+            val shouldScale = originalBitmap.width >= 1500 && originalBitmap.height >= 1500
+            val ocrBitmap = if (shouldScale) {
+                val targetWidth = 1200
+                val targetHeight = (originalBitmap.height * targetWidth / originalBitmap.width.toFloat()).toInt()
+                Bitmap.createScaledBitmap(originalBitmap, targetWidth, targetHeight, true)
+            } else {
+                originalBitmap
+            }
+
+            val recognizedText = translationManager.extractTextOnly(ocrBitmap, sourceLang)
+            if (shouldScale) ocrBitmap.recycle()
+
+            withContext(Dispatchers.Main) {
+                if (!recognizedText.isNullOrBlank()) {
+                    val ctx = binding.root.context
+                    val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("pdf_text", recognizedText))
+                    android.widget.Toast.makeText(ctx, ctx.getString(com.sza.fastmediasorter.R.string.text_copied), android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    callback.showError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
+                }
+            }
+        }
+    }
+
+    /**
      * Translate current PDF page using OCR + Translation
      * Supports both overlay mode (simple text) and Lens style (text blocks with coordinates)
      */
@@ -984,6 +1035,9 @@ class PdfViewerManager(
         // Cancel any in-flight page render (C2 fix)
         pageRenderJob?.cancel()
         pageRenderJob = null
+
+        // Clear link cache
+        urlBoxCache.clear()
         
         // Detach adapter BEFORE closing renderer to trigger onViewRecycled → cancel render jobs (C1 fix)
         safeViews.pdfScrollRecyclerView.adapter = null
@@ -1090,6 +1144,11 @@ class PdfViewerManager(
                 currentPdfPage?.close()
                 currentPdfPage = null
 
+                // Extract PDF link annotations for tap-to-open (API 35+, fast — no OCR needed)
+                if (Build.VERSION.SDK_INT >= 35) {
+                    urlBoxCache[index] = extractLinksNative(currentPdfFile!!, index, width, height)
+                }
+
                 // Switch to main thread to update UI
                 withContext(Dispatchers.Main) {
                     // Clear PhotoView BEFORE recycling old bitmap (M3 fix)
@@ -1103,7 +1162,7 @@ class PdfViewerManager(
                     
                     // Store bitmap for translation
                     currentPageBitmap = bitmap
-                    
+
                     currentPdfPageIndex = index
                     binding.tvPdfPageIndicator?.text = "${index + 1} / $pdfPageCount"
                     
@@ -1382,12 +1441,108 @@ class PdfViewerManager(
     }
     
     /**
+     * Extracts hyperlink annotations from a PDF page using the native API (Android 15 / API 35+).
+     * Returns bounding boxes pre-scaled to rendered bitmap pixel coordinates so hit-testing
+     * in handlePdfTap() requires no further conversion.
+     *
+     * Coordinate system: PdfPageLinkContent.getBounds() uses the Android convention
+     * (origin top-left, Y increases downward, units in PDF points = 1/72").
+     * PdfRenderer.Page.getWidth/Height() also returns points, so the scale factor is
+     * straightforward: bitmapPx = pdfPt × (bitmapDimension / pageDimensionPt).
+     */
+    @RequiresApi(35)
+    private fun extractLinksNative(file: File, pageIndex: Int, bitmapWidth: Int, bitmapHeight: Int): List<Pair<RectF, String>> {
+        var pfd: ParcelFileDescriptor? = null
+        var renderer: android.graphics.pdf.PdfRendererPreV? = null
+        return try {
+            pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            renderer = android.graphics.pdf.PdfRendererPreV(pfd)
+            val page = renderer.openPage(pageIndex)
+            val pageWidthPt = page.width
+            val pageHeightPt = page.height
+            val links = page.getLinkContents()
+            page.close()
+
+            if (links.isEmpty()) {
+                Timber.d("PDF: page ${pageIndex + 1} — no links")
+                return emptyList()
+            }
+
+            val scaleX = bitmapWidth.toFloat() / pageWidthPt
+            val scaleY = bitmapHeight.toFloat() / pageHeightPt
+
+            links.flatMap { link ->
+                link.getBounds().map { bounds ->
+                    Pair(
+                        RectF(bounds.left * scaleX, bounds.top * scaleY,
+                            bounds.right * scaleX, bounds.bottom * scaleY),
+                        link.getUri().toString()
+                    )
+                }
+            }.also { result ->
+                Timber.d("PDF: page ${pageIndex + 1} — ${result.size} link(s) extracted natively")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "PDF: native link extraction failed for page $pageIndex")
+            emptyList()
+        } finally {
+            renderer?.close()
+            pfd?.close()
+        }
+    }
+
+    /**
+     * Called on single-tap in page mode. Maps view tap coordinates to bitmap pixel
+     * coordinates via the inverted PhotoView display matrix, then checks the URL cache
+     * for the current page. Opens the first matching link in the browser.
+     * Returns true if a link was found and opened.
+     */
+    fun handlePdfTap(tapX: Float, tapY: Float): Boolean {
+        if (pdfRenderer == null || isScrollMode) return false
+        val bitmap = currentPageBitmap ?: return false
+        val boxes = urlBoxCache[currentPdfPageIndex]
+        if (boxes.isNullOrEmpty()) return false
+
+        val displayMatrix = Matrix()
+        binding.photoView.getDisplayMatrix(displayMatrix)
+        val invertedMatrix = Matrix()
+        if (!displayMatrix.invert(invertedMatrix)) return false
+
+        val point = floatArrayOf(tapX, tapY)
+        invertedMatrix.mapPoints(point)
+        val bitmapX = point[0]
+        val bitmapY = point[1]
+
+        if (bitmapX < 0 || bitmapY < 0 || bitmapX > bitmap.width || bitmapY > bitmap.height) return false
+
+        val hitUrl = boxes.firstOrNull { (rect, _) -> rect.contains(bitmapX, bitmapY) }?.second
+            ?: return false
+
+        openUrlInBrowser(hitUrl)
+        return true
+    }
+
+    private fun openUrlInBrowser(url: String) {
+        val context = binding.root.context
+        try {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+            Timber.d("PDF: opened link → $url")
+        } catch (e: Exception) {
+            Timber.e(e, "PDF: failed to open URL: $url")
+            callback.showError("Cannot open link: $url")
+        }
+    }
+
+    /**
      * Share current PDF page to Google Lens for visual search/text recognition.
      * Saves current page bitmap to temp file and delegates to activity callback.
      */
     fun shareCurrentPageToGoogleLens() {
         val bitmap = getCurrentPageBitmap() ?: return
-        
+
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 // Save bitmap to temp file
@@ -1397,7 +1552,7 @@ class PdfViewerManager(
                 java.io.FileOutputStream(tempFile).use { out ->
                     bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
                 }
-                
+
                 withContext(Dispatchers.Main) {
                     callback.shareFileToGoogleLens(tempFile)
                 }
