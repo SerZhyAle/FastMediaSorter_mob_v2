@@ -213,7 +213,6 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorSurface"
             app:tabMode="fixed"
-            app:tabGravity="fill"
             app:tabIndicatorFullWidth="false"
             app:tabIconTint="?attr/colorControlNormal"
             app:tabSelectedTextColor="?attr/colorPrimary"

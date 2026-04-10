@@ -149,7 +149,7 @@ class PlayerControlsSetupManager(
                 slideshowController.stopSlideshow()
             }
             
-            activity.updateSlideShowButton()
+            activity.dialogAndUiStateManager.updateSlideShowButton()
             activity.scheduleHideControls()
         }
         
@@ -198,7 +198,7 @@ class PlayerControlsSetupManager(
 
         binding.btnDelete.setOnClickListener {
             UserActionLogger.logButtonClick("Delete", "PlayerActivity")
-            activity.deleteCurrentFile()
+            activity.fileOperationsHandler.deleteCurrentFile()
             activity.scheduleHideControls()
         }
     }

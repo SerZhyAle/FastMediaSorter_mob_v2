@@ -108,8 +108,8 @@ class PlayerUiStateCoordinatorCallbackImpl(
         activity.updateCommandAvailability(state)
 
     override fun updatePlayPauseButton() = activity.updatePlayPauseButton()
-    override fun updateSlideShowButton() = activity.updateSlideShowButton()
-    override fun updateVolumeButtonsVisibility() = activity.updateVolumeButtonsVisibility()
+    override fun updateSlideShowButton() = activity.dialogAndUiStateManager.updateSlideShowButton()
+    override fun updateVolumeButtonsVisibility() = activity.dialogAndUiStateManager.updateVolumeButtonsVisibility()
 
     override fun showTouchZoneHintOverlay(type: TouchZoneHintType) = activity.showTouchZoneHintOverlay(type)
     override fun showSlideshowEnabledMessage() = activity.showSlideshowEnabledMessage()

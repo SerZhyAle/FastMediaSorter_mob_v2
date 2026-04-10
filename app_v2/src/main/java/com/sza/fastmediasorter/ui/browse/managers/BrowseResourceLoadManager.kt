@@ -48,6 +48,8 @@ class BrowseResourceLoadManager(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val cachedFileListRepository: CachedFileListRepository,
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
+    private val dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient,
+    private val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient,
     private val favoritesUseCase: FavoritesUseCase,
     private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
     private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
@@ -203,23 +205,10 @@ class BrowseResourceLoadManager(
                 }
             }
 
-            // Google Drive: verify authentication
-            if (resource.type == ResourceType.CLOUD && resource.cloudProvider == CloudProvider.GOOGLE_DRIVE) {
-                if (!googleDriveClient.isAuthenticated()) {
-                    val restored = googleDriveClient.tryRestoreFromStorage()
-                    Timber.d("BrowseResourceLoadManager.loadResource: GDrive auth restore=${restored}")
-                }
-                val testResult = googleDriveClient.listFiles(resource.cloudFolderId ?: "root")
-                if (testResult is com.sza.fastmediasorter.data.cloud.CloudResult.Error) {
-                    val msg = testResult.message
-                    if (msg.contains("401", ignoreCase = true) || msg.contains("unauthorized", ignoreCase = true) ||
-                        msg.contains("authentication", ignoreCase = true) || msg.contains("not authenticated", ignoreCase = true)
-                    ) {
-                        sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(resource.cloudProvider))
-                        setLoading(false)
-                        return@launch
-                    }
-                }
+            // Cloud: verify authentication before starting any scan work
+            if (!checkCloudAuthBeforeScan(resource)) {
+                setLoading(false)
+                return@launch
             }
 
             // TTL-based RAM cache check
@@ -359,6 +348,58 @@ class BrowseResourceLoadManager(
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    /**
+     * Early auth guard — runs before any scan scaffolding is allocated.
+     * Returns true if scan may proceed; false if an auth event was emitted and scan must be aborted.
+     */
+    private suspend fun checkCloudAuthBeforeScan(resource: MediaResource): Boolean {
+        if (resource.type != ResourceType.CLOUD) return true
+        return when (val provider = resource.cloudProvider) {
+            CloudProvider.GOOGLE_DRIVE -> checkGoogleDriveAuth(resource, provider)
+            CloudProvider.DROPBOX      -> checkDropboxAuth(resource, provider)
+            CloudProvider.ONEDRIVE     -> checkOneDriveAuth(resource, provider)
+            null -> {
+                sendEvent(BrowseEvent.ShowError("Cloud provider not configured"))
+                false
+            }
+        }
+    }
+
+    private suspend fun checkGoogleDriveAuth(resource: MediaResource, provider: CloudProvider): Boolean {
+        if (!googleDriveClient.isAuthenticated()) {
+            val restored = googleDriveClient.tryRestoreFromStorage()
+            Timber.d("BrowseResourceLoadManager: GDrive auth restore=$restored")
+        }
+        val probe = googleDriveClient.listFiles(resource.cloudFolderId ?: "root")
+        if (probe is com.sza.fastmediasorter.data.cloud.CloudResult.Error && isAuthError(probe.message)) {
+            sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
+            return false
+        }
+        return true
+    }
+
+    private suspend fun checkDropboxAuth(resource: MediaResource, provider: CloudProvider): Boolean {
+        val credId = resource.credentialsId
+        if (credId != null && dropboxClient.tryRestoreForAccount(credId)) return true
+        if (dropboxClient.isAuthenticated()) return true
+        Timber.w("BrowseResourceLoadManager: Dropbox not authenticated — emitting auth required")
+        sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
+        return false
+    }
+
+    private fun checkOneDriveAuth(resource: MediaResource, provider: CloudProvider): Boolean {
+        if (oneDriveClient.isAuthenticated()) return true
+        Timber.w("BrowseResourceLoadManager: OneDrive not authenticated — emitting auth required")
+        sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(provider))
+        return false
+    }
+
+    private fun isAuthError(message: String) =
+        message.contains("401", ignoreCase = true) ||
+        message.contains("unauthorized", ignoreCase = true) ||
+        message.contains("authentication", ignoreCase = true) ||
+        message.contains("not authenticated", ignoreCase = true)
 
     private suspend fun loadMediaFilesStandard(
         resource: MediaResource,

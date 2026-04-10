@@ -29,11 +29,11 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onRenameClicked() {
-        activity.showRenameDialog()
+        activity.dialogAndUiStateManager.showRenameDialog()
     }
 
     override fun onDeleteClicked() {
-        activity.deleteCurrentFile()
+        activity.fileOperationsHandler.deleteCurrentFile()
     }
 
     override fun onShareClicked() {
@@ -45,10 +45,10 @@ class PlayerCommandPanelCallbackImpl(
         when (currentFile?.type) {
             MediaType.VIDEO, MediaType.AUDIO -> activity.playerSettingsManager.showPlayerSettingsDialog()
             MediaType.IMAGE -> {
-                if (activity.isAnimatedImagePath(currentFile.path)) activity.showGifEditDialog() else activity.showImageEditDialog()
+                if (activity.isAnimatedImagePath(currentFile.path)) activity.dialogAndUiStateManager.showGifEditDialog() else activity.dialogAndUiStateManager.showImageEditDialog()
             }
-            MediaType.GIF -> activity.showGifEditDialog()
-            MediaType.PDF -> activity.showPdfEditDialog()
+            MediaType.GIF -> activity.dialogAndUiStateManager.showGifEditDialog()
+            MediaType.PDF -> activity.dialogAndUiStateManager.showPdfEditDialog()
             else -> {}
         }
     }
@@ -97,17 +97,17 @@ class PlayerCommandPanelCallbackImpl(
             }
         }
 
-        activity.updateSlideShowButton()
+        activity.dialogAndUiStateManager.updateSlideShowButton()
         activity.navigationManager.updateSlideshowState()
         activity.updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }
 
     override fun onCopyPanelHeaderClicked() {
-        activity.toggleCopyPanel()
+        activity.dialogAndUiStateManager.toggleCopyPanel()
     }
 
     override fun onMovePanelHeaderClicked() {
-        activity.toggleMovePanel()
+        activity.dialogAndUiStateManager.toggleMovePanel()
     }
 
     override fun onInfoClicked() {
@@ -192,11 +192,11 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onSleepTimerClicked() {
-        activity.showSleepTimerDialog()
+        activity.dialogHelper.showSleepTimerDialog()
     }
 
     override fun onReopenEncodingClicked() {
-        activity.showEncodingDialog()
+        activity.dialogHelper.showEncodingDialog()
     }
 
     override fun onToggleMarkdownClicked() {
@@ -204,7 +204,7 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onReaderSettingsClicked() {
-        activity.showReaderSettingsDialog()
+        activity.dialogHelper.showReaderSettingsDialog()
     }
 
     override fun onReadAloudClicked() {

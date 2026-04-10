@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -42,7 +43,7 @@ abstract class BaseViewModel<State, Event> : ViewModel() {
     }
 
     protected fun updateState(update: (State) -> State) {
-        _state.value = update(_state.value)
+        _state.update(update)
     }
 
     protected fun sendEvent(event: Event) {

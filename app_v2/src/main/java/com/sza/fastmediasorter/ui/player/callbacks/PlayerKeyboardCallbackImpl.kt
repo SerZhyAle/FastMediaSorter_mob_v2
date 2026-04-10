@@ -16,7 +16,7 @@ class PlayerKeyboardCallbackImpl(
 ) : PlayerKeyboardHandler.PlayerKeyboardCallback {
 
     override fun onDeleteFile() {
-        activity.deleteCurrentFile()
+        activity.fileOperationsHandler.deleteCurrentFile()
     }
 
     override fun onExitPlayer() {
@@ -31,12 +31,12 @@ class PlayerKeyboardCallbackImpl(
             activity.showSlideshowEnabledMessage()
         }
 
-        activity.updateSlideShowButton()
+        activity.dialogAndUiStateManager.updateSlideShowButton()
         activity.navigationManager.updateSlideshowState()
     }
 
     override fun onShowRenameDialog() {
-        activity.showRenameDialog()
+        activity.dialogAndUiStateManager.showRenameDialog()
     }
 
     override fun onShowFileInfo() {
@@ -48,20 +48,20 @@ class PlayerKeyboardCallbackImpl(
     }
 
     override fun onToggleCopyPanel() {
-        activity.toggleCopyPanel()
+        activity.dialogAndUiStateManager.toggleCopyPanel()
     }
 
     override fun onToggleMovePanel() {
-        activity.toggleMovePanel()
+        activity.dialogAndUiStateManager.toggleMovePanel()
     }
 
     override fun onShowEditDialog() {
         val currentFile = viewModel.state.value.currentFile
         when (currentFile?.type) {
             MediaType.IMAGE -> {
-                if (activity.isAnimatedImagePath(currentFile.path)) activity.showGifEditDialog() else activity.showImageEditDialog()
+                if (activity.isAnimatedImagePath(currentFile.path)) activity.dialogAndUiStateManager.showGifEditDialog() else activity.dialogAndUiStateManager.showImageEditDialog()
             }
-            MediaType.GIF -> activity.showGifEditDialog()
+            MediaType.GIF -> activity.dialogAndUiStateManager.showGifEditDialog()
             MediaType.VIDEO, MediaType.AUDIO -> activity.playerSettingsManager.showPlayerSettingsDialog()
             else -> {}
         }

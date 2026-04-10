@@ -295,6 +295,19 @@ class AudioSettingsFragment : Fragment() {
                             binding.switchEnablePersistentAudioPlayback.isChecked = settings.enablePersistentAudioPlayback
                         }
                         updateNotificationPermissionButtonVisibility()
+                        // Sync exit behavior radio group
+                        val radioId = when (settings.backgroundAudioExitBehavior) {
+                            com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_STOP ->
+                                R.id.radioExitBehaviorAlwaysStop
+                            com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_CONTINUE ->
+                                R.id.radioExitBehaviorAlwaysContinue
+                            com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK ->
+                                R.id.radioExitBehaviorAsk
+                        }
+                        if (binding.radioGroupExitBehavior.checkedRadioButtonId != radioId) {
+                            binding.radioGroupExitBehavior.check(radioId)
+                        }
+                        updateExitBehaviorVisibility()
                     }
 
                     isUpdatingFromSettings = false
@@ -309,6 +322,7 @@ class AudioSettingsFragment : Fragment() {
         if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
             binding.layoutBackgroundAudioRow.visibility = View.GONE
             binding.btnNotificationPermission.visibility = View.GONE
+            binding.layoutExitBehaviorSection.visibility = View.GONE
             return
         }
 
@@ -324,6 +338,7 @@ class AudioSettingsFragment : Fragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = isChecked))
             updateNotificationPermissionButtonVisibility()
+            updateExitBehaviorVisibility()
         }
 
         binding.btnNotificationPermission.setOnClickListener {
@@ -334,6 +349,29 @@ class AudioSettingsFragment : Fragment() {
         }
 
         updateNotificationPermissionButtonVisibility()
+        setupExitBehaviorSection()
+    }
+
+    private fun setupExitBehaviorSection() {
+        binding.radioGroupExitBehavior.setOnCheckedChangeListener { _, checkedId ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val behavior = when (checkedId) {
+                R.id.radioExitBehaviorAlwaysStop ->
+                    com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_STOP
+                R.id.radioExitBehaviorAlwaysContinue ->
+                    com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ALWAYS_CONTINUE
+                else -> com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK
+            }
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(backgroundAudioExitBehavior = behavior))
+        }
+        updateExitBehaviorVisibility()
+    }
+
+    private fun updateExitBehaviorVisibility() {
+        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        val show = binding.switchEnablePersistentAudioPlayback.isChecked
+        binding.layoutExitBehaviorSection.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun isNotificationPermissionGranted(): Boolean {

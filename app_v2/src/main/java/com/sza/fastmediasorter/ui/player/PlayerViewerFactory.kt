@@ -144,7 +144,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 }
 
                 override fun showEncodingDialog() {
-                    activity.showEncodingDialog()
+                    activity.dialogHelper.showEncodingDialog()
                 }
             },
             translationManager = activity.translationManager

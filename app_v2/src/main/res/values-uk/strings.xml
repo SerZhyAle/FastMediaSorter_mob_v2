@@ -2270,4 +2270,5 @@
     <string name="unarchive_network_not_supported">Розпакування підтримується лише для локальних ресурсів і SD-карти.</string>
     <string name="unarchive_only_zip_supported">Підтримуються лише ZIP-архіви.</string>
     <string name="action_open">Відкрити</string>
+    <string name="app_updated_to">Оновлено до %1$s</string>
 </resources>

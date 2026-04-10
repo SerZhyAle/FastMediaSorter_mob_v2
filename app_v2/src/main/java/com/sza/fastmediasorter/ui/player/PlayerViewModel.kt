@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.ResumeState
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -62,6 +63,7 @@ class PlayerViewModel @Inject constructor(
         val enablePhotosDuringAudio: Boolean = false,
         val audioBackgroundPhotosResourceId: String? = null,
         val enablePersistentAudioPlayback: Boolean = false,
+        val backgroundAudioExitBehavior: BackgroundAudioExitBehavior = BackgroundAudioExitBehavior.ASK,
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = false,
@@ -187,7 +189,8 @@ class PlayerViewModel @Inject constructor(
                             playToEndInSlideshow = settings.playToEndInSlideshow,
                             enablePhotosDuringAudio = settings.enablePhotosDuringAudio,
                             audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId,
-                            enablePersistentAudioPlayback = settings.enablePersistentAudioPlayback
+                            enablePersistentAudioPlayback = settings.enablePersistentAudioPlayback,
+                            backgroundAudioExitBehavior = settings.backgroundAudioExitBehavior
                         )
                     }
                 }
@@ -779,6 +782,17 @@ class PlayerViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to save slideshow settings")
+            }
+        }
+    }
+
+    fun updateExitBehavior(behavior: BackgroundAudioExitBehavior) {
+        viewModelScope.launch {
+            try {
+                val settings = settingsRepository.getSettings().first()
+                settingsRepository.updateSettings(settings.copy(backgroundAudioExitBehavior = behavior))
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save background audio exit behavior")
             }
         }
     }

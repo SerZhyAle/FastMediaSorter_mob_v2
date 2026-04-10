@@ -24,13 +24,13 @@ class PlayerTouchZoneCallbackImpl(
         activity.exitPlayerWithAudioCheck(withTransition = true)
     }
 
-    override fun onCopy() = activity.showCopyDialog()
+    override fun onCopy() = activity.dialogAndUiStateManager.showCopyDialog()
 
-    override fun onRename() = activity.showRenameDialog()
+    override fun onRename() = activity.dialogAndUiStateManager.showRenameDialog()
 
     override fun onPrevious() = activity.navigationManager.navigatePreviousFromControl()
 
-    override fun onMove() = activity.showMoveDialog()
+    override fun onMove() = activity.dialogAndUiStateManager.showMoveDialog()
 
     override fun onNext() = activity.navigationManager.navigateNextFromControl()
 
@@ -43,10 +43,10 @@ class PlayerTouchZoneCallbackImpl(
 
     override fun onToggleSlideshow() {
         viewModel.toggleSlideShow()
-        activity.updateSlideShowButton()
+        activity.dialogAndUiStateManager.updateSlideShowButton()
     }
 
-    override fun onDelete() = activity.deleteCurrentFile()
+    override fun onDelete() = activity.fileOperationsHandler.deleteCurrentFile()
 
     override fun onPauseResume() {
         val player = activity.activityBinding.playerView.player
@@ -98,7 +98,7 @@ class PlayerTouchZoneCallbackImpl(
 
     override fun showSlideshowEnabledMessage() = activity.showSlideshowEnabledMessage()
 
-    override fun updateSlideShowButton() = activity.updateSlideShowButton()
+    override fun updateSlideShowButton() = activity.dialogAndUiStateManager.updateSlideShowButton()
 
     override fun updateSlideShow() = activity.navigationManager.updateSlideshowState()
 

@@ -43,6 +43,7 @@
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="2"
+        android:includeFontPadding="true"
         android:textColor="@color/text_color_primary"
         android:textSize="@dimen/text_size_huge"
         app:layout_constraintBottom_toBottomOf="parent"

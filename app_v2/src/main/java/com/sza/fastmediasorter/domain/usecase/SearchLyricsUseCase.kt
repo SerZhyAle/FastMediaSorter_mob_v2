@@ -34,8 +34,8 @@ class SearchLyricsUseCase @Inject constructor(
     private val fileCache: UnifiedFileCache
 ) {
     
-    // Metadata cache: path -> (artist, title)
-    private val metadataCache = mutableMapOf<String, Pair<String?, String?>>()
+    // Metadata cache: path -> (artist, title, album)
+    private val metadataCache = mutableMapOf<String, Triple<String?, String?, String?>>()
     
     private val httpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -58,8 +58,8 @@ class SearchLyricsUseCase @Inject constructor(
             Timber.d("Searching lyrics for: ${mediaFile.name} (resolved: artist='$resolvedArtist', title='$resolvedTitle')")
             
             // Extract metadata (with caching)
-            val (artist, title) = extractMetadataWithCache(mediaFile)
-            Timber.d("Extracted metadata - Artist: $artist, Title: $title")
+            val (artist, title, album) = extractMetadataWithCache(mediaFile)
+            Timber.d("Extracted metadata - Artist: $artist, Title: $title, Album: $album")
             
             // Filter placeholder values from resolved metadata
             val filteredResolvedTitle = SearchQueryUtils.filterPlaceholder(resolvedTitle)
@@ -147,9 +147,9 @@ class SearchLyricsUseCase @Inject constructor(
     // ... extractMetadata ... getLocalFile ... downloadFromSmb ... (unchanged)
 
     /**
-     * Extract artist and title from audio file metadata with caching.
+     * Extract artist, title and album from audio file metadata with caching.
      */
-    private suspend fun extractMetadataWithCache(mediaFile: MediaFile): Pair<String?, String?> {
+    private suspend fun extractMetadataWithCache(mediaFile: MediaFile): Triple<String?, String?, String?> {
         // Check cache first
         metadataCache[mediaFile.path]?.let { cached ->
             Timber.d("Using cached metadata for: ${mediaFile.name}")
@@ -163,9 +163,9 @@ class SearchLyricsUseCase @Inject constructor(
     }
     
     /**
-     * Extract artist and title from audio file metadata.
+     * Extract artist, title and album from audio file metadata.
      */
-    private suspend fun extractMetadata(mediaFile: MediaFile): Pair<String?, String?> {
+    private suspend fun extractMetadata(mediaFile: MediaFile): Triple<String?, String?, String?> {
         return try {
             val localFile = getLocalFile(mediaFile)
             
@@ -174,17 +174,18 @@ class SearchLyricsUseCase @Inject constructor(
                 retriever.setDataSource(localFile.absolutePath)
                 val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
                 val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
-                Pair(fixEncoding(artist), fixEncoding(title))
+                val album = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+                Triple(fixEncoding(artist), fixEncoding(title), fixEncoding(album))
             } finally {
                 retriever.release()
             }
         } catch (e: IllegalArgumentException) {
             // Expected for deleted/inaccessible files
             Timber.d("SearchLyricsUseCase: file not accessible for metadata extraction: ${e.message}")
-            Pair(null, null)
+            Triple(null, null, null)
         } catch (e: Exception) {
             Timber.e(e, "Failed to extract metadata")
-            Pair(null, null)
+            Triple(null, null, null)
         }
     }
     
@@ -242,8 +243,10 @@ class SearchLyricsUseCase @Inject constructor(
         val shareName = pathSegments[0]
         val remotePath = "/" + pathSegments.drop(1).joinToString("/")
         
-        // Get credentials
+        // Get credentials: share-specific first, then host-level fallback (mirrors SmbOperationStrategy)
         val credentials = credentialsRepository.getByServerAndShare(server, shareName)
+            ?: credentialsRepository.getCredentialsByHost(server)
+                ?.takeIf { it.type.equals("SMB", ignoreCase = true) }
             ?: throw IllegalStateException("No credentials found for SMB: $server/$shareName")
         
         val connectionInfo = com.sza.fastmediasorter.data.network.model.SmbConnectionInfo(

@@ -31,11 +31,18 @@ class SearchAudioCoverUseCase @Inject constructor(
 
     /**
      * Search for audio cover art and metadata.
-     * @param filename Audio file name (used to build the search query)
+     * @param filename Audio file name (used to build the search query as fallback)
      * @param filePath Full file path; used to infer artist from parent directory when ID3 is absent
+     * @param metadataArtist Artist tag read directly from the file's ID3/Vorbis metadata (highest priority)
+     * @param metadataTitle  Title tag read directly from the file's ID3/Vorbis metadata (highest priority)
      * @return AudioMetadata with track info and cover art URL, or null if nothing found or search disabled
      */
-    suspend operator fun invoke(filename: String, filePath: String? = null): AudioMetadata? {
+    suspend operator fun invoke(
+        filename: String,
+        filePath: String? = null,
+        metadataArtist: String? = null,
+        metadataTitle: String? = null
+    ): AudioMetadata? {
         try {
             val settings = settingsRepository.getSettings().first()
 
@@ -48,12 +55,39 @@ class SearchAudioCoverUseCase @Inject constructor(
                 return null
             }
 
+            // Priority 0: use internal ID3/Vorbis metadata when available — much more accurate
+            // than guessing from the filename (e.g. "test_audio_flac.flac" vs "I'm So Tired / The Beatles")
+            val cleanMetaArtist = metadataArtist?.trim()?.takeIf { it.isNotBlank() }
+                ?.let { SearchQueryUtils.filterPlaceholder(it) }
+                ?.let { SearchQueryUtils.cleanForSearch(it) }
+                ?.takeIf { it.isNotBlank() }
+            val cleanMetaTitle = metadataTitle?.trim()?.takeIf { it.isNotBlank() }
+                ?.let { SearchQueryUtils.filterPlaceholder(it) }
+                ?.let { SearchQueryUtils.cleanForSearch(it) }
+                ?.takeIf { it.isNotBlank() }
+
+            if (!cleanMetaArtist.isNullOrBlank() && !cleanMetaTitle.isNullOrBlank()) {
+                val metaQuery = "$cleanMetaArtist $cleanMetaTitle"
+                Timber.i("Cover search (ID3 metadata): artist='$cleanMetaArtist', title='$cleanMetaTitle' → '$metaQuery'")
+                searchItunes(metaQuery)?.let { return it }
+                searchDeezer(metaQuery)?.let { return it }
+                searchMusicBrainz(metaQuery)?.let { return it }
+                Timber.d("Cover search: ID3 metadata query '$metaQuery' exhausted all sources, falling back to filename")
+            } else if (!cleanMetaTitle.isNullOrBlank()) {
+                Timber.i("Cover search (ID3 title only): title='$cleanMetaTitle'")
+                searchItunes(cleanMetaTitle)?.let { return it }
+                searchDeezer(cleanMetaTitle)?.let { return it }
+                searchMusicBrainz(cleanMetaTitle)?.let { return it }
+                Timber.d("Cover search: ID3 title-only query exhausted all sources, falling back to filename")
+            }
+
+            // Fallback: build query from filename
             val searchQuery = prepareSearchQuery(filename)
             if (searchQuery.isBlank()) {
                 Timber.w("Empty search query after processing filename: $filename")
                 return null
             }
-            Timber.i("Cover search: '$filename' → '$searchQuery'")
+            Timber.i("Cover search (filename fallback): '$filename' → '$searchQuery'")
 
             // 1. iTunes
             searchItunes(searchQuery)?.let { return it }

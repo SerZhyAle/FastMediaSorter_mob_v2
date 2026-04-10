@@ -74,7 +74,7 @@ class PlayerNavigationManager(
                     // Synchronize ViewModel state with controller state directly (no toggle to avoid loops)
                     viewModel.setSlideShowActive(isActive)
                     viewModel.setPaused(isPaused)
-                    activity.updateSlideShowButton()
+                    activity.dialogAndUiStateManager.updateSlideShowButton()
                     activity.updatePlayPauseButton()
                     
                     // Auto-enter fullscreen when slideshow starts
@@ -84,7 +84,7 @@ class PlayerNavigationManager(
                 }
 
                 override fun onCountdownTick(seconds: Int) {
-                    activity.updateCountdownDisplay(seconds)
+                    activity.dialogAndUiStateManager.updateCountdownDisplay(seconds)
                 }
                 
                 override fun onMemoryCacheClear() {
@@ -144,9 +144,9 @@ class PlayerNavigationManager(
                     activity.updateSlideShow()
                 }
             }
-            com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.COPY_PANEL -> activity.showCopyDialog()
-            com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.MOVE_PANEL -> activity.showMoveDialog()
-            com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.DELETE -> activity.deleteCurrentFile()
+            com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.COPY_PANEL -> activity.dialogAndUiStateManager.showCopyDialog()
+            com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.MOVE_PANEL -> activity.dialogAndUiStateManager.showMoveDialog()
+            com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.DELETE -> activity.fileOperationsHandler.deleteCurrentFile()
         }
     }
 

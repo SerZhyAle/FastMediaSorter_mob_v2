@@ -56,7 +56,12 @@ class LyricsManager(
                 
                 result.onSuccess { lyrics ->
                     Timber.d("LyricsManager: Lyrics found, showing viewer")
-                    showLyricsViewer(lyrics)
+                    showLyricsViewer(
+                        lyrics = lyrics,
+                        currentFile = currentFile,
+                        resolvedTitle = resolvedTitle,
+                        resolvedArtist = resolvedArtist
+                    )
                 }.onFailure { error ->
                     when {
                         error.message == "Lyrics not found" ->
@@ -95,9 +100,37 @@ class LyricsManager(
     
     /**
      * Display lyrics in overlay viewer with font customization.
+     * Prepends a metadata header (Artist — Album — Title).
      */
-    private fun showLyricsViewer(lyrics: String) {
+    private fun showLyricsViewer(
+        lyrics: String,
+        currentFile: MediaFile,
+        resolvedTitle: String? = null,
+        resolvedArtist: String? = null
+    ) {
         Timber.d("LyricsManager: Showing lyrics viewer")
+        
+        // Construct metadata header
+        val headerArtist = resolvedArtist ?: currentFile.artist
+        val headerTitle = resolvedTitle ?: currentFile.title
+        val headerAlbum = currentFile.album
+        
+        val header = buildString {
+            if (!headerArtist.isNullOrBlank()) append(headerArtist)
+            if (!headerAlbum.isNullOrBlank()) {
+                if (isNotEmpty()) append(" — ")
+                append(headerAlbum)
+            }
+            if (!headerTitle.isNullOrBlank()) {
+                if (isNotEmpty()) append(" — ")
+                append(headerTitle)
+            }
+            if (isNotEmpty()) {
+                append("\n")
+                append("════════════════════════════")
+                append("\n\n")
+            }
+        }
         
         // Filter out empty lines from lyrics
         val filteredLyrics = lyrics.lines()
@@ -123,7 +156,7 @@ class LyricsManager(
         }
         
         safeViews.tvLyricsContent.apply {
-            this.text = filteredLyrics
+            this.text = header + filteredLyrics
             this.textSize = fontSize
             this.typeface = fontFamily
         }

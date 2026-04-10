@@ -132,6 +132,15 @@ class NetworkFileDownloader(
             }
         }
         
+        // Fallback: host-level SMB credentials (mirrors SmbOperationStrategy behaviour)
+        if (credentials == null) {
+            val hostCredentials = credentialsRepository?.getCredentialsByHost(server)
+            if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
+                Timber.w("NetworkFileDownloader: Share-specific credentials not found for '$server/$shareName', using host credentials (user: ${hostCredentials.username})")
+                credentials = hostCredentials
+            }
+        }
+
         if (credentials == null) {
             Timber.e("No credentials for SMB: $server/$shareName (tried with subfolders too)")
             return null

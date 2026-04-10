@@ -371,7 +371,14 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                         AlertDialog.Builder(activity)
                             .setTitle("Download Translation Model")
                             .setMessage("Translation to $languageName requires downloading ~30MB model. Download now?")
-                            .setPositiveButton("Download") { _, _ -> onConfirm() }
+                            .setPositiveButton("Download") { _, _ ->
+                                onConfirm()
+                                android.widget.Toast.makeText(
+                                    activity,
+                                    activity.getString(R.string.translation_downloading_wait),
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            }
                             .setNegativeButton("Cancel") { _, _ -> onCancel() }
                             .setCancelable(false)
                             .show()
@@ -619,7 +626,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             settingsRepository = activity.settingsRepository,
             lifecycleScope = activity.lifecycleScope,
             callback = object : AudioSlideshowPhotoModeManager.Callback {
-                override fun updateSlideShowButton() = activity.updateSlideShowButton()
+                override fun updateSlideShowButton() = activity.dialogAndUiStateManager.updateSlideShowButton()
                 override fun updateSystemBarsForPlayer(showCommandPanel: Boolean) =
                     activity.updateSystemBarsForPlayer(showCommandPanel)
                 override fun toggleSlideshow() = activity.navigationManager.toggleSlideshow()

@@ -355,13 +355,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Load resources after UI is ready (deferred from onCreate via BaseActivity)
         viewModel.refreshResources()
         
-        // Log app version in background (non-critical)
+        // Log app version in background and show update Toast if needed
         lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 val packageInfo = packageManager.getPackageInfo(packageName, 0)
                 val versionName = packageInfo.versionName
                 val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
                 Timber.d("App version: $versionName (code: $versionCode)")
+                
+                val prefs = getSharedPreferences("app_update_prefs", android.content.Context.MODE_PRIVATE)
+                val lastSeenVersionName = prefs.getString("last_seen_version_name", null)
+                
+                if (lastSeenVersionName != null && lastSeenVersionName != versionName) {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, getString(R.string.app_updated_to, versionName), Toast.LENGTH_LONG).show()
+                    }
+                }
+                
+                if (lastSeenVersionName != versionName) {
+                    prefs.edit().putString("last_seen_version_name", versionName).apply()
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get app version")
             }
@@ -842,12 +855,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val tabIndex = getTabIndexForResourceTab(currentTab)
         binding.tabResourceTypes.getTabAt(tabIndex)?.select()
 
-        // Adjust TabLayout mode for compact screens to avoid truncated labels
+        // Adjust TabLayout mode and gravity for compact screens to avoid truncated labels
         val screenWidthDp = resources.configuration.screenWidthDp
-        binding.tabResourceTypes.tabMode = if (screenWidthDp < 480) {
-            TabLayout.MODE_SCROLLABLE
+        if (screenWidthDp < 480) {
+            binding.tabResourceTypes.tabMode = TabLayout.MODE_SCROLLABLE
+            binding.tabResourceTypes.tabGravity = TabLayout.GRAVITY_START
         } else {
-            TabLayout.MODE_FIXED
+            binding.tabResourceTypes.tabMode = TabLayout.MODE_FIXED
+            binding.tabResourceTypes.tabGravity = TabLayout.GRAVITY_FILL
         }
     }
     

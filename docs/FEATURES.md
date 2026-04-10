@@ -61,6 +61,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Multi-select**: Perform actions on multiple files at once to save time. Select continuous ranges or individual files to batch copy, move, delete, or share them simultaneously.
 - **Subfolder navigation**: Seamlessly dive deep into nested folder structures while maintaining a clear back-stack. This allows straightforward navigation back to higher-level directories without losing context.
 - **Show subfolders as items**: Treat subdirectories as clickable entries mixed directly into your file list. Unchecking this option flattens the view, which is useful when you only care about the media files inside.
+- **Subfolder operations**: Select, copy, move, rename, and delete subfolders directly in Browse when 'Show subfolders as items' is enabled; works for local, network (SMB/SFTP/FTP), and cloud resources.
 - **Create subfolder from Browse menu**: Create a new subfolder directly from the Browse resource menu (local, network, cloud); available when "Show subfolders as items" is enabled and the resource is writable. The new folder appears in the list immediately without navigating into it.
 - **Show hidden files**: Toggle the visibility of system-hidden files and folders (those starting with a dot) depending on whether you need a clean view or administrative access to all data.
 - **Show all files mode**: Temporarily bypass all media-type filters to view every single file in a directory. This ensures you can manage and organize binary files or archives alongside your media.
@@ -141,6 +142,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 - **Robust engine**: Rely on ExoPlayer for high-fidelity audio decoding, perfectly parsing both local and high-latency network music tracks.
 - **Background playback**: Keep the music going even when you leave the app or lock the screen. A persistent foreground service with rich notification controls ensures uninterrupted listening.
+- **Configurable exit behavior**: Choose what happens when you press Back while audio plays in background — ask every time (default), always stop, or always keep playing. Set once in Settings → Audio and the choice is remembered permanently.
 - **Notification media controls**: Quickly play, pause, or skip tracks directly from your system's notification shade or lock screen without continuously reopening the app.
 - **Intelligent album cover art**: Enjoy a visually rich music player that automatically retrieves album art from embedded ID3 metadata tags, or falls back to an online search (with an optional Wi-Fi-only restriction to save mobile data).
 - **Local audio metadata cache**: downloaded covers and track info saved to `audio_metadata_cache/` folder; reused on subsequent plays without network requests; included in cache size display and "Clear Cache" action

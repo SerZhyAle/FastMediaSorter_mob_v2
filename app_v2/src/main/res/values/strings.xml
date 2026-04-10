@@ -1517,6 +1517,7 @@
     <string name="ocr_processing">Recognizing text…</string>
     <string name="ocr_no_text_found">No text found in image</string>
     <string name="translation_no_text_found">No text found to translate</string>
+    <string name="translation_downloading_wait">Ждите результат перевода…</string>
     <string name="ocr_error">Text recognition error: %1$s</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="text_copied">Text copied to clipboard</string>
@@ -2073,6 +2074,15 @@
     <string name="background_audio_exit_message">Music is playing in the background. What would you like to do?</string>
     <string name="background_audio_exit_stop">Stop</string>
     <string name="background_audio_exit_continue">Keep Playing</string>
+    <!-- Background audio exit behavior — additional dialog items -->
+    <string name="background_audio_exit_always_stop">Always Stop</string>
+    <string name="background_audio_exit_always_continue">Always Continue</string>
+    <!-- Background audio exit behavior — Settings sub-row -->
+    <string name="background_audio_exit_behavior_title">When leaving player</string>
+    <string name="background_audio_exit_behavior_summary">Choose what happens to background audio when you navigate back</string>
+    <string name="background_audio_exit_behavior_ask">Ask every time (default)</string>
+    <string name="background_audio_exit_behavior_always_stop">Always stop</string>
+    <string name="background_audio_exit_behavior_always_continue">Always keep playing</string>
 
     <!-- Vinyl indicator & Sleep timer -->
     <string name="vinyl_indicator_description">Audio playback indicator</string>
@@ -2315,6 +2325,7 @@
     <string name="unarchive_network_not_supported">Extraction is only supported for local and SD-card resources.</string>
     <string name="unarchive_only_zip_supported">Only ZIP archives are supported.</string>
     <string name="action_open">Open</string>
+    <string name="app_updated_to">Updated to %1$s</string>
 </resources>
 
 

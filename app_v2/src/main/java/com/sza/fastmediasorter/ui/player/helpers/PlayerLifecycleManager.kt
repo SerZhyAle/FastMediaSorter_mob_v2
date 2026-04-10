@@ -4,6 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.WindowManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -324,5 +328,93 @@ class PlayerLifecycleManager(
                 activity.exitPlayerWithAudioCheck()
             }
         })
+    }
+
+    /**
+     * Exit the player, respecting the saved background-audio exit behavior preference.
+     * - ALWAYS_STOP: stops service and finishes without a dialog.
+     * - ALWAYS_CONTINUE: finishes without stopping service and without a dialog.
+     * - ASK (default): shows a 4-item dialog (Stop / Keep Playing / Always Stop / Always Continue).
+     */
+    fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
+        if (!activity.isMediaLoaderManagerInitialized || !activity.mediaLoaderManager.isServiceAudioActive) {
+            doFinish(withTransition)
+            return
+        }
+
+        when (viewModel.state.value.backgroundAudioExitBehavior) {
+            BackgroundAudioExitBehavior.ALWAYS_STOP -> {
+                activity.audioServiceController?.player?.stop()
+                doFinish(withTransition)
+            }
+            BackgroundAudioExitBehavior.ALWAYS_CONTINUE -> {
+                doFinish(withTransition)
+            }
+            BackgroundAudioExitBehavior.ASK -> showExitAudioDialog(withTransition)
+        }
+    }
+
+    private fun showExitAudioDialog(withTransition: Boolean) {
+        val items = arrayOf(
+            activity.getString(R.string.background_audio_exit_stop),
+            activity.getString(R.string.background_audio_exit_continue),
+            activity.getString(R.string.background_audio_exit_always_stop),
+            activity.getString(R.string.background_audio_exit_always_continue),
+        )
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.background_audio_exit_message)
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> { // Stop (this time only)
+                        activity.audioServiceController?.player?.stop()
+                        doFinish(withTransition)
+                    }
+                    1 -> { // Keep Playing (this time only)
+                        doFinish(withTransition)
+                    }
+                    2 -> { // Always Stop — save preference then stop
+                        viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_STOP)
+                        activity.audioServiceController?.player?.stop()
+                        doFinish(withTransition)
+                    }
+                    3 -> { // Always Continue — save preference then continue
+                        viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_CONTINUE)
+                        doFinish(withTransition)
+                    }
+                }
+            }
+            .show()
+    }
+
+    fun doFinish(withTransition: Boolean = false) {
+        viewModel.clearResumeState()
+        activity.finish()
+        if (withTransition) {
+            @Suppress("DEPRECATION")
+            activity.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
+    }
+
+    /**
+     * Set screen keep-awake state for slideshow.
+     * @param enabled true to force screen on, false to restore global preventSleep setting
+     */
+    fun setSlideshowKeepAwake(enabled: Boolean) {
+        if (activity.isFinishing || activity.isDestroyed) return
+        if (enabled) {
+            activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            android.widget.Toast.makeText(
+                activity, R.string.slideshow_keep_awake, android.widget.Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            activity.lifecycleScope.launch {
+                val settings = activity.settingsRepository.getSettings().first()
+                if (settings.preventSleep) {
+                    activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+        }
     }
 }

@@ -803,13 +803,20 @@ class PdfViewerManager(
             callback.showError("No page rendered for translation")
             return
         }
-        
+
         val filePath = currentPdfFile?.absolutePath ?: return
-        
+
+        // Show "Translation started" toast
+        android.widget.Toast.makeText(
+            binding.root.context,
+            binding.root.context.getString(R.string.translation_started),
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
+
         coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
             isLensStyleEnabled = settings.translationLensStyle
-            
+
             if (isLensStyleEnabled) {
                 // Google Lens style mode - use text blocks with coordinates
                 translateCurrentPageLensStyle(settings, filePath)

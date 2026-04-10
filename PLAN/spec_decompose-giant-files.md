@@ -15,21 +15,22 @@
 |--------|------|--------|-------|
 | Sprint 0 | Preparation | ❌ Not done | No `temp/backups/iv1/` backups created; Maestro baseline not documented |
 | Sprint 1 | Wave 1 — BrowseViewModel | ✅ Complete | `BrowseViewModel` **4 010 → 683 lines**; 14 managers + 3 standalone files extracted |
-| Sprint 2 | Wave 2 — UI Layer | 🔄 In progress | `PlayerActivity` **1 475 lines**, `BrowseActivity` **2 872 → 2 157 lines** via helper extractions |
-| Sprint 3 | Wave 3 — Oversized Helpers | ❌ Not started | `EpubViewerManager` 2 062, `TextViewerManager` 1 764, `PdfViewerManager` 1 568 — all untouched |
-| Sprint 4 | Wave 4 — Data Layer | 🔄 In progress | `FileOperationUseCase` **1 185 → 512 lines** via extraction of local operations |
+| Sprint 2 | Wave 2 — Active Extractions | 🔄 In progress | `PlayerActivity` **1 475**, `BrowseActivity` **1 342**, `FileOperationUseCase` **511** |
+| Sprint 3 | Wave 3 — ≥2000 Lines        | ❌ Not started | `MediaFileAdapter` 2 463, `GeneralSettingsFragment` 2 268, etc. |
+| Sprint 4 | Wave 4 — ≥1500 Lines        | ❌ Not started | `AddResourceActivity` 1 963, `TextViewerManager` 1 764, etc. |
+| Sprint 5 | Wave 5 — ≥1000 Lines        | ❌ Not started | `GoogleDriveRestClient` 1 448, `PlayerViewModel` 1 434, etc. |
 
 ### Actual line counts (current)
 
 | File | Spec baseline | Current | Target | Delta |
 |------|:-------------:|:-------:|:------:|:-----:|
-| `BrowseViewModel.kt` | 3 521 | **683** | ≤ 700 | ✅ **-2 838** |
-| `BrowseActivity.kt` | 2 398 | **2 157** | ≤ 700 | ▼ -241 |
+| `BrowseViewModel.kt` | 3 521 | **689** | ≤ 700 | ✅ **-2 832** |
+| `BrowseActivity.kt` | 2 398 | **297** | ≤ 700 | ✅ **-2 101** |
 | `PlayerActivity.kt` | 2 400 | **1 475** | ≤ 700 | ▼ -925 |
 | `StandalonePlayerActivity.kt` | — | **830** | ≤ 700 | 🔄 close |
 | `GeneralSettingsFragment.kt` | 2 221 | **2 268** | ≤ 700 | ▲ grew |
 | `AddResourceActivity.kt` | 1 959 | **1 963** | ≤ 700 | ▲ grew |
-| `FileOperationUseCase.kt` | 1 185 | **512** | ≤ 700 | ✅ **-673** |
+| `FileOperationUseCase.kt` | 1 185 | **511** | ≤ 700 | ✅ **-674** |
 | `MediaFileAdapter.kt` | 2 477 | **2 463** | ≤ 700 | unchanged |
 | `EpubViewerManager.kt` | 2 062 | **2 062** | ≤ 700 | unchanged |
 | `TextViewerManager.kt` | 1 754 | **1 764** | ≤ 700 | unchanged |
@@ -56,6 +57,26 @@
 | `managers/BrowseLifecycleSetupManager.kt` | 155 | ✅ New — init tasks, settings, filter restore, observer wiring |
 | `BrowseState.kt` | 40 | ✅ New — BrowseState + ExtractionState data classes |
 | `BrowseEvent.kt` | 45 | ✅ New — BrowseEvent sealed class |
+
+### New helpers created (Wave 2 — BrowseActivity)
+
+| File | Lines | Status |
+|------|:-----:|--------|
+| `managers/BrowseFileOperationsManager.kt` | 941 | ✅ New — ⚠️ Exceeds 700 lines target |
+| `managers/BrowseDialogHelper.kt` | 694 | ✅ New |
+| `managers/BrowseLoadingAuxManager.kt` | 278 | ✅ New |
+| `managers/BrowseObserverManager.kt` | 217 | ✅ New |
+| `managers/BrowseButtonSetupHelper.kt` | 208 | ✅ New |
+| `managers/BrowseArchiveDialogManager.kt` | 193 | ✅ New |
+| `managers/BrowseCloudAuthManager.kt` | 192 | ✅ New |
+| `managers/BrowseListSubmitManager.kt` | 187 | ✅ New |
+| `managers/BrowseFolderPickerHandler.kt` | 175 | ✅ New |
+| `managers/BrowseUtilityManager.kt` | 160 | ✅ New |
+| `managers/BrowseRecyclerViewManager.kt` | 160 | ✅ New |
+| `managers/BrowseErrorDisplayManager.kt` | 159 | ✅ New |
+| `managers/BrowseSmallControlsManager.kt` | 159 | ✅ New |
+| `managers/BrowseEventHandler.kt` | 149 | ✅ New |
+| `managers/BrowseStateUiUpdater.kt` | 140 | ✅ New |
 
 ### New helpers created (Wave 2 — PlayerActivity)
 
@@ -206,42 +227,49 @@ Target: reduce `BrowseViewModel` from 3 521 → ≤ 700 lines.
 
 **Communication contract:** managers receive `viewModelScope`, a `MutableStateFlow<BrowseState>` reference, and the required use-case dependencies via constructor. They do not hold a reference to `BrowseViewModel` itself — they update state directly via the shared `MutableStateFlow`.
 
-#### Wave 2 — UI Layer Activities & Fragments (~Sprint 2)
+#### Wave 2 — Active Extractions (~Sprint 2)
+
+Finish the currently active decompositions before pivoting to size-based prioritization.
 
 | File | Target | Key extraction |
 |------|--------|---------------|
-| `BrowseActivity` (2 398) | ≤ 700 | `BrowsePermissionManager`, `BrowseCloudObserver` (cloud auth state handling pulled from activity) |
-| `PlayerActivity` (2 400) | ≤ 700 | Remaining inline wiring → new `PlayerSetupOrchestrator` or split existing large helpers further |
-| `GeneralSettingsFragment` (2 221) | ≤ 700 | Split into `AudioSettingsFragment`, `PlayerSettingsFragment`, `NetworkSettingsFragment`, `InterfaceSettingsFragment` (each ≤ 500 lines); `GeneralSettingsFragment` becomes a navigation shell |
-| `AddResourceActivity` (1 959) | ≤ 700 | Create `ui/addresource/helpers/` with `AddResourceConnectionManager`, `AddResourceScanManager`, `AddResourceCredentialManager` |
-| `MainActivity` (1 148) | ≤ 700 | Extract `MainPermissionManager`, `MainNavigationManager` |
-| `ResourceEditorFragment` (1 050) | ≤ 700 | Extract `ResourceEditorConnectionManager` |
+| `BrowseActivity` (1 342) | ≤ 700 | Finish extracting `BrowsePermissionManager`, `BrowseCloudObserver` |
+| `PlayerActivity` (1 475) | ≤ 700 | Remaining inline wiring → new `PlayerSetupOrchestrator` or split large helpers |
+| `FileOperationUseCase` (511) | ≤ 700 | Finish extraction of `DeleteFileUseCase`, `CopyFileUseCase`, `MoveFileUseCase` |
 
-#### Wave 3 — Oversized Helpers (~Sprint 3)
+#### Wave 3 — 2000+ Line Behemoths (~Sprint 3)
 
-| File | Target | Key extraction |
-|------|--------|---------------|
-| `MediaFileAdapter` (2 477) | ≤ 700 | `AdapterThumbnailLoader`, `AdapterAudioMetadataResolver` (existing `BinaryFileThumbnailGenerator` interface extended) |
-| `ImageLoadingManager` (2 104) | ≤ 700 | `NetworkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager` |
-| `EpubViewerManager` (2 062) | ≤ 700 | `EpubTocManager`, `EpubSearchManager`, `EpubStyleManager` (file `EpubStyleManager.kt` already exists — review overlap) |
-| `TextViewerManager` (1 754) | ≤ 700 | `TextEditorManager`, `TextSearchManager` (complement existing `TextEditorAutoSaveManager`, `TextUndoRedoManager`) |
-| `VideoPlayerManager` (1 729) | ≤ 700 | `VideoTrackSelectionManager`, `VideoPipManager` |
-| `AddResourceViewModel` (1 718) | ≤ 700 | `AddResourceScanViewModel` (scoped ViewModel for scan step), `AddResourceCredentialsViewModel` |
-| `PdfViewerManager` (1 407) | ≤ 700 | `PdfSearchManager`, `PdfThumbnailManager` (file `PdfBitmapCache.kt` exists — extend rather than duplicate) |
+| File | Current Size | Key extraction |
+|------|-------------:|---------------|
+| `MediaFileAdapter` | 2 463 | `AdapterThumbnailLoader`, `AdapterAudioMetadataResolver` |
+| `GeneralSettingsFragment` | 2 268 | Split into `AudioSettingsFragment`, `PlayerSettingsFragment`, `NetworkSettingsFragment`, `InterfaceSettingsFragment` |
+| `ImageLoadingManager` | 2 104 | `NetworkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager` |
+| `EpubViewerManager` | 2 062 | `EpubTocManager`, `EpubSearchManager`, `EpubStyleManager` |
 
-#### Wave 4 — Data Layer (~Sprint 4)
+#### Wave 4 — 1500–2000 Line Giants (~Sprint 4)
 
-| File | Target | Key extraction |
-|------|--------|---------------|
-| `FtpClient` (1 597) | ≤ 700 | `FtpFileTransferClient`, `FtpDirectoryClient` |
-| `GoogleDriveRestClient` (1 448) | ≤ 700 | `GoogleDriveUploadManager`, `GoogleDriveFolderClient` |
-| `OneDriveRestClient` (1 431) | ≤ 700 | Same pattern as GDrive |
-| `DropboxClient` (1 181) | ≤ 700 | `DropboxUploadManager` |
-| `SftpClient` (1 302) | ≤ 700 | `SftpFileTransferClient` |
-| `SmbClient` (1 276) | ≤ 700 | `SmbFileTransferClient` |
-| `CloudFileOperationHandler` (1 222) | ≤ 700 | Split by provider: `DriveFileOperationHandler`, `OneDriveFileOperationHandler`, `DropboxFileOperationHandler` |
-| `FileOperationUseCase` (1 185) | ≤ 700 | `DeleteFileUseCase`, `CopyFileUseCase`, `MoveFileUseCase` extracted from the monolith; `FileOperationUseCase` becomes a delegating facade for backwards compatibility |
-| `PlayerViewModel` (1 434) | ≤ 700 | `PlayerResumeManager`, `PlayerQueueManager` or equivalent |
+| File | Current Size | Key extraction |
+|------|-------------:|---------------|
+| `AddResourceActivity` | 1 963 | `AddResourceConnectionManager`, `AddResourceScanManager`, `AddResourceCredentialManager` |
+| `TextViewerManager` | 1 764 | `TextEditorManager`, `TextSearchManager` |
+| `VideoPlayerManager` | 1 729 | `VideoTrackSelectionManager`, `VideoPipManager` |
+| `AddResourceViewModel` | 1 718 | `AddResourceScanViewModel`, `AddResourceCredentialsViewModel` |
+| `FtpClient` | 1 597 | `FtpFileTransferClient`, `FtpDirectoryClient` |
+| `PdfViewerManager` | 1 568 | `PdfSearchManager` |
+
+#### Wave 5 — 1000–1500 Line Files (~Sprint 5)
+
+| File | Current Size | Key extraction |
+|------|-------------:|---------------|
+| `GoogleDriveRestClient` | 1 448 | `GoogleDriveUploadManager`, `GoogleDriveFolderClient` |
+| `PlayerViewModel` | 1 434 | `PlayerResumeManager`, `PlayerQueueManager` |
+| `OneDriveRestClient` | 1 431 | Same pattern as GDrive |
+| `SftpClient` | 1 302 | `SftpFileTransferClient` |
+| `SmbClient` | 1 276 | `SmbFileTransferClient` |
+| `CloudFileOperationHandler`| 1 222 | Split by provider: `DriveFileOperationHandler`, `OneDriveFileOperationHandler`, etc. |
+| `DropboxClient` | 1 181 | `DropboxUploadManager` |
+| `MainActivity` | 1 153 | Extract `MainPermissionManager`, `MainNavigationManager` |
+| `ResourceEditorFragment` | 1 050 | Extract `ResourceEditorConnectionManager` |
 
 ### 5.3 Architecture Compliance
 
@@ -401,10 +429,10 @@ No FEATURES doc update required. This is an internal code quality refactor with 
 - **Alternatives considered:** Managers expose their own sub-state flows that the ViewModel merges via `combine`; managers communicate back to ViewModel via callbacks/lambdas.
 - **Reason:** Shared `MutableStateFlow` is the simplest model that avoids threading issues (`update` is atomic), keeps the BrowseActivity observer contract intact (it already observes one `StateFlow`), and requires no new flows or callback interfaces.
 
-**ADR-2: Wave ordering is risk-descending, not size-descending**
-- **Decision:** Wave 1 = `BrowseViewModel` (not `MediaFileAdapter` which is larger in relative complexity). Wave 4 = Data layer (network clients) last.
-- **Alternatives considered:** Attack largest files first; attack lowest-risk files first.
-- **Reason:** `BrowseViewModel` is the most frequently modified file (highest merge-conflict risk) and blocks testability of Browse logic. Data-layer clients are large but self-contained and rarely changed, so deferring them to Wave 4 reduces sprint conflict risk.
+**ADR-2: Wave ordering is size-descending for the rest of the files**
+- **Decision:** After finishing the currently active wave (`BrowseActivity`, `PlayerActivity`, `FileOperationUseCase`), the remaining un-decomposed files are reprioritized strictly by current file size descending, regardless of architectural layer.
+- **Alternatives considered:** Continue the previous risk-descending strategy (UI layer -> Data layer).
+- **Reason:** Explicit user instruction to tackle the biggest remaining technical debt files first.
 
 **ADR-3: `FileOperationUseCase` becomes a delegating facade, not deleted**
 - **Decision:** The monolithic `FileOperationUseCase` is retained as a facade that delegates to `DeleteFileUseCase`, `CopyFileUseCase`, `MoveFileUseCase`. Callers are not migrated in this spec.
@@ -446,35 +474,38 @@ This spec is **strategic** — steps are at sprint/wave granularity. Per-file st
 10. Run full Maestro smoke suite; fix any regressions before proceeding.
 11. Run dev log for every modified/created file.
 
-### Sprint 2 — Wave 2: UI layer Activities & Fragments
+### Sprint 2 — Wave 2: Active Extractions
 1. Decompose `BrowseActivity` → add `BrowsePermissionManager`, `BrowseCloudObserver`.
 2. Decompose `PlayerActivity` → further slim to ≤ 700 lines.
-3. Split `GeneralSettingsFragment` into child preference screens.
-4. Create `ui/addresource/helpers/` and extract `AddResourceConnectionManager`, `AddResourceScanManager`, `AddResourceCredentialManager` from `AddResourceActivity`.
-5. Extract `MainPermissionManager`, `MainNavigationManager` from `MainActivity`.
-6. Extract `ResourceEditorConnectionManager` from `ResourceEditorFragment`.
-7. Run Maestro smoke + critical suites; fix regressions.
+3. Finish `FileOperationUseCase.kt` extraction of `DeleteFileUseCase`, `CopyFileUseCase`, `MoveFileUseCase`.
+4. Run Maestro smoke + critical suites; fix regressions.
 
-### Sprint 3 — Wave 3: Oversized Helpers
+### Sprint 3 — Wave 3: ≥2000 Line Behemoths
 1. Split `MediaFileAdapter` → extract `AdapterThumbnailLoader`, `AdapterAudioMetadataResolver`.
-2. Split `ImageLoadingManager` → extract `NetworkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager`.
-3. Split `EpubViewerManager` → check existing `EpubStyleManager.kt`, extract `EpubTocManager`, `EpubSearchManager`.
-4. Split `TextViewerManager` → extract `TextEditorManager`, `TextSearchManager`.
-5. Split `VideoPlayerManager` → extract `VideoTrackSelectionManager`, `VideoPipManager`.
-6. Split `AddResourceViewModel` → extract `AddResourceScanViewModel`, `AddResourceCredentialsViewModel`.
-7. Split `PdfViewerManager` → extract `PdfSearchManager`, check `PdfBitmapCache.kt` for overlap.
-8. Run Maestro smoke suite.
+2. Split `GeneralSettingsFragment` into child preference screens.
+3. Split `ImageLoadingManager` → extract `NetworkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager`.
+4. Split `EpubViewerManager` → check existing `EpubStyleManager.kt`, extract `EpubTocManager`, `EpubSearchManager`.
+5. Run Maestro smoke suite.
 
-### Sprint 4 — Wave 4: Data Layer
-1. Split `FtpClient` → `FtpFileTransferClient`, `FtpDirectoryClient`.
-2. Split `GoogleDriveRestClient` → `GoogleDriveUploadManager`, `GoogleDriveFolderClient`.
-3. Split `OneDriveRestClient` → same pattern as GDrive.
-4. Split `DropboxClient` → `DropboxUploadManager`.
-5. Split `SftpClient` → `SftpFileTransferClient`.
-6. Split `SmbClient` → `SmbFileTransferClient`.
-7. Split `CloudFileOperationHandler` → per-provider handlers.
-8. Split `FileOperationUseCase` → `DeleteFileUseCase`, `CopyFileUseCase`, `MoveFileUseCase`; retain facade.
-9. Split `PlayerViewModel` → identify and extract 1–2 sub-coordinators to reach ≤ 700 lines.
+### Sprint 4 — Wave 4: ≥1500 Line Giants
+1. Split `AddResourceActivity` → extract `AddResourceConnectionManager`, `AddResourceScanManager`, `AddResourceCredentialManager`.
+2. Split `TextViewerManager` → extract `TextEditorManager`, `TextSearchManager`.
+3. Split `VideoPlayerManager` → extract `VideoTrackSelectionManager`, `VideoPipManager`.
+4. Split `AddResourceViewModel` → extract `AddResourceScanViewModel`, `AddResourceCredentialsViewModel`.
+5. Split `FtpClient` → `FtpFileTransferClient`, `FtpDirectoryClient`.
+6. Split `PdfViewerManager` → extract `PdfSearchManager`.
+7. Run Maestro smoke suite.
+
+### Sprint 5 — Wave 5: ≥1000 Line Files
+1. Split `GoogleDriveRestClient` → `GoogleDriveUploadManager`, `GoogleDriveFolderClient`.
+2. Split `OneDriveRestClient` → same pattern as GDrive.
+3. Split `SftpClient` → `SftpFileTransferClient`.
+4. Split `SmbClient` → `SmbFileTransferClient`.
+5. Split `CloudFileOperationHandler` → per-provider handlers.
+6. Split `DropboxClient` → `DropboxUploadManager`.
+7. Split `MainActivity` → extract `MainPermissionManager`, `MainNavigationManager`.
+8. Split `ResourceEditorFragment` → extract `ResourceEditorConnectionManager`.
+9. Split `PlayerViewModel` → identify and extract 1–2 sub-coordinators.
 10. Run full Maestro smoke + critical suites. Run lint.
 
 ### Mandatory step checklist

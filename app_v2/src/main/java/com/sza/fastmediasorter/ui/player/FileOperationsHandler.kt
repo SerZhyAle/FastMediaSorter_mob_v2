@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -472,6 +473,42 @@ class FileOperationsHandler(
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Failed to share local file")
                 callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed, e.message), e)
+            }
+        }
+    }
+
+    /**
+     * Delete current file with optional confirmation dialog based on Safe Mode settings.
+     */
+    fun deleteCurrentFile() {
+        val resource = callback.getCurrentResource()
+        if (resource?.isReadOnly == true) {
+            Toast.makeText(context, context.getString(com.sza.fastmediasorter.R.string.error_read_only), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val currentFile = callback.getCurrentFile()
+        if (currentFile == null) {
+            Toast.makeText(context, context.getString(com.sza.fastmediasorter.R.string.msg_no_file_to_delete), Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val shouldConfirm = settings.enableSafeMode || settings.confirmDelete
+            Timber.d("FileOperationsHandler.deleteCurrentFile: shouldConfirm=$shouldConfirm")
+            if (shouldConfirm) {
+                val activity = context as? android.app.Activity
+                if (activity?.isFinishing == true || activity?.isDestroyed == true) {
+                    Timber.w("FileOperationsHandler.deleteCurrentFile: Activity is finishing/destroyed, skipping confirm dialog")
+                    return@launch
+                }
+                AlertDialog.Builder(context)
+                    .setTitle(com.sza.fastmediasorter.R.string.confirm_delete_title)
+                    .setMessage(context.getString(com.sza.fastmediasorter.R.string.confirm_delete_message, 1))
+                    .setPositiveButton(com.sza.fastmediasorter.R.string.delete) { _, _ -> performDelete() }
+                    .setNegativeButton(com.sza.fastmediasorter.R.string.cancel, null)
+                    .show()
+            } else {
+                performDelete()
             }
         }
     }

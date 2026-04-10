@@ -39,7 +39,12 @@ class MediaStoreRepositoryImpl @Inject constructor(
         // Document types: filter via MIME_TYPE for database-level efficiency
         if (allowedTypes.contains(MediaType.TEXT)) mediaTypeConditions.add("(${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'text/%')")
         if (allowedTypes.contains(MediaType.PDF)) mediaTypeConditions.add("(LOWER(${MediaStore.Files.FileColumns.MIME_TYPE}) = 'application/pdf')")
-        if (allowedTypes.contains(MediaType.EPUB)) mediaTypeConditions.add("(LOWER(${MediaStore.Files.FileColumns.MIME_TYPE}) = 'application/epub+zip')")
+        // EPUB: match by MIME type OR by extension — MediaStore indexes .epub with inconsistent
+        // MIME types across devices/OEMs (application/epub+zip, application/octet-stream, null, etc.)
+        if (allowedTypes.contains(MediaType.EPUB)) mediaTypeConditions.add(
+            "(LOWER(${MediaStore.Files.FileColumns.MIME_TYPE}) = 'application/epub+zip' " +
+            "OR LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE '%.epub')"
+        )
 
         if (mediaTypeConditions.isNotEmpty()) {
             selectionBuilder.append("(${mediaTypeConditions.joinToString(" OR ")})")

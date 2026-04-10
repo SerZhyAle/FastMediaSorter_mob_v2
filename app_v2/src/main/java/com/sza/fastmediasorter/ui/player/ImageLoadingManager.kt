@@ -1577,8 +1577,11 @@ class ImageLoadingManager(
                 val player = binding.playerView.player
                 val hasExoPlayerArtwork = player?.mediaMetadata?.artworkData != null ||
                         player?.mediaMetadata?.artworkUri != null
-                
-                Timber.d("Network file artwork check: hasExoPlayerArtwork=$hasExoPlayerArtwork")
+
+                // Extract ID3/Vorbis metadata from ExoPlayer for accurate online search
+                val exoArtist = player?.mediaMetadata?.artist?.toString()?.trim()?.takeIf { it.isNotBlank() }
+                val exoTitle  = player?.mediaMetadata?.title?.toString()?.trim()?.takeIf { it.isNotBlank() }
+                Timber.d("Network file artwork check: hasExoPlayerArtwork=$hasExoPlayerArtwork, exoArtist='$exoArtist', exoTitle='$exoTitle'")
                 
                 if (hasExoPlayerArtwork) {
                     // PlayerView.artworkDisplayMode is set to OFF (we manage artwork ourselves).
@@ -1612,7 +1615,7 @@ class ImageLoadingManager(
                             }
                         } else {
                             Timber.w("ExoPlayer reports artwork but decode failed, searching online")
-                            searchOnlineAndDisplayCover(file)
+                            searchOnlineAndDisplayCover(file, exoArtist, exoTitle)
                         }
                     }
                 } else {
@@ -1625,8 +1628,8 @@ class ImageLoadingManager(
                                 ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                         }
                     } else {
-                        Timber.d("ExoPlayer has no artwork, searching online for ${file.name}")
-                        searchOnlineAndDisplayCover(file)
+                        Timber.d("ExoPlayer has no artwork, searching online for ${file.name} (exoArtist='$exoArtist', exoTitle='$exoTitle')")
+                        searchOnlineAndDisplayCover(file, exoArtist, exoTitle)
                     }
                 }
             }
@@ -1644,9 +1647,12 @@ class ImageLoadingManager(
         
         coverArtJob = lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Try to extract embedded cover art using MediaMetadataRetriever
-                Timber.d("Extracting embedded cover art for ${file.name}")
-                val coverBitmap = withContext(Dispatchers.IO) {
+                // Try to extract embedded cover art AND ID3 artist/title using MediaMetadataRetriever.
+                // Artist + Title tags are used as the primary cover search query (higher accuracy
+                // than filename guessing, e.g. "test_audio_flac.flac" vs "The Beatles – I'm So Tired").
+                Timber.d("Extracting embedded cover art and ID3 tags for ${file.name}")
+                data class LocalEmbeddedInfo(val bitmap: android.graphics.Bitmap?, val artist: String?, val title: String?)
+                val embeddedInfo = withContext(Dispatchers.IO) {
                     val retriever = android.media.MediaMetadataRetriever()
                     try {
                         if (file.path.startsWith("content://")) {
@@ -1655,32 +1661,40 @@ class ImageLoadingManager(
                             retriever.setDataSource(file.path)
                         }
                         
-                        // Try to get embedded picture
+                        // Extract embedded picture and ID3 metadata in one pass
                         val embeddedPicture = retriever.embeddedPicture
+                        val id3Artist = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                            ?.trim()?.takeIf { it.isNotBlank() }
+                        val id3Title = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE)
+                            ?.trim()?.takeIf { it.isNotBlank() }
                         
                         // Debug: check if file has any metadata
                         val hasAudio = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO)
                         val mimeType = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
-                        Timber.d("MediaMetadataRetriever: hasAudio=$hasAudio, mimeType=$mimeType, embeddedPicture=${embeddedPicture?.size} bytes")
+                        Timber.d("MediaMetadataRetriever: hasAudio=$hasAudio, mimeType=$mimeType, embeddedPicture=${embeddedPicture?.size} bytes, artist='$id3Artist', title='$id3Title'")
                         
-                        if (embeddedPicture != null) {
+                        val bitmap = if (embeddedPicture != null) {
                             Timber.d("Found embedded cover art, decoding bitmap (${embeddedPicture.size} bytes)")
                             android.graphics.BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.size)
                         } else {
                             Timber.d("No embedded cover art found")
                             null
                         }
+                        LocalEmbeddedInfo(bitmap, id3Artist, id3Title)
                     } catch (e: IllegalArgumentException) {
                         // Expected for deleted/inaccessible files or content:// URIs that can't be opened
                         Timber.d("Cover art: file not accessible (${file.path}): ${e.message}")
-                        null
+                        LocalEmbeddedInfo(null, null, null)
                     } catch (e: Exception) {
                         Timber.w(e, "Failed to extract embedded cover art")
-                        null
+                        LocalEmbeddedInfo(null, null, null)
                     } finally {
                         retriever.release()
                     }
                 }
+                val coverBitmap = embeddedInfo.bitmap
+                val id3Artist = embeddedInfo.artist
+                val id3Title = embeddedInfo.title
                 
                 withContext(Dispatchers.Main) {
                     if (coverBitmap != null) {
@@ -1745,11 +1759,11 @@ class ImageLoadingManager(
                         }
 
                         // Online search enabled, try it
-                        Timber.d("loadAudioCoverArt[$callId]: ❌ NO embedded cover, searching online")
+                        Timber.d("loadAudioCoverArt[$callId]: ❌ NO embedded cover, searching online (id3Artist='$id3Artist', id3Title='$id3Title')")
                         
                         val metadata = withContext(Dispatchers.IO) {
                             Timber.d("loadAudioCoverArt[$callId]: Calling searchAudioCoverUseCase")
-                            searchAudioCoverUseCase(file.name, file.path)
+                            searchAudioCoverUseCase(file.name, file.path, id3Artist, id3Title)
                         }
                         
                         val coverUrl = metadata?.coverArtUrl
@@ -1860,9 +1874,11 @@ class ImageLoadingManager(
     }
     
     /**
-     * Search for cover art online and display it
+     * Search for cover art online and display it.
+     * @param id3Artist Artist tag from the file's internal metadata (ID3/Vorbis/ExoPlayer); used as primary search query
+     * @param id3Title  Title tag from the file's internal metadata; used as primary search query
      */
-    private fun searchOnlineAndDisplayCover(file: MediaFile) {
+    private fun searchOnlineAndDisplayCover(file: MediaFile, id3Artist: String? = null, id3Title: String? = null) {
         val callId = System.currentTimeMillis()
         Timber.w("searchOnlineAndDisplayCover[$callId]: START for ${file.name}")
         
@@ -1913,7 +1929,7 @@ class ImageLoadingManager(
                     return@launch
                 }
 
-                val metadata = searchAudioCoverUseCase(file.name, file.path)
+                val metadata = searchAudioCoverUseCase(file.name, file.path, id3Artist, id3Title)
                 val coverUrl = metadata?.coverArtUrl
 
                 withContext(Dispatchers.Main) {

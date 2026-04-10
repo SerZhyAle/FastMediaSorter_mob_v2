@@ -20,9 +20,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -70,9 +68,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -116,6 +111,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var imageLoadingManager: ImageLoadingManager
     internal var audioEmptyStateController: com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController? = null
     internal lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
+    internal val isMediaLoaderManagerInitialized: Boolean
+        get() = ::mediaLoaderManager.isInitialized
     internal var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
     internal var nowPlayingManager: com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager? = null
     internal var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
@@ -126,6 +123,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var audioSlideshowPhotoModeManager: com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
     internal lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
+    internal lateinit var observerManager: PlayerObserverManager
     
     // LAZY INITIALIZATION: Document viewers only created when needed
     internal var _pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager? = null
@@ -425,7 +423,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         setupGoogleLensButtons()
         setupCommandPanelControls()
         setupTouchZones()
-        observeViewModel()
         
         // Set initial system bars state based on command panel visibility
         // Wait for layout to ensure managers are ready
@@ -493,7 +490,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     override fun observeData() {
-        observeViewModel()
+        observerManager = PlayerObserverManager(this, settingsRepository)
+        observerManager.startObserving()
     }
 
     /**
@@ -501,32 +499,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * "Stop" → stops the service and finishes. "Keep Playing" → finishes without stopping service.
      * @param withTransition whether to apply slide-out transition on exit
      */
-    internal fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
-        if (::mediaLoaderManager.isInitialized && mediaLoaderManager.isServiceAudioActive) {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.background_audio_exit_title)
-                .setMessage(R.string.background_audio_exit_message)
-                .setNegativeButton(R.string.background_audio_exit_stop) { _, _ ->
-                    audioServiceController?.player?.stop()
-                    doFinish(withTransition)
-                }
-                .setPositiveButton(R.string.background_audio_exit_continue) { _, _ ->
-                    doFinish(withTransition)
-                }
-                .show()
-        } else {
-            doFinish(withTransition)
-        }
-    }
-
-    private fun doFinish(withTransition: Boolean) {
-        viewModel.clearResumeState()
-        finish()
-        if (withTransition) {
-            @Suppress("DEPRECATION")
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
-        }
-    }
+    internal fun exitPlayerWithAudioCheck(withTransition: Boolean = false) =
+        lifecycleManager.exitPlayerWithAudioCheck(withTransition)
 
     private fun setupGestureDetector() {
         Timber.d("TOUCH_DEBUG: PlayerActivity.setupGestureDetector() CALLED - delegating to gestureSetupManager")
@@ -536,28 +510,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         Timber.d("TOUCH_DEBUG: PlayerActivity.setupGestureDetector() COMPLETED")
     }
     
-    /**
-     * Handle touch zones for static images (3x3 grid)
-     * For video: only upper 75% of screen is touch-sensitive (lower 25% reserved for ExoPlayer controls)
-     * For audio: only upper 66% of screen is touch-sensitive (lower 34% reserved for ExoPlayer controls)
-     */
-    internal fun showCopyDialog() {
-        dialogAndUiStateManager.showCopyDialog()
-    }
-    
-    internal fun showMoveDialog() {
-        dialogAndUiStateManager.showMoveDialog()
-    }
-    
-    internal fun showRenameDialog() {
-        dialogAndUiStateManager.showRenameDialog()
-    }
-
-    internal fun showEncodingDialog() = dialogHelper.showEncodingDialog()
-
-    internal fun showReaderSettingsDialog() = dialogHelper.showReaderSettingsDialog()
-
-    internal fun showSleepTimerDialog() = dialogHelper.showSleepTimerDialog()
 
     private fun setupToolbar() = controlsSetupManager.setupToolbar()
 
@@ -660,86 +612,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         mediaLoaderManager.adjustTouchZonesForVideo(isVideo, useTouchZones)
     }
 
-    private fun observeViewModel() {
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.state
-                        .distinctUntilChangedBy { 
-                            // Track showCommandPanel to trigger UI updates on fullscreen/panel mode changes
-                            // Also track isFavorite to update star icon
-                            Triple(
-                                Triple(it.currentIndex, it.currentFile?.path, it.isSlideShowActive),
-                                it.showCommandPanel,
-                                it.currentFile?.isFavorite
-                            )
-                        }
-                        .collect { state ->
-                            updateUI(state)
-                            backgroundMusicManager.updateState(state)
-                            audioBackgroundPhotosManager.updateState(state)
-                        }
-                }
-
-                launch {
-                    viewModel.loading.collect { isLoading ->
-                        // Don't override progressBar for PDF/EPUB - they manage it themselves
-                        val currentType = viewModel.state.value.currentFile?.type
-                        if (currentType != MediaType.PDF && currentType != MediaType.EPUB) {
-                            binding.progressBar.isVisible = isLoading
-                        }
-                    }
-                }
-
-                launch {
-                    viewModel.events.collect { event ->
-                        handleEvent(event)
-                    }
-                }
-                
-                // Observe settings to show/hide favorite button and update touch zones mode
-                launch {
-                    combine(
-                        settingsRepository.getSettings().distinctUntilChanged(),
-                        viewModel.state.distinctUntilChangedBy { it.resource?.id }
-                    ) { settings, state ->
-                        // Cache settings for overlay visibility and touch zones
-                        currentSettings = settings
-                        loadFullSizeImages = settings.loadFullSizeImages
-                        
-                        // Enable/disable the dynamic background extension effect
-                        imageLoadingManager.setDynamicBackgroundEnabled(settings.dynamicBackgroundExtension)
-                        
-                        // Setup PiP button visibility based on settings
-                        pipManager?.setupPipButton(settings.enablePictureInPicture)
-                        
-                        // Show favorite button if:
-                        // 1. enableFavorites setting is on, OR
-                        // 2. Currently viewing Favorites resource (id = -100)
-                        settings.enableFavorites || state.resource?.id == -100L
-                    }.collect { shouldShow ->
-                        binding.btnFavorite.isVisible = shouldShow
-                        // Note: updateUI() is called by main state.collect above - no need to call here
-                        // Removing duplicate updateUI() call to prevent excessive UI redraws
-                    }
-                }
-
-                // Removed: loading dialog during file list load (not needed - single file loads fast)
-                // Image loading progress handled by showLoadingIndicatorRunnable with 2s delay
-            }
-        }
-    }
-
     private fun updateUI(state: PlayerViewModel.PlayerState) {
-        uiStateCoordinator.updateUI(state)
-        // Stop vinyl animation when switching to non-audio file
-        if (state.currentFile?.type != MediaType.AUDIO) {
-            sleepTimerManager?.stopVinylAnimation()
-        }
-        // GUARD: After state observers update views, re-enforce audio slideshow photo mode UI
-        if (audioSlideshowPhotoModeManager.isActive) {
-            audioSlideshowPhotoModeManager.enforceUI()
-        }
+        observerManager.updateUI(state)
     }
 
     /**
@@ -802,20 +676,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
 
-    /**
-     * Toggle Copy to panel collapsed/expanded state
-     */
-    internal fun toggleCopyPanel() {
-        dialogAndUiStateManager.toggleCopyPanel()
-    }
-
-    /**
-     * Toggle Move to panel collapsed/expanded state
-     */
-    internal fun toggleMovePanel() {
-        dialogAndUiStateManager.toggleMovePanel()
-    }
-    
 
 
     /**
@@ -889,13 +749,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
     }
 
-    internal fun updateSlideShowButton() = dialogAndUiStateManager.updateSlideShowButton()
-
-    /**
-     * Update countdown display for slideshow (called by NavigationManager)
-     */
-    internal fun updateCountdownDisplay(seconds: Int) = dialogAndUiStateManager.updateCountdownDisplay(seconds)
-    
     /**
      * Clear Glide memory cache to prevent OOM during long slideshows.
      * Called periodically by SlideshowController every 5 slides.
@@ -910,41 +763,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
     
-    /**
-     * Set screen keep-awake state for slideshow (D.8).
-     * @param enabled true to force screen on, false to restore to global preventSleep setting
-     */
-    internal fun setSlideshowKeepAwake(enabled: Boolean) {
-        if (isFinishing || isDestroyed) {
-            return
-        }
-        
-        if (enabled) {
-            // Force keep screen on during slideshow
-            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            Timber.d("SlideshowKeepAwake: Enabled - screen will stay on during slideshow")
-            
-            // Show user notification (D.8)
-            android.widget.Toast.makeText(
-                this,
-                R.string.slideshow_keep_awake,
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            // Restore to global preventSleep setting
-            lifecycleScope.launch {
-                val settings = settingsRepository.getSettings().first()
-                if (settings.preventSleep) {
-                    // Global setting is ON - keep screen on
-                    window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                } else {
-                    // Global setting is OFF - allow screen sleep
-                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                }
-                Timber.d("SlideshowKeepAwake: Disabled - restored to global setting (preventSleep=${settings.preventSleep})")
-            }
-        }
-    }
+    internal fun setSlideshowKeepAwake(enabled: Boolean) =
+        lifecycleManager.setSlideshowKeepAwake(enabled)
 
     /**
      * Update background music track name display (called by BackgroundMusicManager)
@@ -968,13 +788,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val percentage = (newVolume * 100).toInt()
         Timber.d("Volume adjusted: ${(currentVolume * 100).toInt()}% -> $percentage%")
         Toast.makeText(this, getString(R.string.volume_level, percentage), Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * Update volume buttons visibility - show for audio and video files
-     */
-    internal fun updateVolumeButtonsVisibility() {
-        dialogAndUiStateManager.updateVolumeButtonsVisibility()
     }
 
     internal fun scheduleHideControls() {
@@ -1013,14 +826,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         dialogHelper.showFileInfo(currentFile)
     }
     
-    internal fun showImageEditDialog() {
-        dialogAndUiStateManager.showImageEditDialog()
-    }
-
-    internal fun showGifEditDialog() {
-        dialogAndUiStateManager.showGifEditDialog()
-    }
-
     internal fun isAnimatedImagePath(path: String): Boolean {
         val lowerPath = path.lowercase()
         return lowerPath.endsWith(".gif") || lowerPath.endsWith(".webp") || lowerPath.endsWith(".apng")
@@ -1098,54 +903,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun reloadCurrentImage() {
         mediaLoaderManager.reloadCurrentImage()
-    }
-    
-    /**
-     * Show player settings dialog for video/audio files.
-     * Allows configuring playback speed, repeat, subtitles and audio track.
-     */
-    internal fun deleteCurrentFile() {
-        // Check for Read-only mode
-        val resource = viewModel.state.value.resource
-        if (resource?.isReadOnly == true) {
-            Toast.makeText(this, getString(R.string.error_read_only), Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        val currentFile = viewModel.state.value.currentFile
-        if (currentFile == null) {
-            Toast.makeText(this, getString(R.string.msg_no_file_to_delete), Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        // Check Safe Mode settings
-        lifecycleScope.launch {
-            val settings = viewModel.getSettings()
-            val shouldConfirm = settings.enableSafeMode || settings.confirmDelete
-            
-            Timber.d("deleteCurrentFile: shouldConfirm=$shouldConfirm (safeMode=${settings.enableSafeMode}, confirmDelete=${settings.confirmDelete})")
-            
-            if (shouldConfirm) {
-                // Check if activity is still alive before showing dialog
-                if (isFinishing || isDestroyed) {
-                    Timber.w("deleteCurrentFile: Activity is finishing/destroyed, skipping confirm dialog")
-                    return@launch
-                }
-                
-                // Show confirmation dialog
-                AlertDialog.Builder(this@PlayerActivity)
-                    .setTitle(R.string.confirm_delete_title)
-                    .setMessage(getString(R.string.confirm_delete_message, 1))
-                    .setPositiveButton(R.string.delete) { _, _ ->
-                        fileOperationsHandler.performDelete()
-                    }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
-            } else {
-                // Skip confirmation - execute immediately
-                fileOperationsHandler.performDelete()
-            }
-        }
     }
     
     /**
@@ -1372,13 +1129,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     internal fun shareCurrentFileToGoogleLens() = shareManager.shareCurrentFileToGoogleLens()
     
-    /**
-     * Show dialog for PDF editing options
-     */
-    internal fun showPdfEditDialog() {
-        dialogAndUiStateManager.showPdfEditDialog()
-    }
-
     /**
      * Check if translation/OCR overlays are blocking PDF/EPUB touch zones
      */
