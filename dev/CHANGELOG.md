@@ -1907,3 +1907,43 @@ Format: | datetime | file | target | description |
 | 2026-04-11 14:03:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `TextViewerManager` | Replace hardcoded EN translation_failed text with R.string resource |
 | 2026-04-11 14:03:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Replace hardcoded EN Empty PDF text with R.string.pdf_empty |
 | 2026-04-11 14:03:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Replace hardcoded EN files scanned text with R.string.files_scanned_count format string |
+| 2026-04-11 14:05:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Fix: use binding.root.context instead of bare context for getString in coroutine scope |
+| 2026-04-11 14:05:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TtsReadAloudManager.kt` | `TtsReadAloudManager` | Fix: add missing import com.sza.fastmediasorter.R |
+| 2026-04-11 14:05:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `SettingsViewModel` | Fix: add missing import com.sza.fastmediasorter.R |
+| 2026-04-11 14:05:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `OtherMediaSettingsFragment` | Fix: add missing import com.sza.fastmediasorter.R |
+| 2026-04-11 14:12:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt` | `PictureInPictureManager` | onPipModeChanged: call showController() on PiP exit so controller/PiP button becomes visible again |
+| 2026-04-11 14:14:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt` | `PictureInPictureManager` | Fix PiP play/pause buttons: setPackage() on PendingIntent (Android 14+ implicit broadcast blocker); register receiver before enterPiP |
+| 2026-04-11 14:16:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Fix PiP in internal player: onPlay/onPause/isVideoPlaying lambdas now handle audio via audioServiceController |
+| 2026-04-11 14:20:28 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | enablePictureInPicture default changed false->true (PiP now on by default like standalone player) |
+| 2026-04-11 14:20:28 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | enablePictureInPicture fallback default changed false->true |
+| 2026-04-11 14:24:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `PlayerObserverManager` | setupPipButton: always true — enablePictureInPicture setting has no UI toggle, consistent with standalone |
+| 2026-04-11 14:24:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | onUserLeaveHint: enablePip=true hardcoded, remove dead enablePictureInPicture dependency |
+| 2026-04-11 14:29:46 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Add PiP toggle switch (switchEnablePip, layoutPip) visible on API 31+ |
+| 2026-04-11 14:29:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Wire PiP toggle: show on API 31+, bind to enablePictureInPicture setting |
+| 2026-04-11 14:29:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt` | `PictureInPictureManager` | Add isEnabled property; setupPipButton updates isEnabled for onUserLeaveHint routing |
+| 2026-04-11 14:29:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | observePipSettings(): subscribe to settings flow and apply to pipManager; onUserLeaveHint uses pipManager.isEnabled |
+| 2026-04-11 14:29:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `PlayerObserverManager` | Reverted: setupPipButton uses settings.enablePictureInPicture (setting now has UI toggle) |
+| 2026-04-11 14:29:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Reverted: onUserLeaveHint uses settings.enablePictureInPicture again |
+| 2026-04-11 14:29:47 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add setting_enable_pip, setting_enable_pip_desc (EN) |
+| 2026-04-11 14:29:47 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add setting_enable_pip, setting_enable_pip_desc (RU) |
+| 2026-04-11 14:29:47 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add setting_enable_pip, setting_enable_pip_desc (UK) |
+| 2026-04-11 15:00:59 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `containerPlayerUI` | Moved PiP toggle from Video tab to Playback > Player UI section |
+| 2026-04-11 15:01:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | Wired PiP toggle (API 31+ visibility, observe/update setting) |
+| 2026-04-11 15:01:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Removed PiP toggle (moved to Playback tab) |
+| 2026-04-11 15:40:31 | `app_v2/src/main/res/drawable/splash_icon_empty.xml` | `splash_icon_empty` | Created empty transparent vector drawable to suppress system splash icon on API 31+ |
+| 2026-04-11 15:40:31 | `app_v2/src/main/res/values-v31/themes.xml` | `Theme.FastMediaSorter` | Fixed windowSplashScreenAnimatedIcon: replaced invalid color ref with proper transparent drawable |
+| 2026-04-11 15:40:31 | `app_v2/src/main/res/values-night-v31/themes.xml` | `Theme.FastMediaSorter` | Fixed windowSplashScreenAnimatedIcon: replaced invalid color ref with proper transparent drawable (night) |
+| 2026-04-11 15:40:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `ListViewHolder.loadThumbnail` | Fixed DiskCacheStrategy.DATA -> RESOURCE for local video thumbnails + added listener with recordLoad() |
+| 2026-04-11 16:37:24 | `app_v2/src/main/res/values-v31/themes.xml` | `Theme.FastMediaSorter` | Removed windowSplashScreenAnimatedIcon override: system now shows launcher icon centered (not full-screen) on splash |
+| 2026-04-11 16:37:24 | `app_v2/src/main/res/values-night-v31/themes.xml` | `Theme.FastMediaSorter` | Removed windowSplashScreenAnimatedIcon override for night mode: fixes black splash screen |
+| 2026-04-11 23:10:12 | `app_v2/src/main/res/values-v31/themes.xml` | `Theme.FastMediaSorter` | Removed windowDisablePreview from v31 theme - conflicts with Splash Screen API on Android 12+ |
+| 2026-04-11 23:10:12 | `app_v2/src/main/res/values-night-v31/themes.xml` | `Theme.FastMediaSorter` | Removed windowDisablePreview from night-v31 theme - conflicts with Splash Screen API on Android 12+ |
+| 2026-04-11 23:24:45 | `app_v2/src/main/res/values-v31/themes.xml` | `Theme.FastMediaSorter` | Changed splash background from white to #F5F5F5 (light gray) to reduce flash on startup |
+| 2026-04-11 23:38:31 | `app_v2/src/main/res/drawable/ic_logo.png` | `ic_logo` | Added SZA logo (black on transparent) for light theme |
+| 2026-04-11 23:38:31 | `app_v2/src/main/res/drawable-night/ic_logo.png` | `ic_logo` | Added SZA logo (white on transparent) for dark theme |
+| 2026-04-11 23:38:31 | `app_v2/src/main/res/values-v31/themes.xml` | `windowSplashScreenAnimatedIcon` | Changed splash icon from empty to ic_logo |
+| 2026-04-11 23:38:31 | `app_v2/src/main/res/values-night-v31/themes.xml` | `windowSplashScreenAnimatedIcon` | Changed splash icon from empty to ic_logo (night) |
+| 2026-04-11 23:38:31 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `ivContactLogo` | Added SZA logo ImageView next to version/email info in settings |
+| 2026-04-11 23:38:31 | `index.html` | `footer/email-card` | Added SZA logo to contact card and footer near email (EN) |
+| 2026-04-11 23:38:31 | `index-ru.html` | `footer/email-card` | Added SZA logo to contact card and footer near email (RU) |
+| 2026-04-11 23:38:31 | `index-uk.html` | `footer/email-card` | Added SZA logo to contact card and footer near email (UK) |
