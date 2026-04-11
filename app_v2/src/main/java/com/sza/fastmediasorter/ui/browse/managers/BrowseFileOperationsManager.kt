@@ -187,7 +187,7 @@ class BrowseFileOperationsManager(
                         }
                         is FileOperationResult.PermissionRequired -> {
                             Timber.e("executeMoveDirectly: UNEXPECTED PermissionRequired after grant!")
-                            Toast.makeText(context, "Permission error - please try again", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, R.string.permission_error_retry, Toast.LENGTH_LONG).show()
                         }
                         is FileOperationResult.AuthenticationRequired -> {
                             Timber.w("executeMoveDirectly: Auth required for ${result.provider}")
@@ -228,7 +228,7 @@ class BrowseFileOperationsManager(
                 callbacks.onOperationCompleted()
             } catch (e: Exception) {
                 Timber.e(e, "executeMoveDirectly: Exception during move")
-                Toast.makeText(context, "Move failed: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.move_failed, e.message), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -353,7 +353,7 @@ class BrowseFileOperationsManager(
                 Timber.w("executeOperationToPath: cancelled")
             } catch (e: Exception) {
                 Timber.e(e, "executeOperationToPath: exception")
-                Toast.makeText(context, "Operation failed: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.operation_failed, e.message), Toast.LENGTH_LONG).show()
             }
         }
     }

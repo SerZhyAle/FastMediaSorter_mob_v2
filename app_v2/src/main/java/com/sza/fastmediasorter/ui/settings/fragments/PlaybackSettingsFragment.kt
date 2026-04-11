@@ -50,7 +50,7 @@ class PlaybackSettingsFragment : Fragment() {
             setupExpandableSections()
         } catch (e: Exception) {
             timber.log.Timber.tag("PlaybackSettings").e(e, "Error setting up views")
-            Toast.makeText(context, "Error init settings: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, getString(R.string.error_init_settings, e.message), Toast.LENGTH_LONG).show()
         }
         observeData()
     }

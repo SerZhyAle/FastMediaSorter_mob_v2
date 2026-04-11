@@ -1518,7 +1518,7 @@
     <string name="ocr_processing">Recognizing text…</string>
     <string name="ocr_no_text_found">No text found in image</string>
     <string name="translation_no_text_found">No text found to translate</string>
-    <string name="translation_downloading_wait">Ждите результат перевода…</string>
+    <string name="translation_downloading_wait">Waiting for translation result…</string>
     <string name="ocr_error">Text recognition error: %1$s</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="text_copied">Text copied to clipboard</string>
@@ -2334,6 +2334,48 @@
     <string name="pdf_text_mode_enter">Text selection</string>
     <string name="pdf_text_extracting">Extracting text…</string>
     <string name="pdf_text_empty">No text found on this page</string>
+
+    <!-- Background Music errors -->
+    <string name="music_restarted_after_error">Music restarted after error</string>
+    <string name="music_restore_failed">Failed to restore music playback</string>
+    <string name="music_resource_unavailable">Music resource unavailable</string>
+    <string name="no_music_files">No music files found</string>
+
+    <!-- Duplicates screen -->
+    <string name="duplicate_delete_title">Delete Selected</string>
+    <string name="duplicate_delete_message">Are you sure you want to permanently delete %1$d items? This cannot be undone.</string>
+    <string name="duplicate_groups_summary">Found %1$d groups | %2$s</string>
+    <string name="duplicate_fab_delete">Delete Selected (%1$d items, %2$s)</string>
+    <string name="scan_files_progress">%1$d / %2$d files</string>
+
+    <!-- Settings — SZA resources import -->
+    <string name="import_resources_title">Import Resources</string>
+    <string name="import_resources_message">Add SZA resources?</string>
+    <string name="sza_resources_imported">SZA resources imported</string>
+    <string name="error_importing_resources">Error importing resources</string>
+
+    <!-- Translation model download dialog -->
+    <string name="download_translation_model_title">Download Translation Model</string>
+    <string name="download_translation_model_message">Translation to %1$s requires downloading ~30 MB model. Download now?</string>
+    <string name="download">Download</string>
+
+    <!-- Permissions / generic errors -->
+    <string name="permission_denied">Permission denied</string>
+    <string name="failed_to_request_permission">Failed to request permission</string>
+    <string name="permission_error_retry">Permission error — please try again</string>
+    <string name="operation_failed">Operation failed: %1$s</string>
+    <string name="error_with_message">Error: %1$s</string>
+    <string name="error_init_settings">Error initializing settings: %1$s</string>
+
+    <!-- TTS -->
+    <string name="tts_not_available">Text-to-Speech not available</string>
+
+    <!-- Viewer errors -->
+    <string name="translation_failed">Translation failed</string>
+    <string name="pdf_empty">Empty PDF</string>
+
+    <!-- Main scan progress -->
+    <string name="files_scanned_count">%1$d files scanned</string>
 </resources>
 
 

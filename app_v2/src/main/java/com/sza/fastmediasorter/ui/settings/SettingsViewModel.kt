@@ -641,12 +641,12 @@ class SettingsViewModel @Inject constructor(
                 }
                 
                 withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(context, "SZA resources imported", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, R.string.sza_resources_imported, android.widget.Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error importing SZA resources")
                  withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(context, "Error importing resources", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, R.string.error_importing_resources, android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
         }

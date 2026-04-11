@@ -77,7 +77,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.onDeletePermissionGranted()
             }
             override fun onPermissionDenied() {
-                android.widget.Toast.makeText(this@BrowseActivity, "Permission denied", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(this@BrowseActivity, R.string.permission_denied, android.widget.Toast.LENGTH_SHORT).show()
             }
             override fun clearPendingMoveOperation() {
                 if (::initializer.isInitialized) {

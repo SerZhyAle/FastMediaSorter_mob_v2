@@ -274,9 +274,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             activity = this,
             binding = binding,
             getPlayer = { viewManager.getExoPlayer() },
-            onPlay = { viewManager.getExoPlayer()?.play() },
-            onPause = { viewManager.getExoPlayer()?.pause() },
-            isVideoPlaying = { viewManager.isVideoPlaying() }
+            onPlay = { viewManager.play() },
+            onPause = { viewManager.pause() },
+            isVideoPlaying = { viewManager.isMediaPlaying() }
         )
         pipManager?.setupPipButton(enablePip = true)
 
@@ -306,7 +306,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     override fun onPause() {
-        if (::lifecycleManager.isInitialized) lifecycleManager.onPause()
+        // Skip pausing playback when entering PiP — the activity is technically paused
+        // but media must keep running inside the PiP window.
+        val isInPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
+        if (!isInPip && ::lifecycleManager.isInitialized) lifecycleManager.onPause()
         super.onPause()
     }
 

@@ -628,12 +628,12 @@ class GeneralSettingsFragment : Fragment() {
                     // Check if user is "sza" and prompt to import resources
                     if (newUser.equals("sza", ignoreCase = true)) {
                         androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                            .setTitle("Import Resources")
-                            .setMessage("Add SZA resources?")
-                            .setPositiveButton("Yes") { _, _ ->
+                            .setTitle(R.string.import_resources_title)
+                            .setMessage(R.string.import_resources_message)
+                            .setPositiveButton(R.string.yes) { _, _ ->
                                 viewModel.importSzaResources(requireContext())
                             }
-                            .setNegativeButton("No", null)
+                            .setNegativeButton(R.string.no, null)
                             .show()
                     }
                 }

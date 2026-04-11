@@ -136,6 +136,22 @@ class StandaloneViewManager(
 
     fun isVideoPlaying(): Boolean = exoPlayer?.isPlaying == true
 
+    /** Returns true if any media (video or audio) is currently playing. */
+    fun isMediaPlaying(): Boolean =
+        exoPlayer?.isPlaying == true || audioServiceController?.player?.isPlaying == true
+
+    /** Resumes playback for whichever media type is currently active. */
+    fun play() {
+        exoPlayer?.play()
+        audioServiceController?.player?.play()
+    }
+
+    /** Pauses playback for whichever media type is currently active. */
+    fun pause() {
+        exoPlayer?.pause()
+        audioServiceController?.player?.pause()
+    }
+
     fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
         Timber.d("StandaloneViewManager: showing $mediaType — ${mediaFile.name}")
         hidePhotoAndPlayerViews()

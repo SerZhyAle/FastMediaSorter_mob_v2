@@ -1453,7 +1453,7 @@ class TextViewerManager(
                 if (translated != null) {
                     safeViews.tvTranslatedText.text = translated
                 } else {
-                    safeViews.tvTranslatedText.text = "Translation failed"
+                    safeViews.tvTranslatedText.text = context.getString(R.string.translation_failed)
                 }
             }
         }

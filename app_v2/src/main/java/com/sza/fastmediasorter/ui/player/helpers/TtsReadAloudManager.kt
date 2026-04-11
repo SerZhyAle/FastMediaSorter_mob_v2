@@ -64,7 +64,7 @@ class TtsReadAloudManager(
         } else {
             Timber.e("TTS: Initialization failed with status=$status")
             updateState(TtsState.ERROR)
-            Toast.makeText(context, "Text-to-Speech not available", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.tts_not_available, Toast.LENGTH_SHORT).show()
         }
     }
 

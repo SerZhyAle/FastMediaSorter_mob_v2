@@ -369,9 +369,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 ) {
                     activity.runOnUiThread {
                         AlertDialog.Builder(activity)
-                            .setTitle("Download Translation Model")
-                            .setMessage("Translation to $languageName requires downloading ~30MB model. Download now?")
-                            .setPositiveButton("Download") { _, _ ->
+                            .setTitle(R.string.download_translation_model_title)
+                            .setMessage(activity.getString(R.string.download_translation_model_message, languageName))
+                            .setPositiveButton(R.string.download) { _, _ ->
                                 onConfirm()
                                 android.widget.Toast.makeText(
                                     activity,
@@ -379,7 +379,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                                     android.widget.Toast.LENGTH_LONG
                                 ).show()
                             }
-                            .setNegativeButton("Cancel") { _, _ -> onCancel() }
+                            .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
                             .setCancelable(false)
                             .show()
                     }

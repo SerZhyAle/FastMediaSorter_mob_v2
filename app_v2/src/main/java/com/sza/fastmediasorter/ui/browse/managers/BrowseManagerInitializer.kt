@@ -329,7 +329,7 @@ class BrowseManagerInitializer(
                         val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
                         launcherManager.permissionRequestLauncher.launch(intentSenderRequest)
                     } catch (e: Exception) {
-                        Toast.makeText(activity, "Failed to request permission", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, R.string.failed_to_request_permission, Toast.LENGTH_SHORT).show()
                     }
                 }
                 override fun onShowMessage(message: String) { Toast.makeText(activity, message, Toast.LENGTH_SHORT).show() }

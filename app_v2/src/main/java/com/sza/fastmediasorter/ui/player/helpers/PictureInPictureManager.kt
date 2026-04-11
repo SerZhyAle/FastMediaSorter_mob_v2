@@ -141,7 +141,7 @@ class PictureInPictureManager(
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun buildPipParams(): PictureInPictureParams {
-        val isPlaying = getPlayer()?.isPlaying == true
+        val isPlaying = isVideoPlaying()
 
         val playAction = createRemoteAction(
             if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,

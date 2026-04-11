@@ -72,9 +72,9 @@ class DuplicatesFragment : Fragment() {
             val count = viewModel.state.value.selectedFilePaths.size
             if (count > 0 && isAdded) {
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Delete Selected")
-                    .setMessage("Are you sure you want to permanently delete $count items? This cannot be undone.")
-                    .setPositiveButton("Delete") { _, _ -> viewModel.deleteSelectedFiles() }
+                    .setTitle(R.string.duplicate_delete_title)
+                    .setMessage(getString(R.string.duplicate_delete_message, count))
+                    .setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteSelectedFiles() }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
             }
@@ -128,7 +128,7 @@ class DuplicatesFragment : Fragment() {
                 adapter.submitList(result.groups)
                 
                 val wastedText = getString(R.string.duplicate_wasted_bytes, formatFileSize(result.totalWastedBytes))
-                binding.tvSummary.text = "Found ${result.groups.size} groups | $wastedText"
+                binding.tvSummary.text = getString(R.string.duplicate_groups_summary, result.groups.size, wastedText)
                 
                 val selectedCount = state.selectedFilePaths.size
                 if (selectedCount > 0) {
@@ -136,7 +136,7 @@ class DuplicatesFragment : Fragment() {
                     val selectedSize = result.groups.flatMap { it.files }
                         .filter { it.path in state.selectedFilePaths }
                         .sumOf { it.size }
-                    binding.fabDeleteSelected.text = "Delete Selected ($selectedCount items, ${formatFileSize(selectedSize)})"
+                    binding.fabDeleteSelected.text = getString(R.string.duplicate_fab_delete, selectedCount, formatFileSize(selectedSize))
                 } else {
                     binding.fabDeleteSelected.visibility = View.GONE
                 }
@@ -148,7 +148,7 @@ class DuplicatesFragment : Fragment() {
                     binding.layoutProgress.visibility = View.VISIBLE
                     val progress = state.scanState.progress
                     binding.tvScanPhase.text = progress.phase.name
-                    binding.tvScanFiles.text = "${progress.filesProcessed} / ${progress.totalFiles} files"
+                    binding.tvScanFiles.text = getString(R.string.scan_files_progress, progress.filesProcessed, progress.totalFiles)
                 }
                 is ScanState.Error -> {
                     binding.layoutSetup.visibility = View.VISIBLE

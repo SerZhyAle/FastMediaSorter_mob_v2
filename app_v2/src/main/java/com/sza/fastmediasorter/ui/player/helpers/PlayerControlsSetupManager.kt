@@ -402,7 +402,7 @@ class PlayerControlsSetupManager(
                 } catch (e: Exception) {
                     Timber.e(e, "Lyrics translation failed")
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(activity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, activity.getString(R.string.error_with_message, e.message), Toast.LENGTH_SHORT).show()
                     }
                 }
             }

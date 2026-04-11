@@ -2277,4 +2277,46 @@
     <string name="pdf_text_mode_enter">Режим выделения текста</string>
     <string name="pdf_text_extracting">Извлечение текста…</string>
     <string name="pdf_text_empty">Текст на странице не найден</string>
+
+    <!-- Background Music errors -->
+    <string name="music_restarted_after_error">Музыка перезапущена после ошибки</string>
+    <string name="music_restore_failed">Не удалось восстановить воспроизведение музыки</string>
+    <string name="music_resource_unavailable">Ресурс с музыкой недоступен</string>
+    <string name="no_music_files">Нет музыкальных файлов</string>
+
+    <!-- Duplicates screen -->
+    <string name="duplicate_delete_title">Удалить выбранные</string>
+    <string name="duplicate_delete_message">Вы уверены, что хотите безвозвратно удалить %1$d элементов? Это действие нельзя отменить.</string>
+    <string name="duplicate_groups_summary">Найдено %1$d групп | %2$s</string>
+    <string name="duplicate_fab_delete">Удалить выбранные (%1$d элементов, %2$s)</string>
+    <string name="scan_files_progress">%1$d / %2$d файлов</string>
+
+    <!-- Settings — SZA resources import -->
+    <string name="import_resources_title">Импорт ресурсов</string>
+    <string name="import_resources_message">Добавить ресурсы SZA?</string>
+    <string name="sza_resources_imported">Ресурсы SZA импортированы</string>
+    <string name="error_importing_resources">Ошибка импорта ресурсов</string>
+
+    <!-- Translation model download dialog -->
+    <string name="download_translation_model_title">Загрузка модели перевода</string>
+    <string name="download_translation_model_message">Для перевода на %1$s необходимо загрузить модель (~30 МБ). Загрузить сейчас?</string>
+    <string name="download">Загрузить</string>
+
+    <!-- Permissions / generic errors -->
+    <string name="permission_denied">Доступ запрещён</string>
+    <string name="failed_to_request_permission">Не удалось запросить разрешение</string>
+    <string name="permission_error_retry">Ошибка разрешений — повторите попытку</string>
+    <string name="operation_failed">Ошибка операции: %1$s</string>
+    <string name="error_with_message">Ошибка: %1$s</string>
+    <string name="error_init_settings">Ошибка инициализации настроек: %1$s</string>
+
+    <!-- TTS -->
+    <string name="tts_not_available">Синтез речи недоступен</string>
+
+    <!-- Viewer errors -->
+    <string name="translation_failed">Ошибка перевода</string>
+    <string name="pdf_empty">Пустой PDF</string>
+
+    <!-- Main scan progress -->
+    <string name="files_scanned_count">Просканировано %1$d файлов</string>
 </resources>

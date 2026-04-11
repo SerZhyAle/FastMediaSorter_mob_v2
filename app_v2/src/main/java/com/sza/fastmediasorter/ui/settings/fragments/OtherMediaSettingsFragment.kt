@@ -342,7 +342,14 @@ class OtherMediaSettingsFragment : Fragment() {
     
     private fun setupOcrFontSpinners() {
         // Font Size
-        val fontSizes = arrayOf("Автоматический", "Минимальный", "Маленький", "Средний", "Крупный", "Большой")
+        val fontSizes = arrayOf(
+            getString(R.string.font_size_auto),
+            getString(R.string.font_size_minimum),
+            getString(R.string.font_size_small),
+            getString(R.string.font_size_medium),
+            getString(R.string.font_size_large),
+            getString(R.string.font_size_huge)
+        )
         val fontSizeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, fontSizes)
         fontSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerOcrFontSize?.adapter = fontSizeAdapter
@@ -367,7 +374,11 @@ class OtherMediaSettingsFragment : Fragment() {
         }
         
         // Font Family
-        val fontFamilies = arrayOf("По-умолчанию", "С засечками", "Моноширинный")
+        val fontFamilies = arrayOf(
+            getString(R.string.font_family_default),
+            getString(R.string.font_family_serif),
+            getString(R.string.font_family_monospace)
+        )
         val fontFamilyAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, fontFamilies)
         fontFamilyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerOcrFontFamily?.adapter = fontFamilyAdapter

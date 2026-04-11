@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.R
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -156,13 +157,13 @@ class BackgroundMusicManager @Inject constructor(
                                         this@BackgroundMusicManager.initialize()
                                         
                                         // Notify user
-                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke("Музыка перезапущена после ошибки")
+                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke(context.getString(R.string.music_restarted_after_error))
                                         
                                         Timber.i("BackgroundMusic: Player reinitialized after recovery failure")
                                         
                                     } catch (reinitError: Exception) {
                                         Timber.e(reinitError, "BackgroundMusic: Reinitialization failed - music playback disabled")
-                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke("Не удалось восстановить воспроизведение музыки")
+                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke(context.getString(R.string.music_restore_failed))
                                     }
                                 }
                             }
@@ -265,7 +266,7 @@ class BackgroundMusicManager @Inject constructor(
                 if (resource == null) {
                     Timber.w("BackgroundMusic: Resource not found: $resourceId")
                     withContext(Dispatchers.Main) {
-                        onMusicErrorListener?.invoke("Ресурс с музыкой недоступен")
+                        onMusicErrorListener?.invoke(context.getString(R.string.music_resource_unavailable))
                     }
                     return@launch
                 }
@@ -360,7 +361,7 @@ class BackgroundMusicManager @Inject constructor(
                 } else {
                     Timber.w("BackgroundMusic: No audio files found in resource")
                     withContext(Dispatchers.Main) {
-                        onMusicErrorListener?.invoke("Нет музыкальных файлов")
+                        onMusicErrorListener?.invoke(context.getString(R.string.no_music_files))
                     }
                 }
             } catch (e: Exception) {

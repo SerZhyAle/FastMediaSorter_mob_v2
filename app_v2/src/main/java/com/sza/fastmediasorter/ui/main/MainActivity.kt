@@ -594,7 +594,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         }
                         is MainEvent.ScanProgress -> {
                             binding.scanProgressLayout.visibility = View.VISIBLE
-                            binding.tvScanDetail.text = "${event.scannedCount} files scanned"
+                            binding.tvScanDetail.text = getString(R.string.files_scanned_count, event.scannedCount)
                             event.currentFile?.let { fileName ->
                                 binding.tvScanProgress.text = getString(R.string.scanning_progress, fileName)
                             }

@@ -125,7 +125,7 @@ class BrowseEventHandler(
             Timber.i("BrowseActivity: Permission request launched successfully")
         } catch (e: Exception) {
             Timber.e(e, "BrowseActivity: FAILED to launch permission request")
-            Toast.makeText(activity, "Failed to request permission", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, R.string.failed_to_request_permission, Toast.LENGTH_SHORT).show()
         }
         Timber.i("BrowseActivity: ========================================")
     }
