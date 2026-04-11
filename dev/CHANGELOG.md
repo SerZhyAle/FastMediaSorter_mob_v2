@@ -1947,3 +1947,6 @@ Format: | datetime | file | target | description |
 | 2026-04-11 23:38:31 | `index.html` | `footer/email-card` | Added SZA logo to contact card and footer near email (EN) |
 | 2026-04-11 23:38:31 | `index-ru.html` | `footer/email-card` | Added SZA logo to contact card and footer near email (RU) |
 | 2026-04-11 23:38:31 | `index-uk.html` | `footer/email-card` | Added SZA logo to contact card and footer near email (UK) |
+| 2026-04-11 23:51:56 | `app_v2/src/main/res/drawable/ic_splash_logo.xml` | `ic_splash_logo` | Created 108dp layer-list wrapper for splash screen icon (PNG too small for API31+ splash) |
+| 2026-04-11 23:51:56 | `app_v2/src/main/res/values-v31/themes.xml` | `windowSplashScreenAnimatedIcon` | Changed splash icon reference from ic_logo to ic_splash_logo (108dp wrapper) |
+| 2026-04-11 23:51:56 | `app_v2/src/main/res/values-night-v31/themes.xml` | `windowSplashScreenAnimatedIcon` | Changed splash icon reference from ic_logo to ic_splash_logo (108dp wrapper, night) |

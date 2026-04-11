@@ -2,7 +2,7 @@
 <resources>
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base">
         <item name="android:windowSplashScreenBackground">#F5F5F5</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="android:windowSplashScreenAnimationDuration">0</item>
     </style>
 </resources>
