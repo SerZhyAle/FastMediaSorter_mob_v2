@@ -1478,7 +1478,31 @@ class MediaFileAdapter(
                                 .load(data)
                                 .signature(ObjectKey("${file.path}_${file.size}")) // Stable cache key (path + size)
                                 .priority(Priority.NORMAL)  // Normal priority for videos
-                                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache decoded bitmap — fixes re-load on every open
+                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                                    override fun onLoadFailed(
+                                        e: GlideException?,
+                                        model: Any?,
+                                        target: Target<android.graphics.drawable.Drawable>,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
+                                        applyPlaceholderStyle(imageView, file.type, true)
+                                        return false
+                                    }
+
+                                    override fun onResourceReady(
+                                        resource: android.graphics.drawable.Drawable,
+                                        model: Any,
+                                        target: Target<android.graphics.drawable.Drawable>?,
+                                        dataSource: DataSource,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
+                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
+                                        Timber.v("CACHE_HIT_DEBUG: Local video loaded from ${dataSource.name} for ${file.name}")
+                                        resetThumbnailStyle(imageView)
+                                        return false
+                                    }
+                                })
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .dontAnimate() // avoid placeholder flash on disk-cache hit

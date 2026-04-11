@@ -541,11 +541,25 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activity = activity,
             binding = activity.activityBinding,
             getPlayer = { activity.videoPlayerManager.getPlayer() },
-            onPlay = { activity.videoPlayerManager.play() },
-            onPause = { activity.videoPlayerManager.pause() },
+            onPlay = {
+                val isAudio = activity.isMediaLoaderManagerInitialized &&
+                        activity.mediaLoaderManager.isServiceAudioActive
+                if (isAudio) activity.audioServiceController?.player?.play()
+                else activity.videoPlayerManager.play()
+            },
+            onPause = {
+                val isAudio = activity.isMediaLoaderManagerInitialized &&
+                        activity.mediaLoaderManager.isServiceAudioActive
+                if (isAudio) activity.audioServiceController?.player?.pause()
+                else activity.videoPlayerManager.pause()
+            },
             isVideoPlaying = {
                 val currentFile = activity.viewModel.state.value.currentFile
-                currentFile?.type == MediaType.VIDEO && activity.videoPlayerManager.getPlayer()?.isPlaying == true
+                when (currentFile?.type) {
+                    MediaType.VIDEO -> activity.videoPlayerManager.getPlayer()?.isPlaying == true
+                    MediaType.AUDIO -> activity.audioServiceController?.player?.isPlaying == true
+                    else -> false
+                }
             }
         )
         activity.mediaLoaderManager = PlayerMediaLoaderManager(

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -260,6 +261,14 @@ class PlaybackSettingsFragment : Fragment() {
             )
         }
 
+        // PiP is only supported on Android 12+ (API 31)
+        binding.layoutPip.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        binding.switchEnablePip.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enablePictureInPicture = isChecked))
+        }
+
         // Handle manual input
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -318,6 +327,11 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.switchDetailedErrors.isChecked != settings.showDetailedErrors) {
                         binding.switchDetailedErrors.isChecked = settings.showDetailedErrors
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        if (binding.switchEnablePip.isChecked != settings.enablePictureInPicture) {
+                            binding.switchEnablePip.isChecked = settings.enablePictureInPicture
+                        }
                     }
                     if (binding.switchShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
                         binding.switchShowPlayerHint.isChecked = settings.showPlayerHintOnFirstRun

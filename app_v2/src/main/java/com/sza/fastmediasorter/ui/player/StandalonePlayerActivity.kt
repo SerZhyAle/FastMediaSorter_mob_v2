@@ -278,7 +278,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             onPause = { viewManager.pause() },
             isVideoPlaying = { viewManager.isMediaPlaying() }
         )
-        pipManager?.setupPipButton(enablePip = true)
+        // Initial PiP button state is applied in observePipSettings() via settings flow
 
         setupCloseButton()
         setupBackPressHandler()
@@ -298,6 +298,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         observeViewModelEvents()
         observeFavoriteState()
         observeTranslationSettings()
+        observePipSettings()
     }
 
     override fun onResume() {
@@ -328,7 +329,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        pipManager?.onUserLeaveHint(enablePip = true)
+        // Honour the user's PiP preference — pipManager.isEnabled tracks the latest setting value.
+        pipManager?.onUserLeaveHint(pipManager?.isEnabled ?: false)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -981,6 +983,16 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     cachedTranslationEnabled = settings.enableTranslation
                     // Re-evaluate EPUB button whenever settings change
                     updateEpubTranslatorVisibility()
+                }
+            }
+        }
+    }
+
+    private fun observePipSettings() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsRepository.getSettings().collect { settings ->
+                    pipManager?.setupPipButton(settings.enablePictureInPicture)
                 }
             }
         }

@@ -406,7 +406,7 @@ class PdfViewerManager(
                                 binding.btnPdfNextPage.isVisible = !isSinglePage
                                 binding.tvPdfPageIndicator?.isVisible = !isSinglePage
                             } else {
-                                binding.tvPdfPageIndicator?.text = context.getString(R.string.pdf_empty)
+                                binding.tvPdfPageIndicator?.text = binding.root.context.getString(R.string.pdf_empty)
                             }
                         }
                     } catch (e: Exception) {

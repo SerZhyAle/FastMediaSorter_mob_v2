@@ -4,6 +4,7 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.widget.Toast
+import com.sza.fastmediasorter.R
 import timber.log.Timber
 import java.util.Locale
 

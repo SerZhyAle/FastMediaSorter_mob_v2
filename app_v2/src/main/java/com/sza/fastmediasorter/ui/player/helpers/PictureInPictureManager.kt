@@ -41,6 +41,10 @@ class PictureInPictureManager(
     /** Whether PiP is supported on this device (API 31+) */
     val isSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
+    /** Current enabled state — updated by [setupPipButton]. */
+    var isEnabled: Boolean = false
+        private set
+
     companion object {
         private const val ACTION_PIP_CONTROL = "com.sza.fastmediasorter.PIP_CONTROL"
         private const val EXTRA_CONTROL_TYPE = "control_type"
@@ -52,11 +56,12 @@ class PictureInPictureManager(
 
     /**
      * Setup PiP button visibility and click handler.
-     * Call once during initialization.
+     * Safe to call repeatedly when settings change.
      */
     fun setupPipButton(enablePip: Boolean) {
+        isEnabled = enablePip && isSupported
         val pipButton = binding.playerView.findViewById<ImageButton>(R.id.btnPictureInPicture)
-        if (!isSupported || !enablePip) {
+        if (!isEnabled) {
             pipButton?.isVisible = false
             return
         }
@@ -99,10 +104,15 @@ class PictureInPictureManager(
 
         if (isInPipMode) {
             // Hide ExoPlayer controller in PiP (controlled via remote actions)
+            // Receiver is already registered in enterPipApi31(), but guard with registerPipReceiver()
+            // idempotency check in case system triggers this path without enterPictureInPictureMode().
             binding.playerView.useController = false
             registerPipReceiver()
         } else {
+            // Re-enable and explicitly show the controller — useController=true only
+            // *permits* showing but does NOT auto-show after being hidden in PiP.
             binding.playerView.useController = true
+            binding.playerView.showController()
             unregisterPipReceiver()
         }
     }
@@ -131,6 +141,9 @@ class PictureInPictureManager(
     @RequiresApi(Build.VERSION_CODES.S)
     private fun enterPipApi31() {
         try {
+            // Register receiver BEFORE building params so that the PendingIntents
+            // inside RemoteActions are guaranteed to have an active receiver.
+            registerPipReceiver()
             val params = buildPipParams()
             activity.enterPictureInPictureMode(params)
             Timber.d("PiPManager: entered PiP mode")
@@ -164,7 +177,10 @@ class PictureInPictureManager(
         controlType: Int,
         requestCode: Int
     ): RemoteAction {
+        // setPackage is required on Android 14+ (API 34+): implicit PendingIntent broadcasts
+        // are blocked by the system. Without it the BroadcastReceiver never fires.
         val intent = Intent(ACTION_PIP_CONTROL).apply {
+            setPackage(activity.packageName)
             putExtra(EXTRA_CONTROL_TYPE, controlType)
         }
         val pendingIntent = PendingIntent.getBroadcast(

@@ -144,7 +144,7 @@ class VideoSettingsFragment : Fragment() {
                     binding.switchSupportVideos.isEnabled = !isAllFilesEnabled
                     
                     binding.switchShowVideoThumbnails.isChecked = settings.showVideoThumbnails
-                    
+
                     val minKb = settings.videoSizeMin / KB_TO_BYTES
                     val maxKb = settings.videoSizeMax / KB_TO_BYTES
                     

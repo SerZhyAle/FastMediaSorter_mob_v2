@@ -1806,6 +1806,8 @@
     <string name="pdf_scroll_mode">Режим прокрутки</string>
     <string name="pdf_thumbnails">Миниатюры страниц</string>
     <string name="picture_in_picture">Картинка в картинке</string>
+    <string name="setting_enable_pip">Включить картинку в картинке</string>
+    <string name="setting_enable_pip_desc">Показывать кнопку PiP в плеере и автоматически входить в режим PiP при нажатии кнопки «Домой» (Android 12+)</string>
     <string name="pip_play">Воспроизвести</string>
     <string name="play_pause">Воспроизведение / Пауза</string>
     <string name="pref_dynamic_background_summary">Заполнять «чёрные полосы», расширяя цвета краёв изображения (эффект Ambilight)</string>

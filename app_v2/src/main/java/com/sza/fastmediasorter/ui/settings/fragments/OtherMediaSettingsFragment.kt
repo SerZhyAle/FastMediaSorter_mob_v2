@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch

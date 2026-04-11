@@ -189,6 +189,19 @@
                         </LinearLayout>
 
                     </LinearLayout>
+
+                    <!-- Picture-in-Picture (API 31+) -->
+                    <LinearLayout android:id="@+id/layoutPip" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnablePip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_pip" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_pip_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

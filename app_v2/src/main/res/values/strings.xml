@@ -2112,6 +2112,8 @@
 
     <!-- Picture-in-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>
+    <string name="setting_enable_pip">Enable Picture-in-Picture</string>
+    <string name="setting_enable_pip_desc">Show PiP button in player and auto-enter PiP on home press (Android 12+)</string>
     <string name="pip_play">Play</string>
     <string name="pip_pause">Pause</string>
 

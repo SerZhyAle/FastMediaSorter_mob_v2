@@ -322,7 +322,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Player UI
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
-                    enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: false,
+                    enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
                     
                     // Last used resource
                     lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L,
