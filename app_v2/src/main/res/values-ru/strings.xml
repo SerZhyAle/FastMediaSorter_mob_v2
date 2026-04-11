@@ -72,6 +72,7 @@
     <string name="renaming_n_files_from_folder">Переименование %1$d файлов из %2$s</string>
     <string name="renamed_n_files">Переименовано %1$d файлов</string>
     <string name="rename_failed">Ошибка переименования: %1$s</string>
+    <string name="rename_failed_generic">Ошибка переименования</string>
     <string name="file_already_exists">Файл уже существует: %1$s</string>
     <string name="file_already_exists_skip">%1$s (пропущен - файл уже существует)</string>
     <string name="file_already_exists_in_folder">%1$s (пропущен - уже есть в %2$s)</string>
@@ -2269,4 +2270,11 @@
     <string name="unarchive_only_zip_supported">Поддерживаются только ZIP-архивы.</string>
     <string name="action_open">Открыть</string>
     <string name="app_updated_to">Обновлено до %1$s</string>
+
+    <!-- Document text selection action menu -->
+    <string name="action_translate_selection">Перевести</string>
+    <string name="action_search_google">Найти в Google</string>
+    <string name="pdf_text_mode_enter">Режим выделения текста</string>
+    <string name="pdf_text_extracting">Извлечение текста…</string>
+    <string name="pdf_text_empty">Текст на странице не найден</string>
 </resources>

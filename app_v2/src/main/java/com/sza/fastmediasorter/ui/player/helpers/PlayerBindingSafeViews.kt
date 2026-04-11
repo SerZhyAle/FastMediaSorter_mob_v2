@@ -179,6 +179,8 @@ class PlayerBindingSafeViews(
         get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
     val btnTranslationFontIncrease: ImageButton?
         get() = binding.root.findViewById(R.id.btnTranslationFontIncrease)
+    val btnSelectTextPdf: TextView?
+        get() = binding.root.findViewById(R.id.btnSelectTextPdf)
     val audioTouchZonesOverlay: GridLayout get() = required(R.id.audioTouchZonesOverlay)
     val firstRunHintOverlay: FrameLayout get() = required(R.id.firstRunHintOverlay)
     val tvFirstRunHintText: TextView get() = required(R.id.tvFirstRunHintText)

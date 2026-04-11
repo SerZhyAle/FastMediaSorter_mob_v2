@@ -251,7 +251,7 @@ class PagingMediaFileAdapter(
                                 .override(200, 200)
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
-                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -266,7 +266,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                             .into(imageView)
@@ -283,7 +283,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)
                             .into(imageView)
@@ -303,7 +303,7 @@ class PagingMediaFileAdapter(
                                 .override(200, 200)
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
-                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -318,7 +318,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                             .into(imageView)
@@ -335,7 +335,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)
                             .into(imageView)
@@ -603,7 +603,7 @@ class PagingMediaFileAdapter(
                                 .override(200, 200)
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
-                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -618,7 +618,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                             .into(imageView)
@@ -635,7 +635,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)
                             .into(imageView)
@@ -655,7 +655,7 @@ class PagingMediaFileAdapter(
                                 .override(200, 200)
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
-                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -670,7 +670,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                             .into(imageView)
@@ -687,7 +687,7 @@ class PagingMediaFileAdapter(
                             .override(200, 200)
                             .centerCrop()
                             .transform(RoundedCorners(8))
-                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .dontAnimate() // avoid placeholder flash on disk-cache hit
                             .placeholder(generatedPlaceholder)
                             .error(generatedPlaceholder)
                             .into(imageView)

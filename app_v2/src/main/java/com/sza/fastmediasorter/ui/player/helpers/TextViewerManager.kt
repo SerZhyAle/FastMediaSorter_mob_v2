@@ -251,6 +251,18 @@ class TextViewerManager(
             }
             false
         }
+
+        // Extend the native selection ActionMode with "Translate" and "Search in Google"
+        safeViews.tvTextContent.customSelectionActionModeCallback = DocumentSelectionActionModeCallback(
+            showTranslate = BuildConfig.ENABLE_TRANSLATION,
+            getSelectedText = {
+                val start = safeViews.tvTextContent.selectionStart.coerceAtLeast(0)
+                val end   = safeViews.tvTextContent.selectionEnd.coerceAtLeast(0)
+                safeViews.tvTextContent.text?.substring(minOf(start, end), maxOf(start, end)) ?: ""
+            },
+            onTranslate    = ::translateSelectedText,
+            onSearchGoogle = { openGoogleSearch(context, it) }
+        )
     }
     
     /**
@@ -1447,6 +1459,26 @@ class TextViewerManager(
         }
     }
     
+    /**
+     * Translate only the selected text fragment and show it in the translation overlay.
+     * Called from DocumentSelectionActionModeCallback.
+     */
+    private fun translateSelectedText(text: String) {
+        if (text.isBlank()) return
+        safeViews.translationOverlay.isVisible = true
+        safeViews.translationOverlayBackground.isVisible = true
+        applyTranslationFontSize()
+        coroutineScope.launch(Dispatchers.IO) {
+            val settings = settingsRepository.getSettings().first()
+            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
+            val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
+            val translated = translationManager.translate(text, sourceLang, targetLang)
+            withContext(Dispatchers.Main) {
+                safeViews.tvTranslatedText.text = translated ?: context.getString(R.string.translation_error)
+            }
+        }
+    }
+
     /**
      * Update translate button tint based on translation state
      */

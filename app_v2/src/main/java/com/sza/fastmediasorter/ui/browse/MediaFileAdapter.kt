@@ -1031,9 +1031,11 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(epubFile)
+                                .signature(ObjectKey("${file.path}_${file.size}"))
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .into(imageView)
                         } else {
                             showGeneratedPlaceholder(imageView, file)
@@ -1091,6 +1093,7 @@ class MediaFileAdapter(
                                     .placeholder(generatedPlaceholder)
                                     .error(generatedPlaceholder)
                                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                    .dontAnimate() // avoid placeholder flash on disk-cache hit
                                     .into(imageView)
                             }
                         }
@@ -1118,9 +1121,11 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(pdfFile)
+                                .signature(ObjectKey("${file.path}_${file.size}"))
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .into(imageView)
                         } else {
                             showGeneratedPlaceholder(imageView, file)
@@ -1192,6 +1197,7 @@ class MediaFileAdapter(
                                     .placeholder(generatedPlaceholder)
                                     .error(generatedPlaceholder)
                                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
+                                    .dontAnimate() // avoid placeholder flash on disk-cache hit
                                     .into(imageView)
                             }
                         }
@@ -1250,6 +1256,7 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.HIGH)  // High priority for images
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded, not source stream
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -1303,7 +1310,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -1351,7 +1358,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded (critical for GIF persistence)
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -1390,6 +1397,7 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.NORMAL)  // Normal priority for videos
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded, not source stream
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -1446,7 +1454,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -1473,7 +1481,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -2037,6 +2045,7 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.HIGH)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -2048,7 +2057,7 @@ class MediaFileAdapter(
                                 showGeneratedPlaceholder(imageView, file)
                                 return
                             }
-                            
+
                             // Grid mode: use user-defined thumbnailSize (converts dp to px)
                             // val sizePx = (thumbnailSize * context.resources.displayMetrics.density).toInt()
                             Glide.with(context)
@@ -2089,7 +2098,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache decoded only - PipedInputStream can't be re-read
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -2135,7 +2144,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -2172,6 +2181,7 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.NORMAL)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -2220,7 +2230,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -2241,7 +2251,7 @@ class MediaFileAdapter(
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
-                                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .into(imageView)
@@ -2266,9 +2276,11 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(epubFile)
+                                .signature(ObjectKey("${file.path}_${file.size}"))
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .into(imageView)
                         } else {
                             showGeneratedPlaceholder(imageView, file)
@@ -2296,6 +2308,7 @@ class MediaFileAdapter(
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .into(imageView)
                         }
                     } else {
@@ -2321,9 +2334,11 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(pdfFile)
+                                .signature(ObjectKey("${file.path}_${file.size}"))
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .into(imageView)
                         } else {
                             imageView.setImageBitmap(createExtensionBitmap("PDF"))
@@ -2362,6 +2377,7 @@ class MediaFileAdapter(
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
+                                .dontAnimate() // avoid placeholder flash on disk-cache hit
                                 .into(imageView)
                         }
                     } else {

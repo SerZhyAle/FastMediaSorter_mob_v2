@@ -85,6 +85,7 @@
     <string name="renaming_n_files_from_folder">Renaming %1$d files from %2$s</string>
     <string name="renamed_n_files">Renamed %1$d files</string>
     <string name="rename_failed">Rename failed: %1$s</string>
+    <string name="rename_failed_generic">Rename failed</string>
     <string name="file_already_exists">File already exists: %1$s</string>
     <string name="file_already_exists_skip">%1$s (skipped - file already exists)</string>
     <string name="file_already_exists_in_folder">%1$s (skipped - already exists in %2$s)</string>
@@ -2326,6 +2327,13 @@
     <string name="unarchive_only_zip_supported">Only ZIP archives are supported.</string>
     <string name="action_open">Open</string>
     <string name="app_updated_to">Updated to %1$s</string>
+
+    <!-- Document text selection action menu -->
+    <string name="action_translate_selection">Translate</string>
+    <string name="action_search_google">Search in Google</string>
+    <string name="pdf_text_mode_enter">Text selection</string>
+    <string name="pdf_text_extracting">Extracting text…</string>
+    <string name="pdf_text_empty">No text found on this page</string>
 </resources>
 
 

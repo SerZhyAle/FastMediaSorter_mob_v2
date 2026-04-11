@@ -1,0 +1,16 @@
+appId: com.sza.fastmediasorter
+---
+- launchApp
+- openFile: test_media/sample.pdf
+- rotateToLandscape
+- tapOn:
+    id: btnSearchPdfCmd
+- assertVisible:
+    id: searchPanel
+- inputText: "chapter"
+- assertVisible:
+    id: tvSearchCounter
+- tapOn:
+    id: btnCloseSearch
+- assertNotVisible:
+    id: searchPanel

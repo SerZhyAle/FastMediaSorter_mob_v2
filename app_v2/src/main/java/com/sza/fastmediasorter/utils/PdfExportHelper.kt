@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
@@ -88,6 +89,14 @@ object PdfExportHelper {
     }
 
     private fun saveBitmapToDownloads(context: Context, bitmap: Bitmap, fileName: String, relativePath: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            saveBitmapToDownloadsApi29(context, bitmap, fileName, relativePath)
+        } else {
+            saveBitmapToDownloadsLegacy(bitmap, fileName, relativePath)
+        }
+    }
+
+    private fun saveBitmapToDownloadsApi29(context: Context, bitmap: Bitmap, fileName: String, relativePath: String) {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
@@ -99,20 +108,34 @@ object PdfExportHelper {
         var uri: Uri? = null
 
         try {
-             uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-             uri?.let {
-                 resolver.openOutputStream(it)?.use { out ->
-                     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-                 }
-                 
-                 contentValues.clear()
-                 contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                 resolver.update(it, contentValues, null, null)
-             } ?: throw Exception("Failed to create MediaStore entry")
+            uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            uri?.let {
+                resolver.openOutputStream(it)?.use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                resolver.update(it, contentValues, null, null)
+            } ?: throw Exception("Failed to create MediaStore entry")
         } catch (e: Exception) {
             // Cleanup on failure
             uri?.let { resolver.delete(it, null, null) }
             throw e
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun saveBitmapToDownloadsLegacy(bitmap: Bitmap, fileName: String, relativePath: String) {
+        // On API < 29 MediaStore.Downloads does not exist; write directly to external storage.
+        // relativePath is "Download/<subfolder>" — strip the leading DIRECTORY_DOWNLOADS segment.
+        val subPath = relativePath.removePrefix(Environment.DIRECTORY_DOWNLOADS + File.separator)
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val exportDir = File(downloadsDir, subPath).also { it.mkdirs() }
+        val outFile = File(exportDir, fileName)
+
+        FileOutputStream(outFile).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
         }
     }
 }

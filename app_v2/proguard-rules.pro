@@ -251,6 +251,14 @@
     <methods>;
 }
 
+# ===== WebView JS Bridge =====
+# Keep methods annotated with @JavascriptInterface so R8 doesn't rename them.
+# Without this rule, EpubSelectionBridge.onSelectionChanged() is obfuscated in release
+# builds and the JS bridge silently stops working.
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
 # ===== LocaleHelper & Localization Resources =====
 # CRITICAL: Keep LocaleHelper for language switching (Android 13+)
 -keep class com.sza.fastmediasorter.core.util.LocaleHelper { *; }

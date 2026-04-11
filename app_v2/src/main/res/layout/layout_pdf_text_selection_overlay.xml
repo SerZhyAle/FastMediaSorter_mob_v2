@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Overlay shown over the PDF PhotoView in "text selection" mode.
+     Contains a SelectableTextView with the page text extracted via OCR or PdfRenderer API. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pdfTextSelectionOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC000000"
+    android:elevation="@dimen/elevation_player_overlay"
+    android:visibility="gone">
+
+    <!-- Extracting-text progress indicator -->
+    <LinearLayout
+        android:id="@+id/pdfTextExtractionProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="visible">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/white" />
+
+        <TextView
+            android:id="@+id/tvPdfTextExtracting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/pdf_text_extracting"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Selectable text content (visible after extraction) -->
+    <ScrollView
+        android:id="@+id/pdfTextSelectionScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvPdfSelectableText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textIsSelectable="true"
+            android:lineSpacingMultiplier="1.4"
+            android:background="@android:color/transparent" />
+    </ScrollView>
+
+    <!-- Close button -->
+    <ImageButton
+        android:id="@+id/btnClosePdfTextSelection"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="4dp"
+        android:background="@drawable/bg_circle_dark"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:scaleType="fitCenter"
+        android:padding="12dp"
+        android:contentDescription="@string/cancel" />
+
+</FrameLayout>

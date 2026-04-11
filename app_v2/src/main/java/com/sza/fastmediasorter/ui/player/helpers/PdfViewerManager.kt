@@ -100,6 +100,17 @@ class PdfViewerManager(
     // Single-thread dispatcher for PdfRenderer (non-thread-safe API)
     private val pdfDispatcher = Dispatchers.IO.limitedParallelism(1)
 
+    // Text selection mode overlay manager
+    private val pdfTextSelectionManager = PdfTextSelectionManager(
+        binding            = binding,
+        settingsRepository = settingsRepository,
+        coroutineScope     = coroutineScope,
+        translationManager = translationManager,
+        pdfDispatcher      = pdfDispatcher,
+        onTranslateResult  = { callback.displayTranslatedText(it) },
+        onError            = { callback.showError(it) }
+    )
+
     // URL link detection cache: pageIndex → list of (boundingBoxInBitmapPx, url)
     private val urlBoxCache = mutableMapOf<Int, List<Pair<RectF, String>>>()
     
@@ -153,6 +164,15 @@ class PdfViewerManager(
             if (pdfPageCount > 1) {
                 showGoToPageDialog()
             }
+        }
+
+        // Text selection mode button: toggle overlay with selectable page text
+        safeViews.btnSelectTextPdf?.setOnClickListener {
+            pdfTextSelectionManager.enterTextSelectionMode(
+                pageIndex     = currentPdfPageIndex,
+                currentBitmap = currentPageBitmap,
+                pdfRenderer   = pdfRenderer
+            )
         }
     }
     
@@ -308,6 +328,8 @@ class PdfViewerManager(
             binding.btnGoogleLensPdfCmd.isVisible = isLandscape && settings.enableGoogleLens
             binding.btnOcrPdfCmd.isVisible = isLandscape && settings.enableOcr
             binding.btnSearchPdfCmd.isVisible = isLandscape // Search always available in landscape
+            // Text selection button is always shown for PDF (OCR-based on API < 35, native on API 35+)
+            safeViews.btnSelectTextPdf?.isVisible = true
             Timber.d("PdfViewerManager: Command panel button visibility updated. isLandscape=$isLandscape, Lens=${settings.enableGoogleLens}, Translate=${settings.enableTranslation}, OCR=${settings.enableOcr}")
             
             try {
@@ -1325,13 +1347,16 @@ class PdfViewerManager(
     private fun clearTranslationOverlays() {
         safeViews.translationOverlay.isVisible = false
         safeViews.tvTranslatedText.text = ""
-        
+
         binding.translationLensOverlay.isVisible = false
         binding.translationLensOverlay.clear()
-        
+
         // Hide font size controls when translation is inactive
         binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
         binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
+
+        // Close text selection overlay on page change
+        pdfTextSelectionManager.exitTextSelectionMode()
     }
     
     fun updateButtonVisibility() {
@@ -1351,6 +1376,8 @@ class PdfViewerManager(
 
     private fun closePdfRenderer() {
         exitFullscreenMode()
+        pdfTextSelectionManager.exitTextSelectionMode()
+        safeViews.btnSelectTextPdf?.isVisible = false
         try {
             currentPdfPage?.close()
             currentPdfPage = null

@@ -39,11 +39,14 @@ class MediaStoreRepositoryImpl @Inject constructor(
         // Document types: filter via MIME_TYPE for database-level efficiency
         if (allowedTypes.contains(MediaType.TEXT)) mediaTypeConditions.add("(${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'text/%')")
         if (allowedTypes.contains(MediaType.PDF)) mediaTypeConditions.add("(LOWER(${MediaStore.Files.FileColumns.MIME_TYPE}) = 'application/pdf')")
-        // EPUB: match by MIME type OR by extension — MediaStore indexes .epub with inconsistent
-        // MIME types across devices/OEMs (application/epub+zip, application/octet-stream, null, etc.)
+        // EPUB: match by MIME type OR by filename extension OR by full path extension.
+        // MediaStore indexes .epub inconsistently across devices/OEMs/API levels:
+        // some use application/epub+zip, others application/octet-stream or NULL.
+        // DATA covers files that have a row but no recognized MIME (e.g. placed via ADB).
         if (allowedTypes.contains(MediaType.EPUB)) mediaTypeConditions.add(
             "(LOWER(${MediaStore.Files.FileColumns.MIME_TYPE}) = 'application/epub+zip' " +
-            "OR LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE '%.epub')"
+            "OR LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE '%.epub' " +
+            "OR LOWER(${MediaStore.Files.FileColumns.DATA}) LIKE '%.epub')"
         )
 
         if (mediaTypeConditions.isNotEmpty()) {
@@ -253,6 +256,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
     ): List<com.sza.fastmediasorter.domain.model.MediaFile> = withContext(Dispatchers.IO) {
         val queryLimit = limit.coerceAtLeast(1)
         val selection = buildSelectionForAllowedTypes(allowedTypes) ?: return@withContext emptyList()
+        Timber.d("getAllFilesByTypes: types=$allowedTypes selection=$selection")
         val result = mutableListOf<com.sza.fastmediasorter.domain.model.MediaFile>()
         val uri = MediaStore.Files.getContentUri("external")
 

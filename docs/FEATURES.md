@@ -81,6 +81,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Effortless moving**: Transfer files easily from their current location to a new configured destination, cleanly organizing your media across different storage protocols.
 - **Flexible deleting**: Choose between permanently erasing a file or moving it to a recoverable Trash bin. This safety net prevents accidental data loss and can be customized in settings.
 - **In-place renaming**: Quickly alter the name of any file without needing to move it. This makes correcting typos or reorganizing naming conventions incredibly fast.
+- **Standalone player renaming**: Rename a file directly from the "Open with" standalone player (supported for SAF documents with write access and MediaStore files). A simple dialog pre-fills the current filename; changes are applied via DocumentsContract or ContentResolver without reloading the content already in memory.
 - **Trash recovery**: Instantly restore erroneously deleted files back to their original folder from the in-app Trash bin, providing peace of mind during massive cleanups.
 - **Operation undo**: Revert your last copy, move, or delete action with a single tap. This undo stack acts as an immediate failsafe if you realize you made a mistake managing your files.
 - **Batch processing**: Apply copy, move, or delete actions to multiple selected files simultaneously. This drastically reduces the tedious manual work involved in managing large collections.
@@ -176,6 +177,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Color modes (Normal, Night, Sepia)**: Reduce eye strain and adapt to your environment's lighting. Switch to Night mode in dark rooms or choose Sepia for a warmer, paper-like reading experience.
 - **Zoom**: Magnify documents to comfortably inspect fine print, detailed diagrams, or high-resolution images. Standard two-finger pinch gestures adjust the zoom level precisely.
 - **OCR + Translation (Google Lens style overlay)**: Read foreign-language documents without constantly switching to a dictionary app. The app recognizes the text on the page and neatly overlays the translation directly on top of the original words.
+- **Text selection mode**: Tap the "T" button in the PDF controls bar to extract the current page's text (via OCR on most devices; natively on Android 15+) into a selectable overlay. Long-press any word to get selection handles, then choose **Translate** (sends only your selection to the translator) or **Search in Google** from the floating action menu.
 - **Large PDF thumbnail support for network files**: Identify your PDFs by their cover before fully downloading them from your remote server or cloud. This optional setting avoids unnecessary network usage when looking for a specific document.
 
 
@@ -192,6 +194,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Horizontal margins**: Give your text proper bordering. Adjust horizontal margins natively to bring text closer to the center, heavily improving readability on ultra-wide devices and tablets.
 - **Position persistence**: The app precisely saves your exact scroll location and last read chapter, guaranteeing your book opens strictly where you abandoned it last time.
 - **In-place translation**: Break language barriers natively. Select the text of a foreign EPUB chapter and have it translated seamlessly directly on your screen.
+- **Selection action menu**: Long-press any word in an EPUB chapter to reveal the standard selection handles. The floating action menu includes **Translate** (sends the selected fragment to the translator) and **Search in Google** alongside the platform's built-in Copy / Share / Select All items.
 
 
 ## 12. Text Viewer / Editor
@@ -205,7 +208,9 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **In-place text editing and saving**: Seamlessly alter text, fix typos, or rewrite code. Changes are saved back strictly to the source file, fully working on both local storage and remote network servers.
 - **Auto-save and undo history**: Experiment with edits safely. The editor automatically saves states and features a deep Undo/Redo stack, ensuring a typo never destroys your work.
 - **Full translation**: Convert whole text files or partial selections from their native language into your target language smoothly within the viewer interface.
+- **Selection action menu**: Long-press any word to get selection handles. The floating action menu includes **Translate** (translates only the highlighted fragment) and **Search in Google**, in addition to the system's Copy / Share / Select All actions.
 - **Copy all text**: Extract contents rapidly with a single-tap button tailored to pull the entirety of a heavy document onto your system clipboard.
+- **Inline search panel (standalone parity)**: Tap-to-search with Next/Prev navigation works in both the internal file browser and the standalone "Open with" mode for PDF, EPUB (current chapter), and TXT files.
 
 
 ## 13. Translation & OCR (cross-viewer feature)
@@ -216,6 +221,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **On-device offline translation**: Translate passages without internet. Specific language models are downloaded on demand and process translations locally for extreme privacy and speed.
 - **Augmented Reality overlay**: Experience sci-fi level immersion natively. Translated text string blocks are mathematically superimposed into the precise layout coordinates of the original foreign text within PDFs and images.
 - **Broad availability**: Utilize this powerful translation tech seamlessly across all relevant views. The exact same translation interactions function uniformly across the Image Viewer, PDF Viewer, Text Editor, and the EPUB Viewer.
+- **Standalone mode parity**: Translation toggle (portrait/landscape-aware) works in both the internal file browser and the standalone "Open with" mode — opening a PDF or EPUB from an external app gives the same translator access as opening it from within FastMediaSorter.
 - **Explicit target configurations**: Override automated selections securely by forcing specific source and target languages within the settings menu when parsing heavily distorted or mixed-language texts.
 - **Result typography styling**: Choose exactly how your OCR results and overlapping translation blocks look by configuring their native font size and dedicated font family.
 - **Text copying**: Effortlessly lift the deeply recognized text, or its resultant translation, directly into the system clipboard for immediate usage in emails, notes, or messages.
@@ -314,6 +320,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Credential audit**: Manage network keys securely definitively. The audit mechanism logs precise timestamp metrics corresponding to remote login validations, automatically drawing specific attention regarding completely stagnant, unused password profiles ready for strict manual deletion explicitly.
 - **Default player system hooks**: Integrate with Android intent routing when user-enabled. Runtime component toggles control ACTION_VIEW aliases (audio/video/image/document groups), ACTION_SEND aliases for share-sheet intake, and media-button wake-up wiring through the audio playback service path.
 - **Standalone player file operations**: Perform file actions directly when opening media from external apps via "Open with" or Share. Delete the file (with confirmation), share it to other apps, toggle favorite status, or navigate to its folder in the main FMS browser — all from the standalone player toolbar.
+- **Rename file from standalone player**: Rename files directly from the standalone "Open with" player, including audio files (MP3, FLAC, OGG, WAV, M4A). Button is shown only for SAF documents with `FLAG_SUPPORTS_RENAME` and MediaStore files with write access. For audio, playback continues uninterrupted after rename — the ExoPlayer media source is hot-swapped to the new URI without restarting the service.
 - **Standalone player lifecycle & reliability**: Playback pauses automatically when leaving the app and resumes on return; screen stays awake during video and audio playback; playback errors (codec not supported, file not found, network failure) show a clear localized message instead of silently stopping.
 - **Standalone player Picture-in-Picture (Android 12+)**: Press Home while watching a video to keep it in a floating overlay window with play/pause remote actions. Video continues playing without interruption. PiP button visible in player controls on supported devices.
 - **Standalone player audio focus management**: Video and audio automatically pause on incoming phone calls, voice assistant activation, and other transient interruptions; permanently stops on call answer. Audio focus is released on exit so other apps (e.g. Spotify) resume immediately.

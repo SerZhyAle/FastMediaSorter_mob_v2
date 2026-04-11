@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.graphics.Color
 import android.view.MotionEvent
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -90,7 +92,24 @@ class EpubViewerManager(
     
     // WebView for HTML rendering
     private var webView: WebView? = null
-    
+
+    // Selection bridge: captures the latest selected text from WebView via JS interface
+    private val selectionBridge = EpubSelectionBridge()
+
+    /**
+     * JS interface injected into WebView to capture text selection events.
+     * The JS snippet in preprocessHtml fires `EpubSelectionBridge.onSelectionChanged`
+     * on every `selectionchange` DOM event.
+     */
+    inner class EpubSelectionBridge {
+        @Volatile var lastSelectedText: String = ""
+
+        @JavascriptInterface
+        fun onSelectionChanged(text: String) {
+            lastSelectedText = text
+        }
+    }
+
     // Gesture detector for swipe navigation
     private var swipeGestureDetector: android.view.GestureDetector
     
@@ -228,7 +247,15 @@ class EpubViewerManager(
             isFocusable = true
             isFocusableInTouchMode = true
             setOnLongClickListener(null) // Use default WebView long click behavior
-            
+
+            // Register JS interface so the injected selectionchange script can report selections
+            addJavascriptInterface(selectionBridge, "EpubSelectionBridge")
+
+            // Note: WebView does not support setCustomSelectionActionModeCallback (TextView-only API).
+            // Custom "Translate" / "Search in Google" items are injected via
+            // Activity.onActionModeStarted — use getSelectionActionModeCallback() to retrieve
+            // the pre-built callback for that hookup point.
+
             // Setup WebViewClient to hide progress bar when page is fully loaded
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -618,7 +645,8 @@ class EpubViewerManager(
     private suspend fun showChapter(chapterIndex: Int) {
         // Wait for settings to be loaded before first render (C-3 fix)
         settingsReady.await()
-        
+        // Reset stale selection from previous chapter
+        selectionBridge.lastSelectedText = ""
         val book = currentBook ?: return
         val spine = book.spine
         
@@ -698,7 +726,18 @@ class EpubViewerManager(
         
         // Remove script tags to prevent XSS from untrusted EPUB content (M-6 fix)
         doc.select("script").remove()
-        
+
+        // Inject trusted selection-bridge script (our own JS, not from EPUB)
+        doc.body()?.append(
+            """<script>
+               document.addEventListener('selectionchange', function() {
+                   if (typeof EpubSelectionBridge !== 'undefined') {
+                       EpubSelectionBridge.onSelectionChanged(window.getSelection().toString());
+                   }
+               });
+               </script>"""
+        )
+
         // Generate CSS via EpubStyleManager using current settings
         val css = EpubStyleManager.generateCss(
             theme = currentReaderTheme,
@@ -1797,6 +1836,27 @@ class EpubViewerManager(
     }
     
     /**
+     * Translate only the selected text fragment (called from DocumentSelectionActionModeCallback).
+     * Shows result in the shared translation overlay.
+     */
+    private fun handleTranslateSelection(text: String) {
+        if (text.isBlank()) return
+        coroutineScope.launch(Dispatchers.IO) {
+            val settings = settingsRepository.getSettings().first()
+            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
+            val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
+            val translated = translationManager.translate(text, sourceLang, targetLang)
+            withContext(Dispatchers.Main) {
+                if (translated != null) {
+                    callback.displayTranslatedText(translated)
+                } else {
+                    callback.showError(binding.root.context.getString(R.string.translation_error))
+                }
+            }
+        }
+    }
+
+    /**
      * Extract text from current chapter and translate it.
      * Displays result in simple text overlay (not Lens style).
      */
@@ -2059,4 +2119,21 @@ class EpubViewerManager(
         }
         Timber.d("EPUB: Scrolled to end (bottom)")
     }
+
+    /**
+     * Returns a [DocumentSelectionActionModeCallback] wired to this manager's JS selection bridge
+     * and translation handler.
+     *
+     * WebView does not support [android.widget.TextView.setCustomSelectionActionModeCallback].
+     * The hosting Activity should override [android.app.Activity.startActionMode] and wrap the
+     * incoming callback with this one to inject "Translate" / "Search in Google" items into the
+     * WebView floating text-selection ActionMode.
+     */
+    fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback =
+        DocumentSelectionActionModeCallback(
+            showTranslate   = BuildConfig.ENABLE_TRANSLATION,
+            getSelectedText = { selectionBridge.lastSelectedText },
+            onTranslate     = ::handleTranslateSelection,
+            onSearchGoogle  = { openGoogleSearch(binding.root.context, it) }
+        )
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_translate_selection"
+        android:title="@string/action_translate_selection"
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_search_google"
+        android:title="@string/action_search_google"
+        android:showAsAction="ifRoom" />
+</menu>

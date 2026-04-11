@@ -1,16 +1,24 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.text.InputType
 import android.view.View
+import android.view.ActionMode
+import android.view.Menu
+import android.view.MenuItem
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
@@ -51,10 +59,23 @@ import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerLifecycleManage
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
+import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
+import com.sza.fastmediasorter.ui.player.helpers.btnPdfHome
+import com.sza.fastmediasorter.ui.player.helpers.btnPdfNextPage
+import com.sza.fastmediasorter.ui.player.helpers.btnPdfPrevPage
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubPrevChapter
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubHome
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubNextChapter
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubToc
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeDecrease
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeIncrease
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -145,6 +166,54 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
     private var playerSettingsManager: StandalonePlayerSettingsManager? = null
     private var fullscreenManager: StandaloneFullscreenManager? = null
+    private var searchControlsManager: SearchControlsManager? = null
+    /** Cached from settingsRepository; updated by observeTranslationSettings(). */
+    private var cachedTranslationEnabled = true
+    /** Set to true after the first successful viewManager.show(); prevents reload on rename state updates. */
+    private var contentLoaded = false
+
+    // ── EPUB WebView floating ActionMode augmentation ─────────────────────
+    // WebView cannot use setCustomSelectionActionModeCallback (TextView-only).
+    // Instead, we intercept every startActionMode call: when an EPUB is open and
+    // the mode is TYPE_FLOATING (WebView text selection), we wrap the system
+    // callback to inject our "Translate" / "Search in Google" items.
+
+    override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode? {
+        val epubCallback = if (
+            type == ActionMode.TYPE_FLOATING &&
+            ::viewManager.isInitialized &&
+            viewManager.isEpubActive()
+        ) viewManager.getEpubSelectionActionModeCallback() else null
+        return if (epubCallback != null && callback != null) {
+            super.startActionMode(EpubAugmentedActionModeCallback(callback, epubCallback), type)
+        } else {
+            super.startActionMode(callback, type)
+        }
+    }
+
+    private class EpubAugmentedActionModeCallback(
+        private val original: ActionMode.Callback,
+        private val epub: DocumentSelectionActionModeCallback
+    ) : ActionMode.Callback2() {
+
+        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+            epub.onCreateActionMode(mode, menu)
+            return original.onCreateActionMode(mode, menu)
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean =
+            original.onPrepareActionMode(mode, menu)
+
+        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean =
+            epub.onActionItemClicked(mode, item) || original.onActionItemClicked(mode, item)
+
+        override fun onDestroyActionMode(mode: ActionMode) = original.onDestroyActionMode(mode)
+
+        override fun onGetContentRect(mode: ActionMode, view: View, outRect: Rect) {
+            if (original is ActionMode.Callback2) original.onGetContentRect(mode, view, outRect)
+            else super.onGetContentRect(mode, view, outRect)
+        }
+    }
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
@@ -215,6 +284,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         setupBackPressHandler()
         hidePlaylistControls()
         setupFileOperationButtons()
+        setupPdfButtons()
+        setupEpubButtons()
+        setupSearchControls()
 
         if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: pre-parseIncomingIntent total=${SystemClock.uptimeMillis() - t0}ms")
         parseIncomingIntent()
@@ -225,6 +297,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         observeViewModelState()
         observeViewModelEvents()
         observeFavoriteState()
+        observeTranslationSettings()
     }
 
     override fun onResume() {
@@ -266,6 +339,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             it.post { it.requestApplyInsets() }
         }
         // playerView re-measures itself via ExoPlayer's internal SurfaceView listener — no manual action needed
+        updateEpubTranslatorVisibility()
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
@@ -470,6 +544,50 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.topCommandPanel.isVisible = true
     }
 
+    // ── PDF Page Navigation ──────────────────────────────────────────────
+
+    private fun setupPdfButtons() {
+        binding.btnPdfPrevPage.setOnClickListener    { viewManager.showPdfPreviousPage() }
+        binding.btnPdfHome.setOnClickListener        { viewManager.showPdfFirstPage() }
+        binding.btnPdfNextPage.setOnClickListener    { viewManager.showPdfNextPage() }
+        binding.btnTranslatePdfCmd.setOnClickListener { viewManager.togglePdfTranslation() }
+    }
+
+    // ── EPUB Navigation ──────────────────────────────────────────────────
+
+    private fun setupEpubButtons() {
+        binding.btnEpubPrevChapter.setOnClickListener      { viewManager.showEpubPreviousChapter() }
+        binding.btnEpubHome.setOnClickListener             { viewManager.showEpubFirstChapter() }
+        binding.btnEpubNextChapter.setOnClickListener      { viewManager.showEpubNextChapter() }
+        binding.btnEpubToc.setOnClickListener              { viewManager.showEpubTableOfContents() }
+        binding.btnEpubFontSizeDecrease.setOnClickListener { viewManager.decreaseEpubFontSize() }
+        binding.btnEpubFontSizeIncrease.setOnClickListener { viewManager.increaseEpubFontSize() }
+        binding.btnEpubTextSettingsCmd.setOnClickListener  { viewManager.showEpubReaderSettings() }
+        binding.btnExitEpubFullscreen.setOnClickListener   { viewManager.exitEpubFullscreen() }
+        // btnTranslateEpubCmd listener is set by SearchControlsManager.setupSearchControls() (ADR-4)
+    }
+
+    // ── Search Controls ──────────────────────────────────────────────────
+
+    private fun setupSearchControls() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        searchControlsManager = SearchControlsManager(
+            binding                   = binding,
+            textViewerManagerProvider = { viewManager.textViewerManagerProvider() },
+            pdfViewerManagerProvider  = { viewManager.pdfViewerManagerProvider() },
+            epubViewerManagerProvider = { viewManager.epubViewerManagerProvider() },
+            lifecycleScope            = lifecycleScope,
+            inputMethodManager        = imm,
+            callback                  = object : SearchControlsManager.SearchControlsCallback {
+                override fun getCurrentMediaFile() = viewModel.state.value.mediaFile
+                override fun scheduleHideControls() { /* no auto-hide in standalone */ }
+                override fun onEpubTranslate()      { viewManager.toggleEpubTranslation() }
+                override fun showTranslationSettingsDialog() { /* out of scope */ }
+            }
+        )
+        searchControlsManager?.setupSearchControls()
+    }
+
     private fun setupBackPressHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -481,6 +599,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private fun hidePlaylistControls() {
         binding.btnPreviousCmd.isVisible = false
         binding.btnNextCmd.isVisible = false
+        binding.btnSlideshowCmd.isVisible = false
     }
 
     // ── File Operation Buttons ───────────────────────────────────────────
@@ -497,6 +616,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Favorite
         binding.btnFavorite.visibility = View.VISIBLE
         binding.btnFavorite.setOnClickListener { viewModel.toggleFavorite() }
+
+        // Rename — hidden until capability check completes asynchronously
+        binding.btnRenameCmd.isVisible = false
+        binding.btnRenameCmd.setOnClickListener { showStandaloneRenameDialog() }
 
         // Open in FMS (repurpose info button)
         binding.btnInfoCmd.visibility = View.VISIBLE
@@ -803,9 +926,15 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         return@collect
                     }
 
-                    val onVideoReady: ((androidx.media3.ui.PlayerView) -> Unit)? =
-                        if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
-                    viewManager.show(file, type, onVideoReady)
+                    if (!contentLoaded) {
+                        val onVideoReady: ((androidx.media3.ui.PlayerView) -> Unit)? =
+                            if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
+                        viewManager.show(file, type, onVideoReady)
+                        contentLoaded = true
+                        // EpubViewerManager unconditionally shows btnTranslateEpubCmd; enforce orientation guard.
+                        if (type == MediaType.EPUB) updateEpubTranslatorVisibility()
+                    }
+                    updateRenameButtonVisibility()
                 }
             }
         }
@@ -823,6 +952,147 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                             finish()
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // ── EPUB Translator Visibility ───────────────────────────────────────
+
+    /**
+     * Mirrors CommandPanelController behaviour for standalone mode:
+     * hides btnTranslateEpubCmd in portrait, shows it in landscape when EPUB is active
+     * and translation is enabled (flavor flag + user setting).
+     */
+    private fun updateEpubTranslatorVisibility() {
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        binding.btnTranslateEpubCmd.isVisible =
+            BuildConfig.ENABLE_TRANSLATION && cachedTranslationEnabled && isLandscape && viewManager.isEpubActive()
+    }
+
+    /** Keeps [cachedTranslationEnabled] in sync with the settings repository. */
+    private fun observeTranslationSettings() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsRepository.getSettings().collect { settings ->
+                    cachedTranslationEnabled = settings.enableTranslation
+                    // Re-evaluate EPUB button whenever settings change
+                    updateEpubTranslatorVisibility()
+                }
+            }
+        }
+    }
+
+    // ── Standalone Rename ────────────────────────────────────────────────────
+
+    /**
+     * Checks asynchronously (IO dispatcher) whether the current file URI supports rename,
+     * then updates [binding.btnRenameCmd] visibility on the Main thread.
+     *
+     * SAF documents: check FLAG_SUPPORTS_RENAME via DocumentsContract query.
+     * MediaStore URIs: optimistic — show button, handle failure at attempt time.
+     * All other schemes: hidden.
+     */
+    private fun updateRenameButtonVisibility() {
+        val uri = viewModel.state.value.mediaFile?.path?.toUri() ?: run {
+            binding.btnRenameCmd.isVisible = false
+            return
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val canRename = canRenameUri(uri)
+            withContext(Dispatchers.Main) {
+                binding.btnRenameCmd.isVisible = canRename
+            }
+        }
+    }
+
+    private fun canRenameUri(uri: Uri): Boolean {
+        return when {
+            DocumentsContract.isDocumentUri(this, uri) -> {
+                try {
+                    contentResolver.query(
+                        uri,
+                        arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
+                        null, null, null
+                    )?.use { cursor ->
+                        if (cursor.moveToFirst()) {
+                            val flags = cursor.getInt(0)
+                            flags and DocumentsContract.Document.FLAG_SUPPORTS_RENAME != 0
+                        } else false
+                    } ?: false
+                } catch (e: Exception) {
+                    Timber.w(e, "StandalonePlayer: canRename query failed for $uri")
+                    false
+                }
+            }
+            uri.authority?.startsWith("com.android.providers.media") == true ||
+            uri.toString().startsWith("content://media/") -> true // optimistic for MediaStore
+            else -> false
+        }
+    }
+
+    private fun showStandaloneRenameDialog() {
+        val currentFile = viewModel.state.value.mediaFile ?: return
+        val currentName = currentFile.name
+        val uri = currentFile.path.toUri()
+
+        val input = EditText(this).apply {
+            setText(currentName)
+            selectAll()
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.rename))
+            .setView(input)
+            .setPositiveButton(R.string.apply) { _, _ ->
+                val newName = input.text.toString().trim()
+                if (newName.isNotBlank() && newName != currentName) {
+                    performStandaloneRename(uri, newName)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun performStandaloneRename(uri: Uri, newName: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val newUri: Uri? = if (DocumentsContract.isDocumentUri(this@StandalonePlayerActivity, uri)) {
+                    DocumentsContract.renameDocument(contentResolver, uri, newName)
+                } else {
+                    // MediaStore: update DISPLAY_NAME; URI remains unchanged
+                    val values = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, newName)
+                    }
+                    val rows = contentResolver.update(uri, values, null, null)
+                    if (rows > 0) uri else null  // null = failure (0 rows updated)
+                }
+                withContext(Dispatchers.Main) {
+                    if (newUri != null) {
+                        viewModel.onRenameComplete(newUri, newName)
+                        // Audio-specific: SAF rename returns a new URI — update ExoPlayer MediaItem
+                        // so re-buffering (seek beyond cache) doesn't hit the invalidated old URI.
+                        if (newUri != uri) {
+                            viewManager.updateAudioMediaItem(newUri)
+                        }
+                        Timber.d("StandalonePlayer: rename succeeded → $newUri")
+                    } else {
+                        Toast.makeText(
+                            this@StandalonePlayerActivity,
+                            getString(R.string.rename_failed_generic),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "StandalonePlayer: rename failed for $uri → $newName")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@StandalonePlayerActivity,
+                        getString(R.string.rename_failed_generic),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }

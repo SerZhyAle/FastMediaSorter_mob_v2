@@ -100,6 +100,16 @@ class StandalonePlayerViewModel @Inject constructor(
         }
     }
 
+    fun onRenameComplete(newUri: Uri, newName: String) {
+        updateState { state ->
+            state.copy(mediaFile = state.mediaFile?.copy(
+                name = newName,
+                path = newUri.toString(),
+                contentUri = newUri.toString()
+            ))
+        }
+    }
+
     suspend fun findResourceForPath(folderPath: String?): Long? {
         if (folderPath == null) return null
         val resources = resourceRepository.getAllResourcesSync()

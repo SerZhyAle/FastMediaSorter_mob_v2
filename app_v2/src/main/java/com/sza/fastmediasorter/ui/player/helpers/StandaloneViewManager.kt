@@ -260,10 +260,11 @@ class StandaloneViewManager(
         binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
         val controller = AudioServiceController(activity)
         audioServiceController = controller
-        audioFocusManager = AudioFocusManager(activity) { isPermanent ->
-            if (isPermanent) controller.player?.stop() else controller.player?.pause()
-        }
-        audioFocusManager?.requestFocus()
+        // Do NOT use AudioFocusManager here — ExoPlayer inside AudioPlaybackService is built with
+        // setAudioAttributes(..., handleAudioFocus=true) and manages focus automatically.
+        // Creating a separate AudioFocusManager in the Activity would cause a double-focus conflict:
+        // the Activity's manager would receive AUDIOFOCUS_LOSS as soon as the service's ExoPlayer
+        // requests focus, triggering player.stop() and immediately killing playback.
         controller.playAudio(mediaFile.path.toUri()) { player ->
             binding.playerView.player = player
             binding.playerView.showController()
@@ -277,10 +278,52 @@ class StandaloneViewManager(
         pdfViewerManager.displayPdf(mediaFile)
     }
 
+    fun showPdfPreviousPage() { _pdfViewerManager?.showPreviousPage() }
+    fun showPdfNextPage()     { _pdfViewerManager?.showNextPage() }
+    fun showPdfFirstPage()    { _pdfViewerManager?.showFirstPage() }
+
     // ── EPUB ─────────────────────────────────────────────────────────────────
 
     private fun showEpub(mediaFile: MediaFile) {
         epubViewerManager.displayEpub(mediaFile)
+    }
+
+    fun showEpubPreviousChapter() { _epubViewerManager?.showPreviousChapter() }
+    fun showEpubNextChapter()     { _epubViewerManager?.showNextChapter() }
+    fun showEpubFirstChapter()    { _epubViewerManager?.showFirstChapter() }
+    fun showEpubTableOfContents() { _epubViewerManager?.showTableOfContents() }
+    fun decreaseEpubFontSize()    { _epubViewerManager?.decreaseFontSize() }
+    fun increaseEpubFontSize()    { _epubViewerManager?.increaseFontSize() }
+    fun showEpubReaderSettings()  { _epubViewerManager?.showReaderSettingsDialog() }
+    fun showEpubCrossSearch()     { _epubViewerManager?.showCrossChapterSearch() }
+    fun exitEpubFullscreen()      { _epubViewerManager?.exitFullscreenMode() }
+    fun toggleEpubTranslation()   { _epubViewerManager?.toggleTranslation() }
+    fun togglePdfTranslation()    { _pdfViewerManager?.toggleTranslation() }
+
+    // Viewer manager providers — for SearchControlsManager wiring in StandalonePlayerActivity
+    fun epubViewerManagerProvider(): EpubViewerManager = epubViewerManager
+    fun pdfViewerManagerProvider(): PdfViewerManager   = pdfViewerManager
+    fun textViewerManagerProvider(): TextViewerManager = textViewerManager
+
+    /** Returns true when an EPUB file is currently loaded (used for orientation-aware button visibility). */
+    fun isEpubActive(): Boolean   = _epubViewerManager != null
+
+    /** Returns the EPUB WebView selection ActionMode callback, or null if no EPUB is loaded. */
+    fun getEpubSelectionActionModeCallback(): DocumentSelectionActionModeCallback? =
+        _epubViewerManager?.getSelectionActionModeCallback()
+
+    /**
+     * Updates the ExoPlayer media item in AudioPlaybackService after a SAF rename.
+     * Uses replaceMediaItem() so playback continues without interruption.
+     * No-op if no audio is currently playing.
+     */
+    fun updateAudioMediaItem(newUri: Uri) {
+        val player = audioServiceController?.player ?: return
+        val currentPosition = player.currentPosition
+        player.replaceMediaItem(0, MediaItem.fromUri(newUri))
+        // replaceMediaItem preserves position in Media3; explicit seek as safety net.
+        player.seekTo(currentPosition)
+        Timber.d("StandaloneViewManager: audio MediaItem updated to $newUri pos=${currentPosition}ms")
     }
 
     // ── TEXT ─────────────────────────────────────────────────────────────────
