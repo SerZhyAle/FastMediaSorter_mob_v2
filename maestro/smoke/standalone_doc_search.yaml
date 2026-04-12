@@ -1,8 +1,22 @@
-appId: com.sza.fastmediasorter
+appId: com.sza.fastmediasorter.debug
 ---
-- launchApp
-- openFile: test_media/sample.pdf
-- rotateToLandscape
+# Test: Standalone PDF Search
+# Description: Verify PDF search panel works when opened via "Open With" (StandalonePlayerActivity)
+# Duration: ~40 seconds
+# Requirements: device with test_media/sample.pdf on /sdcard/test_media/
+
+- launchApp:
+    appId: com.sza.fastmediasorter.debug
+    arguments:
+      action: android.intent.action.VIEW
+      uri: "file:///sdcard/test_media/sample.pdf"
+      mimeType: "application/pdf"
+- waitForAnimationToEnd
+
+- setOrientation:
+    orientation: landscape_left
+- waitForAnimationToEnd
+
 - tapOn:
     id: btnSearchPdfCmd
 - assertVisible:
@@ -14,3 +28,10 @@ appId: com.sza.fastmediasorter
     id: btnCloseSearch
 - assertNotVisible:
     id: searchPanel
+
+- back
+- waitForAnimationToEnd
+
+# Reset orientation
+- setOrientation:
+    orientation: portrait

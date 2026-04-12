@@ -18,13 +18,15 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Portrait: translate button must NOT be visible
-- setOrientation: portrait
+- setOrientation:
+    orientation: portrait
 - waitForAnimationToEnd
 - assertNotVisible:
     id: "btnTranslateEpubCmd"
 
 # Landscape: translate button must appear (if ENABLE_TRANSLATION=true, enableTranslation=true)
-- setOrientation: landscape
+- setOrientation:
+    orientation: landscape_left
 - waitForAnimationToEnd
 - assertVisible:
     id: "btnTranslateEpubCmd"
@@ -40,7 +42,8 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Return to portrait — button must be hidden again
-- setOrientation: portrait
+- setOrientation:
+    orientation: portrait
 - waitForAnimationToEnd
 - assertNotVisible:
     id: "btnTranslateEpubCmd"
@@ -59,13 +62,15 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Portrait: translate button must NOT be visible (PdfViewerManager hides it)
-- setOrientation: portrait
+- setOrientation:
+    orientation: portrait
 - waitForAnimationToEnd
 - assertNotVisible:
     id: "btnTranslatePdfCmd"
 
 # Landscape: translate button must appear
-- setOrientation: landscape
+- setOrientation:
+    orientation: landscape_left
 - waitForAnimationToEnd
 - assertVisible:
     id: "btnTranslatePdfCmd"
@@ -84,4 +89,5 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Reset orientation
-- setOrientation: portrait
+- setOrientation:
+    orientation: portrait
