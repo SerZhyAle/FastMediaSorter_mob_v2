@@ -39,10 +39,11 @@ class BrowseRecyclerViewManager(
     fun updateDisplayMode(
         mode: DisplayMode,
         iconSize: Int,
-        showVideoThumbnails: Boolean
+        showVideoThumbnails: Boolean,
+        isCompactMode: Boolean = false
     ) {
-        Timber.d("updateDisplayMode: mode=$mode, iconSize=$iconSize")
-        
+        Timber.d("updateDisplayMode: mode=$mode, iconSize=$iconSize, compact=$isCompactMode")
+
         // Save current scroll position before changing layout
         val currentLayoutManager = recyclerView.layoutManager
         val scrollPosition = when (currentLayoutManager) {
@@ -51,26 +52,26 @@ class BrowseRecyclerViewManager(
             else -> 0
         }
         Timber.d("updateDisplayMode: Saved scroll position=$scrollPosition")
-        
-        // Update adapter mode
+
+        // Update adapter mode — always pass full iconSize; compact halving is done inside onBindViewHolder
         adapter.setGridMode(
             enabled = mode == DisplayMode.GRID,
             iconSize = iconSize
         )
         Timber.d("updateDisplayMode: Updated adapter gridMode=${mode == DisplayMode.GRID}")
-        
+
         // Update toggle button icon
         val iconResId = when (mode) {
             DisplayMode.LIST -> R.drawable.ic_view_grid // Show grid icon when in list mode
             DisplayMode.GRID -> R.drawable.ic_view_list // Show list icon when in grid mode
         }
         callbacks.updateToggleButtonIcon(iconResId)
-        
+
         // Update layout manager
         val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val displayMetrics = resources.displayMetrics
         val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
-        
+
         val newLayoutManager = when (mode) {
             DisplayMode.LIST -> {
                 val columnCount = calculateListSpanCount(screenWidthDp, isLandscape)
@@ -89,18 +90,12 @@ class BrowseRecyclerViewManager(
                 }
             }
             DisplayMode.GRID -> {
-                // Calculate span count dynamically based on screen width and icon size
-                val cardPaddingDp = 8f // 4dp padding on each side (from card layout)
-                
-                // Fixed cell width calculation
-                val itemWidthDp = if (showVideoThumbnails) {
-                    // With thumbnails: use icon size from settings
-                    iconSize.toFloat() + cardPaddingDp
-                } else {
-                    // Without thumbnails: use icon size from settings (user selected size)
-                    iconSize.toFloat() + cardPaddingDp
-                }
-                
+                // In compact mode use half the icon size for span count so more columns fit;
+                // the adapter's onBindViewHolder renders each thumbnail at iconSize/2 internally.
+                val cardPaddingDp = 8f
+                val effectiveIconSizeDp = (if (isCompactMode) iconSize / 2 else iconSize).toFloat()
+                val itemWidthDp = effectiveIconSizeDp + cardPaddingDp
+
                 // Calculate span count with minimum for tablets
                 val calculatedSpanCount = (screenWidthDp / itemWidthDp).toInt()
                 val spanCount = if (screenWidthDp >= 600f) {
@@ -112,15 +107,15 @@ class BrowseRecyclerViewManager(
                 }
 
                 Timber.d(
-                    "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount"
+                    "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount compact=$isCompactMode"
                 )
-                
-                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, showThumbnails=$showVideoThumbnails, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (calculated=$calculatedSpanCount)")
+
+                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (calculated=$calculatedSpanCount)")
                 GridLayoutManager(recyclerView.context, spanCount)
             }
         }
         recyclerView.layoutManager = newLayoutManager
-        
+
         // Restore scroll position after layout manager change
         if (scrollPosition >= 0) {
             recyclerView.post {
@@ -128,9 +123,9 @@ class BrowseRecyclerViewManager(
                 Timber.d("updateDisplayMode: Restored scroll position=$scrollPosition")
             }
         }
-        
+
         Timber.d("updateDisplayMode: Layout manager updated to ${newLayoutManager::class.simpleName}")
-        
+
         callbacks.onDisplayModeChanged(mode)
     }
     

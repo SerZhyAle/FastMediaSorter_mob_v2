@@ -62,6 +62,7 @@ class MediaFileAdapter(
     private val onBinaryFileClick: (MediaFile) -> Unit = {}, // Callback for binary files (Task 6)
     private var isGridMode: Boolean = false,
     private var thumbnailSize: Int = 96, // Default size in dp
+    private var useCompactElements: Boolean = false, // Global 0.5x scaling mode
     private val getShowVideoThumbnails: () -> Boolean = { false }, // Callback to get current setting
     private val getShowPdfThumbnails: () -> Boolean = { false }, // Callback to get PDF thumbnail setting
     private var disableThumbnails: Boolean = false // Skip thumbnail loading, show extension icons only
@@ -228,6 +229,13 @@ class MediaFileAdapter(
     fun setAudioOnlyMode(isAudioOnly: Boolean) {
         if (isAudioOnlyMode != isAudioOnly) {
             isAudioOnlyMode = isAudioOnly
+            notifyDataSetChanged()
+        }
+    }
+
+    fun setUseCompactElements(enabled: Boolean) {
+        if (useCompactElements != enabled) {
+            useCompactElements = enabled
             notifyDataSetChanged()
         }
     }
@@ -761,14 +769,41 @@ class MediaFileAdapter(
                 ivThumbnail.visibility = if (audioOnlyFile) android.view.View.GONE else android.view.View.VISIBLE
 
                 if (!audioOnlyFile) {
-                    // Apply thumbnail size from settings for list mode
+                    // Apply thumbnail size from settings for list mode (halved if compact mode enabled)
+                    val effectiveBaseSize = if (useCompactElements) thumbnailSize / 2 else thumbnailSize
                     val thumbnailSizePx = if (this@MediaFileAdapter.disableThumbnails) {
-                        (32 * root.resources.displayMetrics.density).toInt() // 32dp for list when disabled
+                        val dSize = if (useCompactElements) 20 else 32
+                        (dSize * root.resources.displayMetrics.density).toInt()
                     } else {
-                        (thumbnailSize * root.resources.displayMetrics.density).toInt()
+                        (effectiveBaseSize * root.resources.displayMetrics.density).toInt()
                     }
                     ivThumbnail.layoutParams.width = thumbnailSizePx
                     ivThumbnail.layoutParams.height = thumbnailSizePx
+                }
+
+                if (useCompactElements) {
+                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 9f)
+                    val p8 = (8 * root.resources.displayMetrics.density).toInt()
+                    val p4 = (4 * root.resources.displayMetrics.density).toInt()
+                    root.setPadding(p8, p4, p8, p4)
+                } else {
+                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
+                    tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    val p16 = (16 * root.resources.displayMetrics.density).toInt()
+                    val p12 = (12 * root.resources.displayMetrics.density).toInt()
+                    root.setPadding(p16, p12, p16, p12)
+                }
+
+                // Scale action buttons: compact = 12dp (24dp × 0.5), normal = 24dp
+                val btnSizePx = if (useCompactElements) {
+                    (12 * root.resources.displayMetrics.density).toInt()
+                } else {
+                    (24 * root.resources.displayMetrics.density).toInt()
+                }
+                for (btn in listOf(btnFavorite, btnCopyItem, btnMoveItem, btnRenameItem, btnDeleteItem, btnPlayInline)) {
+                    btn.layoutParams.width = btnSizePx
+                    btn.layoutParams.height = btnSizePx
                 }
 
                 // Hide checkbox for folders (folders can't be selected)
@@ -1830,14 +1865,13 @@ class MediaFileAdapter(
                 
                 // Set dynamic thumbnail size (height only - width is match_parent)
                 val sizeInPx = if (this@MediaFileAdapter.disableThumbnails) {
-                    if (isAudioOnlyMode) {
-                        (AUDIO_ONLY_THUMBNAIL_DP * root.context.resources.displayMetrics.density).toInt()
-                    } else {
-                        (64 * root.context.resources.displayMetrics.density).toInt() // 64dp when disabled
-                    }
+                    val baseDisableSize = if (isAudioOnlyMode) AUDIO_ONLY_THUMBNAIL_DP else 64
+                    val effectiveDisableSize = if (useCompactElements) baseDisableSize / 2 else baseDisableSize
+                    (effectiveDisableSize * root.context.resources.displayMetrics.density).toInt()
                 } else {
                     val sizeDp = if (isAudioOnlyMode) AUDIO_ONLY_THUMBNAIL_DP else thumbnailSize
-                    (sizeDp * root.context.resources.displayMetrics.density).toInt() // User preference
+                    val effectiveSizeDp = if (useCompactElements) sizeDp / 2 else sizeDp
+                    (effectiveSizeDp * root.context.resources.displayMetrics.density).toInt() // User preference
                 }
                 
                 // Apply user-defined icon size to thumbnail container and image.
@@ -1864,6 +1898,11 @@ class MediaFileAdapter(
                 )
                 
                 tvFileName.text = file.name
+                if (useCompactElements) {
+                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11f)
+                } else {
+                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
+                }
                 
                 // Load thumbnail or folder icon
                 if (isFolder) {

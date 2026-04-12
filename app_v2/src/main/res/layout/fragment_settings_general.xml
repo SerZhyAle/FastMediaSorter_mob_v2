@@ -56,7 +56,7 @@
 
                     </LinearLayout>
 
-                    <!-- Show Subfolders as Items -->
+                    <!-- Show Subfolders as Items + Small Controls -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="horizontal" android:baselineAligned="false">
 
                         <LinearLayout android:id="@+id/layoutShowSubfoldersAsItems" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
@@ -84,6 +84,20 @@
                             <ImageButton android:id="@+id/iconHelpCompactControls" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_compact_controls_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Compact Elements (Global Scaling) -->
+                    <LinearLayout android:id="@+id/layoutCompactElements" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchCompactElements" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/compact_elements" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/compact_elements" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_compact_elements_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                        <ImageButton android:id="@+id/iconHelpCompactElements" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_compact_elements_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 

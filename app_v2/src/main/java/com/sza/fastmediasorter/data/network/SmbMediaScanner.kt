@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.SmbPathUtils
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -181,10 +182,13 @@ class SmbMediaScanner @Inject constructor(
                     }
                 }
                 is SmbResult.Error -> {
-                    Timber.e("Error scanning SMB folder: ${result.message}")
-                    throw result.exception ?: Exception(result.message)
+                    val ex = result.exception ?: Exception(result.message)
+                    if (ex !is CancellationException) Timber.e("Error scanning SMB folder: ${result.message}")
+                    throw ex
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SMB folder: $path")
             throw e
@@ -315,10 +319,13 @@ class SmbMediaScanner @Inject constructor(
                     mediaFiles
                 }
                 is SmbResult.Error -> {
-                    Timber.e("Error scanning SMB folder (chunked): ${result.message}")
-                    throw result.exception ?: Exception(result.message)
+                    val ex = result.exception ?: Exception(result.message)
+                    if (ex !is CancellationException) Timber.e("Error scanning SMB folder (chunked): ${result.message}")
+                    throw ex
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SMB folder (chunked): $path")
             throw e
@@ -393,10 +400,13 @@ class SmbMediaScanner @Inject constructor(
                     MediaFilePage(mediaFiles, hasMore)
                 }
                 is SmbResult.Error -> {
-                    Timber.e("Error scanning SMB folder (paged): ${result.message}")
-                    throw result.exception ?: Exception(result.message)
+                    val ex = result.exception ?: Exception(result.message)
+                    if (ex !is CancellationException) Timber.e("Error scanning SMB folder (paged): ${result.message}")
+                    throw ex
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SMB folder (paged): $path")
             throw e

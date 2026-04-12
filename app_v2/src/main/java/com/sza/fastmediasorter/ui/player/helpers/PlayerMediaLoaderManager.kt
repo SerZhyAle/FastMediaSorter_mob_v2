@@ -91,8 +91,14 @@ class PlayerMediaLoaderManager(
             }
         }
         override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
-            // When playlist advances to next track, notify ready
+            // When playlist auto-advances: sync ViewModel index first so UI reads the correct track,
+            // then notify ready to update cover art / format info / song label.
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                val newIndex = audioServiceController?.player?.currentMediaItemIndex ?: -1
+                if (newIndex >= 0) {
+                    Timber.d("PlayerMediaLoaderManager: auto-advance → serviceIndex=$newIndex")
+                    viewModel.syncAudioServiceIndex(newIndex)
+                }
                 onAudioServiceReady()
             }
         }

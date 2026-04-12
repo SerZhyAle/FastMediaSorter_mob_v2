@@ -342,6 +342,13 @@ class GeneralSettingsFragment : Fragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showSmallControls = isChecked))
         }
+
+        // Compact Elements (Global Scaling)
+        binding.switchCompactElements?.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingSpinner) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(useCompactElements = isChecked))
+        }
         
         // Safe Mode (Phase 2.1)
         binding.switchEnableSafeMode.setOnCheckedChangeListener { _, isChecked ->
@@ -388,6 +395,14 @@ class GeneralSettingsFragment : Fragment() {
                 requireContext(),
                 R.string.tooltip_compact_controls_title,
                 R.string.tooltip_compact_controls_message
+            )
+        }
+
+        binding.iconHelpCompactElements?.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_compact_elements_title,
+                R.string.tooltip_compact_elements_message
             )
         }
         
@@ -864,6 +879,9 @@ class GeneralSettingsFragment : Fragment() {
                     }
                     if (binding.switchSmallControls.isChecked != settings.showSmallControls) {
                         binding.switchSmallControls.isChecked = settings.showSmallControls
+                    }
+                    if (binding.switchCompactElements?.isChecked != settings.useCompactElements) {
+                        binding.switchCompactElements?.isChecked = settings.useCompactElements
                     }
                     
                     if (binding.switchAllFiles.isChecked != settings.allFiles) {

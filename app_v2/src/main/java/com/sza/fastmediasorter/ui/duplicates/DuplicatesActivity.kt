@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.duplicates
 
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityDuplicatesBinding
@@ -19,6 +20,7 @@ class DuplicatesActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDuplicatesBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityDuplicatesBinding.inflate(layoutInflater)
         setContentView(binding.root)

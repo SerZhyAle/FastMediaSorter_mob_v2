@@ -46,7 +46,8 @@ class PlayerDialogAndUiStateManager(
     private val lifecycleScope: LifecycleCoroutineScope
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
-    
+    private val compactElementsManager = PlayerCompactElementsManager(binding)
+
     /**
      * Flag indicating audio slideshow photo mode is active.
      * When true, audio files should NOT force command panel / system bars visible.
@@ -302,12 +303,15 @@ class PlayerDialogAndUiStateManager(
             // Populate destination buttons (handles state restoration internally)
             activity.populateDestinationButtons()
             
-            // Apply small controls setting if enabled
-            if (state.showSmallControls) {
+            // Apply small controls setting if enabled (or global compact mode)
+            if (state.showSmallControls || state.useCompactElements) {
                 applySmallControlsIfNeeded()
             } else {
                 restoreCommandButtonHeightsIfNeeded()
             }
+
+            // Apply global compact scaling to text and overlays
+            if (state.useCompactElements) compactElementsManager.apply() else compactElementsManager.restore()
         } else {
             // Fullscreen mode or slideshow mode
             binding.topCommandPanel.isVisible = false

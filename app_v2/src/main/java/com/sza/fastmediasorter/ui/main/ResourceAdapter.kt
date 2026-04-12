@@ -151,7 +151,7 @@ class ResourceAdapter(
     }
 
     private var isGridMode: Boolean = false
-
+    private var useCompactElements: Boolean = false
     private var selectedResourceId: Long? = null
 
     fun setSelectedResource(resourceId: Long?) {
@@ -169,6 +169,13 @@ class ResourceAdapter(
         if (this.isGridMode != isGrid) {
             this.isGridMode = isGrid
             notifyDataSetChanged() // Full refresh needed for view type change
+        }
+    }
+
+    fun setUseCompactElements(enabled: Boolean) {
+        if (this.useCompactElements != enabled) {
+            this.useCompactElements = enabled
+            notifyDataSetChanged()
         }
     }
 
@@ -212,12 +219,25 @@ class ResourceAdapter(
                 tvResourceName.text = resource.name
                 
                 // Dynamic font size based on name length
-                val textSize = when {
+                var textSize = when {
                     resource.name.length <= 10 -> binding.root.context.resources.getDimension(R.dimen.text_size_huge)
                     resource.name.length <= 16 -> binding.root.context.resources.getDimension(R.dimen.text_size_large)
                     else -> binding.root.context.resources.getDimension(R.dimen.text_size_normal)
                 }
+                if (useCompactElements) textSize *= 0.8f
                 tvResourceName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, textSize)
+
+                if (useCompactElements) {
+                    val iconSize = (24 * root.resources.displayMetrics.density).toInt()
+                    ivResourceTypeIcon.layoutParams.width = iconSize
+                    ivResourceTypeIcon.layoutParams.height = iconSize
+                    tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                } else {
+                    val iconSize = (40 * root.resources.displayMetrics.density).toInt()
+                    ivResourceTypeIcon.layoutParams.width = iconSize
+                    ivResourceTypeIcon.layoutParams.height = iconSize
+                    tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                }
                 
                 // Set icon based on resource type
                 val iconRes = when {
@@ -331,6 +351,16 @@ class ResourceAdapter(
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {
                 tvResourceName.text = resource.name
+                if (useCompactElements) {
+                    tvResourceName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+                    tvResourcePath.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                    tvResourceComment.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                } else {
+                    tvResourceName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18f)
+                    tvResourcePath.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
+                    tvResourceComment.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                }
+
                 // For cloud resources, show provider name instead of folder ID
                 tvResourcePath.text = if (resource.type == ResourceType.CLOUD && resource.cloudProvider != null) {
                     // Show provider name and account email (accountId) for cloud resources
@@ -401,6 +431,34 @@ class ResourceAdapter(
                     resource.id == -100L -> "" // Don't show count for now, or show "Favorites"
                     resource.fileCount >= 1000 -> root.context.getString(R.string.file_count_over_1000)
                     else -> root.context.getString(R.string.file_count_format, resource.fileCount)
+                }
+                
+                if (useCompactElements) {
+                    tvFileCount.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                    tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                    tvLastSync.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                    tvResourceType.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                    
+                    val p4 = (4 * root.resources.displayMetrics.density).toInt()
+                    val p8 = (8 * root.resources.displayMetrics.density).toInt()
+                    rootLayout.setPadding(p8, p4, p8, p4)
+                    
+                    val iconSize = (24 * root.resources.displayMetrics.density).toInt()
+                    ivResourceTypeIcon.layoutParams.width = iconSize
+                    ivResourceTypeIcon.layoutParams.height = iconSize
+                } else {
+                    tvFileCount.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    tvLastSync.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    tvResourceType.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    
+                    val p12 = (12 * root.resources.displayMetrics.density).toInt()
+                    val p16 = (16 * root.resources.displayMetrics.density).toInt()
+                    rootLayout.setPadding(p16, p12, p16, p12)
+                    
+                    val iconSize = (48 * root.resources.displayMetrics.density).toInt()
+                    ivResourceTypeIcon.layoutParams.width = iconSize
+                    ivResourceTypeIcon.layoutParams.height = iconSize
                 }
                 
                 tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)

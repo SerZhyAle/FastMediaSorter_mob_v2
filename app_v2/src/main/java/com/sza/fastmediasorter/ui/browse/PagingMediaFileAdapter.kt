@@ -52,6 +52,7 @@ class PagingMediaFileAdapter(
 
     private var selectedPaths = setOf<String>()
     private var credentialsId: String? = null
+    private var useCompactElements: Boolean = false
 
     companion object {
         private const val VIEW_TYPE_LIST = 0
@@ -65,6 +66,13 @@ class PagingMediaFileAdapter(
 
     fun setCredentialsId(id: String?) {
         credentialsId = id
+    }
+
+    fun setUseCompactElements(enabled: Boolean) {
+        if (useCompactElements != enabled) {
+            useCompactElements = enabled
+            notifyDataSetChanged()
+        }
     }
 
     fun setGridMode(enabled: Boolean, iconSize: Int = 96) {
@@ -149,9 +157,24 @@ class PagingMediaFileAdapter(
             binding.apply {
                 val isSelected = file.path in selectedPaths
 
-                val sizeInPx = (thumbnailSize * root.context.resources.displayMetrics.density).toInt()
+                val effectiveThumbnailSize = if (useCompactElements) thumbnailSize / 2 else thumbnailSize
+                val sizeInPx = (effectiveThumbnailSize * root.context.resources.displayMetrics.density).toInt()
                 ivThumbnail.layoutParams.width = sizeInPx
                 ivThumbnail.layoutParams.height = sizeInPx
+
+                if (useCompactElements) {
+                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 9f)
+                    val p8 = (8 * root.resources.displayMetrics.density).toInt()
+                    val p4 = (4 * root.resources.displayMetrics.density).toInt()
+                    root.setPadding(p8, p4, p8, p4)
+                } else {
+                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
+                    tvFileInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+                    val p16 = (16 * root.resources.displayMetrics.density).toInt()
+                    val p12 = (12 * root.resources.displayMetrics.density).toInt()
+                    root.setPadding(p16, p12, p16, p12)
+                }
 
                 cbSelect.setOnCheckedChangeListener(null)
                 cbSelect.isChecked = isSelected

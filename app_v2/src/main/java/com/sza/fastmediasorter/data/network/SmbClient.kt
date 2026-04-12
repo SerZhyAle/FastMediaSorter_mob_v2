@@ -306,6 +306,8 @@ class SmbClient @Inject constructor(
                     progressCallback?.onComplete(it.data.size, durationMs)
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to scan SMB media files")
             SmbResult.Error("Failed to scan media files: ${e.message}", e)
@@ -350,6 +352,8 @@ class SmbClient @Inject constructor(
                 Timber.d("SmbClient.scanMediaFilesChunked: Scan completed, found ${mediaFiles.size} files")
                 SmbResult.Success(mediaFiles)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to scan SMB media files (chunked)")
             SmbResult.Error("Failed to scan media files: ${e.message}", e)
@@ -394,6 +398,8 @@ class SmbClient @Inject constructor(
                 Timber.d("SmbClient.scanMediaFilesPaged: offset=$offset, limit=$limit, scanSubdirs=$scanSubdirectories, returned=${mediaFiles.size}, took ${System.currentTimeMillis() - startTime}ms")
                 SmbResult.Success(mediaFiles)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to scan SMB media files (paged)")
             SmbResult.Error("Failed to scan media files: ${e.message}", e)

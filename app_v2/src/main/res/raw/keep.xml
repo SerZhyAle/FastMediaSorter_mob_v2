@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Resource shrinking configuration for release builds.
+    Prevents R8 from removing drawables referenced in layouts but not directly in code.
+    ref: https://developer.android.com/build/shrink-code#keep-resources
+-->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@string/*,@array/*,@plurals/*"
-    tools:discard="@layout/unused_*" />
+    tools:keep="@drawable/ic_logo,@drawable/ic_splash_logo" />

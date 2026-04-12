@@ -275,6 +275,8 @@
     <string name="setup_content_first_toast">Setup the content first..</string>
     <string name="prevent_sleep">Prevent sleep</string>
     <string name="small_controls">Compact controls</string>
+    <string name="compact_elements">Compact elements</string>
+    <string name="setting_compact_elements_desc">Reduce element sizes and spacing across the app by 50%</string>
     <string name="enable_favorites">Enable Favorites</string>
     <string name="favorite">Favorite</string>
     <string name="favorites_title">Favorites</string>
@@ -708,6 +710,7 @@
     <string name="close">Close</string>
     <string name="copy_to_clipboard">Copy to Clipboard</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="translation_result_title">Translation</string>
 
     <!-- Lyrics Feature -->
     <string name="lyrics">Lyrics</string>
@@ -854,6 +857,8 @@
     <string name="tooltip_prevent_sleep_message">Keeps the screen on while viewing media files. Prevents device from sleeping or dimming during playback or viewing sessions.</string>
     <string name="tooltip_compact_controls_title">Compact Controls</string>
     <string name="tooltip_compact_controls_message">Reduces the size of player control buttons for a more minimalist interface. Useful on smaller screens or when you prefer less intrusive controls.</string>
+    <string name="tooltip_compact_elements_title">Compact Elements Mode</string>
+    <string name="tooltip_compact_elements_message">This mode scales UI elements (lists, buttons, text) by 0.5x to increase the amount of information visible on the screen. Note: touch targets will also become smaller.</string>
     <string name="tooltip_default_credentials_title">Default Network Credentials</string>
     <string name="tooltip_default_credentials_message">Default username and password used when connecting to network resources (SMB/SFTP/FTP). Can be overridden per-resource during configuration.</string>
     <string name="all_files">All files</string>

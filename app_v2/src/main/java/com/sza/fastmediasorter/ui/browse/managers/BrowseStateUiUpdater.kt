@@ -47,6 +47,7 @@ class BrowseStateUiUpdater(
         updateFilterBadge(state)
         updateSelectionPanel(state)
         updateDisplayModeIfNeeded(state)
+        adapter.setUseCompactElements(state.useCompactElements)
         applySmallControls(state)
         onUpdateBreadcrumb(state)
         updateResourceActionButton(state)
@@ -104,7 +105,7 @@ class BrowseStateUiUpdater(
     }
 
     private fun applySmallControls(state: BrowseState) {
-        if (state.showSmallControls) {
+        if (state.showSmallControls || state.useCompactElements) {
             smallControlsManager.applySmallControlsIfNeeded()
         } else {
             smallControlsManager.restoreCommandButtonHeightsIfNeeded()
@@ -114,6 +115,13 @@ class BrowseStateUiUpdater(
     private fun updateResourceActionButton(state: BrowseState) {
         val stateResource = state.resource ?: return
         binding.tvResourceInfo.text = onBuildResourceInfo(state)
+
+        // Apply compact scaling to resource info text
+        if (state.useCompactElements) {
+            binding.tvResourceInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+        } else {
+            binding.tvResourceInfo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
+        }
 
         val isSubfolder = state.isSubfolderMode && state.currentPath != null && state.currentPath != stateResource.path
         if (isSubfolder) {

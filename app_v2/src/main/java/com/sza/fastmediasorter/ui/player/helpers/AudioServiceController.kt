@@ -126,6 +126,18 @@ class AudioServiceController(
     ) {
         connect { player ->
             Timber.d("AudioServiceController: playAudioPlaylistWithMetadata size=${items.size}, startIndex=$startIndex")
+            // Idempotent: if the playlist is already loaded at the requested index (e.g., after
+            // ExoPlayer auto-advanced and syncAudioServiceIndex() triggered updateUI → playVideo()),
+            // skip setMediaItems so the currently-playing track is not interrupted/restarted.
+            val alreadyPlaying = player.mediaItemCount == items.size &&
+                player.currentMediaItemIndex == startIndex &&
+                player.playbackState != Player.STATE_IDLE &&
+                player.playbackState != Player.STATE_ENDED
+            if (alreadyPlaying) {
+                Timber.d("AudioServiceController: already at index=$startIndex in playlist of ${items.size}, skipping restart")
+                onPlayerReady(player)
+                return@connect
+            }
             val mediaItems = items.map { item ->
                 MediaItem.Builder()
                     .setUri(item.uri)

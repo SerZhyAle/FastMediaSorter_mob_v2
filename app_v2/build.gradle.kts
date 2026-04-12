@@ -36,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260411221
-        versionName = "2.60.4112.219"
+        versionCode = 260412225
+        versionName = "2.60.4122.258"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -233,8 +233,8 @@ android {
             isShrinkResources = true
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "false")
-            buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "false") // disabled until Google Play approves permissions
-            buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "false")
+            buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "true")
+            buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
             ndk {
                 debugSymbolLevel = "FULL"
             }

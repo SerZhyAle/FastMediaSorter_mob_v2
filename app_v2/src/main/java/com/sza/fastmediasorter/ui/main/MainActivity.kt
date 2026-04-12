@@ -22,6 +22,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -67,6 +68,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var passwordManager: ResourcePasswordManager
 
     private var permissionCheckDoneThisSession = false
+    private var gridSpacingDecoration: RecyclerView.ItemDecoration? = null
+    private var compactElementsEnabled = false
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -626,6 +629,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     } else {
                         View.GONE
                     }
+                    resourceAdapter.setUseCompactElements(settings.useCompactElements)
+                    compactElementsEnabled = settings.useCompactElements
+                    refreshGridSpacing()
                 }
             }
         }
@@ -738,6 +744,31 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     binding.rvResources.layoutManager = LinearLayoutManager(this)
                 }
             }
+        }
+        refreshGridSpacing()
+    }
+
+    /**
+     * Apply or remove inter-item spacing decoration for the resource grid.
+     * Normal: 4dp per side; compact: 2dp per side. No decoration in list mode.
+     */
+    private fun refreshGridSpacing() {
+        gridSpacingDecoration?.let { binding.rvResources.removeItemDecoration(it) }
+        gridSpacingDecoration = null
+        if (binding.rvResources.layoutManager is GridLayoutManager) {
+            val spacingPx = ((if (compactElementsEnabled) 2 else 4) * resources.displayMetrics.density).toInt()
+            val dec = object : RecyclerView.ItemDecoration() {
+                override fun getItemOffsets(
+                    outRect: android.graphics.Rect,
+                    view: android.view.View,
+                    parent: RecyclerView,
+                    state: RecyclerView.State
+                ) {
+                    outRect.set(spacingPx, spacingPx, spacingPx, spacingPx)
+                }
+            }
+            gridSpacingDecoration = dec
+            binding.rvResources.addItemDecoration(dec)
         }
     }
 

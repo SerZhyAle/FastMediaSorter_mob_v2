@@ -136,6 +136,7 @@ class BrowseObserverManager(
 
     private fun observeSettings() {
         var lastIconSize = 96
+        var lastCompactMode = false
         lifecycleOwner.lifecycleScope.launch {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 settingsRepository.getSettings().collect { settings ->
@@ -147,14 +148,20 @@ class BrowseObserverManager(
                         onNotifyRangeChanged(0, adapter.itemCount, "LOAD_THUMBNAILS", "settings pdf toggle")
                     }
 
+                    // Compact elements: always push to adapter (guard against redundant notify is inside)
+                    adapter.setUseCompactElements(settings.useCompactElements)
+                    val compactChanged = settings.useCompactElements != lastCompactMode
+                    if (compactChanged) lastCompactMode = settings.useCompactElements
+
                     val currentResource = viewModel.state.value.resource
+                    val iconSizeChanged = settings.defaultIconSize != lastIconSize
                     if (currentResource != null &&
                         currentResource.displayMode == DisplayMode.GRID &&
                         !currentResource.isAudioOnly() &&
-                        settings.defaultIconSize != lastIconSize
+                        (iconSizeChanged || compactChanged)
                     ) {
                         lastIconSize = settings.defaultIconSize
-                        Timber.d("Thumbnail size changed to ${settings.defaultIconSize}, updating grid layout")
+                        Timber.d("Grid layout update: iconSize=${settings.defaultIconSize} compact=${settings.useCompactElements}")
                         onUpdateDisplayMode(DisplayMode.GRID)
                     } else if (currentResource != null) {
                         lastIconSize = settings.defaultIconSize

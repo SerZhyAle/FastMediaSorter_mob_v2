@@ -167,6 +167,9 @@ class SettingsRepositoryImpl @Inject constructor(
 
         // FR-8: Folder picker persistence (stores content:// URI string)
         private val KEY_LAST_SELECTED_LOCAL_FOLDER = stringPreferencesKey("last_selected_local_folder")
+
+        // Compact elements mode (0.5x scale)
+        private val KEY_USE_COMPACT_ELEMENTS = booleanPreferencesKey("use_compact_elements")
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -342,7 +345,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     thumbnailPreloadWifiOnly = preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] ?: true,
 
                     // FR-8: Folder picker persistence
-                    lastSelectedLocalFolder = preferences[KEY_LAST_SELECTED_LOCAL_FOLDER]
+                    lastSelectedLocalFolder = preferences[KEY_LAST_SELECTED_LOCAL_FOLDER],
+
+                    // Compact elements mode
+                    useCompactElements = preferences[KEY_USE_COMPACT_ELEMENTS] ?: false
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -527,6 +533,9 @@ class SettingsRepositoryImpl @Inject constructor(
             } else {
                 preferences.remove(KEY_LAST_SELECTED_LOCAL_FOLDER)
             }
+
+            // Compact elements mode
+            preferences[KEY_USE_COMPACT_ELEMENTS] = settings.useCompactElements
         }
     }
 

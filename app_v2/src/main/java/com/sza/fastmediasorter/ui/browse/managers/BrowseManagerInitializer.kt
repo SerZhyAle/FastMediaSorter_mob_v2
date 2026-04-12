@@ -532,7 +532,9 @@ class BrowseManagerInitializer(
             Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
             return
         }
-        val sel = state.mediaFiles.filter { it.path in state.selectedFiles }
+        // Read selection directly from selectionManager to avoid async state propagation lag
+        val selectedPaths = viewModel.currentSelectedPaths()
+        val sel = state.mediaFiles.filter { it.path in selectedPaths }
         dialogHelper.showRenameDialog(sel)
     }
 
@@ -543,7 +545,9 @@ class BrowseManagerInitializer(
             Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
             return
         }
-        val sel = state.mediaFiles.filter { it.path in state.selectedFiles }
+        // Read selection directly from selectionManager to avoid async state propagation lag
+        val selectedPaths = viewModel.currentSelectedPaths()
+        val sel = state.mediaFiles.filter { it.path in selectedPaths }
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
             dialogHelper.showDeleteConfirmation(sel, resource, settings)
@@ -556,9 +560,11 @@ class BrowseManagerInitializer(
             Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
             return
         }
+        // Read selection directly from selectionManager to avoid async state propagation lag
+        val selectedPaths = viewModel.currentSelectedPaths()
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
-            fileOperationsManager.showCopyDialog(state.selectedFiles.toList(), state.mediaFiles, resource, settings)
+            fileOperationsManager.showCopyDialog(selectedPaths.toList(), state.mediaFiles, resource, settings)
         }
     }
 
@@ -572,9 +578,11 @@ class BrowseManagerInitializer(
             Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
             return
         }
+        // Read selection directly from selectionManager to avoid async state propagation lag
+        val selectedPaths = viewModel.currentSelectedPaths()
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
-            fileOperationsManager.showMoveDialog(state.selectedFiles.toList(), state.mediaFiles, resource, settings)
+            fileOperationsManager.showMoveDialog(selectedPaths.toList(), state.mediaFiles, resource, settings)
         }
     }
 
@@ -623,8 +631,8 @@ class BrowseManagerInitializer(
             val shouldForceList = currentResource?.isAudioOnly() == true
             val effectiveMode = if (shouldForceList) DisplayMode.LIST else mode
             val iconSize = if (shouldForceList) 48 else if (currentResource?.disableThumbnails == true) 32 else settings.defaultIconSize
-            
-            recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnailsGetter())
+
+            recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnailsGetter(), settings.useCompactElements)
             stateUiUpdater.currentDisplayMode = effectiveMode
             updateToggleViewAvailability(shouldForceList)
             binding.rvMediaFiles.post { scrollButtonManager.updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }

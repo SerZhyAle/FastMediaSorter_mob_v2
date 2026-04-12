@@ -258,7 +258,7 @@
                         android:gravity="center"
                         android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
                         android:text="@string/scheduled_ops_no_destinations"
-                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textColor="?attr/colorError"
                         android:textSize="@dimen/resource_card_desc_text_size"
                         android:visibility="gone" />
 

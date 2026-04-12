@@ -138,7 +138,10 @@ data class AppSettings(
 
     // Last selected folder for folder picker persistence (FR-8).
     // Stores the content:// URI string from OpenDocumentTree.
-    val lastSelectedLocalFolder: String? = null
+    val lastSelectedLocalFolder: String? = null,
+
+    // Compact elements mode (0.5x scale)
+    val useCompactElements: Boolean = false
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

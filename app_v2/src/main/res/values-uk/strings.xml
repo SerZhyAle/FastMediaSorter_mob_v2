@@ -324,6 +324,8 @@
     <string name="setup_content_first_toast">Спочатку налаштуйте контент..</string>
     <string name="prevent_sleep">Заборонити сон пристрою</string>
     <string name="small_controls">Компактні елементи</string>
+    <string name="compact_elements">Компактні елементи (глобально)</string>
+    <string name="setting_compact_elements_desc">Зменшити розміри елементів та відступи по всьому додатку на 50%</string>
     <string name="enable_favorites">Увімкнути обране</string>
     <string name="favorite">Обране</string>
     <string name="favorites_title">Обране</string>
@@ -740,6 +742,8 @@
     <string name="tooltip_prevent_sleep_message">Тримає екран увімкненим під час перегляду файлів. Запобігає засинанню або затемненню пристрою під час відтворення або перегляду.</string>
     <string name="tooltip_compact_controls_title">Компактні елементи керування</string>
     <string name="tooltip_compact_controls_message">Зменшує розмір кнопок керування плеєра для більш мінімалістичного інтерфейсу. Корисно на менших екранах або коли ви віддаєте перевагу менш нав\'язливим елементам керування.</string>
+    <string name="tooltip_compact_elements_title">Режим компактних елементів</string>
+    <string name="tooltip_compact_elements_message">Цей режим масштабує елементи інтерфейсу (списки, кнопки, текст) у 0.5 раза для збільшення обсягу видимої інформації. Примітка: зони натискання також стануть меншими.</string>
     <string name="tooltip_default_credentials_title">Мережеві облікові дані за замовчуванням</string>
     <string name="tooltip_default_credentials_message">Ім\'я користувача та пароль за замовчуванням при підключенні до мережевих ресурсів (SMB/SFTP/FTP). Можуть бути перевизначені для кожного ресурсу при налаштуванні.</string>
     <string name="all_files">Всі файли</string>

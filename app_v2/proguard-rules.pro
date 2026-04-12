@@ -272,6 +272,12 @@
     public static <fields>;
 }
 
+# Keep drawable resources referenced in layouts (prevent resource shrinking)
+-keep class **.R$drawable { *; }
+-keepclassmembers class **.R$drawable {
+    public static <fields>;
+}
+
 # Keep SharedPreferences for language storage
 -keepclassmembers class android.content.SharedPreferences {
     public <methods>;

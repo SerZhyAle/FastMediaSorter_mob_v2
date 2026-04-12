@@ -1,6 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
 import android.widget.Toast
@@ -364,6 +368,19 @@ class StandaloneViewManager(
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
     }
 
+    private fun showTranslatedTextDialog(text: String) {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.translation_result_title)
+            .setMessage(text)
+            .setPositiveButton(R.string.copy) { _, _ ->
+                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("translation", text))
+                Toast.makeText(activity, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.close, null)
+            .show()
+    }
+
     private fun acquireWakeLock() {
         if (binding.playerView.isVisible) {
             binding.playerView.keepScreenOn = true
@@ -454,7 +471,7 @@ class StandaloneViewManager(
             callback = object : PdfViewerManager.PdfViewerCallback {
                 override fun showError(message: String) = showToastError(message)
                 override fun displayOcrText(text: String) { /* not exposed in standalone */ }
-                override fun displayTranslatedText(text: String) { /* not exposed in standalone */ }
+                override fun displayTranslatedText(text: String) = showTranslatedTextDialog(text)
                 override fun shareFileToGoogleLens(file: File) { /* not exposed in standalone */ }
                 override fun isLandscapeMode(): Boolean =
                     activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -474,7 +491,7 @@ class StandaloneViewManager(
             coroutineScope = lifecycleScope,
             callback = object : EpubViewerManager.EpubViewerCallback {
                 override fun showError(message: String) = showToastError(message)
-                override fun displayTranslatedText(text: String) { /* not exposed in standalone */ }
+                override fun displayTranslatedText(text: String) = showTranslatedTextDialog(text)
                 override fun onEnterFullscreenMode() { /* not exposed in standalone */ }
                 override fun onExitFullscreenMode() { /* not exposed in standalone */ }
             },

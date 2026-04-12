@@ -66,8 +66,9 @@ class PlayerViewModel @Inject constructor(
         val backgroundAudioExitBehavior: BackgroundAudioExitBehavior = BackgroundAudioExitBehavior.ASK,
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
-        val showCommandPanel: Boolean = false,
+        val showCommandPanel: Boolean = true,
         val showSmallControls: Boolean = false,
+        val useCompactElements: Boolean = false, // True if global compact mode is enabled
         val allowRename: Boolean = true,
         val allowDelete: Boolean = true,
         val enableCopying: Boolean = true,
@@ -174,6 +175,7 @@ class PlayerViewModel @Inject constructor(
                         it.copy(
                             showCommandPanel = showCommandPanel,
                             showSmallControls = settings.showSmallControls,
+                            useCompactElements = settings.useCompactElements,
                             allowRename = settings.allowRename,
                             allowDelete = settings.allowDelete,
                             enableCopying = settings.enableCopying,
@@ -559,6 +561,20 @@ class PlayerViewModel @Inject constructor(
             Timber.e(e, "Failed to get credentialsId for resource $resourceId")
             null
         }
+    }
+
+    /**
+     * Sync ViewModel's currentIndex to match the audio service's auto-advanced position.
+     * Called when ExoPlayer playlist advances via MEDIA_ITEM_TRANSITION_REASON_AUTO.
+     * Unlike [nextFile], this does NOT save resume state or trigger any side effects —
+     * the audio service is already playing the correct track; we only update the index
+     * so the UI (title, cover art, next/prev buttons) reflects the current track.
+     */
+    fun syncAudioServiceIndex(serviceIndex: Int) {
+        val files = state.value.files
+        if (serviceIndex < 0 || serviceIndex >= files.size) return
+        Timber.d("syncAudioServiceIndex: ${state.value.currentIndex} → $serviceIndex / ${files.size}")
+        updateState { it.copy(currentIndex = serviceIndex) }
     }
 
     fun nextFile(skipDocuments: Boolean = false) {

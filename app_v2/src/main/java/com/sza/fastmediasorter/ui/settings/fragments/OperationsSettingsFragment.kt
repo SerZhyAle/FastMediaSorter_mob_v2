@@ -289,6 +289,8 @@ class OperationsSettingsFragment : Fragment() {
                         adapter.submitList(destinations)
                         // Update visibility based on current destinations list
                         updateAddDestinationVisibility(destinations.isNotEmpty())
+                        // "Add destinations first" hint — only when no destinations exist
+                        binding.tvNoScheduledOps.isVisible = destinations.isEmpty()
                     }
                 }
 
@@ -399,7 +401,6 @@ class OperationsSettingsFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 scheduledViewModel.operations.collect { ops ->
                     scheduledAdapter.submitList(ops)
-                    binding.tvNoScheduledOps.isVisible = ops.isEmpty()
                 }
             }
         }

@@ -325,6 +325,8 @@
     <string name="setup_content_first_toast">Сначала настройте контент..</string>
     <string name="prevent_sleep">Запретить сон устройства</string>
     <string name="small_controls">Компактные элементы</string>
+    <string name="compact_elements">Компактные элементы (глобально)</string>
+    <string name="setting_compact_elements_desc">Уменьшить размеры элементов и отступы по всему приложению на 50%</string>
     <string name="enable_favorites">Включить избранное</string>
     <string name="favorite">Избранное</string>
     <string name="favorites_title">Избранное</string>
@@ -745,6 +747,8 @@
     <string name="tooltip_prevent_sleep_message">Держит экран включенным во время просмотра файлов. Предотвращает засыпание или затемнение устройства во время воспроизведения или просмотра.</string>
     <string name="tooltip_compact_controls_title">Компактные элементы управления</string>
     <string name="tooltip_compact_controls_message">Уменьшает размер кнопок управления плеера для более минималистичного интерфейса. Полезно на меньших экранах или когда вы предпочитаете менее навязчивые элементы управления.</string>
+    <string name="tooltip_compact_elements_title">Режим компактных элементов</string>
+    <string name="tooltip_compact_elements_message">Этот режим масштабирует элементы интерфейса (списки, кнопки, текст) в 0.5 раза для увеличения объема видимой информации. Примечание: зоны нажатия также станут меньше.</string>
     <string name="tooltip_default_credentials_title">Сетевые учетные данные по умолчанию</string>
     <string name="tooltip_default_credentials_message">Имя пользователя и пароль по умолчанию при подключении к сетевым ресурсам (SMB/SFTP/FTP). Могут быть переопределены для каждого ресурса при настройке.</string>
     <string name="all_files">Все файлы</string>

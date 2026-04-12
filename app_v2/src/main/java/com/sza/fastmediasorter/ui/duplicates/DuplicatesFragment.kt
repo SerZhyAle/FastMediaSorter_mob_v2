@@ -5,6 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -42,6 +46,7 @@ class DuplicatesFragment : Fragment() {
 
         setupRecyclerView()
         setupListeners()
+        applyEdgeToEdgeInsets()
         observeViewModel()
 
         // Применяем параметры запуска (только при первом создании)
@@ -52,6 +57,21 @@ class DuplicatesFragment : Fragment() {
                 viewModel.initWithResource(resourceId, autoDelete)
             }
         }
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        val rvBaseBottomPadding = binding.rvDuplicates.paddingBottom
+        val fabBaseBottomMargin = (binding.fabDeleteSelected.layoutParams as? ViewGroup.MarginLayoutParams)
+            ?.bottomMargin ?: 0
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            binding.rvDuplicates.updatePadding(bottom = rvBaseBottomPadding + navBar.bottom)
+            binding.fabDeleteSelected.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = fabBaseBottomMargin + navBar.bottom
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.root)
     }
 
     private fun setupRecyclerView() {

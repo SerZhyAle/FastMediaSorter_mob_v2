@@ -589,6 +589,13 @@ class BrowseViewModel @Inject constructor(
     fun selectFile(filePath: String) {
         selectionManager.toggleSelection(filePath)
     }
+
+    /**
+     * Returns the current selection set directly from [selectionManager] (synchronous read).
+     * Use this immediately after [selectFile] in inline-item button callbacks to avoid the
+     * async propagation lag of [state].selectedFiles (which is updated via a collect coroutine).
+     */
+    fun currentSelectedPaths(): Set<String> = selectionManager.selectionState.value.selectedFiles
     
     fun selectFileRange(filePath: String) {
         val mediaFiles = state.value.mediaFiles

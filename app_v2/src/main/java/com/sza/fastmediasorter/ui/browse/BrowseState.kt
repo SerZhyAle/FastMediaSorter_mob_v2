@@ -23,6 +23,7 @@ data class BrowseState(
     val isCloudResource: Boolean = false, // True for cloud resources (to show animated dots)
     val isScanCancellable: Boolean = false, // True when scan runs >5 seconds, shows STOP button
     val showSmallControls: Boolean = false, // True if "Small controls" setting is enabled
+    val useCompactElements: Boolean = false, // True if global compact mode is enabled
     val extractionState: ExtractionState = ExtractionState(),
     // Subfolder navigation state
     val currentPath: String? = null, // Current browsed path (null = root of resource)
