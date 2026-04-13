@@ -10,22 +10,22 @@
     <LinearLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:fitsSystemWindows="true" app:layout_constraintTop_toTopOf="parent">
 
         <!-- Title row with back button and settings text -->
-        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:orientation="horizontal" android:gravity="center_vertical">
+        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="48dp" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:orientation="horizontal" android:gravity="center_vertical">
 
             <!-- Back button -->
-            <ImageButton android:id="@+id/backButton" android:layout_width="?attr/actionBarSize" android:layout_height="match_parent" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
+            <ImageButton android:id="@+id/backButton" android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
 
             <!-- Settings title -->
             <TextView android:id="@+id/titleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings" android:textColor="?attr/colorOnPrimary" android:textSize="@dimen/activity_player_btnInfo_textSize" android:textStyle="bold" tools:ignore="SpUsage" />
 
             <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-            <ImageButton android:id="@+id/searchButton" android:layout_width="?attr/actionBarSize" android:layout_height="match_parent" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_search_open" android:src="@android:drawable/ic_menu_search" app:tint="?attr/colorOnPrimary" />
+            <ImageButton android:id="@+id/searchButton" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_search_open" android:src="@android:drawable/ic_menu_search" app:tint="?attr/colorOnPrimary" />
 
         </LinearLayout>
 
         <!-- Tabs row -->
-        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:tabTextColor="?attr/colorOnPrimary" app:tabSelectedTextColor="?attr/colorOnPrimary" app:tabIndicatorColor="@color/white" app:tabIndicatorHeight="@dimen/tab_indicator_height" app:tabIndicatorFullWidth="false" app:tabMode="scrollable" app:tabGravity="start">
+        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="40dp" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:tabTextColor="?attr/colorOnPrimary" app:tabSelectedTextColor="?attr/colorOnPrimary" app:tabIndicatorColor="@color/white" app:tabIndicatorHeight="@dimen/tab_indicator_height" app:tabIndicatorFullWidth="false" app:tabMode="scrollable" app:tabGravity="start">
 
             <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_general" />
 

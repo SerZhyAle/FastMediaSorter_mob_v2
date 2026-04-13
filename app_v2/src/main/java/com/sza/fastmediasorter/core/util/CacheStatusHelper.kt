@@ -21,21 +21,21 @@ object CacheStatusHelper {
         try {
             // Glide stores disk cache in internal cache dir under "image_cache"
             val glideCacheDir = File(context.cacheDir, "image_cache")
-            
+
             if (glideCacheDir.exists() && glideCacheDir.isDirectory) {
                 val files = glideCacheDir.walkTopDown().filter { it.isFile }.toList()
                 val totalSize = files.sumOf { it.length() }
                 val totalSizeMb = totalSize / 1024.0 / 1024.0
-                
+
                 // Get oldest and newest file timestamps
                 val timestamps = files.mapNotNull { it.lastModified().takeIf { t -> t > 0 } }
-                val oldestFile = timestamps.minOrNull()?.let { 
+                val oldestFile = timestamps.minOrNull()?.let {
                     SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(it))
                 } ?: "N/A"
                 val newestFile = timestamps.maxOrNull()?.let {
                     SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(it))
                 } ?: "N/A"
-                
+
                 Timber.i("=== GLIDE DISK CACHE STATUS AT STARTUP ===")
                 Timber.i("Cache directory: ${glideCacheDir.absolutePath}")
                 Timber.i("File count: ${files.size}")

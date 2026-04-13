@@ -41,7 +41,7 @@ class GlideAppModule : AppGlideModule() {
     override fun applyOptions(context: Context, builder: GlideBuilder) {
         // Set log level to ERROR to suppress verbose "Load failed for" messages
         builder.setLogLevel(android.util.Log.ERROR)
-        
+
         // Memory cache: 10% of Java heap limit, capped at 64MB.
         // IMPORTANT: Use maxMemory() (heap limit per process), NOT availMem (system free RAM).
         // availMem * 40% was a critical bug — it reserved 160MB from a 512MB heap → 32%.
@@ -49,7 +49,7 @@ class GlideAppModule : AppGlideModule() {
         val memoryCacheSize = minOf((maxHeapBytes * 0.10).toLong(), 64L * 1024 * 1024)
 
         builder.setMemoryCache(LruResourceCache(memoryCacheSize))
-        
+
         // Disk cache: Read from SharedPreferences (synchronous and reliable)
         val diskCacheSizeMb = try {
             val prefs = context.getSharedPreferences("glide_config", Context.MODE_PRIVATE)
@@ -61,6 +61,19 @@ class GlideAppModule : AppGlideModule() {
             2048
         }.coerceIn(512, 16384)
         val diskCacheSize = diskCacheSizeMb.toLong() * 1024L * 1024L // Convert MB to bytes
+
+        // Ensure cache directory is created early (before Glide uses it).
+        // InternalCacheDiskCacheFactory creates it lazily, but CacheStatusHelper checks at startup.
+        // Creating it explicitly here avoids "cache directory not found" warnings on first run.
+        try {
+            val cacheDir = File(context.cacheDir, "image_cache")
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs()
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "GlideAppModule: Failed to create cache directory")
+        }
+
         builder.setDiskCache(InternalCacheDiskCacheFactory(context, "image_cache", diskCacheSize))
         
         // Detect device tier using heap size (after GlideModule is initialized, Context is available)

@@ -309,7 +309,7 @@ class PlayerViewModel @Inject constructor(
             }
             val cacheMatchesInitialFile = initialFilePath == null ||
                 (cachedFiles != null && cachedFiles.any { it.path == initialFilePath })
-            
+
             val allFiles = if (cachedFiles != null && cachedFiles.isNotEmpty() && !cacheHasOnlyDirectories && cacheMatchesInitialFile) {
                 // Using cached list (valid file data matching requested file)
                 cachedFiles

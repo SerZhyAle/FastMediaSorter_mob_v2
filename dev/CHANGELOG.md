@@ -2055,3 +2055,4 @@ Format: | datetime | file | target | description |
 | 2026-04-13 17:16:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/NetworkCredentialsRepositoryImpl.kt` | `NetworkCredentialsRepositoryImpl` | Fixed missing @param:ApplicationScope annotation on applicationScope parameter (Hilt build fix) |
 | 2026-04-13 17:20:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/ConnectionThrottleManager.kt` | `ConnectionThrottleManager` | Replaced bare Job() with SupervisorJob() in managerScope to prevent scope cancellation cascade on exceptions (ML-011) |
 | 2026-04-13 18:04:03 | `PLAN/tasks/README.md` | `memory-leak-all-complete` | ALL 11 TASKS COMPLETE (2026-04-13): 2 CRITICAL + 5 HIGH + 4 MEDIUM fixes implemented. Next: validation testing (LeakCanary, device stress tests) |
+| 2026-04-13 21:20:06 | `app_v2/src/main/res/layout/activity_settings.xml` | `SettingsActivity` | Reduce header vertical size: title row 56dp→48dp, tabs 56dp→40dp |
