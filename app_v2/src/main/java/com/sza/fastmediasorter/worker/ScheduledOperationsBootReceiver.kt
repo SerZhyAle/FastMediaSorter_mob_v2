@@ -19,12 +19,17 @@ class ScheduledOperationsBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
         Timber.i("ScheduledOperationsBootReceiver: BOOT_COMPLETED — rescheduling all operations")
-        // goAsync not needed here since WorkManager enqueue is fast
-        CoroutineScope(Dispatchers.IO).launch {
+        
+        // Use goAsync() to keep broadcast alive until rescheduleAll completes (ML-009)
+        val pendingResult = goAsync()
+        CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO).launch {
             try {
                 workManagerScheduler.rescheduleAll()
+                Timber.i("ScheduledOperationsBootReceiver: rescheduleAll completed")
             } catch (e: Exception) {
                 Timber.e(e, "ScheduledOperationsBootReceiver: rescheduleAll failed")
+            } finally {
+                pendingResult.finish()  // Release broadcast lifecycle (ML-009)
             }
         }
     }

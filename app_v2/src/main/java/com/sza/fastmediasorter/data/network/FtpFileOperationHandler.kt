@@ -599,8 +599,8 @@ class FtpFileOperationHandler @Inject constructor(
         
         Timber.d("copyFtpToFtp: Source parsed - host=${sourceConnectionInfo.host}:${sourceConnectionInfo.port}")
         
-        // Create temp file
-        val tempFile = File.createTempFile("ftp_copy_", ".tmp")
+        // Create temp file in app cache (consistent with copyFtpToSftp and copyFtpToSmb)
+        val tempFile = File.createTempFile("ftp_copy_", ".tmp", context.cacheDir)
         
         try {
             // Download from source using new connection

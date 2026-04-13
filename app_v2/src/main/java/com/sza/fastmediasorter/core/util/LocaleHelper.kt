@@ -25,6 +25,9 @@ object LocaleHelper {
     private const val PREF_SELECTED_LANGUAGE = "selected_language"
     private const val DEFAULT_LANGUAGE = "en"
 
+    private const val RESTART_STATE_PREFS = "app_restart_state"
+    private const val PREF_RETURN_TO_SETTINGS = "return_to_settings"
+
     /** Languages the app fully supports beyond English. */
     private val SUPPORTED_NON_DEFAULT_LANGUAGES = setOf("ru", "uk")
 
@@ -165,6 +168,26 @@ object LocaleHelper {
             Timber.d("LocaleHelper: Android < 13, manually restarting app")
             restartApp(activity)
         }
+    }
+
+    /**
+     * Mark that the app should return to SettingsActivity after the next restart.
+     * Call this immediately before any restart triggered from within SettingsActivity.
+     */
+    fun markReturnToSettings(context: Context) = StrictModeHelper.allowDiskWrites {
+        context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(PREF_RETURN_TO_SETTINGS, true).apply()
+    }
+
+    /**
+     * Returns true (and clears the flag) if a restart was triggered from SettingsActivity,
+     * meaning MainActivity should immediately forward the user to SettingsActivity.
+     */
+    fun consumeReturnToSettings(context: Context): Boolean = StrictModeHelper.allowDiskWrites {
+        val prefs = context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
+        val value = prefs.getBoolean(PREF_RETURN_TO_SETTINGS, false)
+        if (value) prefs.edit().remove(PREF_RETURN_TO_SETTINGS).apply()
+        value
     }
 
     /**

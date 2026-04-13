@@ -123,7 +123,7 @@
 
                         </LinearLayout>
 
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:baselineAligned="false" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:orientation="horizontal">
 
                             <com.google.android.material.button.MaterialButton android:id="@+id/btnManageMediaPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginEnd="@dimen/resource_field_margin_end" android:layout_weight="1" android:text="@string/grant_manage_media_permission" android:textSize="10sp" android:visibility="gone" />
 
@@ -131,7 +131,7 @@
 
                         </LinearLayout>
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBatteryOptimizationPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/grant_battery_optimization_permission" android:textSize="10sp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBatteryOptimizationPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/grant_battery_optimization_permission" android:textSize="10sp" />
 
                     </LinearLayout>
 
@@ -221,7 +221,7 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <!-- Debug Logs Export -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:text="@string/share_debug_logs" android:textSize="11sp" app:icon="@android:drawable/ic_menu_share" />
 

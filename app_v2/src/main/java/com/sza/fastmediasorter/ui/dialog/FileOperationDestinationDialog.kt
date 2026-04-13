@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -55,7 +56,8 @@ class FileOperationDestinationDialog(
     private val onDestinationSelected: ((com.sza.fastmediasorter.domain.model.MediaResource) -> Unit)? = null
 ) : Dialog(context) {
     
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scopeJob = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.Main + scopeJob)
     private val mainHandler = Handler(Looper.getMainLooper())
     
     companion object {
@@ -63,6 +65,11 @@ class FileOperationDestinationDialog(
     }
 
     private lateinit var binding: DialogCopyToBinding
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        scopeJob.cancel()  // Cancel all pending coroutines when dialog is dismissed (ML-005)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

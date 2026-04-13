@@ -158,7 +158,13 @@ object LoggingHelper {
         private val minPriority: Int = android.util.Log.VERBOSE
     ) : Timber.Tree() {
         
-        private val logDir: File = File(context.getExternalFilesDir(null), "logs")
+        private val logDir: File = File(
+            // getExternalFilesDir() can return null if external storage is unmounted
+            // (e.g. on first boot, encrypted storage not yet ready, or no SD card).
+            // Fall back to internal storage so log files are always created.
+            context.getExternalFilesDir(null) ?: context.filesDir,
+            "logs"
+        )
         private val maxFileSize = 5 * 1024 * 1024L // 5 MB
         private val maxLogFiles = 5
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)

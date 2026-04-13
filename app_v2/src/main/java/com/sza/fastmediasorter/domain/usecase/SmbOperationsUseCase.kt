@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -332,6 +333,8 @@ class SmbOperationsUseCase @Inject constructor(
             } else {
                 Result.failure(result.exceptionOrNull() ?: Exception("SFTP connection failed"))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "SFTP test connection failed")
             Result.failure(e)

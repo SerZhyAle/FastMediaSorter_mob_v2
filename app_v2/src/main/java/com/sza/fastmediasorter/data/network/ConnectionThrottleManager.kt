@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.network
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -67,7 +68,7 @@ object ConnectionThrottleManager {
     private var videoPlayerActive = false
     private val videoPlayerResources = mutableSetOf<String>()
     private var videoPlayerResumeJob: Job? = null
-    private val managerScope = CoroutineScope(Dispatchers.Default + Job())
+    private val managerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())  // ML-011: Use SupervisorJob to isolate exceptions
 
     /**
      * Update the user-defined network parallelism limit.

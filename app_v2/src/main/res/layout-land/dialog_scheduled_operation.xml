@@ -3,13 +3,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="@dimen/dialog_landscape_max_height">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -104,68 +104,131 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- File type filter: multi-select checkboxes -->
-            <TextView
+            <!-- CONDITIONS GROUP (file type filters + time filter + overwrite) -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_small"
-                android:text="@string/scheduled_ops_col_condition"
-                android:textAppearance="?attr/textAppearanceCaption"
-                android:alpha="0.7" />
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutline">
 
-            <LinearLayout
-                android:id="@+id/containerFileTypeMask"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="4dp">
-
-                <CheckBox
-                    android:id="@+id/cbFileTypeAllFiles"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/scheduled_ops_filter_all_files" />
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
-                <CheckBox
-                    android:id="@+id/cbFileTypeImages"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/scheduled_ops_filter_images" />
+                    <!-- Conditions label -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:text="@string/scheduled_ops_col_condition"
+                        android:textAppearance="?attr/textAppearanceCaption"
+                        android:alpha="0.7" />
 
-                <CheckBox
-                    android:id="@+id/cbFileTypeAudio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/scheduled_ops_filter_audio" />
+                    <!-- File type checkboxes — compact, 2-column grid -->
+                    <GridLayout
+                        android:id="@+id/containerFileTypeMask"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="2">
 
-                <CheckBox
-                    android:id="@+id/cbFileTypeVideo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/scheduled_ops_filter_video" />
+                        <CheckBox
+                            android:id="@+id/cbFileTypeAllFiles"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:minHeight="0dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:text="@string/scheduled_ops_filter_all_files" />
 
-                <CheckBox
-                    android:id="@+id/cbFileTypeDocs"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/scheduled_ops_filter_documents" />
+                        <CheckBox
+                            android:id="@+id/cbFileTypeImages"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:minHeight="0dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:text="@string/scheduled_ops_filter_images" />
 
-            </LinearLayout>
+                        <CheckBox
+                            android:id="@+id/cbFileTypeAudio"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:minHeight="0dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:text="@string/scheduled_ops_filter_audio" />
 
-            <!-- Time filter -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                        <CheckBox
+                            android:id="@+id/cbFileTypeVideo"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:minHeight="0dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:text="@string/scheduled_ops_filter_video" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/actvTimeFilter"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none" />
+                        <CheckBox
+                            android:id="@+id/cbFileTypeDocs"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:minHeight="0dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:text="@string/scheduled_ops_filter_documents" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    </GridLayout>
+
+                    <!-- Time filter -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/actvTimeFilter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Overwrite existing files (hidden for DELETE) — grouped with conditions -->
+                    <LinearLayout
+                        android:id="@+id/containerOverwrite"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchOverwrite"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_small"
+                            android:contentDescription="@string/scheduled_ops_overwrite" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/scheduled_ops_overwrite"
+                            android:textAppearance="?attr/textAppearanceBody2" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Start time -->
             <TextView
@@ -312,30 +375,6 @@
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceCaption"
                 android:visibility="gone" />
-
-            <!-- Overwrite existing files (hidden for DELETE) -->
-            <LinearLayout
-                android:id="@+id/containerOverwrite"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchOverwrite"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_small"
-                    android:contentDescription="@string/scheduled_ops_overwrite" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/scheduled_ops_overwrite"
-                    android:textAppearance="?attr/textAppearanceBody2" />
-
-            </LinearLayout>
 
             <!-- Silent mode -->
             <LinearLayout

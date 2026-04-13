@@ -49,6 +49,7 @@ import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import dagger.hilt.android.AndroidEntryPoint
@@ -113,6 +114,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Check if this is first launch (fast check)
         if (!welcomeViewModel.isWelcomeCompleted()) {
             startActivity(Intent(this, WelcomeActivity::class.java))
+            finish()
+            return
+        }
+
+        // If restart was triggered from SettingsActivity, return user there
+        if (LocaleHelper.consumeReturnToSettings(this)) {
+            startActivity(Intent(this, SettingsActivity::class.java))
             finish()
             return
         }
@@ -631,6 +639,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                     resourceAdapter.setUseCompactElements(settings.useCompactElements)
                     compactElementsEnabled = settings.useCompactElements
+                    applyCompactToolbar(settings.useCompactElements)
                     refreshGridSpacing()
                 }
             }
@@ -746,6 +755,28 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
         refreshGridSpacing()
+    }
+
+    /**
+     * Resize the control buttons bar to match compact mode.
+     * In compact mode: zero vertical padding + reduced button height.
+     * In normal mode: restore dimen-based values.
+     */
+    private fun applyCompactToolbar(compact: Boolean) {
+        val barPad = if (compact) 0 else resources.getDimensionPixelSize(R.dimen.control_bar_padding)
+        val btnH = resources.getDimensionPixelSize(
+            if (compact) R.dimen.control_button_size_compact else R.dimen.control_button_size
+        )
+        binding.layoutControlButtons.setPadding(0, barPad, 0, barPad)
+        for (i in 0 until binding.layoutControlButtons.childCount) {
+            val child = binding.layoutControlButtons.getChildAt(i)
+            val lp = child.layoutParams
+            if (lp.height > 0) {
+                lp.height = btnH
+                child.layoutParams = lp
+            }
+        }
+        binding.layoutControlButtons.requestLayout()
     }
 
     /**

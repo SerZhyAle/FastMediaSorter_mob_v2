@@ -78,13 +78,21 @@ class SftpDataSource(
 
             // Handle range request (for seeking)
             val position = dataSpec.position
-            val rawStream = channel?.get(remotePath, null, position)
-            
-            // Apply adaptive buffering
-            val resourceKey = "sftp://$host:$port"
-            val bufferSize = com.sza.fastmediasorter.data.network.ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
-            inputStream = java.io.BufferedInputStream(rawStream, bufferSize)
-            Timber.d("SftpDataSource: Using BufferedInputStream with size ${bufferSize / 1024} KB")
+            var rawStream: java.io.InputStream? = null
+            try {
+                rawStream = channel?.get(remotePath, null, position)
+                
+                // Apply adaptive buffering
+                val resourceKey = "sftp://$host:$port"
+                val bufferSize = com.sza.fastmediasorter.data.network.ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
+                inputStream = java.io.BufferedInputStream(rawStream, bufferSize)
+                rawStream = null  // ← Transfer ownership to inputStream (BufferedInputStream wraps it)
+                Timber.d("SftpDataSource: Using BufferedInputStream with size ${bufferSize / 1024} KB")
+            } catch (e: Exception) {
+                // Close rawStream if inputStream was never constructed (ML-004 fix)
+                rawStream?.close()
+                throw e
+            }
 
             bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
                 dataSpec.length

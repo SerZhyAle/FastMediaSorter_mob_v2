@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.ui.settings
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.SystemClock
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
 import com.sza.fastmediasorter.BuildConfig
@@ -11,7 +13,9 @@ import androidx.activity.viewModels
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -33,6 +37,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
     private var searchDebounceJob: Job? = null
     private var setupStartUptimeMs: Long = 0L
+    private var actionBarSizePx = 0
+    private var statusBarInsetPx = 0
     
     companion object {
         /** Intent extra: Long — pre-select this resource as source in the new scheduled operation dialog. */
@@ -48,6 +54,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     override fun setupViews() {
+        val tv = TypedValue()
+        theme.resolveAttribute(android.R.attr.actionBarSize, tv, true)
+        actionBarSizePx = TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
+
         // Apply edge-to-edge insets: toolbar below status bar, ViewPager above nav bar
         applyEdgeToEdgeInsets()
 
@@ -128,7 +138,13 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     override fun observeData() {
-        // Settings are observed in individual fragments
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.settings.collect { settings ->
+                    applyCompactToolbar(settings.useCompactElements)
+                }
+            }
+        }
     }
 
     private fun applyEdgeToEdgeInsets() {
@@ -150,6 +166,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
         val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+        statusBarInsetPx = statusBar.top
 
         // Toolbar container below status bar
         binding.toolbarContainer.setPadding(
@@ -162,6 +179,48 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             binding.viewPager.paddingLeft, binding.viewPager.paddingTop,
             binding.viewPager.paddingRight, navBar.bottom
         )
+
+        // Re-apply compact toolbar height now that the inset is known
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            updateLandscapeToolbarHeight()
+        }
+    }
+
+    /** Last requested compact state, so inset updates can re-apply correctly. */
+    private var toolbarCompact = false
+
+    private fun applyCompactToolbar(compact: Boolean) {
+        toolbarCompact = compact
+        val compactH = resources.getDimensionPixelSize(R.dimen.toolbar_row_height_compact)
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+        if (isLandscape) {
+            updateLandscapeToolbarHeight()
+        } else {
+            val h = if (compact) compactH else actionBarSizePx
+            binding.root.findViewById<View>(R.id.titleRow)?.let { titleRow ->
+                titleRow.layoutParams.height = h
+                titleRow.requestLayout()
+            }
+            binding.tabLayout.layoutParams.height = h
+            binding.tabLayout.requestLayout()
+        }
+    }
+
+    /**
+     * In landscape the single toolbarContainer covers both the status-bar inset area and
+     * the visible toolbar content. Compact mode reduces the CONTENT portion by 35%.
+     * Called from both applyCompactToolbar and applyWindowInsets to keep heights in sync.
+     */
+    private fun updateLandscapeToolbarHeight() {
+        val originalContentH = (actionBarSizePx - statusBarInsetPx).coerceAtLeast(0)
+        val contentH = if (toolbarCompact) (originalContentH * 0.65f).toInt() else originalContentH
+        val totalH = contentH + statusBarInsetPx
+        val lp = binding.toolbarContainer.layoutParams ?: return
+        if (lp.height != totalH) {
+            lp.height = totalH
+            binding.toolbarContainer.layoutParams = lp
+        }
     }
 
     override fun onLayoutConfigurationChanged(newConfig: android.content.res.Configuration) {

@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.NowPlayingBottomSheetFragment
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
 import timber.log.Timber
+import java.io.File
 
 /**
  * Manages the mini Now Playing bar inside PlayerActivity and launches
@@ -92,13 +93,22 @@ class NowPlayingManager(
         Timber.d("NowPlayingManager: startPlayback files=${files.size} startIndex=$startIndex")
         val items = files.map { file ->
             MediaItemWithMeta(
-                uri = Uri.parse(file.path),
+                uri = buildPlaybackUri(file),
                 title = file.name.substringBeforeLast('.'),
                 artist = null,       // ID3 artist extracted natively by ExoPlayer after load
                 albumArtUri = null   // cover art resolved lazily in ImageLoadingManager
             )
         }
         audioServiceController.playAudioPlaylistWithMetadata(items, startIndex, onPlayerReady)
+    }
+
+    private fun buildPlaybackUri(file: MediaFile): Uri {
+        file.contentUri
+            ?.takeIf { it.isNotBlank() }
+            ?.let { return Uri.parse(it) }
+
+        val parsed = Uri.parse(file.path)
+        return if (parsed.scheme.isNullOrBlank()) Uri.fromFile(File(file.path)) else parsed
     }
 
     /**

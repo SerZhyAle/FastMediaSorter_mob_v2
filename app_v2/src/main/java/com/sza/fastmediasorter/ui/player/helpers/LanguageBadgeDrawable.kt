@@ -9,7 +9,6 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.util.TypedValue
-import com.google.android.material.R as MaterialR
 
 /**
  * Custom Drawable that displays source and target language codes in a 2x2 grid.
@@ -38,11 +37,11 @@ class LanguageBadgeDrawable(
     private fun resolveThemeColor(context: Context): Int {
         val typedValue = TypedValue()
         // Try colorControlNormal first (works for both light/dark themes)
-        if (context.theme.resolveAttribute(MaterialR.attr.colorControlNormal, typedValue, true)) {
+        if (context.theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)) {
             return typedValue.data
         }
-        // Fallback to textColorPrimary
-        if (context.theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)) {
+        // Fallback to textColorSecondary
+        if (context.theme.resolveAttribute(android.R.attr.textColorSecondary, typedValue, true)) {
             return typedValue.data
         }
         // Ultimate fallback - gray that works on both themes

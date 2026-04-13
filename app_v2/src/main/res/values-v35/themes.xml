@@ -2,19 +2,22 @@
 <resources>
     <!--
         Android 15 (API 35) enforces edge-to-edge at system level.
-        Window.setStatusBarColor() / setNavigationBarColor() are deprecated and ignored.
-        Override BottomSheetDialog theme to disable its own edge-to-edge setup so it no
-        longer calls the deprecated APIs — the OS handles it instead.
+        Window.setStatusBarColor() / setNavigationBarColor() are deprecated on API 35+ and
+        no longer need to be called — the OS manages system bar transparency automatically.
+
+        Material 1.13.0+ rewrote BottomSheetDialog edge-to-edge handling to use
+        WindowInsetsControllerCompat instead of the deprecated setStatusBarColor /
+        setNavigationBarColor APIs. Setting enableEdgeToEdge=true here instructs the
+        Material library to use the correct non-deprecated path.
+
+        AppCompat 1.7.0+ fixed onStart() applying night-mode colours via deprecated APIs.
     -->
     <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
-        <!-- 
-             Android 15 (API 35) enforces edge-to-edge. 
-             Status bar/Navigation bar colors are ignored. 
-        -->
         <item name="bottomSheetDialogTheme">@style/Theme.App.BottomSheetDialog.EdgeToEdgeCompat</item>
     </style>
 
     <style name="Theme.App.BottomSheetDialog.EdgeToEdgeCompat" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <!-- Material 1.13.0+: triggers WindowInsetsControllerCompat path, not deprecated APIs -->
         <item name="enableEdgeToEdge">true</item>
     </style>
 

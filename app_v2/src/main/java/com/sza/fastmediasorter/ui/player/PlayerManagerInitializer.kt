@@ -611,7 +611,17 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             },
             onAudioServicePlaybackError = { _ ->
                 activity.handleMediaLoadErrorAndSkip()
-            }
+            },
+            smbClient = activity.smbClient,
+            sftpClient = activity.sftpClient,
+            ftpClient = activity.ftpClient,
+            credentialsRepository = activity.credentialsRepository,
+            unifiedCache = activity.unifiedCache,
+            cloudClients = mapOf(
+                "googledrive" to activity.googleDriveClient,
+                "onedrive" to activity.oneDriveClient,
+                "dropbox" to activity.dropboxClient
+            )
         )
     }
 

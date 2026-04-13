@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -31,7 +32,8 @@ class PlayerSettingsManager(
     private val callback: Callback
 ) {
     
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scopeJob = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.Main + scopeJob)
     
     /**
      * Player settings (persist for session).
@@ -110,6 +112,14 @@ class PlayerSettingsManager(
             .show()
     }
     
+    /**
+     * Release coroutine scope and cancel pending operations.
+     * Call from PlayerLifecycleManager.onDestroy() to prevent coroutines touching stale Activity references (ML-005)
+     */
+    fun release() {
+        scopeJob.cancel()
+    }
+
     /**
      * Callback interface for PlayerSettingsManager events.
      */

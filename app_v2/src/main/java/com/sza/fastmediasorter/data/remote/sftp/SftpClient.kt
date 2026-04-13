@@ -101,6 +101,12 @@ class SftpClient @Inject constructor() {
     private val connectionPool = java.util.concurrent.ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = java.util.concurrent.Semaphore(MAX_CONCURRENT_CONNECTIONS)
     private val poolMutex = Mutex()
+    
+    // Dedicated lock for ExoPlayer (blocking) path to avoid race with concurrent invalidateConnection() (ML-008)
+    private val exoPlayerPoolLock = Any()
+    
+    // Cleanup scope for idle connection maintenance (ML-009)
+    private val cleanupScope = CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO)
 
     /**
      * Execute block with an SFTP channel from the pool.
@@ -337,8 +343,8 @@ class SftpClient @Inject constructor() {
         }.keys
 
         if (keysToRemove.isNotEmpty()) {
-            // Launch cleanup in background to avoid blocking
-            CoroutineScope(Dispatchers.IO).launch {
+            // Launch cleanup in background to avoid blocking (use managed scope for proper lifecycle) (ML-009)
+            cleanupScope.launch {
                 poolMutex.withLock {
                     keysToRemove.forEach { key ->
                         connectionPool.remove(key)?.let { pooled ->
@@ -392,104 +398,106 @@ class SftpClient @Inject constructor() {
         try {
             connectionSemaphore.acquire()
             
-            // Try to get existing connection from pool
-            val existing = connectionPool[key]
-            if (existing != null && existing.session.isConnected) {
-                existing.lastUsed = System.currentTimeMillis()
+            // Use dedicated lock to eliminate TOCTOU race with invalidateConnection() (ML-008)
+            synchronized(exoPlayerPoolLock) {
+                // Try to get existing connection from pool — read INSIDE lock
+                val existing = connectionPool[key]
+                if (existing != null && existing.session.isConnected) {
+                    existing.lastUsed = System.currentTimeMillis()
+                    
+                    // Try to find or create an available channel
+                    synchronized(existing) {
+                        // Find connected channel
+                        existing.channels.firstOrNull { it.isConnected }?.let { channel ->
+                            Timber.d("SFTP ExoPlayer: Reusing pooled connection to ${connectionInfo.host}")
+                            return ExoPlayerConnection(existing.session, channel)
+                        }
+                        
+                        // No connected channel - create new one if under limit
+                        if (existing.channels.size < MAX_CHANNELS_PER_SESSION) {
+                            val newChannel = existing.session.openChannel("sftp") as ChannelSftp
+                            newChannel.connect(CONNECTION_TIMEOUT)
+                            existing.channels.add(newChannel)
+                            existing.channelMutexes.add(Mutex())
+                            Timber.d("SFTP ExoPlayer: Created new channel (${existing.channels.size}/$MAX_CHANNELS_PER_SESSION)")
+                            return ExoPlayerConnection(existing.session, newChannel)
+                        }
+                        
+                        // All channels busy - return first one (caller will wait on I/O)
+                        Timber.d("SFTP ExoPlayer: All channels busy, reusing first channel")
+                        return ExoPlayerConnection(existing.session, existing.channels[0])
+                    }
+                }
                 
-                // Try to find or create an available channel
-                synchronized(existing) {
-                    // Find connected channel
-                    existing.channels.firstOrNull { it.isConnected }?.let { channel ->
-                        Timber.d("SFTP ExoPlayer: Reusing pooled connection to ${connectionInfo.host}")
-                        return ExoPlayerConnection(existing.session, channel)
+                // Need to create new connection
+                Timber.d("SFTP ExoPlayer: Creating new pooled connection to ${connectionInfo.host}")
+                
+                val jsch = JSch()
+                
+                // Add private key if provided
+                if (connectionInfo.privateKey != null) {
+                    val name = "exoplayer_key_${System.currentTimeMillis()}"
+                    if (connectionInfo.passphrase != null) {
+                        jsch.addIdentity(name, connectionInfo.privateKey.toByteArray(), null, connectionInfo.passphrase.toByteArray())
+                    } else {
+                        jsch.addIdentity(name, connectionInfo.privateKey.toByteArray(), null, null)
                     }
-                    
-                    // No connected channel - create new one if under limit
-                    if (existing.channels.size < MAX_CHANNELS_PER_SESSION) {
-                        val newChannel = existing.session.openChannel("sftp") as ChannelSftp
-                        newChannel.connect(CONNECTION_TIMEOUT)
-                        existing.channels.add(newChannel)
-                        existing.channelMutexes.add(Mutex())
-                        Timber.d("SFTP ExoPlayer: Created new channel (${existing.channels.size}/$MAX_CHANNELS_PER_SESSION)")
-                        return ExoPlayerConnection(existing.session, newChannel)
-                    }
-                    
-                    // All channels busy - return first one (caller will wait on I/O)
-                    Timber.d("SFTP ExoPlayer: All channels busy, reusing first channel")
-                    return ExoPlayerConnection(existing.session, existing.channels[0])
                 }
-            }
-            
-            // Need to create new connection
-            Timber.d("SFTP ExoPlayer: Creating new pooled connection to ${connectionInfo.host}")
-            
-            val jsch = JSch()
-            
-            // Add private key if provided
-            if (connectionInfo.privateKey != null) {
-                val name = "exoplayer_key_${System.currentTimeMillis()}"
-                if (connectionInfo.passphrase != null) {
-                    jsch.addIdentity(name, connectionInfo.privateKey.toByteArray(), null, connectionInfo.passphrase.toByteArray())
+                
+                val session = jsch.getSession(connectionInfo.username, connectionInfo.host, connectionInfo.port)
+                
+                if (connectionInfo.privateKey != null) {
+                    // Private key auth
+                    if (connectionInfo.passphrase != null) {
+                        session.userInfo = object : com.jcraft.jsch.UserInfo {
+                            override fun getPassphrase(): String = connectionInfo.passphrase
+                            override fun getPassword(): String? = null
+                            override fun promptPassword(message: String?): Boolean = false
+                            override fun promptPassphrase(message: String?): Boolean = true
+                            override fun promptYesNo(message: String?): Boolean = true
+                            override fun showMessage(message: String?) {}
+                        }
+                    }
+                    val config = java.util.Properties()
+                    config["StrictHostKeyChecking"] = "no"
+                    config["PreferredAuthentications"] = "publickey"
+                    session.setConfig(config)
                 } else {
-                    jsch.addIdentity(name, connectionInfo.privateKey.toByteArray(), null, null)
-                }
-            }
-            
-            val session = jsch.getSession(connectionInfo.username, connectionInfo.host, connectionInfo.port)
-            
-            if (connectionInfo.privateKey != null) {
-                // Private key auth
-                if (connectionInfo.passphrase != null) {
+                    // Password auth
+                    session.setPassword(connectionInfo.password)
                     session.userInfo = object : com.jcraft.jsch.UserInfo {
-                        override fun getPassphrase(): String = connectionInfo.passphrase
-                        override fun getPassword(): String? = null
-                        override fun promptPassword(message: String?): Boolean = false
-                        override fun promptPassphrase(message: String?): Boolean = true
+                        override fun getPassphrase(): String? = null
+                        override fun getPassword(): String = connectionInfo.password
+                        override fun promptPassword(message: String?): Boolean = true
+                        override fun promptPassphrase(message: String?): Boolean = false
                         override fun promptYesNo(message: String?): Boolean = true
                         override fun showMessage(message: String?) {}
                     }
+                    val config = java.util.Properties()
+                    config["StrictHostKeyChecking"] = "no"
+                    config["PreferredAuthentications"] = "keyboard-interactive,password"
+                    session.setConfig(config)
                 }
-                val config = java.util.Properties()
-                config["StrictHostKeyChecking"] = "no"
-                config["PreferredAuthentications"] = "publickey"
-                session.setConfig(config)
-            } else {
-                // Password auth
-                session.setPassword(connectionInfo.password)
-                session.userInfo = object : com.jcraft.jsch.UserInfo {
-                    override fun getPassphrase(): String? = null
-                    override fun getPassword(): String = connectionInfo.password
-                    override fun promptPassword(message: String?): Boolean = true
-                    override fun promptPassphrase(message: String?): Boolean = false
-                    override fun promptYesNo(message: String?): Boolean = true
-                    override fun showMessage(message: String?) {}
-                }
-                val config = java.util.Properties()
-                config["StrictHostKeyChecking"] = "no"
-                config["PreferredAuthentications"] = "keyboard-interactive,password"
-                session.setConfig(config)
+                
+                session.timeout = SOCKET_TIMEOUT
+                session.connect(CONNECTION_TIMEOUT)
+                
+                val channel = session.openChannel("sftp") as ChannelSftp
+                channel.connect(CONNECTION_TIMEOUT)
+                
+                // Add to pool
+                val pooled = PooledConnection(
+                    session = session,
+                    jsch = jsch,
+                    channels = mutableListOf(channel),
+                    channelMutexes = mutableListOf(Mutex()),
+                    sessionMutex = Mutex()
+                )
+                connectionPool[key] = pooled
+                
+                Timber.d("SFTP ExoPlayer: New connection added to pool for ${connectionInfo.host}")
+                return ExoPlayerConnection(session, channel)
             }
-            
-            session.timeout = SOCKET_TIMEOUT
-            session.connect(CONNECTION_TIMEOUT)
-            
-            val channel = session.openChannel("sftp") as ChannelSftp
-            channel.connect(CONNECTION_TIMEOUT)
-            
-            // Add to pool
-            val pooled = PooledConnection(
-                session = session,
-                jsch = jsch,
-                channels = mutableListOf(channel),
-                channelMutexes = mutableListOf(Mutex()),
-                sessionMutex = Mutex()
-            )
-            connectionPool[key] = pooled
-            
-            Timber.d("SFTP ExoPlayer: New connection added to pool for ${connectionInfo.host}")
-            return ExoPlayerConnection(session, channel)
-            
         } catch (e: Exception) {
             connectionSemaphore.release()
             Timber.e(e, "SFTP ExoPlayer: Failed to get connection for ${connectionInfo.host}")

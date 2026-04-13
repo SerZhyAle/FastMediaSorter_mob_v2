@@ -8,6 +8,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
@@ -192,6 +193,7 @@ class WorkManagerScheduler @Inject constructor(
                 .build()
             val request = OneTimeWorkRequestBuilder<ScheduledOperationsWorker>()
                 .setInputData(inputData)
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .addTag("sched_op_$operationId")
                 .build()

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import java.io.File
@@ -251,6 +252,8 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             logOp(ts, opName, srcLabel, dstLabel, statusStr)
             ScheduledExecutionResult(operationId, successCount, errors)
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ScheduledOp[$operationId] unexpected exception")
             val msg = e.message ?: "Unknown error"
@@ -266,11 +269,15 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
      */
     private suspend fun checkTargetReachability(target: MediaResource): String? {
         return if (target.type.isNetworkResource) {
-            val result = runCatching { resourceRepository.testConnection(target) }.getOrElse { e ->
-                Result.failure(e)
+            try {
+                val result = resourceRepository.testConnection(target)
+                if (result.isSuccess) null
+                else "Target '${target.name}' is unreachable: ${result.exceptionOrNull()?.message ?: "connection failed"}"
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                "Target '${target.name}' is unreachable: ${e.message ?: "connection failed"}"
             }
-            if (result.isSuccess) null
-            else "Target '${target.name}' is unreachable: ${result.exceptionOrNull()?.message ?: "connection failed"}"
         } else {
             val dir = File(target.path)
             if (dir.exists() && dir.isDirectory) null

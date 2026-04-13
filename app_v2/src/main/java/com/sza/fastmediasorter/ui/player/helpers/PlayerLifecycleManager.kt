@@ -211,6 +211,20 @@ class PlayerLifecycleManager(
             // Not initialized, skip
         }
         
+        // Release PdfViewerManager - closes PdfRenderer, cancels render jobs, clears caches (ML-001 fix)
+        try {
+            activity.pdfViewerManager.close()
+        } catch (e: UninitializedPropertyAccessException) {
+            // Not initialized, skip
+        }
+        
+        // Release PlayerSettingsManager - cancel pending coroutine operations (ML-005)
+        try {
+            activity.playerSettingsManager?.release()
+        } catch (e: UninitializedPropertyAccessException) {
+            // Not initialized, skip
+        }
+        
         // Release TranslationManager
         try {
             activity.translationManager.release()
@@ -218,7 +232,7 @@ class PlayerLifecycleManager(
             // Not initialized, skip
         }
         
-        // Note: PdfViewerManager and TextViewerManager don't require explicit cleanup
+        // Note: TextViewerManager IS released at line 166
         // Note: Translation cache is NOT cleared here - it's global and managed by TranslationCacheManager
         // Cache is cleared only on app startup and when user clicks "Clear cache" in settings
         // SlideshowController handles its own cleanup via LifecycleObserver.onDestroy()
@@ -332,6 +346,8 @@ class PlayerLifecycleManager(
 
     /**
      * Exit the player, respecting the saved background-audio exit behavior preference.
+     * If service audio is connected but already paused, treat exit as an implicit stop and finish
+     * silently regardless of the saved preference.
      * - ALWAYS_STOP: stops service and finishes without a dialog.
      * - ALWAYS_CONTINUE: finishes without stopping service and without a dialog.
      * - ASK (default): shows a 4-item dialog (Stop / Keep Playing / Always Stop / Always Continue).
@@ -342,9 +358,17 @@ class PlayerLifecycleManager(
             return
         }
 
+        val audioPlayer = activity.audioServiceController?.player
+        if (audioPlayer?.isPlaying != true) {
+            Timber.d("PlayerLifecycleManager: service audio is paused/inactive on exit - stopping silently")
+            audioPlayer?.stop()
+            doFinish(withTransition)
+            return
+        }
+
         when (viewModel.state.value.backgroundAudioExitBehavior) {
             BackgroundAudioExitBehavior.ALWAYS_STOP -> {
-                activity.audioServiceController?.player?.stop()
+                audioPlayer?.stop()
                 doFinish(withTransition)
             }
             BackgroundAudioExitBehavior.ALWAYS_CONTINUE -> {

@@ -46,7 +46,15 @@ object UriPathResolver {
         } ?: return null
 
         val colonIdx = docId.indexOf(':')
-        if (colonIdx < 0) return null
+        if (colonIdx < 0) {
+            // Downloads provider root: docId = "downloads" (no colon separator)
+            return if (docId.equals("downloads", ignoreCase = true)) {
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+            } else {
+                Timber.tag(TAG).w("Cannot resolve docId without volume separator: '$docId'")
+                null
+            }
+        }
 
         val volume  = docId.substring(0, colonIdx)
         val subPath = docId.substring(colonIdx + 1)

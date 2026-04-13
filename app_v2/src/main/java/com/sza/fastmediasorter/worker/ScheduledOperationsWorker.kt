@@ -34,6 +34,8 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         private const val NOTIFICATION_ID = 4200
     }
 
+    override suspend fun getForegroundInfo(): ForegroundInfo = createForegroundInfo()
+
     override suspend fun doWork(): Result {
         val operationId = inputData.getLong(KEY_OPERATION_ID, -1L)
         if (operationId == -1L) {

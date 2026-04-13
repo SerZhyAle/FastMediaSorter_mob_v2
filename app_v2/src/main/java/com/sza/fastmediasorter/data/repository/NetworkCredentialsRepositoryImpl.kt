@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 
@@ -28,7 +29,8 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val dao: NetworkCredentialsDao,
     private val resourceDao: ResourceDao,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    @param:ApplicationScope private val applicationScope: CoroutineScope  // ML-009: Application-scoped coroutine for background tasks
 ) : NetworkCredentialsRepository {
 
     // P0-4: Session-level cache for share-specific SMB credential lookups.
@@ -40,7 +42,7 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     init {
         if (BuildConfig.DEBUG) {
             Timber.i("TEST_CREDS: Initializing NetworkCredentialsRepositoryImpl")
-            CoroutineScope(Dispatchers.IO).launch {
+            applicationScope.launch(Dispatchers.IO) {  // Use injected application scope (ML-009)
                 try {
                     Timber.i("TEST_CREDS: Starting loadTestCredentials")
                     loadTestCredentials()

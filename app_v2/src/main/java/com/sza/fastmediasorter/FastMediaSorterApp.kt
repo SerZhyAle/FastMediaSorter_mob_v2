@@ -73,6 +73,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var smbConnectionManager: com.sza.fastmediasorter.data.network.SmbConnectionManager
     
+    @Inject
+    lateinit var tempFileManager: com.sza.fastmediasorter.domain.transfer.TempFileManager
+    
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     
@@ -127,6 +130,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         
         // Clear translation cache on app start
         com.sza.fastmediasorter.core.cache.TranslationCacheManager.clearAll()
+        
+        // Clean up orphaned temp files (ML-007) — handles crashes that prevented cleanup
+        applicationScope.launch(Dispatchers.IO) {
+            tempFileManager.cleanupOldTempFiles(24 * 60 * 60 * 1000L) // 24 hours max age
+            Timber.d("App startup: cleaned up old orphaned temp files")
+        }
         
         // Start network state monitoring for automatic connection recovery
         networkStateMonitor.start()
@@ -335,6 +344,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // Disk cache should persist for fast thumbnail loading on restart
                 Timber.w("System killing processes: level=$level($levelName), mem=$memInfo, clearing Glide MEMORY cache only (preserving disk)")
                 Glide.get(this).clearMemory()
+                
+                // Clean up all temp files under critical memory pressure (ML-007)
+                applicationScope.launch(Dispatchers.IO) {
+                    tempFileManager.cleanupAllTempFiles()
+                    Timber.i("onTrimMemory(COMPLETE): All temp files cleaned up")
+                }
                 // DO NOT clear disk cache here - it should persist between app launches
                 // Disk cache is cleared: manually in settings, on file delete/move/rename, or by FIFO eviction
             }

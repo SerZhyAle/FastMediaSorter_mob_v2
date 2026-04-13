@@ -107,6 +107,7 @@ class TempFileManager @Inject constructor(
     /**
      * Cleanup old temporary files (older than threshold).
      * Useful for recovering from crashes that prevented cleanup.
+     * Scans for all temporary file patterns used in the app (ML-007).
      * 
      * @param maxAgeMs Maximum age in milliseconds (default: 24 hours)
      * @return Number of old files deleted
@@ -115,9 +116,18 @@ class TempFileManager @Inject constructor(
         val now = System.currentTimeMillis()
         var deletedCount = 0
         
+        // Temporary file prefixes used across the app (not just TempFileManager-tracked files)
+        val tempPrefixes = listOf(
+            "temp_",              // TempFileManager tracked files
+            "ftp_copy_",          // FtpFileOperationHandler cross-protocol copies
+            "ftp_sftp_copy_",     // FtpFileOperationHandler SFTP copies
+            "bridge_",            // Bridge files (SMB/FTP/SFTP protocols)
+            "audio_meta_"         // AudioMetadataLoader metadata extraction
+        )
+        
         // Check all files in cache directory
         context.cacheDir.listFiles()?.forEach { file ->
-            if (file.name.startsWith("temp_")) {
+            if (tempPrefixes.any { file.name.startsWith(it) }) {
                 val age = now - file.lastModified()
                 if (age > maxAgeMs) {
                     try {
@@ -133,7 +143,7 @@ class TempFileManager @Inject constructor(
         }
         
         if (deletedCount > 0) {
-            Timber.i("Cleaned up $deletedCount old temporary files")
+            Timber.i("Cleaned up $deletedCount old temporary files (ML-007)")
         }
         
         return deletedCount

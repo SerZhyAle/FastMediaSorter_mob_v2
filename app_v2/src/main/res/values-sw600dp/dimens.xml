@@ -19,7 +19,9 @@
     <!-- Touch targets - increased for tablets -->
     <dimen name="button_height">56dp</dimen>
     <dimen name="control_button_size">56dp</dimen>
-    
+    <dimen name="control_button_size_compact">36dp</dimen>
+    <dimen name="toolbar_row_height_compact">40dp</dimen>
+
     <!-- Main Activity -->
     <dimen name="main_recycler_margin">12dp</dimen>
     <dimen name="empty_state_padding">48dp</dimen>

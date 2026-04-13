@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(./gradlew.bat *)",
       "Bash(git *)",
@@ -10,7 +9,10 @@
       "Read(**)",
       "Write(**)",
       "Glob(**)",
-      "Grep(**)"
-    ]
+      "Grep(**)",
+      "Bash(wc -l \"p:/ANDROID/FastMediaSorter_mob_v2/PLAN/tasks/\"task-ML-*.md)",
+      "Bash(powershell -Command \".\\\\scripts\\\\add_to_dev_log.ps1 'PLAN/tasks/README.md' 'memory-leak-tasks' 'Research complete: 11 tasks created \\(2 CRITICAL, 5 HIGH, 4 MEDIUM\\), 2 already implemented \\(ML-001 PDF-manager, ML-002 OneDrive-GlobalScope\\), remaining 9 pending'\")"
+    ],
+    "defaultMode": "acceptEdits"
   }
 }

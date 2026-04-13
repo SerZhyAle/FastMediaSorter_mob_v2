@@ -36,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260412235
-        versionName = "2.60.4122.355"
+        versionCode = 260413210
+        versionName = "2.60.4132.101"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -57,6 +57,15 @@ android {
         manifestPlaceholders["dropboxAppKey"] = "dpy64e70kqobr6x"
 
         // === STARTUP DEBUG INFO ===
+        // Owner trigger — read from local.properties (excluded from VCS)
+        // If local.properties is absent or the key is missing, field is empty → no special behavior
+        val localProps = Properties()
+        val localPropsFile = rootProject.file("local.properties")
+        if (localPropsFile.exists()) {
+            localProps.load(FileInputStream(localPropsFile))
+        }
+        buildConfigField("String", "OWNER_TRIGGER", "\"${localProps.getProperty("sza.owner.trigger", "")}\"")
+
         // Git Hash
         // === STARTUP DEBUG INFO ===
         // Git Hash (Simplified for stability)
@@ -363,8 +372,8 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     // AndroidX Core
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.core:core-ktx:1.13.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
@@ -388,7 +397,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     
     // Material Design 3
-    implementation("com.google.android.material:material:1.12.0")
+    implementation("com.google.android.material:material:1.13.0")
     
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -429,7 +438,10 @@ dependencies {
     
     // DocumentFile for SAF support
     implementation("androidx.documentfile:documentfile:1.0.1")
-    
+
+    // Print support
+    implementation("androidx.print:print:1.0.0")
+
     // Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")

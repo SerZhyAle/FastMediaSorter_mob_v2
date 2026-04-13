@@ -33,8 +33,6 @@ class ResourcePickerDialog(
     private val onResourceSelected: (MediaResource?) -> Unit
 ) : Dialog(context) {
     
-    private val scope = CoroutineScope(Dispatchers.Main)
-    
     private lateinit var binding: DialogResourcePickerBinding
     
     override fun onCreate(savedInstanceState: Bundle?) {

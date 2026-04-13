@@ -302,8 +302,9 @@ class ResourceAdapter(
                     root.setBackgroundColor(bgColor)
                 }
                 
-                // Writable/Lock indicator
-                tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable && resource.id != -100L) {
+                // Writable/Lock indicator — not shown for virtual aggregate paths
+                val isVirtualResource = resource.path.startsWith("virtual://")
+                tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable && !isVirtualResource && resource.id != -100L) {
                     android.view.View.VISIBLE
                 } else {
                     android.view.View.GONE
@@ -501,9 +502,10 @@ class ResourceAdapter(
                     binding.viewDestinationBorder.visibility = android.view.View.GONE
                 }
                 
-                // Show lock icon only for non-destination resources without write access
-                // Destinations are expected to be writable, so no lock icon needed
-                tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable && resource.id != -100L) {
+                // Show lock icon only for non-destination, non-virtual resources without write access
+                // Destinations are expected to be writable; virtual paths are aggregate views, not folders
+                val isVirtualRes = resource.path.startsWith("virtual://")
+                tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable && !isVirtualRes && resource.id != -100L) {
                     android.view.View.VISIBLE
                 } else {
                     android.view.View.GONE

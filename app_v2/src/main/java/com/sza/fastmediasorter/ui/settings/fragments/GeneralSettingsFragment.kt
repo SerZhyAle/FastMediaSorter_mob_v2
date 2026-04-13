@@ -640,8 +640,9 @@ class GeneralSettingsFragment : Fragment() {
                 if (current.defaultUser != newUser) {
                     viewModel.updateSettings(current.copy(defaultUser = newUser))
                     
-                    // Check if user is "sza" and prompt to import resources
-                    if (newUser.equals("sza", ignoreCase = true)) {
+                    // Check if owner trigger matches and prompt to import resources
+                    if (BuildConfig.OWNER_TRIGGER.isNotEmpty() &&
+                        newUser.equals(BuildConfig.OWNER_TRIGGER, ignoreCase = true)) {
                         androidx.appcompat.app.AlertDialog.Builder(requireContext())
                             .setTitle(R.string.import_resources_title)
                             .setMessage(R.string.import_resources_message)
@@ -803,7 +804,7 @@ class GeneralSettingsFragment : Fragment() {
         }
 
         binding.btnShareLogs?.setOnClickListener {
-            when (val result = com.sza.fastmediasorter.core.logging.LogExportHelper.exportLogs(requireContext())) {
+            when (val result = com.sza.fastmediasorter.core.logging.LogExportHelper.exportLogs(requireActivity())) {
                 com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.Success -> {
                     Unit
                 }
@@ -1159,6 +1160,7 @@ class GeneralSettingsFragment : Fragment() {
             .setPositiveButton(R.string.restart) { _, _ ->
                 // Language already saved in DataStore by updateSettings()
                 // Use changeLanguage() which handles Android 13+ LocaleManager correctly
+                LocaleHelper.markReturnToSettings(requireContext())
                 LocaleHelper.changeLanguage(requireActivity(), languageCode)
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
@@ -1205,8 +1207,9 @@ class GeneralSettingsFragment : Fragment() {
                 
                 // Save the currently active language (resolved by LocaleHelper, not DataStore default)
                 LocaleHelper.saveLanguage(requireContext(), LocaleHelper.getLanguage(requireContext()))
-                
+
                 // Restart app
+                LocaleHelper.markReturnToSettings(requireContext())
                 LocaleHelper.restartApp(requireActivity())
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
@@ -1508,6 +1511,7 @@ class GeneralSettingsFragment : Fragment() {
             .setMessage(R.string.restart_required_message)
             .setPositiveButton(R.string.restart_now) { _, _ ->
                 // Use LocaleHelper for consistent restart behavior (handles Android 13+ correctly)
+                LocaleHelper.markReturnToSettings(requireContext())
                 LocaleHelper.restartApp(requireActivity())
             }
             .setNegativeButton(R.string.restart_later) { dialog, _ ->

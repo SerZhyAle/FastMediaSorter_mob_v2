@@ -21,6 +21,13 @@ if (Test-Path $customMaestroPath) {
     $env:PATH += ";$customMaestroPath"
 }
 
+# Ensure Java 17+ is used by maestro.bat (RedHat Java 8 may be on PATH)
+$java21 = "C:\Program Files\Java\jdk-21.0.10"
+if (Test-Path $java21) {
+    $env:JAVA_HOME = $java21
+    $env:PATH = "$java21\bin;$env:PATH"
+}
+
 # Check if Maestro is installed (try both 'maestro' and 'maestro-cli')
 $maestroCmd = Get-Command maestro -ErrorAction SilentlyContinue
 if (-not $maestroCmd) {

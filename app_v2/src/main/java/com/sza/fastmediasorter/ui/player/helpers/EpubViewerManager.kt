@@ -1136,6 +1136,15 @@ class EpubViewerManager(
                 Timber.e(e, "EpubViewerManager: Error destroying WebView")
             }
         }
+        
+        // ML-010: Clear WebViewDatabase credentials to prevent data retention (ML-010)
+        try {
+            android.webkit.WebViewDatabase.getInstance(binding.root.context).clearHttpAuthUsernamePassword()
+            Timber.d("EpubViewerManager: Cleared WebViewDatabase HTTP auth credentials (ML-010)")
+        } catch (e: Exception) {
+            Timber.e(e, "EpubViewerManager: Error clearing WebViewDatabase credentials (ML-010)")
+        }
+        
         webView = null
         Timber.d("EpubViewerManager: Released")
     }

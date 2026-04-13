@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.network.model.SmbResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -126,6 +127,8 @@ class SmbConnectionManager @Inject constructor(
     
     private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
+    // Cleanup scope for async connection closes (ML-009)
+    private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     
     // Callback for auto-reset notifications
     @Volatile
@@ -633,7 +636,7 @@ class SmbConnectionManager @Inject constructor(
         // Mark as pending close so it won't be reused and will be closed after current use
         pooled.isPendingClose.set(true)
         
-        CoroutineScope(Dispatchers.IO).launch {
+        cleanupScope.launch {  // Use managed scope (ML-009)
             // Only close if not in use
             if (pooled.usageCount.get() == 0) {
                 try {
@@ -906,7 +909,8 @@ class SmbConnectionManager @Inject constructor(
         closeAllConnections()
     }
     
-    /**
+    /**eanupScope.coroutineContext.cancel()  // Cancel any pending cleanup tasks (ML-009)
+        cl
      * Close all resources and cleanup.
      */
     fun close() {

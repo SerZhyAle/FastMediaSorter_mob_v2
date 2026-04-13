@@ -11,6 +11,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -57,9 +59,15 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val SPEED_MULT_MIN    = 0.5f
         private const val SPEED_MULT_MAX    = 1.5f
         private const val HUE_SPREAD_DEG    = 108f  // ±30 % of 360°
+        private const val STARTUP_RAMP_FRAMES = 36
+        private const val WAVE_LANE_SPACING_FRACTION = 0.038f
+        private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
+        private const val PARTICLE_RANDOM_SPREAD = 0.28f
+        private const val COUNTER_DRIFT_CHANCE = 0.18f
     }
 
     private var time = 0f
+    private var startupFrameCount = 0
 
     // ── Randomized session parameters — re-rolled on each fresh startAnimation() ──
 
@@ -89,6 +97,17 @@ class AudioWaveParticleView @JvmOverloads constructor(
 
     /** Actual particle count this session (15..55). */
     private var particleCountCurrent = 55
+
+    /** Randomized flow direction for the full playback session in degrees. */
+    private var waveDirectionAngleDeg = 0f
+
+    /** Cached unit vector for the randomized session direction. */
+    private var waveDirX = 1f
+    private var waveDirY = 0f
+
+    /** Perpendicular unit vector used for wave displacement and band spacing. */
+    private var waveNormalX = 0f
+    private var waveNormalY = 1f
 
     // ──────────────────────────────────────────────────────────────────────────────
 
@@ -166,17 +185,28 @@ class AudioWaveParticleView @JvmOverloads constructor(
         particleSpeedMult = SPEED_MULT_MIN + Random.nextFloat() * (SPEED_MULT_MAX - SPEED_MULT_MIN)
         particleHueBase   = Random.nextFloat() * 360f
         particleCountCurrent = Random.nextInt(PARTICLE_MIN, PARTICLE_MAX + 1)
+        waveDirectionAngleDeg = Random.nextFloat() * 360f
+
+        val angleRad = Math.toRadians(waveDirectionAngleDeg.toDouble())
+        waveDirX = cos(angleRad).toFloat()
+        waveDirY = sin(angleRad).toFloat()
+        waveNormalX = -waveDirY
+        waveNormalY = waveDirX
     }
 
     private fun initParticles(w: Int, h: Int) {
         particles.clear()
         repeat(particleCountCurrent) {
+            val directionalSpeed = (0.12f + Random.nextFloat() * PARTICLE_DIRECTIONAL_BIAS) * particleSpeedMult
+            val driftSign = if (Random.nextFloat() < COUNTER_DRIFT_CHANCE) -0.35f else 1f
+            val directionalVx = waveDirX * directionalSpeed * driftSign
+            val directionalVy = waveDirY * directionalSpeed * driftSign
             particles += Particle(
                 x      = Random.nextFloat() * w,
                 y      = Random.nextFloat() * h,
                 radius = PARTICLE_R_MIN + Random.nextFloat() * (PARTICLE_R_MAX - PARTICLE_R_MIN),
-                vx     = (Random.nextFloat() - 0.5f) * 0.6f * particleSpeedMult,
-                vy     = (Random.nextFloat() - 0.5f) * 0.6f * particleSpeedMult,
+                vx     = directionalVx + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
+                vy     = directionalVy + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
                 hue    = (particleHueBase + (Random.nextFloat() - 0.5f) * HUE_SPREAD_DEG + 360f) % 360f
             )
         }
@@ -201,6 +231,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
             animator.isPaused -> animator.resume()
             !animator.isRunning -> {
                 randomizeParams()
+                startupFrameCount = 0
                 val w = width.takeIf  { it > 0 } ?: return
                 val h = height.takeIf { it > 0 } ?: return
                 initParticles(w, h)
@@ -218,6 +249,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
     fun stopAndReset() {
         animator.cancel()
         time = 0f
+        startupFrameCount = 0
         offCanvas?.drawColor(Color.BLACK)
         invalidate()
     }
@@ -230,30 +262,43 @@ class AudioWaveParticleView @JvmOverloads constructor(
         val bm = offBitmap ?: return
         val w = bm.width.toFloat()
         val h = bm.height.toFloat()
+        startupFrameCount = (startupFrameCount + 1).coerceAtMost(STARTUP_RAMP_FRAMES)
 
         // Semi-transparent overlay creates the motion-blur trail
         oc.drawRect(0f, 0f, w, h, fadeOverlayPaint)
 
-        // Sine-wave paths — count, step, stroke, color and amplitude vary per session
+        val startupProgress = startupFrameCount / STARTUP_RAMP_FRAMES.toFloat()
+        val startupGain = 0.35f + 0.65f * startupProgress * (2f - startupProgress)
+        val travelSpan = hypot(w, h) + stepPx * 6f
+        val centerDrift = sin((time * 0.45f).toDouble()).toFloat() * minOf(w, h) * 0.02f
+        val centerX = w * 0.5f + waveDirX * centerDrift
+        val centerY = h * 0.5f + waveDirY * centerDrift
+        val laneSpacing = minOf(w, h) * WAVE_LANE_SPACING_FRACTION
+        val waveAlpha = 0.28f + 0.16f * startupGain
+
+        // Sine-wave paths are sampled in a rotated coordinate space so each fresh start
+        // can travel in any direction while keeping the draw cost close to the old version.
         for (j in 0 until waveCount) {
-            val phaseShift = j * 15f
+            val phaseShift = j * 0.8f
+            val bandOffset = (j - (waveCount - 1) * 0.5f) * laneSpacing
+            val waveEnvelope = 0.40f + 0.60f * abs(sin((time * 0.4f + j * 0.2f).toDouble())).toFloat()
+            val amplitudePx = h * waveAmplitude * startupGain * waveEnvelope
             wavePath.rewind()
-            var x = 0f
+            var distance = -travelSpan * 0.5f
             var first = true
-            while (x <= w) {
-                val y = h / 2f +
-                    sin((x * 0.003f + time + phaseShift).toDouble()).toFloat() *
-                    h * waveAmplitude *
-                    sin((time * 0.4f + j * 0.2f).toDouble()).toFloat()
+            while (distance <= travelSpan * 0.5f) {
+                val displacement = sin((distance * 0.0105f + time + phaseShift).toDouble()).toFloat() * amplitudePx
+                val drawX = centerX + waveDirX * distance + waveNormalX * (bandOffset + displacement)
+                val drawY = centerY + waveDirY * distance + waveNormalY * (bandOffset + displacement)
                 if (first) {
-                    wavePath.moveTo(x, y)
+                    wavePath.moveTo(drawX, drawY)
                     first = false
                 } else {
-                    wavePath.lineTo(x, y)
+                    wavePath.lineTo(drawX, drawY)
                 }
-                x += stepPx
+                distance += stepPx
             }
-            wavePaint.color = hslToArgb((baseWaveHue + j * waveHueStep) % 360f, 0.80f, 0.65f, 0.40f)
+            wavePaint.color = hslToArgb((baseWaveHue + j * waveHueStep) % 360f, 0.80f, 0.65f, waveAlpha)
             oc.drawPath(wavePath, wavePaint)
         }
 
@@ -263,7 +308,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
             p.y += p.vy
             if (p.x < 0f || p.x > w) p.vx = -p.vx
             if (p.y < 0f || p.y > h) p.vy = -p.vy
-            particlePaint.color = hslToArgb(p.hue, 0.90f, 0.70f, 0.70f)
+            particlePaint.color = hslToArgb(p.hue, 0.90f, 0.70f, 0.38f + 0.32f * startupGain)
             oc.drawCircle(p.x, p.y, p.radius, particlePaint)
         }
     }

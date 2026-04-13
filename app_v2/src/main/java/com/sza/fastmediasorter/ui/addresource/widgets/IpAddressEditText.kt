@@ -19,7 +19,7 @@ import timber.log.Timber
 class IpAddressEditText @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = com.google.android.material.R.attr.editTextStyle
+    defStyleAttr: Int = android.R.attr.editTextStyle
 ) : TextInputEditText(context, attrs, defStyleAttr) {
 
     private var validationEnabled = true

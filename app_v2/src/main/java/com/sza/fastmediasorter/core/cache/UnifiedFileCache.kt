@@ -29,6 +29,7 @@ class UnifiedFileCache @Inject constructor(
     
     companion object {
         private const val MAX_CACHE_AGE_MS = 24 * 60 * 60 * 1000L // 24 hours
+        private const val DEFAULT_MAX_CACHE_SIZE_BYTES = 500L * 1024 * 1024 // 500 MB (ML-006)
     }
     
     init {
@@ -95,6 +96,10 @@ class UnifiedFileCache @Inject constructor(
             }
             
             sourceFile.copyTo(cachedFile, overwrite = true)
+            
+            // Check if cache exceeds size limit and evict oldest files if needed (ML-006)
+            evictIfNeeded()
+            
             Timber.d("UnifiedFileCache: Stored file - $path (${size / 1024} KB)")
             return cachedFile
         } catch (e: IOException) {
@@ -138,6 +143,41 @@ class UnifiedFileCache @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "UnifiedFileCache: Failed to clear cache")
         }
+    }
+    
+    /**
+     * Evict oldest files (LRU by lastModified timestamp) if cache exceeds maximum size limit.
+     * Called after every putFile() to ensure bounded cache growth (ML-006).
+     */
+    private fun evictIfNeeded() {
+        val allFiles = cacheDir.listFiles() ?: return
+        var totalSize = allFiles.sumOf { it.length() }
+        
+        if (totalSize <= DEFAULT_MAX_CACHE_SIZE_BYTES) {
+            return  // Within limit, no eviction needed
+        }
+        
+        // Sort by lastModified (oldest first) for LRU eviction
+        val sortedByAge = allFiles.sortedBy { it.lastModified() }
+        
+        Timber.d("UnifiedFileCache: Cache size (${totalSize / 1024 / 1024}MB) exceeds limit (${DEFAULT_MAX_CACHE_SIZE_BYTES / 1024 / 1024}MB), starting LRU eviction")
+        
+        for (file in sortedByAge) {
+            if (totalSize <= DEFAULT_MAX_CACHE_SIZE_BYTES) {
+                break  // Cache is now within limit
+            }
+            
+            try {
+                val fileSize = file.length()
+                file.delete()
+                totalSize -= fileSize
+                Timber.d("UnifiedFileCache: Evicted ${file.name} (${fileSize / 1024}KB, LRU)")
+            } catch (e: Exception) {
+                Timber.w(e, "UnifiedFileCache: Failed to delete file ${file.name} during eviction")
+            }
+        }
+        
+        Timber.d("UnifiedFileCache: LRU eviction complete, new total size: ${totalSize / 1024 / 1024}MB")
     }
     
     

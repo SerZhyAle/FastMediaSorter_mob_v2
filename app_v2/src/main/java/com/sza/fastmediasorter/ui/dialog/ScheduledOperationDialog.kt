@@ -40,9 +40,12 @@ class ScheduledOperationDialog(
         super.onCreate(savedInstanceState)
         b = DialogScheduledOperationBinding.inflate(layoutInflater)
         setContentView(b.root)
+        val dm = context.resources.displayMetrics
+        val isLandscape = dm.widthPixels > dm.heightPixels
         window?.setLayout(
-            (context.resources.displayMetrics.widthPixels * 0.93).toInt(),
-            android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            (dm.widthPixels * 0.93).toInt(),
+            if (isLandscape) (dm.heightPixels * 0.90).toInt()
+            else android.view.WindowManager.LayoutParams.WRAP_CONTENT
         )
         setupDropdowns()
         setupNextRunPreview()

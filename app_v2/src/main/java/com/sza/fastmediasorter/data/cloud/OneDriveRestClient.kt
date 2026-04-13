@@ -17,8 +17,9 @@ import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -61,7 +62,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 class OneDriveRestClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val pendingRevocationDao: PendingRevocationDao,
-    private val networkCredentialsRepository: NetworkCredentialsRepository
+    private val networkCredentialsRepository: NetworkCredentialsRepository,
+    @ApplicationScope private val applicationScope: CoroutineScope
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.ONEDRIVE
@@ -225,7 +227,7 @@ class OneDriveRestClient @Inject constructor(
         app.signIn(activity, null, SCOPES, object : AuthenticationCallback {
             override fun onSuccess(authenticationResult: IAuthenticationResult) {
                 // Handle result on background dispatcher because handleAuthenticationResult updates token/email
-                kotlinx.coroutines.GlobalScope.launch(Dispatchers.Main) {
+                applicationScope.launch(Dispatchers.Main) {
                     val result = handleAuthenticationResult(authenticationResult)
                     callback(result)
                 }
@@ -242,7 +244,7 @@ class OneDriveRestClient @Inject constructor(
                          // We need to get the token for granted scopes.
                          Timber.w("Interactive declined scopes, proceeding with granted: $grantedScopes")
                          
-                         kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+                         applicationScope.launch(Dispatchers.IO) {
                             // Wait a bit for MSAL to update internal state if needed?
                             // account should be available now
                              val currentAccount = app.currentAccount.currentAccount
