@@ -170,7 +170,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onAddResourceClick = { binding.btnAddResource.performClick() },
             onSettingsClick = { binding.btnSettings.performClick() },
             onFilterClick = { binding.btnFilter.performClick() },
-            onExit = { 
+            onExit = {
+                stopAudioPlaybackService()
                 finishAffinity()
                 android.os.Process.killProcess(android.os.Process.myPid())
             }
@@ -340,6 +341,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         
         binding.btnExit.setOnClickListenerDebounced {
+            stopAudioPlaybackService()
             finishAffinity()
             android.os.Process.killProcess(android.os.Process.myPid())
         }
@@ -1215,6 +1217,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun dismissResumeLoading() {
         binding.navigationProgressLayout.isVisible = false
+    }
+
+    /**
+     * Stop AudioPlaybackService before exiting the app.
+     * Prevents OS from restarting the process due to foreground service being alive.
+     * CRITICAL FIX: Without this, finishAffinity() + Process.killProcess() causes
+     * the OS to restart the same process within 1 second (double startup bug).
+     */
+    private fun stopAudioPlaybackService() {
+        try {
+            val serviceIntent = Intent(this, AudioPlaybackService::class.java)
+            stopService(serviceIntent)
+            Timber.d("MainActivity: AudioPlaybackService stopped before exit")
+        } catch (e: Exception) {
+            Timber.w(e, "MainActivity: Failed to stop AudioPlaybackService before exit")
+        }
     }
 
     companion object {

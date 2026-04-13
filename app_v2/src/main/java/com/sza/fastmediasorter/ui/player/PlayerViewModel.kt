@@ -307,8 +307,10 @@ class PlayerViewModel @Inject constructor(
                 val lastSlash = path.lastIndexOf('/')
                 if (lastSlash > 0) path.substring(0, lastSlash) else null
             }
-            val cacheMatchesInitialFile = initialFilePath == null ||
-                (cachedFiles != null && cachedFiles.any { it.path == initialFilePath })
+            // Normalize paths before comparison (MediaStore may return different path formats for same file)
+            val normalizedInitialPath = initialFilePath?.let { normalizePath(it) }
+            val cacheMatchesInitialFile = normalizedInitialPath == null ||
+                (cachedFiles != null && cachedFiles.any { normalizePath(it.path) == normalizedInitialPath })
 
             val allFiles = if (cachedFiles != null && cachedFiles.isNotEmpty() && !cacheHasOnlyDirectories && cacheMatchesInitialFile) {
                 // Using cached list (valid file data matching requested file)
@@ -369,8 +371,8 @@ class PlayerViewModel @Inject constructor(
                     filtered
                 }
 
-                val initialFileExistsInUnfiltered = initialFilePath?.let { targetPath ->
-                    allFiles.any { file -> !file.isDirectory && file.path == targetPath }
+                val initialFileExistsInUnfiltered = normalizedInitialPath?.let { normalizedTarget ->
+                    allFiles.any { file -> !file.isDirectory && normalizePath(file.path) == normalizedTarget }
                 } ?: false
 
                 val filesWithFavorites = try {
@@ -395,22 +397,23 @@ class PlayerViewModel @Inject constructor(
                     // 1. Current file path (if reloading during playback - preserve position)
                     // 2. Initial file path (if provided from BrowseActivity - pagination mode)
                     // 3. Initial index (default fallback)
-                    val safeIndex = if (currentFilePath != null) {
-                        val foundIndex = filesWithFavorites.indexOfFirst { it.path == currentFilePath }
+                    val normalizedCurrentPath = currentFilePath?.let { normalizePath(it) }
+                    val safeIndex = if (normalizedCurrentPath != null) {
+                        val foundIndex = filesWithFavorites.indexOfFirst { normalizePath(it.path) == normalizedCurrentPath }
                         if (foundIndex >= 0) {
                             Timber.d("Restored position to current file: $currentFilePath at index $foundIndex")
                             foundIndex
                         } else {
                             Timber.w("Current file not found: $currentFilePath, trying initialFilePath")
-                            if (initialFilePath != null) {
-                                val initialFoundIndex = filesWithFavorites.indexOfFirst { it.path == initialFilePath }
+                            if (normalizedInitialPath != null) {
+                                val initialFoundIndex = filesWithFavorites.indexOfFirst { normalizePath(it.path) == normalizedInitialPath }
                                 if (initialFoundIndex >= 0) initialFoundIndex else 0
                             } else {
                                 initialIndex.coerceIn(0, filesWithFavorites.size - 1)
                             }
                         }
-                    } else if (initialFilePath != null) {
-                        val foundIndex = filesWithFavorites.indexOfFirst { it.path == initialFilePath }
+                    } else if (normalizedInitialPath != null) {
+                        val foundIndex = filesWithFavorites.indexOfFirst { normalizePath(it.path) == normalizedInitialPath }
                         if (foundIndex >= 0) {
                             // Found file by path at index
                             foundIndex
@@ -1488,6 +1491,28 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Normalize file paths for reliable comparison.
+     * Resolves symlinks and canonical form (e.g. /sdcard -> /storage/emulated/0).
+     * Handles protocol-based paths (content://, smb://, etc) by returning as-is.
+     * Falls back to original path if canonicalization fails.
+     */
+    private fun normalizePath(path: String): String {
+        // Protocol-based paths: no filesystem normalization
+        if (path.startsWith("content://") || path.startsWith("smb://") ||
+            path.startsWith("sftp://") || path.startsWith("ftp://")) {
+            return path
+        }
+
+        // Local filesystem paths: resolve canonical form
+        return try {
+            java.io.File(path).canonicalPath
+        } catch (e: Exception) {
+            // Fallback: return as-is if canonicalization fails
+            // (e.g., file doesn't exist yet, permission denied)
+            path
+        }
+    }
 
 }
 
