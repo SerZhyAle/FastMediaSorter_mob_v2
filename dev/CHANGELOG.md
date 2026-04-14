@@ -2233,3 +2233,6 @@ Format: | datetime | file | target | description |
 | 2026-04-15 00:11:25 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `fragment_settings_audio` | Add switchShowNowPlayingPanel row inside layoutExitBehaviorSection |
 | 2026-04-15 00:11:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `AudioSettingsFragment` | Add listener and observer sync for switchShowNowPlayingPanel |
 | 2026-04-15 00:11:25 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add show_now_playing_panel_title/summary (EN/RU/UK) |
+| 2026-04-15 00:34:41 | `index.html` | `Usage Scenarios` | Add two new scenario cards: Scheduled Camera Backup to PC (SMB) and Auto-Clean Downloads (scheduler) |
+| 2026-04-15 00:34:41 | `index-ru.html` | `Usage Scenarios` | Add RU translations for Camera Backup and Downloads Cleanup scenario cards |
+| 2026-04-15 00:34:41 | `index-uk.html` | `Usage Scenarios` | Add UK translations for Camera Backup and Downloads Cleanup scenario cards |
