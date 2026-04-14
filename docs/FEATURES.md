@@ -30,6 +30,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - [20. Wear OS Companion App](#20-wear-os-companion-app)
 - [21. Background & System Services](#21-background--system-services)
 - [22. Scheduled File Operations](#22-scheduled-file-operations)
+- [23. Apps FMS Can Replace — Competitor Comparison](#23-apps-fms-can-replace--competitor-comparison)
 
 ---
 
@@ -345,4 +346,229 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Battery optimization prompt**: On first use, the app offers to disable battery optimization for itself, ensuring operations run reliably on OEM devices (Xiaomi, Huawei, Samsung) that aggressively kill background processes. The same setting is accessible at any time from the General settings screen.
 
 
+## 23. Apps FMS Can Replace — Competitor Comparison
+
+FastMediaSorter consolidates functionality that typically requires 5–10 separate apps into a single, unified tool. Below is a category-by-category breakdown showing which popular apps FMS can replace and what advantages it offers over each.
+
+### Photo Gallery
+
+**Popular apps:** Google Photos, Samsung Gallery, Simple Gallery Pro, F-Stop Gallery, Piktures, QuickPic, 1Gallery
+
+| Capability | Typical gallery app | FMS |
+|---|---|---|
+| Browse & view photos | Yes | Yes |
+| Grid / list display with thumbnails | Yes | Yes |
+| EXIF metadata display | Some | Yes |
+| Slideshow | Basic (local only) | Advanced (any source + background music) |
+| NAS / SMB browsing | No | Yes (native, with connection pooling) |
+| Cloud browsing (Drive, Dropbox, OneDrive) | Google Photos only (own cloud) | Yes (all three + NAS + FTP/SFTP) |
+| File operations (copy/move/rename/delete) | Limited | Full cross-protocol |
+| PIN protection per folder | Rare | Yes |
+| Scheduled auto-transfer | No | Yes |
+
+**Bottom line:** Gallery apps handle local photos well but ignore network storage entirely. FMS provides the same visual browsing experience plus full NAS/cloud access, scheduled automation, and cross-protocol file operations.
+
+### Video Player
+
+**Popular apps:** VLC for Android, MX Player, mpv-android, Nova Video Player, Just (Video) Player
+
+| Capability | Typical video player | FMS |
+|---|---|---|
+| Codec support | Excellent (VLC/MX) | ExoPlayer (Media3) — broad format coverage |
+| Background playback | Some | Yes |
+| Subtitle support | Yes | Yes (with app font styling) |
+| Gesture controls (brightness, volume, seek) | Yes (MX/VLC) | Yes |
+| Picture-in-Picture | Some | Yes (Android 12+) |
+| Sleep timer | Rare | Yes |
+| Play from SMB/NAS | VLC: basic; MX: plugin | Native, with pooling + 24 threads |
+| Play from SFTP/FTP | VLC: basic | Native |
+| Play from Google Drive / Dropbox / OneDrive | No (must download) | Yes (direct streaming) |
+| File management during playback | No | Yes (copy/move/delete/rename/share) |
+| Duplicate finder | No | Yes (SHA-256) |
+| Scheduled file operations | No | Yes |
+
+**Bottom line:** VLC and MX Player are excellent standalone players, but they treat network files as a secondary feature and offer zero file management. FMS combines a capable player with full NAS/cloud integration and file operations — no more switching between a player and a file manager.
+
+### Audio / Music Player
+
+**Popular apps:** Poweramp, Musicolet, BlackPlayer, Pulsar Music Player, Vanilla Music, Oto Music
+
+| Capability | Typical music player | FMS |
+|---|---|---|
+| Local playback | Yes | Yes |
+| Background playback | Yes | Yes |
+| Sleep timer | Some | Yes |
+| Lock screen / notification controls | Yes | Yes |
+| Play from SMB/NAS | No (must copy locally first) | Yes (direct streaming) |
+| Play from SFTP/FTP | No | Yes |
+| Play from cloud (Drive/Dropbox/OneDrive) | No | Yes |
+| Inline mini-player in file browser | No (separate app) | Yes |
+| File copy/move while browsing | No | Yes (cross-protocol) |
+| Equalizer | Yes (Poweramp) | Relies on system EQ |
+| Tag editor | Some | No |
+
+**Bottom line:** Dedicated music players offer richer audio features (EQ, gapless, tag editing), but none of them can stream directly from a NAS or cloud drive. If your music library lives on a home server or in cloud storage, FMS eliminates the need to sync files locally first.
+
+### File Manager (with network support)
+
+**Popular apps:** Solid Explorer, MiXplorer, X-plore File Manager, Total Commander, ES File Explorer, Material Files
+
+| Capability | Typical file manager | FMS |
+|---|---|---|
+| Local file browsing | Yes | Yes |
+| SMB / NAS support | Yes (Solid, MiX, X-plore) | Yes (SMBJ, connection pooling, 24 threads) |
+| FTP / SFTP | Yes | Yes |
+| Cloud (Drive/Dropbox/OneDrive) | Yes (as plugins or built-in) | Yes (built-in, no plugins) |
+| Cross-protocol copy/move | Yes | Yes |
+| Built-in video player | Basic (system intent) | Full ExoPlayer with gestures, PiP, subs |
+| Built-in audio player | Basic or none | Full with background playback, sleep timer |
+| Built-in image viewer | Basic | Full with OCR + AR translation overlay |
+| Built-in PDF reader | No (opens external) | Yes (themes, translation, OCR) |
+| Built-in EPUB reader | No (opens external) | Yes (themes, translation) |
+| Duplicate finder (SHA-256) | Rare (X-plore: CRC) | Yes (cross-source, byte-level) |
+| Scheduled file operations | No | Yes (cron-style, background) |
+| Wear OS companion | No | Yes |
+| PIN per resource | Solid: yes; others: no | Yes |
+
+**Bottom line:** Power-user file managers like Solid Explorer and MiXplorer are the closest competitors. They handle file operations and network well, but delegate all media playback and document reading to external apps. FMS keeps everything in-house — you never leave the app to play a video, read a PDF, or view a photo.
+
+### NAS / SMB Dedicated Client
+
+**Popular apps:** Cx File Explorer, FE File Explorer, File Manager +, Owlfiles, nPlayer
+
+| Capability | Typical NAS client | FMS |
+|---|---|---|
+| SMB browsing | Yes | Yes |
+| FTP / SFTP | Some | Yes |
+| Cloud integration | Some (FE, Cx) | Yes (Drive, Dropbox, OneDrive) |
+| Connection pooling | No | Yes |
+| Multi-threaded transfer | No | Yes (up to 24 threads) |
+| File list caching | No | Yes (Room DB) |
+| Credential vault with audit | No | Yes (encrypted + last-used tracking) |
+| Built-in media player | Basic | Full (ExoPlayer, background, PiP) |
+| Scheduled automation | No | Yes |
+| Wear OS | No | Yes |
+
+**Bottom line:** Dedicated NAS clients provide basic browse-and-download functionality but lack high-performance transfer, credential management, and media playback. FMS is built NAS-first with connection pooling and parallel threads, making it noticeably faster on large transfers.
+
+### Cloud Storage Client
+
+**Popular apps:** Google Drive (official), Dropbox (official), OneDrive (official)
+
+| Capability | Official cloud apps | FMS |
+|---|---|---|
+| Browse own cloud | Yes (one cloud per app) | Yes (all three in one interface) |
+| Cross-cloud transfer | No (must download → re-upload) | Yes (direct, e.g., Drive → Dropbox) |
+| NAS integration | No | Yes (cloud ↔ NAS transfers) |
+| FTP/SFTP integration | No | Yes |
+| Built-in media player | Basic preview | Full ExoPlayer |
+| PDF/EPUB reader | Basic preview (Drive) | Full reader with themes + OCR |
+| Scheduled sync/backup | Drive: limited auto-backup | Full cron-style operations |
+| PIN protection | No | Yes (per resource) |
+
+**Bottom line:** Each official cloud app only accesses its own service. FMS unifies Google Drive, Dropbox, and OneDrive into a single browsing interface and enables direct cross-cloud and cloud-to-NAS transfers without downloading files locally.
+
+### PDF / EPUB Reader
+
+**Popular apps:** Adobe Acrobat Reader, Moon+ Reader, ReadEra, Librera Reader, Google PDF Viewer
+
+| Capability | Typical reader | FMS |
+|---|---|---|
+| PDF rendering | Yes | Yes |
+| EPUB rendering | Moon+, ReadEra, Librera | Yes |
+| Reading themes (light/dark/sepia) | Yes | Yes |
+| Open from local storage | Yes | Yes |
+| Open directly from NAS (SMB/SFTP/FTP) | No (must download first) | Yes (streams from source) |
+| Open from cloud (Drive/Dropbox/OneDrive) | Limited (Drive only via some) | Yes (all clouds) |
+| OCR overlay | No (separate app needed) | Yes (built-in, offline-capable) |
+| AR translation overlay | No | Yes ("Google Lens"-style) |
+| In-app text translation | Some (Moon+) | Yes |
+| File management (copy/move/delete) | No | Yes |
+
+**Bottom line:** Dedicated readers offer a polished reading experience but require files to be downloaded first. FMS reads PDFs and EPUBs directly from any network or cloud source and adds OCR + translation on top — no extra apps needed.
+
+### FTP / SFTP Client
+
+**Popular apps:** AndFTP, Admin Hands, Termius (file transfer), Turbo FTP
+
+| Capability | Typical FTP client | FMS |
+|---|---|---|
+| FTP connection | Yes | Yes |
+| SFTP connection | Yes | Yes |
+| SMB / NAS | No (FTP/SFTP only) | Yes |
+| Cloud storage | No | Yes (Drive, Dropbox, OneDrive) |
+| Media playback | No (download → open externally) | Yes (stream directly) |
+| Batch operations | Basic | Yes (cross-protocol) |
+| Scheduled transfers | No | Yes (cron-style) |
+| Credential vault | Basic | Encrypted + audit trail |
+
+**Bottom line:** FTP/SFTP clients are single-purpose tools. FMS handles FTP and SFTP alongside SMB and three cloud providers, with inline media playback and scheduled automation on top.
+
+### OCR & Translation
+
+**Popular apps:** Google Lens, Google Translate (camera), Text Scanner (OCR), Microsoft Lens
+
+| Capability | Typical OCR app | FMS |
+|---|---|---|
+| OCR from camera | Yes | No (file-based only) |
+| OCR from image file | Google Lens: yes | Yes (built-in) |
+| OCR from PDF | No (separate app) | Yes (directly in PDF viewer) |
+| AR translation overlay | Google Lens: yes | Yes (same "Lens-style" UX) |
+| Works on files from NAS / cloud | No (must download first) | Yes (processes in-place) |
+| Offline OCR | Some | Yes (ML Kit on-device) |
+| Integrated with file browser | No (standalone app) | Yes (accessible from any viewer) |
+
+**Bottom line:** Google Lens is powerful but operates as a standalone camera app. FMS embeds the same OCR + AR translation concept directly into its image and PDF viewers, working on files from any source without downloading them first.
+
+### Duplicate Finder
+
+**Popular apps:** Files by Google, Duplicate Files Fixer, SD Maid, Duplicate File Remover
+
+| Capability | Typical duplicate finder | FMS |
+|---|---|---|
+| Find duplicates on local storage | Yes | Yes |
+| Find duplicates on NAS (SMB) | No | Yes |
+| Find duplicates on FTP / SFTP | No | Yes |
+| Find duplicates on cloud | No | Yes |
+| Cross-source matching (e.g., local vs. NAS) | No | Yes |
+| Matching algorithm | Usually file name or size | SHA-256 byte-for-byte |
+| Integrated file operations (delete/move) | Some | Yes (full cross-protocol) |
+
+**Bottom line:** Most duplicate finders only scan local storage and use weak matching (name/size). FMS uses SHA-256 checksums and can compare files across local, NAS, and cloud sources — finding true duplicates regardless of where they are stored.
+
+### Slideshow / Digital Photo Frame
+
+**Popular apps:** Fotoo, Photo Slides, Frameo, Simple Gallery (slideshow mode)
+
+| Capability | Typical slideshow app | FMS |
+|---|---|---|
+| Local photo slideshow | Yes | Yes |
+| Slideshow from NAS / SMB | Fotoo: yes (limited) | Yes (native, fast) |
+| Slideshow from cloud | No | Yes (Drive, Dropbox, OneDrive) |
+| Background music from any source | No (local only or none) | Yes (any connected source) |
+| Configurable transitions & timing | Some | Yes |
+| Double-duty as file manager | No | Yes |
+
+**Bottom line:** FMS turns any Android device into a digital photo frame that pulls images from local storage, NAS, or cloud — with background music from any source. No need for a dedicated slideshow app.
+
+---
+
+### Summary: What FMS Replaces
+
+| App category | Example apps you can uninstall | FMS equivalent |
+|---|---|---|
+| Photo gallery | Google Photos, Simple Gallery, F-Stop, Piktures | Media Browsing + Image Viewer + Slideshow |
+| Video player | VLC, MX Player, mpv, Nova | Video Player (ExoPlayer, PiP, gestures) |
+| Music player | Musicolet, Pulsar, BlackPlayer | Audio Player (background, sleep timer) |
+| File manager | Solid Explorer, MiXplorer, X-plore | Full file ops + all protocols |
+| NAS client | Cx File Explorer, FE File Explorer, Owlfiles | Native SMB/FTP/SFTP with pooling |
+| Cloud client | Drive / Dropbox / OneDrive official apps | All three clouds unified |
+| PDF reader | Adobe Reader, ReadEra | PDF Viewer + OCR + translation |
+| EPUB reader | Moon+ Reader, Librera | EPUB Viewer + themes + translation |
+| FTP client | AndFTP, Turbo FTP | FTP/SFTP built-in |
+| OCR tool | Google Lens, Text Scanner | OCR + AR translation in viewers |
+| Duplicate finder | Files by Google, Duplicate Files Fixer | SHA-256 cross-source finder |
+| Slideshow / frame | Fotoo, Photo Slides | Slideshow + background music from any source |
+
+**One app instead of twelve.** FMS does not aim to be the absolute best in every single category — a dedicated equalizer app will always have more audio DSP options, and a dedicated photo editor will always have more filters. But for users who manage media across local storage, NAS, and cloud, FMS eliminates the constant app-switching and provides a consistent, unified experience with a depth of integration no single-purpose app can match.
 

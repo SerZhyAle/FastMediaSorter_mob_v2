@@ -2072,3 +2072,6 @@ Format: | datetime | file | target | description |
 | 2026-04-14 00:02:29 | `app_v2/src/main/res/values/dimens.xml` | `dimens` | Ultra-compact toolbar: all toolbar_row_height_compact set to 12dp (was 18/16/20/22dp) |
 | 2026-04-14 00:42:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `ForwardingPlayer` | Fix: override isCommandAvailable/getAvailableCommands so Next button always shows in notification |
 | 2026-04-14 01:38:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `AudioPlaybackService` | Fix unresolved 'Commands' import — use Player.Commands (nested class) instead of non-existent top-level androidx.media3.common.Commands |
+| 2026-04-14 03:12:44 | `docs/FEATURES.md` | `FEATURES.md` | Added section 23: Apps FMS Can Replace — Competitor Comparison (EN) |
+| 2026-04-14 03:12:47 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added section 23: competitor comparison with popular apps (RU) |
+| 2026-04-14 03:12:50 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added section 23: competitor comparison with popular apps (UK) |
