@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.provider.Settings
+import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -60,11 +61,14 @@ object DefaultPlayerHelper {
      */
     fun applyButtonState(button: TextView, context: Context, normalTextRes: Int) {
         val isDefault = isAlreadyDefaultPlayer(context)
-        button.isEnabled = !isDefault
-        button.alpha = if (isDefault) 0.5f else 1.0f
-        button.text = context.getString(
-            if (isDefault) R.string.settings_already_default_player else normalTextRes
-        )
+        if (isDefault) {
+            button.visibility = View.GONE
+        } else {
+            button.visibility = View.VISIBLE
+            button.isEnabled = true
+            button.alpha = 1.0f
+            button.text = context.getString(normalTextRes)
+        }
     }
 
     // --- Type-specific entry point (Settings fragments) ---

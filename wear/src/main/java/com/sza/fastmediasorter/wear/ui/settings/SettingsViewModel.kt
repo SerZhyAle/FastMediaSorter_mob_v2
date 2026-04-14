@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,38 +38,36 @@ class SettingsViewModel @Inject constructor(
 
     private fun loadSettings() {
         viewModelScope.launch {
-            preferencesRepository.isAudioEnabled.collect { audio ->
-                _uiState.value = _uiState.value.copy(isAudioEnabled = audio, isLoading = false)
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.isVideoEnabled.collect { video ->
-                _uiState.value = _uiState.value.copy(isVideoEnabled = video)
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.isImagesEnabled.collect { images ->
-                _uiState.value = _uiState.value.copy(isImagesEnabled = images)
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.isSlideshowEnabled.collect { slideshow ->
-                _uiState.value = _uiState.value.copy(isSlideshowEnabled = slideshow)
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.slideshowIntervalSeconds.collect { interval ->
-                _uiState.value = _uiState.value.copy(slideshowIntervalSeconds = interval)
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.slideshowWaitForFinish.collect { wait ->
-                _uiState.value = _uiState.value.copy(slideshowWaitForFinish = wait)
-            }
-        }
-        viewModelScope.launch {
-            preferencesRepository.downloadAlbumArt.collect { albumArt ->
-                _uiState.value = _uiState.value.copy(downloadAlbumArt = albumArt)
+            combine(
+                listOf(
+                    preferencesRepository.isAudioEnabled,
+                    preferencesRepository.isVideoEnabled,
+                    preferencesRepository.isImagesEnabled,
+                    preferencesRepository.isSlideshowEnabled,
+                    preferencesRepository.slideshowIntervalSeconds,
+                    preferencesRepository.slideshowWaitForFinish,
+                    preferencesRepository.downloadAlbumArt
+                )
+            ) { values ->
+                val audio = values[0] as Boolean
+                val video = values[1] as Boolean
+                val images = values[2] as Boolean
+                val slideshow = values[3] as Boolean
+                val interval = values[4] as Int
+                val waitForFinish = values[5] as Boolean
+                val albumArt = values[6] as Boolean
+                _uiState.value.copy(
+                    isAudioEnabled = audio,
+                    isVideoEnabled = video,
+                    isImagesEnabled = images,
+                    isSlideshowEnabled = slideshow,
+                    slideshowIntervalSeconds = interval,
+                    slideshowWaitForFinish = waitForFinish,
+                    downloadAlbumArt = albumArt,
+                    isLoading = false
+                )
+            }.collect { combinedState ->
+                _uiState.value = combinedState
             }
         }
     }

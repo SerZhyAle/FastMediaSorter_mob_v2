@@ -208,7 +208,13 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onReadAloudClicked() {
-        activity.textViewerManager.toggleReadAloud()
+        val currentFile = viewModel.state.value.currentFile ?: return
+        when (currentFile.type) {
+            MediaType.TEXT -> activity.textViewerManager.toggleReadAloud()
+            MediaType.PDF  -> if (activity._pdfViewerManager != null) activity.pdfViewerManager.toggleReadAloud()
+            MediaType.EPUB -> if (activity._epubViewerManager != null) activity.epubViewerManager.toggleReadAloud()
+            else -> {}
+        }
     }
 
     override fun onPdfScrollModeClicked() {

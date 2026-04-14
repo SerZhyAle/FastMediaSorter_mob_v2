@@ -38,6 +38,7 @@ class NowPlayingViewModel @Inject constructor(
 ) : ViewModel() {
 
     data class NowPlayingState(
+        val isLoading: Boolean = true,
         val isPlaying: Boolean = false,
         val title: String = "",
         val artist: String? = null,
@@ -113,6 +114,7 @@ class NowPlayingViewModel @Inject constructor(
                 val meta = controller.mediaMetadata
                 val isPlaying = controller.isPlaying
                 val state = NowPlayingState(
+                    isLoading = false,
                     isPlaying = isPlaying,
                     title = meta.title?.toString() ?: "",
                     artist = meta.artist?.toString(),
@@ -128,7 +130,7 @@ class NowPlayingViewModel @Inject constructor(
                 Timber.d("NowPlayingViewModel: connected, isPlaying=$isPlaying")
             } catch (e: Exception) {
                 Timber.e(e, "NowPlayingViewModel: failed to connect")
-                _state.value = _state.value.copy(serviceRunning = false)
+                _state.value = _state.value.copy(isLoading = false, serviceRunning = false)
             }
         }, MoreExecutors.directExecutor())
     }

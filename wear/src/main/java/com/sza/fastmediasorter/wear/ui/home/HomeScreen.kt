@@ -3,9 +3,17 @@ package com.sza.fastmediasorter.wear.ui.home
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -16,6 +24,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
@@ -28,15 +37,15 @@ fun HomeScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     Timber.d("HomeScreen composing")
-    
+
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    
+
     val allCategories = listOf(
-        MediaCategory("🎵 " + stringResource(R.string.music), "music"),
-        MediaCategory("🎬 " + stringResource(R.string.videos), "videos"),
-        MediaCategory("🖼️ " + stringResource(R.string.photos), "photos")
+        MediaCategory(stringResource(R.string.music), "music", Icons.Filled.MusicNote),
+        MediaCategory(stringResource(R.string.videos), "videos", Icons.Filled.VideoLibrary),
+        MediaCategory(stringResource(R.string.photos), "photos", Icons.Filled.Image)
     )
-    
+
     // Filter categories based on settings
     val filteredCategories = allCategories.filter { category ->
         when (category.route) {
@@ -46,7 +55,7 @@ fun HomeScreen(
             else -> true
         }
     }
-    
+
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -60,7 +69,7 @@ fun HomeScreen(
                 textAlign = TextAlign.Center
             )
         }
-        
+
         items(filteredCategories) { category ->
             Chip(
                 onClick = {
@@ -70,11 +79,18 @@ fun HomeScreen(
                 label = {
                     Text(text = category.name)
                 },
+                icon = {
+                    Icon(
+                        imageVector = category.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.primaryChipColors()
             )
         }
-        
+
         // Network Storage button
         item {
             Chip(
@@ -83,13 +99,20 @@ fun HomeScreen(
                     navController.navigate("network_sources")
                 },
                 label = {
-                    Text(text = "📡 " + stringResource(R.string.network_storage))
+                    Text(text = stringResource(R.string.network_storage))
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.Storage,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.primaryChipColors()
             )
         }
-        
+
         // Settings button
         item {
             Chip(
@@ -98,7 +121,14 @@ fun HomeScreen(
                     navController.navigate("settings")
                 },
                 label = {
-                    Text(text = "⚙️ " + stringResource(R.string.settings))
+                    Text(text = stringResource(R.string.settings))
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.secondaryChipColors()
@@ -109,5 +139,6 @@ fun HomeScreen(
 
 data class MediaCategory(
     val name: String,
-    val route: String
+    val route: String,
+    val icon: ImageVector
 )

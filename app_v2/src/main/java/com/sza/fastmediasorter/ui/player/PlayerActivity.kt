@@ -1080,7 +1080,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Delegate to lifecycle manager
         lifecycleManager.onResume()
         audioEmptyStateController?.onResume()
-        nowPlayingManager?.onStart()
+        nowPlayingManager?.onStart(
+            viewModel.state.value.currentFile?.type,
+            viewModel.state.value.showNowPlayingPanel
+        )
 
         // Re-attach PlayerView to the service MediaController if audio was playing in background.
         // This restores UI control visibility (seek bar, play/pause button) after the Activity

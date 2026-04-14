@@ -22,7 +22,7 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
-import com.sza.fastmediasorter.wear.ui.network.AddSmbScreen
+import com.sza.fastmediasorter.wear.ui.network.AddNetworkSourceScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
@@ -151,9 +151,14 @@ fun MainNavigation() {
             NetworkSourcesScreen(navController = navController)
         }
         
-        // Add SMB connection screen
+        // Add network source screen
+        composable("add_network_source") {
+            AddNetworkSourceScreen(navController = navController)
+        }
+
+        // Backward-compatible alias for old route name
         composable("add_smb") {
-            AddSmbScreen(navController = navController)
+            AddNetworkSourceScreen(navController = navController)
         }
 
         // Sync transfer animation (shown while receiving data from phone)

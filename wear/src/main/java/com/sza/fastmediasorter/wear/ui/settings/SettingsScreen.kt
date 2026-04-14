@@ -1,18 +1,25 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.ScalingLazyColumn
@@ -145,13 +152,9 @@ fun SettingsScreen(
         }
 
         item {
-            Text(
-                text = stringResource(R.string.slideshow_interval, uiState.slideshowIntervalSeconds),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption1
+            SlideshowIntervalStepper(
+                currentSeconds = uiState.slideshowIntervalSeconds,
+                onIntervalChanged = { viewModel.setSlideshowInterval(it) }
             )
         }
 
@@ -233,6 +236,64 @@ fun SettingsScreen(
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.caption1
             )
+        }
+    }
+}
+
+private val SLIDESHOW_INTERVALS = intArrayOf(3, 5, 10, 15, 20, 30, 60)
+
+@Composable
+private fun SlideshowIntervalStepper(
+    currentSeconds: Int,
+    onIntervalChanged: (Int) -> Unit
+) {
+    val intervals = SLIDESHOW_INTERVALS
+    val currentIndex = intervals.indexOfFirst { it == currentSeconds }.coerceAtLeast(0)
+    val labelText = stringResource(R.string.slideshow_interval_label, intervals[currentIndex])
+    val decreaseDesc = stringResource(R.string.slideshow_interval_decrease)
+    val increaseDesc = stringResource(R.string.slideshow_interval_increase)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Button(
+            onClick = {
+                if (currentIndex > 0) onIntervalChanged(intervals[currentIndex - 1])
+            },
+            enabled = currentIndex > 0,
+            modifier = Modifier
+                .size(36.dp)
+                .semantics { contentDescription = decreaseDesc },
+            colors = ButtonDefaults.secondaryButtonColors()
+        ) {
+            Text(text = "−", style = MaterialTheme.typography.button)
+        }
+
+        Text(
+            text = labelText,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 4.dp)
+                .semantics { contentDescription = labelText },
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.caption1
+        )
+
+        Button(
+            onClick = {
+                if (currentIndex < intervals.lastIndex) onIntervalChanged(intervals[currentIndex + 1])
+            },
+            enabled = currentIndex < intervals.lastIndex,
+            modifier = Modifier
+                .size(36.dp)
+                .semantics { contentDescription = increaseDesc },
+            colors = ButtonDefaults.secondaryButtonColors()
+        ) {
+            Text(text = "+", style = MaterialTheme.typography.button)
         }
     }
 }

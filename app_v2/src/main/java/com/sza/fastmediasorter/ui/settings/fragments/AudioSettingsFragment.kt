@@ -294,6 +294,9 @@ class AudioSettingsFragment : Fragment() {
                         if (binding.switchEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
                             binding.switchEnablePersistentAudioPlayback.isChecked = settings.enablePersistentAudioPlayback
                         }
+                        if (binding.switchShowNowPlayingPanel.isChecked != settings.showNowPlayingPanel) {
+                            binding.switchShowNowPlayingPanel.isChecked = settings.showNowPlayingPanel
+                        }
                         updateNotificationPermissionButtonVisibility()
                         // Sync exit behavior radio group
                         val radioId = when (settings.backgroundAudioExitBehavior) {
@@ -339,6 +342,12 @@ class AudioSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = isChecked))
             updateNotificationPermissionButtonVisibility()
             updateExitBehaviorVisibility()
+        }
+
+        binding.switchShowNowPlayingPanel.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showNowPlayingPanel = isChecked))
         }
 
         binding.btnNotificationPermission.setOnClickListener {

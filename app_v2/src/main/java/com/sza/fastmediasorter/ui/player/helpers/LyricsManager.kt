@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
-import android.view.View
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -31,6 +30,7 @@ class LyricsManager(
     private val getTranslationSessionSettings: () -> com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+    private var ttsManager: TtsReadAloudManager? = null
     
     /**
      * Search and display song lyrics for audio files.
@@ -160,7 +160,24 @@ class LyricsManager(
             this.textSize = fontSize
             this.typeface = fontFamily
         }
-        
+
+        safeViews.tvLyricsContent.customSelectionActionModeCallback =
+            DocumentSelectionActionModeCallback(
+                showTranslate = false,
+                showReadAloud = true,
+                getSelectedText = {
+                    val tv = safeViews.tvLyricsContent
+                    val start = tv.selectionStart.coerceAtLeast(0)
+                    val end   = tv.selectionEnd.coerceAtLeast(0)
+                    tv.text?.substring(minOf(start, end), maxOf(start, end)) ?: ""
+                },
+                onTranslate    = { },
+                onSearchGoogle = { },
+                onReadAloud = { _ ->
+                    ensureTtsManager().startReading(safeViews.tvLyricsContent.text.toString())
+                }
+            )
+
         safeViews.lyricsViewerContainer.isVisible = true
         // Hide top command panel when showing lyrics
         binding.topCommandPanel.isVisible = false
@@ -171,12 +188,20 @@ class LyricsManager(
      */
     fun hideLyricsViewer() {
         Timber.d("LyricsManager: Hiding lyrics viewer")
+        ttsManager?.release()
+        ttsManager = null
         safeViews.lyricsViewerContainer.isVisible = false
         // Restore top command panel visibility
         binding.topCommandPanel.isVisible = true
         // Force WindowInsets re-application via post() to ensure visual update
-        binding.topCommandPanel.post { 
-            binding.topCommandPanel.requestApplyInsets() 
+        binding.topCommandPanel.post {
+            binding.topCommandPanel.requestApplyInsets()
         }
+    }
+
+    private fun ensureTtsManager(): TtsReadAloudManager {
+        return ttsManager ?: TtsReadAloudManager(context) { state ->
+            Timber.d("LyricsManager: TTS state -> $state")
+        }.also { ttsManager = it }
     }
 }

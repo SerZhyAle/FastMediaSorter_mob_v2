@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -18,10 +19,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
@@ -29,12 +31,13 @@ import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class WearSyncSettingsFragment : Fragment() {
+class WearSyncSettingsFragment : BottomSheetDialogFragment() {
 
     private val viewModel: WearSyncViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 WearSyncScreen(
                     viewModel = viewModel,
@@ -59,7 +62,7 @@ private fun WearSyncScreen(
     val state by viewModel.uiState.collectAsState()
     val lastSync = viewModel.lastSyncTimestamp
 
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp).navigationBarsPadding()) {
         Text(
             text = stringResource(R.string.wear_companion),
             style = MaterialTheme.typography.titleLarge

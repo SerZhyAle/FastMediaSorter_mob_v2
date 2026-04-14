@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
@@ -85,7 +86,12 @@ class CommandPanelController(
     private val originalContainerPaddings = mutableMapOf<Int, android.graphics.Rect>()
     private var smallControlsApplied = false
     private val safeViews = PlayerBindingSafeViews(binding)
-    
+
+    // Adaptive portrait layout
+    private val planner = CommandPanelLayoutPlanner()
+    private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
+    private var lastKnownFavoriteVisible = true
+
     // Cached state for overflow menu visibility
     private var cachedState: PlayerViewModel.PlayerState? = null
     private var isLandscapeMode = true
@@ -240,9 +246,6 @@ class CommandPanelController(
         val showInLandscape = effectiveShowCommandPanel && isLandscapeMode
         val showInPortrait = effectiveShowCommandPanel && !isLandscapeMode
         
-        // Overflow menu button - visible only in portrait mode
-        safeViews.btnOverflowMenu.isVisible = showInPortrait
-        
         // Back, Delete, Fullscreen, Previous, Next: always visible in command panel mode
         binding.btnBack.isVisible = effectiveShowCommandPanel
         // Hide delete button if not writable or not allowed
@@ -271,6 +274,7 @@ class CommandPanelController(
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
                 
                 withContext(Dispatchers.Main) {
+                    lastKnownFavoriteVisible = shouldShowFavorite
                     binding.btnFavorite.isVisible = shouldShowFavorite
                     binding.btnFavorite.setImageResource(if (currentFile.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline)
                 }
@@ -282,9 +286,30 @@ class CommandPanelController(
         
         // Center buttons visibility
         if (showInPortrait) {
-            // Hide all center buttons in portrait (they are in overflow menu)
+            // Adaptive portrait layout: planner decides which commands fit on bar vs overflow
+            val activeCommands = planner.buildActiveCommands(
+                state, canWrite, canRead, isWifiConnected(binding.root.context)
+            )
+            val availablePx = resolveAvailableCenterWidthPx(state, canWrite)
+            val density = binding.root.resources.displayMetrics.density
+            val buttonPx = (40 * density).toInt()
+            val overflowPx = (40 * density).toInt()
+            val result = planner.planLayout(activeCommands, availablePx, buttonPx, overflowPx)
+            latestOverflowCommands = result.overflowCommands
+
+            // Hide all adaptive center buttons; planner result shows only bar commands
             getOverflowableButtons().forEach { it.isVisible = false }
+            result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
+
+            // RENAME isEnabled mirrors landscape rule (requires canRead)
+            safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
+
+            // Overflow button: only when the planner says some commands are in overflow
+            safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
+
         } else if (showInLandscape) {
+            safeViews.btnOverflowMenu.isVisible = false
+            latestOverflowCommands = emptyList()
             // Show center buttons based on logic
             val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
             val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
@@ -300,10 +325,10 @@ class CommandPanelController(
             safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
             safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
-            safeViews.btnCastCmd.isVisible = (isImage || isVideo) && isLandscapeMode && isWifiConnected(binding.root.context)
+            safeViews.btnCastCmd.isVisible = (isImage || isVideo) && isWifiConnected(binding.root.context)
             // Edit is visible for images (if writable) OR video (always, as it's controls)
-            safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf || isPdf
-            
+            safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
+
             // Update button contentDescription based on file type
             if (isVideo) {
                 safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
@@ -311,57 +336,45 @@ class CommandPanelController(
                 safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.edit)
             }
             
-            // Update button text based on file type
-            if (isVideo) {
-                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
-            } else {
-                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.edit)
-            }
-            
             // PDF Actions
-            safeViews.btnGoogleLensPdfCmd.isVisible = isPdf && isLandscapeMode
-            safeViews.btnOcrPdfCmd.isVisible = isPdf && isLandscapeMode
-            safeViews.btnTranslatePdfCmd.isVisible = isPdf && isLandscapeMode
-            safeViews.btnSearchPdfCmd.isVisible = isPdf && isLandscapeMode
+            safeViews.btnGoogleLensPdfCmd.isVisible = isPdf
+            safeViews.btnOcrPdfCmd.isVisible = isPdf
+            safeViews.btnTranslatePdfCmd.isVisible = isPdf
+            safeViews.btnSearchPdfCmd.isVisible = isPdf
             
             // Text Actions
-            safeViews.btnCopyTextCmd.isVisible = (isText || isPdf) && isLandscapeMode
-            safeViews.btnEditTextCmd.isVisible = isText && isLandscapeMode && canWrite // Edit text requires write
-            safeViews.btnTranslateTextCmd.isVisible = isText && isLandscapeMode
-            safeViews.btnTextSettingsCmd.isVisible = isText && isLandscapeMode
-            safeViews.btnSearchTextCmd.isVisible = isText && isLandscapeMode
+            safeViews.btnCopyTextCmd.isVisible = (isText || isPdf)
+            safeViews.btnEditTextCmd.isVisible = isText && canWrite // Edit text requires write
+            safeViews.btnTranslateTextCmd.isVisible = isText
+            safeViews.btnTextSettingsCmd.isVisible = isText
+            safeViews.btnSearchTextCmd.isVisible = isText
             
             // EPUB Actions
-            safeViews.btnSearchEpubCmd.isVisible = isEpub && isLandscapeMode
-            safeViews.btnTranslateEpubCmd.isVisible = isEpub && isLandscapeMode
-            safeViews.btnEpubTextSettingsCmd.isVisible = isEpub && isLandscapeMode
-            safeViews.btnOcrEpubCmd.isVisible = isEpub && isLandscapeMode
+            safeViews.btnSearchEpubCmd.isVisible = isEpub
+            safeViews.btnTranslateEpubCmd.isVisible = isEpub
+            safeViews.btnEpubTextSettingsCmd.isVisible = isEpub
+            safeViews.btnOcrEpubCmd.isVisible = isEpub
             
             // PDF Actions
-            safeViews.btnPdfTextSettingsCmd.isVisible = isPdf && isLandscapeMode
+            safeViews.btnPdfTextSettingsCmd.isVisible = isPdf
             
             // Image Actions (for IMAGE/GIF)
-            // Show buttons in landscape mode based on file type and settings from state
-            if (isImage && isLandscapeMode) {
-                // Use settings from state (already loaded synchronously)
+            if (isImage) {
                 safeViews.btnTranslateImageCmd.isVisible = state.enableTranslation
                 safeViews.btnOcrImageCmd.isVisible = state.enableOcr
                 safeViews.btnGoogleLensImageCmd.isVisible = state.enableGoogleLens
                 safeViews.btnImageTextSettingsCmd.isVisible = true
                 Timber.d("CommandPanelController: Image buttons IN LANDSCAPE - translate=${state.enableTranslation}, ocr=${state.enableOcr}, lens=${state.enableGoogleLens}")
-                Timber.d("CommandPanelController: btnTranslateImageCmd.isVisible=${safeViews.btnTranslateImageCmd.isVisible}, visibility=${safeViews.btnTranslateImageCmd.visibility}")
-            } else if (!isImage) {
-                // Hide buttons if not an image
+            } else {
                 safeViews.btnTranslateImageCmd.isVisible = false
                 safeViews.btnImageTextSettingsCmd.isVisible = false
                 safeViews.btnOcrImageCmd.isVisible = false
                 safeViews.btnGoogleLensImageCmd.isVisible = false
-            } else if (isImage && !isLandscapeMode) {
-                Timber.d("CommandPanelController: Image in PORTRAIT mode - buttons should be hidden")
             }
-            // In portrait mode, buttons are already hidden by getOverflowableButtons()
         } else {
             // Command panel hidden
+            safeViews.btnOverflowMenu.isVisible = false
+            latestOverflowCommands = emptyList()
             getOverflowableButtons().forEach { it.isVisible = false }
         }
         
@@ -684,111 +697,55 @@ class CommandPanelController(
         isLandscapeMode = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         Timber.d("CommandPanelController.updateOrientation: isLandscape=$isLandscapeMode")
         
-        // Update cached state with new orientation if we have state
+        // Post so the layout has settled to the new dimensions before the planner measures width
         cachedState?.let { state ->
-            updateCommandAvailability(state)
+            binding.topCommandPanel.post { updateCommandAvailability(state) }
         }
     }
     
     /**
-     * Show overflow popup menu
+     * Show the overflow popup menu, ordered by command priority (highest priority first).
+     *
+     * Items are built programmatically from [latestOverflowCommands] so the display order
+     * reflects the runtime priority model, not the static XML declaration order.
      */
     @SuppressLint("RestrictedApi")
     private fun showOverflowMenu(anchor: View) {
         val state = cachedState ?: return
         val currentFile = state.currentFile ?: return
         val context = binding.root.context
-        val isReadOnly = state.resource?.isReadOnly == true
-        
-        val popup = PopupMenu(context, anchor)
-        popup.menuInflater.inflate(R.menu.overflow_menu_player, popup.menu)
-        
-        popup.setForceShowIcon(true)
-        
-        // Apply dark tint to white icons for popup menu visibility
-        val iconColor = android.graphics.Color.DKGRAY
-        popup.menu.findItem(R.id.menu_print)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_google_lens)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_rename)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_edit)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_translate)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_ocr)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_search)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_text_settings)?.icon?.setTint(iconColor)
-        // popup.menu.findItem(R.id.menu_info)?.icon?.setTint(iconColor) // Removed from menu
-        popup.menu.findItem(R.id.menu_lyrics)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_search_youtube_music)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_cast)?.icon?.setTint(iconColor)
 
-        // popup.menu.findItem(R.id.menu_favorite)?.icon?.setTint(iconColor) // Removed from menu
-        popup.menu.findItem(R.id.menu_copy_text)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_edit_text)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_undo)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_sleep_timer)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_reopen_encoding)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_toggle_markdown)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_reader_settings)?.icon?.setTint(iconColor)
-        popup.menu.findItem(R.id.menu_read_aloud)?.icon?.setTint(iconColor)
-        
-        // Configure menu items visibility based on file type and state
-        val isPdf = currentFile.type == MediaType.PDF
-        val isText = currentFile.type == MediaType.TEXT
-        val isEpub = currentFile.type == MediaType.EPUB
-        val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
+        val commands = latestOverflowCommands
+        if (commands.isEmpty()) return
+
+        val popup = PopupMenu(context, anchor)
+        popup.setForceShowIcon(true)
+
         val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
-        
-        // Show/hide menu items
-        popup.menu.findItem(R.id.menu_rename)?.isVisible = state.allowRename && !isReadOnly
-        // popup.menu.findItem(R.id.menu_share)?.isVisible = true // Removed
-        // popup.menu.findItem(R.id.menu_info)?.isVisible = true // Removed
-        popup.menu.findItem(R.id.menu_lyrics)?.isVisible = currentFile.type == MediaType.AUDIO
-        popup.menu.findItem(R.id.menu_search_youtube_music)?.isVisible = currentFile.type == MediaType.AUDIO
-        popup.menu.findItem(R.id.menu_cast)?.isVisible = run {
-            val canCast = isImage || isVideo  // isImage covers IMAGE+GIF; isVideo covers VIDEO+AUDIO
-            val wifiOk = isWifiConnected(binding.root.context)
-            canCast && wifiOk
-        }
-        popup.menu.findItem(R.id.menu_edit)?.apply {
-            isVisible = (isImage && !isReadOnly) || isVideo || isPdf || isPdf
-            // Update title based on file type
-            title = if (isVideo) {
+        val iconColor = android.graphics.Color.DKGRAY
+
+        // Build menu dynamically in priority order
+        for (cmd in commands) {
+            val title = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.EDIT && isVideo) {
                 context.getString(R.string.control)
             } else {
-                context.getString(R.string.edit)
+                context.getString(cmd.titleResId)
+            }
+            val item = popup.menu.add(android.view.Menu.NONE, cmd.menuItemId, cmd.priority, title)
+            if (cmd.iconResId != 0) {
+                val drawable = androidx.core.content.ContextCompat.getDrawable(context, cmd.iconResId)
+                drawable?.setTint(iconColor)
+                item.icon = drawable
             }
         }
 
-        // popup.menu.findItem(R.id.menu_favorite) block removed
-        popup.menu.findItem(R.id.menu_search)?.isVisible = isPdf || isText || isEpub
-        popup.menu.findItem(R.id.menu_translate)?.isVisible = (isPdf || isText || isEpub || isImage) && state.enableTranslation
-        popup.menu.findItem(R.id.menu_text_settings)?.isVisible = true // Always visible
-        popup.menu.findItem(R.id.menu_ocr)?.isVisible = (isPdf || isImage || isEpub) && state.enableOcr
-        popup.menu.findItem(R.id.menu_google_lens)?.isVisible = (isPdf || isImage) && state.enableGoogleLens
-        popup.menu.findItem(R.id.menu_copy_text)?.isVisible = isText || isPdf
-        popup.menu.findItem(R.id.menu_edit_text)?.isVisible = isText && !isReadOnly
-        popup.menu.findItem(R.id.menu_undo)?.isVisible = state.lastOperation != null && !isReadOnly
-        popup.menu.findItem(R.id.menu_sleep_timer)?.isVisible = currentFile.type == MediaType.AUDIO || currentFile.type == MediaType.VIDEO
-        popup.menu.findItem(R.id.menu_reopen_encoding)?.isVisible = isText
-        popup.menu.findItem(R.id.menu_toggle_markdown)?.isVisible = isText && currentFile.name.endsWith(".md", ignoreCase = true)
-        popup.menu.findItem(R.id.menu_reader_settings)?.isVisible = isText
-        popup.menu.findItem(R.id.menu_read_aloud)?.isVisible = isText
-        popup.menu.findItem(R.id.menu_pdf_scroll_mode)?.isVisible = isPdf
-        popup.menu.findItem(R.id.menu_pdf_color_mode)?.isVisible = isPdf
-        popup.menu.findItem(R.id.menu_pdf_thumbnails)?.isVisible = isPdf
-        popup.menu.findItem(R.id.menu_epub_reader_settings)?.isVisible = isEpub
-        popup.menu.findItem(R.id.menu_epub_search_all)?.isVisible = isEpub
-        popup.menu.findItem(R.id.menu_print)?.isVisible = isPdf || isText || isImage
-        
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_rename -> callback.onRenameClicked()
-                // R.id.menu_share -> callback.onShareClicked() // Removed
-                // R.id.menu_info -> callback.onInfoClicked() // Removed
                 R.id.menu_lyrics -> callback.onLyricsClicked()
                 R.id.menu_search_youtube_music -> callback.onSearchYoutubeMusicClicked()
                 R.id.menu_cast -> callback.onCastClicked()
                 R.id.menu_edit -> callback.onEditClicked()
-                // R.id.menu_favorite -> callback.onFavoriteClicked() // Removed
                 R.id.menu_search -> callback.onSearchClicked()
                 R.id.menu_translate -> callback.onTranslateClicked()
                 R.id.menu_text_settings -> callback.onTranslationSettingsClicked()
@@ -812,7 +769,7 @@ class CommandPanelController(
             true
         }
 
-        // Long click shortcut for settings dialogs
+        // Long-click shortcut: OCR settings / translation settings
         try {
             val listView = (popup.menu as? androidx.appcompat.view.menu.MenuBuilder)?.let { _ ->
                 popup.javaClass.getDeclaredField("mPopup")
@@ -826,56 +783,52 @@ class CommandPanelController(
                             .get(popup)
                     ) as? android.widget.ListView
             }
-
             listView?.setOnItemLongClickListener { _, _, position, _ ->
                 val menuItem = popup.menu.getItem(position)
                 when (menuItem.itemId) {
-                    R.id.menu_ocr -> {
-                        callback.onOcrSettingsClicked()
-                        popup.dismiss()
-                        true
-                    }
-                    R.id.menu_translate -> {
-                        callback.onTranslationSettingsClicked()
-                        popup.dismiss()
-                        true
-                    }
+                    R.id.menu_ocr -> { callback.onOcrSettingsClicked(); popup.dismiss(); true }
+                    R.id.menu_translate -> { callback.onTranslationSettingsClicked(); popup.dismiss(); true }
                     else -> false
                 }
             }
         } catch (e: Exception) {
             Timber.w("Failed to set long click listener for menu: ${e.message}")
         }
-        
-        // Update translation button icon with language pair (async, then show popup)
-        coroutineScope.launch {
-            try {
-                val settings = settingsRepository.getSettings().first()
-                val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-                val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
-                val translationDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.DKGRAY)
-                
-                // Update icon and show popup on Main thread
-                withContext(Dispatchers.Main) {
-                    popup.menu.findItem(R.id.menu_translate)?.icon = translationDrawable
-                    popup.show()
-                }
-            } catch (e: Exception) {
-                // Show popup anyway
-                withContext(Dispatchers.Main) {
-                    popup.show()
+
+        // Async translate icon: update language-pair badge then show popup
+        val hasTranslate = commands.any {
+            it.menuItemId == R.id.menu_translate
+        }
+        if (hasTranslate) {
+            coroutineScope.launch {
+                try {
+                    val settings = settingsRepository.getSettings().first()
+                    val src = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
+                    val tgt = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
+                    val badge = LanguageBadgeDrawable(context, src, tgt, iconColor)
+                    withContext(Dispatchers.Main) {
+                        popup.menu.findItem(R.id.menu_translate)?.icon = badge
+                        popup.show()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) { popup.show() }
                 }
             }
+        } else {
+            popup.show()
         }
     }
     
     /**
-     * Get buttons that should be hidden in portrait mode (shown in overflow menu)
+     * All adaptive center buttons that may move between bar and overflow.
+     * These are hidden at the start of every portrait-branch pass and then
+     * selectively shown by the planner result.
      */
     private fun getOverflowableButtons(): List<View> = listOf(
         safeViews.btnRenameCmd,
         safeViews.btnLyricsCmd,
         safeViews.btnSearchYoutubeMusicCmd,
+        safeViews.btnCastCmd,
         safeViews.btnEditCmd,
         safeViews.btnUndoCmd,
         safeViews.btnGoogleLensPdfCmd,
@@ -897,17 +850,89 @@ class CommandPanelController(
         safeViews.btnOcrImageCmd,
         safeViews.btnGoogleLensImageCmd
     )
-    
+
     /**
-     * Get buttons that should always be visible (not in overflow)
+     * Return the bar [View] for [cmd], or null for overflow-only commands.
      */
-    private fun getAlwaysVisibleButtons(): List<View> = listOf(
-        binding.btnBack,
-        binding.btnDeleteCmd,
-        binding.btnFullscreenCmd,
-        binding.btnPreviousCmd,
-        binding.btnNextCmd
-    )
+    private fun barViewForCommand(cmd: CommandPanelLayoutPlanner.PlayerCommand): View? {
+        return when (cmd) {
+            CommandPanelLayoutPlanner.PlayerCommand.RENAME -> safeViews.btnRenameCmd
+            CommandPanelLayoutPlanner.PlayerCommand.EDIT -> safeViews.btnEditCmd
+            CommandPanelLayoutPlanner.PlayerCommand.UNDO -> safeViews.btnUndoCmd
+            CommandPanelLayoutPlanner.PlayerCommand.CAST -> safeViews.btnCastCmd
+            CommandPanelLayoutPlanner.PlayerCommand.LYRICS -> safeViews.btnLyricsCmd
+            CommandPanelLayoutPlanner.PlayerCommand.SEARCH_YOUTUBE_MUSIC -> safeViews.btnSearchYoutubeMusicCmd
+            CommandPanelLayoutPlanner.PlayerCommand.SEARCH_PDF -> safeViews.btnSearchPdfCmd
+            CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_PDF -> safeViews.btnTranslatePdfCmd
+            CommandPanelLayoutPlanner.PlayerCommand.PDF_TEXT_SETTINGS -> safeViews.btnPdfTextSettingsCmd
+            CommandPanelLayoutPlanner.PlayerCommand.OCR_PDF -> safeViews.btnOcrPdfCmd
+            CommandPanelLayoutPlanner.PlayerCommand.GOOGLE_LENS_PDF -> safeViews.btnGoogleLensPdfCmd
+            CommandPanelLayoutPlanner.PlayerCommand.SEARCH_TEXT -> safeViews.btnSearchTextCmd
+            CommandPanelLayoutPlanner.PlayerCommand.EDIT_TEXT -> safeViews.btnEditTextCmd
+            CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_TEXT -> safeViews.btnTranslateTextCmd
+            CommandPanelLayoutPlanner.PlayerCommand.TEXT_SETTINGS -> safeViews.btnTextSettingsCmd
+            CommandPanelLayoutPlanner.PlayerCommand.COPY_TEXT -> safeViews.btnCopyTextCmd
+            CommandPanelLayoutPlanner.PlayerCommand.SEARCH_EPUB -> safeViews.btnSearchEpubCmd
+            CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_EPUB -> safeViews.btnTranslateEpubCmd
+            CommandPanelLayoutPlanner.PlayerCommand.EPUB_TEXT_SETTINGS -> safeViews.btnEpubTextSettingsCmd
+            CommandPanelLayoutPlanner.PlayerCommand.OCR_EPUB -> safeViews.btnOcrEpubCmd
+            CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_IMAGE -> safeViews.btnTranslateImageCmd
+            CommandPanelLayoutPlanner.PlayerCommand.IMAGE_TEXT_SETTINGS -> safeViews.btnImageTextSettingsCmd
+            CommandPanelLayoutPlanner.PlayerCommand.OCR_IMAGE -> safeViews.btnOcrImageCmd
+            CommandPanelLayoutPlanner.PlayerCommand.GOOGLE_LENS_IMAGE -> safeViews.btnGoogleLensImageCmd
+            else -> null // Overflow-only commands have no bar view
+        }
+    }
+
+    /**
+     * Count how many fixed right-group buttons will be visible for the given [state].
+     * Used to calculate the space left for the adaptive center group in portrait mode.
+     *
+     * Counts: Previous, Next (always) + Delete, Fullscreen, Slideshow, Share, Info,
+     * Favorite (conditional). Favorite uses [lastKnownFavoriteVisible] because its
+     * visibility is resolved asynchronously.
+     */
+    private fun countVisibleRightGroupButtons(
+        state: PlayerViewModel.PlayerState,
+        canWrite: Boolean
+    ): Int {
+        val file = state.currentFile ?: return 2 // at least Previous + Next
+        var count = 2 // btnPreviousCmd + btnNextCmd always
+        if (canWrite && state.allowDelete) count++
+        val type = file.type
+        if (type == MediaType.IMAGE || type == MediaType.GIF || type == MediaType.VIDEO ||
+            type == MediaType.PDF || type == MediaType.TEXT || type == MediaType.EPUB
+        ) count++ // btnFullscreenCmd
+        if (type == MediaType.IMAGE || type == MediaType.GIF ||
+            type == MediaType.VIDEO || type == MediaType.AUDIO
+        ) count++ // btnSlideshowCmd
+        count++ // btnShareCmd (always visible when panel shown)
+        count++ // btnInfoCmd (always visible when panel shown)
+        if (lastKnownFavoriteVisible) count++ // btnFavorite (async; use last known state)
+        return count
+    }
+
+    /**
+     * Estimate the pixel width available for the center button group in portrait mode.
+     *
+     * Uses [binding.topCommandPanel.width] when the view is already laid out (after a
+     * [post] call from [updateOrientation]), or falls back to display width otherwise.
+     */
+    private fun resolveAvailableCenterWidthPx(
+        state: PlayerViewModel.PlayerState,
+        canWrite: Boolean
+    ): Int {
+        val dm = binding.root.resources.displayMetrics
+        val buttonPx = (40 * dm.density).toInt()
+        val panelWidth = if (binding.topCommandPanel.width > 0) {
+            binding.topCommandPanel.width
+        } else {
+            dm.widthPixels
+        }
+        val leftGroupPx = buttonPx  // btnBack only
+        val rightGroupPx = buttonPx * countVisibleRightGroupButtons(state, canWrite)
+        return (panelWidth - leftGroupPx - rightGroupPx).coerceAtLeast(0)
+    }
 
     private fun isWifiConnected(context: android.content.Context): Boolean {
         return try {

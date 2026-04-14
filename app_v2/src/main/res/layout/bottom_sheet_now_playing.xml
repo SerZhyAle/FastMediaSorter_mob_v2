@@ -30,6 +30,17 @@
             android:paddingHorizontal="24dp"
             android:paddingBottom="24dp">
 
+            <!-- Loading spinner shown while MediaController is connecting -->
+            <ProgressBar
+                android:id="@+id/progressNowPlayingLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="visible"
+                android:importantForAccessibility="no" />
+
             <!-- Album art -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/nowPlayingArtwork"

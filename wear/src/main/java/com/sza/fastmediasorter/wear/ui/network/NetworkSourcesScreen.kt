@@ -1,13 +1,18 @@
 package com.sza.fastmediasorter.wear.ui.network
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -21,6 +26,7 @@ import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
@@ -38,6 +44,9 @@ fun NetworkSourcesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
+
+    // State for delete confirmation dialog
+    var pendingDeleteSource by remember { mutableStateOf<SourceItem?>(null) }
 
     // Navigate to sync_transfer immediately when sync request is pending
     LaunchedEffect(syncState) {
@@ -61,10 +70,13 @@ fun NetworkSourcesScreen(
                     navController.navigate("browse/music?sourceId=$sourceId&sourceName=$sourceName")
                 },
                 onAddClick = {
-                    navController.navigate("add_smb")
+                    navController.navigate("add_network_source")
                 },
                 onSyncClick = {
                     viewModel.requestSyncFromPhone()
+                },
+                onDeleteClick = { source ->
+                    pendingDeleteSource = source
                 }
             )
         }
@@ -72,7 +84,7 @@ fun NetworkSourcesScreen(
             EmptyContent(
                 syncState = syncState,
                 onAddClick = {
-                    navController.navigate("add_smb")
+                    navController.navigate("add_network_source")
                 },
                 onSyncClick = {
                     viewModel.requestSyncFromPhone()
@@ -84,10 +96,40 @@ fun NetworkSourcesScreen(
                 message = state.message,
                 onRetry = {
                     Timber.d("Retrying network sources load")
-                    viewModel.loadSources()
+                    viewModel.retryLoad()
                 }
             )
         }
+    }
+
+    // Delete confirmation dialog
+    pendingDeleteSource?.let { source ->
+        Alert(
+            title = {
+                Text(
+                    text = stringResource(R.string.delete_source_confirm, source.name),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.title3
+                )
+            },
+            negativeButton = {
+                Chip(
+                    onClick = { pendingDeleteSource = null },
+                    label = { Text(stringResource(R.string.cancel)) },
+                    colors = ChipDefaults.secondaryChipColors()
+                )
+            },
+            positiveButton = {
+                Chip(
+                    onClick = {
+                        viewModel.deleteSource(source.id)
+                        pendingDeleteSource = null
+                    },
+                    label = { Text(stringResource(R.string.delete)) },
+                    colors = ChipDefaults.primaryChipColors()
+                )
+            }
+        )
     }
 }
 
@@ -98,7 +140,7 @@ private fun LoadingContent() {
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
         Text(
-            text = "⏳ Loading...",
+            text = stringResource(R.string.loading),
             style = MaterialTheme.typography.body2,
             textAlign = TextAlign.Center
         )
@@ -111,7 +153,8 @@ private fun SourcesListContent(
     syncState: SyncState,
     onSourceClick: (String, String) -> Unit,
     onAddClick: () -> Unit,
-    onSyncClick: () -> Unit
+    onSyncClick: () -> Unit,
+    onDeleteClick: (SourceItem) -> Unit = {}
 ) {
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -133,7 +176,17 @@ private fun SourcesListContent(
                 label = {
                     Text(text = "${source.name}\n${source.server}")
                 },
-                modifier = Modifier.fillMaxWidth(),
+                secondaryLabel = {
+                    Text(
+                        text = stringResource(R.string.hold_to_delete),
+                        style = MaterialTheme.typography.caption2
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(source.id) {
+                        detectTapGestures(onLongPress = { onDeleteClick(source) })
+                    },
                 colors = ChipDefaults.primaryChipColors()
             )
         }
@@ -146,7 +199,7 @@ private fun SourcesListContent(
             Chip(
                 onClick = onAddClick,
                 label = {
-                    Text(text = stringResource(R.string.add_smb_connection))
+                    Text(text = stringResource(R.string.add_network_source))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.secondaryChipColors()
@@ -189,7 +242,7 @@ private fun EmptyContent(
 
         item {
             Text(
-                text = stringResource(R.string.wear_no_sources),
+                text = stringResource(R.string.no_network_sources),
                 style = MaterialTheme.typography.body2,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -206,7 +259,7 @@ private fun EmptyContent(
             Chip(
                 onClick = onAddClick,
                 label = {
-                    Text(text = stringResource(R.string.add_smb_connection))
+                    Text(text = stringResource(R.string.add_network_source))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.secondaryChipColors()
@@ -257,7 +310,7 @@ private fun ErrorContent(
     ) {
         item {
             Text(
-                text = "Error",
+                text = stringResource(R.string.error),
                 style = MaterialTheme.typography.title2,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -282,7 +335,7 @@ private fun ErrorContent(
             Chip(
                 onClick = onRetry,
                 label = {
-                    Text(text = "Retry")
+                    Text(text = stringResource(R.string.retry))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.secondaryChipColors()

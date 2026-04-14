@@ -11,6 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -41,15 +42,42 @@ class NetworkSourcesViewModel @Inject constructor(
 
     init {
         Timber.d("NetworkSourcesViewModel initialized")
-        loadSources()
+        observeSources()
         observeSyncResults()
+    }
+
+    private fun observeSources() {
+        viewModelScope.launch {
+            networkSourceRepository.observeSources()
+                .catch { e ->
+                    Timber.e(e, "Error observing network sources")
+                    _uiState.value = NetworkSourcesUiState.Error(
+                        message = e.message ?: "Failed to load network sources"
+                    )
+                }
+                .collect { allSources ->
+                    _uiState.value = if (allSources.isEmpty()) {
+                        Timber.d("No network sources found")
+                        NetworkSourcesUiState.Empty
+                    } else {
+                        val sourceItems = allSources.map { source ->
+                            SourceItem(
+                                id = source.id,
+                                name = source.name,
+                                server = source.server
+                            )
+                        }
+                        Timber.d("Observed ${sourceItems.size} network sources")
+                        NetworkSourcesUiState.Success(sourceItems)
+                    }
+                }
+        }
     }
 
     private fun observeSyncResults() {
         viewModelScope.launch {
             com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents.importResultFlow.collect { result ->
                 _syncState.value = SyncState.Success(result.added, result.updated)
-                loadSources()
             }
         }
     }
@@ -80,7 +108,7 @@ class NetworkSourcesViewModel @Inject constructor(
         _syncState.value = SyncState.Idle
     }
 
-    fun loadSources() {
+    fun retryLoad() {
         viewModelScope.launch {
             _uiState.value = NetworkSourcesUiState.Loading
             
@@ -106,6 +134,17 @@ class NetworkSourcesViewModel @Inject constructor(
                 _uiState.value = NetworkSourcesUiState.Error(
                     message = e.message ?: "Failed to load network sources"
                 )
+            }
+        }
+    }
+
+    fun deleteSource(id: String) {
+        viewModelScope.launch {
+            try {
+                networkSourceRepository.deleteSource(id)
+                Timber.d("Deleted source $id")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to delete source $id")
             }
         }
     }

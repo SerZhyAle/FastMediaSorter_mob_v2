@@ -178,7 +178,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Color modes (Normal, Night, Sepia)**: Reduce eye strain and adapt to your environment's lighting. Switch to Night mode in dark rooms or choose Sepia for a warmer, paper-like reading experience.
 - **Zoom**: Magnify documents to comfortably inspect fine print, detailed diagrams, or high-resolution images. Standard two-finger pinch gestures adjust the zoom level precisely.
 - **OCR + Translation (Google Lens style overlay)**: Read foreign-language documents without constantly switching to a dictionary app. The app recognizes the text on the page and neatly overlays the translation directly on top of the original words.
-- **Text selection mode**: Tap the "T" button in the PDF controls bar to extract the current page's text (via OCR on most devices; natively on Android 15+) into a selectable overlay. Long-press any word to get selection handles, then choose **Translate** (sends only your selection to the translator) or **Search in Google** from the floating action menu.
+- **Text selection mode**: Tap the "T" button in the PDF controls bar to extract the current page's text (via OCR on most devices; natively on Android 15+) into a selectable overlay. Long-press any word to get selection handles, then choose **Translate** (sends only your selection to the translator), **Read Aloud** (speaks the selected fragment via TTS), or **Search in Google** from the floating action menu.
+- **Read Aloud (TTS)**: Tap Read Aloud in the command panel to have the current PDF page spoken through the system text-to-speech engine. Works natively on Android 15+ (no OCR delay) and falls back to ML Kit OCR on earlier versions. TTS pauses automatically when you navigate to another page.
 - **Large PDF thumbnail support for network files**: Identify your PDFs by their cover before fully downloading them from your remote server or cloud. This optional setting avoids unnecessary network usage when looking for a specific document.
 
 
@@ -195,7 +196,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Horizontal margins**: Give your text proper bordering. Adjust horizontal margins natively to bring text closer to the center, heavily improving readability on ultra-wide devices and tablets.
 - **Position persistence**: The app precisely saves your exact scroll location and last read chapter, guaranteeing your book opens strictly where you abandoned it last time.
 - **In-place translation**: Break language barriers natively. Select the text of a foreign EPUB chapter and have it translated seamlessly directly on your screen.
-- **Selection action menu**: Long-press any word in an EPUB chapter to reveal the standard selection handles. The floating action menu includes **Translate** (sends the selected fragment to the translator) and **Search in Google** alongside the platform's built-in Copy / Share / Select All items.
+- **Selection action menu**: Long-press any word in an EPUB chapter to reveal the standard selection handles. The floating action menu includes **Translate** (sends the selected fragment to the translator), **Read Aloud** (speaks the selected fragment via TTS), and **Search in Google** alongside the platform's built-in Copy / Share / Select All items.
+- **Read Aloud (TTS)**: Tap Read Aloud in the command panel to hear the entire current chapter spoken by the system text-to-speech engine. TTS pauses automatically when you move to another chapter.
 
 
 ## 12. Text Viewer / Editor
@@ -309,6 +311,9 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Tailored setting configuration**: Regulate the companion strictly. Access deeply localized setting panels native to the smartwatch application enforcing discrete behavior distinct from the primary Android phone.
 - **Appropriate permission flows**: Handle security protocols correctly natively. Ensure all deep file and network capability permissions orchestrate gracefully, clearly querying the exact permission dialogues over the wrist interface correctly.
 - **One-tap network source sync**: Push all configured SMB/FTP/SFTP sources from your phone to your watch in a single tap via Wearable Data Layer. The watch displays an animated transfer screen and vibrates on completion with a detailed summary (added/updated counts).
+- **On-watch source management**: Add SMB, FTP, and SFTP sources directly on the watch with a protocol-aware setup flow, and remove misconfigured sources from the watch list with a long press and confirmation dialog.
+- **Polished on-watch controls and localization**: The watch companion now uses localized loading, empty-state, error, and retry labels, replaces emoji-only home shortcuts with native icons, and provides an on-watch slideshow interval stepper for quick tuning.
+- **Reactive source list refresh**: Network sources on the watch now refresh automatically after sync, import, and delete operations, and the error screen retries in place instead of forcing navigation away.
 
 
 ## 21. Background & System Services

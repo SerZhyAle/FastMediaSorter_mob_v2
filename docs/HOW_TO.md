@@ -148,7 +148,7 @@ If a feature is marked with "✗", you can download the **Standard** flavor to a
 1. **Tap "+" button** on main screen
 2. Select **"Cloud Storage"**
 3. Select provider: **Google Drive**, **OneDrive**, or **Dropbox**
-4. Tap **"Sign in..."** button
+4. Tap **"Sign in.."** button
 5. Follow the browser/app authentication flow
 6. Grant required permissions
 7. **Select folders** to sync
@@ -181,7 +181,7 @@ When you add a new network resource, the app automatically runs a speed test in 
 2. Edit a network resource (pencil icon)
 3. Scroll down to the bottom
 4. Tap **"Speed"** button
-5. Wait ~15 seconds for "Analyzing speed..."
+5. Wait ~15 seconds for "Analyzing speed.."
 6. See results:
    - **Read Speed (Mbps)**
    - **Write Speed (Mbps)**
@@ -522,7 +522,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 1. **Open an EPUB file** from the file list
 2. **Tap screen** to toggle command panel
 3. **Use bottom controls:**
-   - `Previous` / `Next`: navigate chapters
+   - `Previous` / `next`: navigate chapters
    - `- A` / `+ A`: decrease/increase font size
    - `Search` (🔍): search text
    - `TOC` (📋): open table of contents

@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Dialog
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.View
+import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
@@ -558,7 +560,12 @@ class FileInfoDialog(
             binding.tvGpsLocation.setOnClickListener {
                 val uri = "https://www.google.com/maps?q=${details.latitude},${details.longitude}"
                 val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri))
-                context.startActivity(intent)
+                try {
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    timber.log.Timber.w(e, "FileInfoDialog: no maps app available")
+                    Toast.makeText(context, context.getString(R.string.no_maps_app_available), Toast.LENGTH_SHORT).show()
+                }
             }
         }
         

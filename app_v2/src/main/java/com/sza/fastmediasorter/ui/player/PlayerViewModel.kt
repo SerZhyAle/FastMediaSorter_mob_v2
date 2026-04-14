@@ -64,6 +64,7 @@ class PlayerViewModel @Inject constructor(
         val audioBackgroundPhotosResourceId: String? = null,
         val enablePersistentAudioPlayback: Boolean = false,
         val backgroundAudioExitBehavior: BackgroundAudioExitBehavior = BackgroundAudioExitBehavior.ASK,
+        val showNowPlayingPanel: Boolean = false,
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = true,
@@ -192,7 +193,8 @@ class PlayerViewModel @Inject constructor(
                             enablePhotosDuringAudio = settings.enablePhotosDuringAudio,
                             audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId,
                             enablePersistentAudioPlayback = settings.enablePersistentAudioPlayback,
-                            backgroundAudioExitBehavior = settings.backgroundAudioExitBehavior
+                            backgroundAudioExitBehavior = settings.backgroundAudioExitBehavior,
+                            showNowPlayingPanel = settings.showNowPlayingPanel
                         )
                     }
                 }

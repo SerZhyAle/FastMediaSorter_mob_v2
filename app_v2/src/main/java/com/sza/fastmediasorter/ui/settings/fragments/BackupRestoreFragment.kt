@@ -101,7 +101,16 @@ class BackupRestoreFragment : Fragment() {
             viewModel.exportFavorites()
         }
         binding.btnImportFavorites.setOnClickListener {
-            importFileLauncher.launch(arrayOf("application/json"))
+            try {
+                importFileLauncher.launch(arrayOf("application/json"))
+            } catch (e: android.content.ActivityNotFoundException) {
+                Timber.w(e, "BackupRestoreFragment: file picker not available")
+                com.google.android.material.snackbar.Snackbar.make(
+                    binding.root,
+                    R.string.save_logs_not_supported,
+                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                ).show()
+            }
         }
     }
 

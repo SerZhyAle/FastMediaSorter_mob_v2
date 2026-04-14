@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.animation.ValueAnimator
+import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -10,6 +11,7 @@ import android.graphics.Path
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -44,7 +46,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         // ValueAnimator fires ~60fps; 0.003 per tick gives ~0.18/s drift.
         private const val TIME_INCREMENT = 0.003f
 
-        // Randomization ranges
+        // Randomization ranges — normal devices
         private const val WAVE_COUNT_MIN    = 5
         private const val WAVE_COUNT_MAX    = 12
         private const val STEP_PX_BASE      = 20f   // ±20 % → 16..24 px
@@ -64,6 +66,27 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
         private const val PARTICLE_RANDOM_SPREAD = 0.28f
         private const val COUNTER_DRIFT_CHANCE = 0.18f
+
+        // Reduced limits for low-RAM / weak devices
+        private const val WAVE_COUNT_MIN_LOW    = 3
+        private const val WAVE_COUNT_MAX_LOW    = 6
+        private const val PARTICLE_MIN_LOW      = 6
+        private const val PARTICLE_MAX_LOW      = 18
+    }
+
+    /**
+     * True if [startAnimation] was called while the View had no size yet (layout pending).
+     * The deferred start fires in [onSizeChanged] once real dimensions are known.
+     */
+    private var pendingStart = false
+
+    /** True if ActivityManager reports this as a low-RAM device. Set once in init{}. */
+    private val isLowRam: Boolean
+
+    init {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        isLowRam = am?.isLowRamDevice == true
+        if (isLowRam) Timber.d("AudioWaveParticleView: low-RAM device detected — reduced object counts")
     }
 
     private var time = 0f
@@ -169,6 +192,13 @@ class AudioWaveParticleView @JvmOverloads constructor(
         offBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         offCanvas = Canvas(offBitmap!!).also { it.drawColor(Color.BLACK) }
         initParticles(w, h)
+        // Deferred start: startAnimation() was called before layout completed
+        if (pendingStart) {
+            pendingStart = false
+            Timber.d("AudioWaveParticleView: onSizeChanged — firing deferred startAnimation")
+            wavePaint.strokeWidth = waveStrokeWidth
+            animator.start()
+        }
     }
 
     /**
@@ -176,7 +206,12 @@ class AudioWaveParticleView @JvmOverloads constructor(
      * Called once at the start of each fresh playback session (not on resume-from-pause).
      */
     private fun randomizeParams() {
-        waveCount         = Random.nextInt(WAVE_COUNT_MIN, WAVE_COUNT_MAX + 1)
+        val waveMin = if (isLowRam) WAVE_COUNT_MIN_LOW else WAVE_COUNT_MIN
+        val waveMax = if (isLowRam) WAVE_COUNT_MAX_LOW else WAVE_COUNT_MAX
+        val pMin    = if (isLowRam) PARTICLE_MIN_LOW   else PARTICLE_MIN
+        val pMax    = if (isLowRam) PARTICLE_MAX_LOW   else PARTICLE_MAX
+
+        waveCount         = Random.nextInt(waveMin, waveMax + 1)
         stepPx            = STEP_PX_BASE * (0.8f + Random.nextFloat() * 0.4f)   // ±20 %
         waveStrokeWidth   = STROKE_MIN + Random.nextFloat() * (STROKE_MAX - STROKE_MIN)
         baseWaveHue       = (Random.nextFloat() * 360f - HUE_SPREAD_DEG / 2f + 360f) % 360f
@@ -184,7 +219,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         waveAmplitude     = AMPLITUDE_MIN + Random.nextFloat() * (AMPLITUDE_MAX - AMPLITUDE_MIN)
         particleSpeedMult = SPEED_MULT_MIN + Random.nextFloat() * (SPEED_MULT_MAX - SPEED_MULT_MIN)
         particleHueBase   = Random.nextFloat() * 360f
-        particleCountCurrent = Random.nextInt(PARTICLE_MIN, PARTICLE_MAX + 1)
+        particleCountCurrent = Random.nextInt(pMin, pMax + 1)
         waveDirectionAngleDeg = Random.nextFloat() * 360f
 
         val angleRad = Math.toRadians(waveDirectionAngleDeg.toDouble())
@@ -228,12 +263,22 @@ class AudioWaveParticleView @JvmOverloads constructor(
 
     fun startAnimation() {
         when {
-            animator.isPaused -> animator.resume()
+            animator.isPaused -> {
+                pendingStart = false
+                animator.resume()
+            }
             !animator.isRunning -> {
                 randomizeParams()
                 startupFrameCount = 0
-                val w = width.takeIf  { it > 0 } ?: return
-                val h = height.takeIf { it > 0 } ?: return
+                val w = width
+                val h = height
+                if (w <= 0 || h <= 0) {
+                    // Layout not done yet — defer until onSizeChanged() fires
+                    Timber.d("AudioWaveParticleView: startAnimation() deferred — view has no size yet")
+                    pendingStart = true
+                    return
+                }
+                pendingStart = false
                 initParticles(w, h)
                 wavePaint.strokeWidth = waveStrokeWidth
                 animator.start()
@@ -247,6 +292,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
     }
 
     fun stopAndReset() {
+        pendingStart = false
         animator.cancel()
         time = 0f
         startupFrameCount = 0

@@ -428,7 +428,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     // Toggle button visibility logic:
                     // - Show when grid mode is active (to allow returning to list view)
                     // - OR when > 10 resources (to allow switching to grid view)
-                    binding.btnToggleView.isVisible = state.isResourceGridMode || state.resources.size > 10
+                    // - OR always in landscape (grid vs compact-icon modes look meaningfully different)
+                    val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                    binding.btnToggleView.isVisible = state.isResourceGridMode || state.resources.size > 10 || isLandscape
                     
                     // Enable Play button if any resources exist (auto-selects last used or first)
                     binding.btnStartPlayer.isEnabled = state.resources.isNotEmpty()

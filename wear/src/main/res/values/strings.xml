@@ -59,4 +59,51 @@
     <string name="wear_sync_complete">Sync Complete</string>
     <string name="wear_sync_stats">Added: %1$d  Updated: %2$d</string>
     <string name="wear_sync_browse_now">Browse Now</string>
+
+    <!-- Phase 2: Source CRUD -->
+    <string name="delete_source">Delete Source</string>
+    <string name="delete_source_confirm">Delete \u201c%s\u201d?</string>
+    <string name="protocol">Protocol</string>
+    <string name="port">Port</string>
+    <string name="domain">Domain</string>
+    <string name="use_ssh_key">Use SSH Key</string>
+    <string name="ssh_private_key">Private Key</string>
+    <string name="add_network_source">Add Source</string>
+    <string name="ftp_connection">FTP</string>
+    <string name="sftp_connection">SFTP</string>
+    <string name="connection_test_not_supported">Test not available for this protocol</string>
+    <string name="smb_connection">SMB</string>
+    <string name="name_label">Name</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="hold_to_delete">Hold to delete</string>
+
+    <!-- Phase 3: UX Polish -->
+    <string name="loading">Loading…</string>
+    <string name="no_network_sources">No network sources. Add one or sync from phone.</string>
+    <string name="error">Error</string>
+    <string name="retry">Retry</string>
+    <string name="slideshow_interval_decrease">Decrease interval</string>
+    <string name="slideshow_interval_increase">Increase interval</string>
+    <string name="slideshow_interval_label">Interval: %ds</string>
+    <string name="tap_to_edit">Tap to edit</string>
+    <string name="required_value">(required)</string>
+    <string name="optional_value">(optional)</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="password_masked">••••</string>
+    <string name="ssh_key_configured">Configured</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="testing_connection">Testing…</string>
+    <string name="connection_successful">Connection successful!</string>
+    <string name="connection_failed_with_reason">Connection failed: %s</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="saving_connection">Saving…</string>
+    <string name="connection_saved">Connection saved!</string>
+    <string name="failed_to_save_with_reason">Failed to save: %s</string>
+    <string name="server_required">Server required</string>
+    <string name="port_required">Port required</string>
+    <string name="server_and_share_required">Server and share name required</string>
+    <string name="ssh_key_required">SSH private key required</string>
 </resources>

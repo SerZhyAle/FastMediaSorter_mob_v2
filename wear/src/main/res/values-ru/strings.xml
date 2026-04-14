@@ -59,4 +59,51 @@
     <string name="wear_sync_complete">Синхронизация завершена</string>
     <string name="wear_sync_stats">Добавлено: %1$d  Обновлено: %2$d</string>
     <string name="wear_sync_browse_now">Открыть</string>
+
+    <!-- Phase 2: Source CRUD -->
+    <string name="delete_source">Удалить источник</string>
+    <string name="delete_source_confirm">Удалить \u00ab%s\u00bb?</string>
+    <string name="protocol">Протокол</string>
+    <string name="port">Порт</string>
+    <string name="domain">Домен</string>
+    <string name="use_ssh_key">Использовать SSH-ключ</string>
+    <string name="ssh_private_key">Приватный ключ</string>
+    <string name="add_network_source">Добавить источник</string>
+    <string name="ftp_connection">FTP</string>
+    <string name="sftp_connection">SFTP</string>
+    <string name="connection_test_not_supported">Проверка недоступна для этого протокола</string>
+    <string name="smb_connection">SMB</string>
+    <string name="name_label">Имя</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
+    <string name="hold_to_delete">Удерж. для удаления</string>
+
+    <!-- Phase 3: UX Polish -->
+    <string name="loading">Загрузка…</string>
+    <string name="no_network_sources">Нет источников. Добавьте или синхронизируйте с телефоном.</string>
+    <string name="error">Ошибка</string>
+    <string name="retry">Повтор</string>
+    <string name="slideshow_interval_decrease">Уменьшить интервал</string>
+    <string name="slideshow_interval_increase">Увеличить интервал</string>
+    <string name="slideshow_interval_label">Интервал: %dс</string>
+    <string name="tap_to_edit">Нажмите для редактирования</string>
+    <string name="required_value">(обязательно)</string>
+    <string name="optional_value">(необязательно)</string>
+    <string name="enabled">Вкл.</string>
+    <string name="disabled">Выкл.</string>
+    <string name="password_masked">••••</string>
+    <string name="ssh_key_configured">Настроен</string>
+    <string name="show_password">Показать пароль</string>
+    <string name="hide_password">Скрыть пароль</string>
+    <string name="testing_connection">Проверка…</string>
+    <string name="connection_successful">Подключение успешно!</string>
+    <string name="connection_failed_with_reason">Ошибка подключения: %s</string>
+    <string name="unknown_error">Неизвестная ошибка</string>
+    <string name="saving_connection">Сохранение…</string>
+    <string name="connection_saved">Источник сохранён!</string>
+    <string name="failed_to_save_with_reason">Ошибка сохранения: %s</string>
+    <string name="server_required">Требуется сервер</string>
+    <string name="port_required">Требуется порт</string>
+    <string name="server_and_share_required">Требуются сервер и имя шаринга</string>
+    <string name="ssh_key_required">Требуется приватный SSH-ключ</string>
 </resources>

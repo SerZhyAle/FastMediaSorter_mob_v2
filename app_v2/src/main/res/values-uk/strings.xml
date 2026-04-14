@@ -102,6 +102,7 @@
     <string name="save_debug_logs">Зберегти логи</string>
     <string name="save_logs_success">Логи збережено на пристрій</string>
     <string name="save_logs_failed">Не вдалося зберегти логи</string>
+    <string name="save_logs_not_supported">Ваш пристрій не підтримує діалог вибору файлу.\n\nНадіслати архів логів через діалог «Поділитися»?</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопійовано %1$d файл(ів)</string>
@@ -1732,6 +1733,8 @@
     <string name="audio_empty_state_visualization">Візуалізація (MP4)</string>
     <string name="audio_track">Аудіодоріжка</string>
     <string name="background_audio_setting_title">Фонове відтворення</string>
+    <string name="show_now_playing_panel_title">Показувати панель плеєра</string>
+    <string name="show_now_playing_panel_summary">Показувати міні-панель плеєра при перегляді зображень та інших файлів</string>
     <string name="background_audio_exit_title">Фонове відтворення</string>
     <string name="background_audio_exit_message">Музика продовжує грати у фоні. Що зробити?</string>
     <string name="background_audio_exit_stop">Зупинити</string>
@@ -2145,6 +2148,8 @@
     <string name="scheduled_ops_battery_dialog_btn_open">Перейти до налаштувань</string>
     <string name="scheduled_ops_battery_dialog_btn_skip">Пропустити</string>
     <string name="scheduled_ops_status_error_tooltip">Останній запуск завершився з помилкою. Відкрийте журнал для деталей.</string>
+    <string name="scheduled_ops_error_source_required">Оберіть джерело</string>
+    <string name="scheduled_ops_error_target_required">Оберіть отримувача</string>
     <string name="scheduled_op_enabled_toggle">Увімкнути/вимкнути заплановану операцію</string>
     <string name="scheduled_op_type_label">Тип операції</string>
     <string name="scheduled_op_schedule_label">Розклад</string>
@@ -2230,7 +2235,7 @@
     <string name="duplicate_wasted_bytes">Витрачено даремно: %1$s</string>
     <string name="duplicate_scan_network_warning">Сканування мережі може зайняти багато часу та трафіку. Продовжити?</string>
     <string name="duplicate_scan_notif_title">Пошук дублікатів</string>
-    <string name="duplicate_scan_notif_running">Виконується пошук дублікатів...</string>
+    <string name="duplicate_scan_notif_running">Виконується пошук дублікатів..</string>
     <string name="duplicate_scan_notif_channel_name">Сканер дублікатів</string>
     <string name="action_create_folder">Створити папку</string>
     <string name="menu_automate_source">Автоматизація..</string>
@@ -2282,9 +2287,11 @@
     <!-- Document text selection action menu -->
     <string name="action_translate_selection">Перекласти</string>
     <string name="action_search_google">Шукати в Google</string>
+    <string name="action_read_aloud_selection">Читати вголос</string>
     <string name="pdf_text_mode_enter">Режим виділення тексту</string>
     <string name="pdf_text_extracting">Витягування тексту…</string>
     <string name="pdf_text_empty">Текст на сторінці не знайдено</string>
+    <string name="epub_text_empty_tts">Текст у розділі не знайдено</string>
 
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear-супутник</string>

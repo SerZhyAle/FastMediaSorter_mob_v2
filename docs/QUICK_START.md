@@ -119,7 +119,7 @@ Settings → Add Folder → **SMB** or **SFTP / FTP**
 Settings → Add Folder → **Cloud Storage**
 
 - Supports: **Google Drive**, **OneDrive**, **Dropbox**
-- Tap "Sign in...", grant permissions, and pick folders.
+- Tap "Sign in..", grant permissions, and pick folders.
 
 ### Favorites System
 

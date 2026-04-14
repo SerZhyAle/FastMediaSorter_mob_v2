@@ -75,7 +75,7 @@ class SendResourcesToWatchUseCase @Inject constructor(
 
         val syncPayload = WearSyncPayload(
             sentAt = System.currentTimeMillis(),
-            phoneName = Build.MODEL,
+            phoneName = Build.MODEL.orEmpty(),
             sources = payloads
         )
         val bytes = gson.toJson(syncPayload).toByteArray(Charsets.UTF_8)

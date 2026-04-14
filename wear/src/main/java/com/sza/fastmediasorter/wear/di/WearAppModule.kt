@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.sza.fastmediasorter.wear.data.network.itunes.ITunesApiService
+import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
+import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
@@ -14,6 +16,7 @@ import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -75,10 +78,14 @@ object WearAppModule {
     
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
+    fun provideGson(): Gson = Gson()
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(gson: Gson): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://itunes.apple.com/")
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
     
@@ -123,10 +130,20 @@ object WearAppModule {
     
     @Provides
     @Singleton
+    fun provideFtpConnectionTest(): FtpConnectionTest = FtpConnectionTest()
+
+    @Provides
+    @Singleton
+    fun provideSftpConnectionTest(): SftpConnectionTest = SftpConnectionTest()
+
+    @Provides
+    @Singleton
     fun provideNetworkSourceRepository(
         @EncryptedPrefs encryptedPrefs: SharedPreferences,
-        smbDataSource: SmbDataSource
+        smbDataSource: SmbDataSource,
+        ftpConnectionTest: FtpConnectionTest,
+        sftpConnectionTest: SftpConnectionTest
     ): NetworkSourceRepository {
-        return NetworkSourceRepositoryImpl(encryptedPrefs, smbDataSource)
+        return NetworkSourceRepositoryImpl(encryptedPrefs, smbDataSource, ftpConnectionTest, sftpConnectionTest)
     }
 }

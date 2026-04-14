@@ -223,7 +223,7 @@ Paste log in response with label: "LOG SCENARIO 4 - MIXED"
 ### ❌ MUST NOT HAPPEN:
 1. **Full reload after Copy** - check log for "reloadFiles" or "loadResource"
 2. **SMB connection blocking** - "connection pool exhausted", "socket timeout"
-3. **Grid cells too narrow** - text truncated with "..." in text-only mode
+3. **Grid cells too narrow** - text truncated with ".." in text-only mode
 4. **Crashes on file operations** - any unhandled exceptions
 
 ### ✅ EXPECTED BEHAVIOR:
@@ -253,7 +253,7 @@ When reviewing logs, look for:
 **CRITICAL ERRORS**:
 - `connection pool exhausted`
 - `socket timeout` (frequent)
-- `NullPointerException` in file operations
+- `nullPointerException` in file operations
 - `Failed to remove files` (after delete/move)
 
 ---

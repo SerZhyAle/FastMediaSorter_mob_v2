@@ -20,6 +20,7 @@ import javax.inject.Inject
  * ViewModel for SMB connection management.
  */
 @HiltViewModel
+@Deprecated("Use AddNetworkSourceViewModel for new code")
 class SmbConnectionViewModel @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     private val smbDataSource: SmbDataSource

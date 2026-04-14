@@ -1,3 +1,5 @@
+https://habr.com/ru/sandbox/280806/
+
 PLATFORM: Habr.com
 URL: https://habr.com/ru/articles/
 SECTION: Хаб «Разработка под Android» + «Хранение данных» + «Файловые системы»

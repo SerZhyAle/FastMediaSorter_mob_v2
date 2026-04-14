@@ -4,6 +4,15 @@
 
 ---
 
+## Author Style (MANDATORY)
+
+Applies to ALL text output — docs, UI strings (`strings.xml`), chat responses, specs:
+
+1. **Ellipsis**: Use `..` (two dots) — NEVER `...` (three dots).
+2. **Ё/ё**: Always use `ё`/`Ё` in Russian text where grammatically correct — NEVER substitute with `е`/`Е`. Common cases: `всё`, `ещё`, `чёрный`, `объём`, `тёмный`, `учётный`, `надёжный`, `удалённый`, `лёгкий`, `жёсткий`. When editing Russian text — read and fix manually; do NOT use blind script replacement.
+
+---
+
 ## Skill Rules (MANDATORY — Auto-invoke on trigger)
 
 These prompt files MUST be used automatically — load them via the `/` slash command before proceeding:

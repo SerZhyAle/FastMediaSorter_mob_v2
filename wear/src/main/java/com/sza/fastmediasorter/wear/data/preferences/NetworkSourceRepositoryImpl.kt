@@ -3,10 +3,15 @@ package com.sza.fastmediasorter.wear.data.preferences
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
+import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -20,30 +25,30 @@ import timber.log.Timber
  */
 class NetworkSourceRepositoryImpl(
     private val encryptedPrefs: SharedPreferences,
-    private val smbDataSource: SmbDataSource
+    private val smbDataSource: SmbDataSource,
+    private val ftpConnectionTest: FtpConnectionTest,
+    private val sftpConnectionTest: SftpConnectionTest
 ) : NetworkSourceRepository {
     
     private val gson = Gson()
     private val sourcesKey = "network_sources"
+    private val sourcesFlow = MutableStateFlow(readSourcesFromPrefs())
     
     override suspend fun getAllSources(): List<NetworkSource> = withContext(Dispatchers.IO) {
-        try {
-            val json = encryptedPrefs.getString(sourcesKey, null) ?: return@withContext emptyList()
-            val type = TypeToken.getParameterized(List::class.java, NetworkSource::class.java).type
-            gson.fromJson<List<NetworkSource>>(json, type)
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to load network sources")
-            emptyList()
-        }
+        val sources = readSourcesFromPrefs()
+        sourcesFlow.value = sources
+        sources
     }
+
+    override fun observeSources(): Flow<List<NetworkSource>> = sourcesFlow.asStateFlow()
     
     override suspend fun getSourceById(id: String): NetworkSource? = withContext(Dispatchers.IO) {
-        getAllSources().firstOrNull { it.id == id }
+        sourcesFlow.value.firstOrNull { it.id == id } ?: readSourcesFromPrefs().firstOrNull { it.id == id }
     }
     
     override suspend fun addSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
-            val sources = getAllSources().toMutableList()
+            val sources = sourcesFlow.value.toMutableList()
             sources.add(source)
             saveSources(sources)
             Timber.d("Added network source: ${source.name}")
@@ -55,7 +60,7 @@ class NetworkSourceRepositoryImpl(
     
     override suspend fun updateSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
-            val sources = getAllSources().toMutableList()
+            val sources = sourcesFlow.value.toMutableList()
             val index = sources.indexOfFirst { it.id == source.id }
             if (index != -1) {
                 sources[index] = source
@@ -72,7 +77,7 @@ class NetworkSourceRepositoryImpl(
     
     override suspend fun upsertSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
-            val sources = getAllSources().toMutableList()
+            val sources = sourcesFlow.value.toMutableList()
             val index = sources.indexOfFirst { existing ->
                 existing.type == source.type &&
                 existing.server == source.server &&
@@ -95,7 +100,7 @@ class NetworkSourceRepositoryImpl(
 
     override suspend fun deleteSource(id: String) = withContext(Dispatchers.IO) {
         try {
-            val sources = getAllSources().toMutableList()
+            val sources = sourcesFlow.value.toMutableList()
             sources.removeAll { it.id == id }
             saveSources(sources)
             Timber.d("Deleted network source: $id")
@@ -118,6 +123,8 @@ class NetworkSourceRepositoryImpl(
                         Result.failure(result.exceptionOrNull() ?: Exception("Connection failed"))
                     }
                 }
+                NetworkSourceType.FTP -> ftpConnectionTest.testFtp(source)
+                NetworkSourceType.SFTP -> sftpConnectionTest.testSftp(source)
                 else -> Result.failure(UnsupportedOperationException("Source type not supported: ${source.type}"))
             }
         } catch (e: Exception) {
@@ -129,5 +136,17 @@ class NetworkSourceRepositoryImpl(
     private fun saveSources(sources: List<NetworkSource>) {
         val json = gson.toJson(sources)
         encryptedPrefs.edit().putString(sourcesKey, json).apply()
+        sourcesFlow.value = sources
+    }
+
+    private fun readSourcesFromPrefs(): List<NetworkSource> {
+        return try {
+            val json = encryptedPrefs.getString(sourcesKey, null) ?: return emptyList()
+            val type = TypeToken.getParameterized(List::class.java, NetworkSource::class.java).type
+            gson.fromJson<List<NetworkSource>>(json, type) ?: emptyList()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load network sources")
+            emptyList()
+        }
     }
 }

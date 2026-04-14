@@ -159,6 +159,44 @@ class AudioServiceController(
     }
 
     /**
+     * Connect to AudioPlaybackService to read current playback state without starting playback.
+     * Safe to call multiple times — immediately invokes [onResult] if already connected.
+     *
+     * Used by NowPlayingManager to populate the mini bar when the activity opens on a
+     * non-audio file (e.g. photo/video) while background audio is still running.
+     *
+     * @param onResult Invoked with the connected Player, or null if the service could not
+     *   be reached (died between [AudioPlaybackService.isRunning] check and connect attempt).
+     *   May be called on a background thread — wrap UI ops in Handler(Main).
+     */
+    fun connectForStatus(onResult: (player: Player?) -> Unit) {
+        if (isConnected) {
+            onResult(mediaController)
+            return
+        }
+
+        Timber.d("AudioServiceController: connectForStatus — connecting")
+        val sessionToken = SessionToken(
+            context,
+            ComponentName(context, AudioPlaybackService::class.java)
+        )
+        val future = MediaController.Builder(context, sessionToken).buildAsync()
+        controllerFuture = future
+
+        future.addListener({
+            try {
+                val controller = future.get()
+                mediaController = controller
+                Timber.d("AudioServiceController: connectForStatus — connected")
+                onResult(controller)
+            } catch (e: Exception) {
+                Timber.w(e, "AudioServiceController: connectForStatus — failed (service may have died)")
+                onResult(null)
+            }
+        }, MoreExecutors.directExecutor())
+    }
+
+    /**
      * Disconnect from the service and release resources.
      * Must be called when the Activity is destroyed.
      */

@@ -67,6 +67,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // Key string "enable_background_audio" preserved for backward compatibility with existing user settings.
         private val KEY_ENABLE_BACKGROUND_AUDIO = booleanPreferencesKey("enable_background_audio")
         private val KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR = stringPreferencesKey("background_audio_exit_behavior")
+        private val KEY_SHOW_NOW_PLAYING_PANEL = booleanPreferencesKey("show_now_playing_panel")
         private val KEY_AUDIO_EMPTY_STATE_MODE = stringPreferencesKey("audio_empty_state_mode")
         private val KEY_SUPPORT_TEXT = booleanPreferencesKey("support_text")
         private val KEY_SUPPORT_PDF = booleanPreferencesKey("support_pdf")
@@ -248,6 +249,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     backgroundAudioExitBehavior = preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR]
                         ?.let { runCatching { com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.valueOf(it) }.getOrNull() }
                         ?: com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK,
+                    showNowPlayingPanel = preferences[KEY_SHOW_NOW_PLAYING_PANEL] ?: false,
                     audioEmptyStateMode = preferences[KEY_AUDIO_EMPTY_STATE_MODE] ?: "CANVAS_WAVES",
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
@@ -427,6 +429,7 @@ class SettingsRepositoryImpl @Inject constructor(
             }
             preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enablePersistentAudioPlayback
             preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR] = settings.backgroundAudioExitBehavior.name
+            preferences[KEY_SHOW_NOW_PLAYING_PANEL] = settings.showNowPlayingPanel
             preferences[KEY_AUDIO_EMPTY_STATE_MODE] = settings.audioEmptyStateMode
             preferences[KEY_SUPPORT_TEXT] = settings.supportText
             preferences[KEY_SUPPORT_PDF] = settings.supportPdf

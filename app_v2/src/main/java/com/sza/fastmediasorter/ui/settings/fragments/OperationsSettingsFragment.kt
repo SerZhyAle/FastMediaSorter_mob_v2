@@ -76,7 +76,6 @@ class OperationsSettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateScheduledNotificationPermissionButton()
-        checkAndOpenAutomateDialog()
     }
 
     /**
@@ -294,10 +293,11 @@ class OperationsSettingsFragment : Fragment() {
                     }
                 }
 
-                // Keep resources StateFlow warm so viewModel.resources.value is populated
-                // when the user opens the scheduled operation dialog.
+                // Keep resources StateFlow warm and trigger automate dialog once resources arrive.
                 launch {
-                    viewModel.resources.collect { /* no UI update needed here */ }
+                    viewModel.resources.collect { resources ->
+                        if (resources.isNotEmpty()) checkAndOpenAutomateDialog()
+                    }
                 }
                 
                 // Initial check for resources availability

@@ -1,16 +1,14 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.google.android.gms.wearable.Node
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
-import com.google.android.gms.wearable.Node
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -19,26 +17,21 @@ import org.junit.Test
 
 class SendResourcesToWatchUseCaseTest {
 
-    private val resourceRepository: ResourceRepository = mockk()
-    private val credentialsRepository: NetworkCredentialsRepository = mockk()
-    private val wearableRepository: WearableDataLayerRepository = mockk()
+    private lateinit var resourceRepository: FakeResourceRepository
+    private lateinit var credentialsRepository: FakeNetworkCredentialsRepository
+    private lateinit var wearableRepository: FakeWearableDataLayerRepository
     private lateinit var useCase: SendResourcesToWatchUseCase
-
-    private val mockNode: Node = mockk {
-        every { id } returns "node-1"
-        every { displayName } returns "Pixel Watch"
-        every { isNearby } returns true
-    }
 
     @Before
     fun setup() {
+        resourceRepository = FakeResourceRepository()
+        credentialsRepository = FakeNetworkCredentialsRepository()
+        wearableRepository = FakeWearableDataLayerRepository()
         useCase = SendResourcesToWatchUseCase(resourceRepository, credentialsRepository, wearableRepository)
     }
 
     @Test
     fun `returns failure when no nodes connected`() = runTest {
-        coEvery { wearableRepository.getConnectedNodes() } returns emptyList()
-
         val result = useCase()
 
         assertTrue(result.isFailure)
@@ -47,74 +40,64 @@ class SendResourcesToWatchUseCaseTest {
 
     @Test
     fun `sends all SMB FTP SFTP resources and skips other types`() = runTest {
-        val smbResource = makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1")
-        val ftpResource = makeResource(id = 2, type = ResourceType.FTP, credId = "cred-2")
-        val localResource = makeResource(id = 3, type = ResourceType.LOCAL, credId = null)
-
-        coEvery { wearableRepository.getConnectedNodes() } returns listOf(mockNode)
-        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(smbResource, ftpResource, localResource)
-        coEvery { credentialsRepository.getByCredentialId("cred-1") } returns makeCredentials("cred-1", "pass1")
-        coEvery { credentialsRepository.getByCredentialId("cred-2") } returns makeCredentials("cred-2", "pass2")
-        coEvery { wearableRepository.putDataItem(any(), any()) } returns Unit
+        wearableRepository.connectedNodes = listOf(FakeNode())
+        resourceRepository.resources = listOf(
+            makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"),
+            makeResource(id = 2, type = ResourceType.FTP, credId = "cred-2"),
+            makeResource(id = 3, type = ResourceType.LOCAL, credId = null)
+        )
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        credentialsRepository.byCredentialId["cred-2"] = makeCredentials("cred-2", "pass2")
 
         val result = useCase()
 
         assertTrue(result.isSuccess)
         assertEquals(2, result.getOrThrow().sent)
         assertEquals(0, result.getOrThrow().skipped)
-        coVerify(exactly = 1) { wearableRepository.putDataItem(any(), any()) }
+        assertEquals(1, wearableRepository.putCalls.size)
     }
 
     @Test
     fun `skips resource with null credentialsId`() = runTest {
-        val resource = makeResource(id = 1, type = ResourceType.SMB, credId = null)
-
-        coEvery { wearableRepository.getConnectedNodes() } returns listOf(mockNode)
-        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(resource)
-        coEvery { wearableRepository.putDataItem(any(), any()) } returns Unit
+        wearableRepository.connectedNodes = listOf(FakeNode())
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = null))
 
         val result = useCase()
 
         assertTrue(result.isSuccess)
         assertEquals(0, result.getOrThrow().sent)
         assertEquals(1, result.getOrThrow().skipped)
+        assertEquals(1, wearableRepository.putCalls.size)
     }
 
     @Test
     fun `skips resource when credentials not found`() = runTest {
-        val resource = makeResource(id = 1, type = ResourceType.SMB, credId = "missing-cred")
-
-        coEvery { wearableRepository.getConnectedNodes() } returns listOf(mockNode)
-        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(resource)
-        coEvery { credentialsRepository.getByCredentialId("missing-cred") } returns null
-        coEvery { wearableRepository.putDataItem(any(), any()) } returns Unit
+        wearableRepository.connectedNodes = listOf(FakeNode())
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "missing-cred"))
 
         val result = useCase()
 
         assertTrue(result.isSuccess)
         assertEquals(0, result.getOrThrow().sent)
         assertEquals(1, result.getOrThrow().skipped)
+        assertEquals(1, wearableRepository.putCalls.size)
     }
 
     @Test
     fun `skips resource when password decryption failed`() = runTest {
-        val resource = makeResource(id = 1, type = ResourceType.SMB, credId = "cred-bad")
-        // password decryption failure: password="" but encryptedPassword non-empty
-        val entity: NetworkCredentialsEntity = mockk {
-            every { password } returns ""
-            every { encryptedPassword } returns "corrupted-ciphertext"
-            every { server } returns "192.168.1.1"
-            every { port } returns 445
-            every { username } returns "user"
-            every { domain } returns ""
-            every { shareName } returns null
-            every { decryptedSshPrivateKey } returns null
-        }
-
-        coEvery { wearableRepository.getConnectedNodes() } returns listOf(mockNode)
-        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(resource)
-        coEvery { credentialsRepository.getByCredentialId("cred-bad") } returns entity
-        coEvery { wearableRepository.putDataItem(any(), any()) } returns Unit
+        wearableRepository.connectedNodes = listOf(FakeNode())
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-bad"))
+        credentialsRepository.byCredentialId["cred-bad"] = NetworkCredentialsEntity(
+            credentialId = "cred-bad",
+            type = "SMB",
+            server = "192.168.1.1",
+            port = 445,
+            username = "user",
+            encryptedPassword = "broken-ciphertext",
+            domain = "",
+            shareName = null,
+            sshPrivateKey = null
+        )
 
         val result = useCase()
 
@@ -125,27 +108,20 @@ class SendResourcesToWatchUseCaseTest {
 
     @Test
     fun `sends valid payload as JSON bytes`() = runTest {
-        val resource = makeResource(id = 5, type = ResourceType.SMB, credId = "cred-5")
+        wearableRepository.connectedNodes = listOf(FakeNode())
+        resourceRepository.resources = listOf(makeResource(id = 5, type = ResourceType.SMB, credId = "cred-5"))
+        credentialsRepository.byCredentialId["cred-5"] = makeCredentials("cred-5", "secret")
 
-        coEvery { wearableRepository.getConnectedNodes() } returns listOf(mockNode)
-        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(resource)
-        coEvery { credentialsRepository.getByCredentialId("cred-5") } returns makeCredentials("cred-5", "secret")
-        coEvery { wearableRepository.putDataItem(any(), any()) } returns Unit
+        val result = useCase()
 
-        useCase()
-
-        coVerify {
-            wearableRepository.putDataItem(
-                eq("/fms/network_sources/push"),
-                match { bytes ->
-                    val json = bytes.decodeToString()
-                    json.contains("\"sources\"") && json.contains("SMB")
-                }
-            )
-        }
+        assertTrue(result.isSuccess)
+        assertEquals(1, wearableRepository.putCalls.size)
+        val call = wearableRepository.putCalls.single()
+        val json = call.payload.decodeToString()
+        assertEquals("/fms/network_sources/push", call.path)
+        assertTrue(json.contains("\"sources\""))
+        assertTrue(json.contains("SMB"))
     }
-
-    // ----- helpers -----
 
     private fun makeResource(id: Long, type: ResourceType, credId: String?) = MediaResource(
         id = id,
@@ -156,16 +132,78 @@ class SendResourcesToWatchUseCaseTest {
     )
 
     private fun makeCredentials(credId: String, plainPass: String): NetworkCredentialsEntity {
-        val entity: NetworkCredentialsEntity = mockk {
-            every { this@mockk.password } returns plainPass
-            every { encryptedPassword } returns "enc_$plainPass"
-            every { server } returns "192.168.1.1"
-            every { port } returns 445
-            every { username } returns "user"
-            every { domain } returns ""
-            every { shareName } returns null
-            every { decryptedSshPrivateKey } returns null
-        }
-        return entity
+        return NetworkCredentialsEntity(
+            credentialId = credId,
+            type = "SMB",
+            server = "192.168.1.1",
+            port = 445,
+            username = "user",
+            encryptedPassword = "",
+            domain = "",
+            shareName = null,
+            sshPrivateKey = null
+        )
     }
+}
+
+private class FakeNode : Node {
+    override fun getId(): String = "node-1"
+    override fun getDisplayName(): String = "Pixel Watch"
+    override fun isNearby(): Boolean = true
+}
+
+private class FakeWearableDataLayerRepository : WearableDataLayerRepository {
+    var connectedNodes: List<Node> = emptyList()
+    val putCalls = mutableListOf<PutCall>()
+
+    override suspend fun getConnectedNodes(): List<Node> = connectedNodes
+
+    override suspend fun putDataItem(path: String, payload: ByteArray) {
+        putCalls += PutCall(path, payload)
+    }
+
+    override suspend fun sendMessage(nodeId: String, path: String, data: ByteArray) = Unit
+}
+
+private data class PutCall(
+    val path: String,
+    val payload: ByteArray
+)
+
+private class FakeNetworkCredentialsRepository : NetworkCredentialsRepository {
+    val byCredentialId = mutableMapOf<String, NetworkCredentialsEntity>()
+
+    override suspend fun insert(credentials: NetworkCredentialsEntity): Long = 0
+    override suspend fun getById(id: Long): NetworkCredentialsEntity? = byCredentialId.values.firstOrNull { it.id == id }
+    override suspend fun getByCredentialId(credentialId: String): NetworkCredentialsEntity? = byCredentialId[credentialId]
+    override suspend fun getByTypeServerAndPort(type: String, server: String, port: Int): NetworkCredentialsEntity? = null
+    override suspend fun getByServerAndShare(server: String, shareName: String): NetworkCredentialsEntity? = null
+    override suspend fun getCredentialsByHost(host: String): NetworkCredentialsEntity? = null
+    override suspend fun getByTypeAndAccountId(type: String, accountId: String): NetworkCredentialsEntity? = null
+    override suspend fun update(credentials: NetworkCredentialsEntity) = Unit
+    override suspend fun delete(credentials: NetworkCredentialsEntity) = Unit
+    override fun getAllCredentials(): Flow<List<NetworkCredentialsEntity>> = emptyFlow()
+    override suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity> = emptyList()
+}
+
+private class FakeResourceRepository : ResourceRepository {
+    var resources: List<MediaResource> = emptyList()
+
+    override fun getAllResources(): Flow<List<MediaResource>> = emptyFlow()
+    override suspend fun getAllResourcesSync(): List<MediaResource> = resources
+    override suspend fun getResourceById(id: Long): MediaResource? = resources.firstOrNull { it.id == id }
+    override fun getResourcesByType(type: ResourceType): Flow<List<MediaResource>> = emptyFlow()
+    override fun getDestinations(): Flow<List<MediaResource>> = emptyFlow()
+    override suspend fun getFilteredResources(
+        filterByType: Set<ResourceType>?,
+        filterByMediaType: Set<com.sza.fastmediasorter.domain.model.MediaType>?,
+        filterByName: String?,
+        sortMode: com.sza.fastmediasorter.domain.model.SortMode
+    ): List<MediaResource> = resources
+    override suspend fun addResource(resource: MediaResource): Long = 0
+    override suspend fun updateResource(resource: MediaResource) = Unit
+    override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) = Unit
+    override suspend fun deleteResource(resourceId: Long) = Unit
+    override suspend fun deleteAllResources() = Unit
+    override suspend fun testConnection(resource: MediaResource): Result<String> = Result.success("ok")
 }

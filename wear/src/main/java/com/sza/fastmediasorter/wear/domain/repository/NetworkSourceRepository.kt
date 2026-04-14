@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Repository for managing network storage sources.
@@ -11,6 +12,11 @@ interface NetworkSourceRepository {
      * Get all configured network sources.
      */
     suspend fun getAllSources(): List<NetworkSource>
+
+    /**
+     * Observe configured network sources reactively.
+     */
+    fun observeSources(): Flow<List<NetworkSource>>
     
     /**
      * Get specific network source by ID.

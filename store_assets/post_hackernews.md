@@ -1,3 +1,5 @@
+https://news.ycombinator.com/
+
 PLATFORM: Hacker News — Show HN
 URL: https://news.ycombinator.com/
 FORMAT: Plain text, HN conventions (no markdown rendered in submission body — title only for submission, context in first comment)

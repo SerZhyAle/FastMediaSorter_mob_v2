@@ -108,7 +108,15 @@ class PdfViewerManager(
         translationManager = translationManager,
         pdfDispatcher      = pdfDispatcher,
         onTranslateResult  = { callback.displayTranslatedText(it) },
-        onError            = { callback.showError(it) }
+        onError            = { callback.showError(it) },
+        onReadAloud        = { text -> speakText(text) }
+    )
+
+    // TTS delegate for "Read Aloud" feature
+    private val pdfTtsDelegate = PdfTtsDelegate(
+        context                = binding.root.context,
+        coroutineScope         = coroutineScope,
+        pdfTextSelectionManager = pdfTextSelectionManager
     )
 
     // URL link detection cache: pageIndex → list of (boundingBoxInBitmapPx, url)
@@ -434,6 +442,7 @@ class PdfViewerManager(
         if (currentPdfPageIndex > 0) {
             // Clear translation overlays before page change
             clearTranslationOverlays()
+            stopTtsOnPageChange()
             showPdfPage(currentPdfPageIndex - 1)
             
             // Re-translate new page if translation was enabled
@@ -453,6 +462,7 @@ class PdfViewerManager(
         if (currentPdfPageIndex < pdfPageCount - 1) {
             // Clear translation overlays before page change
             clearTranslationOverlays()
+            stopTtsOnPageChange()
             showPdfPage(currentPdfPageIndex + 1)
             
             // Re-translate new page if translation was enabled
@@ -472,6 +482,7 @@ class PdfViewerManager(
         if (currentPdfPageIndex > 0) {
             // Clear translation overlays before page change
             clearTranslationOverlays()
+            stopTtsOnPageChange()
             showPdfPage(0)
             
             // Re-translate new page if translation was enabled
@@ -1053,6 +1064,35 @@ class PdfViewerManager(
         }
     }
     
+    // ── TTS Read Aloud ─────────────────────────────────────────────────────────
+
+    /**
+     * Toggle TTS for the current PDF page.
+     * Extracts page text (native API 35+ or OCR fallback), then speaks it.
+     */
+    fun toggleReadAloud() {
+        pdfTtsDelegate.toggle(currentPdfPageIndex, currentPageBitmap, pdfRenderer)
+    }
+
+    /**
+     * Speak arbitrary [text] aloud — used by the text-selection floating ActionMode callback.
+     */
+    fun speakText(text: String) {
+        pdfTtsDelegate.speakText(text)
+    }
+
+    /** Stop TTS when user navigates to another page. */
+    fun stopTtsOnPageChange() {
+        pdfTtsDelegate.stop()
+    }
+
+    /** Release TTS engine. Called from close(). */
+    private fun releaseTts() {
+        pdfTtsDelegate.release()
+    }
+
+    // ── Lifecycle ──────────────────────────────────────────────────────────────
+
     /**
      * Close PDF renderer and release resources.
      * Saves current page position before closing.
@@ -1084,6 +1124,7 @@ class PdfViewerManager(
         currentPageBitmap = null
         translationEnabled = false
         currentPdfPath = null
+        releaseTts()
     }
     
     /**

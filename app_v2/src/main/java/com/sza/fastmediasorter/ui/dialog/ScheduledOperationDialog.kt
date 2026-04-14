@@ -49,12 +49,14 @@ class ScheduledOperationDialog(
         )
         setupDropdowns()
         setupNextRunPreview()
+        setupConditionsCollapse()
         // Default file type mask for new operations: ALL_FILES
         if (existing == null) applyFileTypeMask(FileTypeFlags.DEFAULT)
         populateExisting()
         applyPrefilledSource()
         setupTimePicker()
         setupIntervalPicker()
+        setupSaveButtonState()
         b.btnCancel.setOnClickListener { dismiss() }
         b.btnSave.setOnClickListener { trySave() }
     }
@@ -103,6 +105,46 @@ class ScheduledOperationDialog(
         )
         b.actvTimeFilter.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, timeLabels))
         b.actvTimeFilter.setText(timeLabels[0], false)
+    }
+
+    private fun setupConditionsCollapse() {
+        b.headerConditions.setOnClickListener {
+            val expanded = b.containerConditionsContent.visibility == View.VISIBLE
+            if (expanded) {
+                b.containerConditionsContent.visibility = View.GONE
+                b.ivConditionsChevron.rotation = 0f
+            } else {
+                b.containerConditionsContent.visibility = View.VISIBLE
+                b.ivConditionsChevron.rotation = 180f
+            }
+        }
+    }
+
+    private fun setupSaveButtonState() {
+        val watcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) = updateSaveButtonState()
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+        b.actvSource.addTextChangedListener(watcher)
+        b.actvTarget.addTextChangedListener(watcher)
+        b.actvOperation.addTextChangedListener(watcher)
+        updateSaveButtonState()
+    }
+
+    private fun updateSaveButtonState() {
+        val sourceEmpty = b.actvSource.text.isNullOrBlank()
+        val isDelete = b.actvOperation.text.toString() == context.getString(R.string.scheduled_ops_op_delete)
+        val targetEmpty = !isDelete && b.actvTarget.text.isNullOrBlank()
+
+        b.tilSource.error = if (sourceEmpty) context.getString(R.string.scheduled_ops_error_source_required) else null
+        if (!isDelete) {
+            b.tilTarget.error = if (targetEmpty) context.getString(R.string.scheduled_ops_error_target_required) else null
+        } else {
+            b.tilTarget.error = null
+        }
+
+        b.btnSave.isEnabled = !sourceEmpty && !targetEmpty
     }
 
     private fun setupTimePicker() {

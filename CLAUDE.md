@@ -8,6 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Tone**: PROFESSIONAL / DRY / CONCISE. No filler, no guessing — ask if ambiguous.
 - **Missing input**: Request the file or data needed. DO NOT hallucinate values or paths.
 
+## Author Style Rules (MUST be preserved in all text output)
+
+The author has a deliberate writing style. All AI agents MUST follow these rules when writing or editing any user-facing text, documentation (`.md` files), or UI strings (`strings.xml`):
+
+1. **Ellipsis**: Use `..` (two dots) — NEVER `...` (three dots). This applies everywhere: docs, UI strings, chat responses, specs.
+2. **Ё/ё**: Always use the letter `ё` (and `Ё`) in Russian text where it is grammatically correct — NEVER substitute with `е`/`Е`. Examples: `всё`, `ещё`, `чёрный`, `объём`, `тёмный`, `нельзя` → keep as-is; `твердо` → `твёрдо`, `прием` → `приём`, `кино` → remains `кино` (no ё).
+
+These are non-negotiable stylistic preferences, not typos.
+
 ---
 
 ## Skill Rules

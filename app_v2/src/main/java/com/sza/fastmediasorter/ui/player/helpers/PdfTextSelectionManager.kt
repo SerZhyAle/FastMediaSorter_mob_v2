@@ -43,7 +43,8 @@ class PdfTextSelectionManager(
     private val translationManager: TranslationManager,
     private val pdfDispatcher: kotlinx.coroutines.CoroutineDispatcher,
     private val onTranslateResult: (String) -> Unit,
-    private val onError: (String) -> Unit
+    private val onError: (String) -> Unit,
+    private val onReadAloud: ((String) -> Unit)? = null
 ) {
     private var overlayView: View? = null
     private var isInTextSelectionMode = false
@@ -103,6 +104,7 @@ class PdfTextSelectionManager(
                 // Attach the selection ActionMode callback
                 tvText.customSelectionActionModeCallback = DocumentSelectionActionModeCallback(
                     showTranslate  = BuildConfig.ENABLE_TRANSLATION,
+                    showReadAloud  = onReadAloud != null,
                     getSelectedText = {
                         val start = tvText.selectionStart.coerceAtLeast(0)
                         val end   = tvText.selectionEnd.coerceAtLeast(0)
@@ -120,7 +122,8 @@ class PdfTextSelectionManager(
                             }
                         }
                     },
-                    onSearchGoogle = { openGoogleSearch(binding.root.context, it) }
+                    onSearchGoogle = { openGoogleSearch(binding.root.context, it) },
+                    onReadAloud    = onReadAloud
                 )
             }
 
@@ -139,6 +142,16 @@ class PdfTextSelectionManager(
     }
 
     // ── Text extraction ───────────────────────────────────────────────────────
+
+    /**
+     * Exposed for [PdfTtsDelegate] — delegates to the same extraction pipeline
+     * used by the text-selection overlay.
+     */
+    internal suspend fun extractPageTextForTts(
+        pageIndex: Int,
+        bitmap: Bitmap?,
+        pdfRenderer: PdfRenderer?
+    ): String = extractPageText(pageIndex, bitmap, pdfRenderer)
 
     private suspend fun extractPageText(
         pageIndex: Int,

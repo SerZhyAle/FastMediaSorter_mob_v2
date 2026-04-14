@@ -96,6 +96,9 @@ class EpubViewerManager(
     // Selection bridge: captures the latest selected text from WebView via JS interface
     private val selectionBridge = EpubSelectionBridge()
 
+    // TTS Read Aloud delegate (extracted because EpubViewerManager exceeds 1000 lines)
+    private val ttsDelegate = EpubTtsDelegate(binding.root.context)
+
     /**
      * JS interface injected into WebView to capture text selection events.
      * The JS snippet in preprocessHtml fires `EpubSelectionBridge.onSelectionChanged`
@@ -1004,6 +1007,7 @@ class EpubViewerManager(
             // Clear translation when changing chapter
             safeViews.translationOverlay.isVisible = false
             binding.translationLensOverlay.isVisible = false
+            stopTtsOnChapterChange()
             coroutineScope.launch {
                 showChapter(currentChapterIndex - 1)
                 // Re-apply translation if it was enabled
@@ -1026,6 +1030,7 @@ class EpubViewerManager(
             // Clear translation when changing chapter
             safeViews.translationOverlay.isVisible = false
             binding.translationLensOverlay.isVisible = false
+            stopTtsOnChapterChange()
             coroutineScope.launch {
                 showChapter(currentChapterIndex + 1)
                 // Re-apply translation if it was enabled
@@ -1048,6 +1053,7 @@ class EpubViewerManager(
             // Clear translation when changing chapter
             safeViews.translationOverlay.isVisible = false
             binding.translationLensOverlay.isVisible = false
+            stopTtsOnChapterChange()
             coroutineScope.launch {
                 showChapter(0)
                 // Re-apply translation if it was enabled
@@ -1118,11 +1124,26 @@ class EpubViewerManager(
         
         Timber.d("EPUB: Book closed, resources released")
     }
-    
+
+    // ── TTS Read Aloud ─────────────────────────────────────────────────────────
+
+    /** Toggle TTS Read Aloud for the current EPUB chapter. */
+    fun toggleReadAloud() {
+        ttsDelegate.toggle(webView)
+    }
+
+    /** Stop TTS on chapter navigation. */
+    fun stopTtsOnChapterChange() {
+        ttsDelegate.stop()
+    }
+
+    // ────────────────────────────────────────────────────────────────
+
     /**
      * Release all resources on activity destroy
      */
     fun release() {
+        ttsDelegate.release()
         closeEpubBook()
         webView?.let { wv ->
             try {

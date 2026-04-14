@@ -39,6 +39,7 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
 
     // Panel A views
     private lateinit var panelNowPlaying: View
+    private lateinit var progressLoading: android.widget.ProgressBar
     private lateinit var artwork: ImageView
     private lateinit var tvTitle: TextView
     private lateinit var tvArtist: TextView
@@ -84,6 +85,7 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
 
     private fun bindViews(root: View) {
         panelNowPlaying = root.findViewById(R.id.panelNowPlaying)
+        progressLoading = root.findViewById(R.id.progressNowPlayingLoading)
         artwork = root.findViewById(R.id.nowPlayingArtwork)
         tvTitle = root.findViewById(R.id.nowPlayingTitle)
         tvArtist = root.findViewById(R.id.nowPlayingArtist)
@@ -147,6 +149,20 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun updateNowPlayingPanel(state: NowPlayingViewModel.NowPlayingState) {
+        // Show spinner while MediaController is connecting; hide content until ready
+        progressLoading.isVisible = state.isLoading
+        artwork.isVisible = !state.isLoading
+        tvTitle.isVisible = !state.isLoading
+        tvArtist.isVisible = !state.isLoading && !state.artist.isNullOrEmpty()
+        seekBar.isVisible = !state.isLoading
+        tvPosition.isVisible = !state.isLoading
+        tvDuration.isVisible = !state.isLoading
+        btnPlayPause.isVisible = !state.isLoading
+        btnPrevious.isVisible = !state.isLoading
+        btnNext.isVisible = !state.isLoading
+        btnShowQueue.isVisible = !state.isLoading
+        if (state.isLoading) return
+
         tvTitle.text = state.title.ifEmpty { getString(R.string.now_playing_label) }
         tvArtist.isVisible = !state.artist.isNullOrEmpty()
         tvArtist.text = state.artist ?: ""

@@ -266,6 +266,19 @@ class GeneralSettingsFragment : Fragment() {
         }
     }
 
+    /**
+     * Shown when ACTION_CREATE_DOCUMENT is not supported by the device (e.g. custom ROMs, some
+     * OEM builds). Offers the user to share the archive instead via ACTION_SEND chooser.
+     */
+    private fun showSaveLogsNotSupportedDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.save_debug_logs)
+            .setMessage(R.string.save_logs_not_supported)
+            .setPositiveButton(R.string.share) { _, _ -> shareLogs() }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
     private fun openEmailClient() {
         val version = com.sza.fastmediasorter.BuildConfig.VERSION_NAME
         val subject = "About FastImageSorter (mobile) $version"
@@ -820,7 +833,12 @@ class GeneralSettingsFragment : Fragment() {
         }
 
         binding.btnSaveLogs?.setOnClickListener {
-            saveLogsLauncher.launch("fastmediasorter_logs.zip")
+            try {
+                saveLogsLauncher.launch("fastmediasorter_logs.zip")
+            } catch (e: android.content.ActivityNotFoundException) {
+                Timber.w(e, "LogExport: CREATE_DOCUMENT not supported on this device — falling back to share")
+                showSaveLogsNotSupportedDialog()
+            }
         }
         
         // Cache Management
@@ -1409,7 +1427,14 @@ class GeneralSettingsFragment : Fragment() {
             )) { _, which ->
                 when (which) {
                     0 -> importSettingsAuto() // Auto-find in Downloads
-                    1 -> importSettingsFileLauncher.launch("*/*") // Browse for file
+                    1 -> {
+                        try {
+                            importSettingsFileLauncher.launch("*/*") // Browse for file
+                        } catch (e: android.content.ActivityNotFoundException) {
+                            Timber.w(e, "GeneralSettingsFragment: file picker not available")
+                            Toast.makeText(requireContext(), R.string.save_logs_not_supported, Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -2140,10 +2165,9 @@ class GeneralSettingsFragment : Fragment() {
 
     private fun setupWearCompanionButton() {
         binding.btnWearCompanion?.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(android.R.id.content, WearSyncSettingsFragment())
-                .addToBackStack("wear_sync")
-                .commit()
+            if (childFragmentManager.findFragmentByTag("wear_sync") == null) {
+                WearSyncSettingsFragment().show(childFragmentManager, "wear_sync")
+            }
         }
     }
 

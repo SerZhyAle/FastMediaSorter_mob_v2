@@ -1,7 +1,10 @@
+https://www.reddit.com/r/selfhosted/comments/1slh5us/i_built_an_android_app_specifically_for_managing/
+
 PLATFORM: Reddit — r/selfhosted
 URL: https://www.reddit.com/r/selfhosted/
 FORMAT: Reddit Markdown
 TONE: Community member, dev disclosure up front, invite feedback
+FLAIR: App  ← select this via "Add flair" button before posting
 
 ---
 TITLE:

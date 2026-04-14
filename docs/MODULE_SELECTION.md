@@ -193,7 +193,7 @@ This reloads the project and applies the configuration changes.
 | `.idea/runConfigurations/wear__Debug_.xml` | Wear OS Debug config |
 | `.idea/runConfigurations/wear__Release_.xml` | Wear OS Release config |
 | `.idea/runConfigurations/app__standardDebug_.xml` | Main App Standard Debug |
-| (more app configs...) | Other app flavor configs |
+| (more app configs..) | Other app flavor configs |
 
 ## Best Practices
 

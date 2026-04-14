@@ -13,7 +13,7 @@ This video should demonstrate that the app performs data-heavy tasks that must n
 4.  Create a new operation (e.g., **Copy** from a local folder to a Network SMB share).
 5.  Tap **"Run Now"** (Запустить сейчас).
 6.  **Minimize the app** (press the Home button).
-7.  **Pull down the notification shade** to show the persistent notification: *"Scheduled operation in progress..."*.
+7.  **Pull down the notification shade** to show the persistent notification: *"Scheduled operation in progress.."*.
 8.  Wait a few seconds, then **re-open the app** to show the operation completed or still progressing.
 9.  **Stop Recording**.
 
@@ -21,7 +21,7 @@ This video should demonstrate that the app performs data-heavy tasks that must n
 1.  Go to **Network Settings**.
 2.  Enable **"Background Sync"**.
 3.  Trigger a sync manually or wait for it to start.
-4.  Show the notification: *"Syncing resources..."*.
+4.  Show the notification: *"Syncing resources.."*.
 5.  Minimize the app to prove it continues in the background.
 
 ---

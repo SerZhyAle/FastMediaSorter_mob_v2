@@ -1,3 +1,5 @@
+https://alternativeto.net/
+
 PLATFORM: AlternativeTo
 URL: https://alternativeto.net/
 FORMAT: Plain text — product description for listing page

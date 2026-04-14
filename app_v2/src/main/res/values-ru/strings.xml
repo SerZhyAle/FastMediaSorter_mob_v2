@@ -103,6 +103,7 @@
     <string name="save_debug_logs">Сохранить логи</string>
     <string name="save_logs_success">Логи сохранены на устройство</string>
     <string name="save_logs_failed">Не удалось сохранить логи</string>
+    <string name="save_logs_not_supported">Ваше устройство не поддерживает диалог выбора файла.\n\nОтправить архив логов через диалог «Поделиться»?</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопировано %1$d файл(ов)</string>
@@ -179,7 +180,7 @@
     <string name="pdf_subject_label">Тема: %1$s</string>
     <string name="pdf_keywords_label">Ключевые слова: %1$s</string>
     <string name="pdf_creation_date_label">Создан: %1$s</string>
-    <string name="pdf_mod_date_label">Изменен: %1$s</string>
+    <string name="pdf_mod_date_label">Изменён: %1$s</string>
     <string name="audio_channels_label">Каналов: %1$s</string>
     <string name="audio_bitrate_label">Аудио битрейт: %1$s</string>
     <string name="audio_duration_label">Длительность: %1$s</string>
@@ -332,7 +333,7 @@
     <string name="favorites_title">Избранное</string>
 
     <!-- Command Panel Overflow Menu -->
-    <string name="more_actions">Еще</string>
+    <string name="more_actions">Ещё</string>
     <string name="slideshow">Слайдшоу</string>
     <string name="starting_slideshow_for">Запуск слайдшоу для %1$s…</string>
     <string name="google_lens">Google Lens</string>
@@ -411,7 +412,7 @@
     <string name="error_save_failed">Не удалось сохранить ресурс</string>
     <string name="error_resource_name_exists">Имя ресурса уже существует</string>
     <string name="error_unknown">Произошла неизвестная ошибка</string>
-    <string name="resource_saved">Ресурс успешно сохранен</string>
+    <string name="resource_saved">Ресурс успешно сохранён</string>
     <string name="name_suggestions">Варианты: %1$s</string>
     <string name="copy_credentials_title">Копировать учетные данные</string>
     <string name="copy_credentials_message">Выберите поведение учетных данных для дублированного ресурса.</string>
@@ -439,7 +440,7 @@
     <string name="max_recipients">Макс. получателей (1-30)</string>
     <string name="max_recipients_error">Значение должно быть от 1 до 30</string>
     <string name="load_full_size_images">Загружать изображения полностью</string>
-    <string name="load_full_size_images_hint">Включает жести масштабирования и поворота в режиме командной панели, но использует больше данных и памяти. По умолчанию выкл. (загружается 1920px).</string>
+    <string name="load_full_size_images_hint">Включает жесты масштабирования и поворота в режиме командной панели, но использует больше данных и памяти. По умолчанию выкл. (загружается 1920px).</string>
     <string name="image_and_animation_size_limit">Ограничения размера изображений и анимации</string>
     <string name="image_size_range">1 КБ - 10 МБ</string>
     <string name="support_gif">Поддержка GIF</string>
@@ -487,7 +488,7 @@
     <string name="auth_failed">Ошибка аутентификации: %1$s</string>
 
     <string name="battery_optimization_hint_title">Предупреждение об оптимизации батареи</string>
-    <string name="battery_optimization_hint_message">Оптимизация батареи может препятствовать воспроизведению аудио в фоне. Отключите оптимизацию батареи для FastMediaSorter в системных настройках для надежного фонового аудио.</string>
+    <string name="battery_optimization_hint_message">Оптимизация батареи может препятствовать воспроизведению аудио в фоне. Отключите оптимизацию батареи для FastMediaSorter в системных настройках для надёжного фонового аудио.</string>
     <string name="show_pdf_thumbnails">Миниатюры для больших PDF (долго)</string>
     <string name="show_pdf_thumbnails_description">Скачивать и генерировать миниатюры для больших PDF: до 50 МБ для SMB, до 10 МБ для S/FTP/Облака (может занять значительное время)</string>
     <string name="enable_translation">Включить перевод</string>
@@ -733,7 +734,7 @@
     <string name="tooltip_grid_size_title">Размер иконок сетки</string>
     <string name="tooltip_grid_size_message">Размер миниатюр в пикселях для сеточного вида. По умолчанию: 96dp. Диапазон: 32-256dp (шаг 8dp).</string>
     <string name="tooltip_destinations_title">Назначения</string>
-    <string name="tooltip_destinations_message">Цели быстрой сортировки для эффективной организации файлов. Максимум 30 назначений. Кожное имеет номер и цвет для легкой идентификации.</string>
+    <string name="tooltip_destinations_message">Цели быстрой сортировки для эффективной организации файлов. Максимум 30 назначений. Каждое имеет номер и цвет для лёгкой идентификации.</string>
     <string name="tooltip_touch_zones_title">Сенсорные зоны</string>
     <string name="touch_zones_help">Показать сенсорные зоны</string>
     <string name="hint_touch_zone_3zone">Режим командной панели\n\nЛевые 20%% — Предыдущий файл\nЦентр 60%% — Выбор / Действия\nПравые 20%% — Следующий файл\n\nНажмите в любом месте для закрытия</string>
@@ -748,7 +749,7 @@
     <string name="tooltip_compact_controls_title">Компактные элементы управления</string>
     <string name="tooltip_compact_controls_message">Уменьшает размер кнопок управления плеера для более минималистичного интерфейса. Полезно на меньших экранах или когда вы предпочитаете менее навязчивые элементы управления.</string>
     <string name="tooltip_compact_elements_title">Режим компактных элементов</string>
-    <string name="tooltip_compact_elements_message">Этот режим масштабирует элементы интерфейса (списки, кнопки, текст) в 0.5 раза для увеличения объема видимой информации. Примечание: зоны нажатия также станут меньше.</string>
+    <string name="tooltip_compact_elements_message">Этот режим масштабирует элементы интерфейса (списки, кнопки, текст) в 0.5 раза для увеличения объёма видимой информации. Примечание: зоны нажатия также станут меньше.</string>
     <string name="tooltip_default_credentials_title">Сетевые учетные данные по умолчанию</string>
     <string name="tooltip_default_credentials_message">Имя пользователя и пароль по умолчанию при подключении к сетевым ресурсам (SMB/SFTP/FTP). Могут быть переопределены для каждого ресурса при настройке.</string>
     <string name="all_files">Все файлы</string>
@@ -1061,7 +1062,7 @@
     <string name="select_destination_title">Выбор назначения</string>
     <string name="destination_added">Назначение добавлено: %1$s</string>
     <string name="remove_destination_title">Удаление назначения</string>
-    <string name="remove_destination_message">Удалитиь \'%1$s\' из назначений?</string>
+    <string name="remove_destination_message">Удалить \'%1$s\' из назначений?</string>
     <string name="remove_action">Удалить</string>
     <string name="destination_removed">Назначение удалено: %1$s</string>
     <string name="manual_sync_triggered">Синхронизация запущена</string>
@@ -1080,7 +1081,7 @@
     <string name="msg_move_success_count">Перемещено %1$d файлов в %2$s</string>
     <string name="error_move_failed">Ошибка перемещения: %1$s</string>
     <string name="error_file_exists_move">Файл "%1$s" уже существует в "%2$s".\n\nВключите "Перезапись при перемещении" в Настройки → Операции с файлами</string>
-    <string name="msg_delete_success">Файл удален</string>
+    <string name="msg_delete_success">Файл удалён</string>
     <string name="error_delete_failed">Ошибка удаления: %1$s</string>
     <string name="error_delete_unexpected">Неожиданная ошибка удаления</string>
     <string name="error_delete_permission_required">Требуется разрешение для удаления файла. Подтвердите доступ.</string>
@@ -1167,7 +1168,7 @@
     <string name="msg_gif_extract_failed">Не удалось извлечь кадры: %1$s</string>
     <string name="msg_gif_speed_success">Скорость изменена на %1$.1fx</string>
     <string name="msg_gif_speed_failed">Не удалось изменить скорость: %1$s</string>
-    <string name="msg_gif_first_frame_success">Первый кадр сохранен в Загрузки</string>
+    <string name="msg_gif_first_frame_success">Первый кадр сохранён в Загрузки</string>
     <string name="msg_gif_first_frame_failed">Не удалось сохранить первый кадр: %1$s</string>
     <string name="msg_preparing_file">Подготовка файла…</string>
     <string name="msg_gif_prepare_failed">Не удалось подготовить GIF файл</string>
@@ -1175,7 +1176,7 @@
     <string name="msg_gif_speed_already_normal">Скорость уже нормальная (1.0x)</string>
     <string name="msg_gif_network_extract_success">%1$d кадров сохранено в Загрузки</string>
     <string name="msg_gif_network_speed_success">Скорость изменена на %1$.1fx, сохранено в Загрузки</string>
-    <string name="msg_gif_network_first_frame_success">Первый кадр сохранен в Загрузки</string>
+    <string name="msg_gif_network_first_frame_success">Первый кадр сохранён в Загрузки</string>
     <string name="msg_no_file_to_edit">Нечего редактировать</string>
     <string name="msg_no_file_to_delete">Нечего удалять</string>
     <string name="msg_error_occurred">Произошла ошибка: %1$s</string>
@@ -1319,7 +1320,7 @@
         <item quantity="many">Выбрано %1$d файлов</item>
         <item quantity="other">Выбрано %1$d файла</item>
     </plurals>
-    <string name="resource_deleted">Ресурс удален</string>
+    <string name="resource_deleted">Ресурс удалён</string>
     <string name="msg_loading_timeout">Загрузка заняла слишком много времени</string>
     <string name="speed">Скорость</string>
     <string name="network_speed">Скорость сети</string>
@@ -1470,7 +1471,7 @@
     <string name="bottom_sheet_binary_file_btnShare_textAlignment">textStart</string>
     <string name="dialog_access_password_tilPassword_boxBackgroundMode">outline</string>
     <string name="dialog_access_password_tilPassword_endIconMode">password_toggle</string>
-    <string name="dialog_color_picker_tvColorName_text">Зеленый</string>
+    <string name="dialog_color_picker_tvColorName_text">Зелёный</string>
     <string name="dialog_file_info_tvAudioBitrate_lineSpacingMultiplier">1.2</string>
     <string name="dialog_file_info_tvAudioChannels_lineSpacingMultiplier">1.2</string>
     <string name="dialog_file_info_tvAudioCodec_lineSpacingMultiplier">1.2</string>
@@ -1554,7 +1555,7 @@
     <string name="dialog_integration_test_chipScanning_text">Сканирование</string>
     <string name="dialog_integration_test_chipSettings_text">Настройки</string>
     <string name="dialog_integration_test_progressBar_text">Лог тестирования:</string>
-    <string name="dialog_integration_test_tvLog_text">Тесты еще не запущены</string>
+    <string name="dialog_integration_test_tvLog_text">Тесты ещё не запущены</string>
     <string name="dialog_integration_test_tvProgress_text">Готово к запуску тестов</string>
     <string name="dialog_integration_test_tvStatus_text">Нажмите Запустить тесты для старта</string>
     <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
@@ -1723,6 +1724,8 @@
     <string name="audio_empty_state_visualization">Визуализация (MP4)</string>
     <string name="audio_track">Аудиодорожка</string>
     <string name="background_audio_setting_title">Фоновое воспроизведение</string>
+    <string name="show_now_playing_panel_title">Показывать панель плеера</string>
+    <string name="show_now_playing_panel_summary">Показывать мини-панель плеера при просмотре изображений и других файлов</string>
     <string name="background_audio_exit_title">Фоновое воспроизведение</string>
     <string name="background_audio_exit_message">Музыка продолжает играть в фоне. Что сделать?</string>
     <string name="background_audio_exit_stop">Остановить</string>
@@ -2143,6 +2146,8 @@
     <string name="scheduled_ops_battery_dialog_btn_open">Перейти в настройки</string>
     <string name="scheduled_ops_battery_dialog_btn_skip">Пропустить</string>
     <string name="scheduled_ops_status_error_tooltip">Последний запуск завершился с ошибкой. Откройте журнал для подробностей.</string>
+    <string name="scheduled_ops_error_source_required">Выберите источник</string>
+    <string name="scheduled_ops_error_target_required">Выберите получателя</string>
     <string name="scheduled_op_enabled_toggle">Включить/отключить операцию по расписанию</string>
     <string name="scheduled_op_type_label">Тип операции</string>
     <string name="scheduled_op_schedule_label">Расписание</string>
@@ -2228,7 +2233,7 @@
     <string name="duplicate_wasted_bytes">Занято впустую: %1$s</string>
     <string name="duplicate_scan_network_warning">Сканирование сети может занять много времени и трафика. Продолжить?</string>
     <string name="duplicate_scan_notif_title">Поиск дубликатов</string>
-    <string name="duplicate_scan_notif_running">Выполняется поиск дубликатов...</string>
+    <string name="duplicate_scan_notif_running">Выполняется поиск дубликатов..</string>
     <string name="duplicate_scan_notif_channel_name">Сканнер дубликатов</string>
     <string name="action_create_folder">Создать папку</string>
     <string name="menu_automate_source">Автоматизация..</string>
@@ -2280,9 +2285,11 @@
     <!-- Document text selection action menu -->
     <string name="action_translate_selection">Перевести</string>
     <string name="action_search_google">Найти в Google</string>
+    <string name="action_read_aloud_selection">Читать вслух</string>
     <string name="pdf_text_mode_enter">Режим выделения текста</string>
     <string name="pdf_text_extracting">Извлечение текста…</string>
     <string name="pdf_text_empty">Текст на странице не найден</string>
+    <string name="epub_text_empty_tts">Текст в главе не найден</string>
 
     <!-- Background Music errors -->
     <string name="music_restarted_after_error">Музыка перезапущена после ошибки</string>

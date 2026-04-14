@@ -8,6 +8,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -107,6 +108,15 @@ class AudioPlaybackService : MediaSessionService() {
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                     }
                 }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                // SOURCE_ERROR typically means the cached file was evicted from unified_network_cache
+                // while the service still held a file:// URI to it (ENOENT). Stop the service
+                // immediately so the mini bar disappears and isRunning flips to false.
+                Timber.e(error, "AudioPlaybackService: playback error — stopping service (errorCode=${error.errorCode})")
+                autoStopHandler.removeCallbacks(autoStopRunnable)
+                stopSelf()
             }
         })
 

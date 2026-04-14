@@ -3,13 +3,8 @@
 
 Write-Host "Building Wear OS release APK (auto-versioned)..." -ForegroundColor Cyan
 
-# Start the Gradle build process (Release with R8 optimizations)
-# Resolve paths relative to script location
-$projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
-$gradlew = "$projectRoot\gradlew.bat"
-
-# Start the Gradle build process (Release with R8 optimizations)
-& $gradlew :wear:assembleRelease
+# Start the Gradle build process
+& "$PSScriptRoot\..\..\gradlew.bat" :wear:assembleRelease
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
@@ -17,6 +12,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`nBuild Successful!" -ForegroundColor Green
+
+# Copy to DOWNLOADS folder
+$projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
+$downloadsDir = "$projectRoot\DOWNLOADS"
 
 # Resolve actual APK path from AGP output metadata (fallback to newest .apk)
 $apkDir = Join-Path $projectRoot "wear\build\outputs\apk\release"
@@ -49,8 +48,6 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
 
-# Copy to DOWNLOADS folder
-$downloadsDir = "$projectRoot\DOWNLOADS"
 if (!(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null
 }
@@ -79,7 +76,7 @@ $7zipPath = "C:\Program Files\7-Zip\7z.exe"
 if (Test-Path -Path $7zipPath) {
     & $7zipPath a -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
     Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-    # Write-Host "Password: 1" -ForegroundColor Yellow
+   #  Write-Host "Password: 1" -ForegroundColor Yellow
 }
 else {
     Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow

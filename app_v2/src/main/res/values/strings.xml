@@ -117,6 +117,7 @@
     <string name="save_debug_logs">Save Debug Logs</string>
     <string name="save_logs_success">Logs saved to device</string>
     <string name="save_logs_failed">Failed to save logs</string>
+    <string name="save_logs_not_supported">Your device does not support the file-picker dialog.\n\nWould you like to share the log archive instead?</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Copied %1$d file(s)</string>
@@ -1094,6 +1095,7 @@
     <string name="downloaded_successfully">Downloaded successfully</string>
     <string name="download_failed">Download failed: %1$s</string>
     <string name="no_app_to_handle_file">No app found to open this file</string>
+    <string name="no_maps_app_available">No maps app available</string>
     <string name="error_opening_file">Error opening file: %1$s</string>
 
     <!-- Accessibility labels -->
@@ -2089,6 +2091,9 @@
     <string name="background_audio_exit_behavior_ask">Ask every time (default)</string>
     <string name="background_audio_exit_behavior_always_stop">Always stop</string>
     <string name="background_audio_exit_behavior_always_continue">Always keep playing</string>
+    <!-- Show now-playing panel setting -->
+    <string name="show_now_playing_panel_title">Show now-playing panel</string>
+    <string name="show_now_playing_panel_summary">Display a mini player bar when browsing images and other files</string>
 
     <!-- Vinyl indicator & Sleep timer -->
     <string name="vinyl_indicator_description">Audio playback indicator</string>
@@ -2221,6 +2226,8 @@
     <string name="scheduled_ops_battery_dialog_btn_open">Open settings</string>
     <string name="scheduled_ops_battery_dialog_btn_skip">Skip</string>
     <string name="scheduled_ops_status_error_tooltip">Last run failed. Tap Log for details.</string>
+    <string name="scheduled_ops_error_source_required">Select a source</string>
+    <string name="scheduled_ops_error_target_required">Select a destination</string>
     <string name="scheduled_op_enabled_toggle">Enable/disable scheduled operation</string>
     <string name="scheduled_op_type_label">Operation type</string>
     <string name="scheduled_op_schedule_label">Schedule</string>
@@ -2291,7 +2298,7 @@
     <string name="duplicate_wasted_bytes">Wasted space: %1$s</string>
     <string name="duplicate_scan_network_warning">Network scan may take a long time and consume a lot of traffic. Continue?</string>
     <string name="duplicate_scan_notif_title">Duplicate scan</string>
-    <string name="duplicate_scan_notif_running">Scanning for duplicates...</string>
+    <string name="duplicate_scan_notif_running">Scanning for duplicates..</string>
     <string name="duplicate_scan_notif_channel_name">Duplicate scanner</string>
     <string name="action_create_folder">Create Folder</string>
     <string name="msg_folder_created">Folder "%1$s" created</string>
@@ -2338,9 +2345,11 @@
     <!-- Document text selection action menu -->
     <string name="action_translate_selection">Translate</string>
     <string name="action_search_google">Search in Google</string>
+    <string name="action_read_aloud_selection">Read Aloud</string>
     <string name="pdf_text_mode_enter">Text selection</string>
     <string name="pdf_text_extracting">Extracting text…</string>
     <string name="pdf_text_empty">No text found on this page</string>
+    <string name="epub_text_empty_tts">No text found in chapter</string>
 
     <!-- Background Music errors -->
     <string name="music_restarted_after_error">Music restarted after error</string>

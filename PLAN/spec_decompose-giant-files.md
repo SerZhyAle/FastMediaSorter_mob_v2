@@ -242,8 +242,8 @@ Finish the currently active decompositions before pivoting to size-based priorit
 | File | Current Size | Key extraction |
 |------|-------------:|---------------|
 | `MediaFileAdapter` | 2 463 | `AdapterThumbnailLoader`, `AdapterAudioMetadataResolver` |
-| `GeneralSettingsFragment` | 2 268 | Split into `AudioSettingsFragment`, `PlayerSettingsFragment`, `NetworkSettingsFragment`, `InterfaceSettingsFragment` |
-| `ImageLoadingManager` | 2 104 | `NetworkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager` |
+| `GeneralSettingsFragment` | 2 268 | Split into `AudioSettingsFragment`, `PlayerSettingsFragment`, `networkSettingsFragment`, `InterfaceSettingsFragment` |
+| `ImageLoadingManager` | 2 104 | `networkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager` |
 | `EpubViewerManager` | 2 062 | `EpubTocManager`, `EpubSearchManager`, `EpubStyleManager` |
 
 #### Wave 4 — 1500–2000 Line Giants (~Sprint 4)
@@ -276,7 +276,7 @@ Finish the currently active decompositions before pivoting to size-based priorit
 | Rule | Compliant? | Notes |
 |------|:----------:|-------|
 | No business logic in Activities/Fragments | ✅ | All extractions move logic into Manager/Helper classes |
-| New classes follow naming (`VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`) | ✅ | Manager suffix for UI helpers; UseCase suffix for domain extractions |
+| New classes follow naming (`VerbNounUseCase`, `nounRepository`, `nounViewModel`, `nounVerbManager`) | ✅ | Manager suffix for UI helpers; UseCase suffix for domain extractions |
 | Data flow strictly `UI → ViewModel → UseCase → Repository → DataSource` | ✅ | Wave 1–2 restructures within the ViewModel tier; Wave 4 restructures within the DataSource tier; no layer boundary crossings introduced |
 | No `Log.d()` — Timber only | ✅ | All extracted files inherit Timber-only logging from their parent |
 | Room schema version incremented (if DB changes) | N/A | No schema changes in this refactor |
@@ -294,7 +294,7 @@ class BrowseNavigationManager(
     fun navigateToFolder(path: String) {
         state.update { it.copy(currentPath = path, pathStack = it.pathStack + path) }
     }
-    // ...
+    // ..
 }
 
 // BrowseViewModel delegates:
@@ -483,7 +483,7 @@ This spec is **strategic** — steps are at sprint/wave granularity. Per-file st
 ### Sprint 3 — Wave 3: ≥2000 Line Behemoths
 1. Split `MediaFileAdapter` → extract `AdapterThumbnailLoader`, `AdapterAudioMetadataResolver`.
 2. Split `GeneralSettingsFragment` into child preference screens.
-3. Split `ImageLoadingManager` → extract `NetworkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager`.
+3. Split `ImageLoadingManager` → extract `networkImageLoadManager`, `LocalImageLoadManager`, `ImageThumbnailCacheManager`.
 4. Split `EpubViewerManager` → check existing `EpubStyleManager.kt`, extract `EpubTocManager`, `EpubSearchManager`.
 5. Run Maestro smoke suite.
 

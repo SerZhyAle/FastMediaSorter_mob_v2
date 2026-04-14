@@ -1,3 +1,5 @@
+https://www.producthunt.com/products/fastmediasorter-v2/fastmediasorter-v2/prelaunch
+
 PLATFORM: Product Hunt
 URL: https://www.producthunt.com/
 FORMAT: Product Hunt launch page fields
