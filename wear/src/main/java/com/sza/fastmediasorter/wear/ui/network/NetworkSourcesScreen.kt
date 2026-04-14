@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.wear.ui.network
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -16,11 +18,13 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.SyncState
 import timber.log.Timber
 
 /**
@@ -33,9 +37,17 @@ fun NetworkSourcesScreen(
     viewModel: NetworkSourcesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
-    Timber.d("NetworkSourcesScreen composing with state: $uiState")
-    
+    val syncState by viewModel.syncState.collectAsState()
+
+    // Navigate to sync_transfer immediately when sync request is pending
+    LaunchedEffect(syncState) {
+        if (syncState is SyncState.Pending) {
+            navController.navigate("sync_transfer")
+        }
+    }
+
+    Timber.d("NetworkSourcesScreen composing with state: $uiState, sync: $syncState")
+
     when (val state = uiState) {
         is NetworkSourcesUiState.Loading -> {
             LoadingContent()
@@ -43,28 +55,36 @@ fun NetworkSourcesScreen(
         is NetworkSourcesUiState.Success -> {
             SourcesListContent(
                 sources = state.sources,
+                syncState = syncState,
                 onSourceClick = { sourceId, sourceName ->
                     Timber.d("Source selected: $sourceName (ID: $sourceId)")
-                    // Navigate to browse screen with source ID
                     navController.navigate("browse/music?sourceId=$sourceId&sourceName=$sourceName")
                 },
                 onAddClick = {
                     navController.navigate("add_smb")
+                },
+                onSyncClick = {
+                    viewModel.requestSyncFromPhone()
                 }
             )
         }
         is NetworkSourcesUiState.Empty -> {
-            EmptyContent(onAddClick = {
-                navController.navigate("add_smb")
-            })
+            EmptyContent(
+                syncState = syncState,
+                onAddClick = {
+                    navController.navigate("add_smb")
+                },
+                onSyncClick = {
+                    viewModel.requestSyncFromPhone()
+                }
+            )
         }
         is NetworkSourcesUiState.Error -> {
             ErrorContent(
                 message = state.message,
                 onRetry = {
                     Timber.d("Retrying network sources load")
-                    // Would need a way to retry - for now just navigate back
-                    navController.popBackStack()
+                    viewModel.loadSources()
                 }
             )
         }
@@ -88,8 +108,10 @@ private fun LoadingContent() {
 @Composable
 private fun SourcesListContent(
     sources: List<SourceItem>,
+    syncState: SyncState,
     onSourceClick: (String, String) -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onSyncClick: () -> Unit
 ) {
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -104,18 +126,22 @@ private fun SourcesListContent(
                 textAlign = TextAlign.Center
             )
         }
-        
+
         items(sources) { source ->
             Chip(
                 onClick = { onSourceClick(source.id, source.name) },
                 label = {
-                    Text(text = "📡 ${source.name}\n${source.server}")
+                    Text(text = "${source.name}\n${source.server}")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.primaryChipColors()
             )
         }
-        
+
+        item {
+            SyncFromPhoneChip(syncState = syncState, onClick = onSyncClick)
+        }
+
         item {
             Chip(
                 onClick = onAddClick,
@@ -126,11 +152,27 @@ private fun SourcesListContent(
                 colors = ChipDefaults.secondaryChipColors()
             )
         }
+
+        if (syncState is SyncState.Error) {
+            item {
+                Text(
+                    text = syncState.message,
+                    style = MaterialTheme.typography.caption2,
+                    color = MaterialTheme.colors.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun EmptyContent(onAddClick: () -> Unit) {
+private fun EmptyContent(
+    syncState: SyncState,
+    onAddClick: () -> Unit,
+    onSyncClick: () -> Unit
+) {
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -144,18 +186,22 @@ private fun EmptyContent(onAddClick: () -> Unit) {
                 textAlign = TextAlign.Center
             )
         }
-        
+
         item {
             Text(
-                text = "No network sources configured",
+                text = stringResource(R.string.wear_no_sources),
                 style = MaterialTheme.typography.body2,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .padding(vertical = 8.dp),
                 textAlign = TextAlign.Center
             )
         }
-        
+
+        item {
+            SyncFromPhoneChip(syncState = syncState, onClick = onSyncClick)
+        }
+
         item {
             Chip(
                 onClick = onAddClick,
@@ -163,10 +209,42 @@ private fun EmptyContent(onAddClick: () -> Unit) {
                     Text(text = stringResource(R.string.add_smb_connection))
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.primaryChipColors()
+                colors = ChipDefaults.secondaryChipColors()
             )
         }
+
+        if (syncState is SyncState.Error) {
+            item {
+                Text(
+                    text = syncState.message,
+                    style = MaterialTheme.typography.caption2,
+                    color = MaterialTheme.colors.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                )
+            }
+        }
     }
+}
+
+@Composable
+private fun SyncFromPhoneChip(
+    syncState: SyncState,
+    onClick: () -> Unit
+) {
+    Chip(
+        onClick = onClick,
+        enabled = syncState !is SyncState.Pending,
+        label = {
+            if (syncState is SyncState.Pending) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            } else {
+                Text(text = stringResource(R.string.wear_sync_from_phone))
+            }
+        },
+        modifier = Modifier.fillMaxWidth(),
+        colors = ChipDefaults.primaryChipColors()
+    )
 }
 
 @Composable

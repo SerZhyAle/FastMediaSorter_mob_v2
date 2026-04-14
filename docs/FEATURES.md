@@ -308,6 +308,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Video player capabilities**: View media uniquely natively. Command and render playable video files explicitly directly over your smartwatch's display hardware.
 - **Tailored setting configuration**: Regulate the companion strictly. Access deeply localized setting panels native to the smartwatch application enforcing discrete behavior distinct from the primary Android phone.
 - **Appropriate permission flows**: Handle security protocols correctly natively. Ensure all deep file and network capability permissions orchestrate gracefully, clearly querying the exact permission dialogues over the wrist interface correctly.
+- **One-tap network source sync**: Push all configured SMB/FTP/SFTP sources from your phone to your watch in a single tap via Wearable Data Layer. The watch displays an animated transfer screen and vibrates on completion with a detailed summary (added/updated counts).
 
 
 ## 21. Background & System Services

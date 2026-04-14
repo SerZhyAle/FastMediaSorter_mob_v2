@@ -70,6 +70,29 @@ class NetworkSourceRepositoryImpl(
         }
     }
     
+    override suspend fun upsertSource(source: NetworkSource) = withContext(Dispatchers.IO) {
+        try {
+            val sources = getAllSources().toMutableList()
+            val index = sources.indexOfFirst { existing ->
+                existing.type == source.type &&
+                existing.server == source.server &&
+                existing.port == source.port &&
+                existing.shareName == source.shareName
+            }
+            if (index != -1) {
+                sources[index] = source.copy(id = sources[index].id) // preserve original id
+                Timber.d("upsertSource: updated ${source.name}")
+            } else {
+                sources.add(source)
+                Timber.d("upsertSource: added ${source.name}")
+            }
+            saveSources(sources)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to upsert network source")
+            throw e
+        }
+    }
+
     override suspend fun deleteSource(id: String) = withContext(Dispatchers.IO) {
         try {
             val sources = getAllSources().toMutableList()

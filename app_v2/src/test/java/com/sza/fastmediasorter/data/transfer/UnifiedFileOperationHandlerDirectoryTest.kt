@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.transfer.ProgressTracker
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -28,9 +27,6 @@ class UnifiedFileOperationHandlerDirectoryTest {
 
     @Before
     fun setup() {
-        every { errorHandler.handleError(any(), any(), *anyVararg()) } answers {
-            firstArg<Throwable>().message ?: "error"
-        }
         handler = UnifiedFileOperationHandler(
             localProvider = localProvider,
             tempFileManager = tempFileManager,

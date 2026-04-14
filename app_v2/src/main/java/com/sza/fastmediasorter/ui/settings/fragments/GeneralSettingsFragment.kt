@@ -150,6 +150,7 @@ class GeneralSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupVersionInfo()
+        setupWearCompanionButton()
         setupViews()
         observeData()
         observeManualNetworkSyncState()
@@ -2136,6 +2137,15 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     // ==================== Backup/Restore ====================
+
+    private fun setupWearCompanionButton() {
+        binding.btnWearCompanion?.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(android.R.id.content, WearSyncSettingsFragment())
+                .addToBackStack("wear_sync")
+                .commit()
+        }
+    }
 
     private fun setupBackupButtons() {
         binding.btnBackup.setOnClickListener {

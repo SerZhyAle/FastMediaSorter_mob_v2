@@ -2285,4 +2285,13 @@
     <string name="pdf_text_mode_enter">Режим виділення тексту</string>
     <string name="pdf_text_extracting">Витягування тексту…</string>
     <string name="pdf_text_empty">Текст на сторінці не знайдено</string>
+
+    <!-- Wear OS sync -->
+    <string name="wear_companion">Wear-супутник</string>
+    <string name="wear_sync_description">Передайте мережеві джерела на підключений годинник Wear OS.</string>
+    <string name="wear_last_synced">Остання синхр.: %s</string>
+    <string name="wear_push_to_watch">Надіслати на годинник</string>
+    <string name="wear_sync_ready">Готово до синхронізації</string>
+    <string name="wear_sync_sending">Надсилання на годинник…</string>
+    <string name="wear_sync_success">Надіслано %d джерел на годинник</string>
 </resources>

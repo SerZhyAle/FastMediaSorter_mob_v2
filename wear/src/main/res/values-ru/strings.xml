@@ -49,4 +49,14 @@
     <string name="test_connection">Проверить</string>
     <string name="save">Сохранить</string>
     <string name="smb_sources">SMB-ресурсы</string>
+    <string name="done">Готово</string>
+
+    <!-- Sync from Phone strings -->
+    <string name="wear_no_sources">Нет сетевых источников.\nСинхронизируйте с телефоном или добавьте вручную.</string>
+    <string name="wear_sync_from_phone">Синхр. с телефоном</string>
+    <string name="wear_sync_receiving">Получение данных…</string>
+    <string name="wear_sync_receiving_from">Получение от %s…</string>
+    <string name="wear_sync_complete">Синхронизация завершена</string>
+    <string name="wear_sync_stats">Добавлено: %1$d  Обновлено: %2$d</string>
+    <string name="wear_sync_browse_now">Открыть</string>
 </resources>

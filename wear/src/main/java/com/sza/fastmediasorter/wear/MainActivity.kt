@@ -24,6 +24,8 @@ import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
 import com.sza.fastmediasorter.wear.ui.network.AddSmbScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
+import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
+import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerScreen
 import com.sza.fastmediasorter.wear.ui.player.image.ImageViewerScreen
@@ -152,6 +154,24 @@ fun MainNavigation() {
         // Add SMB connection screen
         composable("add_smb") {
             AddSmbScreen(navController = navController)
+        }
+
+        // Sync transfer animation (shown while receiving data from phone)
+        composable("sync_transfer") {
+            SyncTransferScreen(navController = navController)
+        }
+
+        // Sync result screen (shown after successful sync)
+        composable(
+            route = "sync_result/{added}/{updated}",
+            arguments = listOf(
+                navArgument("added") { type = NavType.IntType },
+                navArgument("updated") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val added = backStackEntry.arguments?.getInt("added") ?: 0
+            val updated = backStackEntry.arguments?.getInt("updated") ?: 0
+            SyncResultScreen(navController = navController, added = added, updated = updated)
         }
         
         // Audio player screen

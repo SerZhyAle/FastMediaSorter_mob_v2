@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.core.di
 
 import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
+import com.sza.fastmediasorter.data.wear.WearableDataLayerRepositoryImpl
+import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.data.repository.ScheduledOperationRepositoryImpl
 import com.sza.fastmediasorter.data.repository.PlaybackPositionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl
@@ -79,4 +81,10 @@ abstract class RepositoryModule {
     abstract fun bindScheduledOperationRepository(
         impl: ScheduledOperationRepositoryImpl
     ): ScheduledOperationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWearableDataLayerRepository(
+        impl: WearableDataLayerRepositoryImpl
+    ): WearableDataLayerRepository
 }

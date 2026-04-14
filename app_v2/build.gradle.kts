@@ -492,6 +492,9 @@ dependencies {
     // Network - FTP
     implementation("commons-net:commons-net:3.10.0")
     
+    // Wearable Data Layer — phone-side bridge to Wear OS companion
+    implementation("com.google.android.gms:play-services-wearable:18.1.0")
+
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
     implementation("com.google.android.gms:play-services-auth:21.0.0")
     

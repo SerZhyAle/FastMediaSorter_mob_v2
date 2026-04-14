@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -47,7 +48,8 @@ class NetworkCredentialsRepositoryTest {
             context = mockContext,
             dao = mockDao,
             resourceDao = mockResourceDao,
-            settingsRepository = mockSettingsRepository
+            settingsRepository = mockSettingsRepository,
+            applicationScope = TestScope()
         )
     }
 

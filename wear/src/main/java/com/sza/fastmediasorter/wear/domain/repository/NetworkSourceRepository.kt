@@ -28,6 +28,12 @@ interface NetworkSourceRepository {
     suspend fun updateSource(source: NetworkSource)
     
     /**
+     * Insert or update a source by merge key (type, server, port, shareName).
+     * Used by sync import to avoid duplicates.
+     */
+    suspend fun upsertSource(source: NetworkSource)
+
+    /**
      * Delete network source by ID.
      */
     suspend fun deleteSource(id: String)

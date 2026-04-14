@@ -2325,4 +2325,13 @@
 
     <!-- Main scan progress -->
     <string name="files_scanned_count">Просканировано %1$d файлов</string>
+
+    <!-- Wear OS sync -->
+    <string name="wear_companion">Wear-компаньон</string>
+    <string name="wear_sync_description">Передайте сетевые источники на подключённые часы Wear OS.</string>
+    <string name="wear_last_synced">Последняя синхр.: %s</string>
+    <string name="wear_push_to_watch">Отправить на часы</string>
+    <string name="wear_sync_ready">Готово к синхронизации</string>
+    <string name="wear_sync_sending">Отправка на часы…</string>
+    <string name="wear_sync_success">Отправлено %d источников на часы</string>
 </resources>

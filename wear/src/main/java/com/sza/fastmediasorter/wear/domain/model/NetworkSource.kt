@@ -28,6 +28,8 @@ data class NetworkSource(
     },
     val username: String,
     val password: String, // Encrypted in storage
-    val shareName: String? = null, // SMB only
-    val basePath: String = "/"
+    val shareName: String? = null,   // SMB only
+    val basePath: String = "/",
+    val domain: String = "",         // SMB domain
+    val sshPrivateKey: String? = null // SFTP key-auth
 )

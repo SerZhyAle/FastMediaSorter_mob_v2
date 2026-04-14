@@ -2075,3 +2075,42 @@ Format: | datetime | file | target | description |
 | 2026-04-14 03:12:44 | `docs/FEATURES.md` | `FEATURES.md` | Added section 23: Apps FMS Can Replace — Competitor Comparison (EN) |
 | 2026-04-14 03:12:47 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added section 23: competitor comparison with popular apps (RU) |
 | 2026-04-14 03:12:50 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added section 23: competitor comparison with popular apps (UK) |
+| 2026-04-14 10:09:48 | `PLAN/spec_wear_resource_sync.md` | `spec` | Improve spec III.6: add flavor scope, ADRs, SyncResultScreen, phone UI detail, accessibility, fix section numbering |
+| 2026-04-14 10:53:16 | `PLAN/spec_wear_master.md` | `spec` | Create Wear OS master plan: unified strategic + tactical spec for all 4 phases |
+| 2026-04-14 11:03:15 | `app_v2/build.gradle.kts` | `dependencies` | P1-01: Add play-services-wearable:18.1.0 for phone-side Wearable Data Layer |
+| 2026-04-14 11:03:49 | `wear/domain/model/WearSyncPayload.kt` | `WearSyncPayload` | P1-02: Add Wearable Data Layer sync payload models |
+| 2026-04-14 11:04:23 | `wear/domain/model/NetworkSource.kt` | `NetworkSource` | P1-03: Add domain and sshPrivateKey fields |
+| 2026-04-14 11:04:23 | `wear/domain/repository/NetworkSourceRepository.kt` | `NetworkSourceRepository` | P1-04: Add upsertSource method |
+| 2026-04-14 11:04:23 | `wear/data/preferences/NetworkSourceRepositoryImpl.kt` | `NetworkSourceRepositoryImpl` | P1-05: Implement upsertSource with merge-key dedup |
+| 2026-04-14 11:05:12 | `app_v2/domain/repository/WearableDataLayerRepository.kt` | `WearableDataLayerRepository` | P1-06: Add WearableDataLayerRepository interface |
+| 2026-04-14 11:05:12 | `app_v2/data/wear/WearableDataLayerRepositoryImpl.kt` | `WearableDataLayerRepositoryImpl` | P1-06: Add WearableDataLayerRepository implementation |
+| 2026-04-14 11:05:12 | `app_v2/core/di/RepositoryModule.kt` | `RepositoryModule` | P1-07: Bind WearableDataLayerRepository in Hilt module |
+| 2026-04-14 11:06:04 | `app_v2/domain/usecase/SendResourcesToWatchUseCase.kt` | `SendResourcesToWatchUseCase` | P1-08: Send network resources to watch via Data Layer |
+| 2026-04-14 11:06:04 | `wear/domain/usecase/ImportNetworkSourcesUseCase.kt` | `ImportNetworkSourcesUseCase` | P1-09: Import sync payload into watch repository with dedup |
+| 2026-04-14 11:07:22 | `app_v2/service/PhoneWearListenerService.kt` | `PhoneWearListenerService` | P1-10: Add WearableListenerService for phone-side sync events |
+| 2026-04-14 11:07:22 | `app_v2/src/main/AndroidManifest.xml` | `PhoneWearListenerService` | P1-11: Register PhoneWearListenerService in phone manifest |
+| 2026-04-14 11:07:22 | `wear/data/wear/WatchWearListenerService.kt` | `WatchWearListenerService` | P1-12: Add WearableListenerService for watch-side data receive |
+| 2026-04-14 11:07:22 | `wear/src/main/AndroidManifest.xml` | `WatchWearListenerService` | P1-13: Register WatchWearListenerService + VIBRATE permission in wear manifest |
+| 2026-04-14 11:10:01 | `app_v2/ui/settings/WearSyncViewModel.kt` | `WearSyncViewModel` | P1-14: Add ViewModel for Wear sync state management |
+| 2026-04-14 11:10:01 | `app_v2/ui/settings/helpers/BeamAnimationDialog.kt` | `BeamAnimationDialog` | P1-15: Add beam animation dialog with pulsing rings |
+| 2026-04-14 11:10:01 | `app_v2/ui/settings/fragments/WearSyncSettingsFragment.kt` | `WearSyncSettingsFragment` | P1-16: Add Wear Companion settings screen |
+| 2026-04-14 11:10:01 | `app_v2/ui/settings/fragments/GeneralSettingsFragment.kt` | `GeneralSettingsFragment` | P1-16: Hook Wear Companion button into General settings |
+| 2026-04-14 11:10:01 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `fragment_settings_general` | P1-16: Add Wear Companion button to General settings layout |
+| 2026-04-14 11:13:10 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/viewmodel/NetworkSourcesViewModel.kt` | `NetworkSourcesViewModel` | P1-19: Add requestSyncFromPhone, syncState, SyncState sealed class |
+| 2026-04-14 11:14:16 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/NetworkSourcesScreen.kt` | `NetworkSourcesScreen` | P1-20: Add Sync from Phone chip, syncState indicator, SyncState wiring |
+| 2026-04-14 11:14:40 | `wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt` | `MainNavigation` | P1-21: Add sync_transfer and sync_result routes to Wear navigation |
+| 2026-04-14 11:15:38 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WatchWearListenerService.kt` | `WatchWearListenerService` | P1-22: Add haptic feedback on sync completion |
+| 2026-04-14 11:15:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/BeamAnimationDialog.kt` | `BeamAnimationDialog` | P1-22: Add haptic vibration on Success state |
+| 2026-04-14 11:17:43 | `wear/src/main/res/values/strings.xml` | `strings` | P1-23: Add Wear sync string resources (EN) |
+| 2026-04-14 11:17:49 | `wear/src/main/res/values-ru/strings.xml` | `strings-ru` | P1-23: Add Wear sync string resources (RU) |
+| 2026-04-14 11:17:52 | `wear/src/main/res/values-uk/strings.xml` | `strings-uk` | P1-23: Add Wear sync string resources (UK) |
+| 2026-04-14 11:17:57 | `app_v2/src/main/res/values/strings.xml` | `strings` | P1-23: Add phone-side Wear sync strings (EN) |
+| 2026-04-14 11:18:00 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | P1-23: Add phone-side Wear sync strings (RU) |
+| 2026-04-14 11:18:03 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | P1-23: Add phone-side Wear sync strings (UK) |
+| 2026-04-14 11:20:16 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | P1-24: Add unit tests for SendResourcesToWatchUseCase |
+| 2026-04-14 11:20:19 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/usecase/ImportNetworkSourcesUseCaseTest.kt` | `ImportNetworkSourcesUseCaseTest` | P1-24: Add unit tests for ImportNetworkSourcesUseCase |
+| 2026-04-14 11:20:22 | `wear/build.gradle.kts` | `wear build` | P1-24: Add kotlinx-coroutines-test dependency for unit tests |
+| 2026-04-14 11:21:05 | `docs/FEATURES.md` | `FEATURES` | P1-25: Add one-tap network source sync feature entry (Wear OS section) |
+| 2026-04-14 11:21:08 | `docs/FEATURES_RU.md` | `FEATURES_RU` | P1-25: Add one-tap sync entry (RU) |
+| 2026-04-14 11:21:11 | `docs/FEATURES_UK.md` | `FEATURES_UK` | P1-25: Add one-tap sync entry (UK) |
+| 2026-04-14 11:21:25 | `PLAN/spec_wear_master.md` | `spec_wear_master` | P1-24/25 marked complete — Phase 1 fully done |

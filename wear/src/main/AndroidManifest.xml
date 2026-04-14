@@ -4,6 +4,7 @@
     
     <!-- Network permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     
     <!-- Storage permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
@@ -31,5 +32,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Wearable Data Layer — receives resource push from the phone companion -->
+        <service
+            android:name=".data.wear.WatchWearListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fms/network_sources"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
