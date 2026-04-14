@@ -17,21 +17,28 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.security.MessageDigest
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Glide ResourceDecoder for extracting video frames from network files (SMB/SFTP/FTP).
  * Uses MediaMetadataRetriever with NetworkMediaDataSource for direct streaming.
  * Caches extracted thumbnails locally for faster subsequent loads.
+ *
+ * Fix 1: before marking a file as failed, checks ThumbnailCache — if a concurrent thread
+ *         already saved a valid thumbnail, the failed-cache entry is suppressed.
+ * Fix 2: per-path deduplication via ConcurrentHashMap<path, CompletableFuture<Boolean>>.
+ *         Only one extraction runs at a time per file; secondary Glide threads wait for
+ *         the primary result, then serve from ThumbnailCache.
  */
 class NetworkVideoFrameDecoder(
     private val smbClient: SmbClient,
@@ -46,26 +53,26 @@ class NetworkVideoFrameDecoder(
         private val VIDEO_EXTENSIONS = setOf(
             "mp4", "mov", "avi", "mkv", "webm", "3gp", "flv", "wmv", "m4v", "mpg", "mpeg"
         )
-        
+
         private val IMAGE_EXTENSIONS = setOf(
             "jpg", "jpeg", "png", "gif", "bmp", "webp"
         )
-        
+
         // Timeout for video thumbnail extraction (10 seconds max)
         private const val VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS = 10_000L
-        
+
         // Executor for timeout-controlled operations
         private val extractionExecutor = Executors.newCachedThreadPool()
+
+        // Fix 2: per-path deduplication — only one extraction per file path runs at a time.
+        // Future<Boolean>: true = success (ThumbnailCache populated), false = failed/timeout.
+        private val inFlightExtractions = ConcurrentHashMap<String, CompletableFuture<Boolean>>()
     }
 
     override fun handles(source: NetworkFileData, options: Options): Boolean {
         val extension = source.path.substringAfterLast('.', "").lowercase()
-        
         // Explicitly reject image files to prevent MediaMetadataRetriever errors
-        if (extension in IMAGE_EXTENSIONS) {
-            return false
-        }
-        
+        if (extension in IMAGE_EXTENSIONS) return false
         return extension in VIDEO_EXTENSIONS
     }
 
@@ -75,56 +82,51 @@ class NetworkVideoFrameDecoder(
         height: Int,
         options: Options
     ): Resource<Drawable>? {
-        // Check cache first
-        val cachedThumbnail = runBlocking {
-            try {
-                thumbnailCacheRepository.getCachedThumbnail(source.path)
-            } catch (e: Exception) {
-                Timber.e(e, "Error checking thumbnail cache for: ${source.path}")
-                null
-            }
-        }
-        
-        if (cachedThumbnail != null && cachedThumbnail.exists()) {
-            Timber.v("Using CACHED thumbnail for: ${source.path.substringAfterLast('/')}")
-            return try {
-                val bitmap = BitmapFactory.decodeFile(cachedThumbnail.absolutePath)
-                if (bitmap != null) {
-                    val drawable = BitmapDrawable(
-                        FastMediaSorterApp.appContext.resources,
-                        bitmap
-                    )
-                    return BitmapDrawableResource(drawable, bitmapPool)
-                } else {
-                    Timber.w("Failed to decode cached thumbnail, will re-extract: ${source.path}")
-                    null
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error loading cached thumbnail: ${source.path}")
-                null
-            }
-        }
-        
-        // Check if this file previously failed extraction (unified cache with NetworkFileDataFetcher)
+        val fileName = source.path.substringAfterLast('/')
+
+        // 1. Always check ThumbnailCache first — serves even if file is in the failed cache
+        loadFromThumbnailCache(source.path, fileName)?.let { return it }
+
+        // 2. Skip extraction if previously failed (cache miss + failed = no retry this session)
         if (NetworkFileDataFetcher.isVideoFailed(source.path)) {
-            Timber.v("Skipping video thumbnail extraction - cached failure: ${source.path.substringAfterLast('/')}")
+            Timber.v("Skipping video thumbnail extraction - cached failure: $fileName")
             return null
         }
 
+        // 3. Fix 2: Deduplicate — only one extraction per path at a time
+        val ourFuture = CompletableFuture<Boolean>()
+        val existingFuture = inFlightExtractions.putIfAbsent(source.path, ourFuture)
+
+        if (existingFuture != null) {
+            // Secondary thread: another extraction is already in flight — wait for its result
+            Timber.d("Dedup: waiting for in-flight extraction of: $fileName")
+            val succeeded = try {
+                // Wait slightly longer than the primary's own extraction timeout
+                existingFuture.get(VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS + 2_000L, TimeUnit.MILLISECONDS)
+            } catch (e: Exception) {
+                Timber.d("Dedup: wait timed out/interrupted for: $fileName")
+                false
+            }
+            // Primary saved to ThumbnailCache before completing the future — serve from there
+            return if (succeeded) loadFromThumbnailCache(source.path, fileName) else null
+        }
+
+        // 4. Primary thread: perform the actual extraction
         val startTime = System.currentTimeMillis()
-        Timber.v("Starting video frame extraction for: ${source.path.substringAfterLast('/')}")
+        Timber.v("Starting video frame extraction for: $fileName")
 
+        val mediaDataSource = NetworkMediaDataSource(
+            path = source.path,
+            fileSize = source.size,
+            credentialsId = source.credentialsId,
+            smbClient = smbClient,
+            sftpClient = sftpClient,
+            ftpClient = ftpClient,
+            credentialsRepository = credentialsRepository
+        )
+
+        var extractionSucceeded = false
         return try {
-            val mediaDataSource = NetworkMediaDataSource(
-                path = source.path,
-                fileSize = source.size,
-                credentialsId = source.credentialsId,
-                smbClient = smbClient,
-                sftpClient = sftpClient,
-                ftpClient = ftpClient,
-                credentialsRepository = credentialsRepository
-            )
-
             val bitmap = try {
                 extractVideoFrame(mediaDataSource, source.path)
             } finally {
@@ -135,38 +137,72 @@ class NetworkVideoFrameDecoder(
                 }
             }
 
-            if (bitmap == null) {
-                // Cache this failure using unified cache (shared with NetworkFileDataFetcher)
-                NetworkFileDataFetcher.markVideoAsFailed(source.path)
-                Timber.w("Failed to extract video thumbnail: ${source.path.substringAfterLast('/')}")
-                null
-            } else {
-                val totalTime = System.currentTimeMillis() - startTime
-                Timber.v("Successfully extracted video thumbnail in ${totalTime}ms: ${source.path.substringAfterLast('/')}")
-                
-                // Save to cache
+            if (bitmap != null) {
+                val elapsed = System.currentTimeMillis() - startTime
+                Timber.v("Successfully extracted video thumbnail in ${elapsed}ms: $fileName")
+
+                // Save to cache BEFORE completing the future so secondary waiters can read immediately
                 runBlocking {
                     try {
                         val cachedFile = saveThumbnailToCache(source.path, bitmap)
                         if (cachedFile != null) {
                             thumbnailCacheRepository.saveThumbnail(source.path, cachedFile)
-                            Timber.v("Saved thumbnail to cache: ${source.path.substringAfterLast('/')}")
+                            Timber.v("Saved thumbnail to cache: $fileName")
                         }
                     } catch (e: Exception) {
-                        Timber.e(e, "Failed to save thumbnail to cache: ${source.path}")
+                        Timber.e(e, "Failed to save thumbnail to cache: $fileName")
                     }
                 }
-                
-                val drawable = BitmapDrawable(
-                    FastMediaSorterApp.appContext.resources,
-                    bitmap
-                )
+
+                extractionSucceeded = true
+                val drawable = BitmapDrawable(FastMediaSorterApp.appContext.resources, bitmap)
                 BitmapDrawableResource(drawable, bitmapPool)
+            } else {
+                // Fix 1: only mark as failed if no concurrent thread already saved to ThumbnailCache
+                val cacheCheck = runBlocking {
+                    try { thumbnailCacheRepository.getCachedThumbnail(source.path) } catch (e: Exception) { null }
+                }
+                if (cacheCheck == null || !cacheCheck.exists()) {
+                    NetworkFileDataFetcher.markVideoAsFailed(source.path)
+                } else {
+                    Timber.d("Not marking as failed — ThumbnailCache already has entry: $fileName")
+                }
+                Timber.w("Failed to extract video thumbnail: $fileName")
+                null
             }
         } catch (e: Exception) {
-            Timber.e(e, "Error during video frame extraction: ${source.path.substringAfterLast('/')}")
-            // Also mark as failed on exception
+            Timber.e(e, "Error during video frame extraction: $fileName")
             NetworkFileDataFetcher.markVideoAsFailed(source.path)
+            null
+        } finally {
+            // Always signal secondary waiters and remove from the in-flight map
+            ourFuture.complete(extractionSucceeded)
+            inFlightExtractions.remove(source.path, ourFuture)
+        }
+    }
+
+    private fun loadFromThumbnailCache(path: String, fileName: String): Resource<Drawable>? {
+        val cached = runBlocking {
+            try {
+                thumbnailCacheRepository.getCachedThumbnail(path)
+            } catch (e: Exception) {
+                Timber.e(e, "Error checking thumbnail cache for: $path")
+                null
+            }
+        }
+        if (cached == null || !cached.exists()) return null
+        Timber.v("Using CACHED thumbnail for: $fileName")
+        return try {
+            val bitmap = BitmapFactory.decodeFile(cached.absolutePath)
+            if (bitmap != null) {
+                val drawable = BitmapDrawable(FastMediaSorterApp.appContext.resources, bitmap)
+                BitmapDrawableResource(drawable, bitmapPool)
+            } else {
+                Timber.w("Failed to decode cached thumbnail, will re-extract: $path")
+                null
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error loading cached thumbnail: $path")
             null
         }
     }
@@ -202,7 +238,7 @@ class NetworkVideoFrameDecoder(
                 }
             }
         }
-        
+
         return try {
             future.get(VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         } catch (e: TimeoutException) {
@@ -241,7 +277,7 @@ class NetworkVideoFrameDecoder(
             null
         }
     }
-    
+
     /**
      * Save extracted thumbnail bitmap to cache directory.
      * @return Cached file or null if save failed
@@ -252,18 +288,18 @@ class NetworkVideoFrameDecoder(
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs()
             }
-            
+
             // Generate unique filename from path hash
             val hash = MessageDigest.getInstance("MD5")
                 .digest(filePath.toByteArray())
                 .joinToString("") { "%02x".format(it) }
-            
+
             val cachedFile = File(cacheDir, "$hash.jpg")
-            
+
             FileOutputStream(cachedFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
             }
-            
+
             cachedFile
         } catch (e: Exception) {
             Timber.e(e, "Failed to save thumbnail to cache")

@@ -91,7 +91,10 @@
     <dimen name="control_bar_padding">4dp</dimen>
     <dimen name="control_button_size">48dp</dimen>
     <dimen name="control_button_size_compact">32dp</dimen>
-    <dimen name="toolbar_row_height_compact">36dp</dimen>
+    <dimen name="toolbar_row_height_compact">20dp</dimen>
+    <!-- Settings Activity: non-compact header heights (replaces actionBarSizePx ~56dp) -->
+    <dimen name="settings_title_row_height">28dp</dimen>
+    <dimen name="settings_tabs_height">24dp</dimen>
     <dimen name="control_button_spacing_large">24dp</dimen>
     <dimen name="control_button_spacing_small">8dp</dimen>
     <dimen name="control_button_play_width">96dp</dimen>

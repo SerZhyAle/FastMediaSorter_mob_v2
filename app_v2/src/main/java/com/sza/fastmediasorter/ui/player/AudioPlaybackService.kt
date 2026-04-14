@@ -146,6 +146,21 @@ class AudioPlaybackService : MediaSessionService() {
                 }
             }
 
+            // Always report SEEK_TO_NEXT / SEEK_TO_PREVIOUS as available so that
+            // DefaultMediaNotificationProvider renders both skip buttons in the notification,
+            // even for single-file playback where ExoPlayer would otherwise return false.
+            override fun isCommandAvailable(command: @Player.Command Int): Boolean {
+                if (command == COMMAND_SEEK_TO_NEXT || command == COMMAND_SEEK_TO_PREVIOUS) return true
+                return super.isCommandAvailable(command)
+            }
+
+            override fun getAvailableCommands(): Player.Commands {
+                return super.getAvailableCommands().buildUpon()
+                    .add(COMMAND_SEEK_TO_NEXT)
+                    .add(COMMAND_SEEK_TO_PREVIOUS)
+                    .build()
+            }
+
         }
 
         // Phase 5: MediaButtonRestartReceiver is registered in the manifest with android:priority=1000.

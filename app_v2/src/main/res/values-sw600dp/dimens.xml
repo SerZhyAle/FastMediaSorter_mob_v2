@@ -20,7 +20,7 @@
     <dimen name="button_height">56dp</dimen>
     <dimen name="control_button_size">56dp</dimen>
     <dimen name="control_button_size_compact">36dp</dimen>
-    <dimen name="toolbar_row_height_compact">40dp</dimen>
+    <dimen name="toolbar_row_height_compact">22dp</dimen>
 
     <!-- Main Activity -->
     <dimen name="main_recycler_margin">12dp</dimen>

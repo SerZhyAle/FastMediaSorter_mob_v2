@@ -312,6 +312,9 @@ class PlayerDialogAndUiStateManager(
 
             // Apply global compact scaling to text and overlays
             if (state.useCompactElements) compactElementsManager.apply() else compactElementsManager.restore()
+            
+            // CRITICAL FIX: Show ExoPlayer controller when exiting fullscreen (Video/Audio)
+            binding.playerView.showController()
         } else {
             // Fullscreen mode or slideshow mode
             binding.topCommandPanel.isVisible = false
@@ -322,6 +325,10 @@ class PlayerDialogAndUiStateManager(
             safeViews.copyToPanel.isVisible = false
             safeViews.moveToPanel.isVisible = false
             // controlsOverlay visibility is controlled in updateUI based on showControls
+            
+            // CRITICAL FIX: Hide ExoPlayer controller when entering fullscreen (Video/Audio)
+            // The controller will reappear on touch due to ExoPlayer's built-in behavior
+            binding.playerView.hideController()
             
             if (!state.showSmallControls) {
                 restoreCommandButtonHeightsIfNeeded()

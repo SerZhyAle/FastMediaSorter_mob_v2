@@ -191,16 +191,25 @@ function Parse-Line([string]$line) {
 # ─── Load and parse (index-aware) ────────────────────────────────────────────
 $rawLines = Get-Content -Path $LogFile -Encoding UTF8
 $parsedList = [System.Collections.Generic.List[object]]::new()
+
 for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
     $p = Parse-Line $rawLines[$idx]
     if ($null -ne $p) {
-        Add-Member -InputObject $p -NotePropertyName LineIdx -NotePropertyValue $idx
+        Add-Member -InputObject $p -NotePropertyName LineIdx      -NotePropertyValue $idx
+        Add-Member -InputObject $p -NotePropertyName Continuation -NotePropertyValue ([System.Collections.Generic.List[string]]::new())
         $parsedList.Add($p)
+    } else {
+        # Attach continuation lines (stack traces, banner, separators) to the previous entry
+        if ($parsedList.Count -gt 0) {
+            $parsedList[$parsedList.Count - 1].Continuation.Add($rawLines[$idx])
+        }
     }
 }
 $parsed = $parsedList.ToArray()
+$continuationCount = $rawLines.Count - $parsed.Count
 
-Write-Host "Loaded $($parsed.Count) parsed lines from $LogFile" -ForegroundColor DarkGray
+Write-Host ("Loaded {0} raw lines → {1} structured + {2} continuation/separator  [{3}]" -f `
+    $rawLines.Count, $parsed.Count, $continuationCount, (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
 
 # ─── SUMMARY mode ─────────────────────────────────────────────────────────────
 if ($Summary) {
@@ -230,6 +239,26 @@ if ($Summary) {
         Write-Out "`n[Warnings (first 10)]" "Yellow"
         $warnLines | Select-Object -First 10 | ForEach-Object {
             Write-Out ("  {0}  [{1}]  {2}" -f $_.Time, $_.Tag, $_.Msg) "Yellow"
+        }
+    }
+
+    # Startup banner — extract from continuation lines of the banner log entry
+    $bannerEntry = $parsed | Where-Object {
+        $_.Continuation.Count -gt 5 -and
+        ($_.Continuation | Where-Object { $_ -match 'FAST MEDIA SORTER' })
+    } | Select-Object -First 1
+    if ($bannerEntry) {
+        Write-Out "`n[Startup Banner]" "White"
+        $keyFields = @(
+            'Version Name', 'Version Code', 'App ID', 'Build Type', 'Flavor',
+            'Android Version', 'SDK / API Level', 'Model',
+            'Total RAM', 'Heap Max'
+        )
+        foreach ($field in $keyFields) {
+            $bline = $bannerEntry.Continuation | Where-Object { $_ -match "\b$([regex]::Escape($field))\b" } | Select-Object -First 1
+            if ($bline -and $bline -match ':\s*(.+)$') {
+                Write-Out ("  {0,-22}: {1}" -f $field, $Matches[1].Trim()) "Gray"
+            }
         }
     }
 
@@ -263,7 +292,7 @@ if ($Spam) {
 # Finds FATAL EXCEPTION blocks, Java stack traces, and ANR triggers
 if ($Exceptions) {
     Write-Out "`n=== EXCEPTION / CRASH BLOCKS ===" "Red"
-    $crashPatterns = 'FATAL EXCEPTION|AndroidRuntime|Exception:|Caused by:|Process:.*PID:|ANR in|begin of crash dump'
+    $crashPatterns = 'FATAL EXCEPTION|AndroidRuntime|Exception:|Caused by:|Process:.*PID:|ANR in|begin of crash dump|beginning of crash'
     $crashIndices = [System.Collections.Generic.HashSet[int]]::new()
     $blocks = 0
 
@@ -358,9 +387,13 @@ if ($Tag -ne "") {
     $results = $results | Where-Object { Test-Match $_.Tag $Tag }
 }
 
-# Pattern filter (message + tag)
+# Pattern filter (message + tag + continuation lines)
 if ($Pattern -ne "") {
-    $results = $results | Where-Object { (Test-Match $_.Msg $Pattern) -or (Test-Match $_.Tag $Pattern) }
+    $results = $results | Where-Object {
+        (Test-Match $_.Msg $Pattern) -or
+        (Test-Match $_.Tag $Pattern) -or
+        ($_.Continuation.Count -gt 0 -and ($_.Continuation | Where-Object { Test-Match $_ $Pattern }))
+    }
 }
 
 # Exclude filter

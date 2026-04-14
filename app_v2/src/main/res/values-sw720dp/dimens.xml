@@ -23,7 +23,7 @@
     <dimen name="button_height">64dp</dimen>
     <dimen name="control_button_size">64dp</dimen>
     <dimen name="control_button_size_compact">44dp</dimen>
-    <dimen name="toolbar_row_height_compact">44dp</dimen>
+    <dimen name="toolbar_row_height_compact">24dp</dimen>
 
     <!-- Dialog dimensions -->
     <dimen name="dialog_min_width">480dp</dimen>
