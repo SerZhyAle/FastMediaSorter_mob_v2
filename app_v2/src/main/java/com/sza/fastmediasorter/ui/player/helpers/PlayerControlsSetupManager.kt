@@ -342,6 +342,11 @@ class PlayerControlsSetupManager(
             UserActionLogger.logButtonClick("PdfTextSettingsCmd", "PlayerActivity")
             translationButtonManager.showTranslationSettingsDialog()
         }
+        // Thumbnail navigation button (landscape cmd panel) — same action as overflow menu_pdf_thumbnails
+        binding.btnPdfThumbnailsCmd?.setOnClickListener {
+            UserActionLogger.logButtonClick("PdfThumbnailsCmd", "PlayerActivity")
+            if (activity._pdfViewerManager != null) activity.pdfViewerManager.showThumbnailNavigation()
+        }
         binding.btnEpubTextSettingsCmd.setOnClickListener {
             UserActionLogger.logButtonClick("EpubTextSettingsCmd", "PlayerActivity")
             translationButtonManager.showTranslationSettingsDialog()

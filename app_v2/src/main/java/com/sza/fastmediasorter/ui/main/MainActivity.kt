@@ -1133,9 +1133,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     return@launch
                 }
 
-                // Availability check with 5-second timeout
+                // Availability check timeout: must cover a full cold SMB connection:
+                // TCP pre-check (3 s) + SMBJ negotiate/auth/tree-connect (up to 5 s) = 8 s worst case.
+                // 12 s gives a safe margin without blocking the user for too long when the
+                // server is truly unreachable.
                 val isAvailable = try {
-                    kotlinx.coroutines.withTimeout(5000L) {
+                    kotlinx.coroutines.withTimeout(12_000L) {
                         checkResourceAvailability(resource, state.filePath)
                     }
                 } catch (e: kotlinx.coroutines.TimeoutCancellationException) {

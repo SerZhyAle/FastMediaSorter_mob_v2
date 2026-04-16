@@ -55,10 +55,18 @@ Deleted files move to a `.trash/` folder in the same location (soft-delete). The
 4. Enter username and password
 5. Tap "Connect"
 
-**Common issues:**
-- Make sure your phone is on the same Wi-Fi network
-- Check if SMB is enabled on your NAS
-- Try port 445 (default SMB port)
+**Common issues and fixes:**
+
+| Problem | What to try |
+|---------|------------|
+| "Connection refused" | Open Windows Firewall → allow **TCP port 445** inbound. Or temporarily disable the firewall to test |
+| "Wrong password" | Try leaving Username blank (guest access). If you use a Microsoft account, enter your **full email** as the username |
+| "Host not found" | Make sure phone and PC are on the **same Wi-Fi router**. AP Isolation (a router security setting) can block device-to-device traffic — disable it in router settings |
+| Scan finds nothing | Disable VPN on phone. Enable **Network Discovery** in Windows (Control Panel → Network and Sharing Center → Advanced sharing settings). Then try entering IP manually |
+| Very slow browsing | Edit the resource → run **Speed Test**. If below 5 Mbps, switch phone to 5 GHz Wi-Fi band. Disable video thumbnails for slow connections |
+| Works on Wi-Fi but not mobile data | Expected — SMB is a local network protocol only, it cannot work over mobile data |
+
+→ Full walkthrough: [SMB Setup Guide](howto/scenario-smb-setup.md)
 
 ### How do I connect to Google Drive?
 1. Settings → Add Folder → **Google Drive**
@@ -88,6 +96,16 @@ Deleted files move to a `.trash/` folder in the same location (soft-delete). The
 ### Why are thumbnails not loading for network files?
 Network thumbnails generate **on-demand** to save bandwidth. Scroll slowly or wait a few seconds for them to appear.
 
+If thumbnails never load at all:
+- Check that the connection is active: tap the resource → if the folder opens, the connection is fine
+- Edit the resource → make sure **"Load thumbnails"** is enabled
+- For very slow connections: disable thumbnails entirely to avoid timeouts (Edit resource → disable thumbnails)
+
+### Connection keeps dropping / files fail to open mid-playback
+- Check that your phone's Wi-Fi is stable (not switching between 2.4 and 5 GHz bands)
+- Some routers disconnect idle SMB sessions — edit the resource → enable **"Reconnect on error"** if available
+- For video playback over SMB: run Speed Test (Edit resource → Speed Test). You need at least 10 Mbps for 1080p video
+
 ---
 
 ## Quick Sort & Destinations
@@ -103,6 +121,12 @@ Quick Sort folders are pre-configured target folders for fast file sorting. You 
 1. Open a photo/video in full-screen
 2. Tap a **numbered button** (0-9) on the command panel, OR
 3. Tap the **bottom-left corner** (COPY zone) or **bottom-center** (MOVE zone)
+
+### Quick Sort buttons are not showing
+Make sure you have added at least one destination folder first: Settings → Quick Sort → **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
+
+### I accidentally sent a file to the wrong folder
+Tap **Undo** immediately (bottom-right of the command panel) — available for a few seconds after each operation. If you missed the window, go to the destination folder and move the file back manually.
 
 ---
 
@@ -138,6 +162,13 @@ Use the **Filter** panel in Browse: tap the filter icon in the toolbar, type any
 The app uses **pagination** to load files in batches. For very large collections:
 - Enable "Disable thumbnails" for that folder
 - Use filters to narrow down results
+- Sort by Date (newest first) — this loads recent files first and avoids scanning the entire folder upfront
+
+### The app crashes or freezes
+1. Force-close and reopen the app
+2. If it crashes on a specific folder: that folder may contain a corrupted file — try opening files one by one to identify it
+3. Clear cache: Settings → General → **"Clear Cache"** — this resolves most stability issues after updates
+4. If crashes persist: report via GitHub Issues (link at the bottom of this page) — attach a description of what you were doing when it crashed
 
 ### How much storage does the thumbnail cache use?
 **Default:** 2 GB (configurable in Settings)
@@ -280,6 +311,13 @@ Settings → **Operations** → **Scheduled Operations** section. Tap **"+"** to
 ### Why didn't a scheduled operation run at the exact time?
 Android may defer WorkManager tasks by a few minutes to optimize battery. For more reliable timing, grant the app **Battery Optimization** exemption (Settings → General → Battery Optimization). The minimum interval is 15 minutes.
 
+### Scheduled operation ran but copied 0 files
+This is usually correct — it means all files were already present in the destination (the operation uses "skip existing" by default). To verify: check the operation log and look at the "skipped" count vs. "copied" count.
+
+If you expected new files to be copied but they weren't:
+- Make sure the **Source** is set to the right folder (e.g., "Camera Photos" virtual resource — not a manual path that might be wrong)
+- Check that the destination resource (SMB / cloud) was reachable at the scheduled time — if Wi-Fi was off, the run is skipped and retried next time
+
 ### Can I see what was processed?
 **Yes.** Tap **"View Log"** in the Scheduled Operations section to see a timestamped history of every run including per-file results.
 
@@ -287,7 +325,14 @@ Android may defer WorkManager tasks by a few minutes to optimize battery. For mo
 
 ## Still have questions?
 
-- 📧 **Email:** [sza@ukr.net](mailto:sza@ukr.net)
-- 🐛 **Bug reports:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues)
+Didn't find an answer above, or something isn't working as described? **Please reach out** — every message gets read and most issues get fixed.
+
+- � **How-To Guides** (step-by-step tasks): [HOW_TO.md](HOW_TO.md)
+- 🚀 **Quick Start:** [QUICK_START.md](QUICK_START.md)
+- 🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- �📧 **Email:** [sza@ukr.net](mailto:sza@ukr.net) — for anything: setup help, bug descriptions, feature wishes
+- 🐛 **Bug report:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) — preferred for reproducible bugs; include Android version and what you were doing
 - 📖 **Full docs:** [Documentation Portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
+
+> **Want a feature that isn't there yet?** Write — many features in the app were added because someone asked. If it makes sense for the use case, it gets built.
 

@@ -74,17 +74,32 @@ class SmbConnectionManager @Inject constructor(
     }
     
     companion object {
-        // Normal timeouts (healthy connection)
-        private const val CONNECTION_TIMEOUT_MS = 2000L // 2 seconds (fast failure for offline hosts)
-        private const val READ_TIMEOUT_MS = 90000L // 90 seconds - increased for large folder listing
-        private const val WRITE_TIMEOUT_MS = 60000L // 60 seconds
-        
-        // Degraded timeouts (poor connection)
-        private const val CONNECTION_TIMEOUT_DEGRADED_MS = 8000L // 8 seconds
-        private const val READ_TIMEOUT_DEGRADED_MS = 120000L // 120 seconds - extended for degraded connection
+        // SMBJ per-request SMB2 transaction timeout tiers.
+        // withTimeout() in SmbConfig controls how long SMBJ's Promise waits for each SMB2 response
+        // (QUERY_DIRECTORY, SESSION_SETUP, etc.). DiskShare.list() pages results, so total scan time
+        // can be N × transactionTimeout before SMBRuntimeException(TimeoutException) is thrown.
+        //
+        // Tier selection is driven by NetworkSpeedTestUseCase results (readSpeedMbps):
+        //   FAST  (> 100 Mbps): 5 s — fast network, slow QUERY_DIRECTORY means broken NAS
+        //   MEDIUM (10–100 Mbps): 10 s — average home NAS / WiFi
+        //   SLOW  (< 10 Mbps or no data): 20 s — conservative; also used when isDegraded
+        private const val TRANSACTION_TIMEOUT_FAST_MS = 5_000L   // > 100 Mbps
+        private const val TRANSACTION_TIMEOUT_MEDIUM_MS = 10_000L // 10–100 Mbps
+        private const val TRANSACTION_TIMEOUT_SLOW_MS = 20_000L   // < 10 Mbps or unknown
+
+        // Socket SO_TIMEOUT (controls streaming reads, e.g. file downloads).
+        // Independent of transaction timeout — kept generous for large files.
+        private const val READ_TIMEOUT_MS = 90_000L  // normal connections
+        private const val READ_TIMEOUT_DEGRADED_MS = 120_000L // degraded connections
+        private const val WRITE_TIMEOUT_MS = 60_000L
+
+        // Legacy alias kept for createFreshConnection which still uses normal/degraded split.
+        // Normal client reuses FAST config (good latency assumption for fresh connects).
+        private const val CONNECTION_TIMEOUT_MS = TRANSACTION_TIMEOUT_FAST_MS
+        private const val CONNECTION_TIMEOUT_DEGRADED_MS = TRANSACTION_TIMEOUT_SLOW_MS
         
         // Fast TCP pre-check before full SMBJ connect attempt
-        private const val CONNECTIVITY_CHECK_TIMEOUT_MS = 1500 // 1.5 seconds
+        private const val CONNECTIVITY_CHECK_TIMEOUT_MS = 3000 // 3 seconds — 2× observed worst-case RTT (~1071ms)
         
         // Timeout for no-response detection (connection appears dead)
         private const val NO_RESPONSE_TIMEOUT_MS = 15000L // 15 seconds
@@ -134,64 +149,105 @@ class SmbConnectionManager @Inject constructor(
     @Volatile
     private var resetCallback: SmbResetCallback? = null
     
-    // Lazy initialization of SMB clients
-    private val normalConfig by lazy {
+    // Lazy initialization of SMB clients — one per transaction-timeout tier.
+    // Configs are immutable once built; tier selection happens in getClient().
+    private val fastConfig by lazy {
         SmbConfig.builder()
-            .withTimeout(CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .withTimeout(TRANSACTION_TIMEOUT_FAST_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            .withReadBufferSize(65536) // 64KB read buffer
-            .withWriteBufferSize(65536) // 64KB write buffer
-            .withTransactBufferSize(4280) // Standard transact buffer size
+            .withReadBufferSize(65536)
+            .withWriteBufferSize(65536)
+            .withTransactBufferSize(4280)
             .build()
     }
-    
+
+    private val mediumConfig by lazy {
+        SmbConfig.builder()
+            .withTimeout(TRANSACTION_TIMEOUT_MEDIUM_MS, TimeUnit.MILLISECONDS)
+            .withSoTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .withMultiProtocolNegotiate(true)
+            .withReadBufferSize(65536)
+            .withWriteBufferSize(65536)
+            .withTransactBufferSize(4280)
+            .build()
+    }
+
+    // normalConfig kept as alias to fastConfig so createFreshConnection (attempt 1) remains fast.
+    private val normalConfig get() = fastConfig
+
     private val degradedConfig by lazy {
         SmbConfig.builder()
-            .withTimeout(CONNECTION_TIMEOUT_DEGRADED_MS, TimeUnit.MILLISECONDS)
+            .withTimeout(TRANSACTION_TIMEOUT_SLOW_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_DEGRADED_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
-            .withReadBufferSize(32768) // 32KB read buffer (smaller for degraded)
-            .withWriteBufferSize(32768) // 32KB write buffer (smaller for degraded)
-            .withTransactBufferSize(4280) // Standard transact buffer size
+            .withReadBufferSize(32768) // smaller buffer for degraded connections
+            .withWriteBufferSize(32768)
+            .withTransactBufferSize(4280)
             .build()
     }
     
     @Volatile
     private var normalClient: SMBClient? = null
-    
+
+    @Volatile
+    private var mediumClient: SMBClient? = null
+
     @Volatile
     private var degradedClient: SMBClient? = null
     
     /**
-     * Get or create normal (healthy connection) SMB client.
+     * Get or create fast-tier SMB client (transaction timeout = 5 s).
+     * Used for connections where speed test confirmed > 100 Mbps.
      */
-    private fun getNormalClient(): SMBClient {
+    private fun getFastClient(): SMBClient {
         return normalClient ?: synchronized(this) {
-            normalClient ?: SMBClient(normalConfig).also { normalClient = it }
+            normalClient ?: SMBClient(fastConfig).also { normalClient = it }
         }
     }
-    
+
     /**
-     * Get or create degraded (poor connection) SMB client with extended timeouts.
+     * Get or create medium-tier SMB client (transaction timeout = 10 s).
+     * Used for connections where speed test confirmed 10–100 Mbps.
+     */
+    private fun getMediumClient(): SMBClient {
+        return mediumClient ?: synchronized(this) {
+            mediumClient ?: SMBClient(mediumConfig).also { mediumClient = it }
+        }
+    }
+
+    /**
+     * Get or create slow/degraded-tier SMB client (transaction timeout = 20 s).
+     * Default when no speed test data exists or runtime degradation detected.
      */
     private fun getDegradedClient(): SMBClient {
         return degradedClient ?: synchronized(this) {
             degradedClient ?: SMBClient(degradedConfig).also { degradedClient = it }
         }
     }
-    
+
+    // Alias so createFreshConnection (attempt 1, non-degraded) continues to work.
+    private fun getNormalClient() = getFastClient()
+
     /**
-     * Select appropriate SMB client based on connection health.
-     * Uses degraded client when ConnectionThrottleManager reports degradation.
+     * Select SMBJ client for [server]:[port] based on two signals:
+     * 1. Runtime health: if [ConnectionThrottleManager] reports degradation, use max-patience client.
+     * 2. Speed test data: pick tier (FAST / MEDIUM / SLOW) from last measured read speed.
+     *
+     * This means a WiFi7 user gets a 5 s QUERY_DIRECTORY timeout (unresponsive = broken immediately),
+     * while a user on a slow 4G bridge gets 20 s of patience.
      */
     fun getClient(server: String, port: Int): SMBClient {
         val resourceKey = "smb://$server:$port"
-        val isDegraded = ConnectionThrottleManager.isDegraded(
-            ConnectionThrottleManager.ProtocolLimits.SMB,
-            resourceKey
-        )
-        return if (isDegraded) getDegradedClient() else getNormalClient()
+        // Runtime degradation always wins — server is already struggling.
+        if (ConnectionThrottleManager.isDegraded(ConnectionThrottleManager.ProtocolLimits.SMB, resourceKey)) {
+            return getDegradedClient()
+        }
+        return when (ConnectionThrottleManager.getSmbjClientTier(resourceKey)) {
+            ConnectionThrottleManager.SmbjClientTier.FAST   -> getFastClient()
+            ConnectionThrottleManager.SmbjClientTier.MEDIUM -> getMediumClient()
+            ConnectionThrottleManager.SmbjClientTier.SLOW   -> getDegradedClient()
+        }
     }
     
     /**
@@ -200,6 +256,7 @@ class SmbConnectionManager @Inject constructor(
      */
     suspend fun <T> withConnection(
         connectionInfo: SmbConnectionInfo,
+        allowRetry: Boolean = true,
         block: suspend (DiskShare) -> SmbResult<T>
     ): SmbResult<T> = connectionSemaphore.withPermit {
         val key = ConnectionKey(
@@ -261,18 +318,25 @@ class SmbConnectionManager @Inject constructor(
             }
         }
         
-        // Attempt 2: Create fresh connection with retry and degraded timeout
+        // Attempt 2: Create fresh connection (with optional retry)
+        val maxAttempts = if (allowRetry) 2 else 1
         var freshConnectionAttempts = 0
         var lastException: Exception? = null
-        
-        while (freshConnectionAttempts < 2) {
+
+        while (freshConnectionAttempts < maxAttempts) {
             freshConnectionAttempts++
             try {
-                val newPooled = createFreshConnection(connectionInfo, useDegradedTimeout = true)
-                
+                // First attempt: always use normal timeouts (fast failure).
+                // Degraded client (extended timeouts) only on retry — server proved reachable but slow.
+                val newPooled = createFreshConnection(
+                    connectionInfo,
+                    useDegradedTimeout = freshConnectionAttempts > 1 && allowRetry,
+                    skipConnectivityCheck = freshConnectionAttempts > 1
+                )
+
                 // Track usage for fresh connection
                 newPooled.usageCount.incrementAndGet()
-                
+
                 try {
                     val result = block(newPooled.share)
                     onSuccess()
@@ -286,12 +350,18 @@ class SmbConnectionManager @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                // An outer withTimeout/coroutine cancel propagates as CancellationException.
+                // Retrying after cancellation is impossible — the scope is already cancelled.
+                // Re-throw immediately so the cancellation is not silently swallowed, which
+                // would cause delay() (the next suspension point) to throw again anyway.
+                if (e is CancellationException) throw e
+
                 lastException = e
                 if (isNonRetriableConnectionError(e)) {
                     Timber.w("Fresh connection failed with non-retriable error, aborting retries: ${e.message}")
                     break
                 }
-                if (freshConnectionAttempts < 2) {
+                if (freshConnectionAttempts < maxAttempts) {
                     Timber.w("Fresh connection attempt $freshConnectionAttempts failed, retrying with longer timeout")
                     delay(RETRY_DELAY_MS)
                 }
@@ -308,11 +378,15 @@ class SmbConnectionManager @Inject constructor(
      */
     private suspend fun createFreshConnection(
         connectionInfo: SmbConnectionInfo,
-        useDegradedTimeout: Boolean = false
+        useDegradedTimeout: Boolean = false,
+        skipConnectivityCheck: Boolean = false
     ): PooledConnection {
         // Fast TCP pre-check before attempting full SMBJ connect.
-        // Always run regardless of useDegradedTimeout to avoid waiting 5-15s for offline hosts.
-        checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
+        // Skipped on retry attempt — the first TCP ping already failed transiently;
+        // SMBJ itself will time out via CONNECTION_TIMEOUT_DEGRADED_MS if the host is truly dead.
+        if (!skipConnectivityCheck) {
+            checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
+        }
 
         val startTime = if (BuildConfig.DEBUG) System.currentTimeMillis() else 0L
         // Use degraded client for recovery after timeout to get extended timeouts
@@ -695,14 +769,60 @@ class SmbConnectionManager @Inject constructor(
             message.contains("Connection refused", ignoreCase = true) ||
             message.contains("No such host", ignoreCase = true)
 
-        // Treat unreachable hosts as non-retriable — checkConnectivity already handles fast fail
-        val isUnreachable = message.contains("Server unreachable", ignoreCase = true) ||
-            e.cause is SocketTimeoutException ||
-            e is SocketTimeoutException
+        // TCP pre-check timeouts (SocketTimeoutException / "Server unreachable") are transient —
+        // a brief latency spike (ARP, NIC wake-up, NAT) can cause them even when the server is reachable.
+        // Only hard config/auth/share errors are truly non-retriable.
 
-        return isAuthError || isAccessError || isConfigError || isUnreachable || isShareNotFound
+        return isAuthError || isAccessError || isConfigError || isShareNotFound
     }
-    
+
+    /**
+     * Returns true if [e] is a broken-pipe or transport-level socket failure.
+     * Used to detect a stale SMBJ-cached Connection that must be evicted before a retry.
+     * SMBJ's isConnected flag does not detect TCP-level silent drops, so we check exception types.
+     */
+    private fun isTransportOrBrokenPipe(e: Exception): Boolean {
+        var current: Throwable? = e
+        var depth = 0
+        while (current != null && depth < 5) {
+            if (current is java.net.SocketException ||
+                current is com.hierynomus.protocol.transport.TransportException) {
+                return true
+            }
+            val msg = current.message?.lowercase() ?: ""
+            if (msg.contains("broken pipe") || msg.contains("connection reset") ||
+                msg.contains("transport") && msg.contains("socket")) {
+                return true
+            }
+            current = current.cause
+            depth++
+        }
+        return false
+    }
+
+    /**
+     * Invalidate and close the pooled ExoPlayer connection for [connectionInfo].
+     * Call this from SmbDataSource.open when a share operation fails with a transport error
+     * on a connection that previously passed isConnectionValid() — SMBJ's isConnected flag
+     * does not detect TCP-level silent drops until an actual write attempt is made.
+     */
+    fun invalidateExoPlayerConnection(connectionInfo: SmbConnectionInfo) {
+        val key = ConnectionKey(
+            server = connectionInfo.server,
+            port = connectionInfo.port,
+            shareName = connectionInfo.shareName,
+            username = connectionInfo.username,
+            domain = connectionInfo.domain
+        )
+        val stale = connectionPool.remove(key) ?: return
+        Timber.d("SmbConnectionManager: Invalidating stale ExoPlayer connection for ${connectionInfo.server}")
+        // Close all layers so SMBJ's internal connection cache is also purged.
+        // SMBJ's SMBClient keeps a map of Connection objects; closing the Connection removes it.
+        try { stale.share.close() } catch (_: Exception) {}
+        try { stale.session.close() } catch (_: Exception) {}
+        try { stale.connection.close() } catch (_: Exception) {}
+    }
+
     /**
      * Clear connection pool (public API).
      * Used when refreshing resources or on connection issues.
@@ -770,11 +890,13 @@ class SmbConnectionManager @Inject constructor(
     private fun resetClients() {
         try {
             normalClient?.close()
+            mediumClient?.close()
             degradedClient?.close()
         } catch (e: Exception) {
             Timber.w(e, "Error closing SMB clients during reset")
         } finally {
             normalClient = null
+            mediumClient = null
             degradedClient = null
             Timber.d("SMB clients reset")
         }
@@ -826,6 +948,11 @@ class SmbConnectionManager @Inject constructor(
                 "Access denied. Check share permissions."
             e is kotlinx.coroutines.TimeoutCancellationException ->
                 "Operation timed out. Server may be overloaded or network slow."
+            // SMBJ-level transaction timeout: server did not reply to QUERY_DIRECTORY / READ_ANDX
+            // within the configured per-request window (CONNECTION_TIMEOUT_DEGRADED_MS).
+            e.toString().contains("TimeoutException", ignoreCase = true) ||
+            e.cause?.toString()?.contains("TimeoutException", ignoreCase = true) == true ->
+                "Server is responding slowly. Directory listing timed out — try again or check server load."
             else -> e.message ?: "Unknown error"
         }
     }
@@ -854,37 +981,69 @@ class SmbConnectionManager @Inject constructor(
             Timber.d("SmbConnectionManager: Reusing pooled connection for ExoPlayer")
             return pooled
         }
-        
-        // Create fresh connection (blocking)
-        Timber.d("SmbConnectionManager: Creating fresh connection for ExoPlayer")
-        try {
-            val client = getClient(connectionInfo.server, connectionInfo.port)
-            val connection = client.connect(connectionInfo.server, connectionInfo.port)
-            
-            val finalDomain = connectionInfo.domain.trim().ifEmpty { null }
-            val authContext = if (connectionInfo.username.isEmpty()) {
-                AuthenticationContext.anonymous()
-            } else {
-                AuthenticationContext(
-                    connectionInfo.username,
-                    connectionInfo.password.toCharArray(),
-                    finalDomain
-                )
-            }
-            
-            val session = connection.authenticate(authContext)
-            val share = session.connectShare(connectionInfo.shareName) as DiskShare
-            
-            // Store in pool
-            val newPooled = PooledConnection(connection, session, share)
-            connectionPool[key] = newPooled
-            
-            onSuccess()
-            return newPooled
-        } catch (e: Exception) {
-            Timber.e(e, "SmbConnectionManager: Failed to create connection for ExoPlayer")
-            throw IOException("Failed to connect to SMB: ${e.message}", e)
+
+        // Stale or absent pool entry: close it before fresh connect.
+        // SMBJ's SMBClient internally caches Connection objects by host:port.
+        // Closing the stale Connection purges it from that cache so the next
+        // client.connect() establishes a genuine new TCP socket.
+        if (pooled != null) {
+            connectionPool.remove(key)
+            Timber.d("SmbConnectionManager: Evicting stale pooled connection before fresh ExoPlayer connect")
+            try { pooled.share.close() } catch (_: Exception) {}
+            try { pooled.session.close() } catch (_: Exception) {}
+            try { pooled.connection.close() } catch (_: Exception) {}
         }
+
+        // Create fresh connection (blocking), retrying once on broken-pipe / transport errors.
+        // Even after evicting our pool entry, SMBJ's SMBClient may still hold its own internal
+        // reference to the stale Connection. If authenticate() fails because of a dead TCP socket,
+        // we close that Connection (purging the SMBJ-internal cache) and retry, which forces a
+        // new TCP handshake on the second attempt.
+        Timber.d("SmbConnectionManager: Creating fresh connection for ExoPlayer")
+        var lastException: Exception? = null
+        var candidateConnection: Connection? = null
+        for (attempt in 1..2) {
+            candidateConnection = null
+            try {
+                val client = getClient(connectionInfo.server, connectionInfo.port)
+                val connection = client.connect(connectionInfo.server, connectionInfo.port)
+                candidateConnection = connection
+
+                val finalDomain = connectionInfo.domain.trim().ifEmpty { null }
+                val authContext = if (connectionInfo.username.isEmpty()) {
+                    AuthenticationContext.anonymous()
+                } else {
+                    AuthenticationContext(
+                        connectionInfo.username,
+                        connectionInfo.password.toCharArray(),
+                        finalDomain
+                    )
+                }
+
+                val session = connection.authenticate(authContext)
+                val share = session.connectShare(connectionInfo.shareName) as DiskShare
+
+                // Store in pool
+                val newPooled = PooledConnection(connection, session, share)
+                connectionPool[key] = newPooled
+
+                onSuccess()
+                return newPooled
+            } catch (e: Exception) {
+                lastException = e
+                // On a transport/socket error the SMBJ-cached Connection is stale.
+                // Close it so SMBJ evicts it from its internal map; the second attempt
+                // will then establish a real new TCP socket.
+                if (isTransportOrBrokenPipe(e) && attempt == 1) {
+                    Timber.w("SmbConnectionManager: Broken pipe on ExoPlayer connect attempt $attempt — closing stale SMBJ connection and retrying")
+                    try { candidateConnection?.close() } catch (_: Exception) {}
+                    continue
+                }
+                Timber.e(e, "SmbConnectionManager: Failed to create connection for ExoPlayer (attempt $attempt)")
+                break
+            }
+        }
+        throw IOException("Failed to connect to SMB: ${lastException?.message}", lastException)
     }
     
     /**

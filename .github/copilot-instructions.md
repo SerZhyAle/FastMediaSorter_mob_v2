@@ -96,6 +96,8 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
     <constraint>COMMON_PITFALLS: NO player code in `PlayerActivity.kt`. Use `Dispatchers.IO` for Coroutines. FTP MUST handle timeouts. NO file saves in root.</constraint>
     <constraint>DEV_CHANGELOG: MANDATORY. After EVERY code/config modification, run `.\scripts\add_to_dev_log.ps1 "path" "target" "description"` to log the change to `dev/CHANGELOG.md`. Execute AFTER each modification step, BEFORE moving to next task. Applies to ALL agents.</constraint>
     <constraint>FEATURES_DOCS_UPDATE: MANDATORY. After implementing ANY new user-facing feature, add a bullet entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this at end of Step 4, BEFORE marking task complete. Match the bullet style of existing entries. Applies to ALL agents. NO exceptions.</constraint>
+    <constraint>COMMENTS_READ_FIRST: MANDATORY. Before editing any file, read ALL existing inline comments and KDoc/Javadoc in the affected area. Treat them as requirements — they encode intent, constraints, and non-obvious decisions. DO NOT ignore or overwrite comments without understanding them first.</constraint>
+    <constraint>COMMENTS_WRITE_ON_MODIFY: MANDATORY. When adding or changing logic, add an inline comment explaining WHY (not what) whenever the reason is not immediately obvious from the code. Remove or update stale comments that no longer reflect reality. Applies to ALL agents.</constraint>
   </strict_constraints>
 
   <workflow_stages>

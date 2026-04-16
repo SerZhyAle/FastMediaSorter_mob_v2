@@ -148,6 +148,12 @@ class BrowseSortFilterManager(
     /**
      * Reload and re-filter the file list using the current filter state.
      * Called on filter changes and on filter state restoration from DataStore.
+     *
+     * Fast path: if the in-memory cache is already populated (e.g. after a cache hit
+     * during resource load) the filter is applied directly to those files without
+     * triggering a new network/disk scan. This prevents a race condition where
+     * restoreFilterState() fires after a cache hit and wipes the displayed list by
+     * kicking off an SMB scan that may return 0 files due to transient connection issues.
      */
     fun applyFilter() {
         val resource = stateFlow.value.resource ?: return
@@ -155,6 +161,19 @@ class BrowseSortFilterManager(
 
         Timber.d("BrowseSortFilterManager.applyFilter: filter=$filter")
 
+        // Fast path — files are already in memory (e.g. cache hit); no scan needed.
+        val cachedFiles = MediaFilesCacheManager.getCachedList(resource.id)
+        if (cachedFiles != null) {
+            val filteredFiles = if (filter != null) {
+                applyFilterToList(cachedFiles, filter).also {
+                    Timber.d("BrowseSortFilterManager.applyFilter (cache fast-path): ${cachedFiles.size} → ${it.size} files")
+                }
+            } else cachedFiles
+            updateState { it.copy(mediaFiles = filteredFiles) }
+            return
+        }
+
+        // Slow path — cache is empty, trigger a full scan.
         scope.launch(ioDispatcher) {
             setLoading(true)
 

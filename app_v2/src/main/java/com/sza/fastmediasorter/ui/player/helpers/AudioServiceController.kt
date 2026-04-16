@@ -91,6 +91,39 @@ class AudioServiceController(
     }
 
     /**
+     * Play a single audio file through the service with title/artist metadata.
+     * The metadata is reflected in the system media notification (lock screen, notification shade).
+     * @param uri The audio file URI
+     * @param title Track title shown in the notification (filename without extension)
+     * @param artist Artist tag, or null
+     * @param onPlayerReady Callback with the MediaController as Player
+     */
+    fun playAudioWithMetadata(
+        uri: Uri,
+        title: String,
+        artist: String? = null,
+        onPlayerReady: (Player) -> Unit
+    ) {
+        connect { player ->
+            Timber.d("AudioServiceController: playAudioWithMetadata uri=$uri title=$title artist=$artist")
+            val mediaItem = MediaItem.Builder()
+                .setUri(uri)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(title)
+                        .setArtist(artist)
+                        .build()
+                )
+                .build()
+            player.setMediaItem(mediaItem)
+            player.repeatMode = Player.REPEAT_MODE_OFF
+            player.prepare()
+            player.play()
+            onPlayerReady(player)
+        }
+    }
+
+    /**
      * Play a playlist of audio files starting from given index.
      * @param uris List of audio file URIs
      * @param startIndex Index to start from

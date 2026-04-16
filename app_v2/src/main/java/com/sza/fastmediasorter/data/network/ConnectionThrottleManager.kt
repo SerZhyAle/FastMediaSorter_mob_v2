@@ -62,6 +62,24 @@ object ConnectionThrottleManager {
     
     // Cache for speed test recommended buffer size per resource
     private val recommendedBufferSizeCache = ConcurrentHashMap<String, Int>()
+
+    // Cache for last measured read speed (Mbps) per resource key.
+    // Populated by NetworkSpeedTestUseCase after each test and used to pick
+    // an appropriately aggressive SMBJ transaction timeout.
+    private val speedMbpsCache = ConcurrentHashMap<String, Double>()
+
+    /**
+     * Tier used by SmbConnectionManager to select the SMBJ client config
+     * (controls per-request SMB2 transaction timeout).
+     */
+    enum class SmbjClientTier {
+        /** Fast network (> 100 Mbps): 5 s per QUERY_DIRECTORY. */
+        FAST,
+        /** Medium network (10–100 Mbps): 10 s per QUERY_DIRECTORY. */
+        MEDIUM,
+        /** Slow / no speed-test data (< 10 Mbps or unknown): 20 s. */
+        SLOW
+    }
     
     // Video player priority mode: suspends thumbnail loading to prioritize video streaming
     @Volatile
@@ -126,6 +144,28 @@ object ConnectionThrottleManager {
      */
     fun getRecommendedBufferSize(resourceKey: String, defaultSize: Int = 64 * 1024): Int {
         return recommendedBufferSizeCache[resourceKey] ?: defaultSize
+    }
+
+    /**
+     * Store measured read speed for a resource after a speed test.
+     * Used by [SmbConnectionManager] to pick the appropriate SMBJ client tier.
+     */
+    fun setLastSpeedMbps(resourceKey: String, mbps: Double) {
+        speedMbpsCache[resourceKey] = mbps
+        Timber.d("ConnectionThrottle: Recorded speed ${"%".format(mbps)}%.1f Mbps for $resourceKey")
+    }
+
+    /**
+     * Return the [SmbjClientTier] appropriate for [resourceKey] based on the last speed test.
+     * If no measurement exists, returns [SmbjClientTier.SLOW] (conservative / max patience).
+     */
+    fun getSmbjClientTier(resourceKey: String): SmbjClientTier {
+        val mbps = speedMbpsCache[resourceKey] ?: return SmbjClientTier.SLOW
+        return when {
+            mbps > 100.0 -> SmbjClientTier.FAST
+            mbps > 10.0  -> SmbjClientTier.MEDIUM
+            else         -> SmbjClientTier.SLOW
+        }
     }
     
     /**
@@ -444,6 +484,7 @@ object ConnectionThrottleManager {
             semaphoreLocks.remove(key)
             recommendedThreadsCache.remove(key)
             recommendedBufferSizeCache.remove(key)
+            speedMbpsCache.remove(key)
             synchronized(videoPlayerResources) {
                 videoPlayerResources.remove(key)
                 if (videoPlayerResources.isEmpty()) {

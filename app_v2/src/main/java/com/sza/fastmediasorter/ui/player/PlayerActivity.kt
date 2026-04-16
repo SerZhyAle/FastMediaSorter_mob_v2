@@ -1121,6 +1121,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal fun updateAudioSlideshowCurrentSongLabel() = audioSlideshowPhotoModeManager.updateCurrentSongLabel()
 
     override fun onDestroy() {
+        // Dismiss any open error dialogs before destroying the Activity window
+        // to prevent WindowLeaked errors (dialog shown just before onDestroy).
+        if (::eventHandler.isInitialized) eventHandler.onDestroy()
         lifecycleManager.onDestroy()
         super.onDestroy()
     }

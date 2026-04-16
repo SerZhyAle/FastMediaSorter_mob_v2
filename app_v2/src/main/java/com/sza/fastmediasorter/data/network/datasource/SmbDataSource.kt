@@ -40,6 +40,30 @@ class SmbDataSource(
         private const val CHUNK_LOG_BYTES = 10_000_000L // ~10 MB summaries
         private const val BYTES_IN_MEBIBYTE = 1_048_576.0
         private const val DEFAULT_BUFFER_SIZE = 64 * 1024
+
+        /**
+         * Returns true if [e] is a broken-pipe or transport-level socket failure.
+         * SMBJ's isConnected flag does not detect TCP-level silent drops; only an actual
+         * write attempt (like openFile) reveals the dead socket as a SocketException/TransportException.
+         * Used to decide whether to invalidate the stale pooled connection and retry once.
+         */
+        private fun isTransportOrBrokenPipe(e: Exception): Boolean {
+            var current: Throwable? = e
+            var depth = 0
+            while (current != null && depth < 5) {
+                if (current is java.net.SocketException ||
+                    current is com.hierynomus.protocol.transport.TransportException) {
+                    return true
+                }
+                val msg = current.message?.lowercase() ?: ""
+                if (msg.contains("broken pipe") || msg.contains("connection reset")) {
+                    return true
+                }
+                current = current.cause
+                depth++
+            }
+            return false
+        }
     }
 
     /**
@@ -120,7 +144,7 @@ class SmbDataSource(
             Timber.d("SmbDataSource.open: Opening file relative to share '${connectionInfo.shareName}': '$finalPath'")
             
             // Get pooled connection (blocking)
-            val pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
+            var pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
             
             // Check if thread was interrupted (e.g., ExoPlayer release during file switching)
             if (Thread.interrupted()) {
@@ -131,16 +155,38 @@ class SmbDataSource(
             // Store references
             share = pooledConnection.share
             
-            // Open file
-            // Use DiskShare.openFile which returns a File handle
-            file = share?.openFile(
-                finalPath,
-                EnumSet.of(AccessMask.GENERIC_READ),
-                null,
-                SMB2ShareAccess.ALL,
-                SMB2CreateDisposition.FILE_OPEN,
-                null
-            ) ?: throw IOException("Failed to open file: $finalPath")
+            // Open file — retry once if the pooled connection is stale.
+            // isConnectionValid() cannot detect a TCP-level silent drop (the server closed the socket
+            // without sending FIN/RST), so the pool may return a connection that looks valid but whose
+            // DiskShare.openFile() will fail with a SocketException / TransportException ("Broken pipe").
+            // On such failure we invalidate the stale entry and fetch a fresh connection.
+            file = try {
+                share?.openFile(
+                    finalPath,
+                    EnumSet.of(AccessMask.GENERIC_READ),
+                    null,
+                    SMB2ShareAccess.ALL,
+                    SMB2CreateDisposition.FILE_OPEN,
+                    null
+                )
+            } catch (e: Exception) {
+                if (isTransportOrBrokenPipe(e)) {
+                    Timber.w("SmbDataSource.open: Stale share detected on openFile (${e.javaClass.simpleName}: ${e.message}) — invalidating and retrying")
+                    smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
+                    pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
+                    share = pooledConnection.share
+                    share?.openFile(
+                        finalPath,
+                        EnumSet.of(AccessMask.GENERIC_READ),
+                        null,
+                        SMB2ShareAccess.ALL,
+                        SMB2CreateDisposition.FILE_OPEN,
+                        null
+                    )
+                } else {
+                    throw e
+                }
+            } ?: throw IOException("Failed to open file: $finalPath")
             
             // Check again before network call
             if (Thread.interrupted()) {

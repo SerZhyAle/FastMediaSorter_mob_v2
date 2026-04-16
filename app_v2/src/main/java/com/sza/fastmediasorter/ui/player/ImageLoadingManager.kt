@@ -1,8 +1,12 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Handler
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
@@ -242,6 +246,9 @@ class ImageLoadingManager(
         val w = currentDeviceWidth.takeIf { it > 0 } ?: return
         val h = currentDeviceHeight.takeIf { it > 0 } ?: return
         Timber.d("ImageLoadingManager: triggerVideoBackground frame=${bitmap.width}x${bitmap.height} screen=${w}x${h}")
+        // processFromBitmap internally uses the backgroundView dimensions via process(),
+        // which now receives the view size — but for video we pass screen dims as fallback;
+        // the processor will use backgroundView.width/height if available via its own layout.
         dynamicBackgroundProcessor?.processFromBitmap(bitmap, w, h)
     }
 
@@ -1061,10 +1068,18 @@ class ImageLoadingManager(
                     // after the user has navigated to video would otherwise re-show the
                     // previous image's blurred background over the video pillarbox areas.
                     if (isDynamicBackgroundEnabled && isInImageDisplayMode) {
+                        // Use the ImageView's actual laid-out dimensions, not the full screen size.
+                        // The ImageView may be smaller than the screen when the command panel is
+                        // visible, so using screen dimensions would produce wrong imgLeft/imgTop
+                        // offsets and draw bars in the wrong positions.
+                        val targetView = currentTargetView
+                        val viewW = targetView?.width?.takeIf { it > 0 } ?: currentDeviceWidth
+                        val viewH = targetView?.height?.takeIf { it > 0 } ?: currentDeviceHeight
+                        Timber.d("DynamicBg: triggering process view=${viewW}x${viewH} screen=${currentDeviceWidth}x${currentDeviceHeight}")
                         dynamicBackgroundProcessor?.process(
                             drawable = resource,
-                            screenWidth = currentDeviceWidth,
-                            screenHeight = currentDeviceHeight
+                            screenWidth = viewW,
+                            screenHeight = viewH
                         )
                     }
                 }
@@ -1604,6 +1619,7 @@ class ImageLoadingManager(
                         binding.audioCoverArtView.setImageBitmap(bitmap)
                         binding.audioCoverArtView.isVisible = true
                         coverArtDisplayedForPath = file.path
+                        pushArtworkToNotification(bitmap)
                     } else {
                         // artworkData missing or decode failed — treat as no artwork
                         val settings = settingsRepository.getSettings().first()
@@ -1705,6 +1721,7 @@ class ImageLoadingManager(
                         binding.audioCoverArtView.setImageBitmap(coverBitmap)
                         binding.audioCoverArtView.isVisible = true
                         coverArtDisplayedForPath = file.path
+                        pushArtworkToNotification(coverBitmap)
                         Timber.d("loadAudioCoverArt[$callId]: AFTER setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                     } else {
                         // No embedded cover, check if online search is enabled
@@ -2009,6 +2026,7 @@ class ImageLoadingManager(
                                 ): Boolean {
                                     Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ Glide loaded from $dataSource")
                                     coverArtDisplayedForPath = file.path
+                                    (resource as? BitmapDrawable)?.bitmap?.let { pushArtworkToNotification(it) }
                                     return false
                                 }
                             })
@@ -2029,6 +2047,52 @@ class ImageLoadingManager(
                             binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                         }
                 }
+            }
+        }
+    }
+
+    /**
+     * Pushes resolved cover art to the system media notification by updating the current
+     * MediaItem's artworkData via [Player.replaceMediaItem].
+     *
+     * No-op when the player is a local ExoPlayer (background service not active) —
+     * checked via [Player.COMMAND_CHANGE_MEDIA_ITEMS] availability.
+     * Bitmap is scaled to max 512×512 and JPEG-compressed (85 %) before embedding
+     * to keep the MediaSession IPC payload small. The scaled copy is recycled immediately.
+     * The original [bitmap] is not recycled — caller manages its lifecycle.
+     */
+    private fun pushArtworkToNotification(bitmap: Bitmap) {
+        val player = binding.playerView.player ?: return
+        if (!player.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS)) return
+        val currentIndex = player.currentMediaItemIndex
+        val currentItem = player.currentMediaItem ?: return
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val maxSide = 512
+                val w = bitmap.width; val h = bitmap.height
+                val scaled = if (w > maxSide || h > maxSide) {
+                    val scale = maxSide.toFloat() / maxOf(w, h)
+                    Bitmap.createScaledBitmap(bitmap, (w * scale).toInt(), (h * scale).toInt(), true)
+                } else bitmap
+                val bytes = java.io.ByteArrayOutputStream().also { stream ->
+                    scaled.compress(Bitmap.CompressFormat.JPEG, 85, stream)
+                }.toByteArray()
+                if (scaled !== bitmap) scaled.recycle()
+                val updatedItem = currentItem.buildUpon()
+                    .setMediaMetadata(
+                        currentItem.mediaMetadata.buildUpon()
+                            .setArtworkData(bytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                            .build()
+                    )
+                    .build()
+                withContext(Dispatchers.Main) {
+                    if (player.currentMediaItemIndex == currentIndex) {
+                        player.replaceMediaItem(currentIndex, updatedItem)
+                        Timber.d("pushArtworkToNotification: pushed ${bytes.size}b at index=$currentIndex")
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "pushArtworkToNotification: failed")
             }
         }
     }

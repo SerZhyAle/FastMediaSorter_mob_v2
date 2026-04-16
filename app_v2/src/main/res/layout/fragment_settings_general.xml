@@ -439,6 +439,8 @@
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/user_guide" android:textSize="12sp" app:icon="@android:drawable/ic_menu_help" app:iconSize="@dimen/settings_icon_size" />
 
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/how_to_guides" android:textSize="12sp" app:icon="@android:drawable/ic_menu_directions" app:iconSize="@dimen/settings_icon_size" />
+
             <com.google.android.material.button.MaterialButton android:id="@+id/btnPrivacyPolicy" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/privacy_policy" android:textSize="12sp" app:icon="@android:drawable/ic_menu_info_details" app:iconSize="@dimen/settings_icon_size" />
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenSourceLicenses" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_source_licenses_title" android:textSize="12sp" app:icon="@android:drawable/ic_menu_info_details" app:iconSize="@dimen/settings_icon_size" />

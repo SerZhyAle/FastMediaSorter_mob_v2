@@ -79,7 +79,11 @@ class SmbOperationsUseCase @Inject constructor(
                         }
                     }
                     Result.failure(
-                        Exception(result.message, result.exception)
+                        // Propagate original exception to preserve its type for NetworkErrorClassifier.
+                        // Wrapping in a generic Exception loses SocketTimeoutException type, which causes
+                        // the "Cannot connect to SMB resource / same local network" message to appear
+                        // even when the failure is simply a timeout (not a wrong-network situation).
+                        result.exception ?: Exception(result.message)
                     )
                 }
             }

@@ -190,12 +190,12 @@ class SettingsRepositoryImpl @Inject constructor(
             }
             .map { preferences ->
                 val languageFromDataStore = preferences[KEY_LANGUAGE]   // null = not explicitly set
-                val language = languageFromDataStore ?: "en"
-                // NOTE: Do NOT sync language to SharedPreferences here.
-                // LocaleHelper.getLanguage() manages SharedPreferences independently:
-                // - Falls back to system locale (uk/ru) when no preference saved yet
-                // - SharedPreferences is updated only via explicit LocaleHelper.saveLanguage() calls
-                // Syncing here would overwrite the system-locale fallback with the DataStore default "en".
+                // When DataStore has no saved language (first launch / data cleared), fall back to
+                // LocaleHelper which resolves SharedPreferences → system locale → "en".
+                // This keeps DataStore in sync with the active locale so the Settings spinner
+                // shows the correct selection instead of defaulting to English.
+                val language = languageFromDataStore
+                    ?: com.sza.fastmediasorter.core.util.LocaleHelper.getLanguage(context)
                 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
                 // glidePrefs is a lazy singleton field — no disk access on every emission

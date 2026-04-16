@@ -31,8 +31,10 @@ import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import java.io.File
 
@@ -91,12 +93,17 @@ class PlayerMediaLoaderManager(
             }
         }
         override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
-            // When playlist auto-advances: sync ViewModel index first so UI reads the correct track,
-            // then notify ready to update cover art / format info / song label.
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+            // Sync ViewModel index whenever the service switches track:
+            // - REASON_AUTO: playlist auto-advances at end of track
+            // - REASON_SEEK: user pressed NEXT/PREV in the system notification or lock screen
+            // - REASON_REPEAT: repeat-mode wraparound
+            val shouldSync = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+                reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK ||
+                reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT
+            if (shouldSync) {
                 val newIndex = audioServiceController?.player?.currentMediaItemIndex ?: -1
                 if (newIndex >= 0) {
-                    Timber.d("PlayerMediaLoaderManager: auto-advance → serviceIndex=$newIndex")
+                    Timber.d("PlayerMediaLoaderManager: media item transition reason=$reason → serviceIndex=$newIndex")
                     viewModel.syncAudioServiceIndex(newIndex)
                 }
                 onAudioServiceReady()
@@ -117,6 +124,10 @@ class PlayerMediaLoaderManager(
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
+        // Max time to wait for network audio pre-cache before falling back to direct streaming.
+        // SMBJ can hang for ~40s after Connection reset while closing the dead session —
+        // this cap ensures the user doesn't wait indefinitely.
+        private const val NETWORK_AUDIO_PRECACHE_TIMEOUT_MS = 20_000L
     }
 
     /**
@@ -270,7 +281,8 @@ class PlayerMediaLoaderManager(
                 if (cachedFile != null) {
                     Timber.d("playAudioViaService: CLOUD pre-cache OK — playing via service: ${cachedFile.absolutePath}")
                     val uri = Uri.fromFile(cachedFile)
-                    controller.playAudio(uri) { player ->
+                    val title = currentFile.name.substringBeforeLast('.')
+                    controller.playAudioWithMetadata(uri, title) { player ->
                         activity.runOnUiThread { bindServicePlayerToView(player) }
                     }
                 } else {
@@ -293,13 +305,19 @@ class PlayerMediaLoaderManager(
             val cachedFile = preCacheNetworkAudio(path, currentFileSize)
             if (cachedFile != null) {
                 val uri = Uri.fromFile(cachedFile)
-                controller.playAudio(uri) { player ->
+                val netTitle = viewModel.state.value.currentFile?.name?.substringBeforeLast('.') ?: cachedFile.nameWithoutExtension
+                controller.playAudioWithMetadata(uri, netTitle) { player ->
                     activity.runOnUiThread { bindServicePlayerToView(player) }
                 }
             } else {
                 Timber.w("playAudioViaService: pre-cache failed, falling back to in-app player")
                 val currentFile = viewModel.state.value.currentFile
                 val resource = viewModel.state.value.resource
+                // Re-post loading indicator: the original 1-second delayed post from playVideo() has
+                // long expired. ExoPlayer will now buffer the SMB stream directly, which can take
+                // several seconds — show spinner so the user sees progress instead of a frozen screen.
+                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                loadingIndicatorHandler.post(showLoadingIndicatorRunnable)
                 playVideoWithResourceType(path, resourceType, currentFile, resource)
             }
         }
@@ -352,12 +370,20 @@ class PlayerMediaLoaderManager(
             ?: File.createTempFile("bg_audio_", ".tmp", activity.cacheDir)
 
         try {
-            when {
-                path.startsWith("smb://") -> downloadSmbFull(path, destFile)
-                path.startsWith("sftp://") -> downloadSftpFull(path, destFile)
-                path.startsWith("ftp://") -> downloadFtpFull(path, destFile)
-                else -> null
+            // Timeout guards against SMBJ hanging during connection cleanup after Connection reset.
+            // Without it the caller blocks ~40s waiting for the dead session to close.
+            withTimeout(NETWORK_AUDIO_PRECACHE_TIMEOUT_MS) {
+                when {
+                    path.startsWith("smb://") -> downloadSmbFull(path, destFile)
+                    path.startsWith("sftp://") -> downloadSftpFull(path, destFile)
+                    path.startsWith("ftp://") -> downloadFtpFull(path, destFile)
+                    else -> null
+                }
             }
+        } catch (e: TimeoutCancellationException) {
+            Timber.w("preCacheNetworkAudio: timed out after ${NETWORK_AUDIO_PRECACHE_TIMEOUT_MS}ms for $path — falling back to direct streaming")
+            destFile.delete()
+            null
         } catch (e: Exception) {
             Timber.e(e, "preCacheNetworkAudio: download failed for $path")
             destFile.delete()

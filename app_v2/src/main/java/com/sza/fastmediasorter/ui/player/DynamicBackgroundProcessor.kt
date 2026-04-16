@@ -52,6 +52,9 @@ class DynamicBackgroundProcessor(
 
     /**
      * Process [drawable] and apply the dynamic background effect to [backgroundView].
+     * [screenWidth]/[screenHeight] are the dimensions of the ImageView that displays the media
+     * (NOT the full screen). Pass the view's laid-out pixel size so that pillarbox/letterbox
+     * offsets are computed against the actual display area.
      * Call from any thread — all heavy work runs on Dispatchers.Default.
      */
     fun process(
@@ -60,6 +63,15 @@ class DynamicBackgroundProcessor(
         screenHeight: Int
     ) {
         processingJob?.cancel()
+
+        // Resolve dimensions: prefer the caller-supplied view size; if not yet laid out,
+        // fall back to backgroundView's own dimensions (it covers the same media area).
+        val resolvedW = screenWidth.takeIf { it > 0 }
+            ?: backgroundView.width.takeIf { it > 0 }
+            ?: return
+        val resolvedH = screenHeight.takeIf { it > 0 }
+            ?: backgroundView.height.takeIf { it > 0 }
+            ?: return
 
         processingJob = coroutineScope.launch(Dispatchers.Default) {
             try {
@@ -71,7 +83,7 @@ class DynamicBackgroundProcessor(
                 }
 
                 // Build line-extension bitmap fully off-screen — all on Default.
-                val bgBitmap = buildBackgroundBitmap(sourceBitmap, screenWidth, screenHeight)
+                val bgBitmap = buildBackgroundBitmap(sourceBitmap, resolvedW, resolvedH)
 
                 withContext(Dispatchers.Main) {
                     if (backgroundView.context != null) {
@@ -155,7 +167,8 @@ class DynamicBackgroundProcessor(
         val topEdge = smoothColorArray(rawTopEdge, radiusW)
         val bottomEdge = smoothColorArray(rawBottomEdge, radiusW)
 
-        // Pillarbox bars — full-width horizontal lines, image layer sits on top.
+        // Pillarbox bars (space left/right of image) — one horizontal line per row,
+        // colour taken from the nearest left/right edge pixel of the source.
         if (imgLeft > 0) {
             for (vpY in 0 until sh) {
                 val localY = (vpY - imgTop).coerceIn(0, displayedH - 1)
@@ -167,15 +180,23 @@ class DynamicBackgroundProcessor(
             }
         }
 
-        // Letterbox bars — full-height vertical lines.
+        // Letterbox bars (space above/below image) — one vertical line per column,
+        // colour taken from the top/bottom edge pixel of that source column.
+        // This produces horizontal colour variation that matches the image edge —
+        // the bar looks like a natural extension of the top/bottom row of the photo.
         if (imgTop > 0) {
+            val imgBottom = imgTop + displayedH
             for (vpX in 0 until sw) {
                 val localX = (vpX - imgLeft).coerceIn(0, displayedW - 1)
                 val srcX = floor(localX.toFloat() * srcW / displayedW).toInt().coerceIn(0, srcW - 1)
+                // Top bar: extend the top edge row upward
                 paint.color = topEdge[srcX]
-                canvas.drawLine(vpX + 0.5f, 0f, vpX + 0.5f, sh / 2f, paint)
-                paint.color = bottomEdge[srcX]
-                canvas.drawLine(vpX + 0.5f, sh / 2f, vpX + 0.5f, sh.toFloat(), paint)
+                canvas.drawLine(vpX + 0.5f, 0f, vpX + 0.5f, imgTop.toFloat(), paint)
+                // Bottom bar: extend the bottom edge row downward (may be 0-height if symmetric)
+                if (imgBottom < sh) {
+                    paint.color = bottomEdge[srcX]
+                    canvas.drawLine(vpX + 0.5f, imgBottom.toFloat(), vpX + 0.5f, sh.toFloat(), paint)
+                }
             }
         }
 

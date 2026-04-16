@@ -140,6 +140,8 @@ Features are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 6. **Naming**: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 7. **Lint**: ALWAYS resolve warnings in files you touch. Use canonical naming only.
 8. **Backup files**: Ignore `*.backup` files in primary analysis unless the user explicitly requests a historical comparison.
+9. **Code comments — read before modify**: Before editing any file, read ALL existing inline comments and KDoc/Javadoc in the affected area. Comments explain intent, constraints, and non-obvious decisions — treat them as requirements, not noise.
+10. **Code comments — write on modify**: When adding or changing logic, add an inline comment explaining WHY (not what) whenever the reason is not immediately obvious from the code. Update or remove stale comments that no longer reflect reality.
 
 ## Feature Inventory
 

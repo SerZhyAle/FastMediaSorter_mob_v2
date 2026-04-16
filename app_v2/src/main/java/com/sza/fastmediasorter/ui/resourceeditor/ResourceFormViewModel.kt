@@ -339,6 +339,18 @@ class ResourceFormViewModel @Inject constructor(
         }
     }
 
+    fun refreshStatistics() {
+        val state = _uiState.value
+        val id = state.formData.id ?: return
+        if (state.formData.mode != com.sza.fastmediasorter.domain.model.ResourceEditorMode.EDIT) return
+        viewModelScope.launch {
+            val refreshed = withContext(Dispatchers.IO) {
+                resourceEditorUseCase.getResourceStatistics(id)
+            }
+            _uiState.update { it.copy(statistics = refreshed) }
+        }
+    }
+
     fun onSave() {
         val state = _uiState.value
         val currentForm = state.formData

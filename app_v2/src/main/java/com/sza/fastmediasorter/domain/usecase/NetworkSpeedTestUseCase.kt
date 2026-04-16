@@ -107,6 +107,14 @@ class NetworkSpeedTestUseCase @Inject constructor(
                 result.recommendedBufferSize
             )
 
+            // Store measured read speed so SmbConnectionManager can pick an adaptive
+            // SMBJ transaction-timeout tier (FAST / MEDIUM / SLOW) for this resource.
+            // Only SMB resources benefit from this; others are ignored silently by the manager.
+            com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setLastSpeedMbps(
+                resourceKey,
+                result.readSpeedMbps
+            )
+
             emit(SpeedTestStatus.Complete(result))
             
         } catch (e: Exception) {

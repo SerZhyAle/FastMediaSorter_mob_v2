@@ -34,10 +34,10 @@ object ErrorDialog {
         details: String? = null,
         actionButtonText: String? = null,
         onActionClick: (() -> Unit)? = null
-    ) {
+    ): AlertDialog? {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
             Timber.w("ErrorDialog: skipping show — Activity is finishing/destroyed")
-            return
+            return null
         }
         val fullMessage = if (details != null) {
             "$message\n\nDetails:\n$details"
@@ -70,9 +70,10 @@ object ErrorDialog {
         }
         
         try {
-            builder.show()
+            return builder.show()
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "ErrorDialog: show failed — bad window token")
+            return null
         }
     }
     fun show(

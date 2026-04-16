@@ -93,10 +93,16 @@
 
     <TextView
         android:id="@+id/tvPdfPageIndicator"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:text="@string/activity_player_unified_tvPdfPageIndicator_text" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_rounded_dark"
+        android:paddingHorizontal="@dimen/player_indicator_padding"
+        android:paddingVertical="@dimen/player_indicator_padding_vertical"
+        android:textColor="@color/white"
+        android:textSize="@dimen/empty_state_text_size"
+        android:textStyle="bold"
+        android:text="@string/activity_player_unified_tvPdfPageIndicator_text"
+        android:layout_marginHorizontal="@dimen/player_indicator_margin" />
 
     <ImageButton
         android:id="@+id/btnTranslatePdf"

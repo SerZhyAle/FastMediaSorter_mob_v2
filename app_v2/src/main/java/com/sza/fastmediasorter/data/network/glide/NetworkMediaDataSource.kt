@@ -183,7 +183,11 @@ class NetworkMediaDataSource(
             domain = credentials.domain
         )
 
-        when (val result = smbClient.readFileBytesRange(connectionInfo, remotePath, offset, length)) {
+        // allowRetry=true: enables one retry after transient TCP failures (brief WiFi hiccup, ARP cache miss,
+        // NIC power-save wake). Without retry, a dead pooled connection + brief TCP pre-check failure = permanent
+        // "Server unreachable" even though the server is actually fine. The outer
+        // VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS (10s) is the safety net against real hangs.
+        when (val result = smbClient.readFileBytesRange(connectionInfo, remotePath, offset, length, allowRetry = true)) {
             is SmbResult.Success -> result.data
             else -> throw IOException("SMB read failed: ${result}")
         }
@@ -222,7 +226,8 @@ class NetworkMediaDataSource(
             privateKey = credentials.sshPrivateKey
         )
 
-        val result = sftpClient.readFileBytesRange(connectionInfo, remotePath, offset, length)
+        // allowRetry=true: same reasoning as SMB — handles transient TCP failures without false "Server unreachable".
+        val result = sftpClient.readFileBytesRange(connectionInfo, remotePath, offset, length, allowRetry = true)
         result.getOrNull() ?: run {
             val cause = result.exceptionOrNull()
             Timber.e(

@@ -285,7 +285,7 @@ class StandaloneViewManager(
         // Creating a separate AudioFocusManager in the Activity would cause a double-focus conflict:
         // the Activity's manager would receive AUDIOFOCUS_LOSS as soon as the service's ExoPlayer
         // requests focus, triggering player.stop() and immediately killing playback.
-        controller.playAudio(mediaFile.path.toUri()) { player ->
+        controller.playAudioWithMetadata(mediaFile.path.toUri(), mediaFile.name.substringBeforeLast('.')) { player ->
             binding.playerView.player = player
             binding.playerView.showController()
             acquireWakeLock()

@@ -100,12 +100,20 @@ class SmbClient @Inject constructor(
                 }
                 return performTestConnection(connectionInfo, path)
             } catch (e: Exception) {
+                // CancellationException means an outer withTimeout/coroutine cancel fired.
+                // Retrying is pointless (the scope is already cancelled) — always re-throw.
+                if (e is CancellationException) throw e
+
                 lastException = e
-                
-                // Check if this is a retriable error (timeout or connection reset)
-                val isTimeout = e is java.util.concurrent.TimeoutException || 
+
+                // Check if this is a retriable error (timeout or connection reset).
+                // Include kotlinx.coroutines.TimeoutCancellationException by class (already handled
+                // above via re-throw, but kept here for SMBJ / java.util.concurrent variants).
+                val isTimeout = e is java.util.concurrent.TimeoutException ||
+                                e is kotlinx.coroutines.TimeoutCancellationException ||
                                 e.cause is java.util.concurrent.TimeoutException ||
                                 e.cause?.cause is java.util.concurrent.TimeoutException ||
+                                e.message?.contains("Timed out", ignoreCase = true) == true ||
                                 e.message?.contains("Timeout", ignoreCase = true) == true ||
                                 e.cause?.message?.contains("Timeout", ignoreCase = true) == true
                 
@@ -659,9 +667,10 @@ class SmbClient @Inject constructor(
         connectionInfo: SmbConnectionInfo,
         remotePath: String,
         offset: Long,
-        length: Long
+        length: Long,
+        allowRetry: Boolean = true
     ): SmbResult<ByteArray> {
-        return fileOperations.readFileBytesRange(connectionInfo, remotePath, offset, length)
+        return fileOperations.readFileBytesRange(connectionInfo, remotePath, offset, length, allowRetry = allowRetry)
     }
 
     /**

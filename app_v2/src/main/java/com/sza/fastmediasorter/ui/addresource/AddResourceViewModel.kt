@@ -884,7 +884,8 @@ class AddResourceViewModel @Inject constructor(
         scanSubdirectories: Boolean = false,
         rememberFileList: Boolean = false,
         disableThumbnails: Boolean = false,
-        accessPin: String? = null
+        accessPin: String? = null,
+        profile: ResourceProfile = ResourceProfile.NONE
     ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
@@ -950,7 +951,8 @@ class AddResourceViewModel @Inject constructor(
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
                     disableThumbnails = disableThumbnails,
-                    accessPin = accessPin?.ifBlank { null }
+                    accessPin = accessPin?.ifBlank { null },
+                    profile = profile
                 )
                 
                 // Add resource to database
@@ -1153,7 +1155,8 @@ class AddResourceViewModel @Inject constructor(
         addToDestinations: Boolean = false,
         rememberFileList: Boolean = false,
         disableThumbnails: Boolean = false,
-        accessPin: String? = null
+        accessPin: String? = null,
+        profile: ResourceProfile = ResourceProfile.NONE
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1241,7 +1244,8 @@ class AddResourceViewModel @Inject constructor(
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
                     disableThumbnails = disableThumbnails,
-                    accessPin = accessPin?.ifBlank { null }
+                    accessPin = accessPin?.ifBlank { null },
+                    profile = profile
                 )
                 
                 // Add resource to database
@@ -1516,7 +1520,8 @@ class AddResourceViewModel @Inject constructor(
         addToDestinations: Boolean = false,
         rememberFileList: Boolean = false,
         disableThumbnails: Boolean = false,
-        accessPin: String? = null
+        accessPin: String? = null,
+        profile: ResourceProfile = ResourceProfile.NONE
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1596,7 +1601,8 @@ class AddResourceViewModel @Inject constructor(
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
                     disableThumbnails = disableThumbnails,
-                    accessPin = accessPin?.ifBlank { null }
+                    accessPin = accessPin?.ifBlank { null },
+                    profile = profile
                 )
                 
                 // Add resource to database

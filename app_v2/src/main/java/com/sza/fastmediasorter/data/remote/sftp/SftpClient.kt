@@ -683,10 +683,11 @@ class SftpClient @Inject constructor() {
         connectionInfo: SftpConnectionInfo,
         remotePath: String,
         offset: Long,
-        length: Long
+        length: Long,
+        allowRetry: Boolean = true
     ): Result<ByteArray> {
         val key = ConnectionKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
-        
+
         // First attempt
         val firstResult = withConnection(connectionInfo) { channel ->
             try {
@@ -729,11 +730,11 @@ class SftpClient @Inject constructor() {
             }
         }
         
-        // Retry with fresh connection if retriable error
+        // Retry with fresh connection if retriable error (skip for thumbnail reads)
         val exception = firstResult.exceptionOrNull()
-        val shouldRetry = exception is IOException ||
-                         (exception is SftpException && (exception.id == ChannelSftp.SSH_FX_FAILURE || exception.id == ChannelSftp.SSH_FX_BAD_MESSAGE))
-        
+        val shouldRetry = allowRetry && (exception is IOException ||
+                         (exception is SftpException && (exception.id == ChannelSftp.SSH_FX_FAILURE || exception.id == ChannelSftp.SSH_FX_BAD_MESSAGE)))
+
         return if (firstResult.isFailure && shouldRetry) {
             Timber.d("SFTP: Invalidating connection and retrying readFileBytesRange: $remotePath")
             invalidateConnection(key)

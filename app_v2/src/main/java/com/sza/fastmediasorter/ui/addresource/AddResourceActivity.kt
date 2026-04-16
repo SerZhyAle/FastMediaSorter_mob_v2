@@ -535,7 +535,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             }
             ResourceProfile.VIDEO_LIBRARY -> {
                 binding.cbSmbSupportVideo.isChecked = binding.cbSmbSupportVideo.isVisible
-                binding.cbSmbSupportAudio.isChecked = binding.cbSmbSupportAudio.isVisible
+                binding.cbSmbSupportAudio.isChecked = false
                 binding.cbSmbSupportImage.isChecked = false
                 binding.cbSmbSupportGif.isChecked = false
                 binding.cbSmbSupportText.isChecked = false
@@ -584,7 +584,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             }
             ResourceProfile.VIDEO_LIBRARY -> {
                 binding.cbSftpSupportVideo.isChecked = binding.cbSftpSupportVideo.isVisible
-                binding.cbSftpSupportAudio.isChecked = binding.cbSftpSupportAudio.isVisible
+                binding.cbSftpSupportAudio.isChecked = false
                 binding.cbSftpSupportImage.isChecked = false
                 binding.cbSftpSupportGif.isChecked = false
                 binding.cbSftpSupportText.isChecked = false
@@ -1323,7 +1323,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             scanSubdirectories = binding.cbSmbScanSubdirectories.isChecked,
             rememberFileList = binding.cbSmbRememberFileList.isChecked,
             disableThumbnails = binding.cbSmbDisableThumbnails.isChecked,
-            accessPin = accessPin
+            accessPin = accessPin,
+            profile = smbProfilePreset
         )
     }
 
@@ -1499,7 +1500,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                     rememberFileList = binding.cbSftpRememberFileList.isChecked,
                     disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
-                    accessPin = accessPin
+                    accessPin = accessPin,
+                    profile = sftpProfilePreset
                 )
             } else {
                 // Add with password
@@ -1520,7 +1522,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                     rememberFileList = binding.cbSftpRememberFileList.isChecked,
                     disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
-                    accessPin = accessPin
+                    accessPin = accessPin,
+                    profile = sftpProfilePreset
                 )
             }
         } else {
@@ -1542,7 +1545,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                 rememberFileList = binding.cbSftpRememberFileList.isChecked,
                 disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
-                accessPin = accessPin
+                accessPin = accessPin,
+                profile = sftpProfilePreset
             )
         }
     }

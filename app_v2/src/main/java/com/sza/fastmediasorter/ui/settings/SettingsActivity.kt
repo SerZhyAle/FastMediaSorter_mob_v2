@@ -65,7 +65,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         fun elapsed() = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() - setupStartUptimeMs else 0L
 
         binding.backButton.setOnClickListener {
-            finish()
+            onBackPressedDispatcher.onBackPressed()
         }
 
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [0ms] start setupViews")
@@ -257,7 +257,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                     closeSearchOverlay()
                     return true
                 }
-                finish()
+                onBackPressedDispatcher.onBackPressed()
                 return true
             }
             
@@ -326,6 +326,16 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             override fun handleOnBackPressed() {
                 if (binding.searchOverlay.isVisible) {
                     closeSearchOverlay()
+                    return
+                }
+                // If the back stack is empty (e.g. process was restarted while Settings was open),
+                // navigate up to MainActivity explicitly instead of going to home screen.
+                if (isTaskRoot) {
+                    startActivity(
+                        android.content.Intent(this@SettingsActivity, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
+                            .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    )
+                    finish()
                     return
                 }
                 isEnabled = false

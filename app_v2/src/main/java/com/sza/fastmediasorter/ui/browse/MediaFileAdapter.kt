@@ -734,6 +734,9 @@ class MediaFileAdapter(
 
         fun loadThumbnailOnly(file: MediaFile) {
             // Partial update: only reload thumbnail (called via payload)
+            // In audio-only mode, ivThumbnail is GONE — skip entirely (no bitmap work needed)
+            if (isAudioOnlyMode && !file.isDirectory) return
+
             // Check if we need to reload based on the key (includes refreshVersion)
             // Note: credentialsId removed from key - it's session-specific and shouldn't affect cache
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
@@ -752,6 +755,9 @@ class MediaFileAdapter(
             
             Timber.v("  Result: LOADING - key mismatch (will call loadThumbnail)")
             loadThumbnail(file)
+            // Update key so AUDIO/TEXT/Binary fast-paths (which return early without setting the key)
+            // don't re-trigger on the next LOAD_THUMBNAILS payload after the same recycle.
+            lastLoadedKey = newKey
         }
 
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
@@ -795,11 +801,11 @@ class MediaFileAdapter(
                     root.setPadding(p16, p12, p16, p12)
                 }
 
-                // Scale action buttons: compact = 12dp (24dp × 0.5), normal = 24dp
+                // Scale action buttons: compact = 16dp, normal = 32dp
                 val btnSizePx = if (useCompactElements) {
-                    (12 * root.resources.displayMetrics.density).toInt()
+                    (16 * root.resources.displayMetrics.density).toInt()
                 } else {
-                    (24 * root.resources.displayMetrics.density).toInt()
+                    (32 * root.resources.displayMetrics.density).toInt()
                 }
                 for (btn in listOf(btnFavorite, btnCopyItem, btnMoveItem, btnRenameItem, btnDeleteItem, btnPlayInline)) {
                     btn.layoutParams.width = btnSizePx
@@ -1843,6 +1849,9 @@ class MediaFileAdapter(
             }
             
             loadThumbnail(file)
+            // Update key so AUDIO/TEXT/Binary fast-paths (which return early without setting the key)
+            // don't re-trigger on the next LOAD_THUMBNAILS payload after the same recycle.
+            lastLoadedKey = newKey
         }
         
         fun bind(file: MediaFile, selectedPaths: Set<String>) {

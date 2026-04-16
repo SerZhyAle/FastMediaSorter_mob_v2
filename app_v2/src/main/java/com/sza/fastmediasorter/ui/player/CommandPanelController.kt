@@ -341,6 +341,7 @@ class CommandPanelController(
             safeViews.btnOcrPdfCmd.isVisible = isPdf
             safeViews.btnTranslatePdfCmd.isVisible = isPdf
             safeViews.btnSearchPdfCmd.isVisible = isPdf
+            safeViews.btnPdfThumbnailsCmd.isVisible = isPdf
             
             // Text Actions
             safeViews.btnCopyTextCmd.isVisible = (isText || isPdf)

@@ -1801,8 +1801,15 @@ class EpubViewerManager(
             "})();"
         ) { result ->
             if (result == null || result == "null" || result.trim().isEmpty() || result.trim() == "\"\"") {
-                Timber.e("EPUB OCR: No text extracted")
-                callback.showError(binding.root.context.getString(R.string.translation_error_no_text))
+                // Not a real error — chapter may simply have no text content
+                Timber.d("EPUB OCR: No text extracted")
+                // Show toast directly: this is a user-initiated action, not background network spam,
+                // so ToastThrottler cooldown must not suppress it
+                android.widget.Toast.makeText(
+                    binding.root.context,
+                    binding.root.context.getString(R.string.translation_error_no_text),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
                 return@evaluateJavascript
             }
             
@@ -1823,8 +1830,14 @@ class EpubViewerManager(
                 
                 Timber.d("EPUB OCR: Text extracted and copied (${extractedText.length} chars)")
             } else {
-                Timber.e("EPUB OCR: Extracted text is blank")
-                callback.showError(binding.root.context.getString(R.string.translation_error_no_text))
+                // Blank after unquoting — treat same as no text, not an error
+                Timber.d("EPUB OCR: Extracted text is blank")
+                // Show toast directly: same reasoning as above — user action, not background error
+                android.widget.Toast.makeText(
+                    binding.root.context,
+                    binding.root.context.getString(R.string.translation_error_no_text),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

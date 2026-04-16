@@ -308,26 +308,29 @@ class GeneralSettingsFragment : Fragment() {
         val languages = resources.getStringArray(com.sza.fastmediasorter.R.array.languages)
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, languages)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // Guard must be set BEFORE setAdapter — Spinner fires onItemSelected synchronously
+        // during adapter attachment, before any post{} callback can clear the flag.
+        isUpdatingSpinner = true
         binding.spinnerLanguage.adapter = adapter
-        
+
         binding.spinnerLanguage.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 // Skip if we're programmatically updating the spinner
                 if (isUpdatingSpinner) return
-                
+
                 val newLanguageCode = when (position) {
                     0 -> "en"
                     1 -> "ru"
                     2 -> "uk"
                     else -> "en"
                 }
-                
+
                 // Check if language actually changed compared to current settings
                 val currentSettings = viewModel.settings.value
                 if (newLanguageCode != currentSettings.language) {
                     // Update settings
                     viewModel.updateSettings(currentSettings.copy(language = newLanguageCode))
-                    
+
                     // Show restart dialog
                     showRestartDialog(newLanguageCode)
                 }
@@ -335,6 +338,9 @@ class GeneralSettingsFragment : Fragment() {
 
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         })
+        // Release guard after listener is attached — the spurious onItemSelected from
+        // setAdapter has already fired (synchronously) and been suppressed.
+        binding.spinnerLanguage.post { isUpdatingSpinner = false }
         
         // Prevent Sleep
         binding.switchPreventSleep.setOnCheckedChangeListener { _, isChecked ->
@@ -690,9 +696,9 @@ class GeneralSettingsFragment : Fragment() {
                 
                 // Determine User Guide URL based on language
                 val guideUrl = when (currentLanguage) {
-                    "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"
-                    "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"
-                    else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+                    "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-ru.html"
+                    "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-uk.html"
+                    else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/"
                 }
                 
                 val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -707,7 +713,29 @@ class GeneralSettingsFragment : Fragment() {
                 ).show()
             }
         }
-        
+
+        // How-To Guides Button — opens reference task guides (HOW_TO)
+        binding.btnHowToGuides.setOnClickListener {
+            try {
+                val currentLanguage = LocaleHelper.getLanguage(requireContext())
+                val howToUrl = when (currentLanguage) {
+                    "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_RU.html"
+                    "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_UK.html"
+                    else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO.html"
+                }
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = android.net.Uri.parse(howToUrl)
+                }
+                startActivity(intent)
+            } catch (e: android.content.ActivityNotFoundException) {
+                Toast.makeText(
+                    requireContext(),
+                    "No browser found to open documentation",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
         // Open Welcome Tutorial Button
         binding.btnOpenWelcome.setOnClickListener {
             startActivity(Intent(requireContext(), WelcomeActivity::class.java))

@@ -17,6 +17,16 @@ import timber.log.Timber
  */
 class PlayerEventHandler(private val activity: PlayerActivity) {
 
+    // Track any open error dialog so we can dismiss it if the Activity is destroyed
+    // while the dialog is still showing (prevents WindowLeaked).
+    private var activeDialog: android.app.AlertDialog? = null
+
+    /** Must be called from PlayerActivity.onDestroy() to clean up open dialogs. */
+    fun onDestroy() {
+        activeDialog?.dismiss()
+        activeDialog = null
+    }
+
     fun handleEvent(event: PlayerViewModel.PlayerEvent) {
         when (event) {
             is PlayerViewModel.PlayerEvent.ShowError ->
@@ -82,14 +92,14 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     return@launch
                 }
                 if (throwable != null) {
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = message,
                         details = throwable.stackTraceToString()
                     )
                 } else {
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = message
@@ -142,7 +152,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     return@launch
                 }
                 if (isLocalFile) {
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = message,
@@ -151,7 +161,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     )
                 } else {
                     val networkMessage = "$message\n\n${activity.getString(R.string.unsupported_format_network_hint)}"
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
                         message = networkMessage

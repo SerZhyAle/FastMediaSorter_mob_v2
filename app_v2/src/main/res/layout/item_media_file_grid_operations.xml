@@ -13,10 +13,10 @@
 
     <ImageButton
         android:id="@+id/btnCopyItem"
-        android:layout_width="@dimen/item_status_badge_size"
-        android:layout_height="@dimen/item_status_badge_size"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_margin="0dp"
-        android:padding="0dp"
+        android:padding="6dp"
         android:clickable="true"
         android:focusable="true"
         android:background="?attr/selectableItemBackgroundBorderless"
@@ -29,10 +29,10 @@
 
     <ImageButton
         android:id="@+id/btnMoveItem"
-        android:layout_width="@dimen/item_status_badge_size"
-        android:layout_height="@dimen/item_status_badge_size"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_margin="0dp"
-        android:padding="0dp"
+        android:padding="6dp"
         android:clickable="true"
         android:focusable="true"
         android:background="?attr/selectableItemBackgroundBorderless"
@@ -45,10 +45,10 @@
 
     <ImageButton
         android:id="@+id/btnRenameItem"
-        android:layout_width="@dimen/item_status_badge_size"
-        android:layout_height="@dimen/item_status_badge_size"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_margin="0dp"
-        android:padding="0dp"
+        android:padding="6dp"
         android:clickable="true"
         android:focusable="true"
         android:background="?attr/selectableItemBackgroundBorderless"
@@ -61,10 +61,10 @@
 
     <ImageButton
         android:id="@+id/btnDeleteItem"
-        android:layout_width="@dimen/item_status_badge_size"
-        android:layout_height="@dimen/item_status_badge_size"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_margin="0dp"
-        android:padding="0dp"
+        android:padding="6dp"
         android:clickable="true"
         android:focusable="true"
         android:background="?attr/selectableItemBackgroundBorderless"

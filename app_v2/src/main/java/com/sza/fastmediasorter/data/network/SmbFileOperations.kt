@@ -144,10 +144,11 @@ class SmbFileOperations @Inject constructor(
         connectionInfo: SmbConnectionInfo,
         remotePath: String,
         offset: Long = 0L,
-        length: Int = 8192
+        length: Int = 8192,
+        allowRetry: Boolean = true
     ): SmbResult<ByteArray> {
         return try {
-            connectionManager.withConnection(connectionInfo) { share ->
+            connectionManager.withConnection(connectionInfo, allowRetry = allowRetry) { share ->
                 val file = share.openFile(
                     remotePath.trim('/', '\\'),
                     EnumSet.of(AccessMask.GENERIC_READ),
@@ -160,7 +161,7 @@ class SmbFileOperations @Inject constructor(
                 file.use { smbFile ->
                     val fileSize = smbFile.fileInformation.standardInformation.endOfFile
                     val actualOffset = offset.coerceIn(0L, fileSize)
-                    val actualLength = length.coerceIn(0, (fileSize - actualOffset).toInt())
+                    val actualLength = (fileSize - actualOffset).coerceIn(0L, length.toLong()).toInt()
                     
                     if (actualLength == 0) {
                         return@withConnection SmbResult.Success(ByteArray(0))
@@ -210,12 +211,13 @@ class SmbFileOperations @Inject constructor(
         connectionInfo: SmbConnectionInfo,
         remotePath: String,
         start: Long,
-        length: Long
+        length: Long,
+        allowRetry: Boolean = true
     ): SmbResult<ByteArray> {
         if (length > Int.MAX_VALUE) {
             return SmbResult.Error("Range too large: $length bytes", Exception("Length exceeds Int.MAX_VALUE"))
         }
-        return readPartialFile(connectionInfo, remotePath, start, length.toInt())
+        return readPartialFile(connectionInfo, remotePath, start, length.toInt(), allowRetry = allowRetry)
     }
     
     /**

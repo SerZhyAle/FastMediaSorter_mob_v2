@@ -350,6 +350,9 @@
     <string name="default_smb_user">SMB користувач за замовчуванням</string>
     <string name="default_smb_password">SMB пароль за замовчуванням</string>
     <string name="user_guide">Керівництво користувача</string>
+    <string name="how_to_guides">Покрокові інструкції</string>
+    <string name="how_to_scenarios_title">Покрокові сценарії</string>
+    <string name="how_to_scenarios_subtitle">Практичні посібники для частих завдань</string>
     <string name="open_welcome_tutorial">Вступний екран</string>
     <string name="privacy_policy">Конфіденційність</string>
     <string name="manage_permissions">Керування правами</string>

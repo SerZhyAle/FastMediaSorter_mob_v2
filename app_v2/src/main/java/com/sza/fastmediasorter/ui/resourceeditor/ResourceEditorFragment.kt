@@ -108,6 +108,11 @@ class ResourceEditorFragment : Fragment() {
         viewModel.initialize(mode, resourceType ?: ResourceType.LOCAL, resourceId)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.refreshStatistics()
+    }
+
     private fun setupToolbar() {
         val title = when (mode) {
             ResourceEditorMode.CREATE -> getString(R.string.title_add_resource)

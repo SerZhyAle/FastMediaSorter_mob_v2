@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -25,6 +26,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -140,11 +142,23 @@ object AppModule {
             .writeTimeout(10, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
+            // Chucker records all HTTP traffic silently in its DB (no notification spam).
+            // Access via shake gesture or adb shell am start -n com.sza.fastmediasorter/.chucker.ChuckerActivity
+            val chuckerCollector = ChuckerCollector(context, showNotification = false)
             builder.addInterceptor(
                 ChuckerInterceptor.Builder(context)
+                    .collector(chuckerCollector)
                     .alwaysReadResponseBody(true)
                     .build()
             )
+            // Log HTTP errors (4xx / 5xx) to Logcat via Timber so they surface in search-log.ps1 -Errors
+            builder.addInterceptor { chain ->
+                val response = chain.proceed(chain.request())
+                if (!response.isSuccessful) {
+                    Timber.e("HTTP ${response.code} ${response.request.method} ${response.request.url}")
+                }
+                response
+            }
         }
 
         return builder.build()

@@ -44,6 +44,7 @@ class PlayerBindingSafeViews(
     val btnCastCmd: ImageButton get() = required(R.id.btnCastCmd)
 
     val btnGoogleLensPdfCmd: ImageButton get() = required(binding.btnGoogleLensPdfCmd, R.id.btnGoogleLensPdfCmd)
+    val btnPdfThumbnailsCmd: ImageButton get() = required(binding.btnPdfThumbnailsCmd, R.id.btnPdfThumbnailsCmd)
     val btnOcrPdfCmd: TextView get() = required(binding.btnOcrPdfCmd, R.id.btnOcrPdfCmd)
     val btnTranslatePdfCmd: ImageButton get() = required(binding.btnTranslatePdfCmd, R.id.btnTranslatePdfCmd)
     val btnSearchPdfCmd: ImageButton get() = required(binding.btnSearchPdfCmd, R.id.btnSearchPdfCmd)

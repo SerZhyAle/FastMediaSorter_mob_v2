@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
@@ -19,7 +20,7 @@ class GetDestinationsUseCase @Inject constructor(
         ) { resources, settings ->
             val limit = settings.maxRecipients
             resources
-                .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && !it.isReadOnly }
+                .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && !it.isReadOnly && !VirtualPathUtils.isVirtualPath(it.path) }
                 .sortedBy { it.destinationOrder }
                 .take(limit)
         }
@@ -31,14 +32,14 @@ class GetDestinationsUseCase @Inject constructor(
         val limit = settings.maxRecipients
         
         return allResources
-            .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && it.id != excludedResourceId && !it.isReadOnly }
+            .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && it.id != excludedResourceId && !it.isReadOnly && !VirtualPathUtils.isVirtualPath(it.path) }
             .sortedBy { it.destinationOrder }
             .take(limit)
     }
     
     suspend fun getDestinationCount(): Int {
         val resources = repository.getAllResourcesSync()
-        return resources.count { it.isDestination && (it.destinationOrder ?: -1) >= 0 && !it.isReadOnly }
+        return resources.count { it.isDestination && (it.destinationOrder ?: -1) >= 0 && !it.isReadOnly && !VirtualPathUtils.isVirtualPath(it.path) }
     }
     
     suspend fun isDestinationsFull(): Boolean {
