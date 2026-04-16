@@ -295,14 +295,29 @@ class PlayerMediaLoaderManager(
         }
 
         // Network audio (SMB/SFTP/FTP) — await prefetch or download
-        val currentFileSize = viewModel.state.value.currentFile?.size ?: 0L
+        val currentFile = viewModel.state.value.currentFile
+        val currentFileSize = currentFile?.size ?: 0L
+        // Use credentialsId from current file's resource (same lookup path as VideoPlayerManager)
+        val resource = viewModel.state.value.resource
+        val credentialsId = if (resource?.id == -100L && currentFile?.resourceId != null) {
+            // Favorites: credentials live on the original resource, resolved asynchronously below
+            null
+        } else {
+            resource?.credentialsId
+        }
         lifecycleScope.launch {
+            // For Favorites, resolve credentialsId from the original resource
+            val resolvedCredentialsId = if (resource?.id == -100L && currentFile?.resourceId != null) {
+                viewModel.getCredentialsIdForResource(currentFile.resourceId)
+            } else {
+                credentialsId
+            }
             // If prefetch is already running for this file, await it instead of re-downloading
             if (audioPrefetchPath == path && audioPrefetchJob?.isActive == true) {
                 Timber.d("playAudioViaService: awaiting existing prefetch for $path")
                 audioPrefetchJob?.join()
             }
-            val cachedFile = preCacheNetworkAudio(path, currentFileSize)
+            val cachedFile = preCacheNetworkAudio(path, currentFileSize, resolvedCredentialsId)
             if (cachedFile != null) {
                 val uri = Uri.fromFile(cachedFile)
                 val netTitle = viewModel.state.value.currentFile?.name?.substringBeforeLast('.') ?: cachedFile.nameWithoutExtension
@@ -354,8 +369,10 @@ class PlayerMediaLoaderManager(
     /**
      * Download network audio file to local cache for background playback.
      * Returns cached File on success, null on failure.
+     * @param credentialsId if non-null, used for direct credential lookup (same path as VideoPlayerManager).
+     *   Fallback to server/share string lookup when null.
      */
-    private suspend fun preCacheNetworkAudio(path: String, fileSize: Long = 0L): File? = withContext(Dispatchers.IO) {
+    private suspend fun preCacheNetworkAudio(path: String, fileSize: Long = 0L, credentialsId: String? = null): File? = withContext(Dispatchers.IO) {
 
         // Check cache first
         if (fileSize > 0) {
@@ -374,9 +391,9 @@ class PlayerMediaLoaderManager(
             // Without it the caller blocks ~40s waiting for the dead session to close.
             withTimeout(NETWORK_AUDIO_PRECACHE_TIMEOUT_MS) {
                 when {
-                    path.startsWith("smb://") -> downloadSmbFull(path, destFile)
-                    path.startsWith("sftp://") -> downloadSftpFull(path, destFile)
-                    path.startsWith("ftp://") -> downloadFtpFull(path, destFile)
+                    path.startsWith("smb://") -> downloadSmbFull(path, destFile, credentialsId)
+                    path.startsWith("sftp://") -> downloadSftpFull(path, destFile, credentialsId)
+                    path.startsWith("ftp://") -> downloadFtpFull(path, destFile, credentialsId)
                     else -> null
                 }
             }
@@ -391,7 +408,7 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    private suspend fun downloadSmbFull(path: String, destFile: File): File? {
+    private suspend fun downloadSmbFull(path: String, destFile: File, credentialsId: String? = null): File? {
         val client = smbClient ?: return null
         val normalized = path.replace('\\', '/').substringAfter("smb://")
         val parts = normalized.split("/", limit = 3)
@@ -403,12 +420,15 @@ class PlayerMediaLoaderManager(
         val shareName = parts[1]
         val remotePath = parts[2]
 
-        var creds = credentialsRepository?.getByServerAndShare(server, shareName)
+        // Primary: use credentialsId from resource (same as VideoPlayerManager) — avoids server/share string mismatch
+        var creds = if (credentialsId != null) credentialsRepository?.getByCredentialId(credentialsId) else null
+        // Fallback: lookup by server + share string
+        if (creds == null) creds = credentialsRepository?.getByServerAndShare(server, shareName)
         if (creds == null) {
             val sub = remotePath.trimStart('/').substringBefore('/')
             if (sub.isNotEmpty()) creds = credentialsRepository?.getByServerAndShare(server, "$shareName/$sub")
         }
-        if (creds == null) { Timber.e("preCacheNetworkAudio: no SMB credentials for $server/$shareName"); return null }
+        if (creds == null) { Timber.e("preCacheNetworkAudio: no SMB credentials for $server/$shareName (credentialsId=$credentialsId)"); return null }
 
         val connInfo = SmbConnectionInfo(
             server = server, shareName = shareName,
@@ -423,7 +443,7 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    private suspend fun downloadSftpFull(path: String, destFile: File): File? {
+    private suspend fun downloadSftpFull(path: String, destFile: File, credentialsId: String? = null): File? {
         val client = sftpClient ?: return null
         val withoutProtocol = path.substringAfter("sftp://")
         val pathStart = withoutProtocol.indexOf('/')
@@ -434,10 +454,12 @@ class PlayerMediaLoaderManager(
         val host = hostPort.substringBefore(':')
         val port = hostPort.substringAfter(':', "22").toIntOrNull() ?: 22
 
-        var creds = credentialsRepository?.getByTypeServerAndPort("SFTP", host, port)
+        // Primary: use credentialsId from resource — avoids host/port string mismatch
+        var creds = if (credentialsId != null) credentialsRepository?.getByCredentialId(credentialsId) else null
+        if (creds == null) creds = credentialsRepository?.getByTypeServerAndPort("SFTP", host, port)
         if (creds == null) {
             creds = credentialsRepository?.getCredentialsByHost(host)
-            if (creds?.type != "SFTP") { Timber.e("preCacheNetworkAudio: no SFTP credentials for $host:$port"); return null }
+            if (creds?.type != "SFTP") { Timber.e("preCacheNetworkAudio: no SFTP credentials for $host:$port (credentialsId=$credentialsId)"); return null }
         }
 
         val connInfo = SftpClient.SftpConnectionInfo(host = host, port = port, username = creds.username, password = creds.password)
@@ -447,7 +469,7 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    private suspend fun downloadFtpFull(path: String, destFile: File): File? {
+    private suspend fun downloadFtpFull(path: String, destFile: File, credentialsId: String? = null): File? {
         val client = ftpClient ?: return null
         val withoutProtocol = path.substringAfter("ftp://")
         val pathStart = withoutProtocol.indexOf('/')
@@ -458,10 +480,12 @@ class PlayerMediaLoaderManager(
         val host = hostPort.substringBefore(':')
         val port = hostPort.substringAfter(':', "21").toIntOrNull() ?: 21
 
-        var creds = credentialsRepository?.getByTypeServerAndPort("FTP", host, port)
+        // Primary: use credentialsId from resource — avoids host/port string mismatch
+        var creds = if (credentialsId != null) credentialsRepository?.getByCredentialId(credentialsId) else null
+        if (creds == null) creds = credentialsRepository?.getByTypeServerAndPort("FTP", host, port)
         if (creds == null) {
             creds = credentialsRepository?.getCredentialsByHost(host)
-            if (creds?.type != "FTP") { Timber.e("preCacheNetworkAudio: no FTP credentials for $host:$port"); return null }
+            if (creds?.type != "FTP") { Timber.e("preCacheNetworkAudio: no FTP credentials for $host:$port (credentialsId=$credentialsId)"); return null }
         }
 
         client.connect(host, port, creds.username, creds.password)
@@ -695,9 +719,17 @@ class PlayerMediaLoaderManager(
         // Cancel previous prefetch if still running for a different file
         audioPrefetchJob?.cancel()
         audioPrefetchPath = path
+        // Resolve credentialsId from the resource (or original resource for Favorites)
+        val prefetchResource = viewModel.state.value.resource
+        val prefetchCredentialsId = prefetchResource?.credentialsId
         audioPrefetchJob = lifecycleScope.launch {
+            val resolvedPrefetchCredentialsId = if (prefetchResource?.id == -100L && nextFile.resourceId != null) {
+                viewModel.getCredentialsIdForResource(nextFile.resourceId)
+            } else {
+                prefetchCredentialsId
+            }
             Timber.d("prefetchNextAudio: START downloading ${nextFile.name} (${nextFile.size / 1024} KB)")
-            val result = if (isCloud) preCacheCloudAudio(path, nextFile) else preCacheNetworkAudio(path, nextFile.size)
+            val result = if (isCloud) preCacheCloudAudio(path, nextFile) else preCacheNetworkAudio(path, nextFile.size, resolvedPrefetchCredentialsId)
             if (result != null) {
                 Timber.d("prefetchNextAudio: DONE — ${nextFile.name} cached")
             } else {

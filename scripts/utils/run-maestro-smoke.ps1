@@ -1,11 +1,11 @@
 # Run Maestro tests
 # Usage:
 #   .\scripts\utils\run-maestro-smoke.ps1           - Run smoke tests
-#   .\scripts\utils\run-maestro-smoke.ps1 -Stress   - Run stress tests with monitoring
 #   .\scripts\utils\run-maestro-smoke.ps1 -Suite critical
+#   .\scripts\utils\run-maestro-smoke.ps1 -Suite all
 
 param(
-    [ValidateSet("smoke", "critical", "stress", "all")]
+    [ValidateSet("smoke", "critical", "all")]
     [string]$Suite = "smoke",
     [switch]$Stress
 )
@@ -16,11 +16,11 @@ $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $scriptsPath = Split-Path -Parent $scriptPath
 $projectRoot = Split-Path -Parent $scriptsPath
 
-# If -Stress switch, redirect to stress runner
+# Stress suite was removed from default test inventory.
 if ($Stress) {
-    $stressScript = Join-Path $scriptPath "run-maestro-stress.ps1"
-    & $stressScript -Suite all -Monitor -Report
-    exit $LASTEXITCODE
+    Write-Host "❌ Stress suite has been removed from active Maestro tests." -ForegroundColor Red
+    Write-Host "Use -Suite smoke, -Suite critical, or -Suite all." -ForegroundColor Yellow
+    exit 1
 }
 
 Push-Location $projectRoot

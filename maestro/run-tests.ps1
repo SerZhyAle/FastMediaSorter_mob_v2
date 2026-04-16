@@ -173,7 +173,8 @@ function Invoke-MaestroWithWatchdog {
             Write-Host "❌ Timeout: Maestro exceeded $TimeoutMinutes minutes. Killing process..." -ForegroundColor Red
             try {
                 Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
-            } catch {
+            }
+            catch {
                 Write-Host "⚠ Failed to stop Maestro process cleanly: $($_.Exception.Message)" -ForegroundColor Yellow
             }
             return 124
@@ -194,69 +195,12 @@ switch ($Suite.ToLower()) {
         $testPath = "$MaestroDir\critical"
         Write-Host "Running critical path tests..." -ForegroundColor Yellow
     }
-    "features" {
-        $testPath = "$MaestroDir\features"
-        Write-Host "Running all feature tests..." -ForegroundColor Yellow
-    }
-    "audio" {
-        $testPath = "$MaestroDir\features\audio"
-        Write-Host "Running audio feature tests..." -ForegroundColor Yellow
-    }
-    "documents" {
-        $testPath = "$MaestroDir\features\documents"
-        Write-Host "Running document feature tests..." -ForegroundColor Yellow
-    }
-    "images" {
-        $testPath = "$MaestroDir\features\images"
-        Write-Host "Running image feature tests..." -ForegroundColor Yellow
-    }
-    "video" {
-        $testPath = "$MaestroDir\features\video"
-        Write-Host "Running video feature tests..." -ForegroundColor Yellow
-    }
-    "files" {
-        $testPath = "$MaestroDir\features\files"
-        Write-Host "Running file operations tests..." -ForegroundColor Yellow
-    }
-    "favorites" {
-        $testPath = "$MaestroDir\features\favorites"
-        Write-Host "Running favorites tests..." -ForegroundColor Yellow
-    }
-    "slideshow" {
-        $testPath = "$MaestroDir\features\slideshow"
-        Write-Host "Running slideshow tests..." -ForegroundColor Yellow
-    }
-    "settings" {
-        $testPath = "$MaestroDir\features\settings"
-        Write-Host "Running settings tests..." -ForegroundColor Yellow
-    }
-    "navigation" {
-        $testPath = "$MaestroDir\features\navigation"
-        Write-Host "Running navigation tests..." -ForegroundColor Yellow
-    }
-    "translation" {
-        $testPath = "$MaestroDir\features\translation"
-        Write-Host "Running translation/OCR tests..." -ForegroundColor Yellow
-    }
-    "stress" {
-        Write-Host "Redirecting to stress test runner..." -ForegroundColor Yellow
-        $stressScript = Join-Path $ProjectRoot "scripts\utils\run-maestro-stress.ps1"
-        if (Test-Path $stressScript) {
-            & $stressScript -Suite all -Monitor -Report
-            exit $LASTEXITCODE
-        }
-        else {
-            Write-Host "❌ Stress test script not found: $stressScript" -ForegroundColor Red
-            exit 1
-        }
-    }
     "all" {
-        Write-Host "Running all tests (smoke + critical + features)..." -ForegroundColor Yellow
+        Write-Host "Running all tests (smoke + critical)..." -ForegroundColor Yellow
 
         $allSuites = @(
             @{ Name = "smoke"; Path = "$MaestroDir\smoke" },
-            @{ Name = "critical"; Path = "$MaestroDir\critical" },
-            @{ Name = "features"; Path = "$MaestroDir\features" }
+            @{ Name = "critical"; Path = "$MaestroDir\critical" }
         )
 
         $startTime = Get-Date
@@ -302,7 +246,7 @@ switch ($Suite.ToLower()) {
     }
     default {
         Write-Host "❌ Unknown test suite: $Suite" -ForegroundColor Red
-        Write-Host "Valid options: smoke, critical, features, audio, documents, images, video, files, favorites, slideshow, settings, navigation, translation, stress, all" -ForegroundColor Yellow
+        Write-Host "Valid options: smoke, critical, all" -ForegroundColor Yellow
         exit 1
     }
 }

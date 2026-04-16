@@ -801,9 +801,10 @@ class MediaFileAdapter(
                     root.setPadding(p16, p12, p16, p12)
                 }
 
-                // Scale action buttons: compact = 16dp, normal = 32dp
+                // Scale action buttons: compact = 24dp (0.75× normal), normal = 32dp
+                // 16dp was too small — icon area was only ~4dp with 6dp XML padding
                 val btnSizePx = if (useCompactElements) {
-                    (16 * root.resources.displayMetrics.density).toInt()
+                    (24 * root.resources.displayMetrics.density).toInt()
                 } else {
                     (32 * root.resources.displayMetrics.density).toInt()
                 }

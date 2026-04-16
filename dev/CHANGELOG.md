@@ -2322,3 +2322,36 @@ Format: | datetime | file | target | description |
 | 2026-04-16 02:45:09 | `docs/howto/screenshots/` | `screenshots` | Added 29 named screenshots from store_assets + do-step1: pf-step1/2/5/6, dl-step1/3/4/5/6/7, car-step3/4/6/done, hc-step3/5, cb-step3/4/5/6, smb-step1..8 |
 | 2026-04-16 02:45:15 | `docs/howto/*.md` | `howto scenario guides` | Replaced 30+ [SCREENSHOT:] placeholders with actual ![alt](screenshots/filename.png) image links across all 18 scenario MD files (EN/RU/UK) |
 | 2026-04-16 02:51:09 | `docs/howto/*.md` | `howto scenario guides` | Removed all remaining [SCREENSHOT:] placeholders (pf-step3/4, car-step1/2/5, hc-step2, cb-step2/7) from 18 MD files — screenshots not essential for initial publish |
+| 2026-04-16 10:30:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | Fix SMB/SFTP/FTP audio pre-cache failing due to credentials lookup mismatch; pass credentialsId from resource into preCacheNetworkAudio and download*Full methods |
+| 2026-04-16 10:39:53 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `containerDocLinks` | Replace horizontal LinearLayout with ConstraintLayout+Flow for doc links — wraps to multiple lines on narrow portrait screens |
+| 2026-04-16 10:44:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `MediaFileAdapter.ListViewHolder` | Increase compact button size: 16dp -> 24dp (0.75x normal) — 16dp with 6dp XML padding left only ~4dp icon area |
+| 2026-04-16 10:45:21 | `app_v2/src/main/res/layout/item_media_file.xml` | `item_media_file` | Change action button padding: 6dp -> 2dp for all 6 buttons (btnFavorite, btnCopyItem, btnMoveItem, btnRenameItem, btnDeleteItem, btnPlayInline) |
+| 2026-04-16 20:20:03 | `scripts/mcp/docs-search-mcp/package.json` | `docs-search-mcp` | Add package manifest for local Docs Search MCP server |
+| 2026-04-16 20:20:03 | `scripts/mcp/docs-search-mcp/server.js` | `docs-search-mcp` | Implement local MCP tools: docs_search, docs_list_mirrors, docs_read with EN/RU/UK awareness |
+| 2026-04-16 20:20:03 | `scripts/mcp/docs-search-mcp/README.md` | `docs-search-mcp` | Add setup and usage guide for Docs Search MCP |
+| 2026-04-16 20:20:03 | `.vscode/mcp.json` | `mcp config` | Register local docs-search MCP stdio server for workspace |
+| 2026-04-16 20:20:46 | `scripts/mcp/docs-search-mcp/package-lock.json` | `docs-search-mcp` | Add npm lockfile for reproducible local MCP dependency install |
+| 2026-04-16 20:22:17 | `scripts/mcp/gradle-mcp/server.js` | `fastmediasorter-gradle` | Add safe allowlist Gradle MCP server (fixed tool set, workspace-only cwd, timeout, output normalization/truncation, pipeline tool) |
+| 2026-04-16 20:22:17 | `scripts/mcp/gradle-mcp/package.json` | `fastmediasorter-gradle-mcp` | Add Node package manifest for Gradle MCP server |
+| 2026-04-16 20:22:17 | `scripts/mcp/gradle-mcp/README.md` | `Gradle MCP docs` | Add setup and VS Code mcp.json configuration for safe Gradle MCP tools |
+| 2026-04-16 20:22:18 | `.vscode/mcp.json` | `MCP config` | Add filesystem RW/RO servers scoped to workspace and secure gradle_safe MCP server entry |
+| 2026-04-16 20:22:18 | `scripts/mcp/gradle-mcp-server.mjs` | `gradle-mcp-server` | Add custom Gradle MCP wrapper with strict allowlist and safe gradlew execution |
+| 2026-04-16 20:22:37 | `scripts/mcp/docs-search-mcp/server.js` | `docs-search-mcp` | Add MCP tool docs_diff_mirrors to compare EN/RU/UK mirrors by heading structure and missing languages |
+| 2026-04-16 20:22:37 | `scripts/mcp/docs-search-mcp/README.md` | `docs-search-mcp` | Document docs_diff_mirrors tool usage and parameters |
+| 2026-04-16 20:26:54 | `.vscode/mcp.json` | `MCP config` | Switch gradle_safe to scripts/mcp/gradle-mcp/server.js and add timeout/output env limits |
+| 2026-04-16 20:27:01 | `scripts/mcp/gradle-mcp/package-lock.json` | `gradle-mcp dependencies` | Generate package-lock.json after npm install for deterministic dependency versions |
+| 2026-04-16 20:29:18 | `scripts/mcp/docs-search-mcp/server.js` | `docs-search-mcp` | Extend docs_diff_mirrors with density mode (length/sections), mode selector and lagThreshold |
+| 2026-04-16 20:29:18 | `scripts/mcp/docs-search-mcp/README.md` | `docs-search-mcp` | Document docs_diff_mirrors density mode and new parameters mode/lagThreshold |
+| 2026-04-16 20:29:59 | `scripts/mcp/gradle-mcp/server.js` | `fastmediasorter-gradle` | Fix cmd.exe execution format for .bat allowlist commands (remove over-escaped quoted path) |
+| 2026-04-16 20:30:35 | `scripts/mcp/docs-search-mcp/server.js` | `docs-search-mcp` | Sort docs_diff_mirrors output by density severity in mode=density so worst mirrors appear first |
+| 2026-04-16 20:30:35 | `scripts/mcp/docs-search-mcp/README.md` | `docs-search-mcp` | Document that mode=density output is ordered by lag severity |
+| 2026-04-16 20:41:10 | `maestro/run-tests.ps1` | `MaestroRunner` | Pruned unsupported suites; keep smoke+critical only and update valid options |
+| 2026-04-16 20:41:10 | `scripts/utils/run-maestro-smoke.ps1` | `MaestroSmokeScript` | Removed stress suite from supported options and fail fast on -Stress |
+| 2026-04-16 20:41:10 | `maestro` | `MaestroTests` | Removed non-easy-fixable flows; reduced active inventory to 4 smoke + 2 critical |
+| 2026-04-16 20:41:26 | `scripts/utils/run-maestro-smoke.ps1` | `MaestroSmokeScript` | Updated usage comments to remove stress mode and document supported suites |
+| 2026-04-16 20:51:26 | `maestro/critical/file_operations.yaml` | `file_operations.yaml` | Made critical file-operations flow resilient by removing hardcoded folder/file assumptions |
+| 2026-04-16 20:51:26 | `maestro/critical/settings.yaml` | `settings.yaml` | Made settings critical flow resilient with optional navigation selectors |
+| 2026-04-16 20:52:01 | `maestro/critical/file_operations.yaml` | `file_operations.yaml` | Fixed Maestro syntax by removing unsupported optional flag from back command |
+| 2026-04-16 21:05:28 | `temp/mcp_smoke_check_gradle.mjs` | `MCP smoke-check helper` | Add temporary stdio MCP probe script for handshake diagnostics |
+| 2026-04-16 21:05:28 | `temp/mcp_smoke_check_gradle_sdk_client.mjs` | `MCP smoke-check helper` | Add SDK-based MCP smoke-check script for gradle_assemble_debug dry-run and gradle_run_pipeline execution |
+| 2026-04-16 23:21:35 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StandalonePlayerViewModelTest.kt` | `StandalonePlayerViewModelTest` | Pin Robolectric SDK to 34 via @Config to bypass targetSdk 35 picker mismatch |

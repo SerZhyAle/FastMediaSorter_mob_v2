@@ -434,12 +434,12 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Documentation Links Container - horizontal layout -->
-        <LinearLayout android:id="@+id/containerDocLinks" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:orientation="horizontal">
+        <!-- Documentation Links Container - wraps to multiple lines on narrow screens -->
+        <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerDocLinks" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/user_guide" android:textSize="12sp" app:icon="@android:drawable/ic_menu_help" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/user_guide" android:textSize="12sp" app:icon="@android:drawable/ic_menu_help" app:iconSize="@dimen/settings_icon_size" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/how_to_guides" android:textSize="12sp" app:icon="@android:drawable/ic_menu_directions" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/how_to_guides" android:textSize="12sp" app:icon="@android:drawable/ic_menu_directions" app:iconSize="@dimen/settings_icon_size" />
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnPrivacyPolicy" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/privacy_policy" android:textSize="12sp" app:icon="@android:drawable/ic_menu_info_details" app:iconSize="@dimen/settings_icon_size" />
 
@@ -447,7 +447,10 @@
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenWelcome" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_welcome_tutorial" android:textSize="12sp" app:icon="@android:drawable/ic_menu_view" app:iconSize="@dimen/settings_icon_size" />
 
-        </LinearLayout>
+            <!-- Flow distributes buttons across lines based on available width -->
+            <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowDocLinks" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_horizontalGap="0dp" app:flow_verticalGap="0dp" app:constraint_referenced_ids="btnUserGuide,btnHowToGuides,btnPrivacyPolicy,btnOpenSourceLicenses,btnOpenWelcome" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 
         <!-- Version Info with logo -->

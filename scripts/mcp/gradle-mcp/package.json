@@ -1,0 +1,18 @@
+{
+    "name": "fastmediasorter-gradle-mcp",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Safe allowlist-based MCP server for FastMediaSorter Gradle and build scripts",
+    "type": "module",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.13.0",
+        "zod": "^3.23.8"
+    }
+}
