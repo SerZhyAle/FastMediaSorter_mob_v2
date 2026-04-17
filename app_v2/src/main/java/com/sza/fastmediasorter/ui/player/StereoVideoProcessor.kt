@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
 import androidx.media3.common.Effect
-import androidx.media3.effect.Crop
 import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
 
@@ -9,20 +8,19 @@ import timber.log.Timber
  * Applies stereoscopic rendering to ExoPlayer video output.
  *
  * Architecture note:
- * Full OpenGL-based stereo rendering requires [androidx.media3:media3-effect] (GlEffect API),
- * which is not yet included in the project dependencies.
+ * FastMediaSorter currently renders into a single PlayerView surface.
+ * That surface can preserve an SBS/OU source frame for phone VR viewers,
+ * but it CANNOT synthesize stereo by cropping one eye and scaling it fullscreen.
+ * Doing so destroys the second eye and degrades the video to mono.
  *
- * This class is a Phase 1 stub that:
+ * This class therefore:
  *  1. Tracks the current [StereoMode] and exposes it to the UI.
- *  2. Provides the hook point for Phase 2 GL implementation (see PLAN/task_3d-sbs-support-implementation.md § 3.2).
- *  3. Does NOT apply any visual transformation yet — video renders as mono until Phase 2.
+ *  2. Preserves SBS/OU frames as-is for phone-based VR viewers (Cardboard-style optics do the split).
+ *  3. Provides the hook point for a future dual-viewport renderer if the app ever adds one.
  *
- * Phase 2 implementation plan:
- *  • Add `media3-effect:1.2.1` to [app_v2/build.gradle.kts].
- *  • Implement [androidx.media3.effect.GlEffect] to perform per-frame crop:
- *       left 50% of texture  →  left viewport (left eye)
- *       right 50% of texture →  right viewport (right eye)
- *  • Wire via [ExoPlayer.setVideoEffects(listOf(stereoVideoProcessor))].
+ * Future implementation plan:
+ *  • Replace the single-surface approach with explicit dual-eye rendering.
+ *  • Only then introduce GL crops / viewports / FBOs.
  *
  * Thread safety: [setStereoMode] may be called from the main thread;
  * in Phase 2 the GL callbacks will arrive on the GL thread — use @Volatile or
@@ -34,8 +32,11 @@ class StereoVideoProcessor {
     private var currentMode: StereoMode = StereoMode.MONO
 
     /**
-     * Whether stereo rendering is currently active.
-     * Phase 1: always false (stub). Phase 2: reflects GL pipeline state.
+     * Whether a stereo layout has been requested.
+     *
+     * This reflects the selected mode, not proof that the renderer has switched to a
+     * dual-surface stereo pipeline. With the current single PlayerView implementation,
+     * SBS/OU content is preserved as-is for VR viewers.
      */
     val isStereoActive: Boolean
         get() = currentMode == StereoMode.SBS_FULL || currentMode == StereoMode.SBS_HALF
@@ -58,9 +59,10 @@ class StereoVideoProcessor {
         currentMode = mode
         Timber.i("StereoVideoProcessor: mode changed $previous → $mode")
 
-        // TODO (Phase 2): reconfigure GL pipeline here
+        // Keep the selected mode cached even before ExoPlayer exists so createPlayer()
+        // can reapply the same state after a player recreation/configuration change.
         if (isStereoActive) {
-            Timber.d("StereoVideoProcessor: stereo rendering requested but GL pipeline not yet implemented (Phase 1 stub)")
+            Timber.d("StereoVideoProcessor: stereo mode requested; preserving source frame for VR playback")
         }
     }
 
@@ -72,36 +74,24 @@ class StereoVideoProcessor {
     /**
      * Builds the [Effect] to apply for the given [mode].
      *
-     * SBS_FULL / SBS_HALF → Crop to the left 50% of the frame (left-eye view).
-     *   This fills the phone screen with the correct aspect ratio so the user can
-     *   see the content naturally. When using a phone-based VR viewer (Google Cardboard),
-     *   the SBS video should be played AS-IS (return null) — the headset's optics split it.
-     * OU → Crop to the top 50% of the frame (left-eye view for Over-Under format).
+     * SBS_FULL / SBS_HALF / OU → return null.
+     *
+     * Why: cropping one eye out of a single-surface frame destroys stereoscopy.
+     * For phone-based VR viewers the correct behaviour is to preserve the original SBS/OU
+     * frame and let the headset optics route each half to the proper eye.
      * MONO / AUTO / UNKNOWN → null (no effect = full-frame pass-through).
      *
      * Called by [VideoPlayerManager.applyStereoEffect] whenever the stereo mode changes.
      */
     fun buildGlEffect(mode: StereoMode): Effect? {
         return when (mode) {
-            // Left half of the SBS frame → full screen (left eye, correct AR for non-VR preview)
             StereoMode.SBS_FULL, StereoMode.SBS_HALF -> {
-                Timber.d("StereoVideoProcessor: buildGlEffect → Crop left 50% for $mode")
-                Crop(
-                    /* left  */ -1f,
-                    /* right */ 0f,
-                    /* bottom */ -1f,
-                    /* top   */ 1f
-                )
+                Timber.d("StereoVideoProcessor: buildGlEffect → pass-through for $mode (preserve SBS frame)")
+                null
             }
-            // Top half of the OU frame → full screen (left eye for Over-Under format)
             StereoMode.OU -> {
-                Timber.d("StereoVideoProcessor: buildGlEffect → Crop top 50% for OU")
-                Crop(
-                    /* left  */ -1f,
-                    /* right */ 1f,
-                    /* bottom */ 0f,
-                    /* top   */ 1f
-                )
+                Timber.d("StereoVideoProcessor: buildGlEffect → pass-through for OU until dedicated OU renderer exists")
+                null
             }
             // No visual transformation for mono / unresolved modes
             else -> {

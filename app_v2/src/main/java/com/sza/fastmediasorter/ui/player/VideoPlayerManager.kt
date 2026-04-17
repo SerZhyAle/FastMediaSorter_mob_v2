@@ -97,6 +97,8 @@ class VideoPlayerManager(
         fun showFileNotFound(fileName: String)
         fun isActivityDestroyed(): Boolean
         fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean)
+        /** Fired before a new video starts loading so session-only 3D state can reset per file. */
+        fun onBeforeVideoLoad(path: String) {}
         /** Fired once per video load when a stereo format is detected. Default no-op. */
         fun onStereoDetected(mode: StereoMode) {}
     }
@@ -411,6 +413,10 @@ class VideoPlayerManager(
         playerView.player = player
         currentPlayerView = playerView
         exoPlayer = player
+
+        // Reapply the last resolved stereo state to a fresh ExoPlayer instance.
+        // Without this, config changes/player recreation silently drop the active effect.
+        applyStereoEffect(stereoVideoProcessor.getCurrentMode())
         
         Timber.d("VideoPlayerManager: ExoPlayer created")
         return player
@@ -439,6 +445,8 @@ class VideoPlayerManager(
     }
 
     /**
+     * Play video from path - handles local, network (SMB/S/FTP), and cloud.
+     */
     fun playVideo(
         path: String, 
         resourceType: ResourceType, 
@@ -447,6 +455,10 @@ class VideoPlayerManager(
         onComplete: () -> Unit = {}
     ) {
         Timber.d("VideoPlayerManager: playVideo - path=$path, type=$resourceType")
+
+        // Auto-detection is file-local state. Reset before every new video so the next
+        // onTracksChanged callback can resolve stereo freshly instead of reusing prior media.
+        playerCallback.onBeforeVideoLoad(path)
         
         // Log memory state BEFORE video loading
         logMemoryStats("BEFORE playVideo")

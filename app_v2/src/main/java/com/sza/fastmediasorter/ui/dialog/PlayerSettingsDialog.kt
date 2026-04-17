@@ -105,7 +105,7 @@ class PlayerSettingsDialog(
 
     private fun setupStereoSection() {
         // OU is a future option — keep it in the list but disabled so users know it's coming
-        binding.radio3DOU.isEnabled = false
+        binding.radio3DOU?.isEnabled = false
     }
 
     private fun setupLanguageSpinner(spinner: android.widget.Spinner) {
@@ -149,7 +149,7 @@ class PlayerSettingsDialog(
             StereoMode.MONO -> R.id.radio3DMono
             else -> R.id.radio3DAuto  // AUTO and UNKNOWN both default to Auto
         }
-        binding.radioGroup3D.check(radioId)
+        binding.radioGroup3D?.check(radioId)
     }
 
     private fun collectSettings(): PlayerSettings {
@@ -175,7 +175,7 @@ class PlayerSettingsDialog(
         ) { LanguageOption.DEFAULT }
 
         // Map selected radio button back to StereoMode enum
-        val stereoMode = when (binding.radioGroup3D.checkedRadioButtonId) {
+        val stereoMode = when (binding.radioGroup3D?.checkedRadioButtonId) {
             R.id.radio3DSbs -> StereoMode.SBS_FULL
             R.id.radio3DOU -> StereoMode.OU
             R.id.radio3DMono -> StereoMode.MONO

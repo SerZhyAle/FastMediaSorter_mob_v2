@@ -51,22 +51,21 @@ appId: com.sza.fastmediasorter.debug
     optional: true
 - waitForAnimationToEnd
 
-# Go to 3D tab
-- tapOn:
-    text: "3D"
-    optional: true
+# Verify 3D controls are really visible before switching
+- assertVisible:
+    text: "3D Video"
+- assertVisible:
+    text: "Side-by-Side (SBS)"
 - waitForAnimationToEnd
 
-# Select Force SBS
+# Select SBS mode
 - tapOn:
-    text: "Force SBS"
-    optional: true
+    text: "Side-by-Side (SBS)"
 - waitForAnimationToEnd
 
 # Close dialog
 - tapOn:
     text: "Close"
-    optional: true
 - waitForAnimationToEnd
 
 # Verify player still alive after mode switch
@@ -88,22 +87,19 @@ appId: com.sza.fastmediasorter.debug
     optional: true
 - waitForAnimationToEnd
 
-# Go to 3D tab
-- tapOn:
-    text: "3D"
-    optional: true
+# Verify Mono option is visible
+- assertVisible:
+    text: "Mono (Disabled)"
 - waitForAnimationToEnd
 
 # Select Mono
 - tapOn:
-    text: "Mono"
-    optional: true
+    text: "Mono (Disabled)"
 - waitForAnimationToEnd
 
 # Close dialog
 - tapOn:
     text: "Close"
-    optional: true
 - waitForAnimationToEnd
 
 # Verify player still alive after switch back to Mono
@@ -126,19 +122,16 @@ appId: com.sza.fastmediasorter.debug
     optional: true
 - waitForAnimationToEnd
 
-- tapOn:
-    text: "3D"
-    optional: true
+- assertVisible:
+    text: "Auto-detect"
 - waitForAnimationToEnd
 
 - tapOn:
-    text: "Auto"
-    optional: true
+    text: "Auto-detect"
 - waitForAnimationToEnd
 
 - tapOn:
     text: "Close"
-    optional: true
 - waitForAnimationToEnd
 
 # Final stability check

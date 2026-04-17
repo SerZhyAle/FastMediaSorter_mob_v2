@@ -52,28 +52,20 @@ appId: com.sza.fastmediasorter.debug
 # The dialog should be visible
 - assertVisible:
     text: "Playback Settings"
-    optional: true
 
-# Navigate to the 3D tab (swipe left on the tab bar)
-- tapOn:
-    text: "3D"
-    optional: true
-- waitForAnimationToEnd
-
-# Verify 3D tab content is visible
+# Verify the 3D section is present with the real labels used by the dialog.
 - assertVisible:
-    text: "Auto"
-    optional: true
-
-# Auto-detect should be pre-selected for a 32:9 SBS video
+    text: "3D Video"
 - assertVisible:
-    id: ".*radio_auto.*"
-    optional: true
+    text: "Auto-detect"
+- assertVisible:
+    text: "Side-by-Side (SBS)"
+- assertVisible:
+    text: "Mono (Disabled)"
 
 # Close the dialog
 - tapOn:
     text: "Close"
-    optional: true
 - waitForAnimationToEnd
 
 # Verify the player is still running (no crash)

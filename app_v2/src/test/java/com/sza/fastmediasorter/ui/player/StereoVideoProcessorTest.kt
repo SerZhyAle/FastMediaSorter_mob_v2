@@ -3,12 +3,13 @@ package com.sza.fastmediasorter.ui.player
 import com.sza.fastmediasorter.domain.model.StereoMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 /**
- * Unit tests for [StereoVideoProcessor] — Phase 1 stub behaviour.
+ * Unit tests for [StereoVideoProcessor].
  *
  * Tests cover:
  * 1. Default state after construction
@@ -17,9 +18,7 @@ import org.junit.Test
  * 4. setStereoMode precondition — rejects AUTO and UNKNOWN
  * 5. No-op on same-mode set (idempotency)
  * 6. release() resets state to MONO
- * 7. Thread-safety marker — @Volatile field accessible across reads
- *
- * Phase 2 crop-math tests will be added once GlEffect is wired.
+ * 7. GL effect contract — SBS/OU are preserved as pass-through, not cropped to one eye
  */
 class StereoVideoProcessorTest {
 
@@ -185,5 +184,29 @@ class StereoVideoProcessorTest {
         processor.release()
         processor.setStereoMode(StereoMode.SBS_FULL)
         assertEquals(StereoMode.SBS_FULL, processor.getCurrentMode())
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // 7. GL effect contract
+    // ──────────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `buildGlEffect returns null for SBS_FULL to preserve stereo frame`() {
+        assertNull(processor.buildGlEffect(StereoMode.SBS_FULL))
+    }
+
+    @Test
+    fun `buildGlEffect returns null for SBS_HALF to preserve stereo frame`() {
+        assertNull(processor.buildGlEffect(StereoMode.SBS_HALF))
+    }
+
+    @Test
+    fun `buildGlEffect returns null for OU until dedicated renderer exists`() {
+        assertNull(processor.buildGlEffect(StereoMode.OU))
+    }
+
+    @Test
+    fun `buildGlEffect returns null for MONO`() {
+        assertNull(processor.buildGlEffect(StereoMode.MONO))
     }
 }

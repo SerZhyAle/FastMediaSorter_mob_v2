@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player
 import android.os.Bundle
 import androidx.media3.common.Format
 import com.sza.fastmediasorter.domain.model.StereoMode
+import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -197,15 +198,23 @@ class StereoDetectorTest {
 
     /**
      * Build a minimal [Format] with a [Bundle] carrying a fake Matroska stereo tag.
-     * Media3 surfaces the tag as "stereo_mode" string in [Format.customData].
+     *
+     * Media3 API exposure differs across versions, so this helper attaches the Bundle
+     * reflectively and skips metadata-specific tests if the current build does not expose
+     * a compatible setter on [Format.Builder].
      */
     private fun buildFormatWithTag(tagValue: String, width: Int, height: Int): Format {
         val bundle = Bundle().apply { putString("stereo_mode", tagValue) }
-        return Format.Builder()
+        val builder = Format.Builder()
             .setWidth(width)
             .setHeight(height)
-            .setCustomData(bundle)
-            .build()
+
+        val setter = builder.javaClass.methods.firstOrNull { method ->
+            method.parameterCount == 1 && method.name == "setCustomData"
+        }
+        assumeTrue("Media3 build does not expose Format.Builder.setCustomData", setter != null)
+        setter!!.invoke(builder, bundle)
+        return builder.build()
     }
 
     /**

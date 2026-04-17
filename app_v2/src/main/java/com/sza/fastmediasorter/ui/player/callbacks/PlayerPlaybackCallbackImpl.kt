@@ -106,6 +106,12 @@ class PlayerPlaybackCallbackImpl(
         activity.showUnsupportedFormatError(message, filePath, isLocalFile)
     }
 
+    override fun onBeforeVideoLoad(path: String) {
+        // Keep explicit per-file behaviour predictable: every new video starts in AUTO,
+        // then onTracksChanged may override it if the user has not picked a manual mode.
+        viewModel.resetStereoModeForNewFile()
+    }
+
     override fun onStereoDetected(mode: StereoMode) {
         // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO
         viewModel.setAutoDetectedStereoMode(mode)

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.os.Bundle
 import androidx.media3.common.Format
 import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
@@ -8,7 +9,7 @@ import timber.log.Timber
  * Detects the stereoscopic format of a video from its track metadata.
  *
  * Detection strategy (highest-confidence first):
- *  1. Matroska StereoMode tag embedded in [Format.customData] (100% accurate when present;
+ *  1. Matroska StereoMode tag embedded in format extras (100% accurate when present;
  *     ~60% of real-world 3D MKV files carry this tag).
  *  2. Aspect ratio heuristic — reliable for SBS 3D content (≈94% accuracy overall):
  *      • 3840×1080, 1920×540, etc.  →  StereoMode.SBS_FULL   (AR ≈ 32:9)
@@ -43,7 +44,7 @@ class StereoDetector {
         private const val MATROSKA_STEREO_SBS_RIGHT = "11"
 
         // Shared-data key written by MatroskaExtractor in Media3 for the StereoMode EBML tag.
-        // Media3 1.2.1 stores it as "stereo_mode" in Format.customData when present.
+        // Access is best-effort because Media3 API exposure differs across versions/builds.
         private const val FORMAT_CUSTOM_DATA_KEY = "stereo_mode"
 
         private const val TAG = "StereoDetector"
@@ -88,19 +89,17 @@ class StereoDetector {
     // ── Private helpers ────────────────────────────────────────────────────
 
     /**
-     * Attempt to read the Matroska StereoMode EBML tag from [Format.customData].
+         * Attempt to read the Matroska StereoMode EBML tag from format extras.
      *
-     * Media3 1.2.1 MatroskaExtractor surfaces container-level metadata through
-     * [Format.metadata] and format-level extras through [Format.customData].
-     * The stereo mode tag (0x53B8) is currently exposed in customData as a Bundle
-     * with key [FORMAT_CUSTOM_DATA_KEY] on some build configurations; this may not
-     * be populated on all devices/container variants.
+         * Media3 API exposure differs across versions: some builds surface a Bundle-like
+         * object via a custom-data getter, others do not expose it at compile time.
+         * We therefore use reflection and fall back to UNKNOWN when the data is absent.
      *
      * If the tag is absent, returns [StereoMode.UNKNOWN] so the heuristic runs.
      */
     private fun detectFromMatroskaTag(format: Format): StereoMode {
-        val customData = format.customData ?: return StereoMode.UNKNOWN
-        val stereoTag = customData.getString(FORMAT_CUSTOM_DATA_KEY) ?: return StereoMode.UNKNOWN
+                val customData = extractCustomDataBundle(format) ?: return StereoMode.UNKNOWN
+                val stereoTag = customData.getString(FORMAT_CUSTOM_DATA_KEY) ?: return StereoMode.UNKNOWN
 
         return when (stereoTag) {
             MATROSKA_STEREO_MONO      -> StereoMode.MONO
@@ -111,6 +110,18 @@ class StereoDetector {
                 Timber.w("$TAG: Unknown Matroska StereoMode tag value: '$stereoTag'")
                 StereoMode.UNKNOWN
             }
+        }
+    }
+
+    private fun extractCustomDataBundle(format: Format): Bundle? {
+        return try {
+            val getter = format.javaClass.methods.firstOrNull { method ->
+                method.parameterCount == 0 && (method.name == "getCustomData" || method.name == "customData")
+            } ?: return null
+            getter.invoke(format) as? Bundle
+        } catch (e: Exception) {
+            Timber.v(e, "$TAG: customData not exposed on this Media3 build")
+            null
         }
     }
 
