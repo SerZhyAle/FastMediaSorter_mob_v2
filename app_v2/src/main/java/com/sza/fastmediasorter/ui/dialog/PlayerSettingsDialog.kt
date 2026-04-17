@@ -8,6 +8,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogPlayerSettingsBinding
+import com.sza.fastmediasorter.domain.model.StereoMode
 
 /**
  * Dialog for video player settings:
@@ -34,7 +35,9 @@ class PlayerSettingsDialog(
         val repeatVideo: Boolean = false,
         val showSubtitles: Boolean = false,
         val subtitleLanguage: LanguageOption = LanguageOption.DEFAULT,
-        val audioLanguage: LanguageOption = LanguageOption.DEFAULT
+        val audioLanguage: LanguageOption = LanguageOption.DEFAULT,
+        // 3D SBS stereo preference — AUTO means let StereoDetector decide from metadata/AR
+        val stereoMode: StereoMode = StereoMode.AUTO
     )
 
     /**
@@ -84,6 +87,9 @@ class PlayerSettingsDialog(
         setupLanguageSpinner(binding.spinnerSubtitleLanguage)
         setupLanguageSpinner(binding.spinnerAudioLanguage)
 
+        // 3D stereo mode radio group
+        setupStereoSection()
+
         // Cancel button
         binding.btnCancel.setOnClickListener {
             dismiss()
@@ -95,6 +101,11 @@ class PlayerSettingsDialog(
             onSettingsApplied(settings)
             dismiss()
         }
+    }
+
+    private fun setupStereoSection() {
+        // OU is a future option — keep it in the list but disabled so users know it's coming
+        binding.radio3DOU.isEnabled = false
     }
 
     private fun setupLanguageSpinner(spinner: android.widget.Spinner) {
@@ -130,6 +141,15 @@ class PlayerSettingsDialog(
 
         // Set audio language
         binding.spinnerAudioLanguage.setSelection(currentSettings.audioLanguage.ordinal)
+
+        // Set 3D stereo mode radio — SBS_HALF maps to SBS_FULL in dialog (both shown as "SBS")
+        val radioId = when (currentSettings.stereoMode) {
+            StereoMode.SBS_FULL, StereoMode.SBS_HALF -> R.id.radio3DSbs
+            StereoMode.OU -> R.id.radio3DOU
+            StereoMode.MONO -> R.id.radio3DMono
+            else -> R.id.radio3DAuto  // AUTO and UNKNOWN both default to Auto
+        }
+        binding.radioGroup3D.check(radioId)
     }
 
     private fun collectSettings(): PlayerSettings {
@@ -154,12 +174,21 @@ class PlayerSettingsDialog(
             binding.spinnerAudioLanguage.selectedItemPosition
         ) { LanguageOption.DEFAULT }
 
+        // Map selected radio button back to StereoMode enum
+        val stereoMode = when (binding.radioGroup3D.checkedRadioButtonId) {
+            R.id.radio3DSbs -> StereoMode.SBS_FULL
+            R.id.radio3DOU -> StereoMode.OU
+            R.id.radio3DMono -> StereoMode.MONO
+            else -> StereoMode.AUTO
+        }
+
         return PlayerSettings(
             playbackSpeed = playbackSpeed,
             repeatVideo = binding.cbRepeatVideo.isChecked,
             showSubtitles = binding.cbShowSubtitles.isChecked,
             subtitleLanguage = subtitleLanguage,
-            audioLanguage = audioLanguage
+            audioLanguage = audioLanguage,
+            stereoMode = stereoMode
         )
     }
 }

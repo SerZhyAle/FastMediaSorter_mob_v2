@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
 import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager
@@ -438,6 +439,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             dialogHelper = activity.dialogHelper,
             videoPlayerManagerProvider = { activity.videoPlayerManager },
             settingsRepository = activity.settingsRepository,
+            // Reads live stereo mode from ViewModel so dialog always shows the current value
+            getStereoMode = { activity.viewModel.stereoMode.value },
+            // Propagate user stereo selection back into ViewModel
+            onStereoModeChanged = { mode -> activity.viewModel.setStereoMode(mode) },
             callback = object : PlayerSettingsManager.Callback {}
         )
 

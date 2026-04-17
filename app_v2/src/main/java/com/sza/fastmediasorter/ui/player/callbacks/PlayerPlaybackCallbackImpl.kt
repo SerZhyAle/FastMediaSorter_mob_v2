@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.ui.player.SlideshowController
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
+import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
 
 /**
@@ -103,5 +104,10 @@ class PlayerPlaybackCallbackImpl(
     
     override fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) {
         activity.showUnsupportedFormatError(message, filePath, isLocalFile)
+    }
+
+    override fun onStereoDetected(mode: StereoMode) {
+        // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO
+        viewModel.setAutoDetectedStereoMode(mode)
     }
 }

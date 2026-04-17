@@ -12,10 +12,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.Tracks
+import com.sza.fastmediasorter.domain.model.StereoMode
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -94,6 +97,8 @@ class VideoPlayerManager(
         fun showFileNotFound(fileName: String)
         fun isActivityDestroyed(): Boolean
         fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean)
+        /** Fired once per video load when a stereo format is detected. Default no-op. */
+        fun onStereoDetected(mode: StereoMode) {}
     }
     
     /**
@@ -131,6 +136,9 @@ class VideoPlayerManager(
     private var mediaPlayer: MediaPlayer? = null
     private var currentPlayerView: PlayerView? = null
     private var isUsingMediaPlayer = false
+
+    // Stereo detection runs once per video load inside onTracksChanged
+    private val stereoDetector = StereoDetector()
 
     private val trackSelectionManager = VideoTrackSelectionManager(
         getPlayer = { exoPlayer },
@@ -335,8 +343,23 @@ class VideoPlayerManager(
                 }
             }
         }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            // Auto-detect stereo format from the first selected video track.
+            // This fires once per media item load and only affects the ViewModel when AUTO is active.
+            val videoFormat = tracks.groups
+                .firstOrNull { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }
+                ?.getTrackFormat(0)
+            if (videoFormat != null) {
+                val detected = stereoDetector.detectFromFormat(videoFormat)
+                if (detected != StereoMode.UNKNOWN) {
+                    Timber.d("VideoPlayerManager: onTracksChanged → detected stereo=$detected")
+                    playerCallback.onStereoDetected(detected)
+                }
+            }
+        }
     }
-    
+
     init {
         lifecycle.addObserver(this)
     }

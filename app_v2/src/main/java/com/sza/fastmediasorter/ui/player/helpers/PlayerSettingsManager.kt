@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.app.Activity
 import androidx.appcompat.app.AlertDialog
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -29,6 +30,10 @@ class PlayerSettingsManager(
     private val dialogHelper: com.sza.fastmediasorter.ui.player.PlayerDialogHelper,
     private val videoPlayerManagerProvider: () -> VideoPlayerManager,
     private val settingsRepository: SettingsRepository,
+    // Reads the live stereo mode from the ViewModel at dialog-open time
+    private val getStereoMode: () -> StereoMode,
+    // Notifies the ViewModel when the user changes the stereo preference
+    private val onStereoModeChanged: (StereoMode) -> Unit,
     private val callback: Callback
 ) {
     
@@ -46,9 +51,14 @@ class PlayerSettingsManager(
      * Displays options like playback speed, video quality, subtitles, etc.
      */
     fun showPlayerSettingsDialog() {
-        dialogHelper.showPlayerSettingsDialog(playerSettings) { newSettings ->
+        // Sync the session-local playerSettings with the live stereo mode from ViewModel before
+        // opening the dialog, so the radio buttons reflect the current auto-detected or user-chosen mode.
+        val currentPlayerSettings = playerSettings.copy(stereoMode = getStereoMode())
+        dialogHelper.showPlayerSettingsDialog(currentPlayerSettings) { newSettings ->
             playerSettings = newSettings
             applyPlayerSettings()
+            // Propagate stereo mode change upward so ViewModel can trigger StereoVideoProcessor
+            onStereoModeChanged(newSettings.stereoMode)
         }
     }
     

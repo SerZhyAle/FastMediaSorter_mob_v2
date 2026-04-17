@@ -143,6 +143,19 @@ class PlayerViewModel @Inject constructor(
     }
 
     /**
+     * Set the stereo mode auto-detected from video metadata/dimensions.
+     * Only applies when the current mode is still AUTO — i.e. the user has NOT
+     * explicitly chosen a mode via the dialog. This prevents auto-detection
+     * from overriding a manual selection.
+     */
+    fun setAutoDetectedStereoMode(mode: StereoMode) {
+        if (_stereoMode.value != StereoMode.AUTO) return  // respect explicit user choice
+        if (mode == StereoMode.UNKNOWN || mode == StereoMode.AUTO) return  // no useful info
+        Timber.d("PlayerViewModel: auto-detected stereoMode → $mode")
+        _stereoMode.value = mode
+    }
+
+    /**
      * Reset stereo mode to AUTO when navigating to a new file so that
      * auto-detection runs fresh on each new video.
      * Called by VideoPlayerManager before loading a new URI.

@@ -226,6 +226,59 @@
         android:background="@drawable/spinner_background"
         android:padding="@dimen/padding_small" />
 
+    <!-- 3D Video Section — only visible for video files (controller hides it otherwise) -->
+    <TextView
+        android:id="@+id/tv3DVideoLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/playback_settings_3d_tab"
+        android:textSize="@dimen/resource_card_title_text_size"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/margin_small"
+        android:layout_marginBottom="@dimen/margin_tiny" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup3D"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_tiny">
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radio3DAuto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/playback_settings_3d_auto"
+            android:checked="true" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radio3DSbs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/playback_settings_3d_sbs" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radio3DOU"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/playback_settings_3d_ou"
+            android:enabled="false" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radio3DMono"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/playback_settings_3d_mono" />
+
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/playback_settings_3d_hint"
+        android:textSize="@dimen/toggler_desc_text_size"
+        android:textColor="@color/text_color_secondary"
+        android:layout_marginBottom="@dimen/margin_small" />
+
 </LinearLayout>
 </ScrollView>
 
