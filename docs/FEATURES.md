@@ -138,6 +138,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Configurable touch zones**: Personalize your player controls. Define exactly which invisible tap regions of the screen trigger previous, next, play/pause, or skip/seek commands.
 - **Touch zones hint overlay**: Avoid confusion with a visual overlay that subtly highlights your configured touch zones during the very first launch, teaching you the control scheme intuitively.
 - **Sleep timer**: Safely fall asleep while watching videos. Set a timer (from 15 up to 120 minutes) with an onscreen countdown badge that automatically halts playback when time expires.
+- **3D Video Support (SBS)**: Play stereoscopic side-by-side 3D videos with automatic format detection via aspect ratio heuristics and embedded Matroska metadata. Choose between Auto-detect, Force SBS, or Mono in the Playback Settings dialog. Compatible with phone-based VR viewers (Google Cardboard and similar).
 
 
 ## 8. Audio Player

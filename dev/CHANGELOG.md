@@ -2375,3 +2375,7 @@ Format: | datetime | file | target | description |
 | 2026-04-17 03:45:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Added StereoDetector, onTracksChanged stereo auto-detect, onStereoDetected in PlayerCallback |
 | 2026-04-17 03:45:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Added setAutoDetectedStereoMode — only applies if current mode is AUTO |
 | 2026-04-17 03:45:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | Implemented onStereoDetected to relay auto-detected stereo mode to ViewModel |
+| 2026-04-17 03:53:38 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoDetectorTest.kt` | `StereoDetectorTest` | 26 unit tests for AR heuristic + Matroska tag detection |
+| 2026-04-17 03:53:38 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/StereoModeTest.kt` | `StereoModeTest` | 14 unit tests for enum completeness, fromKey round-trip, null safety |
+| 2026-04-17 03:53:38 | `docs/FEATURES.md` | `Video Player section` | Add 3D Video Support (SBS) bullet - EN/RU/UK |
+| 2026-04-17 03:53:38 | `docs/HOW_TO.md` | `Watching 3D Videos guide` | Add Watching 3D Videos (VR) guide - EN/RU/UK |

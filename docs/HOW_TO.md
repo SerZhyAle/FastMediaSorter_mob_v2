@@ -36,17 +36,18 @@ If a feature is marked with "✗", you can download the **Standard** flavor to a
 3. [Connect to Cloud Storage](#how-to-connect-to-cloud-storage)
 4. [Set Up Quick Sort Folders](#how-to-set-up-quick-sort-folders)
 5. [Use Touch Zones](#how-to-use-touch-zones)
-6. [Edit Photos](#how-to-edit-photos)
-7. [Create Slideshow](#how-to-create-slideshow)
-8. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
-9. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
-10. [Empty Trash](#how-to-empty-trash)
-11. [Backup Settings](#how-to-backup-settings)
-12. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
-13. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
-14. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
-15. [View Song Lyrics](#how-to-view-song-lyrics)
-16. [Auto-Translation](#auto-translation)
+6. [Watch 3D Videos (VR)](#how-to-watch-3d-videos-vr)
+7. [Edit Photos](#how-to-edit-photos)
+8. [Create Slideshow](#how-to-create-slideshow)
+9. [Create Slideshow with Background Music](#how-to-create-slideshow-with-background-music)
+10. [Protect Folder with PIN](#how-to-protect-folder-with-pin)
+11. [Empty Trash](#how-to-empty-trash)
+12. [Backup Settings](#how-to-backup-settings)
+13. [View Text and PDF Files](#how-to-view-text-and-pdf-files)
+14. [Open Network Files in External Apps](#how-to-open-network-files-in-external-apps)
+15. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
+16. [View Song Lyrics](#how-to-view-song-lyrics)
+17. [Auto-Translation](#auto-translation)
 
 ---
 
@@ -270,6 +271,32 @@ The screen is divided into 9 invisible areas for quick actions:
 Settings → Playback → "Always show touch zones overlay" = OFF
 
 Then use **command panel buttons** instead.
+
+---
+
+## How to Watch 3D Videos (VR)
+
+**Flavor**: Standard, Legacy
+
+**What you need**: A 3D video file in SBS (Side-by-Side) format and optionally a phone-based VR viewer (e.g., Google Cardboard).
+
+**Steps:**
+
+1. Browse to and open a 3D video file in FastMediaSorter.
+2. Tap the **fullscreen** button to enter fullscreen mode.
+3. Tap **Playback Settings** (gear icon) in the player controls.
+4. Navigate to the **3D** tab.
+5. Choose a stereo mode:
+   - **Auto-detect** — app analyses the aspect ratio and embedded metadata to detect SBS automatically.
+   - **Force SBS** — manually enable side-by-side stereo rendering regardless of detection.
+   - **Mono** — disable stereo (standard viewing).
+6. Tap **Apply** — the player switches to the selected mode instantly.
+7. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D.
+
+**Tips:**
+- Auto-detect works reliably for standard SBS files (aspect ratio ≈ 32:9 or wider).
+- If the video looks stretched or doubled, switch to **Force SBS** manually.
+- Over-Under (OU) format support is planned for a future release.
 
 ---
 
