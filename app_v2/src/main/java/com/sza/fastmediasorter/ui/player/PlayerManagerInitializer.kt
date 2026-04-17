@@ -446,6 +446,14 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             callback = object : PlayerSettingsManager.Callback {}
         )
 
+        // Observe stereoMode StateFlow and apply GL effects to the player whenever it changes.
+        // Runs on Main dispatcher (lifecycleScope default) — safe for ExoPlayer.setVideoEffects().
+        activity.lifecycleScope.launch {
+            activity.viewModel.stereoMode.collect { mode ->
+                activity.videoPlayerManager.applyStereoEffect(mode)
+            }
+        }
+
         activity.exoPlayerControlsManager = ExoPlayerControlsManager(
             binding = activity.activityBinding,
             videoPlayerManager = activity.videoPlayerManager,

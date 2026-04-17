@@ -140,6 +140,9 @@ class VideoPlayerManager(
     // Stereo detection runs once per video load inside onTracksChanged
     private val stereoDetector = StereoDetector()
 
+    // Stereo GL effect builder — Phase 2: builds Crop effects for ExoPlayer.setVideoEffects()
+    private val stereoVideoProcessor = StereoVideoProcessor()
+
     private val trackSelectionManager = VideoTrackSelectionManager(
         getPlayer = { exoPlayer },
         getPlayerView = { currentPlayerView }
@@ -412,10 +415,30 @@ class VideoPlayerManager(
         Timber.d("VideoPlayerManager: ExoPlayer created")
         return player
     }
-    
+
     /**
-     * Play video from path - handles local, network (SMB/S/FTP), and cloud
+     * Apply the stereo GL effect matching [mode] to the active ExoPlayer instance.
+     *
+     * Called whenever [stereoMode] changes (from user selection or auto-detection).
+     * Must be called on the main thread — ExoPlayer.setVideoEffects() is main-thread only.
+     *
+     * Delegates effect construction to [StereoVideoProcessor.buildGlEffect] so the crop
+     * logic stays in one place and is independently unit-testable.
      */
+    fun applyStereoEffect(mode: StereoMode) {
+        stereoVideoProcessor.setStereoMode(
+            when (mode) {
+                StereoMode.AUTO, StereoMode.UNKNOWN -> StereoMode.MONO // treat unresolved as mono
+                else -> mode
+            }
+        )
+        val effect = stereoVideoProcessor.buildGlEffect(stereoVideoProcessor.getCurrentMode())
+        val effects: List<androidx.media3.common.Effect> = if (effect != null) listOf(effect) else emptyList()
+        exoPlayer?.setVideoEffects(effects)
+        Timber.d("VideoPlayerManager: applyStereoEffect mode=$mode → effects=${effects.size}")
+    }
+
+    /**
     fun playVideo(
         path: String, 
         resourceType: ResourceType, 

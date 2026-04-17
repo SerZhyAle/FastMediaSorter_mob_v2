@@ -2382,3 +2382,7 @@ Format: | datetime | file | target | description |
 | 2026-04-17 03:56:53 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoVideoProcessorTest.kt` | `StereoVideoProcessorTest` | 21 unit tests for mode transitions, isStereoActive, precondition guards, idempotency, release |
 | 2026-04-17 03:56:53 | `maestro/smoke/3d-video-sbs.yaml` | `3d-video-sbs` | Maestro E2E smoke test: open SBS video, open 3D tab, verify no crash |
 | 2026-04-17 03:56:53 | `maestro/smoke/3d-video-switching.yaml` | `3d-video-switching` | Maestro E2E test: cycle through Auto/ForceSBS/Mono modes, verify stability |
+| 2026-04-17 04:01:19 | `app_v2/build.gradle.kts` | `dependencies` | Add media3-effect:1.2.1 for GlEffect/Crop API (Phase 2 SBS GL rendering) |
+| 2026-04-17 04:01:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoVideoProcessor.kt` | `StereoVideoProcessor` | Phase 2: add buildGlEffect(mode) using media3-effect Crop for SBS/OU left-eye crop |
+| 2026-04-17 04:01:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Phase 2: add stereoVideoProcessor field + applyStereoEffect(mode) calling setVideoEffects() |
+| 2026-04-17 04:01:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Phase 2: collect stereoMode StateFlow and call videoPlayerManager.applyStereoEffect on each change |

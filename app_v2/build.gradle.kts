@@ -458,6 +458,7 @@ dependencies {
     implementation("androidx.media3:media3-common:1.2.1")
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
     implementation("androidx.media3:media3-session:1.2.1") // MediaSession for audio background playback
+    implementation("androidx.media3:media3-effect:1.2.1")  // GlEffect API for SBS stereo crop rendering (Phase 2)
     
     // Image Loading - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")

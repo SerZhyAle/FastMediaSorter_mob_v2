@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
+import androidx.media3.common.Effect
+import androidx.media3.effect.Crop
 import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
 
@@ -66,6 +68,48 @@ class StereoVideoProcessor {
      * Returns the currently active mode (resolved — never AUTO or UNKNOWN).
      */
     fun getCurrentMode(): StereoMode = currentMode
+
+    /**
+     * Builds the [Effect] to apply for the given [mode].
+     *
+     * SBS_FULL / SBS_HALF → Crop to the left 50% of the frame (left-eye view).
+     *   This fills the phone screen with the correct aspect ratio so the user can
+     *   see the content naturally. When using a phone-based VR viewer (Google Cardboard),
+     *   the SBS video should be played AS-IS (return null) — the headset's optics split it.
+     * OU → Crop to the top 50% of the frame (left-eye view for Over-Under format).
+     * MONO / AUTO / UNKNOWN → null (no effect = full-frame pass-through).
+     *
+     * Called by [VideoPlayerManager.applyStereoEffect] whenever the stereo mode changes.
+     */
+    fun buildGlEffect(mode: StereoMode): Effect? {
+        return when (mode) {
+            // Left half of the SBS frame → full screen (left eye, correct AR for non-VR preview)
+            StereoMode.SBS_FULL, StereoMode.SBS_HALF -> {
+                Timber.d("StereoVideoProcessor: buildGlEffect → Crop left 50% for $mode")
+                Crop(
+                    /* left  */ -1f,
+                    /* right */ 0f,
+                    /* bottom */ -1f,
+                    /* top   */ 1f
+                )
+            }
+            // Top half of the OU frame → full screen (left eye for Over-Under format)
+            StereoMode.OU -> {
+                Timber.d("StereoVideoProcessor: buildGlEffect → Crop top 50% for OU")
+                Crop(
+                    /* left  */ -1f,
+                    /* right */ 1f,
+                    /* bottom */ 0f,
+                    /* top   */ 1f
+                )
+            }
+            // No visual transformation for mono / unresolved modes
+            else -> {
+                Timber.d("StereoVideoProcessor: buildGlEffect → no effect for $mode")
+                null
+            }
+        }
+    }
 
     /**
      * Release resources. Call when the player is destroyed.
