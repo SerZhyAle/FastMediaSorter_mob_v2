@@ -1733,6 +1733,12 @@
     <string name="background_audio_exit_message">Музыка продолжает играть в фоне. Что сделать?</string>
     <string name="background_audio_exit_stop">Остановить</string>
     <string name="background_audio_exit_continue">Продолжить</string>
+    <!-- Background audio exit behavior — Settings sub-row -->
+    <string name="background_audio_exit_behavior_title">Поведение при выходе из плеера</string>
+    <string name="background_audio_exit_behavior_summary">Выберите, что произойдёт с фоновой музыкой при возврате</string>
+    <string name="background_audio_exit_behavior_ask">Спросить каждый раз (по умолчанию)</string>
+    <string name="background_audio_exit_behavior_always_stop">Всегда остановить</string>
+    <string name="background_audio_exit_behavior_always_continue">Всегда продолжать</string>
     <string name="close_search">Закрыть поиск</string>
     <string name="cloud_storage_icon">Иконка облачного хранилища</string>
     <string name="continue_reading">Продолжить чтение</string>

@@ -139,4 +139,12 @@ class PlayerUiStateCoordinatorCallbackImpl(
     override fun updateTouchZonesHelpButtonVisibility(visible: Boolean) {
         activity.activityBinding.btnTouchZonesHelp?.isVisible = visible
     }
+
+    override fun onFilenameOverlayFileShown(type: MediaType) {
+        activity.dialogAndUiStateManager.filenameOverlayManager?.onFileShown(type)
+    }
+
+    override fun onFilenameOverlayPauseInteraction(type: MediaType) {
+        activity.dialogAndUiStateManager.filenameOverlayManager?.onPauseInteraction(type)
+    }
 }

@@ -103,108 +103,73 @@ User loads video
 ExoPlayer prepares tracks
   ↓
 [AUTO-DETECT PATH]
-  ├─ StereoDetector.detectMode(videoWidth, videoHeight, metadata)
-  ├─ Returns: StereoMode.SBS_FULL | SBS_CROPPED | OU | MONO
-  ├─ ViewModel.setStereoMode(detected)
-  └─ UI updates "3D" tab: "Auto-detected: SBS"
+  ├─ StereoDetector.detectFromFormat(Format) — actual API
+  ├─ Returns: StereoMode.SBS_FULL | SBS_HALF | OU | MONO | UNKNOWN
+  ├─ PlayerPlaybackCallbackImpl.onStereoDetected() → ViewModel.setAutoDetectedStereoMode()
+  └─ ViewModel.stereoMode StateFlow emits; UI shows current mode in dialog
   
   [OR USER-SELECT PATH]
-  ├─ User taps "3D" tab
-  ├─ Selects: "Force SBS"
-  ├─ ViewModel.setStereoMode(StereoMode.SBS_FULL)
-  └─ VideoProcessor reconfigures crop
+  ├─ User opens Playback Settings dialog (gear icon)
+  ├─ 3D section with radio buttons: Auto / SBS / OU(disabled) / Mono
+  ├─ PlayerSettingsManager.onStereoModeChanged → ViewModel.setStereoMode()
+  └─ StateFlow collector → VideoPlayerManager.applyStereoEffect()
   
   ↓
-StereoVideoProcessor receives StereoMode
+StereoVideoProcessor.setStereoMode(resolved) + buildGlEffect(resolved)
   ↓
-On each frame render:
-  ├─ Input frame: full width (e.g., 3840×1080)
-  ├─ Crop left 50% → render to left viewport
-  ├─ Crop right 50% → render to right viewport
-  └─ Display: side-by-side on screen or toggle left/right
-  
+Architecture decision (Phase 1): single PlayerView surface cannot split into
+two eye viewports without destroying one eye. buildGlEffect() returns null
+for all modes — SBS/OU frames are preserved as-is for phone VR optics to split.
+Full dual-viewport GL rendering is deferred to Phase 2 (v2.64+).
   ↓
-User sees stereoscopic content
+exoPlayer.setVideoEffects(emptyList())  // placeholder; Phase 2 will pass GL effects
+  ↓
+User sees SBS frame intact — VR headset optics route each half to correct eye
 ```
 
 ### 3.3 Key Classes & Methods
 
-**StereoDetector.kt** (~150 lines)
+**StereoDetector.kt** (~120 lines) — IMPLEMENTED ✅
 
 ```kotlin
+// Actual API (differs from original spec):
 class StereoDetector {
-  fun detectMode(videoWidth: Int, videoHeight: Int, metadata: TrackInfo?): StereoMode {
-    // 1. Check metadata first (Matroska StereoMode tag)
-    val metaMode = parseMatroskaMetadata(metadata)
-    if (metaMode != StereoMode.UNKNOWN) return metaMode
-    
-    // 2. Fallback to aspect ratio heuristic
-    val aspectRatio = videoWidth.toFloat() / videoHeight.toFloat()
-    return when {
-      aspectRatio in 3.2f..3.6f -> StereoMode.SBS_FULL     // 32:9 to 36:10
-      aspectRatio in 1.4f..1.8f && videoHeight >= 1800 -> StereoMode.SBS_CROPPED
-      aspectRatio in 0.5f..0.65f -> StereoMode.OU         // ~16:27
-      else -> StereoMode.MONO
-    }
-  }
-  
-  private fun parseMatroskaMetadata(metadata: TrackInfo?): StereoMode {
-    // Extract StereoMode field from Matroska container if present
-    // StereoMode: 0=mono, 2=SBS-left, 3=OU-top, etc.
-    return StereoMode.UNKNOWN  // if not found
-  }
+  // Primary: takes a full Format object (has both dimensions + customData)
+  fun detectFromFormat(format: Format): StereoMode
+  // Convenience: dimensions only, skips metadata step
+  fun detectFromDimensions(width: Int, height: Int): StereoMode
+}
+// AR bounds: SBS_FULL = 3.2..3.8, SBS_HALF height≥1800, OU = 0.50..0.65
+// Note: enum is StereoMode.SBS_HALF (not SBS_CROPPED as originally planned)
+```
+
+**StereoVideoProcessor.kt** (~115 lines) — IMPLEMENTED ✅ (Phase 1 pass-through)
+
+```kotlin
+// Actual implementation (does NOT extend VideoProcessor — no GL crop in Phase 1):
+class StereoVideoProcessor {
+  fun setStereoMode(mode: StereoMode)  // resolves AUTO/UNKNOWN to MONO
+  fun buildGlEffect(mode: StereoMode): Effect?  // returns null for all modes in Phase 1
+  // Why null: single-surface PlayerView can't split into two viewports.
+  // SBS/OU frames are preserved intact for phone-VR optics to split.
+  // Phase 2 (v2.64+): replace with dual-FBO GL renderer.
+  fun getCurrentMode(): StereoMode
+  fun release()
 }
 ```
 
-**StereoVideoProcessor.kt** (~200 lines)
+**PlayerSettingsDialog.kt** (`ui/dialog/PlayerSettingsDialog.kt`) — IMPLEMENTED ✅
 
 ```kotlin
-class StereoVideoProcessor : VideoProcessor {
-  private var stereoMode = StereoMode.MONO
-  
-  fun setStereoMode(mode: StereoMode) {
-    stereoMode = mode
-  }
-  
-  override fun onOutputFrameAvailable(presentationTimeUs: Long) {
-    when (stereoMode) {
-      StereoMode.SBS_FULL -> {
-        // Crop left 50% of texture → render to left-eye viewport
-        // Crop right 50% of texture → render to right-eye viewport
-        // Uses GL_SCISSOR_TEST or Framebuffer Object (FBO) for per-eye rendering
-      }
-      StereoMode.OU -> {
-        // Crop top 50% (left eye), bottom 50% (right eye)
-      }
-      else -> {
-        // Render full frame (mono)
-      }
-    }
-  }
-}
-```
-
-**PlaybackSettingsDialog.kt** (addition to existing "3D" tab)
-
-```kotlin
-// In the existing PlaybackSettingsDialog, add new tab fragment:
-private val stereoModeObserver = Observer<StereoMode> { mode ->
-  updateStereoModeUI(mode)
-}
-
-private fun setupStereoTab() {
-  binding.radioAutoDetect.setOnCheckedChangeListener { _, isChecked ->
-    if (isChecked) viewModel.setStereoMode(StereoMode.AUTO)
-  }
-  binding.radioForceSbs.setOnCheckedChangeListener { _, isChecked ->
-    if (isChecked) viewModel.setStereoMode(StereoMode.SBS_FULL)
-  }
-  binding.radioMono.setOnCheckedChangeListener { _, isChecked ->
-    if (isChecked) viewModel.setStereoMode(StereoMode.MONO)
-  }
-  
-  viewModel.stereoMode.observe(viewLifecycleOwner, stereoModeObserver)
-}
+// Already exists with 3D section (radio buttons: Auto/SBS/OU-disabled/Mono)
+// Wired via PlayerSettingsManager → onStereoModeChanged lambda → ViewModel
+data class PlayerSettings(
+  ...
+  val stereoMode: StereoMode = StereoMode.AUTO
+)
+// setupStereoSection() disables OU radio (future)
+// loadCurrentSettings() pre-selects current radio from ViewModel
+// collectSettings() maps checked radio → StereoMode enum
 ```
 
 ---
@@ -213,35 +178,37 @@ private fun setupStereoTab() {
 
 ### Phase 1: Core Implementation (3 days)
 
-**Task 1.1**: Create StereoDetector class
+**Task 1.1**: Create StereoDetector class — ✅ DONE
 
-- [ ] Implement aspect ratio heuristic (SBS/OU detection)
-- [ ] Add Matroska metadata parser (MKV stereo mode extraction)
+- [x] Implement aspect ratio heuristic (SBS_FULL AR≈3.2-3.8, SBS_HALF h≥1800, OU AR≈0.50-0.65)
+- [x] Add Matroska metadata parser (Format.customData key "stereo_mode")
 - [ ] Unit test coverage: 8+ test cases (edge cases: ultra-wide videos, square, etc.)
-- [ ] Logging via Timber for debug
+- [x] Logging via Timber for debug
 
-**Task 1.2**: Create StereoVideoProcessor class
+**Task 1.2**: Create StereoVideoProcessor class — ✅ DONE (Phase 1 pass-through)
 
-- [ ] Extend Media3 VideoProcessor interface
-- [ ] Implement frame cropping logic (left 50%, right 50%)
-- [ ] Handle texture allocation + cleanup (no memory leaks)
-- [ ] Test on Snapdragon 600 device (budget hardware)
-- [ ] Measure frame-rate impact (<5% overhead)
+- [x] Tracks StereoMode with @Volatile thread safety
+- [x] `buildGlEffect()` returns null in Phase 1 (single surface — no GL crop)
+- [x] `release()` resets state on player destroy
+- [ ] Phase 2: dual-FBO GL crop rendering (v2.64+)
+- [ ] Measure frame-rate impact (<5% overhead) — deferred to Phase 2
 
-**Task 1.3**: Update PlayerViewModel
+**Task 1.3**: Update PlayerViewModel — ✅ DONE
 
-- [ ] Add `LiveData<StereoMode> stereoMode` property
-- [ ] Add `setStereoMode(StereoMode)` method
-- [ ] Persist user preference to SharedPreferences
-- [ ] On video load: auto-detect or restore last user choice
+- [x] Add `StateFlow<StereoMode> stereoMode` property
+- [x] Add `setStereoMode(StereoMode)` method
+- [x] Add `setAutoDetectedStereoMode()` — only applies when user hasn't overridden
+- [x] Add `resetStereoModeForNewFile()` — resets to AUTO on each new video
+- [ ] Persist user preference to SharedPreferences (currently session-only)
 
-**Task 1.4**: Update PlaybackSettingsDialog
+**Task 1.4**: Update PlaybackSettingsDialog — ✅ DONE
 
-- [ ] Add "3D" tab to TabLayout
-- [ ] Create tab layout XML: `tab_stereo_settings.xml`
-- [ ] Implement radio buttons: Auto / SBS / OU(greyed) / Mono
-- [ ] Bind to ViewModel.stereoMode observer
-- [ ] Display current detection status ("Auto-detected: SBS")
+- [x] 3D section added to `dialog_player_settings.xml` (portrait)
+- [x] ~~`tab_stereo_settings.xml`~~ — integrated inline in existing dialog (no tab needed)
+- [x] Radio buttons: Auto / SBS / OU(disabled) / Mono
+- [x] Wired via `PlayerSettingsManager` lambdas → ViewModel
+- [x] ~~"Auto-detected: SBS" status label~~ — not shown (detected mode pre-selects radio button)
+- [x] **Landscape layout fixed** (2026-04-17): `layout-land/dialog_player_settings.xml` now mirrors portrait
 
 ### Phase 2: Integration & Testing (2 days)
 
@@ -252,11 +219,11 @@ private fun setupStereoTab() {
 - [ ] Rapid toggling (stress test): switch 3D mode 10 times, no ANR
 - [ ] Landscape + portrait rotation: stereo mode persists
 
-**Task 2.2**: Unit Tests
+**Task 2.2**: Unit Tests — ⬜ NOT STARTED
 
 - [ ] `StereoDetectorTest`: 8+ test cases (aspect ratios, metadata parsing)
-- [ ] `StereoVideoProcessorTest`: crop math validation
-- [ ] `StereoModeTest`: enum transitions, serialization
+- [ ] `StereoVideoProcessorTest`: mode tracking, buildGlEffect() null contract, release()
+- [ ] `StereoModeTest`: enum transitions, serialization, fromKey() fallback
 
 **Task 2.3**: Maestro E2E Tests
 
@@ -273,81 +240,23 @@ private fun setupStereoTab() {
 
 ### Phase 3: Documentation Updates (1 day) — **MANDATORY**
 
-#### 3.1 Feature Inventory Documentation
+#### 3.1 Feature Inventory Documentation — ✅ DONE
 
-**Files to update** (ALL THREE language variants):
+**Files updated** (ALL THREE language variants):
 
-**File 1**: `docs/FEATURES.md` (English — canonical)
+- [x] `docs/FEATURES.md` (English) — line 134
+- [x] `docs/FEATURES_RU.md` (Russian) — line 134
+- [x] `docs/FEATURES_UK.md` (Ukrainian) — line 134
 
-- [ ] Find section: "Media Formats & Players" or "Video Features"
-- [ ] Add new bullet:
+#### 3.2 CHANGELOG Documentation — ✅ DONE
 
-  ```markdown
-  - **3D Video Support (SBS)**: Play stereoscopic side-by-side 3D videos 
-    with automatic format detection. Works with VR headsets and phone-based viewers.
-  ```
+- [x] CHANGELOG auto-updated via `add_to_dev_log.ps1` (multiple entries on 2026-04-17)
 
-**File 2**: `docs/FEATURES_RU.md` (Russian)
+#### 3.3 Playback Control Help Documentation — ✅ DONE
 
-- [ ] Add corresponding Russian translation:
-
-  ```markdown
-  - **Поддержка 3D видео (SBS)**: Просмотр стереоскопических видео формата 
-    Side-by-Side с автоматическим определением формата. Работает с VR-очками 
-    и телефонными просмотрщиками.
-  ```
-
-**File 3**: `docs/FEATURES_UK.md` (Ukrainian)
-
-- [ ] Add corresponding Ukrainian translation:
-
-  ```markdown
-  - **Підтримка 3D відео (SBS)**: Перегляд стереоскопічних відео формату 
-    Side-by-Side з автоматичним визначенням формату. Працює з VR-окулярами 
-    та переглядачами на телефонах.
-  ```
-
-**Key Requirement**: ALL THREE files must be updated in the SAME commit. Inconsistent documentation = regression.
-
-#### 3.2 CHANGELOG Documentation
-
-**File**: `dev/CHANGELOG.md`
-
-- [ ] Use script to log changes (automatic):
-
-  ```powershell
-  .\scripts\add_to_dev_log.ps1 "app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt" "StereoDetector" "Auto-detect 3D video format (SBS/OU) via aspect ratio + MKV metadata"
-  .\scripts\add_to_dev_log.ps1 "app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoVideoProcessor.kt" "StereoVideoProcessor" "Render SBS stereoscopic video with crop-based left/right eye separation"
-  .\scripts\add_to_dev_log.ps1 "app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackSettingsDialog.kt" "PlaybackSettingsDialog" "Add 3D tab with auto-detect/SBS/mono options"
-  ```
-
-#### 3.3 Playback Control Help Documentation
-
-**Files to consider updating** (if "How to Watch 3D Videos" guide is needed):
-
-- [ ] `docs/HOW_TO.md` (EN) — add section: "Watching 3D Videos (VR Movies)"
-- [ ] `docs/HOW_TO_RU.md` (RU) — add section: "Просмотр 3D видео (VR фильмы)"
-- [ ] `docs/HOW_TO_UK.md` (UK) — add section: "Перегляд 3D відео (VR фільми)"
-
-**Example content** (EN):
-
-```markdown
-### Watching 3D Videos (VR)
-
-1. Open a 3D video file (SBS / Side-by-Side format) in FastMediaSorter
-2. Tap **fullscreen** button
-3. Tap **Playback Settings** (gear icon) in the player controls
-4. Navigate to the **"3D"** tab
-5. Select one of:
-   - **Auto-detect** — app automatically detects SBS vs. mono
-   - **Force SBS** — manually enable side-by-side stereo
-   - **Mono** — disable stereo (default)
-6. The video will render with left and right eye crops visible side-by-side
-7. For VR viewing, use a phone-based VR viewer (Google Cardboard, etc.)
-
-**Format Support**: Currently supports SBS (Side-by-Side) horizontal stereo. 
-Over-Under (OU) and other formats coming in future releases.
-```
+- [x] `docs/HOW_TO.md` (EN) — section: "Watching 3D Videos (VR)"
+- [x] `docs/HOW_TO_RU.md` (RU) — section: "Просмотр 3D видео (VR)"
+- [x] `docs/HOW_TO_UK.md` (UK) — section: "Перегляд 3D відео (VR)"
 
 #### 3.4 In-App Release Notes
 
@@ -361,29 +270,11 @@ Over-Under (OU) and other formats coming in future releases.
   UK: "НОВЕ: Підтримка 3D відео (формат SBS) з автоматичним визначенням"
   ```
 
-#### 3.5 String Resources
+#### 3.5 String Resources — ✅ DONE
 
-**File**: `app_v2/src/main/res/values/strings.xml`
-
-- [ ] Add new strings for UI labels:
-
-  ```xml
-  <string name="playback_settings_3d_tab">3D Video</string>
-  <string name="playback_settings_3d_auto">Auto-detect</string>
-  <string name="playback_settings_3d_sbs">Side-by-Side (SBS)</string>
-  <string name="playback_settings_3d_ou">Over-Under (OU) — coming soon</string>
-  <string name="playback_settings_3d_mono">Mono (Disabled)</string>
-  <string name="playback_settings_3d_detected">Auto-detected: SBS</string>
-  <string name="playback_settings_3d_hint">Requires VR viewer or cardboard headset for full effect</string>
-  ```
-
-**Files**: `app_v2/src/main/res/values-ru/strings.xml` (Russian)
-
-- [ ] Russian translations for all strings above
-
-**Files**: `app_v2/src/main/res/values-uk/strings.xml` (Ukrainian)
-
-- [ ] Ukrainian translations for all strings above
+- [x] `values/strings.xml` — 7 strings added (EN)
+- [x] `values-ru/strings.xml` — 7 strings added (RU)
+- [x] `values-uk/strings.xml` — 7 strings added (UK)
 
 ---
 

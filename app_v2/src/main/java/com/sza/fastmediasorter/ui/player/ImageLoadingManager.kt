@@ -121,6 +121,19 @@ class ImageLoadingManager(
     /** Injected after construction; controls empty-state animations for audio files. */
     private var audioEmptyStateController: AudioEmptyStateController? = null
 
+    /**
+     * Called when the user performs a pinch-zoom gesture on the current image or GIF.
+     * Injected from outside after construction; wires to FilenameOverlayAutoHideManager.
+     * Load-time PhotoView scale events are filtered before invoking this callback.
+     */
+    var onZoomInteraction: (() -> Unit)? = null
+
+    /**
+     * True once Glide has successfully delivered the current image to PhotoView.
+     * Reset on every new displayImage() call to suppress load-time scale events.
+     */
+    private var isPhotoViewImageLoaded = false
+
     /** Tracks the active cover-art loading coroutine so stale jobs can be cancelled on track change. */
     private var coverArtJob: Job? = null
 
@@ -391,6 +404,9 @@ class ImageLoadingManager(
      */
     fun displayImage(path: String) {
         isInImageDisplayMode = true
+        // Reset the zoom-ready flag so load-time PhotoView scale events are not
+        // treated as intentional user zoom gestures on the new image.
+        isPhotoViewImageLoaded = false
         Timber.i("ImageLoadingManager.displayImage: START - path=$path")
         
         // Log memory state BEFORE loading new image
@@ -559,9 +575,17 @@ class ImageLoadingManager(
                         Timber.d("GESTURE_DEBUG: Display rect: $rect")
                     }
                     
-                    // Add scale change listener for debug logging
+                    // Scale change listener: detect real user zoom gestures.
+                    // isPhotoViewImageLoaded guards against load-time auto-scale events
+                    // fired by PhotoView when the image first arrives from Glide.
+                    // scaleFactor is the per-frame delta (1.0 = no change); a meaningful
+                    // pinch gesture produces values well outside a tiny rounding band.
                     setOnScaleChangeListener { scaleFactor, focusX, focusY ->
                         Timber.d("GESTURE_DEBUG: Scale change - factor=${"%.2f".format(scaleFactor)}, focus=(${"%.0f".format(focusX)}, ${"%.0f".format(focusY)})")
+                        if (isPhotoViewImageLoaded && kotlin.math.abs(scaleFactor - 1.0f) > 0.02f) {
+                            // Real user pinch-zoom — notify overlay manager
+                            onZoomInteraction?.invoke()
+                        }
                     }
                 }
             }
@@ -1038,6 +1062,8 @@ class ImageLoadingManager(
                 animatedImageController.onDrawableLoaded(resource, currentTargetView)
                 loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
                 loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+                // Mark image as fully loaded so PhotoView scale events are now user-driven
+                isPhotoViewImageLoaded = true
                 if (!callback.isDestroyed()) {
                     binding.progressBar.isVisible = false
                     
@@ -1124,6 +1150,8 @@ class ImageLoadingManager(
                 animatedImageController.onDrawableLoaded(resource, currentTargetView)
                 loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
                 loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+                // Mark image as fully loaded so PhotoView scale events are now user-driven
+                isPhotoViewImageLoaded = true
                 if (!callback.isDestroyed()) {
                     binding.progressBar.isVisible = false
 

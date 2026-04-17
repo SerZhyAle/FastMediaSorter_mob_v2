@@ -820,6 +820,27 @@ class TextViewerManager(
         autoSaveManager = null
     }
 
+    /**
+     * Close text viewer triggered by back button press.
+     * Performs complete cleanup for text file viewer (NOT for OCR results).
+     * This ensures single back-press exits, not double.
+     * Called from PlayerLifecycleManager.setupBackPressHandler() when back is pressed while text viewer is active.
+     */
+    fun closeTextViewerFromBackPress() {
+        if (currentFile != null) {
+            // Text file - perform complete cleanup matching close button behavior
+            closePager()
+            safeViews.textViewerContainer.isVisible = false
+            safeViews.textScrollView.isVisible = false
+            safeViews.textPageNavigation.isVisible = false
+            safeViews.tvTextContent.text = ""
+            currentFile = null
+            // NOTE: Do NOT call exitFullscreenMode() here - it only adjusts UI state.
+            // Back handler will call exitPlayerWithAudioCheck() to actually navigate back.
+            Timber.d("TextViewerManager: Text file closed via back button press")
+        }
+    }
+
     // ===== H.2: Rich rendering & reader UI methods =====
 
     /**

@@ -34,6 +34,18 @@ class PlayerUiStateCoordinator(
     private var lastTrackedFilePath: String? = null
     private val touchZonesHelpMaxViews = 2
 
+    /**
+     * Tracks the last known pause state so we can detect the transition to paused.
+     * Used to notify FilenameOverlayAutoHideManager on pause interaction.
+     */
+    private var previousIsPaused: Boolean = false
+
+    /**
+     * Tracks whether a file change was detected in the current updateUI() pass.
+     * Set inside the currentFile?.let block and consumed after updatePanelVisibility().
+     */
+    private var pendingOverlayFileType: MediaType? = null
+
     private val mediaDisplayCoordinator = MediaDisplayCoordinator(
         callback = object : MediaDisplayCoordinator.Callback {
             override fun displayImage(path: String) = callback.displayImage(path)
@@ -86,6 +98,12 @@ class PlayerUiStateCoordinator(
         fun forceStateUpdate()
         fun enterAudioSlideshowPhotoModeIfNeeded()
         fun updateTouchZonesHelpButtonVisibility(visible: Boolean)
+
+        /** Called after a new file is displayed and panel visibility is set. */
+        fun onFilenameOverlayFileShown(type: MediaType)
+
+        /** Called when the player transitions into the paused state (non-fullscreen). */
+        fun onFilenameOverlayPauseInteraction(type: MediaType)
     }
 
     /**
@@ -219,7 +237,9 @@ class PlayerUiStateCoordinator(
                 binding.translationLensOverlay.isVisible = false
 
                 mediaDisplayCoordinator.display(file)
-            } else if (isImageType && (!imageVisible || !hasDrawable)) {
+                // Capture file type so we can notify the overlay manager AFTER
+                // updatePanelVisibility() ensures the view is in a consistent state.
+                pendingOverlayFileType = file.type            } else if (isImageType && (!imageVisible || !hasDrawable)) {
                 Timber.d("updateUI[$updateId]: ⚠️ SAME file path BUT image not ready (visible=$imageVisible, hasDrawable=$hasDrawable) - forcing reload")
                 // Force reload if image view is not visible or has no drawable (race condition / loading not complete)
                 mediaDisplayCoordinator.display(file)
@@ -244,6 +264,19 @@ class PlayerUiStateCoordinator(
 
         callback.updatePanelVisibility(state.showCommandPanel)
         callback.updateCommandAvailability(state)
+
+        // Notify overlay manager: file switch (after panel visibility is stabilised)
+        pendingOverlayFileType?.let { type ->
+            callback.onFilenameOverlayFileShown(type)
+            pendingOverlayFileType = null
+        }
+
+        // Notify overlay manager: pause interaction (detect transition to paused)
+        val currentType = state.currentFile?.type
+        if (currentType != null && state.isPaused && !previousIsPaused) {
+            callback.onFilenameOverlayPauseInteraction(currentType)
+        }
+        previousIsPaused = state.isPaused
 
         val shouldShowControls = !state.showCommandPanel && state.showControls && !callback.getUseTouchZones()
         binding.controlsOverlay.isVisible = shouldShowControls

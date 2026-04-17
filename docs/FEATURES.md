@@ -34,7 +34,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ---
 
-
 ## 1. Resource / Source Management
 
 - **Add multiple resource types**: Connect and manage various storage types including Local folders, SMB (Windows share/NAS), FTP, SFTP, Google Drive, Dropbox, and OneDrive. This unifies all your local, network, and cloud files into a single accessible interface.
@@ -52,7 +51,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Network credential management**: Securely store passwords and keys for your network shares in an encrypted vault. The built-in credential audit tracks when a login was last used, helping you eventually clean up obsolete credentials.
 - **Last browse position save & restore**: Never lose your place when switching between folders or closing the app. The system automatically saves and restores your exact scroll position and the last viewed file for every resource.
 - **File list caching**: Experience near-instant load times when reopening large network folders. The app persists the file index in a local database to bypass slow network fetching on subsequent visits.
-
 
 ## 2. Media Browsing
 
@@ -75,7 +73,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Inline audio mini-player**: Start playing music tracks seamlessly directly from the file browser. This avoids disrupting your navigation flow and lets you preview audio files instantly.
 - **Keyboard navigation**: Use external or hardware keyboards to navigate lists and trigger actions. This facilitates a rapid, desktop-like browsing experience on tablets or devices with physical keyboards.
 
-
 ## 3. File Operations
 
 - **Robust copying**: Duplicate files to any pre-configured destination, whether it's local storage, an SMB share, or an FTP/SFTP server.
@@ -96,7 +93,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **ZIP extraction on click**: Tap a ZIP archive in Browse to extract it in one flow: confirmation dialog, real-time percentage progress, and a one-tap action to open the extracted folder. Extraction supports local and SD-card SAF resources, applies secure path validation, and auto-resolves destination folder conflicts via `_1.._99` suffixes.
 - **Select folder for copy/move**: Tap the "Select folder" button in the copy/move dialog to pick any local directory with the system folder picker, bypassing the pre-configured destination list. The last chosen folder is remembered per resource type. Per-item copy/move buttons are always shown regardless of whether destinations are configured.
 
-
 ## 4. Destination Management
 
 - **Color-coded destination buttons**: Configure up to 10 distinct, color-coded shortcut buttons displayed directly inside the player. These buttons represent your favorite folders, drastically speeding up the organization process.
@@ -104,7 +100,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Auto-advance after copy/move**: Enable the option to automatically jump to the next file as soon as a copy or move operation completes. This creates an incredibly fast, uninterrupted workflow when sorting through a queue of media.
 - **Collapsible command panel**: Keep your screen uncluttered by collapsing the copy/move destination panel when it's not needed. This maximizes viewing space while keeping routing tools just a tap away.
 - **Quick Favorites toggle**: Immediately mark or unmark the currently viewed file as a Favorite directly from the player screen, allowing you to curate a collection without returning to the file browser.
-
 
 ## 5. Image Viewer
 
@@ -119,14 +114,12 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Augmented Reality translation**: Read signs, menus, or documents in foreign languages using a Google Lens-style overlay. Translated text blocks are synthetically drawn precisely over their original positions on the image.
 - **Send to Google Lens**: Quickly bridge any photo to the external Google Lens app with a dedicated button for deeper AI analysis, shopping, or advanced visual search.
 
-
 ## 6. GIF Viewer
 
 - **Native animated playback**: Loop and view animated GIF files perfectly with full hardware acceleration and correct timing.
 - **Speed adjustment**: Dynamically slow down (0.25×) or speed up (4×) GIF playback on the fly. This adjusted speed setting is uniquely saved per file for future viewings.
 - **First frame extraction**: Easily convert a distracting animated GIF into a static image by extracting and saving just its very first frame.
 - **Complete frame extraction**: Deconstruct complex GIFs by extracting every single frame and saving them all as individual static images, allowing you to inspect specific moments.
-
 
 ## 7. Video Player
 
@@ -139,7 +132,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Touch zones hint overlay**: Avoid confusion with a visual overlay that subtly highlights your configured touch zones during the very first launch, teaching you the control scheme intuitively.
 - **Sleep timer**: Safely fall asleep while watching videos. Set a timer (from 15 up to 120 minutes) with an onscreen countdown badge that automatically halts playback when time expires.
 - **3D Video Support (SBS)**: Play stereoscopic side-by-side 3D videos with automatic format detection via aspect ratio heuristics and embedded Matroska metadata. Choose between Auto-detect, Force SBS, or Mono in the Playback Settings dialog. Compatible with phone-based VR viewers (Google Cardboard and similar).
-
 
 ## 8. Audio Player
 
@@ -160,7 +152,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Resume Next Time**: Seamlessly pickup your listening session. Upon a cold start, the app restores your last active audio track and perfectly reconstructs your entire historical playlist and queue.
 - **Now Playing UI**: While audio plays in the background, a persistent mini bar at the bottom of the player shows the current track title and play/pause button. Tapping it opens a full bottom sheet with album art, seek bar, prev/next controls, and a scrollable queue panel where you can tap any track to jump directly to it.
 
-
 ## 9. Slideshow
 
 - **Time-based advancement**: Automate your viewing experience by having images and GIFs advance on their own. The transition interval can be configured anywhere from a rapid 1 second to a lingering 3600 seconds.
@@ -169,7 +160,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Play video/audio to end**: Intelligently mix static photos with videos and audio tracks. Enabling this forces the slideshow to wait until a playing video or song finishes entirely before moving to the next file, overriding the strict timer.
 - **Countdown display**: Anticipate transitions easily with a subtle, non-intrusive "3 – 2 – 1" countdown badge that appears just before advancing to the slide.
 - **Per-resource interval configuration**: Tailor slideshows to individual folders. Easily set a unique transition interval for a specific directory that safely overrides the app's global default settings.
-
 
 ## 10. PDF Viewer
 
@@ -182,7 +172,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Text selection mode**: Tap the "T" button in the PDF controls bar to extract the current page's text (via OCR on most devices; natively on Android 15+) into a selectable overlay. Long-press any word to get selection handles, then choose **Translate** (sends only your selection to the translator), **Read Aloud** (speaks the selected fragment via TTS), or **Search in Google** from the floating action menu.
 - **Read Aloud (TTS)**: Tap Read Aloud in the command panel to have the current PDF page spoken through the system text-to-speech engine. Works natively on Android 15+ (no OCR delay) and falls back to ML Kit OCR on earlier versions. TTS pauses automatically when you navigate to another page.
 - **Large PDF thumbnail support for network files**: Identify your PDFs by their cover before fully downloading them from your remote server or cloud. This optional setting avoids unnecessary network usage when looking for a specific document.
-
 
 ## 11. EPUB Viewer
 
@@ -200,7 +189,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Selection action menu**: Long-press any word in an EPUB chapter to reveal the standard selection handles. The floating action menu includes **Translate** (sends the selected fragment to the translator), **Read Aloud** (speaks the selected fragment via TTS), and **Search in Google** alongside the platform's built-in Copy / Share / Select All items.
 - **Read Aloud (TTS)**: Tap Read Aloud in the command panel to hear the entire current chapter spoken by the system text-to-speech engine. TTS pauses automatically when you move to another chapter.
 
-
 ## 12. Text Viewer / Editor
 
 - **Universal text and code viewer**: Read plain text files, logs, and programming code natively. An intelligent automatic charset detection system guarantees files decode properly without garbled symbols.
@@ -216,7 +204,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Copy all text**: Extract contents rapidly with a single-tap button tailored to pull the entirety of a heavy document onto your system clipboard.
 - **Inline search panel (standalone parity)**: Tap-to-search with Next/Prev navigation works in both the internal file browser and the standalone "Open with" mode for PDF, EPUB (current chapter), and TXT files.
 
-
 ## 13. Translation & OCR (cross-viewer feature)
 
 - **ML Kit OCR (Latin script)**: Extract pure unselectable text natively from images and flattened PDFs using Google's rapid ML Kit framework, bypassing the need for typing out data manually.
@@ -230,7 +217,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Result typography styling**: Choose exactly how your OCR results and overlapping translation blocks look by configuring their native font size and dedicated font family.
 - **Text copying**: Effortlessly lift the deeply recognized text, or its resultant translation, directly into the system clipboard for immediate usage in emails, notes, or messages.
 
-
 ## 14. Network Sources
 
 - **SMB (Windows Share / NAS)**: Deeply interface with your local network storage safely utilizing standard SMB protocol, unlocking the ability to browse, manage, stream, and edit massive remote collections effortlessly.
@@ -243,7 +229,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Connection throttling**: Protect aging servers from crippling under heavy load. The network layer actively limits requests appropriately to prevent stalling or crashing congested or weak NAS hardware.
 - **Periodic background sync**: Prevent navigating outdated file structures. Utilizing Android's WorkManager framework, the app wakes periodically (from 1 to 24 hours) strictly in the background to update the local database with remote changes.
 
-
 ## 15. Cloud Integration
 
 - **Google Drive access**: Break out of phone storage limits completely. Authenticate to utilize Google Drive, unlocking natively integrated folder picking, high-speed streaming, direct downloads, and rigorous file modifications remotely.
@@ -253,13 +238,11 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Rigorous state backups**: Guard heavily against data loss. You can serialize your customized application settings, connection profiles, directories, and favorites into a strict JSON payload format tightly vaulted straight into your Google Drive.
 - **Seamless cloud restoration**: Recover instantly upon installing on a new device. Connect to Google Drive specifically to download your backup JSON, magically reconstructing your settings, endpoints, and favorites effortlessly.
 
-
 ## 16. Favorites
 
 - **One-tap marking**: Save important media files rapidly. Utilize the dedicated favorite star icon situated within the player and viewer interfaces to instantly flag or un-flag files as Favorites.
 - **Dedicated accessible list**: Revisit essential files dynamically. Navigate seamlessly to the distinct Favorites List anchored on the app's main screen, compiling flagged files universally from all connected directories and protocols.
 - **Interactive home screen widget**: Bring crucial media directly to your home launcher. Deploy an actively scrollable widget that elegantly lists exclusively favorite files heavily prioritizing immediate launching.
-
 
 ## 17. Home Screen Widgets
 
@@ -270,7 +253,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Camera Photos shortcut**: Open your camera roll directly in grid view from the home screen with one tap. The widget targets the built-in Camera Photos virtual resource and launches the browser in grid mode. Available on flavors with image support.
 - **App Shortcuts (long-press)**: Long-press the app icon on your launcher to access static shortcuts (Favorites, Slideshow) and up to 3 dynamic shortcuts for your most recently browsed resources. Jump straight into any folder or NAS share without opening the main screen.
 - **Quick Settings Audio Tile**: Control background audio playback directly from the Android notification shade. Add the "FMS Audio" tile to your Quick Settings panel to play, pause, or start shuffled music in a single tap — no need to unlock and navigate to the player. Available on flavors with audio support.
-
 
 ## 18. Settings
 
@@ -295,12 +277,10 @@ The Settings module provides deeply comprehensive control over nearly every face
 
 - **Landscape-adaptive dialogs**: All dialogs across the app include dedicated landscape layout variants (`layout-land/`). In landscape orientation every dialog is constrained to 320 dp maximum height and made scrollable, with action buttons and close controls pinned at the top of content so they are always immediately reachable regardless of how far the user has scrolled. Applies to all product flavors (Standard, Lite, Photos, Legacy).
 
-
 ## 19. Settings Search
 
 - **Comprehensive full-text indexing**: Stop navigating dense nested configuration menus pointlessly. Swiftly execute a full-text query search that aggressively scans identically across every single settings entry, toggle, and section instantly.
 - **Direct highlighting navigation**: Resolve settings adjustments securely and rapidly. Engaging a search result completely bypasses menus, rocketing you strictly to the accurate page while dynamically highlighting the specific sought parameter directly on screen.
-
 
 ## 20. Wear OS Companion App
 
@@ -315,7 +295,6 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **On-watch source management**: Add SMB, FTP, and SFTP sources directly on the watch with a protocol-aware setup flow, and remove misconfigured sources from the watch list with a long press and confirmation dialog.
 - **Polished on-watch controls and localization**: The watch companion now uses localized loading, empty-state, error, and retry labels, replaces emoji-only home shortcuts with native icons, and provides an on-watch slideshow interval stepper for quick tuning.
 - **Reactive source list refresh**: Network sources on the watch now refresh automatically after sync, import, and delete operations, and the error screen retries in place instead of forcing navigation away.
-
 
 ## 21. Background & System Services
 
@@ -336,7 +315,6 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Standalone player video UX parity**: Command buttons (close, share, delete, open-in-FMS) are fully visible in both portrait and landscape on all devices — padded away from status bar and navigation bar. Screen rotates with physical device sensor even when OS auto-rotate is off.
 - **Standalone player video controls**: Playback speed (0.25×–2×), audio track selection (multi-track MKV/MP4), subtitle track selection with app font styling, touch gestures (swipe left/right for brightness/volume, horizontal swipe for seek, double-tap edges for ±10s, double-tap center for play/pause, single-tap center for controls toggle), and fullscreen immersive mode on video open.
 
-
 ## 22. Scheduled File Operations
 
 - **Scheduled copy / move / delete**: Automate recurring file management tasks by creating scheduled operations that run in the background at a set time and repeat on a chosen interval (minimum 15 minutes). Ideal for automatically moving camera photos to a NAS every night or clearing a downloads folder daily.
@@ -351,7 +329,6 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Silent mode**: Optionally suppress all notifications for a scheduled operation so background tasks do not disturb the user.
 - **Boot persistence**: Scheduled operations are automatically rescheduled after a device reboot so your automation survives restarts without manual intervention.
 - **Battery optimization prompt**: On first use, the app offers to disable battery optimization for itself, ensuring operations run reliably on OEM devices (Xiaomi, Huawei, Samsung) that aggressively kill background processes. The same setting is accessible at any time from the General settings screen.
-
 
 ## 23. Apps FMS Can Replace — Competitor Comparison
 
@@ -578,4 +555,3 @@ FastMediaSorter consolidates functionality that typically requires 5–10 separa
 | Slideshow / frame | Fotoo, Photo Slides | Slideshow + background music from any source |
 
 **One app instead of twelve.** FMS does not aim to be the absolute best in every single category — a dedicated equalizer app will always have more audio DSP options, and a dedicated photo editor will always have more filters. But for users who manage media across local storage, NAS, and cloud, FMS eliminates the constant app-switching and provides a consistent, unified experience with a depth of integration no single-purpose app can match.
-

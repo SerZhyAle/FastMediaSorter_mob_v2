@@ -285,17 +285,18 @@ Then use **command panel buttons** instead.
 1. Browse to and open a 3D video file in FastMediaSorter.
 2. Tap the **fullscreen** button to enter fullscreen mode.
 3. Tap **Playback Settings** (gear icon) in the player controls.
-4. Navigate to the **3D** tab.
+4. Scroll to the **3D Video** section.
 5. Choose a stereo mode:
    - **Auto-detect** — app analyses the aspect ratio and embedded metadata to detect SBS automatically.
-   - **Force SBS** — manually enable side-by-side stereo rendering regardless of detection.
-   - **Mono** — disable stereo (standard viewing).
+   - **Side-by-Side (SBS)** — manually enable side-by-side stereo rendering regardless of detection.
+   - **Mono (Disabled)** — disable stereo (standard viewing).
 6. Tap **Apply** — the player switches to the selected mode instantly.
 7. For VR viewing, place your phone in a VR viewer and enjoy stereoscopic 3D.
 
 **Tips:**
+
 - Auto-detect works reliably for standard SBS files (aspect ratio ≈ 32:9 or wider).
-- If the video looks stretched or doubled, switch to **Force SBS** manually.
+- If the video looks stretched or doubled, switch to **Side-by-Side (SBS)** manually.
 - Over-Under (OU) format support is planned for a future release.
 
 ---
@@ -667,4 +668,3 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 - ❓ **FAQ:** [FAQ.md](FAQ.md)
 - 🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - 🐛 **Report Issue:** [GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues)
-

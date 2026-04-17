@@ -49,6 +49,12 @@ class PlayerDialogAndUiStateManager(
     private val compactElementsManager = PlayerCompactElementsManager(binding)
 
     /**
+     * Auto-hide manager for tvFileNameOverlay.
+     * Wired externally after construction (depends on viewModel lambda).
+     */
+    var filenameOverlayManager: FilenameOverlayAutoHideManager? = null
+
+    /**
      * Flag indicating audio slideshow photo mode is active.
      * When true, audio files should NOT force command panel / system bars visible.
      */
@@ -270,10 +276,16 @@ class PlayerDialogAndUiStateManager(
         if (forceShowPanel && !shouldHideForSlideshow) {
             // Command panel mode
             binding.topCommandPanel.isVisible = true
-            // Show full filename overlay for all file types (not just audio) so it's
-            // always visible regardless of content background (dark or light).
-            val showFileNameOverlay = !isAudioSlideshowPhotoMode
-            binding.tvFileNameOverlay.isVisible = showFileNameOverlay
+            // Filename overlay visibility in command-panel mode is managed by
+            // FilenameOverlayAutoHideManager. Notify it to restore its logical state.
+            // In audio slideshow photo mode the overlay must stay hidden.
+            if (isAudioSlideshowPhotoMode) {
+                binding.tvFileNameOverlay.isVisible = false
+            } else {
+                filenameOverlayManager?.onEnterCommandPanelMode()
+                    // Fallback when manager is not yet wired (early init calls)
+                    ?: run { binding.tvFileNameOverlay.isVisible = true }
+            }
 
             // Restore default top margin from resources. topCommandPanel is outside the FrameLayout
             // containing tvFileNameOverlay, so adding panel.height here shifts the filename too low.
@@ -318,7 +330,11 @@ class PlayerDialogAndUiStateManager(
         } else {
             // Fullscreen mode or slideshow mode
             binding.topCommandPanel.isVisible = false
-            binding.tvFileNameOverlay.isVisible = false
+            // Notify manager so it cancels the pending timer and remembers logical state.
+            // Then hide the view (manager.onEnterFullscreenMode() does not touch isVisible
+            // to stay compatible with audio-slideshow-photo mode paths).
+            filenameOverlayManager?.onEnterFullscreenMode()
+                ?: run { binding.tvFileNameOverlay.isVisible = false }
             // View-based overlays always hidden - TouchZoneGestureManager handles zones
             safeViews.touchZones3Overlay.isVisible = false
             safeViews.touchZonesOverlay.isVisible = false

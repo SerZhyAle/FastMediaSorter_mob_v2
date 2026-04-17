@@ -99,6 +99,14 @@ class PlayerLifecycleManager(
         } catch (e: UninitializedPropertyAccessException) {
             // imageLoadingManager not yet initialized
         }
+
+        // Restore overlay timer after returning from background
+        try {
+            val currentType = viewModel.state.value.currentFile?.type
+            activity.dialogAndUiStateManager.filenameOverlayManager?.onHostResume(currentType)
+        } catch (e: UninitializedPropertyAccessException) {
+            // dialogAndUiStateManager not yet initialized
+        }
     }
     
     /**
@@ -131,6 +139,13 @@ class PlayerLifecycleManager(
             activity.imageLoadingManager.onPause()
         } catch (e: UninitializedPropertyAccessException) {
             // imageLoadingManager not yet initialized
+        }
+
+        // Save overlay timer remaining time so it can be restored on resume
+        try {
+            activity.dialogAndUiStateManager.filenameOverlayManager?.onHostPause()
+        } catch (e: UninitializedPropertyAccessException) {
+            // dialogAndUiStateManager not yet initialized
         }
     }
     
@@ -195,6 +210,13 @@ class PlayerLifecycleManager(
             activity.videoPlayerManager.releasePlayer()
         } catch (e: UninitializedPropertyAccessException) {
             // Not initialized, skip
+        }
+
+        // Cancel overlay auto-hide timer to prevent stale runnables after destroy
+        try {
+            activity.dialogAndUiStateManager.filenameOverlayManager?.cancel()
+        } catch (e: UninitializedPropertyAccessException) {
+            // dialogAndUiStateManager not yet initialized
         }
         
         // Release ImageLoadingManager - cancel all Glide requests and handlers
@@ -322,21 +344,25 @@ class PlayerLifecycleManager(
                     return
                 }
                 if (activity.isOverlayBlocking()) {
-                    val safeViews = activity.safeViews
                     val binding = activity.activityBinding
                     when {
-                        safeViews.translationOverlay.isVisible || binding.translationLensOverlay.isVisible -> {
+                        activity.safeViews.translationOverlay.isVisible || binding.translationLensOverlay.isVisible -> {
                             activity.stopTranslation()
                             return
                         }
-                        safeViews.textViewerContainer.isVisible -> {
-                            safeViews.textViewerContainer.isVisible = false
-                            return
+                        activity.safeViews.textViewerContainer.isVisible -> {
+                            // Text viewer: perform complete cleanup, then exit player
+                            // Do NOT return - fall through to exitPlayerWithAudioCheck() for navigation
+                            if (activity._textViewerManager != null) {
+                                activity.textViewerManager.closeTextViewerFromBackPress()
+                            }
+                            // Fall through to exit player (don't return)
                         }
-                        safeViews.lyricsViewerContainer.isVisible -> {
+                        activity.safeViews.lyricsViewerContainer.isVisible -> {
                             activity.hideLyricsViewer()
                             return
                         }
+                        else -> return  // Other overlays - exit normally
                     }
                 }
                 activity.exitPlayerWithAudioCheck()

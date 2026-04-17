@@ -16,7 +16,7 @@
     <dimen name="button_height">48dp</dimen>
     <dimen name="control_button_size">48dp</dimen>
     <dimen name="control_button_size_compact">28dp</dimen>
-    <dimen name="toolbar_row_height_compact">18dp</dimen>
+    <dimen name="toolbar_row_height_compact">24dp</dimen>
     
     <!-- Text sizes - slightly reduced but still readable -->
     <dimen name="text_size_small">10sp</dimen>

@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
+import com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
@@ -35,6 +36,7 @@ import com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -676,6 +678,23 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // Wire audioSlideshowPhotoModeManager into dialogAndUiStateManager (created just above)
         activity.dialogAndUiStateManager.audioSlideshowPhotoModeManager =
             activity.audioSlideshowPhotoModeManager
+
+        // Wire FilenameOverlayAutoHideManager — controls auto-hide timing for tvFileNameOverlay.
+        // Use actual command-panel visibility rather than raw showCommandPanel state,
+        // because audio can force the panel visible while the ViewModel flag stays false.
+        activity.dialogAndUiStateManager.filenameOverlayManager = FilenameOverlayAutoHideManager(
+            overlayView = activity.activityBinding.tvFileNameOverlay,
+            isFullscreen = { !activity.activityBinding.topCommandPanel.isVisible }
+        )
+
+        // Wire zoom interaction signal from PhotoView → overlay manager.
+        // This lambda is called by ImageLoadingManager when a real user pinch-zoom is detected.
+        activity.imageLoadingManager.onZoomInteraction = zoomInteraction@{
+            val currentFile = activity.viewModel.state.value.currentFile
+                ?: return@zoomInteraction
+            activity.dialogAndUiStateManager.filenameOverlayManager
+                ?.onZoomInteraction(currentFile.type)
+        }
     }
 
     private fun initSetupManagers() {

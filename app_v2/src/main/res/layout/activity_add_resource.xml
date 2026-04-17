@@ -146,7 +146,7 @@
 
                 <com.google.android.material.button.MaterialButton android:id="@+id/btnScanNetwork" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_network_button" android:layout_marginEnd="@dimen/margin_small" />
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbServer" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:hint="@string/smb_server" app:helperText="@string/smb_server_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbServer" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:minHeight="64dp" android:hint="@string/smb_server" app:helperText="@string/smb_server_hint" app:helperTextEnabled="true">
 
                     <com.sza.fastmediasorter.ui.addresource.widgets.IpAddressEditText android:id="@+id/etSmbServer" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
