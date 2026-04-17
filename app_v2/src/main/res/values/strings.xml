@@ -2404,6 +2404,15 @@
     <string name="wear_sync_ready">Ready to sync</string>
     <string name="wear_sync_sending">Sending to watch…</string>
     <string name="wear_sync_success">Sent %d source(s) to watch</string>
+
+    <!-- 3D Video / Stereo mode settings (v2.63) -->
+    <string name="playback_settings_3d_tab">3D Video</string>
+    <string name="playback_settings_3d_auto">Auto-detect</string>
+    <string name="playback_settings_3d_sbs">Side-by-Side (SBS)</string>
+    <string name="playback_settings_3d_ou">Over-Under (OU) — coming soon</string>
+    <string name="playback_settings_3d_mono">Mono (Disabled)</string>
+    <string name="playback_settings_3d_detected">Auto-detected: %s</string>
+    <string name="playback_settings_3d_hint">For best effect, use a phone-based VR viewer (Google Cardboard, etc.)</string>
 </resources>
 
 

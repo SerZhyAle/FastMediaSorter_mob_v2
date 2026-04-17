@@ -2355,3 +2355,9 @@ Format: | datetime | file | target | description |
 | 2026-04-16 21:05:28 | `temp/mcp_smoke_check_gradle.mjs` | `MCP smoke-check helper` | Add temporary stdio MCP probe script for handshake diagnostics |
 | 2026-04-16 21:05:28 | `temp/mcp_smoke_check_gradle_sdk_client.mjs` | `MCP smoke-check helper` | Add SDK-based MCP smoke-check script for gradle_assemble_debug dry-run and gradle_run_pipeline execution |
 | 2026-04-16 23:21:35 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StandalonePlayerViewModelTest.kt` | `StandalonePlayerViewModelTest` | Pin Robolectric SDK to 34 via @Config to bypass targetSdk 35 picker mismatch |
+| 2026-04-17 01:10:10 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified.xml (land)` | Added missing btnPdfThumbnailsCmd required by PlayerBindingSafeViews to prevent player crash on landscape devices |
+| 2026-04-17 03:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/StereoMode.kt` | `StereoMode` | New enum: AUTO/SBS_FULL/SBS_HALF/OU/MONO/UNKNOWN for 3D video stereo detection |
+| 2026-04-17 03:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt` | `StereoDetector` | New class: detect SBS/OU stereo mode from Format (aspect ratio heuristic + Matroska metadata) |
+| 2026-04-17 03:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoVideoProcessor.kt` | `StereoVideoProcessor` | New class (Phase 1 stub): tracks active StereoMode; GL rendering wired in Phase 2 |
+| 2026-04-17 03:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Add stereoMode StateFlow + setStereoMode/resetStereoModeForNewFile for 3D tab (Task 1.3) |
+| 2026-04-17 03:31:06 | `app_v2/src/main/res/values/strings.xml` | `strings.xml (EN/RU/UK)` | Add 7 new string keys for 3D video settings tab (playback_settings_3d_*) |

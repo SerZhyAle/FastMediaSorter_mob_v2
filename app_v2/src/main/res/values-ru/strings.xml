@@ -2344,4 +2344,13 @@
     <string name="wear_sync_ready">Готово к синхронизации</string>
     <string name="wear_sync_sending">Отправка на часы…</string>
     <string name="wear_sync_success">Отправлено %d источников на часы</string>
+
+    <!-- 3D видео / Режим стерео (v2.63) -->
+    <string name="playback_settings_3d_tab">3D Видео</string>
+    <string name="playback_settings_3d_auto">Автоопределение</string>
+    <string name="playback_settings_3d_sbs">Бок о бок (SBS)</string>
+    <string name="playback_settings_3d_ou">Сверху-снизу (OU) — скоро</string>
+    <string name="playback_settings_3d_mono">Моно (отключено)</string>
+    <string name="playback_settings_3d_detected">Определено автоматически: %s</string>
+    <string name="playback_settings_3d_hint">Для лучшего эффекта используйте VR-очки (Google Cardboard и т. д.)</string>
 </resources>

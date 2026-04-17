@@ -1,6 +1,9 @@
 # FastMediaSorter v2 🚀
 
-**📖 Інші мови:** [🇺🇸 English](README.md) | [🇷🇺 Русский](Readme_RU.md)
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple?style=flat-square&logo=kotlin)
+![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
+
+**📖 Інші мови:** [🇺🇸 English](README.md) | [🇷🇺 Русский](README_RU.md)
 
 ## Про проект
 
@@ -25,23 +28,45 @@ FastMediaSorter v2 — це потужний Android-додаток для шв�
 - Багатомовна підтримка (Англійська/Російська)
 - Підтримка Windows 7/10/11 з .NET Framework 4.8
 
+## Зміст
+
+- [Завантажити](#завантажити-)
+- [Версії додатку](#версії-додатку-flavors-)
+- [Ключові можливості](#ключові-можливості)
+- [Підтримувані медіаформати](#підтримувані-медіаформати-)
+- [Скріншоти](#скріншоти-)
+- [Сценарії використання](#сценарії-використання-)
+- [Документація](#документація-)
+- [Wear OS Companion](#wear-os-companion-)
+- [Інструкція зі збирання](#інструкція-зі-збирання)
+- [Тестування](#тестування-)
+- [Перші кроки](#перші-кроки-короткий-посібник-)
+- [Технологічний стек](#технологічний-стек)
+
 ## Версії додатку (Flavors) 🎯
 
 FastMediaSorter v2 доступний у **4 різних версіях** залежно від ваших потреб:
 
 | Версія | Опис | Функції |
 |--------|------|---------|
-| **Standard** | Повнофункціональна версія з усіма можливостями | Відео, Аудіо, Фото, Документи, EPUB, Хмарні сервіси, Переклад |
-| **Lite** | Спрощена версія для базових потреб | Відео, Фото (без аудіо, хмари) |
-| **Photos** | Оптимізована для роботи з фотографіями | Тільки зображення |
-| **Legacy** | Розширена підтримка локальних медіа | Відео, Аудіо, Фото (без хмари та мережі) |
+| **Standard** | Повнофункціональна версія | Найширший набір можливостей для медіа, документів, OCR та інтеграцій |
+| **Lite** | Полегшена щоденна версія | Базові медіа-сценарії зі спрощеною конфігурацією |
+| **Photos** | Версія з фокусом на зображення | Оптимізована для перегляду та сортування фото |
+| **Legacy** | Версія для сумісності | Оптимізована для старих Android-пристроїв (API 23-25) |
 
 ### Яку версію вибрати?
 
-- **Standard** ⭐ **(Рекомендується)**: Повний досвід з усіма функціями — хмарне сховище, перегляд документів, переклади, підтримка аудіо
-- **Lite**: Менший розмір додатку, фокус на фото та відео
-- **Photos**: Краще для користувачів, які працюють тільки з зображеннями
-- **Legacy**: Немає хмари та мережевих функцій, але повна підтримка локальних медіа
+- **Standard** ⭐ **(Рекомендується)**: Найкращий вибір за замовчуванням для більшості користувачів
+- **Lite**: Підійде, якщо потрібен легший пакет і простіше налаштування
+- **Photos**: Найкращий вибір для фото-орієнтованих сценаріїв
+- **Legacy**: Обирайте для старих Android-пристроїв (API 23-25)
+
+Для точної матриці можливостей за версіями використовуйте канонічні документи:
+
+- [Каталог можливостей (канонічний)](FEATURES.md)
+- [How-To (таблиця доступності за версіями)](HOW_TO.md)
+- [Quick Start (вибір версії)](QUICK_START.md)
+- [Обмеження програми](LIMITATIONS.md)
 
 ## Завантажити 📥
 
@@ -61,6 +86,21 @@ FastMediaSorter v2 доступний у **4 різних версіях** за�
 > **Примітка**: Всі збірки автоматично завантажуються в Google Drive після успішної компіляції.
 >
 > 🔐 **Пароль від ZIP: `1`** (APK упаковані в захищені паролем архіви для обходу обмежень Google Drive)
+
+## Скріншоти 📱
+
+| Main Screen | File Actions | Settings |
+|:-----------:|:------------:|:--------:|
+| <a href="images/Screenshot_20251109_000251.png"><img src="images/Screenshot_20251109_000251.png" width="200"></a> | <a href="images/Screenshot_20251109_000314.png"><img src="images/Screenshot_20251109_000314.png" width="200"></a> | <a href="images/Screenshot_20251109_000323.png"><img src="images/Screenshot_20251109_000323.png" width="200"></a> |
+| **Player View** | | |
+| <a href="images/Screenshot_20251114_184930.png"><img src="images/Screenshot_20251114_184930.png" width="200"></a> | | |
+
+Зображення у повному розмірі:
+
+- [Main Screen](images/Screenshot_20251109_000251.png)
+- [File Actions](images/Screenshot_20251109_000314.png)
+- [Settings](images/Screenshot_20251109_000323.png)
+- [Player View](images/Screenshot_20251114_184930.png)
 
 ## Ключові можливості
 
@@ -97,6 +137,7 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 - **Відео:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG, TS, M2TS, VOB, OGV, DIVX, MTS
 - **Аудіо:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, AMR, ALAC, CAF, MKA, OGA, AC3, MID, MIDI
 - **Документи:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
+- **Бінарні файли** (режим "Всі файли"): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO та 60+ інших форматів
 
 ## Сценарії використання 💡
 
@@ -148,6 +189,78 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 Встановіть FastMediaSorter на автомобільну Android-магнітолу або головний пристрій. Додайте папки з музикою з USB-накопичувача або SD-карти — або скористайтеся вбудованим віртуальним ресурсом **Вся музика** для миттєвого доступу до всієї колекції без додаткового налаштування. Апаратні кнопки керування (кнопки на кермі, регулятори) працюють напряму через фоновий аудіосервіс: відтворення/пауза, наступний/попередній трек — без необхідності дивитися на екран. Додаток запам'ятовує позицію відтворення та автоматично відновлює її при запуску.
 
+## Документація 📚
+
+**🗺️ Карта документації:** [Усі документи](DOCS_MAP.md)
+
+**🌐 Офіційний сайт:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
+
+### Канонічні джерела (Single Source of Truth)
+
+Наступні файли є джерелом істини для користувацької документації:
+
+- [Повний перелік можливостей](FEATURES.md)
+- [Карта документації](DOCS_MAP.md)
+- [Завантаження збірок (EN)](DOWNLOADS_EN.md)
+- [How-To Guides](HOW_TO.md)
+- [Обмеження програми](LIMITATIONS.md)
+- [Швидкий старт](QUICK_START.md)
+- [Умови використання](TERMS_OF_SERVICE.md)
+
+Детальні керівництва доступні кількома мовами:
+
+**🇺🇦 Українська:**
+
+- [Посібники](HOW_TO_UK.md)
+- [Швидкий Старт](QUICK_START_UK.md)
+- [FAQ](FAQ_UK.md)
+- [Вирішення проблем](TROUBLESHOOTING_UK.md)
+- [Обмеження програми](LIMITATIONS_UK.md)
+- [Завантаження збірок](DOWNLOADS_UK.md)
+
+**🇺🇸 English:**
+
+- [How-To Guides](HOW_TO.md)
+- [Quick Start](QUICK_START.md)
+- [FAQ](FAQ.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
+- [Program Limitations](LIMITATIONS.md)
+- [Downloads Guide](DOWNLOADS_EN.md)
+- [Complete Feature List](FEATURES.md)
+- [Module Selection Guide](MODULE_SELECTION.md)
+
+**🇷🇺 Русский:**
+
+- [Руководства](HOW_TO_RU.md)
+- [Быстрый Старт](QUICK_START_RU.md)
+- [FAQ](FAQ_RU.md)
+- [Устранение неполадок](TROUBLESHOOTING_RU.md)
+- [Ограничения программы](LIMITATIONS_RU.md)
+- [Скачивание сборок](DOWNLOADS_RU.md)
+
+**Technical / Developer Docs:**
+
+- [Architecture Overview](ARCHITECTURE.md)
+- [DevOps & Build Scripts](DEV_OPS.md)
+- [Technology Stack](TECH_STACK.md)
+- [Wear OS Documentation](WEAR_OS_QUICK_START.md)
+- [Open Source Components](OPEN_SOURCE.md)
+
+## Wear OS Companion ⌚
+
+FastMediaSorter має companion-додаток для Wear OS, оптимізований під сценарії використання на смарт-годинниках.
+
+- Перегляд і відтворення локальних медіа безпосередньо на Wear OS-пристроях
+- UI та поведінка рантайму оптимізовані для компактних екранів круглої форми
+- Окрема документація з інсталяції, збирання та налагодження Wear-сценаріїв
+
+Документація Wear OS:
+
+- [Wear OS Quick Start](WEAR_OS_QUICK_START.md)
+- [Wear OS Setup](WEAR_OS_SETUP.md)
+- [Wear OS Status](WEAR_OS_STATUS.md)
+- [Розділ Wear OS у FEATURES](FEATURES.md#20-wear-os-companion-app)
+
 ## Інструкція зі збирання
 
 ### Вимоги
@@ -155,21 +268,56 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 - Android Studio Hedgehog (2023.1.1) або новіше
 
 - JDK 17+
-- Android SDK 34
-- Мінімальна версія Android: 9.0 (API 28)
+- Android SDK 35
+- Мінімальна версія Android: 8.0 (API 26) для Standard/Lite/Photos; 6.0 (API 23) для Legacy
 
 ### Збирання
 
 1. Клонуйте репозиторій:
 
     ```bash
-    git clone https://github.com/yourusername/FastMediaSorter_mob_v2.git
+    git clone https://github.com/SerZhyAle/FastMediaSorter_mob_v2.git
     cd FastMediaSorter_mob_v2
     ```
 
 2. Відкрийте проект в Android Studio.
 3. Дочекайтеся закінчення синхронізації Gradle.
 4. Запустіть додаток на емуляторі або фізичному пристрої.
+
+### Рекомендовані команди збирання (Windows / PowerShell)
+
+```powershell
+.\build-debug.PS1
+.\gradlew.bat assembleStandardDebug
+.\gradlew.bat testStandardDebugUnitTest
+.\gradlew.bat lintStandardDebug
+```
+
+## Тестування 🧪
+
+FastMediaSorter v2 використовує **Maestro** для end-to-end тестування.
+
+### Швидкий запуск
+
+```bash
+# Windows (PowerShell)
+.\maestro\run-tests.ps1 smoke
+
+# Швидкий ярлик
+.\scripts\utils\run-maestro-smoke.ps1
+```
+
+Документація з тестів:
+
+- [Quick Start Guide](../maestro/QUICK_START.md)
+- [Writing Tests](../maestro/WRITING_TESTS.md)
+- [Test Examples](../maestro/EXAMPLES.md)
+- [Troubleshooting](../maestro/TROUBLESHOOTING.md)
+- [Full Documentation](../maestro/README.md)
+
+CI workflow:
+
+- [Maestro Tests Workflow](../.github/workflows/maestro-tests.yml)
 
 ## Перші кроки (Короткий посібник) 🚀
 
@@ -193,14 +341,6 @@ FastMediaSorter v2 підтримує широкий спектр форматі
     - Альтернативно, увімкніть опцію "Is Destination" (Є призначенням) у вікні редагування будь-якого ресурсу, щоб додати його до списку швидкого сортування.
     - Після цього на екрані плеєра з'являться кнопки для швидкого копіювання або переміщення файлів у ці папки.
 
-## Документація 📚
-
-**🌐 Офіційний сайт:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
-
-**📖 Повна документація:** [Портал документації](https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html)
-
-**📋 Повний перелік можливостей:** [Українська](docs/FEATURES_UK.md) | [English](docs/FEATURES.md) | [Русский](docs/FEATURES_RU.md)
-
 ## Технологічний стек
 
 - **Мова**: Kotlin
@@ -219,27 +359,15 @@ FastMediaSorter v2 підтримує широкий спектр форматі
   - FTP: Apache Commons Net 3.10.0
 - **Хмара**: Google Drive API, OneDrive (MSAL), Dropbox API з OAuth 2.0
 
-## Статус проекту
-
-✅ **Готовий до використання (Production Ready)** - Основний функціонал реалізований та протестований:
-
-- ✅ Локальні операції з файлами (копіювання, переміщення, видалення, скасування)
-- ✅ Мережеві протоколи (SMB, SFTP, FTP)
-- ✅ Інтеграція з хмарними сховищами (Google Drive, OneDrive, Dropbox з OAuth аутентифікацією)
-- ✅ Редагування зображень (поворот, віддзеркалення, фільтри, налаштування)
-- ✅ Пагінація для великих колекцій (1000+ файлів)
-- ✅ Навігація з клавіатури та миші на всіх екранах
-- ✅ Розумне кешування з двоетапним завантаженням метаданих
-- ✅ Soft-delete з підтримкою кошика
-- ✅ Читалка EPUB з навігацією по розділах
-- ✅ Перегляд документів (PDF, текстові файли)
-- ✅ Автопереклад з гібридним OCR (ML Kit + Tesseract)
-
 ## Версія збірки
 
 Формат: `Y.YM.MDDH.Hmm` (наприклад, `2.60.1102.207` для 2026/01/10 20:07)
 
-Див. [dev/CHANGELOG.md](dev/CHANGELOG.md) для детальної історії змін.
+Див. [dev/CHANGELOG.md](../dev/CHANGELOG.md) для детальної історії змін.
+
+## Contributing 🤝
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Контакти 📧
 
@@ -247,5 +375,10 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 - **Сайт**: [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 - **GitHub Issues**: [https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues)
 
----
-*Цей файл був згенерований на основі проектної документації.*
+## Ліцензія 📄
+
+Юридична інформація проєкту:
+
+- [Terms of Service](TERMS_OF_SERVICE.md)
+- [Privacy Policy](PRIVACY_POLICY.md)
+- [Open Source Components](OPEN_SOURCE.md)

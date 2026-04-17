@@ -1,26 +1,15 @@
 # FastMediaSorter v2 🚀
 
-![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=flat-square)
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
-![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
-**📖 Other Languages:** [🇷🇺 Русский](Readme_RU.md) | [🇺🇦 Українська](Readme_UK.md)
+**📖 Other Languages:** [🇷🇺 Русский](README_RU.md) | [🇺🇦 Українська](README_UK.md)
 
 ## About the Project
 
 **FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
-
-### 🚀 Latest Update (February 2026)
-
-- **Batch Deletion Optimization**: Fixed multiple permission dialogs when deleting files - now shows ONE dialog for any number of files on Android 11+ (Task 1 ✅)
-- **Hidden Files Support**: Corrected hidden files filtering - files starting with `.` now properly respect the "Show Hidden Files" setting (Task 3 ✅)
-- **Binary Files Support**: Added support for binary files (ZIP, RAR, APK, ISO, EXE, etc.) with programmatic thumbnails and context menu - visible only in "All Files" mode (Task 6 ✅)
-- **Keyboard & Mouse Support**: Full keyboard navigation and mouse support across all screens - perfect for ChromeOS and desktop mode (Task 8 ✅)
-- **Enhanced Reliability**: Fixed file visibility after copy/move operations and resolved empty folder scanning issues.
-- **Better Compatibility**: Improved handling of scoped storage on Android 10-14.
 
 ## Windows Version 🖥️
 
@@ -42,11 +31,16 @@ Features include:
 ## Table of Contents
 
 - [Download](#download-)
+- [Product Flavors](#product-flavors-)
 - [Key Features](#key-features)
+- [Supported Media Formats](#supported-media-formats-)
 - [Screenshots](#screenshots-)
 - [Usage Scenarios](#usage-scenarios-)
-- [Documentation](#documentation--документация-)
+- [Documentation](#documentation-)
+- [Wear OS Companion](#wear-os-companion-)
 - [Build Instructions](#build-instructions)
+- [Testing](#testing-)
+- [First Steps](#first-steps-quick-usage-guide-)
 - [Tech Stack](#technology-stack)
 
 ## Product Flavors 🎯
@@ -55,17 +49,24 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 
 | Flavor | Description | Features |
 |--------|-------------|----------|
-| **Standard** | Full-featured version with all capabilities | Videos, Audio, Images, Documents, EPUB, Cloud Storage, Translation |
-| **Lite** | Lightweight version for basic needs | Videos, Images only (no audio, cloud, documents) |
-| **Photos** | Optimized for photo management | Images only - perfect for photo viewing and editing |
-| **Legacy** | Extended local media support | Videos, Audio, Images (network/cloud support removed) |
+| **Standard** | Full-featured version | Broadest feature set for media, documents, OCR, and integrations |
+| **Lite** | Lightweight daily-use version | Core media workflows with reduced complexity |
+| **Photos** | Image-centric version | Focused experience for photo browsing and organization |
+| **Legacy** | Compatibility-focused version | Optimized for older Android devices (API 23-25) |
 
 ### Which Flavor Should I Download?
 
-- **Standard** ⭐ **(Recommended)**: Full experience with all features - cloud storage, document viewing, translations, audio support
-- **Lite**: Smaller app size, focused on photos and videos
-- **Photos**: Best for users who only work with images
-- **Legacy**: No cloud/network features but full local media support
+- **Standard** ⭐ **(Recommended)**: Best default choice for most users
+- **Lite**: Prefer this if you want a lighter package and simpler setup
+- **Photos**: Prefer this for photo-first workflows
+- **Legacy**: Choose this for older Android devices (API 23-25)
+
+For exact feature-by-flavor availability, use the canonical documentation:
+
+- [Feature Inventory (canonical)](FEATURES.md)
+- [How-To (feature availability table)](HOW_TO.md)
+- [Quick Start (flavor chooser)](QUICK_START.md)
+- [Program Limitations](LIMITATIONS.md)
 
 ## Download 📥
 
@@ -78,9 +79,9 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 | Flavor | File Name | Description |
 |--------|-----------|-------------|
 | **Standard** | `FastMediaSorter_standard_release.zip` | Full features (Cloud, OCR, EPUB, Translation) |
-| **Lite** | `FastMediaSorter_lite_release.zip` | Basic (Videos and Images only, no cloud/audio) |
+| **Lite** | `FastMediaSorter_lite_release.zip` | Local media focus (Videos, Audio, Images; no cloud/documents) |
 | **Photos** | `FastMediaSorter_photos_release.zip` | Images only (with cloud support) |
-| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full local media (Android 6.0+ compatibility) |
+| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full local media (Android 6/7 compatibility, API 23-25) |
 
 > **Note**: All builds are automatically uploaded to Google Drive after successful compilation.
 >
@@ -88,12 +89,18 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 
 ## Screenshots 📱
 
-<!-- Place screenshots here. Example structure: -->
 | Main Screen | File Actions | Settings |
 |:-----------:|:------------:|:--------:|
-| <img src="docs/images/Screenshot_20251109_000251.png" width="200"> | <img src="docs/images/Screenshot_20251109_000314.png" width="200"> | <img src="docs/images/Screenshot_20251109_000323.png" width="200"> |
+| <a href="images/Screenshot_20251109_000251.png"><img src="images/Screenshot_20251109_000251.png" width="200"></a> | <a href="images/Screenshot_20251109_000314.png"><img src="images/Screenshot_20251109_000314.png" width="200"></a> | <a href="images/Screenshot_20251109_000323.png"><img src="images/Screenshot_20251109_000323.png" width="200"></a> |
 | **Player View** | | |
-| <img src="docs/images/Screenshot_20251114_184930.png" width="200"> | | |
+| <a href="images/Screenshot_20251114_184930.png"><img src="images/Screenshot_20251114_184930.png" width="200"></a> | | |
+
+Full-size images:
+
+- [Main Screen](images/Screenshot_20251109_000251.png)
+- [File Actions](images/Screenshot_20251109_000314.png)
+- [Settings](images/Screenshot_20251109_000323.png)
+- [Player View](images/Screenshot_20251114_184930.png)
 
 ## Key Features
 
@@ -118,20 +125,20 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 - 🎨 **Modern Interface:** Support for light and dark themes, intuitive controls, Material Design 3.
 - 💾 **Smart Caching:** Two-stage video metadata loading (1MB initial, 5MB extended) and configurable thumbnail cache (2GB default, up to 16GB).
 - 📄 **Document Viewer:** Built-in viewer for Text files (.txt, .md, .log, .json, .xml) and PDF documents with zoom, pan, and gesture navigation.
-- � **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
-- �📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
+- 📚 **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
+- 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
 - 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
 - 📱 **Widget Support:** Quick access to your favorite folders directly from your home screen with two widget types: **Resource Shortcut** (opens any folder instantly) and **Continue Reading** (launches slideshow mode immediately).
-- ⏰ **Scheduled File Operations:** Automate file management with time-based rules. Schedule recurring Copy, Move, or Delete operations between any resources (local, network, cloud) with file-type and time filters. Operations run silently in the background via WorkManager even when the app is closed.
+- ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
 
 ## Supported Media Formats 🎞️
 
 FastMediaSorter v2 supports a wide range of formats:
 
-- **Images:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF, AVIF
-- **Video:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG, TS, M2TS, VOB, OGV, DIVX, MTS
-- **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, AMR, ALAC, CAF, MKA, OGA, AC3, MID, MIDI
+- **Images:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF
+- **Video:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
+- **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS
 - **Documents:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
 - **Binary Files** (All Files mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
 
@@ -185,39 +192,77 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders — or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
 
-### 11. ⏰ Automated Nightly Backup
+## Documentation 📚
 
-Set up a scheduled Copy operation from your **Camera** folder to your **NAS (SMB)** once a day. Enable "Since Last Run" time filter so only new photos are copied each time. The operation runs in the background at the configured hour — even if the app is closed — and writes a detailed log you can review anytime in Settings → Operations.
-
-## Documentation / Документація / Документация 📚
+**🗺️ Documentation Map / Карта документации:** [View all docs / Все документы](DOCS_MAP.md)
 
 **🌐 Official Website:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
+
+### Canonical Sources (Single Source of Truth)
+
+The following files should be treated as the authoritative sources for user-facing details:
+
+- [Complete Feature List](FEATURES.md)
+- [Documentation Map](DOCS_MAP.md)
+- [Downloads (EN)](DOWNLOADS_EN.md)
+- [How-To Guides](HOW_TO.md)
+- [Program Limitations](LIMITATIONS.md)
+- [Quick Start Guide](QUICK_START.md)
+- [Terms of Service](TERMS_OF_SERVICE.md)
 
 Detailed guides are available in multiple languages:
 
 **🇺🇸 English:**
 
-- [How-To Guides](docs/HOW_TO.md)
-- [Quick Start](docs/QUICK_START.md)
-- [FAQ](docs/FAQ.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Program Limitations](docs/LIMITATIONS.md)
-- [Complete Feature List](docs/FEATURES.md)
+- [How-To Guides](HOW_TO.md)
+- [Quick Start](QUICK_START.md)
+- [FAQ](FAQ.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
+- [Program Limitations](LIMITATIONS.md)
+- [Downloads Guide](DOWNLOADS_EN.md)
+- [Complete Feature List](FEATURES.md)
+- [Module Selection Guide](MODULE_SELECTION.md)
 
 **🇷🇺 Русский:**
 
-- [Руководства](docs/HOW_TO_RU.md)
-- [Быстрый Старт](docs/QUICK_START_RU.md)
-- [FAQ](docs/FAQ_RU.md)
-- [Устранение неполадок](docs/TROUBLESHOOTING_RU.md)
-- [Ограничения программы](docs/LIMITATIONS_RU.md)
+- [Руководства](HOW_TO_RU.md)
+- [Быстрый Старт](QUICK_START_RU.md)
+- [FAQ](FAQ_RU.md)
+- [Устранение неполадок](TROUBLESHOOTING_RU.md)
+- [Ограничения программы](LIMITATIONS_RU.md)
+- [Скачивание сборок](DOWNLOADS_RU.md)
 
 **🇺🇦 Українська:**
 
-- [Посібники](docs/HOW_TO_UK.md)
-- [Швидкий Старт](docs/QUICK_START_UK.md)
-- [FAQ](docs/FAQ_UK.md)
-- [Вирішення проблем](docs/TROUBLESHOOTING_UK.md)
+- [Посібники](HOW_TO_UK.md)
+- [Швидкий Старт](QUICK_START_UK.md)
+- [FAQ](FAQ_UK.md)
+- [Вирішення проблем](TROUBLESHOOTING_UK.md)
+- [Обмеження програми](LIMITATIONS_UK.md)
+- [Завантаження збірок](DOWNLOADS_UK.md)
+
+**Technical / Developer Docs:**
+
+- [Architecture Overview](ARCHITECTURE.md)
+- [DevOps & Build Scripts](DEV_OPS.md)
+- [Technology Stack](TECH_STACK.md)
+- [Wear OS Documentation](WEAR_OS_QUICK_START.md)
+- [Open Source Components](OPEN_SOURCE.md)
+
+## Wear OS Companion ⌚
+
+FastMediaSorter includes a Wear OS companion app designed for quick access on smartwatch form factors.
+
+- Browse and play local media directly on Wear OS devices
+- UI and runtime behavior optimized for small circular/compact screens
+- Dedicated setup, build, and troubleshooting documentation for watch workflows
+
+Wear OS docs:
+
+- [Wear OS Quick Start](WEAR_OS_QUICK_START.md)
+- [Wear OS Setup](WEAR_OS_SETUP.md)
+- [Wear OS Status](WEAR_OS_STATUS.md)
+- [Wear OS section in Features](FEATURES.md#20-wear-os-companion-app)
 
 ## Build Instructions
 
@@ -226,15 +271,15 @@ Detailed guides are available in multiple languages:
 - Android Studio Hedgehog (2023.1.1) or newer
 
 - JDK 17+
-- Android SDK 34
-- Minimum Android version: 9.0 (API 28)
+- Android SDK 35
+- Minimum Android version: 8.0 (API 26) for Standard/Lite/Photos; 6.0 (API 23) for Legacy
 
 ### Build
 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/FastMediaSorter_mob_v2.git
+    git clone https://github.com/SerZhyAle/FastMediaSorter_mob_v2.git
     cd FastMediaSorter_mob_v2
     ```
 
@@ -242,9 +287,71 @@ Detailed guides are available in multiple languages:
 3. Wait for Gradle synchronization to complete.
 4. Run the app on an emulator or physical device.
 
+### Preferred Build Commands (Windows / PowerShell)
+
+```powershell
+.\build-debug.PS1
+.\gradlew.bat assembleStandardDebug
+.\gradlew.bat testStandardDebugUnitTest
+.\gradlew.bat lintStandardDebug
+```
+
 ### Built APKs 📦
 
 After every successful build, the generated APK file is automatically copied to the `DOWNLOADS` folder in the project root with a timestamp. You can find all your build history there.
+
+## Testing 🧪
+
+FastMediaSorter v2 uses **Maestro** for end-to-end testing to ensure app quality and reliability.
+
+### Quick Test Run
+
+```bash
+# Install Maestro - macOS/Linux (Homebrew)
+brew tap mobile-dev-inc/tap
+brew install maestro
+
+# Or Linux/macOS (curl)
+curl -Ls "https://get.maestro.mobile.dev" | bash
+
+# Windows (PowerShell as Administrator)
+Invoke-WebRequest -Uri "https://get.maestro.mobile.dev/install.ps1" -OutFile install.ps1
+.\install.ps1
+Remove-Item install.ps1
+
+# Run smoke tests (2-3 minutes)
+./maestro/run-tests.sh smoke    # Linux/macOS
+.\maestro\run-tests.ps1 smoke   # Windows
+
+# Or use shortcut
+.\scripts\utils\run-maestro-smoke.ps1  # Windows
+```
+
+**Note**: DO NOT use `npm install -g maestro-cli` - that's a different, unrelated package!
+
+### Test Suites
+
+- **Smoke Tests** (`maestro/smoke/`): Core functionality tests (~2-3 min)
+  - App launch and permissions
+  - Local file browsing
+  - Media playback
+  - Image viewing
+
+- **Critical Path Tests** (`maestro/critical/`): Essential operations (~1-2 min)
+  - File operations (copy, move, delete)
+  - Settings persistence
+
+### Documentation
+
+- 📚 [Quick Start Guide](../maestro/QUICK_START.md)
+- 📝 [Writing Tests](../maestro/WRITING_TESTS.md)
+- 🔍 [Test Examples](../maestro/EXAMPLES.md)
+- 🔧 [Troubleshooting](../maestro/TROUBLESHOOTING.md)
+- 📖 [Full Documentation](../maestro/README.md)
+
+### CI/CD Integration
+
+Tests run automatically on every push via GitHub Actions. See [`.github/workflows/maestro-tests.yml`](../.github/workflows/maestro-tests.yml).
 
 ## First Steps (Quick Usage Guide) 🚀
 
@@ -289,30 +396,11 @@ After every successful build, the generated APK file is automatically copied to 
   - Tesseract4Android (Tesseract 5.3.x) for high-accuracy Cyrillic OCR
 - **Search & Lyrics**: api.lyrics.ovh (JSON API)
 
-## Project Status
-
-✅ **Production Ready** - Core functionality fully implemented and tested:
-
-- ✅ Local file operations (copy, move, delete, undo)
-- ✅ Network protocols (SMB, SFTP, FTP)
-- ✅ Cloud storage integration (Google Drive, OneDrive, Dropbox with OAuth authentication)
-- ✅ Image editing (rotation, flip, filters, adjustments)
-- ✅ Pagination for large file collections (1000+ files)
-- ✅ Keyboard and mouse navigation across all screens
-- ✅ Smart caching with two-stage metadata loading
-- ✅ Soft-delete with trash folder support
-- ✅ Favorites system with cross-resource aggregation
-- ✅ EPUB e-book reader with chapter navigation
-- ✅ Document viewer (PDF, Text files)
-- ✅ Auto-translation with hybrid OCR (ML Kit + Tesseract)
-- ✅ Subfolder navigation in Browse activity with breadcrumb display
-- ✅ Wear OS companion app (browse and play local media directly from your smartwatch)
-
 ## Build Version
 
 Version format: `Y.YM.MDDH.Hmm` (e.g., `2.60.1102.207` for 2026/01/10 20:07)
 
-See [dev/CHANGELOG.md](dev/CHANGELOG.md) for detailed release notes.
+See [dev/CHANGELOG.md](../dev/CHANGELOG.md) for detailed release notes.
 
 ---
 
@@ -328,6 +416,9 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## License 📄
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Project legal information:
 
-*This file was generated based on project documentation.*
+- [Terms of Service](TERMS_OF_SERVICE.md)
+- [Privacy Policy](PRIVACY_POLICY.md)
+- [Open Source Components](OPEN_SOURCE.md)
+

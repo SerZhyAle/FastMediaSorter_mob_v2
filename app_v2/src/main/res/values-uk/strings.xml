@@ -2304,4 +2304,13 @@
     <string name="wear_sync_ready">Готово до синхронізації</string>
     <string name="wear_sync_sending">Надсилання на годинник…</string>
     <string name="wear_sync_success">Надіслано %d джерел на годинник</string>
+
+    <!-- 3D відео / Режим стерео (v2.63) -->
+    <string name="playback_settings_3d_tab">3D Відео</string>
+    <string name="playback_settings_3d_auto">Автовизначення</string>
+    <string name="playback_settings_3d_sbs">Пліч-о-пліч (SBS)</string>
+    <string name="playback_settings_3d_ou">Зверху-знизу (OU) — незабаром</string>
+    <string name="playback_settings_3d_mono">Моно (вимкнено)</string>
+    <string name="playback_settings_3d_detected">Визначено автоматично: %s</string>
+    <string name="playback_settings_3d_hint">Для кращого ефекту використовуйте VR-окуляри (Google Cardboard тощо)</string>
 </resources>

@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.ResumeState
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -24,6 +25,9 @@ import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -121,6 +125,31 @@ class PlayerViewModel @Inject constructor(
     
     private var loadingJob: Job? = null
     private var saveLastViewedFileJob: Job? = null // Debounce job for database updates
+
+    // ── Stereo / 3D video state ──────────────────────────────────────────────
+    // Separate flow from PlayerState because stereo mode is session-only (not persisted
+    // to the main state machine) and needs to be emitted independently of file navigation.
+    private val _stereoMode = MutableStateFlow(StereoMode.AUTO)
+    val stereoMode: StateFlow<StereoMode> = _stereoMode.asStateFlow()
+
+    /**
+     * Set the stereo display mode for the current video.
+     * [StereoMode.AUTO] triggers StereoDetector on the next video-ready callback.
+     */
+    fun setStereoMode(mode: StereoMode) {
+        if (_stereoMode.value == mode) return
+        Timber.d("PlayerViewModel: stereoMode → $mode")
+        _stereoMode.value = mode
+    }
+
+    /**
+     * Reset stereo mode to AUTO when navigating to a new file so that
+     * auto-detection runs fresh on each new video.
+     * Called by VideoPlayerManager before loading a new URI.
+     */
+    fun resetStereoModeForNewFile() {
+        _stereoMode.value = StereoMode.AUTO
+    }
 
     init {
         loadSettings()

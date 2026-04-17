@@ -1,0 +1,78 @@
+package com.sza.fastmediasorter.ui.player
+
+import com.sza.fastmediasorter.domain.model.StereoMode
+import timber.log.Timber
+
+/**
+ * Applies stereoscopic rendering to ExoPlayer video output.
+ *
+ * Architecture note:
+ * Full OpenGL-based stereo rendering requires [androidx.media3:media3-effect] (GlEffect API),
+ * which is not yet included in the project dependencies.
+ *
+ * This class is a Phase 1 stub that:
+ *  1. Tracks the current [StereoMode] and exposes it to the UI.
+ *  2. Provides the hook point for Phase 2 GL implementation (see PLAN/task_3d-sbs-support-implementation.md § 3.2).
+ *  3. Does NOT apply any visual transformation yet — video renders as mono until Phase 2.
+ *
+ * Phase 2 implementation plan:
+ *  • Add `media3-effect:1.2.1` to [app_v2/build.gradle.kts].
+ *  • Implement [androidx.media3.effect.GlEffect] to perform per-frame crop:
+ *       left 50% of texture  →  left viewport (left eye)
+ *       right 50% of texture →  right viewport (right eye)
+ *  • Wire via [ExoPlayer.setVideoEffects(listOf(stereoVideoProcessor))].
+ *
+ * Thread safety: [setStereoMode] may be called from the main thread;
+ * in Phase 2 the GL callbacks will arrive on the GL thread — use @Volatile or
+ * AtomicReference for the mode field.
+ */
+class StereoVideoProcessor {
+
+    @Volatile
+    private var currentMode: StereoMode = StereoMode.MONO
+
+    /**
+     * Whether stereo rendering is currently active.
+     * Phase 1: always false (stub). Phase 2: reflects GL pipeline state.
+     */
+    val isStereoActive: Boolean
+        get() = currentMode == StereoMode.SBS_FULL || currentMode == StereoMode.SBS_HALF
+
+    /**
+     * Update the desired stereo mode.
+     *
+     * In Phase 2 this will also reconfigure the GL shader program.
+     * [StereoMode.AUTO] and [StereoMode.UNKNOWN] must be resolved by the caller
+     * (via [StereoDetector]) before calling this method.
+     */
+    fun setStereoMode(mode: StereoMode) {
+        require(mode != StereoMode.AUTO && mode != StereoMode.UNKNOWN) {
+            "setStereoMode: caller must resolve AUTO/UNKNOWN via StereoDetector first"
+        }
+
+        if (currentMode == mode) return
+
+        val previous = currentMode
+        currentMode = mode
+        Timber.i("StereoVideoProcessor: mode changed $previous → $mode")
+
+        // TODO (Phase 2): reconfigure GL pipeline here
+        if (isStereoActive) {
+            Timber.d("StereoVideoProcessor: stereo rendering requested but GL pipeline not yet implemented (Phase 1 stub)")
+        }
+    }
+
+    /**
+     * Returns the currently active mode (resolved — never AUTO or UNKNOWN).
+     */
+    fun getCurrentMode(): StereoMode = currentMode
+
+    /**
+     * Release resources. Call when the player is destroyed.
+     * Phase 1: no-op. Phase 2: release FBOs and GL textures.
+     */
+    fun release() {
+        currentMode = StereoMode.MONO
+        Timber.d("StereoVideoProcessor: released")
+    }
+}
