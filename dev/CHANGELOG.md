@@ -2396,3 +2396,4 @@ Format: | datetime | file | target | description |
 | 2026-04-17 04:16:36 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoDetectorTest.kt` | `StereoDetectorTest` | Use reflective Format.Builder.setCustomData helper and skip metadata tests when API variant lacks setter |
 | 2026-04-17 04:16:36 | `maestro/smoke/3d-video-sbs.yaml` | `3d-video-sbs` | Tighten 3D smoke flow to assert real dialog labels instead of optional placeholders |
 | 2026-04-17 04:16:36 | `maestro/smoke/3d-video-switching.yaml` | `3d-video-switching` | Fix 3D switching flow texts and require actual SBS/Mono/Auto labels during mode changes |
+| 2026-04-17 04:17:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt` | `StereoDetector` | Normalize KDoc/indentation after reflective customData compatibility refactor |

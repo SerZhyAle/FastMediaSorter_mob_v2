@@ -89,17 +89,17 @@ class StereoDetector {
     // ── Private helpers ────────────────────────────────────────────────────
 
     /**
-         * Attempt to read the Matroska StereoMode EBML tag from format extras.
+     * Attempt to read the Matroska StereoMode EBML tag from format extras.
      *
-         * Media3 API exposure differs across versions: some builds surface a Bundle-like
-         * object via a custom-data getter, others do not expose it at compile time.
-         * We therefore use reflection and fall back to UNKNOWN when the data is absent.
+     * Media3 API exposure differs across versions: some builds surface a Bundle-like
+     * object via a custom-data getter, others do not expose it at compile time.
+     * We therefore use reflection and fall back to UNKNOWN when the data is absent.
      *
      * If the tag is absent, returns [StereoMode.UNKNOWN] so the heuristic runs.
      */
     private fun detectFromMatroskaTag(format: Format): StereoMode {
-                val customData = extractCustomDataBundle(format) ?: return StereoMode.UNKNOWN
-                val stereoTag = customData.getString(FORMAT_CUSTOM_DATA_KEY) ?: return StereoMode.UNKNOWN
+        val customData = extractCustomDataBundle(format) ?: return StereoMode.UNKNOWN
+        val stereoTag = customData.getString(FORMAT_CUSTOM_DATA_KEY) ?: return StereoMode.UNKNOWN
 
         return when (stereoTag) {
             MATROSKA_STEREO_MONO      -> StereoMode.MONO
