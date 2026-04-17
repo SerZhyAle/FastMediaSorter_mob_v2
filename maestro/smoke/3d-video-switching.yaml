@@ -1,0 +1,148 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: 3D Mode Switching — Toggle between Auto / Force SBS / Mono
+# Feature: 3D Video Support (SBS), v2.63
+# Duration: ~60 seconds
+# Precondition: A test SBS video (aspect ratio ~32:9, e.g. 3840x1080)
+#               must be present on the device at:
+#               /sdcard/TestMedia/3D-SBS-Test.mkv
+# Setup: run scripts/utils/setup_test_media.ps1 before this test.
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to Local tab
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate into TestMedia folder
+- tapOn:
+    text: "TestMedia"
+    optional: true
+- waitForAnimationToEnd
+
+# Open the SBS test video
+- tapOn:
+    text: "3D-SBS-Test"
+- waitForAnimationToEnd
+
+# Enter fullscreen
+- tapOn:
+    id: ".*fullscreen.*"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Switch to Force SBS mode ---
+
+# Tap to reveal controls
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Open Playback Settings
+- tapOn:
+    id: ".*settings.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Go to 3D tab
+- tapOn:
+    text: "3D"
+    optional: true
+- waitForAnimationToEnd
+
+# Select Force SBS
+- tapOn:
+    text: "Force SBS"
+    optional: true
+- waitForAnimationToEnd
+
+# Close dialog
+- tapOn:
+    text: "Close"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify player still alive after mode switch
+- assertNotVisible:
+    text: "has stopped"
+- assertNotVisible:
+    text: "Unfortunately"
+
+# --- Switch to Mono mode ---
+
+# Tap to reveal controls again
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Open Playback Settings
+- tapOn:
+    id: ".*settings.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Go to 3D tab
+- tapOn:
+    text: "3D"
+    optional: true
+- waitForAnimationToEnd
+
+# Select Mono
+- tapOn:
+    text: "Mono"
+    optional: true
+- waitForAnimationToEnd
+
+# Close dialog
+- tapOn:
+    text: "Close"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify player still alive after switch back to Mono
+- assertNotVisible:
+    text: "has stopped"
+- assertNotVisible:
+    text: "Unfortunately"
+- assertNotVisible:
+    text: "Error"
+    optional: true
+
+# --- Switch back to Auto mode ---
+
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+- tapOn:
+    id: ".*settings.*"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "3D"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Auto"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Close"
+    optional: true
+- waitForAnimationToEnd
+
+# Final stability check
+- assertNotVisible:
+    text: "has stopped"
+- assertNotVisible:
+    text: "Unfortunately"

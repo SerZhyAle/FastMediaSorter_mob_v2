@@ -2379,3 +2379,6 @@ Format: | datetime | file | target | description |
 | 2026-04-17 03:53:38 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/StereoModeTest.kt` | `StereoModeTest` | 14 unit tests for enum completeness, fromKey round-trip, null safety |
 | 2026-04-17 03:53:38 | `docs/FEATURES.md` | `Video Player section` | Add 3D Video Support (SBS) bullet - EN/RU/UK |
 | 2026-04-17 03:53:38 | `docs/HOW_TO.md` | `Watching 3D Videos guide` | Add Watching 3D Videos (VR) guide - EN/RU/UK |
+| 2026-04-17 03:56:53 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoVideoProcessorTest.kt` | `StereoVideoProcessorTest` | 21 unit tests for mode transitions, isStereoActive, precondition guards, idempotency, release |
+| 2026-04-17 03:56:53 | `maestro/smoke/3d-video-sbs.yaml` | `3d-video-sbs` | Maestro E2E smoke test: open SBS video, open 3D tab, verify no crash |
+| 2026-04-17 03:56:53 | `maestro/smoke/3d-video-switching.yaml` | `3d-video-switching` | Maestro E2E test: cycle through Auto/ForceSBS/Mono modes, verify stability |

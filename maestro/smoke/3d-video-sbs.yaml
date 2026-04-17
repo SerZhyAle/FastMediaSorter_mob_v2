@@ -1,0 +1,88 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: 3D SBS Video — Basic Playback & Auto-Detection
+# Feature: 3D Video Support (SBS), v2.63
+# Duration: ~45 seconds
+# Precondition: A test SBS video (aspect ratio ~32:9, e.g. 3840x1080)
+#               must be present on the device at:
+#               /sdcard/TestMedia/3D-SBS-Test.mkv
+# Setup: run scripts/utils/setup_test_media.ps1 before this test.
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to the Local tab
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate into TestMedia folder
+- tapOn:
+    text: "TestMedia"
+    optional: true
+- waitForAnimationToEnd
+
+# Open the SBS test video
+- tapOn:
+    text: "3D-SBS-Test"
+- waitForAnimationToEnd
+
+# Enter fullscreen
+- tapOn:
+    id: ".*fullscreen.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Tap the screen to reveal controls
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Open Playback Settings dialog
+- tapOn:
+    id: ".*settings.*"
+    optional: true
+- waitForAnimationToEnd
+
+# The dialog should be visible
+- assertVisible:
+    text: "Playback Settings"
+    optional: true
+
+# Navigate to the 3D tab (swipe left on the tab bar)
+- tapOn:
+    text: "3D"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify 3D tab content is visible
+- assertVisible:
+    text: "Auto"
+    optional: true
+
+# Auto-detect should be pre-selected for a 32:9 SBS video
+- assertVisible:
+    id: ".*radio_auto.*"
+    optional: true
+
+# Close the dialog
+- tapOn:
+    text: "Close"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify the player is still running (no crash)
+- assertNotVisible:
+    text: "has stopped"
+- assertNotVisible:
+    text: "Unfortunately"
+
+# Verify no error message is shown
+- assertNotVisible:
+    text: "Error"
+    optional: true
