@@ -29,7 +29,7 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <ImageButton android:id="@+id/iconHelpSlideshow" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_slideshow_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpSlideshow" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_slideshow_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 
@@ -117,7 +117,7 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <ImageButton android:id="@+id/iconHelpGridSize" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_grid_size_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpGridSize" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_grid_size_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchGridMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_switch_margin_end" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
@@ -172,7 +172,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_command_panel_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpCommandPanel" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_command_panel_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpCommandPanel" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_command_panel_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 
@@ -240,7 +240,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/always_show_touch_zones_overlay_description" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpTouchZones" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_touch_zones_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpTouchZones" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_touch_zones_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                             <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 

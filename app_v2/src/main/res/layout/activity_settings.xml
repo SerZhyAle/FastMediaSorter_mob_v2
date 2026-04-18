@@ -20,7 +20,7 @@
 
             <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-            <ImageButton android:id="@+id/searchButton" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_search_open" android:src="@android:drawable/ic_menu_search" app:tint="?attr/colorOnPrimary" />
+            <ImageButton android:id="@+id/searchButton" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_search_open" android:src="@drawable/ic_search" app:tint="?attr/colorOnPrimary" />
 
         </LinearLayout>
 
@@ -47,7 +47,7 @@
 
             <EditText android:id="@+id/searchInput" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/settings_search_hint" android:imeOptions="actionSearch" android:inputType="text" android:maxLines="1" />
 
-            <ImageButton android:id="@+id/searchCloseButton" android:layout_width="@dimen/button_height" android:layout_height="@dimen/button_height" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/settings_search_close" android:src="@android:drawable/ic_menu_close_clear_cancel" app:tint="?attr/colorOnSurface" />
+            <ImageButton android:id="@+id/searchCloseButton" android:layout_width="@dimen/button_height" android:layout_height="@dimen/button_height" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/settings_search_close" android:src="@drawable/ic_cancel" app:tint="?attr/colorOnSurface" />
         </LinearLayout>
 
         <TextView android:id="@+id/searchEmptyText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_medium" android:text="@string/settings_search_no_results" android:textColor="?attr/colorOnSurface" android:visibility="gone" />

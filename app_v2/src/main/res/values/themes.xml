@@ -45,4 +45,9 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <!-- Text Appearance for helper text: 2sp smaller than normal (14sp) -->
+    <style name="TextAppearance.FastMediaSorter.HelperText" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

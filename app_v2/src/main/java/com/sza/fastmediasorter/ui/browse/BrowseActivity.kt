@@ -100,7 +100,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         com.sza.fastmediasorter.ui.browse.managers.BrowseEdgeToEdgeHelper.apply(binding)
         com.sza.fastmediasorter.utils.GlideCacheStats.reset()
         passwordManager = ResourcePasswordManager(context = this, layoutInflater = layoutInflater)
-        Timber.d("showVideoThumbnails initialized: \$showVideoThumbnails")
+        Timber.d("showVideoThumbnails initialized: $showVideoThumbnails")
 
         initializer = BrowseManagerInitializer(
             activity = this,

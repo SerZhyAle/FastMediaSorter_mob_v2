@@ -32,9 +32,12 @@ class StereoDetector {
         // SBS half (anamorphic / squeezed): normal AR but unusually tall
         private const val SBS_HALF_MIN_HEIGHT = 1800
 
-        // Over-Under: width / height ≈ 0.593 (16:27)
-        private const val OU_AR_MIN = 0.50f
-        private const val OU_AR_MAX = 0.65f
+        // Over-Under: real OU 3D content is 1920×2160 → AR ≈ 0.889, or 1280×1440 → 0.889.
+        // AR range 0.50-0.65 was catching ordinary portrait video (9:16 = 0.5625) → false positives.
+        // OU is now detected ONLY via Matroska metadata; AR heuristic always returns MONO for
+        // portrait-looking videos. These constants are kept for documentation only.
+        private const val OU_AR_MIN = 0.82f
+        private const val OU_AR_MAX = 0.95f
 
         // Matroska StereoMode values (EBML element 0x53B8)
         // https://www.matroska.org/technical/elements.html#StereoMode
@@ -137,13 +140,17 @@ class StereoDetector {
      *    Not perfectly distinguishable from mono without metadata — skipped in this heuristic.
      *
      * Over-Under:
-     *  • 1920×2160 (4K OU) → AR 0.889 — outside our window, defer to v2.64 exact bounds.
+     *  • 1920×2160 (4K OU) → AR 0.889
+     *  OU is not detected by AR heuristic: portrait video (9:16 = AR 0.5625) and OU (AR 0.889)
+     *  are only distinguishable via Matroska metadata. Without metadata, return MONO to avoid
+     *  false positives that break ExoPlayer's video pipeline via setVideoEffects().
      */
     private fun detectFromAspectRatio(width: Int, height: Int): StereoMode {
         val ar = width.toFloat() / height.toFloat()
         return when {
             ar in SBS_AR_MIN..SBS_AR_MAX         -> StereoMode.SBS_FULL
-            ar in OU_AR_MIN..OU_AR_MAX           -> StereoMode.OU
+            // OU detection disabled for AR heuristic — too many false positives on portrait video.
+            // Matroska tag detection (Step 1) handles real OU 3D files correctly.
             // SBS_HALF: normal-ish AR but doubled width squeezed into standard 16:9 frame.
             // Reliable detection requires Matroska tag; heuristic returns MONO to avoid
             // false-positives on ultra-wide 21:9 content.

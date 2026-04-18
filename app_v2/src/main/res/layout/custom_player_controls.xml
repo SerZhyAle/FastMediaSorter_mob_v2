@@ -82,7 +82,7 @@
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_button_margin_start"
-                android:src="@android:drawable/ic_media_rew"
+                android:src="@drawable/ic_fast_rewind"
                 app:tint="@color/selector_player_button_tint"
                 android:contentDescription="@string/rewind_10_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -102,7 +102,7 @@
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
-                android:src="@android:drawable/ic_media_ff"
+                android:src="@drawable/ic_fast_forward"
                 app:tint="@color/selector_player_button_tint"
                 android:contentDescription="@string/forward_30_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -118,38 +118,14 @@
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
-                android:id="@+id/exo_speed"
+                android:id="@+id/btnPlaybackControl"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_group_separator_margin"
-                android:src="@drawable/ic_speed"
+                android:src="@drawable/ic_settings"
                 app:tint="@color/selector_player_button_tint"
-                android:contentDescription="@string/playback_speed"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-
-            <ImageButton
-                android:id="@+id/btnAudioTrack"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="@dimen/player_small_button_size"
-                android:layout_height="@dimen/player_small_button_size"
-                android:layout_marginStart="@dimen/player_button_margin_start"
-                android:src="@drawable/ic_audio_track"
-                app:tint="@color/selector_player_button_tint"
-                android:contentDescription="@string/audio_track"
-                android:visibility="gone"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-
-            <ImageButton
-                android:id="@+id/btnSubtitleTrack"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="@dimen/player_small_button_size"
-                android:layout_height="@dimen/player_small_button_size"
-                android:layout_marginStart="@dimen/player_button_margin_start"
-                android:src="@drawable/ic_closed_caption"
-                app:tint="@color/selector_player_button_tint"
-                android:contentDescription="@string/subtitle_track"
-                android:visibility="gone"
+                android:contentDescription="@string/control"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton

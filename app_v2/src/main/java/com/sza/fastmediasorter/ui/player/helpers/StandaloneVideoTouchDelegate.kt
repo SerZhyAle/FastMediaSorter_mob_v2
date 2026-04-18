@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.math.MathUtils
 import androidx.media3.ui.PlayerView
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -27,7 +28,10 @@ import kotlin.math.roundToInt
 class StandaloneVideoTouchDelegate(
     private val activity: Activity,
     private val playerView: PlayerView,
-    private val rootView: View
+    private val rootView: View,
+    private val getBrightnessProgress: () -> Int,
+    private val setBrightnessProgress: (Int) -> Unit,
+    private val getBrightnessPercentOffset: () -> Int
 ) {
 
     private enum class GestureMode { NONE, BRIGHTNESS, VOLUME, SEEK }
@@ -40,7 +44,7 @@ class StandaloneVideoTouchDelegate(
 
     private var downX = 0f
     private var downY = 0f
-    private var startBrightness = 0.5f
+    private var startBrightnessProgress = 50
     private var startVolume = 0
     private var startPositionMs = 0L
     private var gestureMode = GestureMode.NONE
@@ -51,7 +55,7 @@ class StandaloneVideoTouchDelegate(
             override fun onDown(e: MotionEvent): Boolean {
                 downX = e.x
                 downY = e.y
-                startBrightness = getCurrentBrightness()
+                startBrightnessProgress = getBrightnessProgress()
                 startVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                 startPositionMs = playerView.player?.currentPosition ?: 0L
                 gestureMode = GestureMode.NONE
@@ -127,10 +131,12 @@ class StandaloneVideoTouchDelegate(
 
                 return when (gestureMode) {
                     GestureMode.BRIGHTNESS -> {
-                        val delta = (-deltaY / height)
-                        val newBrightness = MathUtils.clamp(startBrightness + delta, 0.05f, 1.0f)
-                        applyBrightness(newBrightness)
-                        showIndicator("☀ ${(newBrightness * 100f).roundToInt()}%")
+                        val brightnessDelta = ((-deltaY / height) * 100f).roundToInt()
+                        val newBrightnessProgress = MathUtils.clamp(startBrightnessProgress + brightnessDelta, 0, 100)
+                        applyBrightnessProgress(newBrightnessProgress)
+                        showIndicator(
+                            "☀ ${String.format(Locale.US, "%+d%%", getBrightnessPercentOffset())}"
+                        )
                         true
                     }
                     GestureMode.VOLUME -> {
@@ -200,16 +206,9 @@ class StandaloneVideoTouchDelegate(
         }
     }
 
-    private fun getCurrentBrightness(): Float {
-        val current = activity.window.attributes.screenBrightness
-        return if (current in 0f..1f) current else 0.5f
-    }
-
-    private fun applyBrightness(value: Float) {
+    private fun applyBrightnessProgress(progress: Int) {
         try {
-            val attrs = activity.window.attributes
-            attrs.screenBrightness = value
-            activity.window.attributes = attrs
+            setBrightnessProgress(progress)
         } catch (e: Exception) {
             timber.log.Timber.w(e, "StandaloneVideoTouchDelegate: brightness control failed")
         }

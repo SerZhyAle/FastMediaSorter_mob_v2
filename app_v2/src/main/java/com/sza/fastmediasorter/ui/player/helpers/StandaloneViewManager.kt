@@ -35,6 +35,8 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
+import com.sza.fastmediasorter.ui.player.VideoColorProcessor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -78,6 +80,11 @@ class StandaloneViewManager(
     private val playbackPositionRepository: PlaybackPositionRepository
 ) {
 
+    companion object {
+        private const val DEFAULT_BRIGHTNESS_PROGRESS = 50
+        private const val POSITION_SAVE_INTERVAL_MS = 5_000L
+    }
+
     private val networkFileManager: NetworkFileManager by lazy {
         NetworkFileManager(
             context = activity,
@@ -116,6 +123,17 @@ class StandaloneViewManager(
     }
 
     private var exoPlayer: ExoPlayer? = null
+    private val playbackControlPrefs =
+        activity.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+    private val videoColorProcessor = VideoColorProcessor(
+        initialHueDegrees = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f),
+        initialBrightnessAdjustment = brightnessProgressToAdjustment(
+            playbackControlPrefs.getInt(
+                PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
+                DEFAULT_BRIGHTNESS_PROGRESS
+            )
+        )
+    )
     private var videoPositionSaveJob: Job? = null
     private var lastSavedPosition: Long = -1L
     private var currentVideoFilePath: String? = null
@@ -140,6 +158,40 @@ class StandaloneViewManager(
 
     fun isVideoPlaying(): Boolean = exoPlayer?.isPlaying == true
 
+    fun setHueAdjustmentDegrees(hueDegrees: Float) {
+        videoColorProcessor.setHueAdjustmentDegrees(hueDegrees)
+        playbackControlPrefs.edit()
+            .putFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, videoColorProcessor.getHueAdjustmentDegrees())
+            .apply()
+        applyVideoColorEffects()
+    }
+
+    fun getHueAdjustmentDegrees(): Float = videoColorProcessor.getHueAdjustmentDegrees()
+
+    fun setBrightnessProgress(progress: Int) {
+        videoColorProcessor.setBrightnessAdjustment(brightnessProgressToAdjustment(progress))
+        playbackControlPrefs.edit()
+            .putInt(
+                PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
+                brightnessAdjustmentToProgress(videoColorProcessor.getBrightnessAdjustment())
+            )
+            .apply()
+        applyVideoColorEffects()
+    }
+
+    fun getBrightnessProgress(): Int =
+        brightnessAdjustmentToProgress(videoColorProcessor.getBrightnessAdjustment())
+
+    fun getBrightnessPercentOffset(): Int =
+        ((getBrightnessProgress() - DEFAULT_BRIGHTNESS_PROGRESS) * 100f / DEFAULT_BRIGHTNESS_PROGRESS).toInt()
+
+    fun getPlaybackSpeed(mediaType: MediaType?): Float =
+        activePlayer(mediaType)?.playbackParameters?.speed ?: 1.0f
+
+    fun setPlaybackSpeed(mediaType: MediaType?, speed: Float) {
+        activePlayer(mediaType)?.setPlaybackSpeed(speed)
+    }
+
     /** Returns true if any media (video or audio) is currently playing. */
     fun isMediaPlaying(): Boolean =
         exoPlayer?.isPlaying == true || audioServiceController?.player?.isPlaying == true
@@ -155,6 +207,9 @@ class StandaloneViewManager(
         exoPlayer?.pause()
         audioServiceController?.player?.pause()
     }
+
+    private fun activePlayer(mediaType: MediaType?): Player? =
+        if (mediaType == MediaType.AUDIO) audioServiceController?.player else exoPlayer
 
     fun show(mediaFile: MediaFile, mediaType: MediaType, onVideoReady: ((PlayerView) -> Unit)? = null) {
         Timber.d("StandaloneViewManager: showing $mediaType — ${mediaFile.name}")
@@ -254,6 +309,7 @@ class StandaloneViewManager(
         val player = ExoPlayer.Builder(activity).build()
         exoPlayer = player
         binding.playerView.player = player
+        applyVideoColorEffects()
         player.addListener(createPlayerErrorListener())
         audioFocusManager = AudioFocusManager(activity) { isPermanent ->
             if (isPermanent) player.stop() else player.pause()
@@ -271,6 +327,23 @@ class StandaloneViewManager(
         acquireWakeLock()
         onVideoReady?.invoke(binding.playerView)
     }
+
+    private fun applyVideoColorEffects() {
+        // Standalone mode owns a separate ExoPlayer instance, so the full color chain must be
+        // restored after every player recreation to keep Control dialog and gestures consistent.
+        exoPlayer?.setVideoEffects(
+            listOfNotNull(
+                videoColorProcessor.buildHueEffect(),
+                videoColorProcessor.buildBrightnessEffect()
+            )
+        )
+    }
+
+    private fun brightnessProgressToAdjustment(progress: Int): Float =
+        ((progress.coerceIn(0, 100) - DEFAULT_BRIGHTNESS_PROGRESS) / DEFAULT_BRIGHTNESS_PROGRESS.toFloat())
+
+    private fun brightnessAdjustmentToProgress(adjustment: Float): Int =
+        ((adjustment.coerceIn(-1f, 1f) * DEFAULT_BRIGHTNESS_PROGRESS) + DEFAULT_BRIGHTNESS_PROGRESS).toInt()
 
     // ── Audio ───────────────────────────────────────────────────────────────
 
@@ -454,10 +527,6 @@ class StandaloneViewManager(
         } catch (e: Exception) {
             Timber.e(e, "StandaloneViewManager: Failed to save position")
         }
-    }
-
-    private companion object {
-        const val POSITION_SAVE_INTERVAL_MS = 5_000L
     }
 
     // ── Factory methods ──────────────────────────────────────────────────────

@@ -4,8 +4,10 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?attr/colorControlNormal">
+    <!-- Hollow squares (evenOdd) to distinguish from ic_select_all filled squares -->
     <path
+        android:fillType="evenOdd"
         android:fillColor="@color/white"
-        android:pathData="M3,3v8h8V3H3zM9,9H5V5h4V9zM3,13v8h8v-8H3zM9,19H5v-4h4V19zM13,3v8h8V3H13zM19,9h-4V5h4V9zM13,13v8h8v-8H13zM19,19h-4v-4h4V19z"/>
+        android:pathData="M3 3h8v8H3V3zm2 2v4h4V5H5zM13 3h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zM13 13h8v8h-8v-8zm2 2v4h4v-4h-4z"/>
 </vector>
 

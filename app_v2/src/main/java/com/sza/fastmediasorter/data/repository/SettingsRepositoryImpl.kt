@@ -171,6 +171,11 @@ class SettingsRepositoryImpl @Inject constructor(
 
         // Compact elements mode (0.5x scale)
         private val KEY_USE_COMPACT_ELEMENTS = booleanPreferencesKey("use_compact_elements")
+
+        // Video frame snapshot destination resource ID (Save Frame feature)
+        private val KEY_VIDEO_SNAPSHOT_RESOURCE_ID = longPreferencesKey("video_snapshot_resource_id")
+        // Video frame snapshot file format ("PNG" or "JPG")
+        private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -350,7 +355,15 @@ class SettingsRepositoryImpl @Inject constructor(
                     lastSelectedLocalFolder = preferences[KEY_LAST_SELECTED_LOCAL_FOLDER],
 
                     // Compact elements mode
-                    useCompactElements = preferences[KEY_USE_COMPACT_ELEMENTS] ?: false
+                    useCompactElements = preferences[KEY_USE_COMPACT_ELEMENTS] ?: false,
+
+                    // Video frame snapshot destination
+                    videoSnapshotResourceId = preferences[KEY_VIDEO_SNAPSHOT_RESOURCE_ID],
+
+                    // Video frame snapshot format (default JPG)
+                        videoSnapshotFormat = preferences[KEY_VIDEO_SNAPSHOT_FORMAT]
+                            ?.takeIf { it == "PNG" || it == "JPG" }
+                            ?: "JPG"
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -539,6 +552,16 @@ class SettingsRepositoryImpl @Inject constructor(
 
             // Compact elements mode
             preferences[KEY_USE_COMPACT_ELEMENTS] = settings.useCompactElements
+
+            // Video frame snapshot destination
+            if (settings.videoSnapshotResourceId != null) {
+                preferences[KEY_VIDEO_SNAPSHOT_RESOURCE_ID] = settings.videoSnapshotResourceId
+            } else {
+                preferences.remove(KEY_VIDEO_SNAPSHOT_RESOURCE_ID)
+            }
+
+            // Video frame snapshot format — always present with "PNG" default
+            preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
         }
     }
 

@@ -275,7 +275,8 @@
             android:layout_height="wrap_content"
             android:hint="@string/folder_path"
             app:helperText="@string/folder_path_hint"
-            app:helperTextEnabled="true">
+            app:helperTextEnabled="true"
+            app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etManualPath"
@@ -295,7 +296,7 @@
             android:text="@string/validate_and_select"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_medium"
-            app:icon="@android:drawable/ic_menu_search" />
+            app:icon="@drawable/ic_search" />
 
         <!-- Divider -->
         <View
@@ -319,7 +320,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/browse_with_system_picker"
-            app:icon="@android:drawable/ic_menu_search" />
+            app:icon="@drawable/ic_search" />
 
     </LinearLayout>
 

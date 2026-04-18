@@ -6,6 +6,7 @@
 - **Action**: Ask clarifying questions. Expand and refine the task.
 - **Output**: Detailed task description in **RUSSIAN** inside a file in the `dev/` directory.
 - **Gate**: DO NOT proceed until the task is perfectly clarified and aligned with the user.
+- **UI/UX Gate**: For any user-facing change, explicitly enumerate all ambiguous UI decisions before continuing. Minimum checklist: placement per orientation, direct button vs overflow vs top menu, visibility predicates by media/file type, action priority, hidden vs disabled behavior, labels/icons/tooltips/help text, empty/error/loading states, confirmation/overwrite/fallback behavior, and accessibility. If any item is unresolved, implementation is blocked.
 
 ### 8.1 RESEARCH PHASE (Исследование)
 - **Action**: Analyze current "AS-IS" state. Launch multiple subagents if needed.
@@ -17,6 +18,7 @@
 - **Focus**: What to improve, fix, and add. Data flow, ADRs, testing requirements, API contracts.
 - **Output**: Design document in `dev/` directory in **RUSSIAN**.
 - **Gate**: Wait for human REVIEW and confirmation.
+- **UI/UX Deliverable**: For UI tasks, include a decision table with approved behavior for portrait, landscape, overflow, visibility, fallback, and accessibility. Missing decisions keep the task blocked.
 
 ### 8.3 PLANNING PHASE (Планирование)
 - **Action**: Break down the approved design into an execution plan (sequence, priorities). All planning artifacts MUST be in **ENGLISH**.

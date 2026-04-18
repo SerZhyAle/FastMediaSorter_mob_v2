@@ -132,7 +132,11 @@ data class BackupSettings(
     val dynamicBackgroundExtension: Boolean = false,
     // X.11: Background thumbnail pre-generation
     val enableThumbnailPreload: Boolean = false,
-    val thumbnailPreloadWifiOnly: Boolean = true
+    val thumbnailPreloadWifiOnly: Boolean = true,
+    // Video frame snapshot destination resource ID
+    val videoSnapshotResourceId: Long? = null,
+    // Video frame snapshot format: "PNG" (default) or "JPG"
+    val videoSnapshotFormat: String = "JPG"
 )
 
 /**

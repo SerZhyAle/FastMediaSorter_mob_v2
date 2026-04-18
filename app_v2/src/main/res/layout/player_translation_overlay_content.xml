@@ -31,7 +31,7 @@
                 android:layout_alignParentTop="true"
                 android:layout_margin="@dimen/activity_player_unified_btnCloseTranslation_layout_margin"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:src="@drawable/ic_cancel"
                 app:tint="#FFFFFF"
                 android:contentDescription="@string/close" />
 

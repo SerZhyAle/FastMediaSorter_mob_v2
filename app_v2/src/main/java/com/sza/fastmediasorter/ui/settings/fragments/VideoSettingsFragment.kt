@@ -111,6 +111,7 @@ class VideoSettingsFragment : Fragment() {
         }
 
         setupDefaultPlayerButton()
+        setupSnapshotResourcePicker()
     }
 
     override fun onResume() {
@@ -128,6 +129,47 @@ class VideoSettingsFragment : Fragment() {
         )
         binding.btnSetDefaultVideoPlayer.setOnClickListener {
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "video/*")
+        }
+    }
+
+    private fun setupSnapshotResourcePicker() {
+        // Open destination-only resource picker
+        binding.btnSelectSnapshotResource.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog(
+                context = requireContext(),
+                lifecycleOwner = viewLifecycleOwner,
+                getDestinationsUseCase = viewModel.getDestinationsUseCase,
+                currentSelection = viewModel.settings.value.videoSnapshotResourceId,
+                title = getString(R.string.select_snapshot_destination),
+                allowClear = true,
+                onResourceSelected = { resource ->
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(videoSnapshotResourceId = resource?.id))
+                }
+            ).show()
+        }
+
+        binding.btnClearSnapshotResource.setOnClickListener {
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(videoSnapshotResourceId = null))
+        }
+
+        binding.iconHelpVideoSnapshot.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_video_snapshot_title,
+                R.string.tooltip_video_snapshot_message
+            )
+        }
+
+        // Frame format selector: PNG or JPG (85% quality)
+        // isUpdatingFromSettings guard prevents feedback loop when check() is called from observeData
+        binding.rgSnapshotFormat.setOnCheckedChangeListener { _, checkedId ->
+            if (!isUpdatingFromSettings) {
+                val format = if (checkedId == R.id.rbSnapshotJpg) "JPG" else "PNG"
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(videoSnapshotFormat = format))
+            }
         }
     }
 
@@ -154,7 +196,25 @@ class VideoSettingsFragment : Fragment() {
                     if (binding.etVideoSizeMax.text.toString() != maxKb.toString()) {
                         binding.etVideoSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
                     }
-                    
+
+                    // Video snapshot resource: show name or "not selected" hint
+                    if (settings.videoSnapshotResourceId != null) {
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            val resource = viewModel.resourceRepository.getResourceById(settings.videoSnapshotResourceId)
+                            binding.tvSelectedSnapshotResource.text = resource?.name
+                                ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
+                        }
+                        binding.btnClearSnapshotResource.visibility = android.view.View.VISIBLE
+                    } else {
+                        binding.tvSelectedSnapshotResource.setText(com.sza.fastmediasorter.R.string.video_snapshot_resource_not_set)
+                        binding.btnClearSnapshotResource.visibility = android.view.View.GONE
+                    }
+
+                    // Snapshot format radio button: reflects videoSnapshotFormat setting
+                    binding.rgSnapshotFormat.check(
+                        if (settings.videoSnapshotFormat == "JPG") R.id.rbSnapshotJpg else R.id.rbSnapshotPng
+                    )
+
                     isUpdatingFromSettings = false
                 }
             }

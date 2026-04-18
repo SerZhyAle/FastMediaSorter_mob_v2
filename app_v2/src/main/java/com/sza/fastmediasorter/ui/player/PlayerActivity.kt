@@ -184,6 +184,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var printManager: com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
     internal lateinit var castMediaManager: com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
+    internal lateinit var saveVideoFrameManager: com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
 
     internal val googleSignInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -347,6 +348,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     @Inject
     lateinit var cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+
+    @Inject
+    lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 
     @Inject
     lateinit var backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager
@@ -823,7 +827,23 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             Toast.makeText(this, getString(R.string.file_info_unavailable), Toast.LENGTH_SHORT).show()
             return
         }
-        dialogHelper.showFileInfo(currentFile)
+        // Enrich with live ExoPlayer data — MediaFile from network listing has no duration/dimensions.
+        // ExoPlayer already parsed the container while streaming, so use its values directly.
+        val player = _videoPlayerManager?.getPlayer()
+        val exoDuration = player?.duration?.takeIf { it > 0 }
+        val exoWidth = player?.videoSize?.width?.takeIf { it > 0 }
+        val exoHeight = player?.videoSize?.height?.takeIf { it > 0 }
+        val enrichedFile = if (exoDuration != null || exoWidth != null) {
+            currentFile.copy(
+                duration = exoDuration ?: currentFile.duration,
+                width = exoWidth ?: currentFile.width,
+                height = exoHeight ?: currentFile.height
+            )
+        } else {
+            currentFile
+        }
+        Timber.d("showFileInfo: exoDuration=$exoDuration, exoSize=${exoWidth}x${exoHeight}")
+        dialogHelper.showFileInfo(enrichedFile)
     }
     
     internal fun isAnimatedImagePath(path: String): Boolean {
@@ -986,7 +1006,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     internal fun updateTrackButtonsVisibility() {
-        exoPlayerControlsManager.updateTrackButtonsVisibility()
+        exoPlayerControlsManager.updateTrackButtonsVisibility(
+            viewModel.state.value.currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.VIDEO ||
+                viewModel.state.value.currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.AUDIO
+        )
     }
 
     internal fun prefetchNextAudio() {

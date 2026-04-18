@@ -430,7 +430,11 @@ class BrowseDialogHelper(
         )
     }
     
-    fun showCloudAuthenticationDialog(provider: com.sza.fastmediasorter.data.cloud.CloudProvider, resourceName: String) {
+    fun showCloudAuthenticationDialog(
+        provider: com.sza.fastmediasorter.data.cloud.CloudProvider,
+        resourceName: String,
+        onRemoveResource: () -> Unit = {}
+    ) {
         val providerName = when (provider) {
             com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE -> "Google Drive"
             com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX -> "Dropbox"
@@ -439,13 +443,16 @@ class BrowseDialogHelper(
         
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.authentication_required))
-            .setMessage(activity.getString(R.string.cloud_auth_dialog_message, resourceName))
+            .setMessage(activity.getString(R.string.cloud_auth_dialog_message, resourceName, providerName))
             .setPositiveButton(activity.getString(R.string.sign_in_now)) { _, _ ->
                 callbacks.onCloudSignInRequested(provider)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .setNeutralButton(activity.getString(R.string.copy_error)) { _, _ ->
-                copyToClipboard("$providerName authentication required for $resourceName")
+            // Allows removing orphaned cloud resources that lost authentication (e.g. from a
+            // previous installation or after revoked OAuth tokens). lastBrowseDate is already
+            // cleared in BrowseLoadingAuxManager, so this simply closes the screen.
+            .setNeutralButton(activity.getString(R.string.remove_resource)) { _, _ ->
+                onRemoveResource()
             }
             .show()
     }

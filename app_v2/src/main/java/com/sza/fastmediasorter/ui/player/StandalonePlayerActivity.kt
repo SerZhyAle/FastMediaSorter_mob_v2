@@ -163,6 +163,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var pipManager: PictureInPictureManager? = null
     private lateinit var lifecycleManager: StandalonePlayerLifecycleManager
     private var videoControlsManager: StandaloneVideoControlsManager? = null
+    private var standaloneTrackSelectionManager: VideoTrackSelectionManager? = null
     private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
     private var playerSettingsManager: StandalonePlayerSettingsManager? = null
     private var fullscreenManager: StandaloneFullscreenManager? = null
@@ -321,10 +322,31 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         fullscreenManager?.exitFullscreen()
         fullscreenManager = null
         videoControlsManager = null
+        standaloneTrackSelectionManager = null
         videoTouchDelegate = null
         playerSettingsManager = null
         viewManager.release()
         super.onDestroy()
+    }
+
+    internal fun standaloneViewManager(): StandaloneViewManager = viewManager
+
+    internal fun standaloneTrackSelectionManager(): VideoTrackSelectionManager? =
+        standaloneTrackSelectionManager
+
+    internal fun currentMediaType(): MediaType? = viewModel.state.value.mediaType
+
+    internal fun showPlaybackControlDialog() {
+        if (isFinishing || isDestroyed || !::viewManager.isInitialized) return
+        val currentType = currentMediaType()
+        if (currentType != MediaType.VIDEO && currentType != MediaType.AUDIO) return
+        val fragmentManager = supportFragmentManager
+        if (fragmentManager.isStateSaved) return
+        if (fragmentManager.findFragmentByTag(StandalonePlaybackControlDialogFragment.TAG) != null) return
+        StandalonePlaybackControlDialogFragment().show(
+            fragmentManager,
+            StandalonePlaybackControlDialogFragment.TAG
+        )
     }
 
     override fun onUserLeaveHint() {
@@ -836,8 +858,21 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     // ── Video Controls Setup ─────────────────────────────────────────────
 
+    private fun setupPlaybackControls(pv: androidx.media3.ui.PlayerView) {
+        val controlsManager = StandaloneVideoControlsManager(
+            playerView = pv,
+            callback = object : StandaloneVideoControlsManager.StandaloneVideoControlsCallback {
+                override fun showPlaybackControlDialog() = this@StandalonePlayerActivity.showPlaybackControlDialog()
+            }
+        )
+        videoControlsManager = controlsManager
+        controlsManager.setupVideoControls()
+    }
+
     private fun setupVideoControls(pv: androidx.media3.ui.PlayerView) {
         if (!BuildConfig.SUPPORT_VIDEO) return
+
+        setupPlaybackControls(pv)
 
         val fsManager = StandaloneFullscreenManager(this)
         fullscreenManager = fsManager
@@ -847,6 +882,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             getPlayer = { viewManager.getExoPlayer() },
             getPlayerView = { pv }
         )
+        standaloneTrackSelectionManager = trackManager
 
         val settingsManager = StandalonePlayerSettingsManager(
             activity = this,
@@ -857,16 +893,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         )
         playerSettingsManager = settingsManager
 
-        val controlsManager = StandaloneVideoControlsManager(
-            playerView = pv,
-            callback = object : StandaloneVideoControlsManager.StandaloneVideoControlsCallback {
-                override fun showPlaybackSpeedDialog() = settingsManager.showPlaybackSpeedDialog()
-                override fun showAudioTrackDialog() = settingsManager.showAudioTrackDialog()
-                override fun showSubtitleTrackDialog() = settingsManager.showSubtitleTrackDialog()
-            }
-        )
-        videoControlsManager = controlsManager
-        controlsManager.setupVideoControls()
+        val controlsManager = videoControlsManager ?: return
 
         // Detect track availability once media is ready via a listener
         viewManager.getExoPlayer()?.addListener(object : androidx.media3.common.Player.Listener {
@@ -881,7 +908,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val touchDelegate = StandaloneVideoTouchDelegate(
             activity = this,
             playerView = pv,
-            rootView = binding.root
+            rootView = binding.root,
+            getBrightnessProgress = { viewManager.getBrightnessProgress() },
+            setBrightnessProgress = { progress -> viewManager.setBrightnessProgress(progress) },
+            getBrightnessPercentOffset = { viewManager.getBrightnessPercentOffset() }
         )
         touchDelegate.attachIndicator(binding.tvVideoGestureIndicator)
         videoTouchDelegate = touchDelegate
@@ -935,6 +965,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         val onVideoReady: ((androidx.media3.ui.PlayerView) -> Unit)? =
                             if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
                         viewManager.show(file, type, onVideoReady)
+                        if (type == MediaType.AUDIO) {
+                            // Standalone audio uses the same PlayerView controller overlay, so wire
+                            // Control explicitly even though it does not go through the video setup path.
+                            setupPlaybackControls(binding.playerView)
+                        }
                         contentLoaded = true
                         // EpubViewerManager unconditionally shows btnTranslateEpubCmd; enforce orientation guard.
                         if (type == MediaType.EPUB) updateEpubTranslatorVisibility()

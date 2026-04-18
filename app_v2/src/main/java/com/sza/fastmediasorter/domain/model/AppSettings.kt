@@ -142,7 +142,14 @@ data class AppSettings(
     val lastSelectedLocalFolder: String? = null,
 
     // Compact elements mode (0.5x scale)
-    val useCompactElements: Boolean = false
+    val useCompactElements: Boolean = false,
+
+    // Video frame snapshot destination (Save Frame command in player).
+    // Stores the destination resource ID; null = fallback to Downloads.
+    val videoSnapshotResourceId: Long? = null,
+
+    // Video frame snapshot file format: "PNG" (lossless, default) or "JPG" (85% quality, smaller).
+    val videoSnapshotFormat: String = "JPG"
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

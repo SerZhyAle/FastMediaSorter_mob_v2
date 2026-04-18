@@ -57,7 +57,7 @@
     <string name="copied_n_files">Скопійовано %1$d файлів</string>
     <string name="copied_n_of_m_files">Скопійовано %1$d з %2$d файлів</string>
     <string name="copy_failed">Помилка копіювання: %1$s</string>
-    <string name="no_destinations_available">Немає тек для сортування</string>
+    <string name="no_destinations_available">Ресурси-отримувачі не налаштовано</string>
 
     <!-- Move Dialog -->
     <string name="moving_files">Переміщення файлів</string>
@@ -142,6 +142,9 @@
     <string name="video_bitrate_label">Бітрейт: %1$s Мбіт/с</string>
     <string name="video_framerate_label">Частота кадрів: %1$.2f к/с</string>
     <string name="video_rotation_label">Поворот: %1$d°</string>
+    <string name="video_aspect_ratio_label">Співвідношення сторін: %1$s</string>
+    <string name="video_audio_channels_label">Аудіо канали: %1$s</string>
+    <string name="video_audio_bitrate_label">Аудіо бітрейт: %1$s</string>
     <string name="exif_camera_model_label">Камера: %1$s</string>
     <string name="exif_iso_label">ISO: %1$s</string>
     <string name="exif_aperture_label">Діафрагма: %1$s</string>
@@ -181,6 +184,8 @@
     <string name="pdf_creation_date_label">Створено: %1$s</string>
     <string name="pdf_mod_date_label">Змінено: %1$s</string>
     <string name="audio_channels_label">Каналів: %1$s</string>
+    <string name="audio_channels_mono">Моно</string>
+    <string name="audio_channels_stereo">Стерео</string>
     <string name="audio_bitrate_label">Аудіо бітрейт: %1$s</string>
     <string name="audio_duration_label">Тривалість: %1$s</string>
 
@@ -774,6 +779,22 @@
     <string name="tooltip_slideshow_music_message">При увімкненні музичні файли з обраного ресурсу будуть відтворюватися у випадковому порядку під час слайдшоу зображень/GIF. Виберіть ресурс з вашою музичною колекцією.</string>
     <string name="clear_selection">Очистити вибір</string>
     <string name="no_resources_available">Немає доступних ресурсів</string>
+
+    <!-- Збереження кадру відео (Save Frame) -->
+    <string name="menu_save_frame">Зберегти кадр</string>
+    <string name="video_snapshot_resource_label">Ресурс для збереження кадрів</string>
+    <string name="video_snapshot_resource_not_set">Не вибрано (зберігається в Downloads)</string>
+    <string name="select_snapshot_destination">Вибрати ресурс-отримувач</string>
+    <string name="tooltip_video_snapshot_title">Призначення для збереження кадру</string>
+    <string name="tooltip_video_snapshot_message">Під час натискання «Зберегти кадр» у плеєрі поточний кадр зберігається у вибраному форматі: PNG або JPG. Для JPG використовується якість 85%, щоб зменшити розмір файла. Якщо ресурс-отримувач не вибрано, кадр зберігається в Downloads.\n\nПрацює для будь-якого джерела відео: локального, мережевого (SMB/SFTP/FTP) та хмарного.</string>
+    <string name="save_frame_saved_to_resource">Кадр збережено в: %s</string>
+    <string name="save_frame_saved_to_downloads">Кадр збережено в Downloads</string>
+    <string name="save_frame_error">Не вдалося зберегти кадр</string>
+    <string name="save_frame_drm_error">Захищений контент не може бути збережений</string>
+    <string name="save_frame_no_video">Відео не відтворюється</string>
+    <string name="snapshot_format_label">Тип файлу кадру:</string>
+    <string name="snapshot_format_png">PNG</string>
+    <string name="snapshot_format_jpg">JPG</string>
 
     <string name="show_text_line_numbers">Нумерація рядків</string>
     <string name="tooltip_line_numbers_title">Нумерація рядків</string>
@@ -1881,6 +1902,20 @@
     <string name="cd_audio_track">Аудіодоріжка</string>
     <string name="cd_subtitle_track">Субтитри</string>
     <string name="subtitle_track">Субтитри</string>
+    <string name="playback_control_tab_volume">Гучність</string>
+    <string name="playback_control_tab_audio">Аудіо</string>
+    <string name="playback_control_tab_subtitles">Субтит.</string>
+    <string name="playback_control_tab_hue">HUE</string>
+    <string name="playback_control_tab_brightness">Світло</string>
+    <string name="playback_control_tab_speed">Швидкість</string>
+    <string name="playback_control_mute">Без звуку</string>
+    <string name="playback_control_unmute">Повернути звук</string>
+    <string name="playback_control_no_audio_tracks">Аудіодоріжки недоступні</string>
+    <string name="playback_control_no_subtitles">Субтитри недоступні</string>
+    <string name="playback_control_done">Готово</string>
+    <string name="playback_control_hue_value">HUE: %1$+d°</string>
+    <string name="playback_control_brightness_value">Яскравість: %1$+d%%</string>
+    <string name="playback_control_speed_value">Швидкість: %1$.2fx</string>
     <string name="success_count">Успішно: %d</string>
     <string name="table_of_contents">Зміст</string>
     <string name="technical_details">Технічні подробиці</string>
@@ -2312,11 +2347,12 @@
     <string name="wear_sync_success">Надіслано %d джерел на годинник</string>
 
     <!-- 3D відео / Режим стерео (v2.63) -->
-    <string name="playback_settings_3d_tab">3D Відео</string>
+    <string name="playback_settings_3d_tab">3D</string>
     <string name="playback_settings_3d_auto">Автовизначення</string>
     <string name="playback_settings_3d_sbs">Пліч-о-пліч (SBS)</string>
     <string name="playback_settings_3d_ou">Зверху-знизу (OU) — незабаром</string>
     <string name="playback_settings_3d_mono">Моно (вимкнено)</string>
     <string name="playback_settings_3d_detected">Визначено автоматично: %s</string>
+    <string name="player_3d_detected_toast">Виявлено 3D-відео. Скористайтеся «Інформація про файл», щоб відкрити його у зовнішньому VR-плеєрі.</string>
     <string name="playback_settings_3d_hint">Для кращого ефекту використовуйте VR-окуляри (Google Cardboard тощо)</string>
 </resources>

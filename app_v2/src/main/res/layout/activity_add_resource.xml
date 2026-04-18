@@ -95,9 +95,9 @@
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/scan_button" app:icon="@android:drawable/ic_menu_search" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@android:drawable/ic_input_add" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
 
         </LinearLayout>
 
@@ -127,7 +127,7 @@
         </LinearLayout>
 
         <!-- PIN Code (Optional) -->
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilLocalPinCode" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:helperText="@string/resource_pin_code_hint" app:helperTextEnabled="true" app:endIconMode="password_toggle" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilLocalPinCode" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:helperText="@string/resource_pin_code_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etLocalPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
 
@@ -146,7 +146,7 @@
 
                 <com.google.android.material.button.MaterialButton android:id="@+id/btnScanNetwork" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_network_button" android:layout_marginEnd="@dimen/margin_small" />
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbServer" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:minHeight="64dp" android:hint="@string/smb_server" app:helperText="@string/smb_server_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbServer" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:minHeight="64dp" android:hint="@string/smb_server" app:helperText="@string/smb_server_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.sza.fastmediasorter.ui.addresource.widgets.IpAddressEditText android:id="@+id/etSmbServer" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
@@ -172,18 +172,18 @@
             </LinearLayout>
 
             <!-- Test Connection button -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_test_connection" app:icon="@android:drawable/ic_menu_info_details" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- Share Name and Resource Name in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbShareName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_share_name" app:helperText="@string/smb_share_name_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbShareName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_share_name" app:helperText="@string/smb_share_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbShareName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbResourceName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbResourceName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
@@ -258,7 +258,7 @@
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                 </LinearLayout>
 
-                <ImageButton android:id="@+id/btnSmbHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@android:drawable/ic_menu_help" app:tint="?attr/colorPrimary" />
+                <ImageButton android:id="@+id/btnSmbHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
 
             </LinearLayout>
 
@@ -337,18 +337,18 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Add Resource button on separate row -->
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.MaterialComponents.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_add_manual_resource" app:icon="@android:drawable/ic_input_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.MaterialComponents.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_add_manual_resource" app:icon="@drawable/ic_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- Domain and Port in one row (optional, collapsed by default) -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbDomain" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_domain" app:helperText="@string/smb_domain_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbDomain" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_domain" app:helperText="@string/smb_domain_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPort" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/smb_port" app:helperText="@string/smb_port_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPort" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/smb_port" app:helperText="@string/smb_port_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="@string/default_smb_port" android:maxLines="1" />
 
@@ -387,7 +387,7 @@
             <!-- Host and Port in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHost" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/sftp_host" app:helperText="@string/sftp_host_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHost" android:layout_width="@dimen/resource_server_width" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/sftp_host" app:helperText="@string/sftp_host_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.sza.fastmediasorter.ui.addresource.widgets.IpAddressEditText android:id="@+id/etSftpHost" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
@@ -433,18 +433,18 @@
                 <!-- SSH Private Key Input with Load Button -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPrivateKey" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/sftp_private_key" app:helperText="@string/sftp_private_key_hint" app:helperTextEnabled="true" android:layout_marginEnd="@dimen/margin_small">
+                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPrivateKey" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/sftp_private_key" app:helperText="@string/sftp_private_key_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" android:layout_marginEnd="@dimen/margin_small">
 
                         <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPrivateKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textMultiLine" android:minLines="3" android:maxLines="5" android:scrollbars="vertical" android:fontFamily="monospace" android:textSize="@dimen/text_size_small"/>
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sftp_load_key" app:icon="@android:drawable/ic_menu_upload"/>
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sftp_load_key" app:icon="@drawable/ic_cloud_upload"/>
 
                 </LinearLayout>
 
                 <!-- SSH Key Passphrase (Optional) -->
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_key_passphrase" app:helperText="@string/sftp_key_passphrase_hint" app:helperTextEnabled="true" app:endIconMode="password_toggle" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_key_passphrase" app:helperText="@string/sftp_key_passphrase_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxLines="1" />
 
@@ -455,13 +455,13 @@
             <!-- Remote Path and Resource Name in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPath" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/sftp_remote_path" app:helperText="@string/sftp_remote_path_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPath" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/sftp_remote_path" app:helperText="@string/sftp_remote_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.sza.fastmediasorter.ui.addresource.widgets.NetworkPathEditText android:id="@+id/etSftpPath" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpResourceName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true">
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpResourceName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
 
@@ -530,7 +530,7 @@
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                 </LinearLayout>
 
-                <ImageButton android:id="@+id/btnSftpHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@android:drawable/ic_menu_help" app:tint="?attr/colorPrimary" />
+                <ImageButton android:id="@+id/btnSftpHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
 
             </LinearLayout>
 
@@ -574,9 +574,9 @@
             <!-- Test Connection and Add Resource buttons -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sftp_test_connection" app:icon="@android:drawable/ic_menu_info_details" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/sftp_add_resource" app:icon="@android:drawable/ic_input_add" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
 
             </LinearLayout>
 

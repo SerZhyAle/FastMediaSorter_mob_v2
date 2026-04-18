@@ -586,6 +586,7 @@ class PlayerMediaLoaderManager(
         binding.playerView.player = player
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         binding.progressBar.isVisible = false
+        activity.updateTrackButtonsVisibility()
         Timber.d("PlayerMediaLoaderManager: service player bound to PlayerView")
     }
 

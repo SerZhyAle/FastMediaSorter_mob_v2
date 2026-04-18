@@ -2534,3 +2534,107 @@ Format: | datetime | file | target | description |
 | 2026-04-18 03:57:26 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Restructured spec into flavor/library/UI phases and documented why VR should use a separate activity instead of reusing PlayerActivity |
 | 2026-04-18 03:58:34 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Fixed malformed dependency section in VR spec and made rendering flow backend-agnostic via VrPlaybackEngine surface |
 | 2026-04-18 04:03:19 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Added shared contracts, flavor/publication matrix, and backend ADR criteria for VR specification |
+| 2026-04-18 04:11:17 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Rewrote VR/OpenXR spec into final implementation-grade structure with scope, architecture, ADRs, testing and implementation plan |
+| 2026-04-18 04:12:13 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Fixed markdown spacing and finalized implementation-grade VR/OpenXR specification formatting |
+| 2026-04-18 13:28:03 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Clarified 5 architectural gaps: vr=product flavor (not separate module), VrPlaybackEngine.prepare(surface) bootstrap order, Meta Horizon Store manifest, ADR-2 backend gate criteria (LibVLC arm64 pre-build), VrControlOverlayManager controller ray-cast input |
+| 2026-04-18 13:33:44 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Added dual-store distribution: Meta Horizon Store + Google Play (Android XR). Union Manifest strategy (required=false on all XR features). New section 3.3 Distribution Matrix. Updated manifest budget 60→80 lines, risk table, ADR-3, impl step 3. |
+| 2026-04-18 13:45:52 | `PLAN/tasks/` | `tasks/` | Created 6 tactical phase files: 00_OVERVIEW (dashboard), 01_foundation, 02_shared_contracts, 03_standard_cta, 04_vr_engine, 05_quality_release. Updated spec Section 13 with phase table + links. |
+| 2026-04-18 14:14:16 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Major spec update: stereo image viewing (SBS/OU photos) promoted to primary use-case; VrOpenXrRenderManager gets renderImage() path; VrStereoRenderer covers both video+image; 3DVR dialog covers both types; Goals updated; 16 manual test cases; feature descriptions updated EN/RU/UK; removed from Out of Scope; Wear OS excluded from vr APK; branding section added; build scripts + docs sections added |
+| 2026-04-18 14:36:52 | `PLAN/take_a_snapshot.md` | `spec` | Expanded snapshot-saving feature specification |
+| 2026-04-18 14:36:54 | `dev/take_a_snapshot_task_definition_ru.md` | `task-definition` | Added Russian task definition for video snapshot feature |
+| 2026-04-18 14:36:55 | `temp/take_a_snapshot_research.md` | `research` | Added research notes for video snapshot feature |
+| 2026-04-18 14:40:15 | `PLAN/take_a_snapshot.md` | `spec` | Fixed spec: restored sections 10.3+11, added flavor scope, remote video Snackbar behavior, unit test criteria |
+| 2026-04-18 14:43:09 | `PLAN/take_a_snapshot.md` | `spec` | Reworked frame capture: PixelCopy from PlayerView surface (any source), removed local-only restriction, added DRM/background risks |
+| 2026-04-18 14:50:22 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Added Section 5.9: stereoscopic screenshot — captureStereoSnapshot() in VrOpenXrRenderManager, VrStereoSnapshotManager, integration with SaveVideoFrameUseCase pipeline from take_a_snapshot.md |
+| 2026-04-18 14:58:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Added videoSnapshotResourceId: Long? field for Save Frame destination |
+| 2026-04-18 14:58:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Added KEY_VIDEO_SNAPSHOT_RESOURCE_ID DataStore key, read and write for videoSnapshotResourceId |
+| 2026-04-18 14:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `SaveVideoFrameManager` | NEW: TextureView.getBitmap() frame capture, PNG save to local destination resource or Downloads fallback |
+| 2026-04-18 14:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Added SAVE_FRAME(610) enum entry and VIDEO-only buildActiveCommands entry |
+| 2026-04-18 14:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Added onSaveFrameClicked() to CommandPanelCallback interface and routing in showOverflowMenu |
+| 2026-04-18 14:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Implemented onSaveFrameClicked() delegating to activity.saveVideoFrameManager |
+| 2026-04-18 14:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Added snapshot resource picker UI, observeData snapshot section, help icon |
+| 2026-04-18 14:58:36 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Added snapshot destination resource selector block with help icon |
+| 2026-04-18 14:58:36 | `app_v2/src/main/res/drawable/ic_save_frame.xml` | `ic_save_frame` | NEW: camera vector drawable for Save Frame command |
+| 2026-04-18 14:58:36 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `overflow_menu_player` | Added menu_save_frame item |
+| 2026-04-18 14:58:36 | `app_v2/src/main/res/values/strings.xml` | `strings` | Added Save Frame strings: menu_save_frame, video_snapshot_resource_*, save_frame_*, tooltip_video_snapshot_* |
+| 2026-04-18 14:58:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `SaveVideoFrameManager` | NEW: TextureView frame capture + PNG save to local destination resource or Downloads |
+| 2026-04-18 14:58:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/DestinationPickerDialog.kt` | `DestinationPickerDialog` | NEW: destination-only resource picker dialog (reuses dialog_resource_picker layout) |
+| 2026-04-18 14:58:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Added SAVE_FRAME(610) VIDEO-only overflow command |
+| 2026-04-18 14:58:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Added onSaveFrameClicked() to interface + overflow menu routing |
+| 2026-04-18 14:58:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Implemented onSaveFrameClicked() via saveVideoFrameManager |
+| 2026-04-18 14:58:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Added snapshot resource picker + observeData snapshot section |
+| 2026-04-18 14:58:57 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Added Save Frame destination resource selector UI block |
+| 2026-04-18 14:58:57 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Added Save Frame EN strings |
+| 2026-04-18 14:58:57 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | Added Save Frame RU strings |
+| 2026-04-18 14:58:57 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | Added Save Frame UK strings |
+| 2026-04-18 14:58:58 | `app_v2/src/main/res/drawable/ic_save_frame.xml` | `ic_save_frame` | NEW: camera vector drawable for Save Frame command |
+| 2026-04-18 14:58:58 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `overflow_menu_player` | Added menu_save_frame item |
+| 2026-04-18 15:04:08 | `PLAN/spec_openxr_3d_player.md` | `spec_openxr_3d_player` | Added Section 7a: full inventory of player commands and operations for VR — inherited (bar/overflow/nav), excluded by type, and 2 VR-specific overrides (Fullscreen, Save Frame) |
+| 2026-04-18 15:09:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Added videoSnapshotFormat: String = PNG field (Save Frame format setting) |
+| 2026-04-18 15:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Added KEY_VIDEO_SNAPSHOT_FORMAT, read/write videoSnapshotFormat (PNG/JPG) |
+| 2026-04-18 15:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData` | Added videoSnapshotFormat: String = PNG |
+| 2026-04-18 15:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | Map videoSnapshotFormat in toBackupSettings and toAppSettings |
+| 2026-04-18 15:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt` | `ExportSettingsUseCase` | Export videoSnapshotFormat to XML |
+| 2026-04-18 15:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `ImportSettingsUseCase` | Import videoSnapshotFormat from XML backup |
+| 2026-04-18 15:09:57 | `app_v2/src/main/res/values/strings.xml` | `strings EN` | Added snapshot_format_label/png/jpg strings |
+| 2026-04-18 15:09:57 | `app_v2/src/main/res/values-ru/strings.xml` | `strings RU` | Added snapshot_format_label/png/jpg strings |
+| 2026-04-18 15:09:57 | `app_v2/src/main/res/values-uk/strings.xml` | `strings UK` | Added snapshot_format_label/png/jpg strings |
+| 2026-04-18 15:09:57 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Added RadioGroup PNG/JPG format selector inside snapshot section |
+| 2026-04-18 15:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Wire rgSnapshotFormat RadioGroup: listener + observeData check state |
+| 2026-04-18 15:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `SaveVideoFrameManager` | Format-aware capture (PNG/JPG 85%), video-position filename, overwrite existing |
+| 2026-04-18 15:10:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Added KEY_VIDEO_SNAPSHOT_FORMAT, read/write videoSnapshotFormat PNG/JPG |
+| 2026-04-18 15:10:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData` | Added videoSnapshotFormat: String = PNG |
+| 2026-04-18 15:10:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | Map videoSnapshotFormat in toBackupSettings and toAppSettings |
+| 2026-04-18 15:10:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt` | `ExportSettingsUseCase` | Export videoSnapshotFormat to XML backup |
+| 2026-04-18 15:10:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `ImportSettingsUseCase` | Import videoSnapshotFormat from XML backup |
+| 2026-04-18 15:10:15 | `app_v2/src/main/res/values/strings.xml` | `strings EN/RU/UK` | Added snapshot_format_label, snapshot_format_png, snapshot_format_jpg strings |
+| 2026-04-18 15:10:15 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Added RadioGroup PNG/JPG format selector inside snapshot section |
+| 2026-04-18 15:10:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Wire rgSnapshotFormat RadioGroup: listener and observeData check state |
+| 2026-04-18 15:10:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `SaveVideoFrameManager` | Format-aware capture PNG/JPG 85%, video-position filename, overwrite existing files |
+| 2026-04-18 15:12:40 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Normalized videoSnapshotFormat read/write to JPG or PNG only |
+| 2026-04-18 15:12:40 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `ImportSettingsUseCase` | Normalize imported videoSnapshotFormat to JPG or PNG default |
+| 2026-04-18 15:12:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `SettingsViewModel` | Reset video snapshot destination and format in resetMediaSection |
+| 2026-04-18 15:12:40 | `app_v2/src/main/res/values/strings.xml` | `strings EN` | Removed duplicated Save Frame block and updated tooltip for PNG/JPG format |
+| 2026-04-18 15:12:40 | `app_v2/src/main/res/values-ru/strings.xml` | `strings RU` | Updated Save Frame tooltip for PNG/JPG format |
+| 2026-04-18 15:12:40 | `app_v2/src/main/res/values-uk/strings.xml` | `strings UK` | Updated Save Frame tooltip for PNG/JPG format |
+| 2026-04-18 15:21:48 | `app_v2/src/main/res/values/strings.xml` | `strings EN` | Removed duplicate no_destinations_available and unified destination-resource wording |
+| 2026-04-18 15:21:49 | `app_v2/src/main/res/values-ru/strings.xml` | `strings RU` | Removed duplicate no_destinations_available and unified destination-resource wording |
+| 2026-04-18 15:21:49 | `app_v2/src/main/res/values-uk/strings.xml` | `strings UK` | Removed duplicate no_destinations_available and unified destination-resource wording |
+| 2026-04-18 15:22:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `SaveVideoFrameManager` | Added missing androidx.lifecycle.lifecycleScope import for build fix |
+| 2026-04-18 15:40:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `SmbDataSource` | Fix: SMBRuntimeException(got interrupted) from SMBJ SequenceWindow now correctly treated as normal player-close interruption, not error |
+| 2026-04-18 15:47:07 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `fragment_settings_audio` | Fixed 5 toggler desc TextViews: text_size_small (14sp) -> toggler_desc_text_size (12sp) to enforce -2sp rule |
+| 2026-04-18 15:47:07 | `app_v2/src/main/res/layout/fragment_settings_images.xml` | `fragment_settings_images` | Fixed 6 toggler desc TextViews: text_size_small (14sp) -> toggler_desc_text_size (12sp) to enforce -2sp rule |
+| 2026-04-18 15:47:07 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `fragment_settings_documents` | Fixed 2 toggler desc TextViews: text_size_small (14sp) -> toggler_desc_text_size (12sp) to enforce -2sp rule |
+| 2026-04-18 15:47:07 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Fixed 2 toggler desc TextViews: text_size_small (14sp) -> toggler_desc_text_size (12sp) to enforce -2sp rule |
+| 2026-04-18 15:49:49 | `docs/ARCHITECTURE.md` | `ARCHITECTURE.md` | Added UI Patterns: Trigger Row section (Pattern A switch, Pattern B checkbox) with dimen reference table |
+| 2026-04-18 15:49:49 | `.github/copilot-instructions.md` | `copilot-instructions` | Added UI_TRIGGER_ROW strict constraint enforcing canonical trigger row patterns app-wide |
+| 2026-04-18 15:54:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Made Save Frame a low-priority bar-capable video command instead of overflow-only |
+| 2026-04-18 15:54:17 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Added btnSaveFrameCmd to player command bar center group |
+| 2026-04-18 15:54:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `PlayerBindingSafeViews` | Added safe binding accessor for btnSaveFrameCmd |
+| 2026-04-18 15:54:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Wired Save Frame command bar button and enabled it for video in portrait and landscape |
+| 2026-04-18 16:00:24 | `.github/copilot-instructions.md` | `copilot-instructions` | Added mandatory UI ambiguity gate and /ui-clarify trigger before implementation |
+| 2026-04-18 16:00:24 | `CLAUDE.md` | `CLAUDE.md` | Added mandatory UI ambiguity gate and /ui-clarify trigger before implementation |
+| 2026-04-18 16:00:24 | `AGENTS.md` | `AGENTS.md` | Added UI ambiguity gate to prevent implementation before UI decisions are resolved |
+| 2026-04-18 16:00:24 | `dev/AGENT_WORKFLOW.md` | `AGENT_WORKFLOW` | Added UI/UX clarification gate and required decision table before implementation |
+| 2026-04-18 16:00:24 | `.github/prompts/ui-clarify.prompt.md` | `ui-clarify prompt` | Added mandatory prompt to enumerate and block unresolved UI ambiguities |
+| 2026-04-18 16:10:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt` | `BrowseLoadingAuxManager` | Clear lastBrowseDate when cloud auth fails to prevent orphaned resources from auto-reopening on next startup |
+| 2026-04-18 16:11:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper.showCloudAuthenticationDialog` | Fix provider name in message (not always Google); replace Copy Error button with Remove Resource |
+| 2026-04-18 16:11:00 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Add remove_resource string; fix cloud_auth_dialog_message to accept provider name as second arg |
+| 2026-04-18 16:14:59 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `btnSaveFrameCmd` | Add missing btnSaveFrameCmd to landscape layout — caused crash on PlayerActivity startup (Required view not found) |
+| 2026-04-18 17:23:43 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified (landscape)` | Add missing miniNowPlayingBar include — fix NowPlayingManager getting null miniBar on landscape orientation |
+| 2026-04-18 17:32:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity.setupViews` | Fix uninterpolated Timber log string: \ -> interpolated |
+| 2026-04-18 17:37:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/DestinationPickerDialog.kt` | `DestinationPickerDialog` | Added localOnly param: filters to ResourceType.LOCAL only, for snapshot destination picker |
+| 2026-04-18 17:37:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment.setupSnapshotResourcePicker` | Pass localOnly=true to DestinationPickerDialog to hide network/cloud resources |
+| 2026-04-18 17:46:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `SaveVideoFrameManager` | Universal frame save via FileOperationUseCase: supports all resource types (Local/SMB/SFTP/FTP/Cloud) |
+| 2026-04-18 17:46:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Inject fileOperationUseCase for SaveVideoFrameManager |
+| 2026-04-18 17:46:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Pass fileOperationUseCase to SaveVideoFrameManager constructor |
+| 2026-04-18 17:46:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/DestinationPickerDialog.kt` | `DestinationPickerDialog` | Reverted localOnly filter: all resource types now supported for frame save |
+| 2026-04-18 17:46:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Removed localOnly=true: all destination types now selectable for snapshot |
+| 2026-04-18 17:59:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Changed default videoSnapshotFormat from PNG to JPG |
+| 2026-04-18 17:59:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData` | Changed default videoSnapshotFormat from PNG to JPG |
+| 2026-04-18 17:59:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Changed videoSnapshotFormat fallback from PNG to JPG, accept both valid values |
+| 2026-04-18 18:08:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileInfoDialog.kt` | `FileInfoDialog` | Fix: duration 0:00 for SMB video — update tvVideoDuration/tvAudioDuration from async DetailedMediaInfo; add aspect ratio, audio channels/bitrate to video section |
+| 2026-04-18 18:08:19 | `app_v2/src/main/res/layout/dialog_file_info.xml` | `dialog_file_info` | Add tvVideoAspectRatio, tvVideoAudioChannels, tvVideoAudioBitrate views to video metadata section |
+| 2026-04-18 18:08:19 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add video_aspect_ratio_label, video_audio_channels_label, video_audio_bitrate_label, audio_channels_mono, audio_channels_stereo |
+| 2026-04-18 18:10:49 | `app_v2/src/main/res/layout-land/dialog_file_info.xml` | `dialog_file_info (land)` | Add tvVideoAspectRatio, tvVideoAudioChannels, tvVideoAudioBitrate — required for non-null ViewBinding |
+| 2026-04-18 18:17:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.showFileInfo` | Enrich MediaFile with live ExoPlayer duration/videoSize before opening FileInfoDialog (fixes empty metadata for SMB MP4 with moov at EOF) |

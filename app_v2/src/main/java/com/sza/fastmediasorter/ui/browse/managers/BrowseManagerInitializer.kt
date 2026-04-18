@@ -394,7 +394,15 @@ class BrowseManagerInitializer(
             anchorView = binding.layoutOperations,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
-            onShowCloudAuthDialog = { provider -> dialogHelper.showCloudAuthenticationDialog(provider, viewModel.state.value.resource?.name ?: "") },
+            onShowCloudAuthDialog = { provider ->
+                dialogHelper.showCloudAuthenticationDialog(
+                    provider,
+                    viewModel.state.value.resource?.name ?: "",
+                    // lastBrowseDate is already cleared in BrowseLoadingAuxManager,
+                    // so closing the screen is sufficient to break the auto-reopen loop.
+                    onRemoveResource = { activity.finish() }
+                )
+            },
             onUndoRequested = { viewModel.undoLastOperation() },
             getCurrentCloudProvider = { viewModel.state.value.resource?.cloudProvider }
         )
@@ -436,7 +444,13 @@ class BrowseManagerInitializer(
             resourceOpsMenuManager = resourceOpsMenuManager,
             permissionRequestLauncher = launcherManager.permissionRequestLauncher,
             playerActivityLauncher = launcherManager.playerActivityLauncher,
-            onShowCloudAuthDialog = { provider -> dialogHelper.showCloudAuthenticationDialog(provider, viewModel.state.value.resource?.name ?: "") },
+            onShowCloudAuthDialog = { provider ->
+                dialogHelper.showCloudAuthenticationDialog(
+                    provider,
+                    viewModel.state.value.resource?.name ?: "",
+                    onRemoveResource = { activity.finish() }
+                )
+            },
             skipAvailabilityCheck = isSkipAvailabilityCheck
         )
 

@@ -78,6 +78,7 @@ class CommandPanelController(
         fun onEpubReaderSettingsClicked()
         fun onEpubSearchAllClicked()
         fun onPrintClicked()
+        fun onSaveFrameClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -137,6 +138,10 @@ class CommandPanelController(
         
         safeViews.btnEditCmd.setOnClickListener {
             callback.onEditClicked()
+        }
+
+        safeViews.btnSaveFrameCmd.setOnClickListener {
+            callback.onSaveFrameClicked()
         }
         
         safeViews.btnUndoCmd.setOnClickListener {
@@ -328,6 +333,8 @@ class CommandPanelController(
             safeViews.btnCastCmd.isVisible = (isImage || isVideo) && isWifiConnected(binding.root.context)
             // Edit is visible for images (if writable) OR video (always, as it's controls)
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
+            // Save Frame is a direct video-only command in the command panel.
+            safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
 
             // Update button contentDescription based on file type
             if (isVideo) {
@@ -766,6 +773,7 @@ class CommandPanelController(
                 R.id.menu_epub_reader_settings -> callback.onEpubReaderSettingsClicked()
                 R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
                 R.id.menu_print -> callback.onPrintClicked()
+                R.id.menu_save_frame -> callback.onSaveFrameClicked()
             }
             true
         }
@@ -831,6 +839,7 @@ class CommandPanelController(
         safeViews.btnSearchYoutubeMusicCmd,
         safeViews.btnCastCmd,
         safeViews.btnEditCmd,
+        safeViews.btnSaveFrameCmd,
         safeViews.btnUndoCmd,
         safeViews.btnGoogleLensPdfCmd,
         safeViews.btnOcrPdfCmd,
@@ -859,6 +868,7 @@ class CommandPanelController(
         return when (cmd) {
             CommandPanelLayoutPlanner.PlayerCommand.RENAME -> safeViews.btnRenameCmd
             CommandPanelLayoutPlanner.PlayerCommand.EDIT -> safeViews.btnEditCmd
+            CommandPanelLayoutPlanner.PlayerCommand.SAVE_FRAME -> safeViews.btnSaveFrameCmd
             CommandPanelLayoutPlanner.PlayerCommand.UNDO -> safeViews.btnUndoCmd
             CommandPanelLayoutPlanner.PlayerCommand.CAST -> safeViews.btnCastCmd
             CommandPanelLayoutPlanner.PlayerCommand.LYRICS -> safeViews.btnLyricsCmd

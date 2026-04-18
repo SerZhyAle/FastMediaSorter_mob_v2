@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
 import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
+import com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
 import com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
 import com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
@@ -155,6 +156,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.imageTranslationManager = PlayerImageTranslationManager(activity = activity)
         activity.shareManager = PlayerShareManager(activity = activity)
         activity.printManager = DocumentPrintManager(activity = activity)
+        activity.saveVideoFrameManager = SaveVideoFrameManager(
+            activity = activity,
+            fileOperationUseCase = activity.fileOperationUseCase
+        )
         activity.eventHandler = PlayerEventHandler(activity = activity)
     }
 
@@ -463,9 +468,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             callback = object : ExoPlayerControlsManager.ExoPlayerControlsCallback {
                 override fun onPreviousFile() = activity.navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = activity.navigationManager.navigateNextFromControl()
-                override fun showPlaybackSpeedDialog() = activity.playerSettingsManager.showPlaybackSpeedDialog()
-                override fun showAudioTrackDialog() = activity.dialogHelper.showAudioTrackDialog()
-                override fun showSubtitleTrackDialog() = activity.dialogHelper.showSubtitleTrackDialog()
+                override fun showPlaybackControlDialog() = activity.dialogHelper.showPlaybackControlDialog()
             }
         )
 
@@ -595,6 +598,13 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             audioServiceController = activity.audioServiceController,
             onAudioServicePlaybackChanged = { isPlaying ->
                 val isAudioFile = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
+                val servicePlayWhenReady = activity.audioServiceController?.player?.playWhenReady
+                if (isAudioFile && servicePlayWhenReady != null) {
+                    // Persistent audio is driven by MediaController state, not the local ExoPlayer path.
+                    // Sync ViewModel pause from playWhenReady so pause/resume UI reactions
+                    // (including filename overlay re-show) also work for service-backed audio.
+                    activity.viewModel.setPaused(!servicePlayWhenReady)
+                }
                 activity.sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
                 if (isAudioFile) {
                     activity.audioEmptyStateController?.onIsPlayingChanged(isPlaying)

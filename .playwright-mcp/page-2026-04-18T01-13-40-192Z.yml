@@ -1,0 +1,553 @@
+- generic [ref=e2]:
+  - region
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e6]:
+      - heading "Navigation Menu" [level=2] [ref=e7]
+      - generic [ref=e8]:
+        - link "Homepage" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - navigation "Global" [ref=e16]:
+            - list [ref=e17]:
+              - listitem [ref=e18]:
+                - button "Platform" [ref=e20] [cursor=pointer]:
+                  - text: Platform
+                  - img [ref=e21]
+              - listitem [ref=e23]:
+                - button "Solutions" [ref=e25] [cursor=pointer]:
+                  - text: Solutions
+                  - img [ref=e26]
+              - listitem [ref=e28]:
+                - button "Resources" [ref=e30] [cursor=pointer]:
+                  - text: Resources
+                  - img [ref=e31]
+              - listitem [ref=e33]:
+                - button "Open Source" [ref=e35] [cursor=pointer]:
+                  - text: Open Source
+                  - img [ref=e36]
+              - listitem [ref=e38]:
+                - button "Enterprise" [ref=e40] [cursor=pointer]:
+                  - text: Enterprise
+                  - img [ref=e41]
+              - listitem [ref=e43]:
+                - link "Pricing" [ref=e44] [cursor=pointer]:
+                  - /url: https://github.com/pricing
+                  - generic [ref=e45]: Pricing
+          - generic [ref=e46]:
+            - button "Search or jump to…" [ref=e49] [cursor=pointer]:
+              - img [ref=e51]
+              - generic [ref=e53]: Search or jump to...
+              - img [ref=e55]
+            - link "Sign in" [ref=e59] [cursor=pointer]:
+              - /url: /login?return_to=https%3A%2F%2Fgithub.com%2Fmpv-android%2Fmpv-android
+            - link "Sign up" [ref=e60] [cursor=pointer]:
+              - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E&source=header-repo&source_repo=mpv-android%2Fmpv-android
+            - button "Appearance settings" [ref=e63] [cursor=pointer]:
+              - img
+  - main [ref=e67]:
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e71]:
+          - img [ref=e72]
+          - link "mpv-android" [ref=e75] [cursor=pointer]:
+            - /url: /mpv-android
+          - generic [ref=e76]: /
+          - strong [ref=e77]:
+            - link "mpv-android" [ref=e78] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android
+          - generic [ref=e79]: Public
+        - generic [ref=e80]:
+          - list:
+            - listitem [ref=e81]:
+              - link "You must be signed in to change notification settings" [ref=e82] [cursor=pointer]:
+                - /url: /login?return_to=%2Fmpv-android%2Fmpv-android
+                - img [ref=e83]
+                - text: Notifications
+            - listitem [ref=e85]:
+              - link "Fork 385" [ref=e86] [cursor=pointer]:
+                - /url: /login?return_to=%2Fmpv-android%2Fmpv-android
+                - img [ref=e87]
+                - text: Fork
+                - generic "385" [ref=e89]
+            - listitem [ref=e90]:
+              - link "You must be signed in to star a repository" [ref=e92] [cursor=pointer]:
+                - /url: /login?return_to=%2Fmpv-android%2Fmpv-android
+                - img [ref=e93]
+                - text: Star
+                - generic "3157 users starred this repository" [ref=e95]: 3.2k
+      - navigation "Repository" [ref=e96]:
+        - list [ref=e97]:
+          - listitem [ref=e98]:
+            - link "Code" [ref=e99] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android
+              - img [ref=e100]
+              - generic [ref=e102]: Code
+          - listitem [ref=e103]:
+            - link "Issues 152" [ref=e104] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/issues
+              - img [ref=e105]
+              - generic [ref=e108]: Issues
+              - generic "152" [ref=e109]
+          - listitem [ref=e110]:
+            - link "Pull requests 9" [ref=e111] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/pulls
+              - img [ref=e112]
+              - generic [ref=e114]: Pull requests
+              - generic "9" [ref=e115]
+          - listitem [ref=e116]:
+            - link "Actions" [ref=e117] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/actions
+              - img [ref=e118]
+              - generic [ref=e120]: Actions
+          - listitem [ref=e121]:
+            - link "Security and quality" [ref=e122] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/security
+              - img [ref=e123]
+              - generic [ref=e125]: Security and quality
+          - listitem [ref=e126]:
+            - link "Insights" [ref=e127] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/pulse
+              - img [ref=e128]
+              - generic [ref=e130]: Insights
+    - generic [ref=e143]:
+      - heading "mpv-android/mpv-android" [level=1] [ref=e145]
+      - generic [ref=e146]:
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - button "master branch" [ref=e153] [cursor=pointer]:
+                - generic [ref=e154]:
+                  - generic [ref=e156]:
+                    - img [ref=e158]
+                    - generic [ref=e161]: master
+                  - generic:
+                    - img
+              - generic [ref=e162]:
+                - link "12 Branches" [ref=e163] [cursor=pointer]:
+                  - /url: /mpv-android/mpv-android/branches
+                  - generic [ref=e164]:
+                    - generic:
+                      - img
+                    - generic [ref=e166]:
+                      - strong [ref=e167]: "12"
+                      - text: Branches
+                - link "59 Tags" [ref=e168] [cursor=pointer]:
+                  - /url: /mpv-android/mpv-android/tags
+                  - generic [ref=e169]:
+                    - generic:
+                      - img
+                    - generic [ref=e171]:
+                      - strong [ref=e172]: "59"
+                      - text: Tags
+            - generic [ref=e173]:
+              - generic [ref=e177]:
+                - img [ref=e179]
+                - combobox "Go to file" [ref=e181]
+              - button "Code" [ref=e182] [cursor=pointer]:
+                - generic [ref=e183]:
+                  - generic:
+                    - img
+                  - generic [ref=e184]: Code
+                  - generic:
+                    - img
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - heading "Folders and files" [level=2] [ref=e187]
+              - table "Folders and files" [ref=e188]:
+                - rowgroup:
+                  - row "Name Last commit message Last commit date":
+                    - columnheader "Name"
+                    - columnheader "Last commit message":
+                      - generic "Last commit message"
+                    - columnheader "Last commit date":
+                      - generic "Last commit date"
+                - rowgroup [ref=e189]:
+                  - row "Latest commit History 1,149 Commits" [ref=e190]:
+                    - cell "Latest commit History 1,149 Commits" [ref=e191]:
+                      - generic [ref=e192]:
+                        - heading "Latest commit" [level=2] [ref=e193]
+                        - generic [ref=e196]:
+                          - heading "History" [level=2] [ref=e197]
+                          - link "1,149 Commits" [ref=e198] [cursor=pointer]:
+                            - /url: /mpv-android/mpv-android/commits/master/
+                            - generic [ref=e199]:
+                              - generic:
+                                - img
+                              - generic [ref=e200]: 1,149 Commits
+                  - row ".github, (Directory)" [ref=e201]:
+                    - cell ".github, (Directory)" [ref=e202]:
+                      - generic [ref=e203]:
+                        - img [ref=e204]
+                        - link ".github, (Directory)" [ref=e209] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/tree/master/.github
+                          - text: .github
+                    - cell [ref=e210]
+                    - cell [ref=e212]
+                  - row "app, (Directory)" [ref=e215]:
+                    - cell "app, (Directory)" [ref=e216]:
+                      - generic [ref=e217]:
+                        - img [ref=e218]
+                        - link "app, (Directory)" [ref=e223] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/tree/master/app
+                          - text: app
+                    - cell [ref=e224]
+                    - cell [ref=e226]
+                  - row "buildscripts, (Directory)" [ref=e229]:
+                    - cell "buildscripts, (Directory)" [ref=e230]:
+                      - generic [ref=e231]:
+                        - img [ref=e232]
+                        - link "buildscripts, (Directory)" [ref=e237] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/tree/master/buildscripts
+                          - text: buildscripts
+                    - cell [ref=e238]
+                    - cell [ref=e240]
+                  - row "docs, (Directory)" [ref=e243]:
+                    - cell "docs, (Directory)" [ref=e244]:
+                      - generic [ref=e245]:
+                        - img [ref=e246]
+                        - link "docs, (Directory)" [ref=e251] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/tree/master/docs
+                          - text: docs
+                    - cell [ref=e252]
+                    - cell [ref=e254]
+                  - row "fastlane/metadata/android, (Directory)" [ref=e257]:
+                    - cell "fastlane/metadata/android, (Directory)" [ref=e258]:
+                      - generic [ref=e259]:
+                        - img [ref=e260]
+                        - link "fastlane/metadata/android, (Directory)" [ref=e265] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/tree/master/fastlane/metadata/android
+                          - text: fastlane/metadata/android
+                    - cell [ref=e266]
+                    - cell [ref=e268]
+                  - row "gradle/wrapper, (Directory)" [ref=e271]:
+                    - cell "gradle/wrapper, (Directory)" [ref=e272]:
+                      - generic [ref=e273]:
+                        - img [ref=e274]
+                        - link "gradle/wrapper, (Directory)" [ref=e279] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/tree/master/gradle/wrapper
+                          - text: gradle/wrapper
+                    - cell [ref=e280]
+                    - cell [ref=e282]
+                  - row ".gitignore, (File)" [ref=e285]:
+                    - cell ".gitignore, (File)" [ref=e286]:
+                      - generic [ref=e287]:
+                        - img [ref=e288]
+                        - link ".gitignore, (File)" [ref=e293] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/blob/master/.gitignore
+                          - text: .gitignore
+                    - cell [ref=e294]
+                    - cell [ref=e296]
+                  - row "LICENSE, (File)" [ref=e299]:
+                    - cell "LICENSE, (File)" [ref=e300]:
+                      - generic [ref=e301]:
+                        - img [ref=e302]
+                        - link "LICENSE, (File)" [ref=e307] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/blob/master/LICENSE
+                          - text: LICENSE
+                    - cell [ref=e308]
+                    - cell [ref=e310]
+                  - row "README.md, (File)" [ref=e313]:
+                    - cell "README.md, (File)" [ref=e314]:
+                      - generic [ref=e315]:
+                        - img [ref=e316]
+                        - link "README.md, (File)" [ref=e321] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/blob/master/README.md
+                          - text: README.md
+                    - cell [ref=e322]
+                    - cell [ref=e324]
+                  - row "build.gradle, (File)" [ref=e327]:
+                    - cell "build.gradle, (File)" [ref=e328]:
+                      - generic [ref=e329]:
+                        - img [ref=e330]
+                        - link "build.gradle, (File)" [ref=e335] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/blob/master/build.gradle
+                          - text: build.gradle
+                    - cell [ref=e336]
+                    - cell [ref=e338]
+                  - row "gradle.properties, (File)" [ref=e341]:
+                    - cell "gradle.properties, (File)" [ref=e342]:
+                      - generic [ref=e343]:
+                        - img [ref=e344]
+                        - link "gradle.properties, (File)" [ref=e349] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/blob/master/gradle.properties
+                          - text: gradle.properties
+                    - cell [ref=e350]
+                    - cell [ref=e352]
+                  - row "gradlew, (File)" [ref=e355]:
+                    - cell "gradlew, (File)" [ref=e356]:
+                      - generic [ref=e357]:
+                        - img [ref=e358]
+                        - link "gradlew, (File)" [ref=e363] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/blob/master/gradlew
+                          - text: gradlew
+                    - cell [ref=e364]
+                    - cell [ref=e366]
+                  - row "settings.gradle, (File)" [ref=e369]:
+                    - cell "settings.gradle, (File)" [ref=e370]:
+                      - generic [ref=e371]:
+                        - img [ref=e372]
+                        - link "settings.gradle, (File)" [ref=e377] [cursor=pointer]:
+                          - /url: /mpv-android/mpv-android/blob/master/settings.gradle
+                          - text: settings.gradle
+                    - cell [ref=e378]
+                    - cell [ref=e380]
+            - generic [ref=e384]:
+              - generic [ref=e385]:
+                - heading "Repository files navigation" [level=2] [ref=e386]
+                - navigation "Repository files" [ref=e387]:
+                  - list [ref=e388]:
+                    - listitem [ref=e389]:
+                      - link "README" [ref=e390] [cursor=pointer]:
+                        - /url: "#"
+                        - img [ref=e392]
+                        - generic [ref=e394]: README
+                    - listitem [ref=e395]:
+                      - link "MIT license" [ref=e396] [cursor=pointer]:
+                        - /url: "#"
+                        - img [ref=e398]
+                        - generic [ref=e400]: MIT license
+                - button "Outline" [ref=e401] [cursor=pointer]:
+                  - img [ref=e402]
+              - article [ref=e405]:
+                - generic [ref=e406]:
+                  - heading "mpv for Android" [level=1] [ref=e407]
+                  - 'link "Permalink: mpv for Android" [ref=e408] [cursor=pointer]':
+                    - /url: "#mpv-for-android"
+                    - img [ref=e409]
+                - paragraph [ref=e411]:
+                  - link "Build Status" [ref=e412] [cursor=pointer]:
+                    - /url: https://github.com/mpv-android/mpv-android/actions/workflows/build.yml
+                    - img "Build Status" [ref=e413]
+                - paragraph [ref=e414]:
+                  - text: mpv-android is a video player for Android based on
+                  - link "libmpv" [ref=e415] [cursor=pointer]:
+                    - /url: https://github.com/mpv-player/mpv
+                  - text: .
+                - generic [ref=e416]:
+                  - heading "Features" [level=2] [ref=e417]
+                  - 'link "Permalink: Features" [ref=e418] [cursor=pointer]':
+                    - /url: "#features"
+                    - img [ref=e419]
+                - list [ref=e421]:
+                  - listitem [ref=e422]: Hardware and software video decoding
+                  - listitem [ref=e423]: Gesture-based seeking, volume/brightness control and more
+                  - listitem [ref=e424]: libass support for styled subtitles
+                  - listitem [ref=e425]: Secondary (or dual) subtitle support
+                  - listitem [ref=e426]: High-quality rendering with advanced settings (scalers, debanding, interpolation, ...)
+                  - listitem [ref=e427]: Play network streams with the "Open URL" function
+                  - listitem [ref=e428]: Background playback, Picture-in-Picture, keyboard input supported
+                - generic [ref=e429]:
+                  - heading "Library?" [level=3] [ref=e430]
+                  - 'link "Permalink: Library?" [ref=e431] [cursor=pointer]':
+                    - /url: "#library"
+                    - img [ref=e432]
+                - paragraph [ref=e434]:
+                  - text: mpv-android is
+                  - strong [ref=e435]: not
+                  - text: a library/module (AAR) you can import into your app.
+                - paragraph [ref=e436]:
+                  - text: If you'd like to use libmpv in your app you can use our code as inspiration. The important parts are
+                  - link "MPVLib" [ref=e437] [cursor=pointer]:
+                    - /url: /mpv-android/mpv-android/blob/master/app/src/main/java/is/xyz/mpv/MPVLib.kt
+                    - code [ref=e438]: MPVLib
+                  - text: ","
+                  - link "BaseMPVView" [ref=e439] [cursor=pointer]:
+                    - /url: /mpv-android/mpv-android/blob/master/app/src/main/java/is/xyz/mpv/BaseMPVView.kt
+                    - code [ref=e440]: BaseMPVView
+                  - text: and the
+                  - link "native code" [ref=e441] [cursor=pointer]:
+                    - /url: /mpv-android/mpv-android/blob/master/app/src/main/jni
+                  - text: . Native code is built by
+                  - link "these scripts" [ref=e442] [cursor=pointer]:
+                    - /url: /mpv-android/mpv-android/blob/master/buildscripts
+                  - text: .
+                - generic [ref=e443]:
+                  - heading "Downloads" [level=2] [ref=e444]
+                  - 'link "Permalink: Downloads" [ref=e445] [cursor=pointer]':
+                    - /url: "#downloads"
+                    - img [ref=e446]
+                - paragraph [ref=e448]:
+                  - text: You can download mpv-android from the
+                  - link "Releases section" [ref=e449] [cursor=pointer]:
+                    - /url: https://github.com/mpv-android/mpv-android/releases
+                  - text: or
+                - paragraph [ref=e450]:
+                  - link "Get it on Google Play" [ref=e451] [cursor=pointer]:
+                    - /url: https://play.google.com/store/apps/details?id=is.xyz.mpv
+                    - img "Get it on Google Play" [ref=e452]
+                - paragraph [ref=e453]:
+                  - link "Get it on F-Droid" [ref=e454] [cursor=pointer]:
+                    - /url: https://f-droid.org/packages/is.xyz.mpv
+                    - img "Get it on F-Droid" [ref=e455]
+                - paragraph [ref=e456]:
+                  - strong [ref=e457]: Note
+                  - text: ": Android TV is supported, but only available on F-Droid or by installing the APK manually."
+                - generic [ref=e458]:
+                  - heading "Building from source" [level=2] [ref=e459]
+                  - 'link "Permalink: Building from source" [ref=e460] [cursor=pointer]':
+                    - /url: "#building-from-source"
+                    - img [ref=e461]
+                - paragraph [ref=e463]:
+                  - text: Take a look at the
+                  - link "README" [ref=e464] [cursor=pointer]:
+                    - /url: /mpv-android/mpv-android/blob/master/buildscripts/README.md
+                  - text: inside the
+                  - code [ref=e465]: buildscripts
+                  - text: directory.
+                - paragraph [ref=e466]:
+                  - text: Some other documentation can be found at this
+                  - link "link" [ref=e467] [cursor=pointer]:
+                    - /url: http://mpv-android.github.io/mpv-android/
+                  - text: .
+        - generic [ref=e471]:
+          - generic [ref=e474]:
+            - heading "About" [level=2] [ref=e475]
+            - paragraph [ref=e476]: "video player for Android based on libmpv ↦ #mpv-android @ irc.libera.chat"
+            - heading "Topics" [level=3] [ref=e477]
+            - generic [ref=e479]:
+              - link "audio" [ref=e480] [cursor=pointer]:
+                - /url: /topics/audio
+              - link "video" [ref=e481] [cursor=pointer]:
+                - /url: /topics/video
+              - link "multimedia" [ref=e482] [cursor=pointer]:
+                - /url: /topics/multimedia
+              - link "video-player" [ref=e483] [cursor=pointer]:
+                - /url: /topics/video-player
+              - link "mpv" [ref=e484] [cursor=pointer]:
+                - /url: /topics/mpv
+              - link "android-app" [ref=e485] [cursor=pointer]:
+                - /url: /topics/android-app
+            - heading "Resources" [level=3] [ref=e486]
+            - link "Readme" [ref=e488] [cursor=pointer]:
+              - /url: "#readme-ov-file"
+              - img [ref=e489]
+              - text: Readme
+            - heading "License" [level=3] [ref=e491]
+            - link "MIT license" [ref=e493] [cursor=pointer]:
+              - /url: "#MIT-1-ov-file"
+              - img [ref=e494]
+              - text: MIT license
+            - link "Activity" [ref=e497] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/activity
+              - img [ref=e498]
+              - text: Activity
+            - link "Custom properties" [ref=e501] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/custom-properties
+              - img [ref=e502]
+              - text: Custom properties
+            - heading "Stars" [level=3] [ref=e504]
+            - link "3.2k stars" [ref=e506] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/stargazers
+              - img [ref=e507]
+              - strong [ref=e509]: 3.2k
+              - text: stars
+            - heading "Watchers" [level=3] [ref=e510]
+            - link "56 watching" [ref=e512] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/watchers
+              - img [ref=e513]
+              - strong [ref=e515]: "56"
+              - text: watching
+            - heading "Forks" [level=3] [ref=e516]
+            - link "385 forks" [ref=e518] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/forks
+              - img [ref=e519]
+              - strong [ref=e521]: "385"
+              - text: forks
+            - link "Report repository" [ref=e523] [cursor=pointer]:
+              - /url: /contact/report-content?content_url=https%3A%2F%2Fgithub.com%2Fmpv-android%2Fmpv-android&report=mpv-android+%28user%29
+          - generic [ref=e525]:
+            - heading "Releases 51" [level=2] [ref=e526]:
+              - link "Releases 51" [ref=e527] [cursor=pointer]:
+                - /url: /mpv-android/mpv-android/releases
+                - text: Releases
+                - generic "51" [ref=e528]
+            - link "2026-03-22 Build Latest Mar 22, 2026last month" [ref=e529] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/releases/tag/2026-03-22
+              - img [ref=e530]
+              - generic [ref=e532]:
+                - generic [ref=e533]:
+                  - generic [ref=e534]: 2026-03-22 Build
+                  - 'generic "Label: Latest" [ref=e535]': Latest
+                - generic [ref=e536]: Mar 22, 2026last month
+            - link "+ 50 releases" [ref=e538] [cursor=pointer]:
+              - /url: /mpv-android/mpv-android/releases
+          - generic "Loading contributors" [ref=e541]:
+            - generic:
+              - heading "Contributors" [level=2] [ref=e542]:
+                - link "Contributors" [ref=e543] [cursor=pointer]:
+                  - /url: /mpv-android/mpv-android/graphs/contributors
+              - list [ref=e544]:
+                - listitem [ref=e545]
+                - listitem [ref=e547]
+                - listitem [ref=e549]
+          - generic [ref=e552]:
+            - heading "Languages" [level=2] [ref=e553]
+            - list [ref=e561]:
+              - listitem [ref=e562]:
+                - link "Kotlin 68.9%" [ref=e563] [cursor=pointer]:
+                  - /url: /mpv-android/mpv-android/search?l=kotlin
+                  - img [ref=e564]
+                  - generic [ref=e566]: Kotlin
+                  - generic [ref=e567]: 68.9%
+              - listitem [ref=e568]:
+                - link "Java 16.3%" [ref=e569] [cursor=pointer]:
+                  - /url: /mpv-android/mpv-android/search?l=java
+                  - img [ref=e570]
+                  - generic [ref=e572]: Java
+                  - generic [ref=e573]: 16.3%
+              - listitem [ref=e574]:
+                - link "Shell 7.4%" [ref=e575] [cursor=pointer]:
+                  - /url: /mpv-android/mpv-android/search?l=shell
+                  - img [ref=e576]
+                  - generic [ref=e578]: Shell
+                  - generic [ref=e579]: 7.4%
+              - listitem [ref=e580]:
+                - link "C++ 6.1%" [ref=e581] [cursor=pointer]:
+                  - /url: /mpv-android/mpv-android/search?l=c%2B%2B
+                  - img [ref=e582]
+                  - generic [ref=e584]: C++
+                  - generic [ref=e585]: 6.1%
+              - listitem [ref=e586]:
+                - generic [ref=e587]:
+                  - img [ref=e588]
+                  - generic [ref=e590]: Other
+                  - generic [ref=e591]: 1.3%
+  - contentinfo [ref=e593]:
+    - heading "Footer" [level=2] [ref=e594]
+    - generic [ref=e595]:
+      - generic [ref=e596]:
+        - link "GitHub Homepage" [ref=e597] [cursor=pointer]:
+          - /url: https://github.com
+          - img [ref=e598]
+        - generic [ref=e600]: © 2026 GitHub, Inc.
+      - navigation "Footer" [ref=e601]:
+        - heading "Footer navigation" [level=3] [ref=e602]
+        - list "Footer navigation" [ref=e603]:
+          - listitem [ref=e604]:
+            - link "Terms" [ref=e605] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+          - listitem [ref=e606]:
+            - link "Privacy" [ref=e607] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+          - listitem [ref=e608]:
+            - link "Security" [ref=e609] [cursor=pointer]:
+              - /url: https://github.com/security
+          - listitem [ref=e610]:
+            - link "Status" [ref=e611] [cursor=pointer]:
+              - /url: https://www.githubstatus.com/
+          - listitem [ref=e612]:
+            - link "Community" [ref=e613] [cursor=pointer]:
+              - /url: https://github.community/
+          - listitem [ref=e614]:
+            - link "Docs" [ref=e615] [cursor=pointer]:
+              - /url: https://docs.github.com/
+          - listitem [ref=e616]:
+            - link "Contact" [ref=e617] [cursor=pointer]:
+              - /url: https://support.github.com?tags=dotcom-footer
+          - listitem [ref=e618]:
+            - button "Manage cookies" [ref=e620] [cursor=pointer]
+          - listitem [ref=e621]:
+            - button "Do not share my personal information" [ref=e623] [cursor=pointer]

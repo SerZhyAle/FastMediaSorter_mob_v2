@@ -9,6 +9,7 @@ Analyse FastMediaSorter Android logcat files for patterns, errors, warnings, and
 ```
 
 Examples:
+
 - `/log-reader` — analyse `logs/current.log` (auto-summary)
 - `/log-reader errors` — show all E-level lines in current log
 - `/log-reader PlayerActivity crash` — trace a specific area
@@ -24,24 +25,42 @@ When this command is invoked with `$ARGUMENTS`:
 **Step 1 — Resolve the target log file.**
 
 Parse `$ARGUMENTS` for a file path token (ends with `.log` or is an existing path):
+
 - If a `.log` path is found → use it as-is (relative to project root)
 - If `$ARGUMENTS` contains `temp/` or `logs/` prefix → use that path directly
 - Default: `logs/current.log`
 
 If the resolved file does not exist, check `temp/current.log` as fallback. If neither exists, list available `.log` files:
+
 ```powershell
 Get-ChildItem -Path "logs","temp" -Filter "*.log" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10 | Format-Table Name, LastWriteTime, @{N="KB";E={[int]($_.Length/1KB)}}
 ```
+
 Show the list and ask the user which file to use.
 
-**Step 2 — Check file size.**
+**Step 2 — Get line count and file size. MANDATORY — do this before reading any content.**
 
 ```powershell
-$size = (Get-Item "<log_file>").Length / 1MB
+$f = Get-Item "<log_file>"
+$lines = (Get-Content "<log_file>").Count
+Write-Host "Size: $([int]($f.Length/1KB)) KB | Lines: $lines | Modified: $($f.LastWriteTime)"
 ```
-- **< 2 MB** → read directly with the Read tool (offset/limit as needed)
+
+Report line count to the user before proceeding. This prevents the critical mistake of reading only the first N lines and missing errors that appear at the end.
+
+**Reading strategy based on line count:**
+
+- **< 500 lines** → read the whole file
+- **500–5000 lines** → read last 300 lines first (errors are at the tail), then head 50 lines for settings context
+- **> 5000 lines** → use `search-log.ps1` with `-Errors`/`-Last`/`-Pattern`; never read linearly from the top
+
+**File size for tool selection:**
+
+- **< 2 MB** → `search-log.ps1` or Read tool with explicit tail offset
 - **2–20 MB** → use `search-log.ps1` exclusively; do NOT load the full file into context
 - **> 20 MB** → use `search-log.ps1` with targeted queries only; warn the user about size
+
+> **RULE**: The beginning of the log contains app startup config and settings — useful for context. Errors and crashes are almost always at the END. Always read the tail before the head when diagnosing a problem.
 
 ---
 
@@ -71,26 +90,31 @@ If `$ARGUMENTS` contains none of these keywords but has free text, treat it as a
 ### Auto-summary (default)
 
 Run the summary script and report findings:
+
 ```powershell
 .\scripts\utils\search-log.ps1 -LogFile "<file>" -Summary
 ```
 
 Then run errors check:
+
 ```powershell
 .\scripts\utils\search-log.ps1 -LogFile "<file>" -Errors -Unique -Stats -Top 30 -AppOnly
 ```
 
 Then run exceptions check:
+
 ```powershell
 .\scripts\utils\search-log.ps1 -LogFile "<file>" -Exceptions
 ```
 
 Then run warnings check:
+
 ```powershell
 .\scripts\utils\search-log.ps1 -LogFile "<file>" -Warnings -Top 20 -AppOnly
 ```
 
 Report structure:
+
 1. **File info** — path, size, time range, total lines
 2. **Level distribution** — counts for E/W/I/D/V
 3. **Top errors** — first 30, grouped by tag if > 5 unique tags
@@ -107,6 +131,7 @@ Report structure:
 ```
 
 For each error group (same tag):
+
 - Show count, tag name, first occurrence time
 - Show up to 5 representative messages
 - If message contains `Exception` or `FATAL` → flag as **crash candidate** and switch to Exceptions mode
@@ -169,6 +194,7 @@ Extract tag list from `$ARGUMENTS` (comma or space separated after `flow` keywor
 ```
 
 Present as a chronological event table:
+
 ```
 TIME        TAG                     LVL  MESSAGE
 14:16:07    BrowseViewModel         I    loadDirectory called: /sdcard/DCIM
@@ -262,6 +288,7 @@ When reading log content, proactively flag these patterns:
 | `E  SMB` / `E  SFTP` / `E  FTP` | Network protocol failure |
 
 For FastMediaSorter-specific tags, look for:
+
 - `FastMediaSorter` — app-level events (startup banner, key lifecycle)
 - `BrowseViewModel`, `PlayerViewModel`, `MainViewModel` — ViewModel state
 - `ImageLoading`, `ImageLoadingManager` — Glide/image pipeline
@@ -340,6 +367,7 @@ For FastMediaSorter-specific tags, look for:
 ```
 
 Available log locations:
+
 - `logs/current.log` — most recent session (primary)
 - `temp/current.log` — fallback copy
 - `temp/fastmediasorter_YYYYMMDD_HHmmss.log` — timestamped archives

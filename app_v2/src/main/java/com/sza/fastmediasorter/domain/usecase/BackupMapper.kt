@@ -199,7 +199,9 @@ object BackupMapper {
             defaultRememberFileList = settings.defaultRememberFileList,
             dynamicBackgroundExtension = settings.dynamicBackgroundExtension,
             enableThumbnailPreload = settings.enableThumbnailPreload,
-            thumbnailPreloadWifiOnly = settings.thumbnailPreloadWifiOnly
+            thumbnailPreloadWifiOnly = settings.thumbnailPreloadWifiOnly,
+            videoSnapshotResourceId = settings.videoSnapshotResourceId,
+            videoSnapshotFormat = settings.videoSnapshotFormat
         )
     }
 
@@ -328,7 +330,9 @@ object BackupMapper {
             defaultRememberFileList = backup.defaultRememberFileList,
             dynamicBackgroundExtension = backup.dynamicBackgroundExtension,
             enableThumbnailPreload = backup.enableThumbnailPreload,
-            thumbnailPreloadWifiOnly = backup.thumbnailPreloadWifiOnly
+            thumbnailPreloadWifiOnly = backup.thumbnailPreloadWifiOnly,
+            videoSnapshotResourceId = backup.videoSnapshotResourceId,
+            videoSnapshotFormat = backup.videoSnapshotFormat
         )
     }
 

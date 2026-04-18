@@ -112,6 +112,31 @@ class PlayerDialogHelper(
         }
         activeDialogs.clear()
     }
+
+    fun showPlaybackControlDialog() {
+        if (activity.isFinishing || activity.isDestroyed) {
+            Timber.w("PlayerDialogHelper: cannot show PlaybackControlDialogFragment — activity is finishing/destroyed")
+            return
+        }
+
+        val currentType = viewModel.state.value.currentFile?.type
+        if (currentType != MediaType.VIDEO && currentType != MediaType.AUDIO) {
+            Timber.d("PlayerDialogHelper: skip PlaybackControlDialogFragment for non-playback media")
+            return
+        }
+
+        val fragmentManager = activity.supportFragmentManager
+        if (fragmentManager.isStateSaved) {
+            Timber.w("PlayerDialogHelper: cannot show PlaybackControlDialogFragment — fragment state already saved")
+            return
+        }
+
+        if (fragmentManager.findFragmentByTag(PlaybackControlDialogFragment.TAG) != null) {
+            return
+        }
+
+        PlaybackControlDialogFragment().show(fragmentManager, PlaybackControlDialogFragment.TAG)
+    }
     
     /**
      * Callback interface for dialog actions

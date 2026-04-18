@@ -35,7 +35,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpAllFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_all_files_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpAllFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_all_files_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 
@@ -48,7 +48,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_hidden_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpShowHiddenFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_show_hidden_files" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpShowHiddenFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_show_hidden_files" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 
@@ -66,7 +66,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_subfolders_as_items_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpShowSubfolders" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/show_subfolders_as_items" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpShowSubfolders" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/show_subfolders_as_items" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 
@@ -79,7 +79,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_small_controls_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpCompactControls" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_compact_controls_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpCompactControls" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_compact_controls_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 
@@ -95,7 +95,7 @@
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_favorites_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
-                        <ImageButton android:id="@+id/iconHelpFavorites" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_favorites_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpFavorites" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_favorites_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 
@@ -145,7 +145,7 @@
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_default_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
-                        <ImageButton android:id="@+id/btnHelpRememberFileList" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/btnHelpRememberFileList" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 
@@ -173,7 +173,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_delete_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpSafeMode" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_safe_mode_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpSafeMode" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_safe_mode_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 
@@ -205,27 +205,27 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <ImageButton android:id="@+id/iconHelpDefaultCredentials" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_default_credentials_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/tilDefaultPassword" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintVertical_bias="0.5" />
+                        <ImageButton android:id="@+id/iconHelpDefaultCredentials" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_default_credentials_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/tilDefaultPassword" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintVertical_bias="0.5" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <!-- Export/Import Settings -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/export_settings" app:icon="@android:drawable/ic_menu_upload" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/export_settings" app:icon="@drawable/ic_cloud_upload" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/import_settings" app:icon="@android:drawable/ic_menu_revert" app:layout_constraintStart_toEndOf="@+id/btnExportSettings" app:layout_constraintEnd_toStartOf="@+id/btnHelpExportImport" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/import_settings" app:icon="@drawable/ic_cloud_download" app:layout_constraintStart_toEndOf="@+id/btnExportSettings" app:layout_constraintEnd_toStartOf="@+id/btnHelpExportImport" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
-                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnImportSettings" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnImportSettings" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <!-- Debug Logs Export -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:text="@string/share_debug_logs" android:textSize="11sp" app:icon="@android:drawable/ic_menu_share" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:text="@string/share_debug_logs" android:textSize="11sp" app:icon="@drawable/ic_share" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_debug_logs" android:textSize="11sp" app:icon="@android:drawable/ic_menu_save" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_debug_logs" android:textSize="11sp" app:icon="@drawable/ic_copy" />
 
                     </LinearLayout>
 
@@ -242,7 +242,7 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
 
-                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 
@@ -285,7 +285,7 @@
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_prevent_sleep_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
-                        <ImageButton android:id="@+id/iconHelpPreventSleep" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_prevent_sleep_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpPreventSleep" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_prevent_sleep_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 
@@ -310,7 +310,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_background_sync_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
-                            <ImageButton android:id="@+id/iconHelpBackgroundSync" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/background_sync_description" android:tooltipText="@string/background_sync_description" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpBackgroundSync" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/background_sync_description" android:tooltipText="@string/background_sync_description" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
                         </LinearLayout>
 
                         <LinearLayout android:id="@+id/layoutSyncControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:baselineAligned="false">
@@ -321,7 +321,7 @@
 
                             </com.google.android.material.textfield.TextInputLayout>
 
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnSyncNow" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sync_now" app:icon="@android:drawable/ic_popup_sync" />
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btnSyncNow" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sync_now" app:icon="@drawable/ic_refresh" />
 
                         </LinearLayout>
 
@@ -336,11 +336,11 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnAutoCalculateCache" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="80dp" android:layout_marginEnd="@dimen/margin_small" android:text="@string/auto_calculate_cache" app:icon="@android:drawable/ic_menu_manage" app:layout_constraintStart_toEndOf="@+id/tilCacheSizeLimit" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnAutoCalculateCache" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="80dp" android:layout_marginEnd="@dimen/margin_small" android:text="@string/auto_calculate_cache" app:icon="@drawable/ic_schedule" app:layout_constraintStart_toEndOf="@+id/tilCacheSizeLimit" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnClearCache" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/clear_cache" app:icon="@android:drawable/ic_menu_delete" app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnClearCache" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/clear_cache" app:icon="@drawable/ic_delete" app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/reset_smb_connections" app:icon="@android:drawable/stat_notify_sync" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/reset_smb_connections" app:icon="@drawable/ic_refresh" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
 
                         <TextView android:id="@+id/tvCacheSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/cache_size_calculating" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnResetSmbConnections" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -349,9 +349,9 @@
                     <!-- Reset Buttons -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/reset_general_section" app:icon="@android:drawable/ic_menu_revert" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnResetSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <Button android:id="@+id/btnResetGeneralSection" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/reset_general_section" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnResetSettings" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
-                        <Button android:id="@+id/btnResetSettings" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" app:icon="@android:drawable/ic_menu_revert" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnResetGeneralSection" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <Button android:id="@+id/btnResetSettings" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnResetGeneralSection" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -380,9 +380,9 @@
                     <!-- Integration Tests + Import Test Credentials -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerIntegrationTests" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <Button android:id="@+id/btnIntegrationTests" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/run_integration_tests" android:visibility="gone" app:icon="@android:drawable/ic_menu_manage" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <Button android:id="@+id/btnIntegrationTests" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/run_integration_tests" android:visibility="gone" app:icon="@drawable/ic_settings" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
-                        <Button android:id="@+id/btnImportTestCredentials" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:visibility="gone" app:icon="@android:drawable/ic_menu_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <Button android:id="@+id/btnImportTestCredentials" style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:visibility="gone" app:icon="@drawable/ic_cloud_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -393,15 +393,15 @@
         <!-- Documentation Links -->
         <LinearLayout android:id="@+id/containerDocLinks" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="start|center_vertical" android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/user_guide" app:icon="@android:drawable/ic_menu_help" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/user_guide" app:icon="@drawable/ic_help_outline_24" app:iconSize="@dimen/settings_icon_size" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/how_to_guides" app:icon="@android:drawable/ic_menu_directions" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/how_to_guides" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnPrivacyPolicy" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/privacy_policy" app:icon="@android:drawable/ic_menu_info_details" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnPrivacyPolicy" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_margin_standard" android:text="@string/privacy_policy" app:icon="@drawable/ic_info" app:iconSize="@dimen/settings_icon_size" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenSourceLicenses" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_source_licenses_title" app:icon="@android:drawable/ic_menu_info_details" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenSourceLicenses" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_source_licenses_title" app:icon="@drawable/ic_info" app:iconSize="@dimen/settings_icon_size" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenWelcome" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_welcome_tutorial" app:icon="@android:drawable/ic_menu_view" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenWelcome" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_welcome_tutorial" app:icon="@drawable/ic_image" app:iconSize="@dimen/settings_icon_size" />
 
         </LinearLayout>
 

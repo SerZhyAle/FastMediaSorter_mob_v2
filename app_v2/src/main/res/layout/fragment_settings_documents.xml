@@ -52,7 +52,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/setting_support_text_desc"
-                            android:textSize="@dimen/text_size_small"
+                            android:textSize="@dimen/toggler_desc_text_size"
                             android:textColor="@color/text_color_secondary" />
                     </LinearLayout>
                 </LinearLayout>
@@ -84,7 +84,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/setting_show_text_line_numbers_desc"
-                            android:textSize="@dimen/text_size_small"
+                            android:textSize="@dimen/toggler_desc_text_size"
                             android:textColor="@color/text_color_secondary" />
                     </LinearLayout>
 
@@ -95,7 +95,7 @@
                         android:layout_marginStart="@dimen/settings_help_icon_margin"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/tooltip_line_numbers_title"
-                        android:src="@android:drawable/ic_menu_help"
+                        android:src="@drawable/ic_help_outline_24"
                         app:tint="@color/text_color_secondary" />
                 </LinearLayout>
             </LinearLayout>

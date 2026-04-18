@@ -26,6 +26,7 @@ These skills MUST be used automatically — do not handle these tasks manually:
 | Trigger | Skill | Rule |
 |---------|-------|------|
 | Creating or updating any `PLAN/spec_*.md` file | `/spec` | **Mandatory** — enforces full project template including flavor scope, API-level analysis, architecture compliance, testing plan, accessibility, and ADRs |
+| User asks for user-facing UI/UX changes, or task touches layouts, command bars, menus, settings screens, button placement, portrait/landscape behavior, overflow rules, visibility conditions, empty/error states, or confirmation UX | `/ui-clarify` | **Mandatory** — resolve all UI ambiguities before design/implementation; implementation is blocked until placement, visibility, interaction, and fallback behavior are explicit or approved |
 | Updating documentation files (`docs/FEATURES*.md`, `docs/TECH_STACK.md`, or any feature docs) | `/doc-update` | **Mandatory** — ensures EN/RU/UK mirrors stay in sync and format is consistent |
 | User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** — provides structured Android logcat analysis |
 | User asks how to build, which build command to use, or wants to trigger a build | `/build` | **Mandatory** — routes to the correct flavor/variant build command |
@@ -142,6 +143,7 @@ Features are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 8. **Backup files**: Ignore `*.backup` files in primary analysis unless the user explicitly requests a historical comparison.
 9. **Code comments — read before modify**: Before editing any file, read ALL existing inline comments and KDoc/Javadoc in the affected area. Comments explain intent, constraints, and non-obvious decisions — treat them as requirements, not noise.
 10. **Code comments — write on modify**: When adding or changing logic, add an inline comment explaining WHY (not what) whenever the reason is not immediately obvious from the code. Update or remove stale comments that no longer reflect reality.
+11. **UI ambiguity gate**: For any user-facing change touching layouts, command placement, settings UI, menus, visibility rules, portrait/landscape behavior, overflow strategy, empty/error states, labels/icons/tooltips, or confirmation/fallback UX, do NOT implement until all ambiguous decisions are explicitly resolved. Minimum checklist: placement per orientation, direct button vs overflow vs top menu, visibility predicates by media/file type, action priority, disabled vs hidden behavior, empty/error/loading states, overwrite/confirmation/fallback behavior, and accessibility. If any item is unclear, stop and ask targeted questions or wait for explicit delegated assumptions.
 
 ## Feature Inventory
 

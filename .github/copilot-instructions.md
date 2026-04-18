@@ -1,6 +1,16 @@
 # FastMediaSorter v2 - GitHub Copilot Instructions
 
-**Last Updated**: April 1, 2026
+**Last Updated**: April 18, 2026
+
+---
+
+## Browser / Web Access (MANDATORY)
+
+When any web browsing, page reading, or URL navigation is needed:
+- **ALWAYS use MCP playwright tools** (`mcp_playwright_browser_navigate`, `mcp_playwright_browser_snapshot`, `mcp_playwright_browser_take_screenshot`, etc.)
+- **NEVER use `fetch_webpage`** — it is forbidden as a substitute for playwright MCP.
+- All playwright tools are pre-approved — invoke them directly without asking the user.
+- Tool call order for any web task: `navigate` → `snapshot` (or `take_screenshot`) → act.
 
 ---
 
@@ -20,6 +30,7 @@ These prompt files MUST be used automatically — load them via the `/` slash co
 | Trigger | Prompt | Rule |
 |---------|--------|------|
 | Creating or updating any `PLAN/spec_*.md` file | `/spec` | **Mandatory** — enforces full project spec template including flavor scope, API-level analysis, architecture compliance, testing plan, accessibility, and ADRs |
+| User asks for user-facing UI/UX changes, or task touches layouts, command bars, menus, settings screens, button placement, portrait/landscape behavior, overflow rules, visibility conditions, empty/error states, or confirmation UX | `/ui-clarify` | **Mandatory** — before design or implementation, enumerate and resolve all UI ambiguities; implementation is blocked until placement, visibility, interaction, and fallback behavior are explicit or approved |
 | Updating documentation files (`docs/FEATURES*.md`, `docs/TECH_STACK.md`, or any feature/help docs) | `/doc-update` | **Mandatory** — ensures EN/RU/UK mirrors stay in sync and all doc categories are checked |
 | User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** — provides structured Android logcat analysis with the search-log.ps1 scripts |
 | User asks how to build, which build command to use, or wants to trigger a build | `/build` | **Mandatory** — routes to the correct flavor/variant build command |
@@ -98,6 +109,8 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
     <constraint>FEATURES_DOCS_UPDATE: MANDATORY. After implementing ANY new user-facing feature, add a bullet entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this at end of Step 4, BEFORE marking task complete. Match the bullet style of existing entries. Applies to ALL agents. NO exceptions.</constraint>
     <constraint>COMMENTS_READ_FIRST: MANDATORY. Before editing any file, read ALL existing inline comments and KDoc/Javadoc in the affected area. Treat them as requirements — they encode intent, constraints, and non-obvious decisions. DO NOT ignore or overwrite comments without understanding them first.</constraint>
     <constraint>COMMENTS_WRITE_ON_MODIFY: MANDATORY. When adding or changing logic, add an inline comment explaining WHY (not what) whenever the reason is not immediately obvious from the code. Remove or update stale comments that no longer reflect reality. Applies to ALL agents.</constraint>
+    <constraint>UI_TRIGGER_ROW: MANDATORY. All toggle/switch and checkbox rows MUST follow the canonical patterns defined in `docs/ARCHITECTURE.md` § "UI Patterns — Trigger Row". SWITCH rows: title=`toggler_title_text_size` (14sp), help-text=`toggler_desc_text_size` (12sp), help-icon `ic_help_outline_24` always rightmost child. CHECKBOX rows: help-text=`text_size_small` (14sp), indent=`checkbox_subtitle_margin_start`. Help text is ALWAYS 2sp smaller than the trigger label. NEVER hardcode sp values. Applies to ALL agents.</constraint>
+    <constraint>UI_AMBIGUITY_GATE: MANDATORY. For ANY user-facing change touching layout, command placement, settings UI, menus, button visibility, portrait/landscape behavior, overflow rules, labels, icons, help text, confirmation/fallback UX, or empty/error states, DO NOT start implementation until all ambiguous UI decisions are explicitly resolved. Minimum checklist: exact placement per orientation, direct button vs overflow vs top menu, visibility predicates by file/media type, priority relative to existing actions, icon/text/tooltip, disabled/hidden behavior, empty/error/loading states, confirmation/overwrite/fallback behavior, and accessibility implications. If the request, spec, or current code leaves any item unclear, stop in Step 0 or Step 2, ask targeted questions, and wait for alignment or explicit delegated assumptions.</constraint>
   </strict_constraints>
 
   <workflow_stages>
@@ -105,6 +118,7 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
 
     <step id="0" name="TASK DEFINITION">
       Ask clarifying questions. Expand task. Output detailed description in RUSSIAN inside `dev/` directory. GATE: Wait for user alignment.
+      For any user-facing UI/UX work, produce an explicit ambiguity checklist before proceeding. Implementation is forbidden until every item is answered or the user explicitly delegates decision authority for the remaining items.
     </step>
     
     <step id="1" name="RESEARCH PHASE">
@@ -113,6 +127,7 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
     
     <step id="2" name="DESIGN PHASE">
       Prepare C4 architecture/solution design (improvements, fixes, data flow, ADR, testing). Output in RUSSIAN to `dev/`. GATE: Wait for human REVIEW.
+      For UI/UX tasks, the design must include a decision table for portrait/landscape placement, overflow strategy, visibility rules, fallback/confirmation UX, and accessibility. Missing decisions keep the task blocked.
     </step>
     
     <step id="3" name="PLANNING PHASE">

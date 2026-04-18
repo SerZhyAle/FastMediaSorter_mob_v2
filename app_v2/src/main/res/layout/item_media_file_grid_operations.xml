@@ -22,7 +22,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/copy"
         android:scaleType="fitCenter"
-        android:src="@android:drawable/ic_menu_save"
+        android:src="@drawable/ic_copy"
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />
@@ -38,7 +38,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/move"
         android:scaleType="fitCenter"
-        android:src="@android:drawable/ic_menu_revert"
+        android:src="@drawable/ic_move"
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />
@@ -54,7 +54,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/rename"
         android:scaleType="fitCenter"
-        android:src="@android:drawable/ic_menu_edit"
+        android:src="@drawable/ic_edit_20"
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />
@@ -70,7 +70,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/delete"
         android:scaleType="fitCenter"
-        android:src="@android:drawable/ic_menu_delete"
+        android:src="@drawable/ic_delete"
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />

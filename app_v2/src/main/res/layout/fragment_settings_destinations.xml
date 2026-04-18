@@ -52,7 +52,7 @@
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_go_to_next_after_copy_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
-                        <ImageButton android:id="@+id/iconHelpGoToNextAfterCopy" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_go_to_next_after_copy_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpGoToNextAfterCopy" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_go_to_next_after_copy_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
                     </LinearLayout>
 
                     <!-- Enable Move + Overwrite on Move (One Row) -->
@@ -107,7 +107,7 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <ImageButton android:id="@+id/iconHelpDestinations" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_destinations_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpDestinations" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_destinations_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 

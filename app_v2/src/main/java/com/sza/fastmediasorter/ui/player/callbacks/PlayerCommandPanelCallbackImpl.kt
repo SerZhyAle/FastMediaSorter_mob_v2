@@ -43,7 +43,9 @@ class PlayerCommandPanelCallbackImpl(
     override fun onEditClicked() {
         val currentFile = viewModel.state.value.currentFile
         when (currentFile?.type) {
-            MediaType.VIDEO, MediaType.AUDIO -> activity.playerSettingsManager.showPlayerSettingsDialog()
+            // Video now uses the same Control dialog from the bottom bar to avoid duplicate UX paths.
+            MediaType.VIDEO -> activity.dialogHelper.showPlaybackControlDialog()
+            MediaType.AUDIO -> activity.dialogHelper.showPlaybackControlDialog()
             MediaType.IMAGE -> {
                 if (activity.isAnimatedImagePath(currentFile.path)) activity.dialogAndUiStateManager.showGifEditDialog() else activity.dialogAndUiStateManager.showImageEditDialog()
             }
@@ -241,5 +243,10 @@ class PlayerCommandPanelCallbackImpl(
         val currentFile = viewModel.state.value.currentFile ?: return
             val uri = currentFile.path.toUri()
         activity.printManager.printCurrentFile(uri, currentFile.type, currentFile.name)
+    }
+
+    override fun onSaveFrameClicked() {
+        // Delegate to SaveVideoFrameManager which handles TextureView capture + file save
+        activity.saveVideoFrameManager.saveCurrentFrame()
     }
 }

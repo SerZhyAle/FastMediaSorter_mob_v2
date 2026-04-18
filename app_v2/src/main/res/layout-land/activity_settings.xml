@@ -82,7 +82,7 @@
             android:layout_height="match_parent"
             android:background="?attr/colorPrimary"
             android:contentDescription="@string/settings_search_open"
-            android:src="@android:drawable/ic_menu_search"
+            android:src="@drawable/ic_search"
             app:tint="?attr/colorOnPrimary" />
 
     </LinearLayout>
@@ -127,7 +127,7 @@
                 android:layout_height="@dimen/button_height"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/settings_search_close"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:src="@drawable/ic_cancel"
                 app:tint="?attr/colorOnSurface" />
         </LinearLayout>
 

@@ -7,9 +7,9 @@ import com.sza.fastmediasorter.R
 import timber.log.Timber
 
 /**
- * Sets up speed/audio/subtitle control buttons in the ExoPlayer controller overlay
- * for StandalonePlayerActivity. Mirrors ExoPlayerControlsManager but without
- * file navigation (no prev/next — standalone is single-file only).
+ * Sets up the unified Control button in the ExoPlayer controller overlay for
+ * StandalonePlayerActivity. Mirrors the main player by routing video settings
+ * through a single tabbed dialog instead of split popup/actions.
  */
 class StandaloneVideoControlsManager(
     private val playerView: PlayerView,
@@ -17,37 +17,21 @@ class StandaloneVideoControlsManager(
 ) {
 
     interface StandaloneVideoControlsCallback {
-        fun showPlaybackSpeedDialog()
-        fun showAudioTrackDialog()
-        fun showSubtitleTrackDialog()
+        fun showPlaybackControlDialog()
     }
 
     fun setupVideoControls() {
-        playerView.findViewById<ImageButton>(R.id.exo_speed)?.apply {
-            setOnClickListener { callback.showPlaybackSpeedDialog() }
-            contentDescription = playerView.context.getString(R.string.cd_playback_speed)
-        }
-
-        playerView.findViewById<ImageButton>(R.id.btnAudioTrack)?.apply {
-            setOnClickListener { callback.showAudioTrackDialog() }
-            contentDescription = playerView.context.getString(R.string.cd_audio_track)
-        }
-
-        playerView.findViewById<ImageButton>(R.id.btnSubtitleTrack)?.apply {
-            setOnClickListener { callback.showSubtitleTrackDialog() }
-            contentDescription = playerView.context.getString(R.string.cd_subtitle_track)
+        playerView.findViewById<ImageButton>(R.id.btnPlaybackControl)?.apply {
+            setOnClickListener {
+                callback.showPlaybackControlDialog()
+            }
+            contentDescription = playerView.context.getString(R.string.control)
         }
 
         Timber.d("StandaloneVideoControlsManager: video controls wired")
     }
 
     fun updateTrackButtonsVisibility(hasMultipleAudio: Boolean, hasSubtitles: Boolean) {
-        val btnAudioTrack = playerView.findViewById<ImageButton>(R.id.btnAudioTrack)
-        val btnSubtitleTrack = playerView.findViewById<ImageButton>(R.id.btnSubtitleTrack)
-
-        btnAudioTrack?.visibility = if (hasMultipleAudio) View.VISIBLE else View.GONE
-        btnSubtitleTrack?.visibility = if (hasSubtitles) View.VISIBLE else View.GONE
-
         Timber.d("StandaloneVideoControlsManager: track buttons — audio=$hasMultipleAudio, subtitles=$hasSubtitles")
     }
 }

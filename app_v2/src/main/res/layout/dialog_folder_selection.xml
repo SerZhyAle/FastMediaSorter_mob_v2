@@ -79,13 +79,13 @@
         <!-- Manual Path Section -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/or_enter_path_manually" android:textStyle="bold" android:textSize="@dimen/resource_card_title_text_size" android:layout_marginBottom="@dimen/margin_small" />
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/folder_path" app:helperText="@string/folder_path_hint" app:helperTextEnabled="true">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/folder_path" app:helperText="@string/folder_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
 
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/etManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" android:text="@string/dialog_folder_selection_etManualPath_text" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnValidatePath" style="@style/Widget.MaterialComponents.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/validate_and_select" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_medium" app:icon="@android:drawable/ic_menu_search" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnValidatePath" style="@style/Widget.MaterialComponents.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/validate_and_select" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_medium" app:icon="@drawable/ic_search" />
 
         <!-- Divider -->
         <View android:layout_width="match_parent" android:layout_height="@dimen/item_divider_height" android:background="?android:attr/listDivider" android:layout_marginVertical="@dimen/margin_small" />
@@ -93,7 +93,7 @@
         <!-- SAF Picker Section -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/or_use_system_picker" android:textStyle="bold" android:textSize="@dimen/resource_card_title_text_size" android:layout_marginBottom="@dimen/margin_small" />
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnBrowseWithSAF" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/browse_with_system_picker" app:icon="@android:drawable/ic_menu_search" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnBrowseWithSAF" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/browse_with_system_picker" app:icon="@drawable/ic_search" />
 
     </LinearLayout>
 

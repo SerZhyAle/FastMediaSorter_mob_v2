@@ -1,30 +1,23 @@
 package com.sza.fastmediasorter.ui.player
 
 import androidx.media3.common.Effect
+import androidx.media3.effect.Crop
 import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
 
 /**
  * Applies stereoscopic rendering to ExoPlayer video output.
  *
- * Architecture note:
- * FastMediaSorter currently renders into a single PlayerView surface.
- * That surface can preserve an SBS/OU source frame for phone VR viewers,
- * but it CANNOT synthesize stereo by cropping one eye and scaling it fullscreen.
- * Doing so destroys the second eye and degrades the video to mono.
+ * For standard phone screens, SBS and OU content is displayed by cropping to the left/top eye
+ * and letting the player scale the result to fill the screen. This gives a normal mono view of
+ * one eye's perspective — the correct default for non-VR viewing.
  *
- * This class therefore:
- *  1. Tracks the current [StereoMode] and exposes it to the UI.
- *  2. Preserves SBS/OU frames as-is for phone-based VR viewers (Cardboard-style optics do the split).
- *  3. Provides the hook point for a future dual-viewport renderer if the app ever adds one.
+ * [StereoMode.MONO] / [StereoMode.AUTO] / [StereoMode.UNKNOWN] → no GL effect (full-frame).
+ * [StereoMode.SBS_FULL] / [StereoMode.SBS_HALF] → left-eye crop via `Crop(-1, 0, -1, 1)`.
+ * [StereoMode.OU] → top-eye crop via `Crop(-1, 1, 0, 1)`.
  *
- * Future implementation plan:
- *  • Replace the single-surface approach with explicit dual-eye rendering.
- *  • Only then introduce GL crops / viewports / FBOs.
- *
- * Thread safety: [setStereoMode] may be called from the main thread;
- * in Phase 2 the GL callbacks will arrive on the GL thread — use @Volatile or
- * AtomicReference for the mode field.
+ * Thread safety: [setStereoMode] is called from the main thread.
+ * [buildGlEffect] is called from [VideoPlayerManager.applyConfiguredVideoEffects] on the main thread.
  */
 class StereoVideoProcessor {
 
@@ -58,12 +51,6 @@ class StereoVideoProcessor {
         val previous = currentMode
         currentMode = mode
         Timber.i("StereoVideoProcessor: mode changed $previous → $mode")
-
-        // Keep the selected mode cached even before ExoPlayer exists so createPlayer()
-        // can reapply the same state after a player recreation/configuration change.
-        if (isStereoActive) {
-            Timber.d("StereoVideoProcessor: stereo mode requested; preserving source frame for VR playback")
-        }
     }
 
     /**
@@ -74,24 +61,31 @@ class StereoVideoProcessor {
     /**
      * Builds the [Effect] to apply for the given [mode].
      *
-     * SBS_FULL / SBS_HALF / OU → return null.
+     * SBS_FULL / SBS_HALF → crop the left eye (left half of frame) and let [PlayerView] scale it
+     * to fill the screen.  The left eye occupies x=[-1, 0] in Media3 NDC, so `Crop(-1, 0, -1, 1)`
+     * extracts exactly the left half. The resulting frame has half the original width, so the
+     * player renders it at the correct aspect ratio without any additional transformation.
      *
-     * Why: cropping one eye out of a single-surface frame destroys stereoscopy.
-     * For phone-based VR viewers the correct behaviour is to preserve the original SBS/OU
-     * frame and let the headset optics route each half to the proper eye.
-     * MONO / AUTO / UNKNOWN → null (no effect = full-frame pass-through).
+     * OU → crop the top eye (top half of frame).  In GL NDC y increases upward, so the top half
+     * is y=[0, 1].  `Crop(-1, 1, 0, 1)` extracts the top half for standard-screen viewing.
+     *
+     * MONO / AUTO / UNKNOWN → null (full-frame pass-through, no GL work).
      *
      * Called by [VideoPlayerManager.applyStereoEffect] whenever the stereo mode changes.
      */
     fun buildGlEffect(mode: StereoMode): Effect? {
         return when (mode) {
             StereoMode.SBS_FULL, StereoMode.SBS_HALF -> {
-                Timber.d("StereoVideoProcessor: buildGlEffect → pass-through for $mode (preserve SBS frame)")
-                null
+                // Left eye is the left half of the SBS frame (NDC x = -1..0).
+                // Cropping to this region and letting the player scale it gives a standard
+                // mono view of one eye — the correct default for a regular phone screen.
+                Timber.d("StereoVideoProcessor: buildGlEffect → SBS left-eye crop for $mode")
+                Crop(-1f, 0f, -1f, 1f)
             }
             StereoMode.OU -> {
-                Timber.d("StereoVideoProcessor: buildGlEffect → pass-through for OU until dedicated OU renderer exists")
-                null
+                // Top eye occupies the top half of the OU frame (GL NDC y = 0..1).
+                Timber.d("StereoVideoProcessor: buildGlEffect → OU top-eye crop")
+                Crop(-1f, 1f, 0f, 1f)
             }
             // No visual transformation for mono / unresolved modes
             else -> {

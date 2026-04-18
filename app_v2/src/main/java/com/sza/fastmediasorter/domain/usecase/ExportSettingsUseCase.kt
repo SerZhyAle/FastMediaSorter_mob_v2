@@ -137,6 +137,10 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <lastUsedResourceId>${settings.lastUsedResourceId}</lastUsedResourceId>")
                 appendLine("    <enableThumbnailPreload>${settings.enableThumbnailPreload}</enableThumbnailPreload>")
                 appendLine("    <thumbnailPreloadWifiOnly>${settings.thumbnailPreloadWifiOnly}</thumbnailPreloadWifiOnly>")
+                if (settings.videoSnapshotResourceId != null) {
+                    appendLine("    <videoSnapshotResourceId>${settings.videoSnapshotResourceId}</videoSnapshotResourceId>")
+                }
+                appendLine("    <videoSnapshotFormat>${settings.videoSnapshotFormat}</videoSnapshotFormat>")
                 appendLine("  </Settings>")
                 
                 // Network Credentials section (without passwords!)

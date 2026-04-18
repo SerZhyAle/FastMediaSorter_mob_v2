@@ -97,7 +97,7 @@
         android:layout_width="@dimen/item_icon_size_tiny"
         android:layout_height="@dimen/item_icon_size_tiny"
         android:layout_margin="@dimen/item_margin_tiny"
-        android:src="@android:drawable/ic_lock_lock"
+        android:src="@drawable/ic_lock"
         app:tint="@color/error_color"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"

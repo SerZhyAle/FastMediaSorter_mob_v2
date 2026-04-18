@@ -48,7 +48,7 @@ class SettingsViewModel @Inject constructor(
     val settingsRepository: SettingsRepository,
     val resourceRepository: ResourceRepository,
     val credentialsRepository: NetworkCredentialsRepository,
-    private val getDestinationsUseCase: GetDestinationsUseCase,
+    val getDestinationsUseCase: GetDestinationsUseCase,
     val getResourcesUseCase: GetResourcesUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     val exportSettingsUseCase: ExportSettingsUseCase,
@@ -203,7 +203,9 @@ class SettingsViewModel @Inject constructor(
                 enableOcr = defaults.enableOcr,
                 ocrDefaultFontSize = defaults.ocrDefaultFontSize,
                 ocrDefaultFontFamily = defaults.ocrDefaultFontFamily,
-                showVideoThumbnails = defaults.showVideoThumbnails
+                showVideoThumbnails = defaults.showVideoThumbnails,
+                videoSnapshotResourceId = defaults.videoSnapshotResourceId,
+                videoSnapshotFormat = defaults.videoSnapshotFormat
             )
         )
     }

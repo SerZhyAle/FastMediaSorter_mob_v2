@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import java.util.Locale
 
 /**
  * Video-only touch delegate (Track F.1):
@@ -41,7 +42,7 @@ class VideoTouchDelegate(
 
     private var downX = 0f
     private var downY = 0f
-    private var startBrightness = 0.5f
+    private var startBrightnessProgress = 50
     private var startVolume = 0
     private var startPositionMs = 0L
     private var gestureMode = GestureMode.NONE
@@ -52,7 +53,7 @@ class VideoTouchDelegate(
             override fun onDown(e: MotionEvent): Boolean {
                 downX = e.x
                 downY = e.y
-                startBrightness = getCurrentBrightness()
+                startBrightnessProgress = getCurrentBrightnessProgress()
                 startVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                 startPositionMs = binding.playerView.player?.currentPosition ?: 0L
                 gestureMode = GestureMode.NONE
@@ -133,10 +134,12 @@ class VideoTouchDelegate(
 
                 when (gestureMode) {
                     GestureMode.BRIGHTNESS -> {
-                        val delta = (-deltaY / height)
-                        val newBrightness = MathUtils.clamp(startBrightness + delta, 0.05f, 1.0f)
-                        applyBrightness(newBrightness)
-                        showIndicator("☀ ${(newBrightness * 100f).roundToInt()}%")
+                        val brightnessDelta = ((-deltaY / height) * 100f).roundToInt()
+                        val newBrightnessProgress = MathUtils.clamp(startBrightnessProgress + brightnessDelta, 0, 100)
+                        applyBrightnessProgress(newBrightnessProgress)
+                        showIndicator(
+                            "☀ ${String.format(Locale.US, "%+d%%", activity.videoPlayerManager.getBrightnessPercentOffset())}"
+                        )
                         return true
                     }
 
@@ -212,16 +215,9 @@ class VideoTouchDelegate(
         }
     }
 
-    private fun getCurrentBrightness(): Float {
-        val current = activity.window.attributes.screenBrightness
-        return if (current in 0f..1f) current else 0.5f
-    }
+    private fun getCurrentBrightnessProgress(): Int = activity.videoPlayerManager.getBrightnessProgress()
 
-    private fun applyBrightness(value: Float) {
-        val attrs = activity.window.attributes
-        attrs.screenBrightness = value
-        activity.window.attributes = attrs
-    }
+    private fun applyBrightnessProgress(progress: Int) = activity.videoPlayerManager.setBrightnessProgress(progress)
 
     private fun showIndicator(text: String) {
         binding.tvVideoGestureIndicator?.text = text

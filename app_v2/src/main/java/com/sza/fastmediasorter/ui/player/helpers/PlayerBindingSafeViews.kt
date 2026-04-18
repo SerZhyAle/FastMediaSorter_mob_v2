@@ -38,6 +38,7 @@ class PlayerBindingSafeViews(
     val btnRenameCmd: ImageButton get() = required(binding.btnRenameCmd, R.id.btnRenameCmd)
     val btnOverflowMenu: ImageButton get() = required(binding.btnOverflowMenu, R.id.btnOverflowMenu)
     val btnEditCmd: ImageButton get() = required(binding.btnEditCmd, R.id.btnEditCmd)
+    val btnSaveFrameCmd: ImageButton get() = required(R.id.btnSaveFrameCmd)
     val btnUndoCmd: ImageButton get() = required(binding.btnUndoCmd, R.id.btnUndoCmd)
     val btnLyricsCmd: ImageButton get() = required(binding.btnLyricsCmd, R.id.btnLyricsCmd)
     val btnSearchYoutubeMusicCmd: ImageButton get() = required(binding.btnSearchYoutubeMusicCmd, R.id.btnSearchYoutubeMusicCmd)

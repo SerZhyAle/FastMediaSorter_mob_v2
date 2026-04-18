@@ -71,7 +71,7 @@
     <string name="copied_n_files">Copied %1$d files</string>
     <string name="copied_n_of_m_files">Copied %1$d of %2$d files</string>
     <string name="copy_failed">Copy failed: %1$s</string>
-    <string name="no_destinations_available">No quick sort folders available</string>
+    <string name="no_destinations_available">No destination resources configured</string>
 
     <!-- Move Dialog -->
     <string name="moving_files">Moving Files</string>
@@ -492,6 +492,20 @@
     <string name="playback_speed">Playback Speed</string>
     <string name="audio_track">Audio Track</string>
     <string name="subtitle_track">Subtitles</string>
+    <string name="playback_control_tab_volume">Volume</string>
+    <string name="playback_control_tab_audio">Audio</string>
+    <string name="playback_control_tab_subtitles">Subs</string>
+    <string name="playback_control_tab_hue">HUE</string>
+    <string name="playback_control_tab_brightness">Light</string>
+    <string name="playback_control_tab_speed">Speed</string>
+    <string name="playback_control_mute">Mute</string>
+    <string name="playback_control_unmute">Unmute</string>
+    <string name="playback_control_no_audio_tracks">No audio tracks available</string>
+    <string name="playback_control_no_subtitles">No subtitles available</string>
+    <string name="playback_control_done">Done</string>
+    <string name="playback_control_hue_value">HUE: %1$+d°</string>
+    <string name="playback_control_brightness_value">Brightness: %1$+d%%</string>
+    <string name="playback_control_speed_value">Speed: %1$.2fx</string>
     <string name="select_audio_track">Select Audio Track</string>
     <string name="select_subtitle_track">Select Subtitles</string>
     <string name="subtitle_off">Off</string>
@@ -690,10 +704,11 @@
     <string name="authentication_failed">Authentication failed: %1$s</string>
     <string name="go_to_resources">Go to Resources</string>
     <string name="authentication_required">Authentication Required</string>
-    <string name="cloud_auth_dialog_message">To access \&quot;%1$s\&quot;, you need to sign in with your Google account.</string>
-    <string name="cloud_auth_copy_error">Google Drive authentication required.\n\nPlease go to Resources and sign in to this Cloud resource.</string>
+    <string name="cloud_auth_dialog_message">To access \&quot;%1$s\&quot;, you need to sign in with your %2$s account.</string>
+    <string name="cloud_auth_copy_error">Cloud authentication required.\n\nPlease go to Resources and sign in to this Cloud resource.</string>
     <string name="sign_in_now">Sign In Now</string>
     <string name="copy_error">Copy Error</string>
+    <string name="remove_resource">Remove Resource</string>
     <string name="reset">Reset</string>
     <string name="resource_updated">Resource updated</string>
     <string name="test_successful">Connection test successful</string>
@@ -888,6 +903,22 @@
     <string name="tooltip_slideshow_music_message">When enabled, music files from the selected resource will play in random order during image/GIF slideshows. Choose a resource that contains your music collection.</string>
     <string name="clear_selection">Clear Selection</string>
     <string name="no_resources_available">No resources available</string>
+
+    <!-- Video frame snapshot (Save Frame) -->
+    <string name="menu_save_frame">Save Frame</string>
+    <string name="video_snapshot_resource_label">Resource for saving frames</string>
+    <string name="video_snapshot_resource_not_set">Not selected (saves to Downloads)</string>
+    <string name="select_snapshot_destination">Select Destination Resource</string>
+    <string name="tooltip_video_snapshot_title">Save Frame Destination</string>
+    <string name="tooltip_video_snapshot_message">When you tap Save Frame in the video player, the current frame is saved in the selected format: PNG or JPG. JPG uses 85% quality to reduce file size. If no destination resource is selected, the frame is saved to Downloads.\n\nWorks for all video sources: local, network (SMB/SFTP/FTP), and cloud.</string>
+    <string name="save_frame_saved_to_resource">Frame saved to: %s</string>
+    <string name="save_frame_saved_to_downloads">Frame saved to Downloads</string>
+    <string name="save_frame_error">Failed to save frame</string>
+    <string name="save_frame_drm_error">Protected content cannot be saved</string>
+    <string name="save_frame_no_video">No video playing</string>
+    <string name="snapshot_format_label">Frame file type:</string>
+    <string name="snapshot_format_png">PNG</string>
+    <string name="snapshot_format_jpg">JPG</string>
     <string name="tooltip_line_numbers_title">Number Lines</string>
     <string name="tooltip_line_numbers_message">Shows line numbers when viewing text files. Useful for code review, editing, and referencing specific lines in documents.</string>
     <string name="tooltip_translation_title">Enable Translations</string>
@@ -1050,6 +1081,9 @@
     <string name="video_bitrate_label">Bitrate: %1$s Mbps</string>
     <string name="video_framerate_label">Frame Rate: %1$.2f fps</string>
     <string name="video_rotation_label">Rotation: %1$d°</string>
+    <string name="video_aspect_ratio_label">Aspect Ratio: %1$s</string>
+    <string name="video_audio_channels_label">Audio Channels: %1$s</string>
+    <string name="video_audio_bitrate_label">Audio Bitrate: %1$s</string>
     <string name="exif_camera_model_label">Camera: %1$s</string>
     <string name="exif_iso_label">ISO: %1$s</string>
     <string name="exif_aperture_label">Aperture: %1$s</string>
@@ -1090,6 +1124,8 @@
     <string name="pdf_creation_date_label">Created: %1$s</string>
     <string name="pdf_mod_date_label">Modified: %1$s</string>
     <string name="audio_channels_label">Channels: %1$s</string>
+    <string name="audio_channels_mono">Mono</string>
+    <string name="audio_channels_stereo">Stereo</string>
     <string name="audio_bitrate_label">Audio Bitrate: %1$s</string>
     <string name="audio_duration_label">Duration: %1$s</string>
     <string name="open_in_default_player">Open in Default Player</string>
@@ -2406,12 +2442,13 @@
     <string name="wear_sync_success">Sent %d source(s) to watch</string>
 
     <!-- 3D Video / Stereo mode settings (v2.63) -->
-    <string name="playback_settings_3d_tab">3D Video</string>
+    <string name="playback_settings_3d_tab">3D</string>
     <string name="playback_settings_3d_auto">Auto-detect</string>
     <string name="playback_settings_3d_sbs">Side-by-Side (SBS)</string>
     <string name="playback_settings_3d_ou">Over-Under (OU) — coming soon</string>
     <string name="playback_settings_3d_mono">Mono (Disabled)</string>
     <string name="playback_settings_3d_detected">Auto-detected: %s</string>
+    <string name="player_3d_detected_toast">3D video detected. Use File Info to open it in an external VR player.</string>
     <string name="playback_settings_3d_hint">For best effect, use a phone-based VR viewer (Google Cardboard, etc.)</string>
 </resources>
 

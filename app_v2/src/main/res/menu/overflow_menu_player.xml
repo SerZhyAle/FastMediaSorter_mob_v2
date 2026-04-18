@@ -9,11 +9,17 @@
         android:title="@string/menu_print"
         app:showAsAction="never" />
 
+    <!-- Save Frame (VIDEO only) — saves current frame as PNG to configured destination -->
+    <item
+        android:id="@+id/menu_save_frame"
+        android:icon="@drawable/ic_save_frame"
+        android:title="@string/menu_save_frame"
+        app:showAsAction="never" />
+
     <!-- Search (PDF/TXT/EPUB) -->
     <item
         android:id="@+id/menu_search"
-        android:icon="@android:drawable/ic_menu_search"
-        android:title="@string/search"
+        android:icon="@drawable/ic_search"
         app:showAsAction="never" />
 
 
@@ -79,7 +85,7 @@
     <!-- Copy Text (TXT) -->
     <item
         android:id="@+id/menu_copy_text"
-        android:icon="@android:drawable/ic_menu_save"
+        android:icon="@drawable/ic_copy"
         android:title="@string/copy"
         app:showAsAction="never" />
 
@@ -88,13 +94,13 @@
     <!-- Edit (Image/Video/TXT) -->
     <item
         android:id="@+id/menu_edit"
-        android:icon="@android:drawable/ic_menu_edit"
+        android:icon="@drawable/ic_edit_20"
         android:title="@string/edit"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_edit_text"
-        android:icon="@android:drawable/ic_menu_edit"
+        android:icon="@drawable/ic_edit_20"
         android:title="@string/edit"
         app:showAsAction="never" />
 
@@ -103,7 +109,7 @@
     <!-- Undo (if available) -->
     <item
         android:id="@+id/menu_undo"
-        android:icon="@android:drawable/ic_menu_revert"
+        android:icon="@drawable/ic_undo"
         android:title="@string/undo"
         app:showAsAction="never" />
 
@@ -117,28 +123,28 @@
     <!-- Re-open with Encoding (TXT) -->
     <item
         android:id="@+id/menu_reopen_encoding"
-        android:icon="@android:drawable/ic_menu_sort_alphabetically"
+        android:icon="@drawable/ic_refresh"
         android:title="@string/reopen_with_encoding"
         app:showAsAction="never" />
 
     <!-- Toggle Markdown rendering (TXT .md only) -->
     <item
         android:id="@+id/menu_toggle_markdown"
-        android:icon="@android:drawable/ic_menu_view"
+        android:icon="@drawable/ic_view_list"
         android:title="@string/toggle_markdown"
         app:showAsAction="never" />
 
     <!-- Reader Settings (TXT) -->
     <item
         android:id="@+id/menu_reader_settings"
-        android:icon="@android:drawable/ic_menu_preferences"
+        android:icon="@drawable/ic_settings"
         android:title="@string/reader_settings"
         app:showAsAction="never" />
 
     <!-- Read Aloud TTS (TXT) -->
     <item
         android:id="@+id/menu_read_aloud"
-        android:icon="@android:drawable/ic_lock_silent_mode_off"
+        android:icon="@drawable/ic_microphone"
         android:title="@string/read_aloud"
         app:showAsAction="never" />
 
@@ -173,7 +179,7 @@
     <!-- EPUB Cross-Chapter Search -->
     <item
         android:id="@+id/menu_epub_search_all"
-        android:icon="@android:drawable/ic_menu_search"
+        android:icon="@drawable/ic_search"
         android:title="@string/epub_search_all_chapters"
         app:showAsAction="never" />
 

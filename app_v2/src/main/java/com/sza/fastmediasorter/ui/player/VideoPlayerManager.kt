@@ -132,6 +132,7 @@ class VideoPlayerManager(
         
         // Playback position auto-save interval (5 seconds)
         private const val POSITION_SAVE_INTERVAL_MS = 5000L
+        private const val DEFAULT_BRIGHTNESS_PROGRESS = 50
     }
     
     private var exoPlayer: ExoPlayer? = null
@@ -139,11 +140,23 @@ class VideoPlayerManager(
     private var currentPlayerView: PlayerView? = null
     private var isUsingMediaPlayer = false
 
+    private val playbackControlPrefs =
+        context.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+
     // Stereo detection runs once per video load inside onTracksChanged
     private val stereoDetector = StereoDetector()
 
     // Stereo GL effect builder — Phase 2: builds Crop effects for ExoPlayer.setVideoEffects()
     private val stereoVideoProcessor = StereoVideoProcessor()
+    private val videoColorProcessor = VideoColorProcessor(
+        initialHueDegrees = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f),
+        initialBrightnessAdjustment = brightnessProgressToAdjustment(
+            playbackControlPrefs.getInt(
+                PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
+                DEFAULT_BRIGHTNESS_PROGRESS
+            )
+        )
+    )
 
     private val trackSelectionManager = VideoTrackSelectionManager(
         getPlayer = { exoPlayer },
@@ -414,35 +427,133 @@ class VideoPlayerManager(
         currentPlayerView = playerView
         exoPlayer = player
 
-        // Reapply the last resolved stereo state to a fresh ExoPlayer instance.
-        // Without this, config changes/player recreation silently drop the active effect.
-        applyStereoEffect(stereoVideoProcessor.getCurrentMode())
+        // New player instance — reset pipeline state so we don't skip a legitimate setVideoEffects()
+        // call on the fresh instance when re-applying previously active effects.
+        effectsPipelineActive = false
+
+        // Reapply the full effect chain to a fresh ExoPlayer instance.
+        // Without this, config changes/player recreation silently drop active video adjustments.
+        applyConfiguredVideoEffects()
         
         Timber.d("VideoPlayerManager: ExoPlayer created")
         return player
     }
 
     /**
-     * Apply the stereo GL effect matching [mode] to the active ExoPlayer instance.
+    * Apply the stereo GL effect matching [mode] to the active ExoPlayer instance.
      *
      * Called whenever [stereoMode] changes (from user selection or auto-detection).
      * Must be called on the main thread — ExoPlayer.setVideoEffects() is main-thread only.
      *
-     * Delegates effect construction to [StereoVideoProcessor.buildGlEffect] so the crop
-     * logic stays in one place and is independently unit-testable.
+     * Delegates effect construction to [StereoVideoProcessor.buildGlEffect] and then composes
+     * it with the active color-processing chain so later calls do not clobber HUE adjustments.
      */
     fun applyStereoEffect(mode: StereoMode) {
-        stereoVideoProcessor.setStereoMode(
-            when (mode) {
-                StereoMode.AUTO, StereoMode.UNKNOWN -> StereoMode.MONO // treat unresolved as mono
-                else -> mode
-            }
-        )
-        val effect = stereoVideoProcessor.buildGlEffect(stereoVideoProcessor.getCurrentMode())
-        val effects: List<androidx.media3.common.Effect> = if (effect != null) listOf(effect) else emptyList()
-        exoPlayer?.setVideoEffects(effects)
-        Timber.d("VideoPlayerManager: applyStereoEffect mode=$mode → effects=${effects.size}")
+        val resolved = when (mode) {
+            StereoMode.AUTO, StereoMode.UNKNOWN -> StereoMode.MONO // treat unresolved as mono
+            else -> mode
+        }
+        Timber.d("VideoPlayerManager: applyStereoEffect requested=$mode resolved=$resolved")
+        stereoVideoProcessor.setStereoMode(resolved)
+        applyConfiguredVideoEffects()
     }
+
+    /**
+     * Apply HUE rotation using Media3's frame processor instead of a view overlay.
+     */
+    fun setHueAdjustmentDegrees(hueDegrees: Float) {
+        videoColorProcessor.setHueAdjustmentDegrees(hueDegrees)
+        Timber.d(
+            "VideoPlayerManager: setHueAdjustmentDegrees requested=$hueDegrees " +
+                "stored=${videoColorProcessor.getHueAdjustmentDegrees()} pipelineActive=$effectsPipelineActive"
+        )
+        playbackControlPrefs.edit()
+            .putFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, videoColorProcessor.getHueAdjustmentDegrees())
+            .apply()
+        applyConfiguredVideoEffects()
+    }
+
+    fun getHueAdjustmentDegrees(): Float = videoColorProcessor.getHueAdjustmentDegrees()
+
+    fun setBrightnessAdjustment(brightnessAdjustment: Float) {
+        videoColorProcessor.setBrightnessAdjustment(brightnessAdjustment)
+        Timber.d(
+            "VideoPlayerManager: setBrightnessAdjustment requested=$brightnessAdjustment " +
+                "stored=${videoColorProcessor.getBrightnessAdjustment()} pipelineActive=$effectsPipelineActive"
+        )
+        playbackControlPrefs.edit()
+            .putInt(
+                PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
+                brightnessAdjustmentToProgress(videoColorProcessor.getBrightnessAdjustment())
+            )
+            .apply()
+        applyConfiguredVideoEffects()
+    }
+
+    fun getBrightnessAdjustment(): Float = videoColorProcessor.getBrightnessAdjustment()
+
+    fun setBrightnessProgress(progress: Int) {
+        setBrightnessAdjustment(brightnessProgressToAdjustment(progress))
+    }
+
+    fun getBrightnessProgress(): Int =
+        brightnessAdjustmentToProgress(videoColorProcessor.getBrightnessAdjustment())
+
+    fun getBrightnessPercentOffset(): Int =
+        ((getBrightnessProgress() - DEFAULT_BRIGHTNESS_PROGRESS) * 100f / DEFAULT_BRIGHTNESS_PROGRESS).toInt()
+
+    // Tracks whether a previous setVideoEffects() call installed a non-empty pipeline.
+    // Used to skip redundant setVideoEffects(emptyList()) calls that would reset the GPU
+    // pipeline unnecessarily — on some devices/emulators this causes a black screen at pause.
+    private var effectsPipelineActive = false
+
+    // Debounce handler for applyConfiguredVideoEffects().
+    // Media3 1.2.x crashes (TexturePool.freeTexture → IllegalStateException) when
+    // setVideoEffects() is called while the GL task executor still has in-flight frames from
+    // the previous pipeline. Rapid slider drags cause dozens of calls per second — coalescing
+    // them into one deferred call (80 ms after the last change) eliminates the race.
+    private val effectsHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var pendingEffectsRunnable: Runnable? = null
+
+    private fun applyConfiguredVideoEffects() {
+        val effects = mutableListOf<androidx.media3.common.Effect>()
+
+        stereoVideoProcessor.buildGlEffect(stereoVideoProcessor.getCurrentMode())?.let(effects::add)
+        videoColorProcessor.buildHueEffect()?.let(effects::add)
+        videoColorProcessor.buildBrightnessEffect()?.let(effects::add)
+
+        // Guard: skip scheduling when no effects are active and none were previously installed.
+        if (effects.isEmpty() && !effectsPipelineActive) {
+            Timber.d(
+                "VideoPlayerManager: applyConfiguredVideoEffects — no effects, pipeline already clean, skipping"
+            )
+            return
+        }
+
+        // Cancel any pending deferred call and reschedule with the latest effect list.
+        // The 80 ms window coalesces rapid slider updates into a single pipeline rebuild,
+        // preventing the TexturePool race crash in Media3 1.2.x.
+        pendingEffectsRunnable?.let { effectsHandler.removeCallbacks(it) }
+        val runnable = Runnable {
+            pendingEffectsRunnable = null
+            exoPlayer?.setVideoEffects(effects)
+            effectsPipelineActive = effects.isNotEmpty()
+            Timber.d(
+                "VideoPlayerManager: applyConfiguredVideoEffects applied — " +
+                    "stereo=${stereoVideoProcessor.getCurrentMode()} " +
+                    "hue=${videoColorProcessor.getHueAdjustmentDegrees()} " +
+                    "brightness=${videoColorProcessor.getBrightnessAdjustment()} effects=${effects.size}"
+            )
+        }
+        pendingEffectsRunnable = runnable
+        effectsHandler.postDelayed(runnable, 80L)
+    }
+
+    private fun brightnessProgressToAdjustment(progress: Int): Float =
+        ((progress.coerceIn(0, 100) - DEFAULT_BRIGHTNESS_PROGRESS) / DEFAULT_BRIGHTNESS_PROGRESS.toFloat())
+
+    private fun brightnessAdjustmentToProgress(adjustment: Float): Int =
+        ((adjustment.coerceIn(-1f, 1f) * DEFAULT_BRIGHTNESS_PROGRESS) + DEFAULT_BRIGHTNESS_PROGRESS).toInt()
 
     /**
      * Play video from path - handles local, network (SMB/S/FTP), and cloud.
@@ -732,7 +843,11 @@ class VideoPlayerManager(
         if (exoPlayer == null && activeResourceKey == null) {
             return
         }
-        
+
+        // Cancel any pending effects pipeline update — player is going away.
+        pendingEffectsRunnable?.let { effectsHandler.removeCallbacks(it) }
+        pendingEffectsRunnable = null
+
         Timber.d("VideoPlayerManager: releasePlayer() called. exoPlayer=${if(exoPlayer != null) "NOT_NULL" else "NULL"}, isActive=$activeResourceKey")
         exoPlayer?.let { player ->
             player.removeListener(playerListener)
@@ -796,7 +911,11 @@ class VideoPlayerManager(
      * Set playback speed
      */
     fun setPlaybackSpeed(speed: Float) {
+        Timber.d("VideoPlayerManager: setPlaybackSpeed ${speed}x (exoPlayer=${if(exoPlayer != null) "active" else "null"})")
         exoPlayer?.setPlaybackSpeed(speed)
+        // Persist so applyPlayerSettings() can restore the value after onPlaybackReady() fires
+        // for each new media item (which would otherwise reset to the PlayerSettingsDialog default).
+        playbackControlPrefs.edit().putFloat(PlaybackControlPreferences.KEY_SPEED, speed).apply()
     }
 
     /**
@@ -805,8 +924,14 @@ class VideoPlayerManager(
     fun applyPlayerSettings(settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) {
         val player = exoPlayer ?: return
 
-        setPlaybackSpeed(settings.playbackSpeed)
-        Timber.d("VideoPlayerManager: Set playback speed to ${settings.playbackSpeed}x")
+        // Prefer the speed persisted by the Control dialog over the session default from
+        // PlayerSettingsDialog.PlayerSettings (which is always 1.0f because that dialog is no
+        // longer shown). Fall back to settings.playbackSpeed only when no Control-dialog value
+        // has been saved yet (first launch, or prefs cleared).
+        val savedSpeed = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_SPEED, -1f)
+        val speedToApply = if (savedSpeed > 0f) savedSpeed else settings.playbackSpeed
+        exoPlayer?.setPlaybackSpeed(speedToApply)
+        Timber.d("VideoPlayerManager: Set playback speed to ${speedToApply}x (saved=$savedSpeed, settings=${settings.playbackSpeed})")
 
         setRepeatMode(
             if (settings.repeatVideo) {
@@ -1572,6 +1697,7 @@ class VideoPlayerManager(
             }
         }.start()
 
+        videoColorProcessor.release()
         lifecycle.removeObserver(this)
     }
     

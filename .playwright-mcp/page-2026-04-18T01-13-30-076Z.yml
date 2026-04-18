@@ -1,0 +1,856 @@
+- generic [ref=e2]:
+  - region
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e6]:
+      - heading "Navigation Menu" [level=2] [ref=e7]
+      - generic [ref=e8]:
+        - link "Homepage" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - navigation "Global" [ref=e16]:
+            - list [ref=e17]:
+              - listitem [ref=e18]:
+                - button "Platform" [ref=e20] [cursor=pointer]:
+                  - text: Platform
+                  - img [ref=e21]
+              - listitem [ref=e23]:
+                - button "Solutions" [ref=e25] [cursor=pointer]:
+                  - text: Solutions
+                  - img [ref=e26]
+              - listitem [ref=e28]:
+                - button "Resources" [ref=e30] [cursor=pointer]:
+                  - text: Resources
+                  - img [ref=e31]
+              - listitem [ref=e33]:
+                - button "Open Source" [ref=e35] [cursor=pointer]:
+                  - text: Open Source
+                  - img [ref=e36]
+              - listitem [ref=e38]:
+                - button "Enterprise" [ref=e40] [cursor=pointer]:
+                  - text: Enterprise
+                  - img [ref=e41]
+              - listitem [ref=e43]:
+                - link "Pricing" [ref=e44] [cursor=pointer]:
+                  - /url: https://github.com/pricing
+                  - generic [ref=e45]: Pricing
+          - generic [ref=e46]:
+            - button "Search or jump to…" [ref=e49] [cursor=pointer]:
+              - img [ref=e51]
+              - generic [ref=e53]: Search or jump to...
+              - img [ref=e55]
+            - link "Sign in" [ref=e59] [cursor=pointer]:
+              - /url: /login?return_to=https%3A%2F%2Fgithub.com%2Fvideolan%2Fvlc-android
+            - link "Sign up" [ref=e60] [cursor=pointer]:
+              - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E&source=header-repo&source_repo=videolan%2Fvlc-android
+            - button "Appearance settings" [ref=e63] [cursor=pointer]:
+              - img
+  - main [ref=e67]:
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e71]:
+          - img [ref=e72]
+          - link "videolan" [ref=e75] [cursor=pointer]:
+            - /url: /videolan
+          - generic [ref=e76]: /
+          - strong [ref=e77]:
+            - link "vlc-android" [ref=e78] [cursor=pointer]:
+              - /url: /videolan/vlc-android
+          - generic [ref=e79]: Public
+        - generic [ref=e80]:
+          - list:
+            - listitem [ref=e81]:
+              - link "You must be signed in to change notification settings" [ref=e82] [cursor=pointer]:
+                - /url: /login?return_to=%2Fvideolan%2Fvlc-android
+                - img [ref=e83]
+                - text: Notifications
+            - listitem [ref=e85]:
+              - link "Fork 765" [ref=e86] [cursor=pointer]:
+                - /url: /login?return_to=%2Fvideolan%2Fvlc-android
+                - img [ref=e87]
+                - text: Fork
+                - generic "765" [ref=e89]
+            - listitem [ref=e90]:
+              - link "You must be signed in to star a repository" [ref=e92] [cursor=pointer]:
+                - /url: /login?return_to=%2Fvideolan%2Fvlc-android
+                - img [ref=e93]
+                - text: Star
+                - generic "3685 users starred this repository" [ref=e95]: 3.7k
+      - navigation "Repository" [ref=e96]:
+        - list [ref=e97]:
+          - listitem [ref=e98]:
+            - link "Code" [ref=e99] [cursor=pointer]:
+              - /url: /videolan/vlc-android
+              - img [ref=e100]
+              - generic [ref=e102]: Code
+          - listitem [ref=e103]:
+            - link "Pull requests 2" [ref=e104] [cursor=pointer]:
+              - /url: /videolan/vlc-android/pulls
+              - img [ref=e105]
+              - generic [ref=e107]: Pull requests
+              - generic "2" [ref=e108]
+          - listitem [ref=e109]:
+            - link "Actions" [ref=e110] [cursor=pointer]:
+              - /url: /videolan/vlc-android/actions
+              - img [ref=e111]
+              - generic [ref=e113]: Actions
+          - listitem [ref=e114]:
+            - link "Security and quality" [ref=e115] [cursor=pointer]:
+              - /url: /videolan/vlc-android/security
+              - img [ref=e116]
+              - generic [ref=e118]: Security and quality
+          - listitem [ref=e119]:
+            - link "Insights" [ref=e120] [cursor=pointer]:
+              - /url: /videolan/vlc-android/pulse
+              - img [ref=e121]
+              - generic [ref=e123]: Insights
+    - generic [ref=e136]:
+      - heading "videolan/vlc-android" [level=1] [ref=e138]
+      - generic [ref=e139]:
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - button "master branch" [ref=e146] [cursor=pointer]:
+                - generic [ref=e147]:
+                  - generic [ref=e149]:
+                    - img [ref=e151]
+                    - generic [ref=e154]: master
+                  - generic:
+                    - img
+              - generic [ref=e155]:
+                - link "23 Branches" [ref=e156] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/branches
+                  - generic [ref=e157]:
+                    - generic:
+                      - img
+                    - generic [ref=e159]:
+                      - strong [ref=e160]: "23"
+                      - text: Branches
+                - link "450 Tags" [ref=e161] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/tags
+                  - generic [ref=e162]:
+                    - generic:
+                      - img
+                    - generic [ref=e164]:
+                      - strong [ref=e165]: "450"
+                      - text: Tags
+            - generic [ref=e166]:
+              - generic [ref=e170]:
+                - img [ref=e172]
+                - combobox "Go to file" [ref=e174]
+              - button "Code" [ref=e175] [cursor=pointer]:
+                - generic [ref=e176]:
+                  - generic:
+                    - img
+                  - generic [ref=e177]: Code
+                  - generic:
+                    - img
+          - generic [ref=e178]:
+            - generic [ref=e179]:
+              - heading "Folders and files" [level=2] [ref=e180]
+              - table "Folders and files" [ref=e181]:
+                - rowgroup:
+                  - row "Name Last commit message Last commit date":
+                    - columnheader "Name"
+                    - columnheader "Last commit message":
+                      - generic "Last commit message"
+                    - columnheader "Last commit date":
+                      - generic "Last commit date"
+                - rowgroup [ref=e182]:
+                  - row "Latest commit author Nicolas Pomepuy Bump the remote access artifact to 0.15.0 Commit 740c068 · Apr 15, 20263 days ago History 18,209 Commits" [ref=e183]:
+                    - cell "Latest commit author Nicolas Pomepuy Bump the remote access artifact to 0.15.0 Commit 740c068 · Apr 15, 20263 days ago History 18,209 Commits" [ref=e184]:
+                      - generic [ref=e185]:
+                        - heading "Latest commit" [level=2] [ref=e186]
+                        - generic [ref=e187]:
+                          - generic [ref=e189]:
+                            - img "author" [ref=e190]
+                            - generic "Nicolas Pomepuy" [ref=e191]
+                          - link "Bump the remote access artifact to 0.15.0" [ref=e195] [cursor=pointer]:
+                            - /url: /videolan/vlc-android/commit/740c0685b9cf138db921d9a0f90c4b1a1e713299
+                        - generic [ref=e196]:
+                          - generic [ref=e198]:
+                            - link "Commit 740c068" [ref=e199] [cursor=pointer]:
+                              - /url: /videolan/vlc-android/commit/740c0685b9cf138db921d9a0f90c4b1a1e713299
+                              - text: 740c068
+                            - text: ·
+                            - generic "Apr 15, 2026, 7:03 AM GMT+2" [ref=e200]: Apr 15, 20263 days ago
+                          - generic [ref=e201]:
+                            - heading "History" [level=2] [ref=e202]
+                            - link "18,209 Commits" [ref=e203] [cursor=pointer]:
+                              - /url: /videolan/vlc-android/commits/master/
+                              - generic [ref=e204]:
+                                - generic:
+                                  - img
+                                - generic [ref=e205]: 18,209 Commits
+                  - row ".gitlab, (Directory) Improve issue instructions Mar 13, 20242 years ago" [ref=e206]:
+                    - cell ".gitlab, (Directory)" [ref=e207]:
+                      - generic [ref=e208]:
+                        - img [ref=e209]
+                        - link ".gitlab, (Directory)" [ref=e214] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/tree/master/.gitlab
+                          - text: .gitlab
+                    - cell "Improve issue instructions" [ref=e215]:
+                      - link "Improve issue instructions" [ref=e218] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/91e49475da93256fea004bc548746eccfee6331f
+                    - cell "Mar 13, 20242 years ago" [ref=e219]:
+                      - generic [ref=e220]: Mar 13, 20242 years ago
+                  - row ".tx, (Directory) Use Transifex to translate the store screenshots Jan 15, 2025last year" [ref=e221]:
+                    - cell ".tx, (Directory)" [ref=e222]:
+                      - generic [ref=e223]:
+                        - img [ref=e224]
+                        - link ".tx, (Directory)" [ref=e229] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/tree/master/.tx
+                          - text: .tx
+                    - cell "Use Transifex to translate the store screenshots" [ref=e230]:
+                      - link "Use Transifex to translate the store screenshots" [ref=e233] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/920368174656a9494fb69c89fd4d5ea7f2e3f534
+                    - cell "Jan 15, 2025last year" [ref=e234]:
+                      - generic [ref=e235]: Jan 15, 2025last year
+                  - 'row "application, (Directory) Albums: remove CTX_RENAME Mar 26, 20263 weeks ago" [ref=e236]':
+                    - cell "application, (Directory)" [ref=e237]:
+                      - generic [ref=e238]:
+                        - img [ref=e239]
+                        - link "application, (Directory)" [ref=e244] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/tree/master/application
+                          - text: application
+                    - 'cell "Albums: remove CTX_RENAME" [ref=e245]':
+                      - 'link "Albums: remove CTX_RENAME" [ref=e248] [cursor=pointer]':
+                        - /url: /videolan/vlc-android/commit/d9aaece2177d639ad6e899de51c4d07e11adf00e
+                    - cell "Mar 26, 20263 weeks ago" [ref=e249]:
+                      - generic [ref=e250]: Mar 26, 20263 weeks ago
+                  - row "buildsystem, (Directory) Bump the remote access artifact to 0.15.0 Apr 15, 20263 days ago" [ref=e251]:
+                    - cell "buildsystem, (Directory)" [ref=e252]:
+                      - generic [ref=e253]:
+                        - img [ref=e254]
+                        - link "buildsystem, (Directory)" [ref=e259] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/tree/master/buildsystem
+                          - text: buildsystem
+                    - cell "Bump the remote access artifact to 0.15.0" [ref=e260]:
+                      - link "Bump the remote access artifact to 0.15.0" [ref=e263] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/740c0685b9cf138db921d9a0f90c4b1a1e713299
+                    - cell "Apr 15, 20263 days ago" [ref=e264]:
+                      - generic [ref=e265]: Apr 15, 20263 days ago
+                  - 'row "medialibrary, (Directory) buildsystem: get the NDK path and full version Feb 13, 20262 months ago" [ref=e266]':
+                    - cell "medialibrary, (Directory)" [ref=e267]:
+                      - generic [ref=e268]:
+                        - img [ref=e269]
+                        - link "medialibrary, (Directory)" [ref=e274] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/tree/master/medialibrary
+                          - text: medialibrary
+                    - 'cell "buildsystem: get the NDK path and full version" [ref=e275]':
+                      - 'link "buildsystem: get the NDK path and full version" [ref=e278] [cursor=pointer]':
+                        - /url: /videolan/vlc-android/commit/8329091e1ac6d5105076145fab598e54b25ea4f8
+                    - cell "Feb 13, 20262 months ago" [ref=e279]:
+                      - generic [ref=e280]: Feb 13, 20262 months ago
+                  - 'row ".gitignore, (File) buildsystem: ignore kotlin build files Jul 21, 20259 months ago" [ref=e281]':
+                    - cell ".gitignore, (File)" [ref=e282]:
+                      - generic [ref=e283]:
+                        - img [ref=e284]
+                        - link ".gitignore, (File)" [ref=e289] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/.gitignore
+                          - text: .gitignore
+                    - 'cell "buildsystem: ignore kotlin build files" [ref=e290]':
+                      - 'link "buildsystem: ignore kotlin build files" [ref=e293] [cursor=pointer]':
+                        - /url: /videolan/vlc-android/commit/79fcf7659fbaab02518fe7b903b760872a503745
+                    - cell "Jul 21, 20259 months ago" [ref=e294]:
+                      - generic [ref=e295]: Jul 21, 20259 months ago
+                  - row ".mailmap, (File) Update mailmap Mar 27, 20206 years ago" [ref=e296]:
+                    - cell ".mailmap, (File)" [ref=e297]:
+                      - generic [ref=e298]:
+                        - img [ref=e299]
+                        - link ".mailmap, (File)" [ref=e304] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/.mailmap
+                          - text: .mailmap
+                    - cell "Update mailmap" [ref=e305]:
+                      - link "Update mailmap" [ref=e308] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/22d0778923e6839dac3a45cbc843cf4d7edf8a29
+                    - cell "Mar 27, 20206 years ago" [ref=e309]:
+                      - generic [ref=e310]: Mar 27, 20206 years ago
+                  - row "COPYING, (File) Add GPLv2 license Jan 21, 201215 years ago" [ref=e311]:
+                    - cell "COPYING, (File)" [ref=e312]:
+                      - generic [ref=e313]:
+                        - img [ref=e314]
+                        - link "COPYING, (File)" [ref=e319] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/COPYING
+                          - text: COPYING
+                    - cell "Add GPLv2 license" [ref=e320]:
+                      - link "Add GPLv2 license" [ref=e323] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/1bcde44809a22a7e4157e829a4515cdf7f537582
+                    - cell "Jan 21, 201215 years ago" [ref=e324]:
+                      - generic [ref=e325]: Jan 21, 201215 years ago
+                  - row "NEWS, (File) Bump the app version to 3.7.1 Beta 2 Mar 26, 20263 weeks ago" [ref=e326]:
+                    - cell "NEWS, (File)" [ref=e327]:
+                      - generic [ref=e328]:
+                        - img [ref=e329]
+                        - link "NEWS, (File)" [ref=e334] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/NEWS
+                          - text: NEWS
+                    - cell "Bump the app version to 3.7.1 Beta 2" [ref=e335]:
+                      - link "Bump the app version to 3.7.1 Beta 2" [ref=e338] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/d29194c2bf644433088e17f55321925f2af486fd
+                    - cell "Mar 26, 20263 weeks ago" [ref=e339]:
+                      - generic [ref=e340]: Mar 26, 20263 weeks ago
+                  - row "README.md, (File) Fix the Transifex link in the README Dec 10, 20254 months ago" [ref=e341]:
+                    - cell "README.md, (File)" [ref=e342]:
+                      - generic [ref=e343]:
+                        - img [ref=e344]
+                        - link "README.md, (File)" [ref=e349] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/README.md
+                          - text: README.md
+                    - cell "Fix the Transifex link in the README" [ref=e350]:
+                      - link "Fix the Transifex link in the README" [ref=e353] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/cf40c6356cd084032f6910accd57b99e8337c97e
+                    - cell "Dec 10, 20254 months ago" [ref=e354]:
+                      - generic [ref=e355]: Dec 10, 20254 months ago
+                  - row "build.gradle, (File) Bump the remote access artifact to 0.15.0 Apr 15, 20263 days ago" [ref=e356]:
+                    - cell "build.gradle, (File)" [ref=e357]:
+                      - generic [ref=e358]:
+                        - img [ref=e359]
+                        - link "build.gradle, (File)" [ref=e364] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/build.gradle
+                          - text: build.gradle
+                    - cell "Bump the remote access artifact to 0.15.0" [ref=e365]:
+                      - link "Bump the remote access artifact to 0.15.0" [ref=e368] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/740c0685b9cf138db921d9a0f90c4b1a1e713299
+                    - cell "Apr 15, 20263 days ago" [ref=e369]:
+                      - generic [ref=e370]: Apr 15, 20263 days ago
+                  - row "gradle.properties, (File) Update the maven plugin Jul 17, 20259 months ago" [ref=e371]:
+                    - cell "gradle.properties, (File)" [ref=e372]:
+                      - generic [ref=e373]:
+                        - img [ref=e374]
+                        - link "gradle.properties, (File)" [ref=e379] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/gradle.properties
+                          - text: gradle.properties
+                    - cell "Update the maven plugin" [ref=e380]:
+                      - link "Update the maven plugin" [ref=e383] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/afa602212f1692440ab260f59f46ff87a4499000
+                    - cell "Jul 17, 20259 months ago" [ref=e384]:
+                      - generic [ref=e385]: Jul 17, 20259 months ago
+                  - row "settings.gradle, (File) Bump VLC 4 api min to 23 Feb 6, 20262 months ago" [ref=e386]:
+                    - cell "settings.gradle, (File)" [ref=e387]:
+                      - generic [ref=e388]:
+                        - img [ref=e389]
+                        - link "settings.gradle, (File)" [ref=e394] [cursor=pointer]:
+                          - /url: /videolan/vlc-android/blob/master/settings.gradle
+                          - text: settings.gradle
+                    - cell "Bump VLC 4 api min to 23" [ref=e395]:
+                      - link "Bump VLC 4 api min to 23" [ref=e398] [cursor=pointer]:
+                        - /url: /videolan/vlc-android/commit/ca3849b1f350f0b8ad1b54add63582fd82c4a2e7
+                    - cell "Feb 6, 20262 months ago" [ref=e399]:
+                      - generic [ref=e400]: Feb 6, 20262 months ago
+            - generic [ref=e402]:
+              - generic [ref=e403]:
+                - heading "Repository files navigation" [level=2] [ref=e404]
+                - navigation "Repository files" [ref=e405]:
+                  - list [ref=e406]:
+                    - listitem [ref=e407]:
+                      - link "README" [ref=e408] [cursor=pointer]:
+                        - /url: "#"
+                        - img [ref=e410]
+                        - generic [ref=e412]: README
+                    - listitem [ref=e413]:
+                      - link "License" [ref=e414] [cursor=pointer]:
+                        - /url: "#"
+                        - img [ref=e416]
+                        - generic [ref=e418]: License
+                - button "Outline" [ref=e419] [cursor=pointer]:
+                  - img [ref=e420]
+              - article [ref=e423]:
+                - generic [ref=e424]:
+                  - heading "VLC for Android" [level=1] [ref=e425]
+                  - 'link "Permalink: VLC for Android" [ref=e426] [cursor=pointer]':
+                    - /url: "#vlc-for-android"
+                    - img [ref=e427]
+                - paragraph [ref=e429]:
+                  - text: This is the official
+                  - strong [ref=e430]: Android
+                  - text: port of
+                  - link "VLC" [ref=e431] [cursor=pointer]:
+                    - /url: https://videolan.org/vlc/
+                  - text: .
+                - paragraph [ref=e432]: VLC on Android plays all the same files as the classical version of VLC, and features a media database for Audio and Video files and stream.
+                - list [ref=e433]:
+                  - listitem [ref=e434]:
+                    - link "Project Structure" [ref=e435] [cursor=pointer]:
+                      - /url: "#project-structure"
+                  - listitem [ref=e436]:
+                    - link "LibVLC" [ref=e437] [cursor=pointer]:
+                      - /url: "#libvlc"
+                  - listitem [ref=e438]:
+                    - link "License" [ref=e439] [cursor=pointer]:
+                      - /url: "#license"
+                  - listitem [ref=e440]:
+                    - link "Build" [ref=e441] [cursor=pointer]:
+                      - /url: "#build"
+                    - list [ref=e442]:
+                      - listitem [ref=e443]:
+                        - link "Build Application" [ref=e444] [cursor=pointer]:
+                          - /url: "#build-application"
+                      - listitem [ref=e445]:
+                        - link "Build LibVLC" [ref=e446] [cursor=pointer]:
+                          - /url: "#build-libvlc"
+                  - listitem [ref=e447]:
+                    - link "Contribute" [ref=e448] [cursor=pointer]:
+                      - /url: "#contribute"
+                    - list [ref=e449]:
+                      - listitem [ref=e450]:
+                        - link "Pull requests" [ref=e451] [cursor=pointer]:
+                          - /url: "#pull-requests"
+                      - listitem [ref=e452]:
+                        - link "Translations" [ref=e453] [cursor=pointer]:
+                          - /url: "#translations"
+                  - listitem [ref=e454]:
+                    - link "Issues and feature requests" [ref=e455] [cursor=pointer]:
+                      - /url: "#issues-and-feature-requests"
+                  - listitem [ref=e456]:
+                    - link "Support" [ref=e457] [cursor=pointer]:
+                      - /url: "#support"
+                - generic [ref=e458]:
+                  - heading "Project Structure" [level=2] [ref=e459]
+                  - 'link "Permalink: Project Structure" [ref=e460] [cursor=pointer]':
+                    - /url: "#project-structure"
+                    - img [ref=e461]
+                - paragraph [ref=e463]: "Here are the current folders of vlc-android project:"
+                - list [ref=e464]:
+                  - listitem [ref=e465]: "extension-api : Application extensions SDK (not released yet)"
+                  - listitem [ref=e466]: "application : Android application source code, organized by modules."
+                  - listitem [ref=e467]: "buildsystem : Build scripts, CI and maven publication configuration"
+                  - listitem [ref=e468]:
+                    - text: "libvlc : LibVLC gradle module, VLC source code will be cloned in"
+                    - code [ref=e469]: vlc/
+                    - text: at root level.
+                  - listitem [ref=e470]: "medialibrary : Medialibrary gradle module"
+                - generic [ref=e471]:
+                  - heading "LibVLC" [level=2] [ref=e472]
+                  - 'link "Permalink: LibVLC" [ref=e473] [cursor=pointer]':
+                    - /url: "#libvlc"
+                    - img [ref=e474]
+                - paragraph [ref=e476]: "LibVLC is the Android library embedding VLC engine, which provides a lot of multimedia features, like:"
+                - list [ref=e477]:
+                  - listitem [ref=e478]: Play every media file formats, every codec and every streaming protocols
+                  - listitem [ref=e479]: Hardware and efficient decoding on every platform, up to 8K
+                  - listitem [ref=e480]: Network browsing for distant filesystems (SMB, FTP, SFTP, NFS...) and servers (UPnP, DLNA)
+                  - listitem [ref=e481]: Playback of Audio CD, DVD and Bluray with menu navigation
+                  - listitem [ref=e482]: Support for HDR, including tonemapping for SDR streams
+                  - listitem [ref=e483]: Audio passthrough with SPDIF and HDMI, including for Audio HD codecs, like DD+, TrueHD or DTS-HD
+                  - listitem [ref=e484]: Support for video and audio filters
+                  - listitem [ref=e485]: Support for 360 video and 3D audio playback, including Ambisonics
+                  - listitem [ref=e486]: Ability to cast and stream to distant renderers, like Chromecast and UPnP renderers.
+                - paragraph [ref=e487]: And more.
+                - paragraph [ref=e488]:
+                  - link "LibVLC stack" [ref=e489] [cursor=pointer]:
+                    - /url: https://camo.githubusercontent.com/40c752f517ecfab2484c2bc6ff38de4959a9aff07103b705c3b3e95f64be8725/68747470733a2f2f696d616765732e766964656f6c616e2e6f72672f696d616765732f6c6962766c635f737461636b2e706e67
+                    - img "LibVLC stack" [ref=e490]
+                - paragraph [ref=e491]:
+                  - text: You can use our LibVLC module to power your own Android media player. Download the
+                  - code [ref=e492]: .aar
+                  - text: directly from
+                  - link "Maven" [ref=e493] [cursor=pointer]:
+                    - /url: https://search.maven.org/artifact/org.videolan.android/libvlc-all
+                  - text: or build from source.
+                - paragraph [ref=e494]:
+                  - text: Have a look at our
+                  - link "sample codes" [ref=e495] [cursor=pointer]:
+                    - /url: https://code.videolan.org/videolan/libvlc-android-samples
+                  - text: .
+                - generic [ref=e496]:
+                  - heading "License" [level=2] [ref=e497]
+                  - 'link "Permalink: License" [ref=e498] [cursor=pointer]':
+                    - /url: "#license"
+                    - img [ref=e499]
+                - paragraph [ref=e501]:
+                  - text: VLC for Android is licensed under
+                  - link "GPLv2 (or later)" [ref=e502] [cursor=pointer]:
+                    - /url: /videolan/vlc-android/blob/master/COPYING
+                  - text: . Android libraries make this, de facto, a GPLv3 application.
+                - paragraph [ref=e503]:
+                  - text: VLC engine
+                  - emphasis [ref=e504]: (LibVLC)
+                  - text: for Android is licensed under
+                  - link "LGPLv2" [ref=e505] [cursor=pointer]:
+                    - /url: /videolan/vlc-android/blob/master/libvlc/COPYING.LIB
+                  - text: .
+                - generic [ref=e506]:
+                  - heading "Build" [level=2] [ref=e507]
+                  - 'link "Permalink: Build" [ref=e508] [cursor=pointer]':
+                    - /url: "#build"
+                    - img [ref=e509]
+                - paragraph [ref=e511]: "Native libraries are published on bintray. So you can:"
+                - list [ref=e512]:
+                  - listitem [ref=e513]: Build the application and get libraries via gradle dependencies (JVM build only)
+                  - listitem [ref=e514]: Build the whole app (LibVLC + Medialibrary + Application)
+                  - listitem [ref=e515]: Build LibVLC only, and get an .aar package
+                - generic [ref=e516]:
+                  - heading "Build Application" [level=3] [ref=e517]
+                  - 'link "Permalink: Build Application" [ref=e518] [cursor=pointer]':
+                    - /url: "#build-application"
+                    - img [ref=e519]
+                - paragraph [ref=e521]: "VLC-Android build relies on gradle build modes :"
+                - list [ref=e522]:
+                  - listitem [ref=e523]:
+                    - code [ref=e524]: Release
+                    - text: "&"
+                    - code [ref=e525]: Debug
+                    - text: will get LibVLC and Medialibrary from Bintray, and build application source code only.
+                  - listitem [ref=e526]:
+                    - code [ref=e527]: SignedRelease
+                    - text: also, but it will allow you to sign application apk with a local keystore.
+                  - listitem [ref=e528]:
+                    - code [ref=e529]: Dev
+                    - text: will build build LibVLC, Medialibrary, and then build the application with these binaries. (via build scripts only)
+                - generic [ref=e530]:
+                  - heading "Build LibVLC" [level=3] [ref=e531]
+                  - 'link "Permalink: Build LibVLC" [ref=e532] [cursor=pointer]':
+                    - /url: "#build-libvlc"
+                    - img [ref=e533]
+                - paragraph [ref=e535]: You will need a recent Linux distribution to build VLC. It should work with Windows 10, and macOS, but there is no official support for this.
+                - generic [ref=e536]:
+                  - heading "Setup" [level=4] [ref=e537]
+                  - 'link "Permalink: Setup" [ref=e538] [cursor=pointer]':
+                    - /url: "#setup"
+                    - img [ref=e539]
+                - paragraph [ref=e541]:
+                  - text: Check our
+                  - link "AndroidCompile wiki page" [ref=e542] [cursor=pointer]:
+                    - /url: https://wiki.videolan.org/AndroidCompile/
+                  - text: ", especially for build dependencies."
+                - paragraph [ref=e543]: "Here are the essential points:"
+                - paragraph [ref=e544]: "On Debian/Ubuntu, install the required dependencies:"
+                - generic [ref=e545]:
+                  - generic [ref=e546]: sudo apt install automake ant autopoint cmake build-essential libtool-bin \ patch pkg-config protobuf-compiler ragel subversion unzip git \ openjdk-8-jre openjdk-8-jdk flex python wget
+                  - button "Copy" [ref=e548] [cursor=pointer]:
+                    - img [ref=e549]
+                - paragraph [ref=e552]:
+                  - text: "Setup the build environment: Set"
+                  - code [ref=e553]: $ANDROID_SDK
+                  - text: to point to your Android SDK directory
+                  - code [ref=e554]: export ANDROID_SDK=/path/to/android-sdk
+                - paragraph [ref=e555]:
+                  - text: Set
+                  - code [ref=e556]: $ANDROID_NDK
+                  - text: to point to your Android NDK directory
+                  - code [ref=e557]: export ANDROID_NDK=/path/to/android-ndk
+                - paragraph [ref=e558]: Then, you are ready to build!
+                - generic [ref=e559]:
+                  - heading "Build" [level=4] [ref=e560]
+                  - 'link "Permalink: Build" [ref=e561] [cursor=pointer]':
+                    - /url: "#build-1"
+                    - img [ref=e562]
+                - paragraph [ref=e564]:
+                  - code [ref=e565]: buildsystem/compile.sh -l -a <ABI>
+                - paragraph [ref=e566]:
+                  - text: ABI can be
+                  - code [ref=e567]: arm
+                  - text: ","
+                  - code [ref=e568]: arm64
+                  - text: ","
+                  - code [ref=e569]: x86
+                  - text: ","
+                  - code [ref=e570]: x86_64
+                  - text: or
+                  - code [ref=e571]: all
+                  - text: for a multi-abis build
+                - paragraph [ref=e572]:
+                  - text: You can do a library release build with
+                  - code [ref=e573]: "-r"
+                  - text: argument
+                - generic [ref=e574]:
+                  - heading "Medialibrary" [level=4] [ref=e575]
+                  - 'link "Permalink: Medialibrary" [ref=e576] [cursor=pointer]':
+                    - /url: "#medialibrary"
+                    - img [ref=e577]
+                - paragraph [ref=e579]:
+                  - text: Build Medialibrary with
+                  - code [ref=e580]: "-ml"
+                  - text: instead of
+                  - code [ref=e581]: "-l"
+                - generic [ref=e582]:
+                  - heading "Contribute" [level=2] [ref=e583]
+                  - 'link "Permalink: Contribute" [ref=e584] [cursor=pointer]':
+                    - /url: "#contribute"
+                    - img [ref=e585]
+                - paragraph [ref=e587]: VLC is a libre and open source project, we welcome all contributions.
+                - paragraph [ref=e588]:
+                  - text: Just respect our
+                  - link "Code of Conduct" [ref=e589] [cursor=pointer]:
+                    - /url: https://wiki.videolan.org/CoC/
+                  - text: ", and if you want do contribute to the UI or add a new feature, please open an issue first so there can be a discussion about it."
+                - generic [ref=e590]:
+                  - heading "Pull requests" [level=3] [ref=e591]
+                  - 'link "Permalink: Pull requests" [ref=e592] [cursor=pointer]':
+                    - /url: "#pull-requests"
+                    - img [ref=e593]
+                - paragraph [ref=e595]:
+                  - text: Pull requests must be proposed on our
+                  - link "gitlab server" [ref=e596] [cursor=pointer]:
+                    - /url: https://code.videolan.org/videolan/vlc-android/
+                  - text: .
+                - paragraph [ref=e597]: So you must create an account, fork vlc-android project, and propose your merge requests from it.
+                - paragraph [ref=e598]:
+                  - strong [ref=e599]: Except for translations
+                  - text: ", see the section below."
+                - generic [ref=e600]:
+                  - heading "Translations" [level=3] [ref=e601]
+                  - 'link "Permalink: Translations" [ref=e602] [cursor=pointer]':
+                    - /url: "#translations"
+                    - img [ref=e603]
+                - paragraph [ref=e605]:
+                  - text: You can help improving translations too by joining the
+                  - link "transifex vlc project" [ref=e606] [cursor=pointer]:
+                    - /url: https://app.transifex.com/yaron/vlc-trans/dashboard/
+                - paragraph [ref=e607]: Translations merge requests are then generated from transifex work.
+                - generic [ref=e608]:
+                  - heading "Issues and feature requests" [level=2] [ref=e609]
+                  - 'link "Permalink: Issues and feature requests" [ref=e610] [cursor=pointer]':
+                    - /url: "#issues-and-feature-requests"
+                    - img [ref=e611]
+                - paragraph [ref=e613]:
+                  - text: VLC for Android bugtracker is hosted on
+                  - link "VideoLAN gitlab" [ref=e614] [cursor=pointer]:
+                    - /url: https://code.videolan.org/videolan/vlc-android/issues
+                  - text: Please look for existing issues and provide as much useful details as you can (e.g. vlc app version, device and Android version).
+                - paragraph [ref=e615]: A template is provided, please use it!
+                - paragraph [ref=e616]: Issues without relevant information will be ignored, we cannot help in this case.
+                - generic [ref=e617]:
+                  - heading "Support" [level=2] [ref=e618]
+                  - 'link "Permalink: Support" [ref=e619] [cursor=pointer]':
+                    - /url: "#support"
+                    - img [ref=e620]
+                - list [ref=e622]:
+                  - listitem [ref=e623]:
+                    - text: For usage support, use the in-app feedback option in the
+                    - code [ref=e624]: About
+                    - text: screen
+                  - listitem [ref=e625]:
+                    - text: "Android mailing list:"
+                    - link "android@videolan.org" [ref=e626] [cursor=pointer]:
+                      - /url: mailto:android@videolan.org
+                  - listitem [ref=e627]:
+                    - text: "bugtracker:"
+                    - link "https://code.videolan.org/videolan/vlc-android/issues" [ref=e628] [cursor=pointer]:
+                      - /url: https://code.videolan.org/videolan/vlc-android/issues
+                  - listitem [ref=e629]:
+                    - text: "IRC:"
+                    - emphasis [ref=e630]: "#videolan"
+                    - text: channel on
+                    - link "libera" [ref=e631] [cursor=pointer]:
+                      - /url: https://libera.chat/
+                  - listitem [ref=e632]:
+                    - text: "VideoLAN forum:"
+                    - link "https://forum.videolan.org/viewforum.php?f=35" [ref=e633] [cursor=pointer]:
+                      - /url: https://forum.videolan.org/viewforum.php?f=35
+        - generic [ref=e637]:
+          - generic [ref=e640]:
+            - heading "About" [level=2] [ref=e641]
+            - paragraph [ref=e642]: VLC for Android, Android TV and ChromeOS
+            - heading "Topics" [level=3] [ref=e643]
+            - generic [ref=e645]:
+              - link "android" [ref=e646] [cursor=pointer]:
+                - /url: /topics/android
+              - link "player" [ref=e647] [cursor=pointer]:
+                - /url: /topics/player
+              - link "multimedia" [ref=e648] [cursor=pointer]:
+                - /url: /topics/multimedia
+              - link "vlc" [ref=e649] [cursor=pointer]:
+                - /url: /topics/vlc
+              - link "libvlc" [ref=e650] [cursor=pointer]:
+                - /url: /topics/libvlc
+              - link "videolan" [ref=e651] [cursor=pointer]:
+                - /url: /topics/videolan
+            - heading "Resources" [level=3] [ref=e652]
+            - link "Readme" [ref=e654] [cursor=pointer]:
+              - /url: "#readme-ov-file"
+              - img [ref=e655]
+              - text: Readme
+            - heading "License" [level=3] [ref=e657]
+            - link "GPL-2.0 license" [ref=e659] [cursor=pointer]:
+              - /url: "#GPL-2.0-1-ov-file"
+              - img [ref=e660]
+              - text: GPL-2.0 license
+            - link "Activity" [ref=e663] [cursor=pointer]:
+              - /url: /videolan/vlc-android/activity
+              - img [ref=e664]
+              - text: Activity
+            - link "Custom properties" [ref=e667] [cursor=pointer]:
+              - /url: /videolan/vlc-android/custom-properties
+              - img [ref=e668]
+              - text: Custom properties
+            - heading "Stars" [level=3] [ref=e670]
+            - link "3.7k stars" [ref=e672] [cursor=pointer]:
+              - /url: /videolan/vlc-android/stargazers
+              - img [ref=e673]
+              - strong [ref=e675]: 3.7k
+              - text: stars
+            - heading "Watchers" [level=3] [ref=e676]
+            - link "79 watching" [ref=e678] [cursor=pointer]:
+              - /url: /videolan/vlc-android/watchers
+              - img [ref=e679]
+              - strong [ref=e681]: "79"
+              - text: watching
+            - heading "Forks" [level=3] [ref=e682]
+            - link "765 forks" [ref=e684] [cursor=pointer]:
+              - /url: /videolan/vlc-android/forks
+              - img [ref=e685]
+              - strong [ref=e687]: "765"
+              - text: forks
+            - link "Report repository" [ref=e689] [cursor=pointer]:
+              - /url: /contact/report-content?content_url=https%3A%2F%2Fgithub.com%2Fvideolan%2Fvlc-android&report=videolan+%28user%29
+          - generic [ref=e691]:
+            - heading "Releases" [level=2] [ref=e692]:
+              - link "Releases" [ref=e693] [cursor=pointer]:
+                - /url: /videolan/vlc-android/releases
+            - link "450 tags" [ref=e694] [cursor=pointer]:
+              - /url: /videolan/vlc-android/tags
+              - img [ref=e695]
+              - text: 450 tags
+          - generic "Loading latest packages" [ref=e699]:
+            - heading "Packages" [level=2] [ref=e700]:
+              - link "Packages" [ref=e701] [cursor=pointer]:
+                - /url: /orgs/videolan/packages?repo_name=vlc-android
+          - generic [ref=e712]:
+            - heading "Contributors 178" [level=2] [ref=e713]:
+              - link "Contributors 178" [ref=e714] [cursor=pointer]:
+                - /url: /videolan/vlc-android/graphs/contributors
+                - text: Contributors
+                - generic "178" [ref=e715]
+            - list [ref=e716]:
+              - listitem [ref=e717]:
+                - link "@GeoffreyMetais" [ref=e718] [cursor=pointer]:
+                  - /url: https://github.com/GeoffreyMetais
+                  - img "@GeoffreyMetais" [ref=e719]
+              - listitem [ref=e720]:
+                - link "@jbkempf" [ref=e721] [cursor=pointer]:
+                  - /url: https://github.com/jbkempf
+                  - img "@jbkempf" [ref=e722]
+              - listitem [ref=e723]:
+                - link "@tguillem" [ref=e724] [cursor=pointer]:
+                  - /url: https://github.com/tguillem
+                  - img "@tguillem" [ref=e725]
+              - listitem [ref=e726]:
+                - link "@edwardcwang" [ref=e727] [cursor=pointer]:
+                  - /url: https://github.com/edwardcwang
+                  - img "@edwardcwang" [ref=e728]
+              - listitem [ref=e729]:
+                - link "@xabroc" [ref=e730] [cursor=pointer]:
+                  - /url: https://github.com/xabroc
+                  - img "@xabroc" [ref=e731]
+              - listitem [ref=e732]:
+                - link "@XilasZ" [ref=e733] [cursor=pointer]:
+                  - /url: https://github.com/XilasZ
+                  - img "@XilasZ" [ref=e734]
+              - listitem [ref=e735]:
+                - link "@PomepuyN" [ref=e736] [cursor=pointer]:
+                  - /url: https://github.com/PomepuyN
+                  - img "@PomepuyN" [ref=e737]
+              - listitem [ref=e738]:
+                - link "@magwyz" [ref=e739] [cursor=pointer]:
+                  - /url: https://github.com/magwyz
+                  - img "@magwyz" [ref=e740]
+              - listitem [ref=e741]:
+                - link "@Skantes" [ref=e742] [cursor=pointer]:
+                  - /url: https://github.com/Skantes
+                  - img "@Skantes" [ref=e743]
+              - listitem [ref=e744]:
+                - link "@etix" [ref=e745] [cursor=pointer]:
+                  - /url: https://github.com/etix
+                  - img "@etix" [ref=e746]
+              - listitem [ref=e747]:
+                - link "@funman" [ref=e748] [cursor=pointer]:
+                  - /url: https://github.com/funman
+                  - img "@funman" [ref=e749]
+              - listitem [ref=e750]:
+                - link "@rhstone" [ref=e751] [cursor=pointer]:
+                  - /url: https://github.com/rhstone
+                  - img "@rhstone" [ref=e752]
+              - listitem [ref=e753]:
+                - link "@mtrz" [ref=e754] [cursor=pointer]:
+                  - /url: https://github.com/mtrz
+                  - img "@mtrz" [ref=e755]
+              - listitem [ref=e756]:
+                - link "@chouquette" [ref=e757] [cursor=pointer]:
+                  - /url: https://github.com/chouquette
+                  - img "@chouquette" [ref=e758]
+            - link "+ 164 contributors" [ref=e760] [cursor=pointer]:
+              - /url: /videolan/vlc-android/graphs/contributors
+          - generic [ref=e762]:
+            - heading "Languages" [level=2] [ref=e763]
+            - list [ref=e773]:
+              - listitem [ref=e774]:
+                - link "Kotlin 87.4%" [ref=e775] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/search?l=kotlin
+                  - img [ref=e776]
+                  - generic [ref=e778]: Kotlin
+                  - generic [ref=e779]: 87.4%
+              - listitem [ref=e780]:
+                - link "Java 6.2%" [ref=e781] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/search?l=java
+                  - img [ref=e782]
+                  - generic [ref=e784]: Java
+                  - generic [ref=e785]: 6.2%
+              - listitem [ref=e786]:
+                - link "C++ 4.7%" [ref=e787] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/search?l=c%2B%2B
+                  - img [ref=e788]
+                  - generic [ref=e790]: C++
+                  - generic [ref=e791]: 4.7%
+              - listitem [ref=e792]:
+                - link "Shell 1.0%" [ref=e793] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/search?l=shell
+                  - img [ref=e794]
+                  - generic [ref=e796]: Shell
+                  - generic [ref=e797]: 1.0%
+              - listitem [ref=e798]:
+                - link "AIDL 0.4%" [ref=e799] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/search?l=aidl
+                  - img [ref=e800]
+                  - generic [ref=e802]: AIDL
+                  - generic [ref=e803]: 0.4%
+              - listitem [ref=e804]:
+                - link "Ruby 0.2%" [ref=e805] [cursor=pointer]:
+                  - /url: /videolan/vlc-android/search?l=ruby
+                  - img [ref=e806]
+                  - generic [ref=e808]: Ruby
+                  - generic [ref=e809]: 0.2%
+              - listitem [ref=e810]:
+                - generic [ref=e811]:
+                  - img [ref=e812]
+                  - generic [ref=e814]: Other
+                  - generic [ref=e815]: 0.1%
+  - contentinfo [ref=e817]:
+    - heading "Footer" [level=2] [ref=e818]
+    - generic [ref=e819]:
+      - generic [ref=e820]:
+        - link "GitHub Homepage" [ref=e821] [cursor=pointer]:
+          - /url: https://github.com
+          - img [ref=e822]
+        - generic [ref=e824]: © 2026 GitHub, Inc.
+      - navigation "Footer" [ref=e825]:
+        - heading "Footer navigation" [level=3] [ref=e826]
+        - list "Footer navigation" [ref=e827]:
+          - listitem [ref=e828]:
+            - link "Terms" [ref=e829] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+          - listitem [ref=e830]:
+            - link "Privacy" [ref=e831] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+          - listitem [ref=e832]:
+            - link "Security" [ref=e833] [cursor=pointer]:
+              - /url: https://github.com/security
+          - listitem [ref=e834]:
+            - link "Status" [ref=e835] [cursor=pointer]:
+              - /url: https://www.githubstatus.com/
+          - listitem [ref=e836]:
+            - link "Community" [ref=e837] [cursor=pointer]:
+              - /url: https://github.community/
+          - listitem [ref=e838]:
+            - link "Docs" [ref=e839] [cursor=pointer]:
+              - /url: https://docs.github.com/
+          - listitem [ref=e840]:
+            - link "Contact" [ref=e841] [cursor=pointer]:
+              - /url: https://support.github.com?tags=dotcom-footer
+          - listitem [ref=e842]:
+            - button "Manage cookies" [ref=e844] [cursor=pointer]
+          - listitem [ref=e845]:
+            - button "Do not share my personal information" [ref=e847] [cursor=pointer]

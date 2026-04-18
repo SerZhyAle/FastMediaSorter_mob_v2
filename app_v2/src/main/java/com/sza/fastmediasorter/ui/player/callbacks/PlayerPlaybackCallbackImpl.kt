@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
 import android.os.Handler
+import android.widget.Toast
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
@@ -110,10 +112,25 @@ class PlayerPlaybackCallbackImpl(
         // Keep explicit per-file behaviour predictable: every new video starts in AUTO,
         // then onTracksChanged may override it if the user has not picked a manual mode.
         viewModel.resetStereoModeForNewFile()
+        // Reset flag so the 3D toast can fire once for the new file.
+        stereoToastShownForCurrentFile = false
     }
 
+    // Tracks whether the "3D detected" toast has already been shown for the current file.
+    // Resets in onBeforeVideoLoad() so each new file gets one toast chance.
+    private var stereoToastShownForCurrentFile = false
+
     override fun onStereoDetected(mode: StereoMode) {
-        // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO
+        // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO.
         viewModel.setAutoDetectedStereoMode(mode)
+
+        // Show a one-shot toast suggesting to open the file in a VR player via "File info".
+        // Only fires for actual 3D content (SBS/OU), not for MONO/AUTO/UNKNOWN.
+        val is3d = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU
+        if (is3d && !stereoToastShownForCurrentFile && !activity.isDestroyed && !activity.isFinishing) {
+            stereoToastShownForCurrentFile = true
+            Timber.d("PlayerPlaybackCallbackImpl: showing 3D detected toast for mode=$mode")
+            Toast.makeText(activity, R.string.player_3d_detected_toast, Toast.LENGTH_LONG).show()
+        }
     }
 }

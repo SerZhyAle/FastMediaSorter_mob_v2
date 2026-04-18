@@ -132,7 +132,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Touch zones hint overlay**: Avoid confusion with a visual overlay that subtly highlights your configured touch zones during the very first launch, teaching you the control scheme intuitively.
 - **Video Control dialog**: Open a single bottom-bar `Control` button placed immediately after `Next track` to adjust volume, audio track, subtitles, HUE rotation, GPU brightness, and playback speed from one tabbed dialog with reset actions. The same dialog model now works in both the main player and the standalone `Open with` video player.
 - **Sleep timer**: Safely fall asleep while watching videos. Set a timer (from 15 up to 120 minutes) with an onscreen countdown badge that automatically halts playback when time expires.
-
+- **Save Frame**: Capture the current video frame as a PNG with a single tap on the overflow menu. The frame is saved to a configurable destination resource (local path); falls back to the Downloads folder if no destination is selected or the resource is unavailable. Works for any video source: local, SMB, SFTP, FTP, and cloud.
 
 ## 8. Audio Player
 

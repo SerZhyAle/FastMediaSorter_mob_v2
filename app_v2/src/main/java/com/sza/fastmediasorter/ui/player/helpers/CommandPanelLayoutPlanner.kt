@@ -43,6 +43,10 @@ class CommandPanelLayoutPlanner {
         EDIT(210, R.id.menu_edit, true, R.string.edit, android.R.drawable.ic_menu_edit),
         UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert),
         CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast),
+        // Low-priority direct video action: show on command bar when space permits,
+        // otherwise let adaptive portrait layout spill it to overflow.
+        SAVE_FRAME(235, R.id.menu_save_frame, true, R.string.menu_save_frame,
+            R.drawable.ic_save_frame),
         LYRICS(240, R.id.menu_lyrics, true, R.string.lyrics, R.drawable.ic_microphone),
         SEARCH_YOUTUBE_MUSIC(250, R.id.menu_search_youtube_music, true,
             R.string.search_in_youtube_music, R.drawable.ic_youtube_music),
@@ -187,6 +191,8 @@ class CommandPanelLayoutPlanner {
             if (isEpub) add(PlayerCommand.EPUB_READER_SETTINGS)
             if (isEpub) add(PlayerCommand.EPUB_SEARCH_ALL)
             if (isPdf || isText || isImage) add(PlayerCommand.PRINT)
+            // Save Frame is only available for video (not audio, images, or docs)
+            if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
         }.sortedBy { it.priority }
     }
 

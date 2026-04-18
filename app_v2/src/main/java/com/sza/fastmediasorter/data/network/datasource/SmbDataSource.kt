@@ -79,9 +79,12 @@ class SmbDataSource(
                 currentNonNull is java.util.concurrent.TimeoutException) {
                 return true
             }
-            // Also check message for timeout indicators
+            // Also check message for timeout/interruption indicators.
+            // "got interrupted" covers SMBJ's SMBRuntimeException from SequenceWindow
+            // when ExoPlayer interrupts the loader thread during player release.
             val message = currentNonNull.message?.lowercase() ?: ""
-            if (message.contains("timeout") || message.contains("timed out")) {
+            if (message.contains("timeout") || message.contains("timed out") ||
+                message.contains("got interrupted")) {
                 return true
             }
             current = currentNonNull.cause
@@ -354,13 +357,11 @@ class SmbDataSource(
             } catch (e: Exception) {
                 lastException = e
                 
-                // Check if this is a normal interruption (user closed player)
-                val isInterruption = e is InterruptedException || 
-                                     (e.cause is InterruptedException) ||
-                                     e.message?.contains("InterruptedException", ignoreCase = true) == true
-                
-                if (isInterruption) {
-                    Timber.d("SmbDataSource: Read operation interrupted (player closed)")
+                // Check if this is a normal interruption (user closed player).
+                // Use isInterruptionOrTimeout() to walk the full cause chain — this correctly
+                // handles SMBRuntimeException wrapping InterruptedException (SMBJ SequenceWindow).
+                if (isInterruptionOrTimeout(e)) {
+                    Timber.d("SmbDataSource: Read operation interrupted (player closed) — ${e.javaClass.simpleName}: ${e.message}")
                     throw IOException("Read interrupted", e)
                 }
 

@@ -117,7 +117,7 @@
                         android:layout_marginStart="@dimen/settings_help_icon_margin"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/tooltip_backup_info_title"
-                        android:src="@android:drawable/ic_menu_help"
+                        android:src="@drawable/ic_help_outline_24"
                         app:tint="@color/text_color_secondary" />
 
                 </LinearLayout>

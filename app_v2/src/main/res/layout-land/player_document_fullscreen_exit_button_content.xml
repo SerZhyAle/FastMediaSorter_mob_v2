@@ -4,7 +4,7 @@
     android:id="@+id/btnDocumentFullscreenExit"
     android:layout_width="48dp"
     android:layout_height="48dp"
-    android:src="@android:drawable/ic_menu_close_clear_cancel"
+    android:src="@drawable/ic_cancel"
     android:background="@drawable/bg_circle_semi_transparent"
     app:tint="@color/white"
     android:scaleType="centerInside"

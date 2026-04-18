@@ -62,7 +62,9 @@ class PlayerKeyboardCallbackImpl(
                 if (activity.isAnimatedImagePath(currentFile.path)) activity.dialogAndUiStateManager.showGifEditDialog() else activity.dialogAndUiStateManager.showImageEditDialog()
             }
             MediaType.GIF -> activity.dialogAndUiStateManager.showGifEditDialog()
-            MediaType.VIDEO, MediaType.AUDIO -> activity.playerSettingsManager.showPlayerSettingsDialog()
+            // Keep keyboard-triggered Edit aligned with the visible video command-panel entry point.
+            MediaType.VIDEO -> activity.dialogHelper.showPlaybackControlDialog()
+            MediaType.AUDIO -> activity.dialogHelper.showPlaybackControlDialog()
             else -> {}
         }
     }

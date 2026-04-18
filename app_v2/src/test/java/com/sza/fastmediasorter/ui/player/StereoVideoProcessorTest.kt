@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.player
 
 import com.sza.fastmediasorter.domain.model.StereoMode
+import androidx.media3.effect.Crop
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -18,7 +20,7 @@ import org.junit.Test
  * 4. setStereoMode precondition — rejects AUTO and UNKNOWN
  * 5. No-op on same-mode set (idempotency)
  * 6. release() resets state to MONO
- * 7. GL effect contract — SBS/OU are preserved as pass-through, not cropped to one eye
+ * 7. GL effect contract — SBS/OU return a Crop effect; MONO/AUTO/UNKNOWN return null
  */
 class StereoVideoProcessorTest {
 
@@ -191,18 +193,24 @@ class StereoVideoProcessorTest {
     // ──────────────────────────────────────────────────────────────────────────
 
     @Test
-    fun `buildGlEffect returns null for SBS_FULL to preserve stereo frame`() {
-        assertNull(processor.buildGlEffect(StereoMode.SBS_FULL))
+    fun `buildGlEffect returns Crop for SBS_FULL left-eye crop`() {
+        val effect = processor.buildGlEffect(StereoMode.SBS_FULL)
+        assertNotNull(effect)
+        assertTrue(effect is Crop)
     }
 
     @Test
-    fun `buildGlEffect returns null for SBS_HALF to preserve stereo frame`() {
-        assertNull(processor.buildGlEffect(StereoMode.SBS_HALF))
+    fun `buildGlEffect returns Crop for SBS_HALF left-eye crop`() {
+        val effect = processor.buildGlEffect(StereoMode.SBS_HALF)
+        assertNotNull(effect)
+        assertTrue(effect is Crop)
     }
 
     @Test
-    fun `buildGlEffect returns null for OU until dedicated renderer exists`() {
-        assertNull(processor.buildGlEffect(StereoMode.OU))
+    fun `buildGlEffect returns Crop for OU top-eye crop`() {
+        val effect = processor.buildGlEffect(StereoMode.OU)
+        assertNotNull(effect)
+        assertTrue(effect is Crop)
     }
 
     @Test

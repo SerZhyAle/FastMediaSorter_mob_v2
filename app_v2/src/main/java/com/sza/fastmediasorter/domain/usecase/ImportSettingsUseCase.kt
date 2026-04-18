@@ -234,7 +234,11 @@ class ImportSettingsUseCase @Inject constructor(
                                         
                                         lastUsedResourceId = data["lastUsedResourceId"]?.toLong() ?: -1L,
                                         enableThumbnailPreload = data["enableThumbnailPreload"]?.toBoolean() ?: false,
-                                        thumbnailPreloadWifiOnly = data["thumbnailPreloadWifiOnly"]?.toBoolean() ?: true
+                                        thumbnailPreloadWifiOnly = data["thumbnailPreloadWifiOnly"]?.toBoolean() ?: true,
+                                        videoSnapshotResourceId = data["videoSnapshotResourceId"]?.toLongOrNull(),
+                                            videoSnapshotFormat = data["videoSnapshotFormat"]
+                                                ?.takeIf { it == "JPG" }
+                                                ?: "PNG"
                                     )
                                 }
                                 currentResource = null

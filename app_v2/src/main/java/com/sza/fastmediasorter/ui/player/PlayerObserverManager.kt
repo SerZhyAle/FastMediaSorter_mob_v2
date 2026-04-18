@@ -32,7 +32,9 @@ internal class PlayerObserverManager(
                     viewModel.state
                         .distinctUntilChangedBy {
                             Triple(
-                                Triple(it.currentIndex, it.currentFile?.path, it.isSlideShowActive),
+                                // isPaused must participate in UI observation because pause/resume
+                                // drives filename overlay re-show logic and several playback affordances.
+                                Triple(it.currentIndex, it.currentFile?.path, Pair(it.isSlideShowActive, it.isPaused)),
                                 it.showCommandPanel,
                                 it.currentFile?.isFavorite
                             )

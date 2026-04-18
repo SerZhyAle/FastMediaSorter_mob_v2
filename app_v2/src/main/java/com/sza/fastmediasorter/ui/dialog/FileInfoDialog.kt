@@ -301,8 +301,8 @@ class FileInfoDialog(
     }
 
     private fun displayAudioInfo() {
-        // Duration
-        if (mediaFile.duration != null) {
+        // Duration — show only if actually known; async will update for network files
+        if (mediaFile.duration != null && mediaFile.duration > 0) {
             binding.tvAudioDuration.text = context.getString(
                 R.string.audio_duration_label,
                 formatDuration(mediaFile.duration)
@@ -314,14 +314,15 @@ class FileInfoDialog(
     }
 
     private fun displayVideoInfo() {
-        // Duration
-        if (mediaFile.duration != null) {
+        // Duration — show only if duration is actually known (> 0); async will fill it in for network files
+        if (mediaFile.duration != null && mediaFile.duration > 0) {
             binding.tvVideoDuration.text = context.getString(
                 R.string.video_duration_label,
                 formatDuration(mediaFile.duration)
             )
             binding.tvVideoDuration.visibility = View.VISIBLE
         } else {
+            // Hide until async metadata arrives (e.g. for SMB files where duration is 0 before extraction)
             binding.tvVideoDuration.visibility = View.GONE
         }
 
@@ -380,6 +381,11 @@ class FileInfoDialog(
         } else {
             binding.tvVideoRotation.visibility = View.GONE
         }
+
+        // New async-populated fields: hide initially
+        binding.tvVideoAspectRatio.visibility = View.GONE
+        binding.tvVideoAudioChannels.visibility = View.GONE
+        binding.tvVideoAudioBitrate.visibility = View.GONE
     }
 
     private fun displayDocumentInfo() {
@@ -516,11 +522,38 @@ class FileInfoDialog(
             binding.tvAudioCodec.text = context.getString(R.string.audio_codec_label, details.audioCodec)
             binding.tvAudioCodec.visibility = View.VISIBLE
         }
+
+        // Audio channels for video (separate from audio-file section)
+        if (details.audioChannels != null && mediaFile.type == MediaType.VIDEO) {
+            val channelsText = when (details.audioChannels) {
+                1 -> context.getString(R.string.audio_channels_mono)
+                2 -> context.getString(R.string.audio_channels_stereo)
+                else -> "${details.audioChannels} ch"
+            }
+            binding.tvVideoAudioChannels.text = context.getString(R.string.video_audio_channels_label, channelsText)
+            binding.tvVideoAudioChannels.visibility = View.VISIBLE
+        }
+
+        // Audio bitrate for video
+        if (details.audioBitrate != null && mediaFile.type == MediaType.VIDEO) {
+            binding.tvVideoAudioBitrate.text = context.getString(R.string.video_audio_bitrate_label, formatBitrate(details.audioBitrate))
+            binding.tvVideoAudioBitrate.visibility = View.VISIBLE
+        }
         
         // Update Video Codec if we found a better one or if it was missing
         if (details.videoCodec != null) {
              binding.tvVideoCodec.text = context.getString(R.string.video_codec_label, details.videoCodec)
              binding.tvVideoCodec.visibility = View.VISIBLE
+        }
+
+        // Fix duration for network/SMB files: mediaFile.duration may be 0 if not populated during browse
+        if (details.duration != null && details.duration > 0 && mediaFile.type == MediaType.VIDEO) {
+            binding.tvVideoDuration.text = context.getString(R.string.video_duration_label, formatDuration(details.duration))
+            binding.tvVideoDuration.visibility = View.VISIBLE
+        }
+        if (details.duration != null && details.duration > 0 && mediaFile.type == MediaType.AUDIO) {
+            binding.tvAudioDuration.text = context.getString(R.string.audio_duration_label, formatDuration(details.duration))
+            binding.tvAudioDuration.visibility = View.VISIBLE
         }
         
         // Update Video Resolution if missing
@@ -531,6 +564,13 @@ class FileInfoDialog(
                 details.height
             )
             binding.tvVideoResolution.visibility = View.VISIBLE
+
+            // Show aspect ratio (simplified, e.g. 16:9)
+            val gcdVal = gcd(details.width, details.height)
+            val arW = details.width / gcdVal
+            val arH = details.height / gcdVal
+            binding.tvVideoAspectRatio.text = context.getString(R.string.video_aspect_ratio_label, "$arW:$arH")
+            binding.tvVideoAspectRatio.visibility = View.VISIBLE
         }
         
         // Video Bitrate
@@ -883,4 +923,7 @@ class FileInfoDialog(
             String.format(Locale.getDefault(), "%.2f Mbps", mbps)
         }
     }
+
+    /** Euclid GCD — used to simplify aspect ratio (e.g. 1920x1080 → 16:9) */
+    private fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
 }

@@ -64,7 +64,7 @@
         android:layout_gravity="top|end"
         android:layout_margin="4dp"
         android:background="@drawable/bg_circle_dark"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:src="@drawable/ic_cancel"
         android:scaleType="fitCenter"
         android:padding="12dp"
         android:contentDescription="@string/cancel" />

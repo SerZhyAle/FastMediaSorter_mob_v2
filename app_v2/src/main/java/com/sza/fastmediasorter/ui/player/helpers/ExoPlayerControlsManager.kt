@@ -14,7 +14,7 @@ import com.sza.fastmediasorter.utils.UserActionLogger
  * Responsibilities:
  * - Setup custom navigation buttons (previous/next file)
  * - Setup repeat mode button with icon updates
- * - Setup playback speed button
+ * - Setup unified playback control button
  * - Setup rewind/forward buttons for audiobook mode
  * - Update repeat button icon based on player state
  * 
@@ -22,7 +22,7 @@ import com.sza.fastmediasorter.utils.UserActionLogger
  * - exo_prev_file: Navigate to previous file
  * - exo_next_file: Navigate to next file
  * - exo_repeat: Toggle repeat mode (OFF -> ONE -> OFF)
- * - exo_speed: Show playback speed dialog
+ * - btnPlaybackControl: Open unified Control dialog
  * - btnRewind10: Seek backward 10 seconds (audiobook)
  * - btnForward30: Seek forward 30 seconds (audiobook)
  */
@@ -35,9 +35,7 @@ class ExoPlayerControlsManager(
     interface ExoPlayerControlsCallback {
         fun onPreviousFile()
         fun onNextFile()
-        fun showPlaybackSpeedDialog()
-        fun showAudioTrackDialog()
-        fun showSubtitleTrackDialog()
+        fun showPlaybackControlDialog()
     }
     
     /**
@@ -72,21 +70,10 @@ class ExoPlayerControlsManager(
             }
         }
         
-        // Setup playback speed button
-        binding.playerView.findViewById<ImageButton>(R.id.exo_speed)?.setOnClickListener {
-            callback.showPlaybackSpeedDialog()
-        }
-
-        // Setup audio track quick-switcher button
-        binding.playerView.findViewById<ImageButton>(R.id.btnAudioTrack)?.setOnClickListener {
-            UserActionLogger.logButtonClick("AudioTrack", "ExoPlayerControlsManager")
-            callback.showAudioTrackDialog()
-        }
-
-        // Setup subtitle track quick-switcher button
-        binding.playerView.findViewById<ImageButton>(R.id.btnSubtitleTrack)?.setOnClickListener {
-            UserActionLogger.logButtonClick("SubtitleTrack", "ExoPlayerControlsManager")
-            callback.showSubtitleTrackDialog()
+        // Consolidate speed/audio/subtitle actions behind a single bottom-bar entry point.
+        binding.playerView.findViewById<ImageButton>(R.id.btnPlaybackControl)?.setOnClickListener {
+            UserActionLogger.logButtonClick("PlaybackControl", "ExoPlayerControlsManager")
+            callback.showPlaybackControlDialog()
         }
         
         // Setup rewind/forward buttons for audiobook mode
@@ -137,20 +124,12 @@ class ExoPlayerControlsManager(
     }
 
     /**
-     * Update visibility of audio track and subtitle track buttons
-     * based on available tracks in current media.
-     * Call after media is loaded and tracks are available.
+     * Keep the bottom Control entry point visible for both video and audio playback.
+     * The dialog itself narrows audio down to music-relevant controls only.
      */
-    fun updateTrackButtonsVisibility() {
-        val btnAudioTrack = binding.playerView.findViewById<ImageButton>(R.id.btnAudioTrack)
-        val btnSubtitleTrack = binding.playerView.findViewById<ImageButton>(R.id.btnSubtitleTrack)
-
-        val hasMultipleAudio = videoPlayerManager.hasMultipleAudioTracks()
-        val hasSubtitles = videoPlayerManager.hasSubtitleTracks()
-
-        btnAudioTrack?.visibility = if (hasMultipleAudio) android.view.View.VISIBLE else android.view.View.GONE
-        btnSubtitleTrack?.visibility = if (hasSubtitles) android.view.View.VISIBLE else android.view.View.GONE
-
-        Timber.d("ExoPlayerControlsManager: track buttons updated — audio=$hasMultipleAudio, subtitles=$hasSubtitles")
+    fun updateTrackButtonsVisibility(isPlaybackControlSupported: Boolean) {
+        binding.playerView.findViewById<ImageButton>(R.id.btnPlaybackControl)?.visibility =
+            if (isPlaybackControlSupported) android.view.View.VISIBLE else android.view.View.GONE
+        Timber.d("ExoPlayerControlsManager: Control button visibility updated — supported=$isPlaybackControlSupported")
     }
 }

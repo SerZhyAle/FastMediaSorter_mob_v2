@@ -90,7 +90,7 @@
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
-                app:icon="@android:drawable/arrow_up_float"
+                app:icon="@drawable/ic_arrow_upward"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/spacing_none"
                 style="@style/Widget.Material3.Button.IconButton"/>
@@ -105,7 +105,7 @@
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
-                app:icon="@android:drawable/arrow_down_float"
+                app:icon="@drawable/ic_arrow_downward"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/spacing_none"
                 style="@style/Widget.Material3.Button.IconButton"/>
@@ -119,7 +119,7 @@
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
-                app:icon="@android:drawable/ic_menu_delete"
+                app:icon="@drawable/ic_delete"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/spacing_none"
                 app:iconTint="?attr/colorError"

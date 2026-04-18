@@ -88,6 +88,17 @@ class BrowseLoadingAuxManager(
                 e.message?.contains("Not authenticated", ignoreCase = true) == true)
         ) {
             Timber.d("BrowseLoadingAuxManager: Cloud auth error — sending ShowCloudAuthenticationRequired")
+            // Clear lastBrowseDate so this resource is not auto-reopened on next startup.
+            // Prevents orphaned/unauthenticated cloud resources from showing the error dialog
+            // every time the app starts (even if the user never added this resource themselves).
+            scope.launch(ioDispatcher) {
+                try {
+                    updateResourceUseCase(resource.copy(lastBrowseDate = null))
+                    Timber.d("BrowseLoadingAuxManager: cleared lastBrowseDate for cloud resource '${resource.name}' (auth error)")
+                } catch (ex: Exception) {
+                    Timber.e(ex, "BrowseLoadingAuxManager: failed to clear lastBrowseDate")
+                }
+            }
             sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(resource.cloudProvider ?: CloudProvider.GOOGLE_DRIVE))
             setLoading(false)
             return
