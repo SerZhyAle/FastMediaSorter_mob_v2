@@ -130,8 +130,9 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Picture-in-Picture (PiP)**: Multitask without pausing. On Android 12+ devices, the video automatically shrinks into a floating window when you press the home button, letting you use other apps.
 - **Configurable touch zones**: Personalize your player controls. Define exactly which invisible tap regions of the screen trigger previous, next, play/pause, or skip/seek commands.
 - **Touch zones hint overlay**: Avoid confusion with a visual overlay that subtly highlights your configured touch zones during the very first launch, teaching you the control scheme intuitively.
+- **Video Control dialog**: Open a single bottom-bar `Control` button placed immediately after `Next track` to adjust volume, audio track, subtitles, HUE rotation, GPU brightness, and playback speed from one tabbed dialog with reset actions. The same dialog model now works in both the main player and the standalone `Open with` video player.
 - **Sleep timer**: Safely fall asleep while watching videos. Set a timer (from 15 up to 120 minutes) with an onscreen countdown badge that automatically halts playback when time expires.
-- **3D Video Support (SBS)**: Play stereoscopic side-by-side 3D videos with automatic format detection via aspect ratio heuristics and embedded Matroska metadata. Choose between Auto-detect, Force SBS, or Mono in the Playback Settings dialog. Compatible with phone-based VR viewers (Google Cardboard and similar).
+
 
 ## 8. Audio Player
 
@@ -313,7 +314,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Standalone player Picture-in-Picture (Android 12+)**: Press Home while watching a video to keep it in a floating overlay window with play/pause remote actions. Video continues playing without interruption. PiP button visible in player controls on supported devices.
 - **Standalone player audio focus management**: Video and audio automatically pause on incoming phone calls, voice assistant activation, and other transient interruptions; permanently stops on call answer. Audio focus is released on exit so other apps (e.g. Spotify) resume immediately.
 - **Standalone player video UX parity**: Command buttons (close, share, delete, open-in-FMS) are fully visible in both portrait and landscape on all devices — padded away from status bar and navigation bar. Screen rotates with physical device sensor even when OS auto-rotate is off.
-- **Standalone player video controls**: Playback speed (0.25×–2×), audio track selection (multi-track MKV/MP4), subtitle track selection with app font styling, touch gestures (swipe left/right for brightness/volume, horizontal swipe for seek, double-tap edges for ±10s, double-tap center for play/pause, single-tap center for controls toggle), and fullscreen immersive mode on video open.
+- **Standalone player video controls**: The standalone `Open with` video player now mirrors the main player with the same bottom-bar `Control` dialog, the same HUE + GPU brightness pipeline, the same reset actions, and the same touch gestures. This parity works in both portrait and landscape because both orientations use the same custom ExoPlayer controller layout.
 
 ## 22. Scheduled File Operations
 
