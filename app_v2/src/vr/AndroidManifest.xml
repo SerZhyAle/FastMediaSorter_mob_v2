@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Union Manifest for vr flavor — contains entries for both store channels.
+      All XR uses-feature declared with required="false" so they don't block
+      install on platforms where the feature is not declared (see ADR-3 in spec).
+    -->
+
+    <application>
+
+        <activity
+            android:name="com.sza.fastmediasorter.vr.VrPlayerActivity"
+            android:configChanges="density|fontScale|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:exported="false"
+            android:resizeableActivity="false"
+            android:screenOrientation="landscape">
+
+            <!-- Meta Horizon Store: VR mode intent category -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.oculus.intent.category.VR" />
+            </intent-filter>
+
+            <!-- Google Play / Android XR: immersive entry point -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.google.intent.category.IMMERSIVE" />
+            </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name="com.sza.fastmediasorter.vr.VrPhoneFallbackActivity"
+            android:exported="false" />
+
+    </application>
+
+    <!-- Meta Horizon Store: head tracking (required=false — does not block Google Play install) -->
+    <uses-feature
+        android:name="android.hardware.vr.headtracking"
+        android:required="false"
+        android:version="1" />
+
+    <!-- Google Play / Android XR: immersive XR (required=false — does not block Quest install) -->
+    <uses-feature
+        android:name="android.hardware.xr.immersive"
+        android:required="false" />
+
+</manifest>

@@ -133,6 +133,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Video Control dialog**: Open a single bottom-bar `Control` button placed immediately after `Next track` to adjust volume, audio track, subtitles, HUE rotation, GPU brightness, and playback speed from one tabbed dialog with reset actions. The same dialog model now works in both the main player and the standalone `Open with` video player.
 - **Sleep timer**: Safely fall asleep while watching videos. Set a timer (from 15 up to 120 minutes) with an onscreen countdown badge that automatically halts playback when time expires.
 - **Save Frame**: Capture the current video frame as a PNG with a single tap on the overflow menu. The frame is saved to a configurable destination resource (local path); falls back to the Downloads folder if no destination is selected or the resource is unavailable. Works for any video source: local, SMB, SFTP, FTP, and cloud.
+- **3D stereo detection**: Automatically detects Side-by-Side (SBS) and Over-Under (OU) stereoscopic video via metadata and heuristics. In the standard edition, detecting 3D content shows a prompt to install the dedicated VR edition for headset playback.
+- **VR edition (separate flavor)**: The VR edition of FastMediaSorter provides full stereoscopic viewing of both 3D video (SBS/OU) and 3D photos in Meta Quest and Android XR headsets. It is a complete player identical to the standard edition, extended with OpenXR rendering. Save Frame in VR captures a stereoscopic SBS PNG with both eye views side by side.
 
 ## 8. Audio Player
 

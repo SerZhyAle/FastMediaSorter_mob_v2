@@ -10,6 +10,7 @@ import android.widget.SeekBar
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -47,16 +48,19 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private val activeSections: List<ControlSection>
         get() = when (currentMediaType) {
             MediaType.AUDIO -> listOf(ControlSection.VOLUME, ControlSection.SPEED)
-            else -> listOf(
-                ControlSection.VOLUME,
-                ControlSection.AUDIO,
-                ControlSection.SUBTITLES,
-                // STEREO tab hidden: current Crop-based preview is a placeholder;
-                // real VR stereo requires OpenXR — see dev/spec_openxr_3d_player.md
-                ControlSection.HUE,
-                ControlSection.BRIGHTNESS,
-                ControlSection.SPEED
-            )
+            else -> buildList {
+                add(ControlSection.VOLUME)
+                add(ControlSection.AUDIO)
+                add(ControlSection.SUBTITLES)
+                // 3D/Stereo tab: shown only in VR flavor where stereo rendering is functional.
+                // In standard flavor the crop-based preview is a placeholder — tab hidden.
+                if (BuildConfig.SUPPORT_VR_PLAYER) {
+                    add(ControlSection.STEREO)
+                }
+                add(ControlSection.HUE)
+                add(ControlSection.BRIGHTNESS)
+                add(ControlSection.SPEED)
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -286,6 +290,72 @@ class PlaybackControlDialogFragment : DialogFragment() {
             playerActivity().viewModel.setStereoMode(mode)
             updateStereoDetectedLabel(mode)
         }
+
+        // VR-specific controls (spec §5.8) — only visible in VR flavor
+        if (BuildConfig.SUPPORT_VR_PLAYER) {
+            setupVrStereoControls()
+        }
+    }
+
+    /**
+     * VR-only controls inside the 3D/Stereo tab (spec §5.8):
+     * content type label, rendering mode chips, IPD slider.
+     */
+    private fun setupVrStereoControls() {
+        // Content type label
+        val contentTypeRes = when (currentMediaType) {
+            MediaType.VIDEO -> R.string.playback_vr_content_type_video
+            MediaType.IMAGE, MediaType.GIF -> R.string.playback_vr_content_type_photo
+            else -> R.string.playback_vr_content_type_video
+        }
+        binding.tvVrContentType?.setText(contentTypeRes)
+        binding.tvVrContentType?.isVisible = true
+
+        // Rendering mode chips
+        binding.tvVrRenderingModeLabel?.isVisible = true
+        binding.chipGroupVrRenderingMode?.isVisible = true
+
+        val currentRenderMode = prefs.getString(
+            PlaybackControlPreferences.KEY_VR_RENDERING_MODE, "CINEMA"
+        )
+        when (currentRenderMode) {
+            "FULL_STEREO" -> binding.chipRenderFullStereo?.isChecked = true
+            else -> binding.chipRenderCinema?.isChecked = true
+        }
+
+        binding.chipGroupVrRenderingMode?.setOnCheckedStateChangeListener { _, checkedIds ->
+            val mode = when {
+                checkedIds.contains(R.id.chipRenderFullStereo) -> "FULL_STEREO"
+                else -> "CINEMA"
+            }
+            Timber.d("PlaybackControlDialog: VR rendering mode → $mode")
+            prefs.edit().putString(PlaybackControlPreferences.KEY_VR_RENDERING_MODE, mode).apply()
+        }
+
+        // IPD slider (50-75mm range, mapped to 0-100 seekbar)
+        binding.tvVrIpdLabel?.isVisible = true
+        binding.seekVrIpd?.isVisible = true
+
+        val savedIpd = prefs.getFloat(PlaybackControlPreferences.KEY_VR_IPD_MM, 63.0f)
+        val ipdProgress = ((savedIpd - 50f) / 25f * 100f).toInt().coerceIn(0, 100)
+        binding.seekVrIpd?.progress = ipdProgress
+        updateIpdLabel(savedIpd)
+
+        binding.seekVrIpd?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                val ipdMm = 50f + (progress / 100f * 25f)
+                Timber.d("PlaybackControlDialog: VR IPD → ${ipdMm}mm (progress=$progress)")
+                prefs.edit().putFloat(PlaybackControlPreferences.KEY_VR_IPD_MM, ipdMm).apply()
+                updateIpdLabel(ipdMm)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
+
+    private fun updateIpdLabel(ipdMm: Float) {
+        binding.tvVrIpdLabel?.text = getString(R.string.playback_vr_ipd_label, "%.1f".format(ipdMm))
     }
 
     private fun updateStereoDetectedLabel(mode: StereoMode) {

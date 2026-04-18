@@ -392,6 +392,7 @@
     <string name="label_connection_settings">Параметры подключения</string>
     <string name="label_destination_settings">Настройки назначения</string>
     <string name="label_advanced_settings">Расширенные настройки</string>
+    <string name="label_additional_options">Дополнительные параметры</string>
     <string name="label_statistics">Статистика</string>
     <string name="label_expand_collapse">Развернуть/свернуть</string>
     <string name="label_scan_subdirectories">Сканировать подпапки</string>
@@ -698,6 +699,37 @@
     <string name="welcome_feature_ocr">OCR и Перевод</string>
     <string name="welcome_feature_audio">Аудиоплеер</string>
     <string name="welcome_feature_ebook">Книги и PDF</string>
+
+    <!-- VR-exclusive welcome page (overridden in vr/ source set) -->
+    <string name="welcome_vr_title">3D и VR</string>
+    <string name="welcome_vr_description">Погрузитесь в ваши медиафайлы.\nFastMediaSorter VR автоматически определяет стереоскопический 3D-контент и воспроизводит его прямо в шлеме — без дополнительных приложений.</string>
+    <string name="welcome_vr_feature_stereo">Определение 3D-стерео</string>
+    <string name="welcome_vr_feature_headset">Воспроизведение в Quest</string>
+    <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
+
+    <!-- VR Settings block (Settings → Media → Video, spec §5.7) -->
+    <string name="settings_vr_section_title">VR</string>
+    <string name="settings_vr_auto_detect">Автоопределение формата</string>
+    <string name="settings_vr_auto_detect_desc">Определять SBS/OU/Mono по метаданным и эвристике</string>
+    <string name="settings_vr_forced_format">Принудительный формат</string>
+    <string name="settings_vr_forced_format_desc">Переопределить автоопределение для текущей сессии</string>
+    <string name="settings_vr_rendering_mode">Режим VR-рендеринга</string>
+    <string name="settings_vr_rendering_mode_desc">Cinema = плоский экран в VR; Full = раздельный рендеринг для каждого глаза</string>
+    <string name="settings_vr_remember_format">Запоминать формат файла</string>
+    <string name="settings_vr_remember_format_desc">Кэшировать определённый формат каждого файла в локальной базе</string>
+    <string name="settings_vr_help_title">Настройки VR</string>
+    <string name="settings_vr_help_message">Эти настройки управляют распознаванием и отображением стереоскопического 3D-контента в VR-шлеме.\n\nАвтоопределение анализирует метаданные видео и соотношение сторон для определения стереораскладки (SBS, Over-Under или Mono).\n\nПринудительный формат позволяет переопределить автодетекцию.\n\nРежим рендеринга выбирает между плоским экраном-кинотеатром в VR-пространстве или полным стереоскопическим рендерингом для каждого глаза.</string>
+    <string-array name="vr_forced_format_entries">
+        <item>Авто</item>
+        <item>SBS (рядом)</item>
+        <item>OU (сверху-снизу)</item>
+        <item>Mono</item>
+    </string-array>
+    <string-array name="vr_rendering_mode_entries">
+        <item>Кинотеатр</item>
+        <item>Полный SBS</item>
+        <item>Полный OU</item>
+    </string-array>
 
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ к хранилищу</string>
@@ -1140,6 +1172,10 @@
     <string name="msg_scanning_subnet">Сканирование локальной подсети…</string>
     <string name="msg_scan_complete">Сканирование завершено</string>
     <string name="msg_host_selected">Выбрано %1$s (%2$s)</string>
+    <string name="msg_scan_again">Сканировать снова</string>
+    <string name="msg_no_shares_found">Общие папки не найдены. Введите имя вручную.</string>
+    <string name="msg_share_scan_failed">Ошибка сканирования: %1$s</string>
+    <string name="msg_select_share">Папки на %1$s</string>
     <string name="label_test_result">Результат теста</string>
     <string name="msg_dropbox_auth_cancelled">Авторизация Dropbox отменена</string>
     <string name="msg_onedrive_auth_success">Успешная авторизация OneDrive</string>
@@ -1356,6 +1392,7 @@
     <string name="never_tested">Не тестировалось</string>
     <string name="smb_resource_added_success">SMB ресурс успешно добавлен</string>
     <string name="smb_resource_added_unavailable">SMB ресурс \'%1$s\' добавлен, но временно недоступен. Проверьте существование ресурса и доступ к нему с этого устройства.</string>
+    <string name="smb_resource_added_readonly">SMB ресурс добавлен (только для чтения). Операции записи недоступны.</string>
 
     <!-- Speed Test -->
     <string name="speed_test_preparing">Подготовка теста скорости…</string>
@@ -2395,4 +2432,19 @@
     <string name="playback_settings_3d_detected">Определено автоматически: %s</string>
     <string name="player_3d_detected_toast">Обнаружено 3D-видео. Используйте «Информация о файле», чтобы открыть его во внешнем VR-проигрывателе.</string>
     <string name="playback_settings_3d_hint">Для лучшего эффекта используйте VR-очки (Google Cardboard и т. д.)</string>
+
+    <!-- VR PlaybackControlDialog 3DVR tab (spec §5.8) -->
+    <string name="playback_vr_content_type_video">Контент: Видео</string>
+    <string name="playback_vr_content_type_photo">Контент: Фото</string>
+    <string name="playback_vr_rendering_mode">Режим рендеринга</string>
+    <string name="playback_vr_render_cinema">Кинотеатр</string>
+    <string name="playback_vr_render_full_stereo">Полное стерео</string>
+    <string name="playback_vr_ipd_label">IPD: %s мм</string>
+    <string name="playback_vr_ipd_label_default">IPD (межзрачковое расстояние)</string>
+
+    <!-- VR install CTA (shown in standard flavor when 3D content is detected) -->
+    <string name="vr_install_cta_title">Это 3D-видео</string>
+    <string name="vr_install_cta_message">Для лучшего просмотра используйте VR-версию FastMediaSorter на шлеме Quest.</string>
+    <string name="vr_install_cta_action">Открыть в магазине</string>
+    <string name="vr_install_cta_dismiss">Воспроизвести</string>
 </resources>

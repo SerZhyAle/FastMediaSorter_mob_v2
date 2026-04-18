@@ -57,6 +57,15 @@
         android:gravity="end"
         android:layout_marginTop="@dimen/margin_large">
 
+        <!-- Stop active scan / restart finished scan -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopScan"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:text="@string/stop" />
+
         <Button
             android:id="@+id/btnCancel"
             style="@style/Widget.MaterialComponents.Button.TextButton"

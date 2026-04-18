@@ -174,6 +174,9 @@
             <!-- Test Connection button -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
+            <!-- Scan Shares: discovers available shares for the currently entered server + credentials -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+
             <!-- Share Name and Resource Name in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
@@ -191,170 +194,154 @@
 
             </LinearLayout>
 
-            <!-- Comment and PIN Code in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <!-- === GROUP B: CONDITIONS / SCANNING (collapsible) === -->
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/headerSmbConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_scanning_settings" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
+                        <ImageView android:id="@+id/ivSmbConditionsExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/contentSmbConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbComment" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/resource_comment">
-
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPinCode" android:layout_width="@dimen/resource_pin_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
-
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-            <!-- Add to Destinations and Scan Subdirectories checkboxes -->
-            <!-- Add to Destinations, Scan Subdirectories, and Read-Only checkboxes -->
-            <!-- Using GridLayout or nested LinearLayouts to fit 3 checkboxes might be tight on phone.
-                 Let's put destination and read-only on one row, and scan subdirs on another if needed,
-                 or try to fit all 3 if text is short.
-                 Actually, existing code has a horizontal LinearLayout. Let's add it there and see if it fits.
-                 The previous layout had 2 weights: 1 and 1. We can make it 1, 1, 1. -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Scan Subdirectories and All Files in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Disable Thumbnails -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
-
-            <!-- Remember File List -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-                <ImageButton android:id="@+id/btnSmbHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
-
-            </LinearLayout>
-
-            <!-- Media Types Selection (IVAGTPE) -->
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/supported_media_types" android:textAppearance="?attr/textAppearanceBody2" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/resource_margin_4dp" />
-
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbProfilePreset" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_settings" app:iconGravity="textStart" />
-
-            <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardElevation="@dimen/resource_card_elevation_zero" app:cardBackgroundColor="?attr/colorSurfaceVariant" app:strokeWidth="@dimen/resource_stroke_width" app:strokeColor="?attr/colorOutlineVariant" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/padding_small">
-
-                    <!-- Row 1: I V A G -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
-
-                        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
-
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportImage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
-
-                            <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/images_i" android:textSize="@dimen/resource_text_13sp" />
+                        <!-- Scan Subdirectories and All Files in one row -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
                         </LinearLayout>
 
-                        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
-
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportVideo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
-
-                            <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/videos_v" android:textSize="@dimen/resource_text_13sp" />
+                        <!-- Show Subfolders Separately (option parity fix — was missing in create flow) -->
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/show_subfolders_as_items" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/show_subfolders_as_items_hint" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
-                        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
-
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
-
-                            <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/audio_a" android:textSize="@dimen/resource_text_13sp" />
+                        <!-- Disable Thumbnails -->
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
-                        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
-
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportGif" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
-
-                            <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/gifs_g" android:textSize="@dimen/resource_text_13sp" />
+                        <!-- Remember File List -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                            <ImageButton android:id="@+id/btnSmbHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
                         </LinearLayout>
 
                     </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Row 2: T P E -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+            <!-- === GROUP C: MEDIA TYPES (collapsible) === -->
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/headerSmbMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_media_types" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
+                        <ImageView android:id="@+id/ivSmbMediaTypesExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/contentSmbMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
-                        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbProfilePreset" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_settings" app:iconGravity="textStart" />
 
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
-
-                            <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/text_t" android:textSize="@dimen/resource_text_13sp" />
-                        </LinearLayout>
-
-                        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
-
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportPdf" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
-
-                            <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/pdf_p" android:textSize="@dimen/resource_text_13sp" />
-                        </LinearLayout>
-
-                        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
-
-                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportEpub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
-
-                            <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/epub_e" android:textSize="@dimen/resource_text_13sp" />
-                        </LinearLayout>
-
-                        <Space android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" />
+                        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardElevation="@dimen/resource_card_elevation_zero" app:cardBackgroundColor="?attr/colorSurfaceVariant" app:strokeWidth="@dimen/resource_stroke_width" app:strokeColor="?attr/colorOutlineVariant" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/padding_small">
+                                <!-- Row 1: I V A G -->
+                                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+                                    <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportImage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
+                                        <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/images_i" android:textSize="@dimen/resource_text_13sp" />
+                                    </LinearLayout>
+                                    <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportVideo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
+                                        <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/videos_v" android:textSize="@dimen/resource_text_13sp" />
+                                    </LinearLayout>
+                                    <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
+                                        <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/audio_a" android:textSize="@dimen/resource_text_13sp" />
+                                    </LinearLayout>
+                                    <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportGif" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
+                                        <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/gifs_g" android:textSize="@dimen/resource_text_13sp" />
+                                    </LinearLayout>
+                                </LinearLayout>
+                                <!-- Row 2: T P E -->
+                                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+                                    <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
+                                        <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/text_t" android:textSize="@dimen/resource_text_13sp" />
+                                    </LinearLayout>
+                                    <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportPdf" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
+                                        <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/pdf_p" android:textSize="@dimen/resource_text_13sp" />
+                                    </LinearLayout>
+                                    <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/resource_checkbox_min_height">
+                                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbSupportEpub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/resource_checkbox_min_size_zero" android:minHeight="@dimen/resource_checkbox_min_size_zero" />
+                                        <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/epub_e" android:textSize="@dimen/resource_text_13sp" />
+                                    </LinearLayout>
+                                    <Space android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
-
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
+            <!-- === GROUP D: ADDITIONAL OPTIONS (collapsible) — destination, read-only, comment, pin, domain, port === -->
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/headerSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_additional_options" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
+                        <ImageView android:id="@+id/ivSmbAdditionalExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/contentSmbAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+
+                        <!-- Add to Destinations and Read-Only checkboxes -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Comment and PIN Code in one row -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbComment" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/resource_comment">
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPinCode" android:layout_width="@dimen/resource_pin_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                        <!-- Domain and Port in one row (optional, advanced) -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbDomain" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_domain" app:helperText="@string/smb_domain_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPort" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/smb_port" app:helperText="@string/smb_port_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="@string/default_smb_port" android:maxLines="1" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Add Resource button on separate row -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.MaterialComponents.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/smb_add_manual_resource" app:icon="@drawable/ic_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
-
-            <!-- Domain and Port in one row (optional, collapsed by default) -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
-
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbDomain" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/smb_domain" app:helperText="@string/smb_domain_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
-
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbDomain" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSmbPort" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/smb_port" app:helperText="@string/smb_port_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
-
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSmbPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="@string/default_smb_port" android:maxLines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
 
             <TextView android:id="@+id/tvSmbResourcesToAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resources_to_add" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_section_margin_top" android:visibility="gone" />
 
@@ -452,6 +439,9 @@
 
             </LinearLayout>
 
+            <!-- Test Connection placed after auth block and before path — per spec F5.3 -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+
             <!-- Remote Path and Resource Name in one row -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
 
@@ -469,116 +459,121 @@
 
             </LinearLayout>
 
-            <!-- Comment and PIN Code in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <!-- === GROUP B: CONDITIONS / SCANNING (collapsible) === -->
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/headerSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_scanning_settings" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
+                        <ImageView android:id="@+id/ivSftpConditionsExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/contentSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpComment" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/resource_comment">
+                        <!-- Scan Subdirectories and All Files in one row -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                        </LinearLayout>
 
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                        <!-- Show Subfolders Separately (option parity fix — was missing in create flow) -->
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/show_subfolders_as_items" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/show_subfolders_as_items_hint" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        <!-- Disable Thumbnails -->
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
 
-                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPinCode" android:layout_width="@dimen/resource_pin_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
-
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-            <!-- Destination and Read-Only checkboxes -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_section_margin_top" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Scan Subdirectories and All Files in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Disable Thumbnails -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
-
-            <!-- Remember File List -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
-
-                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-                </LinearLayout>
-
-                <ImageButton android:id="@+id/btnSftpHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
-
-            </LinearLayout>
-
-            <!-- Media Types Selection (IVAGTPE) -->
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/supported_media_types" android:textAppearance="?attr/textAppearanceBody2" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/resource_margin_4dp" />
-
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpProfilePreset" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_settings" app:iconGravity="textStart" />
-
-            <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardElevation="@dimen/resource_card_elevation_zero" app:cardBackgroundColor="?attr/colorSurfaceVariant" app:strokeWidth="@dimen/resource_stroke_width" app:strokeColor="?attr/colorOutlineVariant" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
-
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/padding_small">
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-
-                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportImage" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/images_i" />
-
-                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportVideo" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/videos_v" />
-
-                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportAudio" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/audio_a" />
-
-                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportGif" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/gifs_g" />
+                        <!-- Remember File List -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                            <ImageButton android:id="@+id/btnSftpHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="?attr/colorPrimary" />
+                        </LinearLayout>
 
                     </LinearLayout>
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-
-                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportText" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/text_t" />
-
-                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportPdf" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/pdf_p" />
-
-                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportEpub" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/epub_e" />
-
-                        <Space android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" />
-
-                    </LinearLayout>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Test Connection and Add Resource buttons -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+            <!-- === GROUP C: MEDIA TYPES (collapsible) === -->
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/headerSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_media_types" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
+                        <ImageView android:id="@+id/ivSftpMediaTypesExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/contentSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpProfilePreset" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_settings" app:iconGravity="textStart" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
+                        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardElevation="@dimen/resource_card_elevation_zero" app:cardBackgroundColor="?attr/colorSurfaceVariant" app:strokeWidth="@dimen/resource_stroke_width" app:strokeColor="?attr/colorOutlineVariant" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/padding_small">
+                                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportImage" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/images_i" />
+                                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportVideo" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/videos_v" />
+                                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportAudio" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/audio_a" />
+                                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportGif" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/gifs_g" />
+                                </LinearLayout>
+                                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportText" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/text_t" />
+                                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportPdf" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/pdf_p" />
+                                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportEpub" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/epub_e" />
+                                    <Space android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
 
-            </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- === GROUP D: ADDITIONAL OPTIONS (collapsible) === -->
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:id="@+id/headerSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="@dimen/margin_small" android:clickable="true" android:focusable="true">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/label_additional_options" android:textAppearance="?attr/textAppearanceBodyLarge" android:textStyle="bold" />
+                        <ImageView android:id="@+id/ivSftpAdditionalExpand" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@string/label_expand_collapse" android:src="@drawable/ic_expand_more" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/contentSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+
+                        <!-- Destination and Read-Only checkboxes -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Comment and PIN Code in one row -->
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpComment" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:hint="@string/resource_comment">
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPinCode" android:layout_width="@dimen/resource_pin_width" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
+                                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Add Resource button -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
 
         </LinearLayout>
 

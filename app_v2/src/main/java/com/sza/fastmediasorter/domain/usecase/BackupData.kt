@@ -136,7 +136,12 @@ data class BackupSettings(
     // Video frame snapshot destination resource ID
     val videoSnapshotResourceId: Long? = null,
     // Video frame snapshot format: "PNG" (default) or "JPG"
-    val videoSnapshotFormat: String = "JPG"
+    val videoSnapshotFormat: String = "JPG",
+    // VR settings (spec §5.7)
+    val vrAutoDetectFormat: Boolean = true,
+    val vrForcedFormat: String = "AUTO",
+    val vrRenderingMode: String = "CINEMA",
+    val vrRememberFileFormat: Boolean = true
 )
 
 /**

@@ -141,42 +141,54 @@ class ResourceEditorFragment : Fragment() {
         )
     }
 
+    /**
+     * Builds a SharedPreferences key scoped by screen (editor), resource type, orientation,
+     * and section ID — so portrait/landscape and different resource types have independent
+     * collapsed/expanded states, per spec F2.2.
+     */
+    private fun sectionStateKey(sectionId: String): String {
+        val type = (resourceType ?: ResourceType.LOCAL).name.lowercase()
+        val orientation = if (resources.configuration.orientation ==
+            android.content.res.Configuration.ORIENTATION_LANDSCAPE) "land" else "port"
+        return "editor_${type}_${orientation}_$sectionId"
+    }
+
     private fun setupCollapsibleSections() {
         setupCollapsibleHeader(
             binding.headerConnectionSettings,
             binding.contentConnectionSettings,
             binding.ivConnectionExpand,
-            KEY_SECTION_CONNECTION
+            sectionStateKey(SECTION_CONNECTION)
         )
         setupCollapsibleHeader(
             binding.headerMediaTypes,
             binding.gridMediaTypes,
             binding.ivMediaTypesExpand,
-            KEY_SECTION_MEDIA_TYPES
+            sectionStateKey(SECTION_MEDIA_TYPES)
         )
         setupCollapsibleHeader(
             binding.headerScanning,
             binding.contentScanning,
             binding.ivScanningExpand,
-            KEY_SECTION_SCANNING
+            sectionStateKey(SECTION_SCANNING)
         )
         setupCollapsibleHeader(
             binding.headerDestination,
             binding.contentDestination,
             binding.ivDestinationExpand,
-            KEY_SECTION_DESTINATION
+            sectionStateKey(SECTION_DESTINATION)
         )
         setupCollapsibleHeader(
             binding.headerAdvanced,
             binding.contentAdvanced,
             binding.ivAdvancedExpand,
-            KEY_SECTION_ADVANCED
+            sectionStateKey(SECTION_ADVANCED)
         )
         setupCollapsibleHeader(
             binding.headerStatistics,
             binding.groupStatistics,
             binding.ivStatisticsExpand,
-            KEY_SECTION_STATISTICS
+            sectionStateKey(SECTION_STATISTICS)
         )
     }
 
@@ -723,7 +735,7 @@ class ResourceEditorFragment : Fragment() {
             return
         }
 
-        val mediaExpanded = uiPrefs.getBoolean(KEY_SECTION_MEDIA_TYPES, false)
+        val mediaExpanded = uiPrefs.getBoolean(sectionStateKey(SECTION_MEDIA_TYPES), false)
         setSectionExpanded(
             content = binding.gridMediaTypes,
             expandIcon = binding.ivMediaTypesExpand,
@@ -764,7 +776,7 @@ class ResourceEditorFragment : Fragment() {
             return
         }
 
-        val connectionExpanded = uiPrefs.getBoolean(KEY_SECTION_CONNECTION, false)
+        val connectionExpanded = uiPrefs.getBoolean(sectionStateKey(SECTION_CONNECTION), false)
         setSectionExpanded(
             content = binding.contentConnectionSettings,
             expandIcon = binding.ivConnectionExpand,
@@ -1031,12 +1043,13 @@ class ResourceEditorFragment : Fragment() {
         private const val ARG_RESOURCE_ID = "resource_id"
         private const val ARG_RESOURCE_TYPE = "resource_type"
         private const val PREFS_RESOURCE_EDITOR_UI = "resource_editor_ui_state"
-        private const val KEY_SECTION_CONNECTION = "section_connection_expanded"
-        private const val KEY_SECTION_MEDIA_TYPES = "section_media_types_expanded"
-        private const val KEY_SECTION_SCANNING = "section_scanning_expanded"
-        private const val KEY_SECTION_DESTINATION = "section_destination_expanded"
-        private const val KEY_SECTION_ADVANCED = "section_advanced_expanded"
-        private const val KEY_SECTION_STATISTICS = "section_statistics_expanded"
+        // Section ID constants — combined with type+orientation in sectionStateKey() at runtime
+        private const val SECTION_CONNECTION = "connection"
+        private const val SECTION_MEDIA_TYPES = "media_types"
+        private const val SECTION_SCANNING = "scanning"
+        private const val SECTION_DESTINATION = "destination"
+        private const val SECTION_ADVANCED = "advanced"
+        private const val SECTION_STATISTICS = "statistics"
 
         fun newInstance(
             mode: ResourceEditorMode,

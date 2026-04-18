@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -205,7 +206,6 @@
                             android:id="@+id/radio3DOU"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:enabled="false"
                             android:text="@string/playback_settings_3d_ou" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
@@ -222,6 +222,70 @@
                         android:layout_marginTop="8dp"
                         android:text="@string/playback_settings_3d_hint"
                         android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <!-- VR-only controls (visible when SUPPORT_VR_PLAYER) -->
+
+                    <!-- Content type label (read-only) -->
+                    <TextView
+                        android:id="@+id/tvVrContentType"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <!-- VR Rendering mode chips -->
+                    <TextView
+                        android:id="@+id/tvVrRenderingModeLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/playback_vr_rendering_mode"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupVrRenderingMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        app:singleSelection="true"
+                        app:selectionRequired="true"
+                        android:visibility="gone">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipRenderCinema"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/playback_vr_render_cinema"
+                            android:checked="true" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipRenderFullStereo"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/playback_vr_render_full_stereo" />
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <!-- IPD (inter-pupillary distance) slider -->
+                    <TextView
+                        android:id="@+id/tvVrIpdLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone" />
+
+                    <SeekBar
+                        android:id="@+id/seekVrIpd"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:max="100"
+                        android:progress="50"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout

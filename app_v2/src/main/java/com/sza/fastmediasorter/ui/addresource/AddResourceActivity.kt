@@ -63,6 +63,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private var googleDriveAccount: GoogleSignInAccount? = null
     private var smbProfilePreset: ResourceProfile = ResourceProfile.NONE
     private var sftpProfilePreset: ResourceProfile = ResourceProfile.NONE
+
+    // SharedPreferences for persisting collapsible section expand/collapse state
+    // Keyed by screen+type+orientation so portrait/landscape can have independent states
+    private val addResourceUiPrefs by lazy {
+        getSharedPreferences("add_resource_ui_state", android.content.Context.MODE_PRIVATE)
+    }
     
     private lateinit var helper: AddResourceHelper
 
@@ -319,6 +325,20 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             dialog.show(supportFragmentManager, NetworkDiscoveryDialog.TAG)
         }
 
+        binding.btnScanShares.setOnClickListener {
+            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanShares", "AddResource")
+            val server = binding.etSmbServer.text?.toString()?.trim().orEmpty()
+            if (server.isEmpty()) {
+                Toast.makeText(this, getString(R.string.server_address_required), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val username = binding.etSmbUsername.text?.toString()?.trim().orEmpty()
+            val password = binding.etSmbPassword.text?.toString()?.trim().orEmpty()
+            val domain = binding.etSmbDomain.text?.toString()?.trim().orEmpty()
+            val port = binding.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: 445
+            viewModel.scanShares(server, username, password, domain, port)
+        }
+
         binding.btnSmbAddToResources.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddSelectedSmb", "AddResource")
             // Add selected SMB resources from scan results
@@ -379,6 +399,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
 
         setupCheckboxInteractions()
+        setupAddResourceCollapsibleSections()
         applyFlavorRestrictions()
     }
     
@@ -716,6 +737,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         AddResourceEvent.ResourcesAdded -> {
                             finish()
                         }
+                        is AddResourceEvent.ShowSharePicker -> {
+                            showSharePickerDialog(event.server, event.shares)
+                        }
                     }
                 }
             }
@@ -821,6 +845,22 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
+
+    /**
+     * Shows a simple list picker for discovered SMB shares on [server].
+     * The selected share name is written into the share name field.
+     * Manual share entry remains available — the user may close this dialog without selecting.
+     */
+    private fun showSharePickerDialog(server: String, shares: List<String>) {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.msg_select_share, server))
+            .setItems(shares.toTypedArray()) { _, which ->
+                binding.etSmbShareName.setText(shares[which])
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun showError(message: String) {
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
@@ -1323,6 +1363,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             scanSubdirectories = binding.cbSmbScanSubdirectories.isChecked,
             rememberFileList = binding.cbSmbRememberFileList.isChecked,
             disableThumbnails = binding.cbSmbDisableThumbnails.isChecked,
+            showSubfoldersAsItems = binding.cbSmbShowSubfoldersAsItems.isChecked,
             accessPin = accessPin,
             profile = smbProfilePreset
         )
@@ -1365,6 +1406,69 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * allow only digits and dots, replace comma with dot,
      * block 4th dot and 4-digit numbers, validate each octet (0-255)
      */
+    // ========== Collapsible Sections (Add Resource UI) ==========
+
+    /**
+     * Build a SharedPreferences key that encodes screen + resource type + orientation + section id.
+     * This ensures portrait and landscape remember independent expand states.
+     */
+    private fun addResourceSectionKey(resourceType: String, sectionId: String): String {
+        val orientation = if (resources.configuration.orientation ==
+            android.content.res.Configuration.ORIENTATION_LANDSCAPE) "land" else "port"
+        return "add_${resourceType}_${orientation}_$sectionId"
+    }
+
+    /**
+     * Wire up a single collapsible section: restore persisted state, handle clicks, animate arrow.
+     */
+    private fun setupAddResourceCollapsibleHeader(
+        header: android.view.View,
+        content: android.view.View,
+        icon: android.widget.ImageView,
+        key: String,
+        defaultExpanded: Boolean = false
+    ) {
+        val isExpanded = addResourceUiPrefs.getBoolean(key, defaultExpanded)
+        content.visibility = if (isExpanded) android.view.View.VISIBLE else android.view.View.GONE
+        icon.rotation = if (isExpanded) 180f else 0f
+        header.setOnClickListener {
+            val nowExpanded = content.visibility != android.view.View.VISIBLE
+            content.visibility = if (nowExpanded) android.view.View.VISIBLE else android.view.View.GONE
+            icon.animate().rotation(if (nowExpanded) 180f else 0f).setDuration(200).start()
+            addResourceUiPrefs.edit().putBoolean(key, nowExpanded).apply()
+        }
+    }
+
+    /** Wire all 6 collapsible sections (3 for SMB, 3 for SFTP). */
+    private fun setupAddResourceCollapsibleSections() {
+        // SMB
+        setupAddResourceCollapsibleHeader(
+            binding.headerSmbConditions, binding.contentSmbConditions, binding.ivSmbConditionsExpand,
+            addResourceSectionKey("smb", "conditions")
+        )
+        setupAddResourceCollapsibleHeader(
+            binding.headerSmbMediaTypes, binding.contentSmbMediaTypes, binding.ivSmbMediaTypesExpand,
+            addResourceSectionKey("smb", "media_types")
+        )
+        setupAddResourceCollapsibleHeader(
+            binding.headerSmbAdditional, binding.contentSmbAdditional, binding.ivSmbAdditionalExpand,
+            addResourceSectionKey("smb", "additional")
+        )
+        // SFTP
+        setupAddResourceCollapsibleHeader(
+            binding.headerSftpConditions, binding.contentSftpConditions, binding.ivSftpConditionsExpand,
+            addResourceSectionKey("sftp", "conditions")
+        )
+        setupAddResourceCollapsibleHeader(
+            binding.headerSftpMediaTypes, binding.contentSftpMediaTypes, binding.ivSftpMediaTypesExpand,
+            addResourceSectionKey("sftp", "media_types")
+        )
+        setupAddResourceCollapsibleHeader(
+            binding.headerSftpAdditional, binding.contentSftpAdditional, binding.ivSftpAdditionalExpand,
+            addResourceSectionKey("sftp", "additional")
+        )
+    }
+
     private fun setupIpAddressField() {
         // Auto-fill with device IP subnet
         val deviceIp = com.sza.fastmediasorter.utils.NetworkUtils.getLocalIpAddress(this)
@@ -1500,6 +1604,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                     rememberFileList = binding.cbSftpRememberFileList.isChecked,
                     disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
+                    showSubfoldersAsItems = binding.cbSftpShowSubfoldersAsItems.isChecked,
                     accessPin = accessPin,
                     profile = sftpProfilePreset
                 )
@@ -1522,6 +1627,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                     rememberFileList = binding.cbSftpRememberFileList.isChecked,
                     disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
+                    showSubfoldersAsItems = binding.cbSftpShowSubfoldersAsItems.isChecked,
                     accessPin = accessPin,
                     profile = sftpProfilePreset
                 )
@@ -1545,6 +1651,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                 rememberFileList = binding.cbSftpRememberFileList.isChecked,
                 disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
+                showSubfoldersAsItems = binding.cbSftpShowSubfoldersAsItems.isChecked,
                 accessPin = accessPin,
                 profile = sftpProfilePreset
             )

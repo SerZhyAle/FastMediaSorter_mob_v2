@@ -1,5 +1,5 @@
 # Master Build and Push Script
-# Builds ALL flavors (Standard, Lite, Photos, Legacy) in both Debug and Release modes
+# Builds ALL flavors (Standard, Lite, Photos, Legacy, VR) in both Debug and Release modes
 # Copies artifacts to DOWNLOADS folder
 # Commits and pushes to git
 
@@ -11,7 +11,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # 1. Clean and Build All
-Write-Host "=== Starting Full Build (Debug + Release) ===" -ForegroundColor Cyan
+Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR — Debug + Release ===" -ForegroundColor Cyan
 Write-Host "This may take a while..." -ForegroundColor Yellow
 
 # Try to force-delete locked wear build directory (Windows file lock issue)
@@ -33,8 +33,12 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         }
         
         Write-Host "Running Gradle build... Logs saved to build_all_log.txt" -ForegroundColor Yellow
-        # Skip clean task to avoid file lock issues, just build
-        & $gradlew assembleDebug assembleRelease | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
+        # Explicitly enumerate all flavor+type combos to keep the build surface transparent.
+        # assembleDebug/assembleRelease would also work but listing them avoids surprises when flavors change.
+        & $gradlew `
+            assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
+            assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
+            | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
         
         if ($LASTEXITCODE -eq 0) {
             $buildSuccess = $true
@@ -143,7 +147,7 @@ if ($gitStatus) {
     # Add all changes (including new APKs thanks to .gitignore update)
     git add .
     
-    $commitMsg = "Build artifacts $timestamp (All Flavors)"
+    $commitMsg = "Build artifacts $timestamp (Standard / Lite / Photos / Legacy / VR)"
     git commit -m "$commitMsg"
     
     Write-Host "Pushing to remote..." -ForegroundColor Yellow

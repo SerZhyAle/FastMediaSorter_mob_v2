@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityViewCommand
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -33,7 +35,7 @@ class NetworkDiscoveryDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogNetworkDiscoveryBinding.inflate(layoutInflater)
-        
+
         setupViews()
         observeData()
 
@@ -49,7 +51,25 @@ class NetworkDiscoveryDialog : DialogFragment() {
         }
         binding.rvHosts.adapter = adapter
 
+        // tvStatus announces scan state changes to screen readers.
+        ViewCompat.setAccessibilityLiveRegion(
+            binding.tvStatus,
+            ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE
+        )
+
+        // btnStopScan may be null in landscape layout variant — use safe call
+        binding.btnStopScan?.setOnClickListener {
+            if (viewModel.state.value.isScanning) {
+                // Stop the active scan without closing the dialog.
+                viewModel.stopScan()
+            } else {
+                // Restart a new scan when none is active.
+                viewModel.scanNetwork()
+            }
+        }
+
         binding.btnCancel.setOnClickListener {
+            viewModel.stopScan() // ensure any active scan is cancelled on dismiss
             dismiss()
         }
     }
@@ -58,25 +78,34 @@ class NetworkDiscoveryDialog : DialogFragment() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    // scanning status
+                    // Update progress and status text.
                     binding.progressBar.isVisible = state.isScanning
                     binding.tvStatus.text = if (state.isScanning) {
                         getString(R.string.msg_scanning_subnet)
+                    } else if (state.foundNetworkHosts.isEmpty()) {
+                        getString(R.string.msg_scan_complete)
                     } else {
                         getString(R.string.msg_scan_complete)
                     }
 
-                    // hosts list
+                    // Stop button label switches based on scanning state — null-safe for landscape
+                    binding.btnStopScan?.text = if (state.isScanning) {
+                        getString(R.string.stop)
+                    } else {
+                        getString(R.string.msg_scan_again)
+                    }
+
+                    // Hosts list.
                     adapter.submitList(state.foundNetworkHosts)
-                    
-                    binding.tvEmpty.isVisible = !state.isScanning && state.foundNetworkHosts.isEmpty()
+                    binding.tvEmpty.isVisible =
+                        !state.isScanning && state.foundNetworkHosts.isEmpty()
                     binding.rvHosts.isVisible = state.foundNetworkHosts.isNotEmpty()
                 }
             }
         }
     }
-    
-    // Start scan when dialog opens
+
+    // Start scan automatically when the dialog opens and no scan is in progress.
     override fun onStart() {
         super.onStart()
         if (viewModel.state.value.foundNetworkHosts.isEmpty() && !viewModel.state.value.isScanning) {
@@ -110,7 +139,8 @@ class NetworkHostAdapter(
         holder.bind(getItem(position))
     }
 
-    inner class ViewHolder(private val binding: ItemNetworkHostBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(private val binding: ItemNetworkHostBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 val position = bindingAdapterPosition

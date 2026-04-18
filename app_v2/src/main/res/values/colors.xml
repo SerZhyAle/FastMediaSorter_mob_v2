@@ -27,6 +27,7 @@
     <color name="welcome_page_5_background">#F1F8E9</color>
     <color name="welcome_page_6_background">#ECEFF1</color>
     <color name="welcome_page_7_background">#E8EAF6</color>
+    <color name="welcome_page_8_background">#EDE7F6</color>  <!-- Deep Purple 50 — used when VR page is added -->
 
     <color name="resource_item_bg_even">#FFFFFFFF</color>    <!-- White -->
     <color name="resource_item_bg_odd">#FFE8E8E8</color>    <!-- Light grey (visible zebra stripe) -->

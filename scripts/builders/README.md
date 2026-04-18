@@ -36,6 +36,15 @@ Optimized builds with ProGuard (requires keystore):
 .\scripts\builders\build-aab-release.ps1        # AAB bundle for Play Store
 ```
 
+## VR (OpenXR)
+
+```powershell
+.\scripts\builders\build-vr-debug.ps1           # VR debug (Quest / Android XR)
+.\scripts\builders\build-vr-release.ps1         # VR release APK (Meta Horizon Store)
+.\scripts\builders\build-vr-aab.ps1             # VR release AAB + APK (Google Play / Android XR)
+.\scripts\builders\build-vr-device.ps1          # VR debug + ADB install (Quest via USB)
+```
+
 ## Wear OS
 
 ```powershell
@@ -53,6 +62,7 @@ Build + install to connected device:
 .\scripts\builders\build-lite-device.ps1
 .\scripts\builders\build-photos-device.ps1
 .\scripts\builders\build-legacy-device.ps1
+.\scripts\builders\build-vr-device.ps1          # Quest via ADB
 ```
 
 ## Universal
@@ -66,7 +76,7 @@ Build + install to connected device:
 
 - **Debug APKs**: `app_v2/build/outputs/apk/[flavor]/debug/`
 - **Release APKs**: `app_v2/build/outputs/apk/[flavor]/release/`
-- **AAB Bundle**: `app_v2/build/outputs/bundle/standardRelease/`
+- **AAB Bundle**: `app_v2/build/outputs/bundle/standardRelease/` or `vrRelease/`
 - **Wear APKs**: `wear/build/outputs/apk/debug/` or `release/`
 - **Auto-copy**: `DOWNLOADS/` (release builds only)
 

@@ -9,4 +9,7 @@ object PlaybackControlPreferences {
     // Speed set via the Control dialog. Stored separately so applyPlayerSettings() can restore it
     // after onPlaybackReady() — which always fires with the default 1.0x from PlayerSettingsDialog.
     const val KEY_SPEED = "playback_speed"
+    // VR-only: rendering mode (CINEMA / FULL_STEREO) and IPD in mm (spec §5.8)
+    const val KEY_VR_RENDERING_MODE = "vr_rendering_mode"
+    const val KEY_VR_IPD_MM = "vr_ipd_mm"
 }

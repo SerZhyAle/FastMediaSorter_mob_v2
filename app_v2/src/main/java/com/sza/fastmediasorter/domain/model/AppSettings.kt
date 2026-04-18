@@ -149,7 +149,13 @@ data class AppSettings(
     val videoSnapshotResourceId: Long? = null,
 
     // Video frame snapshot file format: "PNG" (lossless, default) or "JPG" (85% quality, smaller).
-    val videoSnapshotFormat: String = "JPG"
+    val videoSnapshotFormat: String = "JPG",
+
+    // VR settings (spec §5.7 — visible only when SUPPORT_VR_PLAYER == true)
+    val vrAutoDetectFormat: Boolean = true,      // Detect SBS/OU/Mono via metadata & heuristics
+    val vrForcedFormat: String = "AUTO",         // Override auto-detect: AUTO, SBS, OU, MONO
+    val vrRenderingMode: String = "CINEMA",      // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
+    val vrRememberFileFormat: Boolean = true     // Cache detected format per URI in Room DB
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

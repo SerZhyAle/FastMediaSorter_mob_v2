@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material icon: panorama/VR formats (wide-angle view suggesting SBS/TB layouts) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,6c-4.97,0 -9,2.69 -9,6s4.03,6 9,6 9,-2.69 9,-6 -4.03,-6 -9,-6zM5.23,10.41C5.85,9.57 7.58,8.5 10,8.12v7.76c-2.42,-0.38 -4.15,-1.45 -4.77,-2.29 -0.3,-0.41 -0.3,-0.77 0,-1.18zM14,15.88V8.12c2.42,0.38 4.15,1.45 4.77,2.29 0.3,0.41 0.3,0.77 0,1.18 -0.62,0.84 -2.35,1.91 -4.77,2.29z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,8v8" 
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="0.8" />
+</vector>

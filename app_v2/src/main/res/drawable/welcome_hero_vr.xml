@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Welcome VR page hero: stylized VR headset with stereoscopic 3D content -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Background circle — Deep Purple 50 -->
+    <path
+        android:fillColor="#EDE7F6"
+        android:pathData="M100,100m-90,0a90,90 0,1 1,180 0a90,90 0,1 1,-180 0" />
+
+    <!-- VR Headset body -->
+    <path
+        android:fillColor="#5E35B1"
+        android:pathData="M40,70 Q40,55 55,55 L145,55 Q160,55 160,70 L160,120 Q160,135 145,135 L55,135 Q40,135 40,120 Z" />
+
+    <!-- Left lens outline -->
+    <path
+        android:fillColor="#311B92"
+        android:pathData="M60,95m-22,0a22,22 0,1 1,44 0a22,22 0,1 1,-44 0" />
+    <!-- Left lens glass -->
+    <path
+        android:fillColor="#B39DDB"
+        android:pathData="M60,95m-17,0a17,17 0,1 1,34 0a17,17 0,1 1,-34 0" />
+    <!-- Left lens highlight -->
+    <path
+        android:fillColor="#D1C4E9"
+        android:pathData="M52,87m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+
+    <!-- Right lens outline -->
+    <path
+        android:fillColor="#311B92"
+        android:pathData="M140,95m-22,0a22,22 0,1 1,44 0a22,22 0,1 1,-44 0" />
+    <!-- Right lens glass -->
+    <path
+        android:fillColor="#B39DDB"
+        android:pathData="M140,95m-17,0a17,17 0,1 1,34 0a17,17 0,1 1,-34 0" />
+    <!-- Right lens highlight -->
+    <path
+        android:fillColor="#D1C4E9"
+        android:pathData="M132,87m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+
+    <!-- Nose bridge -->
+    <path
+        android:fillColor="#4527A0"
+        android:pathData="M82,88 Q100,105 118,88 L118,102 Q100,115 82,102 Z" />
+
+    <!-- Head strap left -->
+    <path
+        android:fillColor="#7E57C2"
+        android:strokeColor="#5E35B1"
+        android:strokeWidth="1"
+        android:pathData="M40,80 L28,75 Q22,73 22,80 L22,110 Q22,117 28,115 L40,110" />
+
+    <!-- Head strap right -->
+    <path
+        android:fillColor="#7E57C2"
+        android:strokeColor="#5E35B1"
+        android:strokeWidth="1"
+        android:pathData="M160,80 L172,75 Q178,73 178,80 L178,110 Q178,117 172,115 L160,110" />
+
+    <!-- "3D" text badge (small indicator on the headset) -->
+    <path
+        android:fillColor="#FF7043"
+        android:pathData="M88,60 L112,60 Q115,60 115,63 L115,73 Q115,76 112,76 L88,76 Q85,76 85,73 L85,63 Q85,60 88,60 Z" />
+
+    <!-- "3D" text inside badge -->
+    <group>
+        <!-- "3" glyph approximation -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.5"
+            android:pathData="M91,64 L97,64 L97,67 L93,67 M93,67 L97,67 L97,74 L91,74" />
+        <!-- "D" glyph approximation -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.5"
+            android:pathData="M101,64 L105,64 Q110,64 110,69 Q110,74 105,74 L101,74 Z" />
+    </group>
+
+    <!-- Stereo content floating card (left — left-eye view, slightly offset) -->
+    <group
+        android:pivotX="55"
+        android:pivotY="155"
+        android:rotation="-6">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M35,145 L75,145 L75,175 L35,175 Z"
+            android:strokeColor="#7E57C2"
+            android:strokeWidth="1.5" />
+        <!-- Mountain/landscape icon for left eye -->
+        <path
+            android:fillColor="#81C784"
+            android:pathData="M35,175 L47,158 L55,167 L62,155 L75,175 Z" />
+        <path
+            android:fillColor="#4CAF50"
+            android:pathData="M35,175 L50,162 L65,175 Z" />
+        <!-- Small "L" label -->
+        <path
+            android:fillColor="#5E35B1"
+            android:pathData="M38,148 L42,148 L42,153 L45,153 L45,155 L38,155 Z" />
+    </group>
+
+    <!-- Stereo content floating card (right — right-eye view, slightly offset) -->
+    <group
+        android:pivotX="145"
+        android:pivotY="155"
+        android:rotation="6">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M125,145 L165,145 L165,175 L125,175 Z"
+            android:strokeColor="#7E57C2"
+            android:strokeWidth="1.5" />
+        <!-- Mountain/landscape icon for right eye — same scene, slightly shifted -->
+        <path
+            android:fillColor="#81C784"
+            android:pathData="M125,175 L137,158 L145,167 L152,155 L165,175 Z" />
+        <path
+            android:fillColor="#4CAF50"
+            android:pathData="M125,175 L140,162 L155,175 Z" />
+        <!-- Small "R" label -->
+        <path
+            android:fillColor="#5E35B1"
+            android:pathData="M128,148 L134,148 L134,151 L131,151 L134,155 L131,155 L128,152 L128,155 L128,148 Z" />
+    </group>
+</vector>

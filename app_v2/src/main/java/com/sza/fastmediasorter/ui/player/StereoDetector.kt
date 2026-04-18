@@ -21,7 +21,7 @@ import timber.log.Timber
  * Callers MUST map UNKNOWN to AUTO/MONO before storing to preferences or
  * passing to the renderer.
  */
-class StereoDetector {
+class StereoDetector @javax.inject.Inject constructor() {
 
     companion object {
         // SBS: width / height ≈ 32:9 (3.555…)

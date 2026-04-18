@@ -176,6 +176,12 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_VIDEO_SNAPSHOT_RESOURCE_ID = longPreferencesKey("video_snapshot_resource_id")
         // Video frame snapshot file format ("PNG" or "JPG")
         private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
+
+        // VR settings (spec §5.7)
+        private val KEY_VR_AUTO_DETECT_FORMAT = booleanPreferencesKey("vr_auto_detect_format")
+        private val KEY_VR_FORCED_FORMAT = stringPreferencesKey("vr_forced_format")
+        private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
+        private val KEY_VR_REMEMBER_FILE_FORMAT = booleanPreferencesKey("vr_remember_file_format")
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -363,7 +369,17 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Video frame snapshot format (default JPG)
                         videoSnapshotFormat = preferences[KEY_VIDEO_SNAPSHOT_FORMAT]
                             ?.takeIf { it == "PNG" || it == "JPG" }
-                            ?: "JPG"
+                            ?: "JPG",
+
+                    // VR settings (spec §5.7)
+                    vrAutoDetectFormat = preferences[KEY_VR_AUTO_DETECT_FORMAT] ?: true,
+                    vrForcedFormat = preferences[KEY_VR_FORCED_FORMAT]
+                        ?.takeIf { it in listOf("AUTO", "SBS", "OU", "MONO") }
+                        ?: "AUTO",
+                    vrRenderingMode = preferences[KEY_VR_RENDERING_MODE]
+                        ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }
+                        ?: "CINEMA",
+                    vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -562,6 +578,12 @@ class SettingsRepositoryImpl @Inject constructor(
 
             // Video frame snapshot format — always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
+
+            // VR settings (spec §5.7)
+            preferences[KEY_VR_AUTO_DETECT_FORMAT] = settings.vrAutoDetectFormat
+            preferences[KEY_VR_FORCED_FORMAT] = settings.vrForcedFormat
+            preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
+            preferences[KEY_VR_REMEMBER_FILE_FORMAT] = settings.vrRememberFileFormat
         }
     }
 

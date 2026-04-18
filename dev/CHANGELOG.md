@@ -2638,3 +2638,94 @@ Format: | datetime | file | target | description |
 | 2026-04-18 18:08:19 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add video_aspect_ratio_label, video_audio_channels_label, video_audio_bitrate_label, audio_channels_mono, audio_channels_stereo |
 | 2026-04-18 18:10:49 | `app_v2/src/main/res/layout-land/dialog_file_info.xml` | `dialog_file_info (land)` | Add tvVideoAspectRatio, tvVideoAudioChannels, tvVideoAudioBitrate — required for non-null ViewBinding |
 | 2026-04-18 18:17:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.showFileInfo` | Enrich MediaFile with live ExoPlayer duration/videoSize before opening FileInfoDialog (fixes empty metadata for SMB MP4 with moov at EOF) |
+| 2026-04-18 18:51:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | Added ShowVrInstallCta event handling — MaterialAlertDialog with Play Store CTA |
+| 2026-04-18 18:51:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | Removed unused Toast and R imports after CTA refactor |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/VrPlaybackSource.kt` | `VrPlaybackSource` | VR playback source model — URI + optional title/mimeType |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/VrPlaybackEngine.kt` | `VrPlaybackEngine` | VR playback engine interface; Surface passed via prepare(), not as property (ADR-2) |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/ExoVrPlaybackEngine.kt` | `ExoVrPlaybackEngine` | ExoPlayer-based VR playback engine — no second media engine per spec |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | OpenXR session scaffold — instance/system/session/swapchain lifecycle |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | Per-eye stereo renderer scaffold — UV-crop shader for SBS/OU, cinema mode for 2D |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManager.kt` | `VrControlOverlayManager` | VR overlay manager — controller ray-cast, PlaybackCommandSet forVrPlayback |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/di/VrModule.kt` | `VrModule` | Added VrPlaybackEngine Hilt binding to ExoVrPlaybackEngine |
+| 2026-04-18 18:51:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Wired VR host: XR runtime check, phone fallback, VrPlaybackEngine injection, overlay commands |
+| 2026-04-18 18:51:34 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/VrPlaybackEngine.kt` | `VrPlaybackEngine` | VR playback engine interface; Surface passed via prepare(), not as property (ADR-2) |
+| 2026-04-18 18:51:37 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/ExoVrPlaybackEngine.kt` | `ExoVrPlaybackEngine` | ExoPlayer-based VR playback engine — no second media engine per spec |
+| 2026-04-18 18:51:41 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | OpenXR session scaffold — instance/system/session/swapchain lifecycle |
+| 2026-04-18 18:51:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | Per-eye stereo renderer scaffold — UV-crop shader for SBS/OU, cinema mode for 2D |
+| 2026-04-18 18:51:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManager.kt` | `VrControlOverlayManager` | VR overlay manager — controller ray-cast, PlaybackCommandSet forVrPlayback |
+| 2026-04-18 18:51:52 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/di/VrModule.kt` | `VrModule` | Added VrPlaybackEngine Hilt binding to ExoVrPlaybackEngine |
+| 2026-04-18 18:51:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Wired VR host: XR runtime check, phone fallback, VrPlaybackEngine injection, overlay commands |
+| 2026-04-18 22:20:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Fix: check XR runtime BEFORE super.onCreate to avoid full PlayerActivity init on phones; cache loadLibrary result |
+| 2026-04-18 22:20:47 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/ExoVrPlaybackEngine.kt` | `ExoVrPlaybackEngine` | Fix: ensure ExoPlayer create/release on main thread via withContext(Dispatchers.Main); add @Singleton scope; remove unused import |
+| 2026-04-18 22:20:51 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPhoneFallbackActivity.kt` | `VrPhoneFallbackActivity` | Fix: add Open Standard button with Play Store fallback; convert hardcoded px padding to dp; add TalkBack contentDescription |
+| 2026-04-18 22:20:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | Fix: wrap VR CTA dialog show() in try-catch for BadTokenException safety |
+| 2026-04-18 22:36:23 | `scripts/builders/build-vr-debug.ps1` | `build-vr-debug` | New: VR debug build script (assembleVrDebug + copy to DOWNLOADS + zip to GDrive) |
+| 2026-04-18 22:36:26 | `scripts/builders/build-vr-device.ps1` | `build-vr-device` | New: VR device build script (assembleVrDebug + ADB install on Quest + logcat capture) |
+| 2026-04-18 22:36:29 | `scripts/builders/build-vr-release.ps1` | `build-vr-release` | New: VR release APK script (assembleVrRelease for Meta Horizon Store) |
+| 2026-04-18 22:36:33 | `scripts/builders/build-vr-aab.ps1` | `build-vr-aab` | New: VR AAB+APK release script (bundleVrRelease + assembleVrRelease for Google Play / Android XR) |
+| 2026-04-18 22:36:38 | `scripts/builders/README.md` | `builders/README` | Added VR build scripts section (debug, device, release, AAB) |
+| 2026-04-18 22:36:41 | `docs/DEV_OPS.md` | `DEV_OPS` | Added VR flavor build commands and VR column to feature flags table |
+| 2026-04-18 22:36:45 | `docs/FEATURES.md` | `FEATURES.md` | Added 3D stereo detection and VR edition feature bullets to Video Player section |
+| 2026-04-18 22:36:50 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added 3D stereo detection and VR edition feature bullets (RU) |
+| 2026-04-18 22:36:50 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added 3D stereo detection and VR edition feature bullets (UK) |
+| 2026-04-18 22:36:55 | `docs/VR_EDITION.md` | `VR_EDITION` | New: VR edition overview doc (EN) — features, differences, build commands, distribution |
+| 2026-04-18 22:36:55 | `docs/VR_EDITION_RU.md` | `VR_EDITION_RU` | New: VR edition overview doc (RU) |
+| 2026-04-18 22:36:55 | `docs/VR_EDITION_UK.md` | `VR_EDITION_UK` | New: VR edition overview doc (UK) |
+| 2026-04-18 22:37:01 | `docs/VR_SIDELOAD.md` | `VR_SIDELOAD` | New: Quest sideloading guide (EN) — ADB setup, build, install, wireless ADB |
+| 2026-04-18 22:37:01 | `docs/VR_SIDELOAD_RU.md` | `VR_SIDELOAD_RU` | New: Quest sideloading guide (RU) |
+| 2026-04-18 22:37:01 | `docs/VR_SIDELOAD_UK.md` | `VR_SIDELOAD_UK` | New: Quest sideloading guide (UK) |
+| 2026-04-18 22:37:04 | `docs/MODULE_SELECTION.md` | `MODULE_SELECTION` | Added vr flavor to module table, run configurations, and build commands |
+| 2026-04-18 22:41:40 | `app_v2/src/main/res/values/themes.xml` | `Theme.FastMediaSorter.App` | Remove windowDisablePreview=true - fixes black screen on cold start (day theme) |
+| 2026-04-18 22:41:40 | `app_v2/src/main/res/values-night/themes.xml` | `Theme.FastMediaSorter.App` | Remove windowDisablePreview=true - fixes black screen on cold start (night theme) |
+| 2026-04-18 23:32:26 | `app_v2/src/vr/res/mipmap-*` | `VR launcher icons` | Generated VR flavor launcher icons (all 5 densities): arrows + purple VR badge overlay |
+| 2026-04-18 23:32:26 | `scripts/utils/generate-vr-icons.ps1` | `generate-vr-icons` | New: script to regenerate VR icons from standard base with VR badge |
+| 2026-04-18 23:36:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | Add collapsible sections (Conditions/MediaTypes/Additional) for SMB+SFTP; add cbSmbShowSubfoldersAsItems + cbSftpShowSubfoldersAsItems; SharedPrefs-backed state per type+orientation |
+| 2026-04-18 23:36:27 | `app_v2/src/main/res/layout/activity_add_resource.xml` | `activity_add_resource` | Restructure SMB+SFTP sections into 3 collapsible MaterialCardView groups each; move SFTP Test Connection after auth block; add Show Subfolders checkboxes |
+| 2026-04-18 23:36:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | Add showSubfoldersAsItems param to addSmbResourceManually, addSftpFtpResource, addSftpResourceWithKey and wire through to MediaResource creation |
+| 2026-04-18 23:36:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/ResourceEditorFragment.kt` | `ResourceEditorFragment` | Scope section state keys by resource type+orientation via sectionStateKey(); replace static KEY_SECTION_* constants with SECTION_* IDs |
+| 2026-04-18 23:36:27 | `app_v2/src/main/res/layout/fragment_resource_editor.xml` | `fragment_resource_editor` | Move Test Connection block inside groupNetwork after password row, before domain/share/path (spec F5.2/F5.3) |
+| 2026-04-18 23:36:27 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Add label_additional_options string (EN) |
+| 2026-04-18 23:36:27 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | Add label_additional_options translation (RU: Дополнительные параметры) |
+| 2026-04-18 23:36:27 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | Add label_additional_options translation (UK: Додаткові параметри) |
+| 2026-04-18 23:36:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt` | `NetworkDiscoveryDialog` | Fix pre-existing null-safety error: btnStopScan absent in layout-land variant, use safe-call operator |
+| 2026-04-18 23:39:11 | `app_v2/src/main/java/.../ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Added VR-exclusive welcome page (3D/VR capabilities) gated by SUPPORT_VR_PLAYER; made pageBackgrounds mutable list |
+| 2026-04-18 23:39:11 | `app_v2/src/vr/res/values/strings.xml` | `VR strings EN` | Added welcome_title_1 VR override and VR welcome page strings (title, description, 3 feature cards) |
+| 2026-04-18 23:39:11 | `app_v2/src/vr/res/values-ru/strings.xml` | `VR strings RU` | Added welcome_title_1 VR override and VR welcome page strings (RU) |
+| 2026-04-18 23:39:18 | `app_v2/src/vr/res/values-uk/strings.xml` | `VR strings UK` | Added welcome_title_1 VR override and VR welcome page strings (UK) |
+| 2026-04-18 23:39:18 | `app_v2/src/main/res/drawable/welcome_hero_vr.xml` | `welcome_hero_vr` | New: VR headset hero vector drawable for welcome page |
+| 2026-04-18 23:39:18 | `app_v2/src/main/res/drawable/ic_stereo_3d.xml` | `ic_stereo_3d` | New: stereo 3D icon for VR welcome feature card |
+| 2026-04-18 23:39:18 | `app_v2/src/main/res/drawable/ic_vr_headset.xml` | `ic_vr_headset` | New: VR headset icon for welcome feature card |
+| 2026-04-18 23:39:18 | `app_v2/src/main/res/drawable/ic_vr_formats.xml` | `ic_vr_formats` | New: VR formats icon for welcome feature card |
+| 2026-04-18 23:39:23 | `app_v2/src/main/res/values/strings.xml` | `strings.xml EN` | Added VR welcome page strings (welcome_vr_title/description/features) for compilation |
+| 2026-04-18 23:39:23 | `app_v2/src/main/res/values/colors.xml` | `colors.xml` | Added welcome_page_8_background (Deep Purple 50) for VR welcome page |
+| 2026-04-18 23:44:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel.addSmbResourceManually` | Skip write test for isReadOnly=true resources; skip speed test for non-writable resources — fixes spurious SMB auto-reset toast on read-only SMB add |
+| 2026-04-18 23:44:08 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Added msg_scan_again, msg_no_shares_found, msg_share_scan_failed, msg_select_share for share scan UI |
+| 2026-04-18 23:44:08 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | Added RU translations for share scan strings |
+| 2026-04-18 23:44:08 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | Added UK translations for share scan strings |
+| 2026-04-18 23:44:08 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/DiscoverNetworkResourcesUseCase.kt` | `DiscoverNetworkResourcesUseCase` | Made class open; made getLocalIpAddress internal open for test subclassing |
+| 2026-04-18 23:44:08 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/DiscoverNetworkResourcesUseCaseTest.kt` | `DiscoverNetworkResourcesUseCaseTest` | New unit tests: subnet extraction, port probe logic, fallback filtering, cancellation |
+| 2026-04-18 23:44:15 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Added msg_scan_again, msg_no_shares_found, msg_share_scan_failed, msg_select_share for share scan UI |
+| 2026-04-18 23:44:21 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | Added RU translations for share scan strings |
+| 2026-04-18 23:44:21 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | Added UK translations for share scan strings |
+| 2026-04-18 23:44:21 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/DiscoverNetworkResourcesUseCase.kt` | `DiscoverNetworkResourcesUseCase` | Made class open; getLocalIpAddress internal open for test subclassing |
+| 2026-04-18 23:44:21 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/DiscoverNetworkResourcesUseCaseTest.kt` | `DiscoverNetworkResourcesUseCaseTest` | New unit tests: subnet extraction, port probe logic, fallback filtering, cancellation |
+| 2026-04-18 23:46:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Added VR settings fields: vrAutoDetectFormat, vrForcedFormat, vrRenderingMode, vrRememberFileFormat (spec 5.7) |
+| 2026-04-18 23:46:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Added VR settings DataStore keys and read/write logic (spec 5.7) |
+| 2026-04-18 23:46:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupSettings` | Added VR settings to BackupSettings for backup/restore support |
+| 2026-04-18 23:46:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | Added VR settings to toBackupSettings/toAppSettings mapping |
+| 2026-04-18 23:46:44 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Added VR settings section (auto-detect switch, forced format/rendering mode spinners, remember format switch) |
+| 2026-04-18 23:46:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Added VR settings block: setupVrSettings() + observeData VR bindings, gated by SUPPORT_VR_PLAYER |
+| 2026-04-18 23:46:49 | `app_v2/src/main/res/values/strings.xml` | `strings.xml EN` | Added VR Settings strings: section title, labels, descriptions, help, spinner arrays (spec 5.7) |
+| 2026-04-18 23:46:49 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml RU` | Added VR Settings strings in Russian (spec 5.7) |
+| 2026-04-18 23:46:49 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml UK` | Added VR Settings strings in Ukrainian (spec 5.7) |
+| 2026-04-18 23:53:32 | `app_v2/src/main/java/.../ui/player/PlaybackControlDialogFragment.kt` | `PlaybackControlDialogFragment` | Enabled STEREO tab in VR flavor with 3DVR controls (rendering mode chips, IPD slider, content type label) per spec §5.8 |
+| 2026-04-18 23:53:35 | `app_v2/src/main/java/.../ui/player/PlaybackControlPreferences.kt` | `PlaybackControlPreferences` | Added VR rendering mode and IPD preference keys |
+| 2026-04-18 23:53:39 | `app_v2/src/main/res/layout/dialog_playback_control.xml` | `dialog_playback_control` | Added VR-only controls to stereo section: content type label, rendering mode chips, IPD slider; enabled OU radio button |
+| 2026-04-18 23:53:43 | `app_v2/src/main/java/.../ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | VR flavor now shows toast when 3D content auto-detected instead of silently logging |
+| 2026-04-18 23:53:46 | `app_v2/src/main/res/values/strings.xml` | `strings` | Added VR 3DVR tab strings (EN/RU/UK): content type, rendering mode, IPD labels; removed OU coming-soon suffix |
+| 2026-04-18 23:59:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel.addSmbResourceManually` | Show informational 'read-only' message instead of generic success when isReadOnly=true |
+| 2026-04-18 23:59:51 | `app_v2/src/main/res/values/strings.xml` | `smb_resource_added_readonly` | Added EN string for read-only SMB resource added message |
+| 2026-04-18 23:59:51 | `app_v2/src/main/res/values-ru/strings.xml` | `smb_resource_added_readonly` | Added RU string for read-only SMB resource added message |
+| 2026-04-18 23:59:51 | `app_v2/src/main/res/values-uk/strings.xml` | `smb_resource_added_readonly` | Added UK string for read-only SMB resource added message |
+| 2026-04-19 00:00:20 | `scripts/builders/build-and-push-all.ps1` | `build-and-push-all` | Add VR flavor to all-builds script: update header comment and enumerate all 10 variants explicitly (5 flavors x Debug/Release) |
+| 2026-04-19 00:33:30 | `gradle.properties` | `kotlin.daemon.jvm.options` | Increase Kotlin daemon heap 2g→4g to fix OOM in ControlFlowGraph builder during parallel flavor compilation of VideoPlayerManager.kt (1735 lines) |

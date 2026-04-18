@@ -36,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260418181
-        versionName = "2.60.4181.818"
+        versionCode = 260418235
+        versionName = "2.60.4182.356"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -96,6 +96,7 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
         }
         
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -115,6 +116,7 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "false")   // No ML Kit
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No background audio in lite
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "false")  // No default player in lite
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -134,6 +136,7 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "false")  // No translation needed
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No audio support
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")  // Image-only default player
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -156,6 +159,27 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+        }
+
+        // ===== VR (Full Features + OpenXR Headset Rendering) =====
+        create("vr") {
+            dimension = "version"
+            applicationIdSuffix = ".vr"
+            versionNameSuffix = "-VR"
+            // Full feature set identical to standard, plus VR headset rendering
+            // Target: Meta Quest headsets for stereoscopic 3D video/photo viewing
+            buildConfigField("boolean", "SUPPORT_VIDEO", "true")
+            buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_IMAGES", "true")
+            buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
+            buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
+            buildConfigField("boolean", "ENABLE_EPUB", "true")
+            buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
+            buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
         }
     }
     
@@ -538,6 +562,9 @@ dependencies {
     // Document Support - PDF extraction via built-in PdfRenderer (API 21+)
     // No external dependencies needed - metadata extraction removed to avoid conflicts
     
+    // OpenXR loader — only for vr flavor (headset XR rendering)
+    "vrImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")

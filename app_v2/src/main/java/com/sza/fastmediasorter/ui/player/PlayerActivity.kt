@@ -79,7 +79,8 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
+// Open: VrPlayerActivity in vr flavor extends this to add OpenXR rendering layer
+open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }

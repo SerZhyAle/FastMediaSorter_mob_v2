@@ -10,6 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
@@ -112,6 +113,11 @@ class VideoSettingsFragment : Fragment() {
 
         setupDefaultPlayerButton()
         setupSnapshotResourcePicker()
+
+        // VR settings block — only visible in VR flavor (spec §5.7)
+        if (BuildConfig.SUPPORT_VR_PLAYER) {
+            setupVrSettings()
+        }
     }
 
     override fun onResume() {
@@ -173,6 +179,62 @@ class VideoSettingsFragment : Fragment() {
         }
     }
 
+    /**
+     * VR settings block — only shown in VR flavor (spec §5.7).
+     * Controls auto-detection, forced format, rendering mode, and format caching.
+     */
+    private fun setupVrSettings() {
+        binding.layoutVrSettings.visibility = View.VISIBLE
+
+        binding.iconHelpVrSettings.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.settings_vr_help_title,
+                R.string.settings_vr_help_message
+            )
+        }
+
+        // Auto-detect format switch
+        binding.switchVrAutoDetect.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(vrAutoDetectFormat = isChecked))
+            }
+        }
+
+        // Forced format spinner
+        val forcedFormatValues = resources.getStringArray(R.array.vr_forced_format_values)
+        binding.spinnerVrForcedFormat.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!isUpdatingFromSettings && position in forcedFormatValues.indices) {
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(vrForcedFormat = forcedFormatValues[position]))
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+
+        // Rendering mode spinner
+        val renderingModeValues = resources.getStringArray(R.array.vr_rendering_mode_values)
+        binding.spinnerVrRenderingMode.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!isUpdatingFromSettings && position in renderingModeValues.indices) {
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(vrRenderingMode = renderingModeValues[position]))
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+
+        // Remember file format switch
+        binding.switchVrRememberFormat.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(vrRememberFileFormat = isChecked))
+            }
+        }
+    }
+
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -214,6 +276,21 @@ class VideoSettingsFragment : Fragment() {
                     binding.rgSnapshotFormat.check(
                         if (settings.videoSnapshotFormat == "JPG") R.id.rbSnapshotJpg else R.id.rbSnapshotPng
                     )
+
+                    // VR settings — update spinners and switches (only if VR block is visible)
+                    if (BuildConfig.SUPPORT_VR_PLAYER) {
+                        binding.switchVrAutoDetect.isChecked = settings.vrAutoDetectFormat
+
+                        val forcedFormatValues = resources.getStringArray(R.array.vr_forced_format_values)
+                        val forcedIdx = forcedFormatValues.indexOf(settings.vrForcedFormat).coerceAtLeast(0)
+                        binding.spinnerVrForcedFormat.setSelection(forcedIdx)
+
+                        val renderingModeValues = resources.getStringArray(R.array.vr_rendering_mode_values)
+                        val modeIdx = renderingModeValues.indexOf(settings.vrRenderingMode).coerceAtLeast(0)
+                        binding.spinnerVrRenderingMode.setSelection(modeIdx)
+
+                        binding.switchVrRememberFormat.isChecked = settings.vrRememberFileFormat
+                    }
 
                     isUpdatingFromSettings = false
                 }

@@ -55,6 +55,9 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 } else null
                 if (msg != null) Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
             }
+            is PlayerViewModel.PlayerEvent.ShowVrInstallCta -> {
+                showVrInstallCtaDialog()
+            }
         }
     }
 
@@ -175,6 +178,49 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 }
                 Toast.makeText(activity, toastMessage, Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    /**
+     * Show VR install CTA dialog when 3D content is detected in standard flavor.
+     * "Open in store" → Play Store listing for the VR edition.
+     * "Play anyway" → dismiss and continue standard playback.
+     */
+    private fun showVrInstallCtaDialog() {
+        if (activity.isFinishing || activity.isDestroyed) return
+
+        try {
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.vr_install_cta_title)
+                .setMessage(R.string.vr_install_cta_message)
+                .setPositiveButton(R.string.vr_install_cta_action) { dialog, _ ->
+                    dialog.dismiss()
+                    // Open Play Store listing for VR edition
+                    val vrPackage = "com.sza.fastmediasorter.vr"
+                    try {
+                        activity.startActivity(
+                            android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("market://details?id=$vrPackage")
+                            )
+                        )
+                    } catch (_: android.content.ActivityNotFoundException) {
+                        // Fallback to web Play Store URL
+                        activity.startActivity(
+                            android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://play.google.com/store/apps/details?id=$vrPackage")
+                            )
+                        )
+                    }
+                }
+                .setNegativeButton(R.string.vr_install_cta_dismiss) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setCancelable(true)
+                .show()
+        } catch (e: android.view.WindowManager.BadTokenException) {
+            Timber.e(e, "showVrInstallCtaDialog: bad window token")
         }
     }
 }

@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -37,7 +38,10 @@ data class AddResourceState(
     val selectedPaths: Set<String> = emptySet(),
     val isScanning: Boolean = false,
     val copyFromResource: MediaResource? = null,
-    val foundNetworkHosts: List<com.sza.fastmediasorter.domain.usecase.NetworkHost> = emptyList()
+    val foundNetworkHosts: List<com.sza.fastmediasorter.domain.usecase.NetworkHost> = emptyList(),
+    // Share discovery state: populated by scanShares() call
+    val foundShares: List<String> = emptyList(),
+    val isScanningShares: Boolean = false
 )
 
 sealed class AddResourceEvent {
@@ -55,6 +59,11 @@ sealed class AddResourceEvent {
     data class ShowAccountPicker(
         val providerName: String,
         val accounts: List<String>
+    ) : AddResourceEvent()
+    /** Emitted after a successful share scan; UI should show a picker and fill the share name field. */
+    data class ShowSharePicker(
+        val server: String,
+        val shares: List<String>
     ) : AddResourceEvent()
     object ResourcesAdded : AddResourceEvent()
 }
@@ -334,22 +343,83 @@ class AddResourceViewModel @Inject constructor(
         )
     }
 
+    // Holds the active scan job so it can be cancelled by stopScan().
+    private var networkScanJob: Job? = null
+
     fun scanNetwork() {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        // Cancel any in-progress scan before starting a new one.
+        networkScanJob?.cancel()
+        networkScanJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             updateState { it.copy(isScanning = true, foundNetworkHosts = emptyList()) }
-            
             try {
                 discoverNetworkResourcesUseCase.execute().collect { host ->
-                    // Add found host to list dynamically
+                    // Emit each host to the UI as soon as it is discovered (streaming).
                     updateState { state ->
                         state.copy(foundNetworkHosts = state.foundNetworkHosts + host)
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // User cancelled the scan — not an error, just stop.
+                Timber.d("Network scan cancelled by user")
             } catch (e: Exception) {
                 Timber.e(e, "Error scanning network")
                 sendEvent(AddResourceEvent.ShowError("Network scan failed: ${e.message}"))
             } finally {
                 updateState { it.copy(isScanning = false) }
+            }
+        }
+    }
+
+    /**
+     * Cancels the active host-discovery scan.
+     * Responds within <1 second (spec NF-05).
+     */
+    fun stopScan() {
+        networkScanJob?.cancel()
+        networkScanJob = null
+        updateState { it.copy(isScanning = false) }
+    }
+
+    /**
+     * Performs an authenticated SMB share scan on [server] and emits a [ShowSharePicker] event
+     * with the discovered share names. Manual share entry remains the primary fallback when
+     * this call returns an empty or failed result.
+     */
+    fun scanShares(
+        server: String,
+        username: String,
+        password: String,
+        domain: String,
+        port: Int
+    ) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            updateState { it.copy(isScanningShares = true, foundShares = emptyList()) }
+            try {
+                smbOperationsUseCase.listShares(server, username, password, domain, port)
+                    .onSuccess { shares ->
+                        updateState { it.copy(foundShares = shares, isScanningShares = false) }
+                        if (shares.isNotEmpty()) {
+                            sendEvent(AddResourceEvent.ShowSharePicker(server, shares))
+                        } else {
+                            // No shares found — inform the user; manual entry is the fallback.
+                            sendEvent(AddResourceEvent.ShowMessage(
+                                context.getString(R.string.msg_no_shares_found)
+                            ))
+                        }
+                    }
+                    .onFailure { e ->
+                        Timber.e(e, "Failed to scan shares for $server")
+                        updateState { it.copy(isScanningShares = false) }
+                        sendEvent(AddResourceEvent.ShowError(
+                            context.getString(R.string.msg_share_scan_failed, e.message ?: "")
+                        ))
+                    }
+            } catch (e: Exception) {
+                Timber.e(e, "Error during share scan")
+                updateState { it.copy(isScanningShares = false) }
+                sendEvent(AddResourceEvent.ShowError(
+                    context.getString(R.string.msg_share_scan_failed, e.message ?: "")
+                ))
             }
         }
     }
@@ -884,6 +954,7 @@ class AddResourceViewModel @Inject constructor(
         scanSubdirectories: Boolean = false,
         rememberFileList: Boolean = false,
         disableThumbnails: Boolean = false,
+        showSubfoldersAsItems: Boolean = false,
         accessPin: String? = null,
         profile: ResourceProfile = ResourceProfile.NONE
     ) {
@@ -951,6 +1022,7 @@ class AddResourceViewModel @Inject constructor(
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
                     disableThumbnails = disableThumbnails,
+                    showSubfoldersAsItems = showSubfoldersAsItems,
                     accessPin = accessPin?.ifBlank { null },
                     profile = profile
                 )
@@ -973,8 +1045,14 @@ class AddResourceViewModel @Inject constructor(
                                 credentialsId = resource.credentialsId,
                                 scanSubdirectories = resource.scanSubdirectories
                             )
-                            val isWritable = withTimeout(5000) { // 5 second timeout
-                                scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            // Skip write test if user explicitly marked resource as read-only —
+                            // avoids spurious ACCESS_DENIED → SMB auto-reset → toast.
+                            val isWritable = if (isReadOnly) {
+                                false
+                            } else {
+                                withTimeout(5000) { // 5 second timeout
+                                    scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                                }
                             }
                             
                             // Get the inserted resource from DB to get real ID
@@ -1004,19 +1082,29 @@ class AddResourceViewModel @Inject constructor(
                         }
                     }.join() // Wait for scan to complete
                     
-                    // Trigger speed test
+                    // Trigger speed test only for writable resources — read-only resources
+                    // cannot create the .speedtest_*.tmp file, which would trigger
+                    // an ACCESS_DENIED → SMB auto-reset → unwanted error toast.
                     if (scanSuccessful) {
                          applicationScope.launch(ioDispatcher) {
                               val allResources = resourceRepository.getAllResources().first()
                               val inserted = allResources.firstOrNull { it.path == resource.path && it.credentialsId == credentialsId }
-                              if (inserted != null) {
+                              if (inserted != null && inserted.isWritable) {
                                   triggerSpeedTest(inserted)
                               }
                          }
                     }
                     
                     if (scanSuccessful) {
-                        sendEvent(AddResourceEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.smb_resource_added_success)))
+                        // Use a dedicated info message for read-only resources so users
+                        // understand why write operations won't be available — instead of
+                        // showing a generic success that doesn't mention the limitation.
+                        val msg = if (isReadOnly) {
+                            context.getString(com.sza.fastmediasorter.R.string.smb_resource_added_readonly)
+                        } else {
+                            context.getString(com.sza.fastmediasorter.R.string.smb_resource_added_success)
+                        }
+                        sendEvent(AddResourceEvent.ShowMessage(msg))
                     } else {
                         sendEvent(AddResourceEvent.ShowError(
                             context.getString(com.sza.fastmediasorter.R.string.smb_resource_added_unavailable, shareName)
@@ -1155,6 +1243,7 @@ class AddResourceViewModel @Inject constructor(
         addToDestinations: Boolean = false,
         rememberFileList: Boolean = false,
         disableThumbnails: Boolean = false,
+        showSubfoldersAsItems: Boolean = false,
         accessPin: String? = null,
         profile: ResourceProfile = ResourceProfile.NONE
     ) {
@@ -1244,6 +1333,7 @@ class AddResourceViewModel @Inject constructor(
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
                     disableThumbnails = disableThumbnails,
+                    showSubfoldersAsItems = showSubfoldersAsItems,
                     accessPin = accessPin?.ifBlank { null },
                     profile = profile
                 )
@@ -1520,6 +1610,7 @@ class AddResourceViewModel @Inject constructor(
         addToDestinations: Boolean = false,
         rememberFileList: Boolean = false,
         disableThumbnails: Boolean = false,
+        showSubfoldersAsItems: Boolean = false,
         accessPin: String? = null,
         profile: ResourceProfile = ResourceProfile.NONE
     ) {
@@ -1601,6 +1692,7 @@ class AddResourceViewModel @Inject constructor(
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
                     disableThumbnails = disableThumbnails,
+                    showSubfoldersAsItems = showSubfoldersAsItems,
                     accessPin = accessPin?.ifBlank { null },
                     profile = profile
                 )

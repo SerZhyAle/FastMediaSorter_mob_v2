@@ -1,7 +1,7 @@
 # VR Player — Phase Overview & Progress Dashboard
 
 **Spec-source:** [../spec_openxr_3d_player.md](../spec_openxr_3d_player.md)  
-**Last updated:** 2026-04-18
+**Last updated:** 2026-04-18 (Phases 1-4 scaffolds complete)
 
 ---
 
@@ -11,11 +11,11 @@
 
 | # | Фаза | Файл | Оценка | Статус |
 |---|------|------|--------|--------|
-| 1 | Foundation: Build & Scaffold | [01_foundation.md](01_foundation.md) | ~3h | 🔴 Not started |
-| 2 | Shared Contracts | [02_shared_contracts.md](02_shared_contracts.md) | ~2h | 🔴 Not started |
-| 3 | Standard CTA Integration | [03_standard_cta.md](03_standard_cta.md) | ~3h | 🔴 Not started |
-| 4 | VR Engine & Host | [04_vr_engine.md](04_vr_engine.md) | ~6h | 🔴 Not started |
-| 5 | Gate Review, Tests & Release | [05_quality_release.md](05_quality_release.md) | ~3h | 🔴 Not started |
+| 1 | Foundation: Build & Scaffold | [01_foundation.md](01_foundation.md) | ~3h | � Done |
+| 2 | Shared Contracts | [02_shared_contracts.md](02_shared_contracts.md) | ~2h | 🟢 Done |
+| 3 | Standard CTA Integration | [03_standard_cta.md](03_standard_cta.md) | ~3h | 🟢 Done |
+| 4 | VR Engine & Host | [04_vr_engine.md](04_vr_engine.md) | ~6h | 🟡 Scaffolds done (needs Quest device for 4.4) |
+| 5 | Gate Review, Tests & Release | [05_quality_release.md](05_quality_release.md) | ~3h | 🟡 In progress |
 
 **Итого оценка:** ~17h (3-4 рабочих дня + QA на Quest)
 

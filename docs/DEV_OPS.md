@@ -14,12 +14,15 @@
 .\gradlew.bat assembleLiteDebug
 .\gradlew.bat assemblePhotosDebug
 .\gradlew.bat assembleLegacyDebug
+.\gradlew.bat assembleVrDebug
 
 # WEAR OS
 .\gradlew.bat :wear:assembleDebug
 
 # RELEASE
 .\gradlew.bat assembleStandardRelease
+.\gradlew.bat assembleVrRelease
+.\gradlew.bat bundleVrRelease          # AAB for Google Play / Android XR
 ```
 
 ## TEST & VERIFY
@@ -34,12 +37,13 @@
 
 ## FEATURE FLAGS (BuildConfig)
 
-| FLAVOR       | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM |
-| :----------- | :---: | :---: | :----: | :---: | :--: | :--: |
-| **standard** |  [+]  |  [+]  |  [+]   |  [+]  | [+]  | [+]  |
-| **lite**     |  [+]  |  [-]  |  [+]   |  [-]  | [-]  | [-]  |
-| **photos**   |  [-]  |  [-]  |  [+]   |  [-]  | [-]  | [+]  |
-| **legacy**   |  [+]  |  [+]  |  [+]   |  [-]  | [-]  | [+]  |
+| FLAVOR       | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM | VR  |
+| :----------- | :---: | :---: | :----: | :---: | :--: | :--: | :-: |
+| **standard** |  [+]  |  [+]  |  [+]   |  [+]  | [+]  | [+]  | [-] |
+| **vr**       |  [+]  |  [+]  |  [+]   |  [+]  | [+]  | [+]  | [+] |
+| **lite**     |  [+]  |  [-]  |  [+]   |  [-]  | [-]  | [-]  | [-] |
+| **photos**   |  [-]  |  [-]  |  [+]   |  [-]  | [-]  | [+]  | [-] |
+| **legacy**   |  [+]  |  [+]  |  [+]   |  [-]  | [-]  | [+]  | [-] |
 
 ## DATABASE
 Room Config: Version 6.

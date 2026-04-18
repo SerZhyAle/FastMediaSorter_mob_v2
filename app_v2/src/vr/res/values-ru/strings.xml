@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FastMediaSorter VR</string>
+
+    <!-- Override welcome title to include "VR" branding -->
+    <string name="welcome_title_1">Добро пожаловать в FastMediaSorter VR!</string>
+
+    <!-- VR-exclusive welcome page: 3D/VR capabilities -->
+    <string name="welcome_vr_title">3D и VR</string>
+    <string name="welcome_vr_description">Погрузитесь в ваши медиафайлы.\nFastMediaSorter VR автоматически определяет стереоскопический 3D-контент и воспроизводит его прямо в шлеме — без дополнительных приложений.</string>
+    <string name="welcome_vr_feature_stereo">Определение 3D-стерео</string>
+    <string name="welcome_vr_feature_headset">Воспроизведение в Quest</string>
+    <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
+
+    <!-- VR phone fallback screen -->
+    <string name="vr_phone_fallback_title">Требуется VR-шлем</string>
+    <string name="vr_phone_fallback_message">FastMediaSorter VR предназначен для шлемов Meta Quest.\nИспользуйте стандартную версию на телефоне.</string>
+    <string name="vr_phone_fallback_close">Закрыть</string>
+    <string name="vr_phone_fallback_open_standard">Открыть стандартную версию</string>
+</resources>

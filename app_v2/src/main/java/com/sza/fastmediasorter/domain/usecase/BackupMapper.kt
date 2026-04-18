@@ -201,7 +201,11 @@ object BackupMapper {
             enableThumbnailPreload = settings.enableThumbnailPreload,
             thumbnailPreloadWifiOnly = settings.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = settings.videoSnapshotResourceId,
-            videoSnapshotFormat = settings.videoSnapshotFormat
+            videoSnapshotFormat = settings.videoSnapshotFormat,
+            vrAutoDetectFormat = settings.vrAutoDetectFormat,
+            vrForcedFormat = settings.vrForcedFormat,
+            vrRenderingMode = settings.vrRenderingMode,
+            vrRememberFileFormat = settings.vrRememberFileFormat
         )
     }
 
@@ -332,7 +336,11 @@ object BackupMapper {
             enableThumbnailPreload = backup.enableThumbnailPreload,
             thumbnailPreloadWifiOnly = backup.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = backup.videoSnapshotResourceId,
-            videoSnapshotFormat = backup.videoSnapshotFormat
+            videoSnapshotFormat = backup.videoSnapshotFormat,
+            vrAutoDetectFormat = backup.vrAutoDetectFormat,
+            vrForcedFormat = backup.vrForcedFormat.gsonSafe(current.vrForcedFormat),
+            vrRenderingMode = backup.vrRenderingMode.gsonSafe(current.vrRenderingMode),
+            vrRememberFileFormat = backup.vrRememberFileFormat
         )
     }
 

@@ -1,515 +1,564 @@
-Starting a Gradle Daemon, 1 busy and 3 stopped Daemons could not be reused, use --status for details
+Starting a Gradle Daemon, 1 stopped Daemon could not be reused, use --status for details
 Reusing configuration cache.
-> Task :app_v2:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app_v2:generatePhotosDebugAssets UP-TO-DATE
+> Task :app_v2:generateStandardDebugAssets UP-TO-DATE
+> Task :app_v2:generateVrDebugAssets UP-TO-DATE
+> Task :app_v2:generatePhotosReleaseAssets UP-TO-DATE
 > Task :app_v2:generateLegacyReleaseAssets UP-TO-DATE
-> Task :wear:preBuild UP-TO-DATE
-> Task :app_v2:preBuild UP-TO-DATE
-> Task :wear:generateDebugAssets UP-TO-DATE
 > Task :app_v2:generateLegacyDebugAssets UP-TO-DATE
 > Task :app_v2:generateLiteReleaseAssets UP-TO-DATE
-> Task :app_v2:generatePhotosReleaseAssets UP-TO-DATE
-> Task :app_v2:generatePhotosDebugAssets UP-TO-DATE
-> Task :wear:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :app_v2:generateStandardDebugAssets UP-TO-DATE
+> Task :app_v2:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app_v2:preBuild UP-TO-DATE
 > Task :app_v2:generateLiteDebugAssets UP-TO-DATE
 > Task :app_v2:generateStandardReleaseAssets UP-TO-DATE
-> Task :app_v2:preLiteReleaseBuild UP-TO-DATE
-> Task :app_v2:preLegacyReleaseBuild UP-TO-DATE
-> Task :wear:preDebugBuild UP-TO-DATE
-> Task :app_v2:prePhotosReleaseBuild UP-TO-DATE
-> Task :app_v2:preLegacyDebugBuild UP-TO-DATE
-> Task :app_v2:preLiteDebugBuild UP-TO-DATE
-> Task :app_v2:prePhotosDebugBuild UP-TO-DATE
+> Task :app_v2:generateVrReleaseAssets UP-TO-DATE
 > Task :app_v2:preStandardDebugBuild UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:javaPreCompileLegacyDebug UP-TO-DATE
-> Task :app_v2:createLegacyDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:generateLegacyDebugBuildConfig UP-TO-DATE
+> Task :app_v2:preLegacyDebugBuild UP-TO-DATE
+> Task :app_v2:preVrDebugBuild UP-TO-DATE
+> Task :app_v2:preStandardReleaseBuild UP-TO-DATE
+> Task :app_v2:mergeStandardDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app_v2:extractProguardFiles UP-TO-DATE
 > Task :app_v2:generateSafeArgsPhotosRelease UP-TO-DATE
-> Task :app_v2:generateSafeArgsLegacyDebug UP-TO-DATE
-> Task :app_v2:generateSafeArgsLiteRelease UP-TO-DATE
+> Task :app_v2:generateStandardDebugBuildConfig UP-TO-DATE
 > Task :app_v2:generateSafeArgsLiteDebug UP-TO-DATE
+> Task :app_v2:generateSafeArgsLegacyDebug UP-TO-DATE
+> Task :app_v2:generateSafeArgsVrDebug UP-TO-DATE
+> Task :app_v2:generateSafeArgsLiteRelease UP-TO-DATE
+> Task :app_v2:generateSafeArgsStandardRelease UP-TO-DATE
 > Task :app_v2:generateSafeArgsPhotosDebug UP-TO-DATE
 > Task :app_v2:generateSafeArgsStandardDebug UP-TO-DATE
-> Task :app_v2:generateSafeArgsLegacyRelease UP-TO-DATE
-> Task :app_v2:mergeLiteDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:generateLiteDebugBuildConfig UP-TO-DATE
-> Task :app_v2:writeLegacyDebugSigningConfigVersions UP-TO-DATE
-> Task :app_v2:validateSigningLegacyDebug UP-TO-DATE
-> Task :app_v2:writeLegacyDebugAppMetadata UP-TO-DATE
-> Task :app_v2:javaPreCompileLiteDebug UP-TO-DATE
-> Task :app_v2:extractDeepLinksLegacyDebug UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugJniLibFolders UP-TO-DATE
 > Task :app_v2:buildKotlinToolingMetadata UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibLiteDebug UP-TO-DATE
+> Task :app_v2:preLiteDebugBuild UP-TO-DATE
+> Task :app_v2:writeStandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:writeStandardDebugAppMetadata UP-TO-DATE
+> Task :app_v2:mergeLiteDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:mergeStandardDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:validateSigningStandardDebug UP-TO-DATE
+> Task :app_v2:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app_v2:generateLiteDebugBuildConfig UP-TO-DATE
+> Task :app_v2:javaPreCompileLiteDebug UP-TO-DATE
 > Task :app_v2:desugarLiteDebugFileDependencies UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibLiteDebug UP-TO-DATE
 > Task :app_v2:createLiteDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:generateStandardDebugResources UP-TO-DATE
+> Task :app_v2:generateLiteDebugResources UP-TO-DATE
+> Task :app_v2:mapLiteDebugSourceSetPaths UP-TO-DATE
 > Task :app_v2:extractDeepLinksLiteDebug UP-TO-DATE
 > Task :app_v2:mergeLiteDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:generateLiteDebugResources UP-TO-DATE
-> Task :app_v2:generateLegacyDebugResources UP-TO-DATE
-> Task :app_v2:mapLegacyDebugSourceSetPaths UP-TO-DATE
-> Task :app_v2:mapLiteDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:packageStandardDebugResources UP-TO-DATE
 > Task :app_v2:validateSigningLiteDebug UP-TO-DATE
-> Task :app_v2:packageLiteDebugResources UP-TO-DATE
 > Task :app_v2:writeLiteDebugAppMetadata UP-TO-DATE
 > Task :app_v2:writeLiteDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:prePhotosDebugBuild UP-TO-DATE
 > Task :app_v2:mergePhotosDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:packageLegacyDebugResources UP-TO-DATE
+> Task :app_v2:packageLiteDebugResources UP-TO-DATE
 > Task :app_v2:generatePhotosDebugResources UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosDebug UP-TO-DATE
-> Task :app_v2:packagePhotosDebugResources UP-TO-DATE
-> Task :app_v2:processPhotosDebugNavigationResources UP-TO-DATE
-> Task :app_v2:parsePhotosDebugLocalResources UP-TO-DATE
-> Task :app_v2:generatePhotosDebugBuildConfig UP-TO-DATE
-> Task :app_v2:generatePhotosDebugRFile UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsLegacyDebug UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibLegacyDebug UP-TO-DATE
-> Task :app_v2:javaPreCompilePhotosDebug UP-TO-DATE
 > Task :app_v2:processLiteDebugNavigationResources UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugAssets UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibPhotosDebug UP-TO-DATE
 > Task :app_v2:parseLiteDebugLocalResources UP-TO-DATE
-> Task :app_v2:compileLiteDebugNavigationResources UP-TO-DATE
-> Task :app_v2:checkLiteDebugAarMetadata UP-TO-DATE
-> Task :app_v2:desugarPhotosDebugFileDependencies UP-TO-DATE
-> Task :app_v2:compressLegacyDebugAssets UP-TO-DATE
-> Task :app_v2:mergePhotosDebugAssets UP-TO-DATE
-> Task :app_v2:checkLiteDebugDuplicateClasses UP-TO-DATE
 > Task :app_v2:generateLiteDebugRFile UP-TO-DATE
-> Task :app_v2:createPhotosDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:checkPhotosDebugAarMetadata UP-TO-DATE
-> Task :app_v2:compressPhotosDebugAssets UP-TO-DATE
-> Task :app_v2:mapPhotosDebugSourceSetPaths UP-TO-DATE
-> Task :app_v2:extractDeepLinksPhotosDebug UP-TO-DATE
-> Task :app_v2:mergePhotosDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:mergeLibDexLiteDebug UP-TO-DATE
-> Task :app_v2:validateSigningPhotosDebug UP-TO-DATE
-> Task :app_v2:compilePhotosDebugNavigationResources UP-TO-DATE
-> Task :app_v2:writePhotosDebugAppMetadata UP-TO-DATE
-> Task :app_v2:writePhotosDebugSigningConfigVersions UP-TO-DATE
-> Task :app_v2:mergeStandardDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
-> Task :app_v2:generateStandardDebugResources UP-TO-DATE
-> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
-> Task :app_v2:generateStandardDebugBuildConfig UP-TO-DATE
-> Task :app_v2:javaPreCompileStandardDebug UP-TO-DATE
-> Task :app_v2:l8DexDesugarLibStandardDebug UP-TO-DATE
-> Task :app_v2:mergeStandardDebugAssets UP-TO-DATE
-> Task :app_v2:mergePhotosDebugNativeLibs UP-TO-DATE
-> Task :app_v2:stripPhotosDebugDebugSymbols UP-TO-DATE
-> Task :app_v2:checkStandardDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:compressStandardDebugAssets UP-TO-DATE
-> Task :app_v2:desugarStandardDebugFileDependencies UP-TO-DATE
-> Task :app_v2:mergeLibDexStandardDebug UP-TO-DATE
-> Task :app_v2:checkStandardDebugAarMetadata UP-TO-DATE
-> Task :app_v2:mergeLegacyDebugNativeLibs UP-TO-DATE
-> Task :app_v2:mapStandardDebugSourceSetPaths UP-TO-DATE
-> Task :app_v2:stripLegacyDebugDebugSymbols UP-TO-DATE
-> Task :app_v2:compileStandardDebugNavigationResources UP-TO-DATE
-> Task :app_v2:packageStandardDebugResources UP-TO-DATE
-> Task :app_v2:parseStandardDebugLocalResources UP-TO-DATE
-> Task :app_v2:createStandardDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksStandardDebug UP-TO-DATE
-> Task :app_v2:mergeStandardDebugJniLibFolders UP-TO-DATE
-> Task :app_v2:generateStandardDebugRFile UP-TO-DATE
-> Task :app_v2:validateSigningStandardDebug UP-TO-DATE
-> Task :app_v2:writeStandardDebugAppMetadata UP-TO-DATE
-> Task :app_v2:mergeStandardDebugNativeLibs UP-TO-DATE
-> Task :app_v2:writeStandardDebugSigningConfigVersions UP-TO-DATE
-> Task :wear:mergeDebugNativeDebugMetadata NO-SOURCE
-> Task :app_v2:stripStandardDebugDebugSymbols UP-TO-DATE
-> Task :app_v2:mergeStandardDebugResources UP-TO-DATE
-> Task :wear:generateDebugBuildConfig FROM-CACHE
-> Task :wear:generateDebugResources FROM-CACHE
-> Task :wear:packageDebugResources FROM-CACHE
-> Task :wear:javaPreCompileDebug FROM-CACHE
-> Task :app_v2:mergeLegacyDebugResources UP-TO-DATE
-> Task :app_v2:checkPhotosDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:checkLegacyDebugDuplicateClasses UP-TO-DATE
-> Task :app_v2:mergeLiteDebugAssets UP-TO-DATE
-> Task :app_v2:mergeLibDexLegacyDebug UP-TO-DATE
-> Task :app_v2:compressLiteDebugAssets UP-TO-DATE
-> Task :app_v2:mergeLibDexPhotosDebug UP-TO-DATE
-> Task :wear:desugarDebugFileDependencies FROM-CACHE
-> Task :app_v2:dataBindingMergeDependencyArtifactsLiteDebug UP-TO-DATE
-> Task :app_v2:processLegacyDebugNavigationResources UP-TO-DATE
-> Task :app_v2:parseLegacyDebugLocalResources UP-TO-DATE
-> Task :app_v2:mergeLiteDebugNativeLibs UP-TO-DATE
-> Task :app_v2:checkLegacyDebugAarMetadata UP-TO-DATE
-> Task :app_v2:generateLegacyDebugRFile UP-TO-DATE
-> Task :app_v2:compileLegacyDebugNavigationResources UP-TO-DATE
-> Task :app_v2:stripLiteDebugDebugSymbols UP-TO-DATE
-> Task :wear:extractDeepLinksDebug FROM-CACHE
+> Task :app_v2:compileLiteDebugNavigationResources UP-TO-DATE
 > Task :app_v2:mergePhotosDebugResources UP-TO-DATE
-> Task :app_v2:mergeExtDexLiteDebug UP-TO-DATE
-> Task :app_v2:mergeExtDexPhotosDebug UP-TO-DATE
-> Task :app_v2:desugarLegacyDebugFileDependencies UP-TO-DATE
-> Task :wear:createDebugCompatibleScreenManifests
-> Task :wear:mapDebugSourceSetPaths
-> Task :app_v2:processPhotosDebugMainManifest UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibStandardDebug UP-TO-DATE
+> Task :app_v2:generatePhotosDebugBuildConfig UP-TO-DATE
+> Task :app_v2:processPhotosDebugNavigationResources UP-TO-DATE
+> Task :app_v2:javaPreCompilePhotosDebug UP-TO-DATE
+> Task :app_v2:packagePhotosDebugResources UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibPhotosDebug UP-TO-DATE
+> Task :app_v2:parsePhotosDebugLocalResources UP-TO-DATE
+> Task :app_v2:generatePhotosDebugRFile UP-TO-DATE
+> Task :app_v2:desugarPhotosDebugFileDependencies UP-TO-DATE
+> Task :app_v2:mergeStandardDebugResources UP-TO-DATE
+> Task :app_v2:mapPhotosDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:compilePhotosDebugNavigationResources UP-TO-DATE
+> Task :app_v2:createPhotosDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:desugarStandardDebugFileDependencies UP-TO-DATE
+> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app_v2:checkPhotosDebugAarMetadata UP-TO-DATE
+> Task :app_v2:extractDeepLinksPhotosDebug UP-TO-DATE
+> Task :app_v2:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app_v2:mergePhotosDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:validateSigningPhotosDebug UP-TO-DATE
+> Task :app_v2:writePhotosDebugAppMetadata UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:generateStandardDebugRFile UP-TO-DATE
+> Task :app_v2:writePhotosDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:generateLegacyDebugResources UP-TO-DATE
+> Task :app_v2:checkStandardDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:mergePhotosDebugAssets UP-TO-DATE
+> Task :app_v2:processLegacyDebugNavigationResources UP-TO-DATE
+> Task :app_v2:mergeLibDexStandardDebug UP-TO-DATE
+> Task :app_v2:mergePhotosDebugNativeLibs UP-TO-DATE
+> Task :app_v2:compressPhotosDebugAssets UP-TO-DATE
+> Task :app_v2:generateLegacyDebugBuildConfig UP-TO-DATE
+> Task :app_v2:stripPhotosDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:javaPreCompileLegacyDebug UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibLegacyDebug UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugAssets UP-TO-DATE
+> Task :app_v2:checkLegacyDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:compressLegacyDebugAssets UP-TO-DATE
+> Task :app_v2:checkLegacyDebugAarMetadata UP-TO-DATE
+> Task :app_v2:mapLegacyDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:compileLegacyDebugNavigationResources UP-TO-DATE
+> Task :app_v2:createLegacyDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksLegacyDebug UP-TO-DATE
+> Task :app_v2:packageLegacyDebugResources UP-TO-DATE
+> Task :app_v2:parseLegacyDebugLocalResources UP-TO-DATE
+> Task :app_v2:generateLegacyDebugRFile UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugResources UP-TO-DATE
+> Task :app_v2:mergeLibDexLegacyDebug UP-TO-DATE
+> Task :app_v2:validateSigningLegacyDebug UP-TO-DATE
+> Task :app_v2:mergeLegacyDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:writeLegacyDebugAppMetadata UP-TO-DATE
+> Task :app_v2:writeLegacyDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:mergeVrDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:mergeLegacyDebugNativeLibs UP-TO-DATE
+> Task :app_v2:stripLegacyDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:generateVrDebugResources UP-TO-DATE
+> Task :app_v2:mergeLiteDebugResources UP-TO-DATE
+> Task :app_v2:mergeLiteDebugNativeLibs UP-TO-DATE
+> Task :app_v2:stripLiteDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:processVrDebugNavigationResources UP-TO-DATE
+> Task :app_v2:generateVrDebugBuildConfig UP-TO-DATE
+> Task :app_v2:javaPreCompileVrDebug UP-TO-DATE
+> Task :app_v2:packageVrDebugResources UP-TO-DATE
+> Task :app_v2:parseVrDebugLocalResources UP-TO-DATE
+> Task :app_v2:mergeVrDebugAssets UP-TO-DATE
+> Task :app_v2:generateVrDebugRFile UP-TO-DATE
+> Task :app_v2:l8DexDesugarLibVrDebug UP-TO-DATE
+> Task :app_v2:mergeVrDebugResources UP-TO-DATE
+> Task :app_v2:compressVrDebugAssets UP-TO-DATE
+> Task :app_v2:desugarVrDebugFileDependencies UP-TO-DATE
+> Task :app_v2:mapVrDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:compileVrDebugNavigationResources UP-TO-DATE
+> Task :app_v2:createVrDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksVrDebug UP-TO-DATE
+> Task :app_v2:checkVrDebugAarMetadata UP-TO-DATE
+> Task :app_v2:mergeVrDebugJniLibFolders UP-TO-DATE
+> Task :app_v2:checkLiteDebugAarMetadata UP-TO-DATE
+> Task :app_v2:checkVrDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:mergeLibDexVrDebug UP-TO-DATE
+> Task :app_v2:validateSigningVrDebug UP-TO-DATE
+> Task :app_v2:mergeVrDebugNativeLibs UP-TO-DATE
+> Task :app_v2:processVrDebugMainManifest UP-TO-DATE
+> Task :app_v2:writeVrDebugAppMetadata UP-TO-DATE
+> Task :app_v2:writeVrDebugSigningConfigVersions UP-TO-DATE
+> Task :app_v2:processVrDebugManifest UP-TO-DATE
+> Task :app_v2:stripVrDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:processVrDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseJniLibFolders UP-TO-DATE
 > Task :app_v2:processStandardDebugMainManifest UP-TO-DATE
-> Task :app_v2:processPhotosDebugManifest UP-TO-DATE
 > Task :app_v2:processStandardDebugManifest UP-TO-DATE
-> Task :wear:writeDebugAppMetadata
-> Task :app_v2:processPhotosDebugManifestForPackage UP-TO-DATE
 > Task :app_v2:processStandardDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:mergeLegacyReleaseJniLibFolders UP-TO-DATE
-> Task :wear:writeDebugSigningConfigVersions
+> Task :app_v2:mergeLiteDebugAssets UP-TO-DATE
+> Task :app_v2:mergeStandardDebugAssets UP-TO-DATE
+> Task :app_v2:compressLiteDebugAssets UP-TO-DATE
 > Task :app_v2:processLiteDebugMainManifest UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseNativeLibs UP-TO-DATE
+> Task :app_v2:compressStandardDebugAssets UP-TO-DATE
 > Task :app_v2:processLiteDebugManifest UP-TO-DATE
 > Task :app_v2:processLiteDebugManifestForPackage UP-TO-DATE
-> Task :wear:validateSigningDebug
-> Task :app_v2:checkLegacyReleaseDuplicateClasses UP-TO-DATE
-> Task :app_v2:generateLegacyReleaseResources UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsLegacyRelease UP-TO-DATE
-> Task :app_v2:packageLegacyReleaseResources UP-TO-DATE
-> Task :app_v2:processLegacyReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:parseLegacyReleaseLocalResources UP-TO-DATE
-> Task :app_v2:generateLegacyReleaseBuildConfig UP-TO-DATE
-> Task :app_v2:generateLegacyReleaseRFile UP-TO-DATE
-> Task :app_v2:javaPreCompileLegacyRelease UP-TO-DATE
-> Task :app_v2:checkLegacyReleaseAarMetadata UP-TO-DATE
-> Task :app_v2:mapLegacyReleaseSourceSetPaths UP-TO-DATE
-> Task :app_v2:compileLegacyReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:createLegacyReleaseCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksLegacyRelease UP-TO-DATE
-> Task :app_v2:mergeLiteDebugResources UP-TO-DATE
-> Task :app_v2:processLegacyReleaseMainManifest UP-TO-DATE
-> Task :wear:checkDebugDuplicateClasses
-> Task :app_v2:mergeLegacyReleaseNativeLibs UP-TO-DATE
-> Task :wear:mergeLibDexDebug FROM-CACHE
-> Task :app_v2:stripLegacyReleaseDebugSymbols UP-TO-DATE
-> Task :app_v2:extractLegacyReleaseNativeDebugMetadata UP-TO-DATE
-> Task :app_v2:mergeLegacyReleaseNativeDebugMetadata NO-SOURCE
-> Task :app_v2:processLegacyReleaseManifest UP-TO-DATE
-> Task :app_v2:processLegacyReleaseManifestForPackage UP-TO-DATE
-> Task :app_v2:extractProguardFiles UP-TO-DATE
-> Task :app_v2:mergeLegacyReleaseStartupProfile UP-TO-DATE
-> Task :app_v2:mergeLegacyReleaseAssets UP-TO-DATE
-> Task :app_v2:compressLegacyReleaseAssets UP-TO-DATE
-> Task :app_v2:extractLegacyReleaseVersionControlInfo UP-TO-DATE
-> Task :app_v2:collectLegacyReleaseDependencies UP-TO-DATE
-> Task :app_v2:sdkLegacyReleaseDependencyData UP-TO-DATE
-> Task :app_v2:validateSigningLegacyRelease UP-TO-DATE
-> Task :app_v2:writeLegacyReleaseAppMetadata UP-TO-DATE
-> Task :app_v2:writeLegacyReleaseSigningConfigVersions UP-TO-DATE
+> Task :app_v2:stripStandardReleaseDebugSymbols UP-TO-DATE
+> Task :app_v2:extractStandardReleaseNativeDebugMetadata UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseNativeDebugMetadata NO-SOURCE
+> Task :app_v2:generateStandardReleaseResources UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosDebug UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardRelease UP-TO-DATE
+> Task :app_v2:checkStandardReleaseDuplicateClasses UP-TO-DATE
+> Task :app_v2:processStandardReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:generateStandardReleaseBuildConfig UP-TO-DATE
+> Task :app_v2:javaPreCompileStandardRelease UP-TO-DATE
+> Task :app_v2:packageStandardReleaseResources UP-TO-DATE
+> Task :app_v2:parseStandardReleaseLocalResources UP-TO-DATE
+> Task :app_v2:generateStandardReleaseRFile UP-TO-DATE
+> Task :app_v2:mapStandardReleaseSourceSetPaths UP-TO-DATE
+> Task :app_v2:compileStandardReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:createStandardReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksStandardRelease UP-TO-DATE
+> Task :app_v2:mergeStandardDebugNativeLibs UP-TO-DATE
+> Task :app_v2:processLegacyDebugMainManifest UP-TO-DATE
+> Task :app_v2:checkStandardReleaseAarMetadata UP-TO-DATE
+> Task :app_v2:stripStandardDebugDebugSymbols UP-TO-DATE
+> Task :app_v2:processLegacyDebugManifest UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseStartupProfile UP-TO-DATE
+> Task :app_v2:processLegacyDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:extractStandardReleaseVersionControlInfo UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLiteDebug UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseAssets UP-TO-DATE
+> Task :app_v2:collectStandardReleaseDependencies UP-TO-DATE
+> Task :app_v2:compressStandardReleaseAssets UP-TO-DATE
+> Task :app_v2:sdkStandardReleaseDependencyData UP-TO-DATE
+> Task :app_v2:validateSigningStandardRelease UP-TO-DATE
+> Task :app_v2:writeStandardReleaseAppMetadata UP-TO-DATE
+> Task :app_v2:preLiteReleaseBuild UP-TO-DATE
+> Task :app_v2:mergeExtDexStandardDebug UP-TO-DATE
+> Task :app_v2:writeStandardReleaseSigningConfigVersions UP-TO-DATE
 > Task :app_v2:mergeLiteReleaseJniLibFolders UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLegacyDebug UP-TO-DATE
+> Task :app_v2:checkLiteReleaseDuplicateClasses UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLiteRelease UP-TO-DATE
+> Task :app_v2:generateLiteReleaseResources UP-TO-DATE
 > Task :app_v2:mergeLiteReleaseNativeLibs UP-TO-DATE
 > Task :app_v2:stripLiteReleaseDebugSymbols UP-TO-DATE
 > Task :app_v2:extractLiteReleaseNativeDebugMetadata UP-TO-DATE
 > Task :app_v2:mergeLiteReleaseNativeDebugMetadata NO-SOURCE
-> Task :app_v2:mergeLegacyReleaseResources UP-TO-DATE
-> Task :app_v2:processLegacyDebugMainManifest UP-TO-DATE
-> Task :app_v2:processLegacyDebugManifest UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
-> Task :app_v2:processLegacyDebugManifestForPackage UP-TO-DATE
-> Task :app_v2:mergeExtDexStandardDebug UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesPhotosDebug UP-TO-DATE
-> Task :wear:mergeDebugJniLibFolders
-> Task :wear:processDebugNavigationResources FROM-CACHE
-> Task :wear:parseDebugLocalResources FROM-CACHE
-> Task :wear:generateDebugRFile FROM-CACHE
-> Task :app_v2:mergeLiteReleaseArtProfile UP-TO-DATE
-> Task :wear:compileDebugNavigationResources FROM-CACHE
-> Task :app_v2:dataBindingGenBaseClassesLegacyDebug UP-TO-DATE
-> Task :app_v2:expandLiteReleaseL8ArtProfileWildcards UP-TO-DATE
-> Task :app_v2:checkLiteReleaseDuplicateClasses UP-TO-DATE
-> Task :wear:mergeDebugAssets
-> Task :app_v2:processLegacyDebugResources UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsLiteRelease UP-TO-DATE
-> Task :wear:compressDebugAssets FROM-CACHE
-> Task :app_v2:dataBindingGenBaseClassesLegacyRelease UP-TO-DATE
+> Task :app_v2:packageLiteReleaseResources UP-TO-DATE
+> Task :app_v2:processLiteReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:parseLiteReleaseLocalResources UP-TO-DATE
 > Task :app_v2:generateLiteReleaseBuildConfig UP-TO-DATE
+> Task :app_v2:generateLiteReleaseRFile UP-TO-DATE
 > Task :app_v2:javaPreCompileLiteRelease UP-TO-DATE
-> Task :app_v2:mergeExtDexLegacyDebug UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
 > Task :app_v2:checkLiteReleaseAarMetadata UP-TO-DATE
+> Task :app_v2:mapLiteReleaseSourceSetPaths UP-TO-DATE
+> Task :app_v2:compileLiteReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:checkPhotosDebugDuplicateClasses UP-TO-DATE
 > Task :app_v2:createLiteReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:mergeLibDexPhotosDebug UP-TO-DATE
 > Task :app_v2:extractDeepLinksLiteRelease UP-TO-DATE
-> Task :app_v2:mergeLegacyReleaseArtProfile UP-TO-DATE
-> Task :wear:checkDebugAarMetadata
-> Task :app_v2:processPhotosDebugResources UP-TO-DATE
+> Task :app_v2:mergeLiteReleaseResources UP-TO-DATE
+> Task :app_v2:processLiteReleaseMainManifest UP-TO-DATE
+> Task :app_v2:processLiteReleaseManifest UP-TO-DATE
+> Task :app_v2:processLiteReleaseManifestForPackage UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsVrDebug UP-TO-DATE
+> Task :app_v2:processPhotosDebugMainManifest UP-TO-DATE
+> Task :app_v2:processPhotosDebugManifest UP-TO-DATE
+> Task :app_v2:checkLiteDebugDuplicateClasses UP-TO-DATE
+> Task :app_v2:mergeLibDexLiteDebug UP-TO-DATE
+> Task :app_v2:processPhotosDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:mergeExtDexVrDebug UP-TO-DATE
 > Task :app_v2:mergeLiteReleaseStartupProfile UP-TO-DATE
-> Task :app_v2:extractLiteReleaseVersionControlInfo UP-TO-DATE
-> Task :app_v2:expandLegacyReleaseL8ArtProfileWildcards UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesLiteDebug UP-TO-DATE
 > Task :app_v2:mergeLiteReleaseAssets UP-TO-DATE
-> Task :app_v2:processLiteDebugResources UP-TO-DATE
-> Task :app_v2:processLegacyReleaseResources UP-TO-DATE
+> Task :app_v2:mergeExtDexLiteDebug UP-TO-DATE
+> Task :app_v2:extractLiteReleaseVersionControlInfo UP-TO-DATE
+> Task :app_v2:compressLiteReleaseAssets UP-TO-DATE
+> Task :app_v2:validateSigningLiteRelease UP-TO-DATE
 > Task :app_v2:writeLiteReleaseAppMetadata UP-TO-DATE
 > Task :app_v2:collectLiteReleaseDependencies UP-TO-DATE
-> Task :app_v2:processStandardDebugResources UP-TO-DATE
 > Task :app_v2:writeLiteReleaseSigningConfigVersions UP-TO-DATE
-> Task :wear:processDebugMainManifest FROM-CACHE
+> Task :app_v2:prePhotosReleaseBuild UP-TO-DATE
 > Task :app_v2:sdkLiteReleaseDependencyData UP-TO-DATE
-> Task :app_v2:mergePhotosReleaseArtProfile UP-TO-DATE
 > Task :app_v2:mergePhotosReleaseJniLibFolders UP-TO-DATE
-> Task :app_v2:compressLiteReleaseAssets UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosRelease UP-TO-DATE
-> Task :app_v2:expandPhotosReleaseL8ArtProfileWildcards UP-TO-DATE
-> Task :app_v2:generatePhotosReleaseResources UP-TO-DATE
-> Task :wear:processDebugManifest FROM-CACHE
-> Task :app_v2:generatePhotosReleaseBuildConfig UP-TO-DATE
-> Task :app_v2:processPhotosReleaseNavigationResources UP-TO-DATE
-> Task :wear:processDebugManifestForPackage FROM-CACHE
+> Task :app_v2:mergePhotosReleaseArtProfile UP-TO-DATE
 > Task :app_v2:mergePhotosReleaseNativeLibs UP-TO-DATE
-> Task :app_v2:javaPreCompilePhotosRelease UP-TO-DATE
-> Task :app_v2:checkPhotosReleaseAarMetadata UP-TO-DATE
-> Task :app_v2:mapPhotosReleaseSourceSetPaths UP-TO-DATE
-> Task :app_v2:createPhotosReleaseCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:compilePhotosReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:extractDeepLinksPhotosRelease UP-TO-DATE
-> Task :app_v2:mergePhotosReleaseStartupProfile UP-TO-DATE
 > Task :app_v2:stripPhotosReleaseDebugSymbols UP-TO-DATE
 > Task :app_v2:extractPhotosReleaseNativeDebugMetadata UP-TO-DATE
 > Task :app_v2:mergePhotosReleaseNativeDebugMetadata NO-SOURCE
-> Task :app_v2:processPhotosReleaseMainManifest UP-TO-DATE
+> Task :app_v2:checkPhotosReleaseDuplicateClasses UP-TO-DATE
+> Task :app_v2:expandPhotosReleaseL8ArtProfileWildcards UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsPhotosRelease UP-TO-DATE
+> Task :app_v2:generatePhotosReleaseResources UP-TO-DATE
+> Task :app_v2:processPhotosReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:mergeLiteReleaseArtProfile UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseArtProfile UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseResources UP-TO-DATE
+> Task :app_v2:mergeExtDexPhotosDebug UP-TO-DATE
+> Task :app_v2:processLiteDebugResources UP-TO-DATE
+> Task :app_v2:generatePhotosReleaseBuildConfig UP-TO-DATE
+> Task :app_v2:processPhotosDebugResources UP-TO-DATE
+> Task :app_v2:expandLiteReleaseL8ArtProfileWildcards UP-TO-DATE
+> Task :app_v2:expandStandardReleaseL8ArtProfileWildcards UP-TO-DATE
+> Task :app_v2:mapPhotosReleaseSourceSetPaths UP-TO-DATE
+> Task :app_v2:javaPreCompilePhotosRelease UP-TO-DATE
+> Task :app_v2:createPhotosReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:compilePhotosReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:extractDeepLinksPhotosRelease UP-TO-DATE
+> Task :app_v2:checkPhotosReleaseAarMetadata UP-TO-DATE
 > Task :app_v2:extractPhotosReleaseVersionControlInfo UP-TO-DATE
-> Task :app_v2:processPhotosReleaseManifest UP-TO-DATE
-> Task :app_v2:processPhotosReleaseManifestForPackage UP-TO-DATE
-> Task :app_v2:mergePhotosReleaseAssets UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesVrDebug UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesLiteRelease UP-TO-DATE
+> Task :app_v2:processStandardReleaseMainManifest UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
+> Task :app_v2:desugarLegacyDebugFileDependencies UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesLegacyDebug UP-TO-DATE
+> Task :app_v2:processLegacyDebugResources UP-TO-DATE
+> Task :app_v2:processLiteReleaseResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesPhotosDebug UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesLiteDebug UP-TO-DATE
 > Task :app_v2:validateSigningPhotosRelease UP-TO-DATE
+> Task :app_v2:preLegacyReleaseBuild UP-TO-DATE
+> Task :app_v2:writePhotosReleaseSigningConfigVersions UP-TO-DATE
+> Task :app_v2:processStandardReleaseManifest UP-TO-DATE
 > Task :app_v2:writePhotosReleaseAppMetadata UP-TO-DATE
 > Task :app_v2:collectPhotosReleaseDependencies UP-TO-DATE
-> Task :app_v2:writePhotosReleaseSigningConfigVersions UP-TO-DATE
-> Task :app_v2:preStandardReleaseBuild UP-TO-DATE
-> Task :app_v2:sdkPhotosReleaseDependencyData UP-TO-DATE
-> Task :app_v2:compressPhotosReleaseAssets UP-TO-DATE
-> Task :app_v2:checkStandardReleaseDuplicateClasses UP-TO-DATE
-> Task :app_v2:dataBindingMergeDependencyArtifactsStandardRelease UP-TO-DATE
-> Task :app_v2:generateStandardReleaseResources UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseArtProfile UP-TO-DATE
-> Task :app_v2:processLiteReleaseMainManifest UP-TO-DATE
-> Task :app_v2:expandStandardReleaseL8ArtProfileWildcards UP-TO-DATE
-> Task :wear:mergeDebugResources FROM-CACHE
-> Task :app_v2:processLiteReleaseManifest UP-TO-DATE
-> Task :app_v2:processLiteReleaseManifestForPackage UP-TO-DATE
-> Task :app_v2:processStandardReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:generateSafeArgsStandardRelease UP-TO-DATE
-> Task :app_v2:generateStandardReleaseBuildConfig UP-TO-DATE
-> Task :app_v2:javaPreCompileStandardRelease UP-TO-DATE
-> Task :app_v2:checkStandardReleaseAarMetadata UP-TO-DATE
-> Task :wear:mergeDebugNativeLibs NO-SOURCE
-> Task :app_v2:mapStandardReleaseSourceSetPaths UP-TO-DATE
-> Task :wear:stripDebugDebugSymbols NO-SOURCE
-> Task :app_v2:createStandardReleaseCompatibleScreenManifests UP-TO-DATE
-> Task :app_v2:extractDeepLinksStandardRelease UP-TO-DATE
-> Task :app_v2:processStandardReleaseMainManifest UP-TO-DATE
-> Task :app_v2:processStandardReleaseManifest UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseJniLibFolders UP-TO-DATE
+> Task :app_v2:processPhotosReleaseMainManifest UP-TO-DATE
+> Task :app_v2:processVrDebugResources UP-TO-DATE
+> Task :app_v2:processStandardDebugResources UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseArtProfile UP-TO-DATE
 > Task :app_v2:processStandardReleaseManifestForPackage UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseStartupProfile UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseAssets UP-TO-DATE
-> Task :app_v2:generateLiteReleaseResources UP-TO-DATE
-> Task :app_v2:mapLiteReleaseSourceSetPaths UP-TO-DATE
-> Task :app_v2:compressStandardReleaseAssets UP-TO-DATE
-> Task :app_v2:processLiteReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:extractStandardReleaseVersionControlInfo UP-TO-DATE
-> Task :app_v2:validateSigningStandardRelease UP-TO-DATE
-> Task :app_v2:validateSigningLiteRelease UP-TO-DATE
-> Task :app_v2:writeStandardReleaseAppMetadata UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseJniLibFolders UP-TO-DATE
-> Task :wear:preReleaseBuild UP-TO-DATE
-> Task :app_v2:collectStandardReleaseDependencies UP-TO-DATE
-> Task :app_v2:writeStandardReleaseSigningConfigVersions UP-TO-DATE
-> Task :app_v2:sdkStandardReleaseDependencyData UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseNativeLibs UP-TO-DATE
-> Task :app_v2:stripStandardReleaseDebugSymbols UP-TO-DATE
-> Task :app_v2:extractStandardReleaseNativeDebugMetadata UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseNativeDebugMetadata NO-SOURCE
-> Task :wear:buildKotlinToolingMetadata
-> Task :wear:generateReleaseBuildConfig FROM-CACHE
+> Task :app_v2:checkLegacyReleaseDuplicateClasses UP-TO-DATE
+> Task :app_v2:mergePhotosReleaseAssets UP-TO-DATE
+> Task :app_v2:mergePhotosReleaseStartupProfile UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesStandardRelease UP-TO-DATE
+> Task :app_v2:sdkPhotosReleaseDependencyData UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsLegacyRelease UP-TO-DATE
+> Task :app_v2:processPhotosReleaseManifest UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseNativeLibs UP-TO-DATE
+> Task :app_v2:generateLegacyReleaseResources UP-TO-DATE
+> Task :app_v2:generateLegacyReleaseBuildConfig UP-TO-DATE
+> Task :app_v2:processStandardReleaseResources UP-TO-DATE
+> Task :app_v2:expandLegacyReleaseL8ArtProfileWildcards UP-TO-DATE
+> Task :app_v2:javaPreCompileLegacyRelease UP-TO-DATE
+> Task :app_v2:processPhotosReleaseManifestForPackage UP-TO-DATE
+> Task :app_v2:mapLegacyReleaseSourceSetPaths UP-TO-DATE
+> Task :app_v2:createLegacyReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:extractDeepLinksLegacyRelease UP-TO-DATE
+> Task :app_v2:checkLegacyReleaseAarMetadata UP-TO-DATE
+> Task :app_v2:stripLegacyReleaseDebugSymbols UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseStartupProfile UP-TO-DATE
+> Task :app_v2:extractLegacyReleaseNativeDebugMetadata UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseNativeDebugMetadata NO-SOURCE
+> Task :app_v2:processLegacyReleaseMainManifest UP-TO-DATE
+> Task :app_v2:validateSigningLegacyRelease UP-TO-DATE
+> Task :app_v2:writeLegacyReleaseAppMetadata UP-TO-DATE
+> Task :app_v2:collectLegacyReleaseDependencies UP-TO-DATE
+> Task :app_v2:processLegacyReleaseManifest UP-TO-DATE
+> Task :app_v2:compressPhotosReleaseAssets UP-TO-DATE
+> Task :app_v2:preVrReleaseBuild UP-TO-DATE
+> Task :app_v2:writeLegacyReleaseSigningConfigVersions UP-TO-DATE
+> Task :app_v2:mergeVrReleaseJniLibFolders UP-TO-DATE
+> Task :app_v2:processLegacyReleaseManifestForPackage UP-TO-DATE
+> Task :app_v2:sdkLegacyReleaseDependencyData UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsVrRelease UP-TO-DATE
+> Task :app_v2:checkVrReleaseDuplicateClasses UP-TO-DATE
+> Task :app_v2:processVrReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseAssets UP-TO-DATE
+> Task :app_v2:mergeVrReleaseArtProfile UP-TO-DATE
+> Task :app_v2:mergeVrReleaseNativeLibs UP-TO-DATE
+> Task :app_v2:expandVrReleaseL8ArtProfileWildcards UP-TO-DATE
+> Task :app_v2:generateVrReleaseBuildConfig UP-TO-DATE
+> Task :app_v2:javaPreCompileVrRelease UP-TO-DATE
+> Task :app_v2:checkVrReleaseAarMetadata UP-TO-DATE
+> Task :app_v2:mapVrReleaseSourceSetPaths UP-TO-DATE
+> Task :app_v2:compileVrReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:createVrReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:stripVrReleaseDebugSymbols UP-TO-DATE
+> Task :app_v2:extractDeepLinksVrRelease UP-TO-DATE
+> Task :app_v2:extractVrReleaseNativeDebugMetadata UP-TO-DATE
+> Task :app_v2:mergeVrReleaseNativeDebugMetadata NO-SOURCE
+> Task :app_v2:mergeVrReleaseStartupProfile UP-TO-DATE
+> Task :app_v2:compressLegacyReleaseAssets UP-TO-DATE
+> Task :app_v2:extractVrReleaseVersionControlInfo UP-TO-DATE
+> Task :app_v2:collectVrReleaseDependencies UP-TO-DATE
+> Task :app_v2:sdkVrReleaseDependencyData UP-TO-DATE
+> Task :app_v2:validateSigningVrRelease UP-TO-DATE
+> Task :app_v2:writeVrReleaseAppMetadata UP-TO-DATE
+> Task :app_v2:writeVrReleaseSigningConfigVersions UP-TO-DATE
+> Task :app_v2:mergeVrReleaseAssets UP-TO-DATE
+> Task :app_v2:extractLegacyReleaseVersionControlInfo UP-TO-DATE
+> Task :app_v2:compressVrReleaseAssets UP-TO-DATE
 > Task :app_v2:packagePhotosReleaseResources UP-TO-DATE
-> Task :app_v2:compileLiteReleaseNavigationResources UP-TO-DATE
-> Task :wear:generateReleaseResources FROM-CACHE
 > Task :app_v2:parsePhotosReleaseLocalResources UP-TO-DATE
 > Task :app_v2:generatePhotosReleaseRFile UP-TO-DATE
-> Task :wear:processReleaseNavigationResources FROM-CACHE
-> Task :wear:javaPreCompileRelease FROM-CACHE
-> Task :app_v2:packageStandardReleaseResources UP-TO-DATE
-> Task :wear:packageReleaseResources FROM-CACHE
-> Task :app_v2:parseStandardReleaseLocalResources UP-TO-DATE
-> Task :wear:parseReleaseLocalResources FROM-CACHE
-> Task :app_v2:generateStandardReleaseRFile UP-TO-DATE
-> Task :wear:mapReleaseSourceSetPaths
-> Task :wear:generateReleaseRFile FROM-CACHE
-> Task :wear:compileReleaseNavigationResources FROM-CACHE
-> Task :app_v2:checkPhotosReleaseDuplicateClasses UP-TO-DATE
-> Task :wear:createReleaseCompatibleScreenManifests
-> Task :app_v2:packageLiteReleaseResources UP-TO-DATE
-> Task :wear:extractDeepLinksRelease FROM-CACHE
-> Task :app_v2:parseLiteReleaseLocalResources UP-TO-DATE
-> Task :wear:processReleaseMainManifest FROM-CACHE
-> Task :wear:processReleaseManifest FROM-CACHE
-> Task :wear:processReleaseManifestForPackage FROM-CACHE
-> Task :wear:extractProguardFiles
-> Task :wear:mergeReleaseStartupProfile UP-TO-DATE
-> Task :wear:generateReleaseAssets UP-TO-DATE
-> Task :app_v2:generateLiteReleaseRFile UP-TO-DATE
-> Task :app_v2:compileStandardReleaseNavigationResources UP-TO-DATE
-> Task :app_v2:mergeStandardReleaseResources UP-TO-DATE
-> Task :app_v2:dataBindingGenBaseClassesStandardRelease UP-TO-DATE
-> Task :wear:extractReleaseVersionControlInfo
-> Task :app_v2:processStandardReleaseResources UP-TO-DATE
-> Task :wear:writeReleaseAppMetadata
-> Task :wear:writeReleaseSigningConfigVersions
-> Task :wear:mergeExtDexDebug FROM-CACHE
-> Task :wear:mergeReleaseResources FROM-CACHE
-> Task :app_v2:mergeLiteReleaseResources UP-TO-DATE
-> Task :wear:collectReleaseDependencies
-> Task :app_v2:dataBindingGenBaseClassesLiteRelease UP-TO-DATE
-> Task :app_v2:processLiteReleaseResources UP-TO-DATE
+> Task :app_v2:packageLegacyReleaseResources UP-TO-DATE
+> Task :app_v2:generateSafeArgsVrRelease UP-TO-DATE
+> Task :app_v2:generateSafeArgsLegacyRelease UP-TO-DATE
+> Task :app_v2:processLegacyReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:parseLegacyReleaseLocalResources UP-TO-DATE
+> Task :app_v2:generateLegacyReleaseRFile UP-TO-DATE
+> Task :app_v2:compileLegacyReleaseNavigationResources UP-TO-DATE
+> Task :app_v2:generateVrReleaseResources UP-TO-DATE
+> Task :app_v2:processVrReleaseMainManifest UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesLegacyRelease UP-TO-DATE
+> Task :app_v2:packageVrReleaseResources UP-TO-DATE
+> Task :app_v2:processLegacyReleaseResources UP-TO-DATE
+> Task :app_v2:parseVrReleaseLocalResources UP-TO-DATE
+> Task :app_v2:generateVrReleaseRFile UP-TO-DATE
+> Task :app_v2:processVrReleaseManifest UP-TO-DATE
+> Task :app_v2:processVrReleaseManifestForPackage UP-TO-DATE
 > Task :app_v2:mergePhotosReleaseResources UP-TO-DATE
 > Task :app_v2:dataBindingGenBaseClassesPhotosRelease UP-TO-DATE
-> Task :wear:sdkReleaseDependencyData
+> Task :app_v2:mergeVrReleaseResources UP-TO-DATE
 > Task :app_v2:processPhotosReleaseResources UP-TO-DATE
-> Task :wear:mergeReleaseAssets
-> Task :wear:compressReleaseAssets FROM-CACHE
-> Task :wear:mergeReleaseJniLibFolders
-> Task :wear:mergeReleaseNativeLibs NO-SOURCE
-> Task :wear:stripReleaseDebugSymbols NO-SOURCE
-> Task :wear:extractReleaseNativeSymbolTables NO-SOURCE
-> Task :wear:mergeReleaseNativeDebugMetadata NO-SOURCE
-> Task :wear:checkReleaseAarMetadata
-> Task :wear:mergeReleaseArtProfile
-> Task :wear:checkReleaseDuplicateClasses
-> Task :wear:processDebugResources FROM-CACHE
-> Task :wear:processReleaseResources FROM-CACHE
-> Task :app_v2:kaptGenerateStubsLegacyDebugKotlin UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsLiteDebugKotlin UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsPhotosDebugKotlin UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesVrRelease UP-TO-DATE
+> Task :app_v2:processVrReleaseResources UP-TO-DATE
+> Task :app_v2:mergeExtDexLegacyDebug UP-TO-DATE
 > Task :app_v2:kaptGenerateStubsStandardReleaseKotlin UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsStandardDebugKotlin UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsLegacyReleaseKotlin UP-TO-DATE
-> Task :app_v2:kaptGenerateStubsLiteReleaseKotlin UP-TO-DATE
 > Task :app_v2:kaptGenerateStubsPhotosReleaseKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsLiteReleaseKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsPhotosDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsLegacyReleaseKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsVrDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsLiteDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsVrReleaseKotlin UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsLegacyDebugKotlin UP-TO-DATE
 > Task :app_v2:kaptLiteReleaseKotlin UP-TO-DATE
 > Task :app_v2:kaptPhotosDebugKotlin UP-TO-DATE
 > Task :app_v2:kaptStandardReleaseKotlin UP-TO-DATE
-> Task :app_v2:kaptPhotosReleaseKotlin UP-TO-DATE
+> Task :app_v2:kaptLegacyDebugKotlin UP-TO-DATE
 > Task :app_v2:kaptLegacyReleaseKotlin UP-TO-DATE
 > Task :app_v2:kaptStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptVrReleaseKotlin UP-TO-DATE
+> Task :app_v2:kaptPhotosReleaseKotlin UP-TO-DATE
 > Task :app_v2:kaptLiteDebugKotlin UP-TO-DATE
-> Task :app_v2:kaptLegacyDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptVrDebugKotlin UP-TO-DATE
+> Task :app_v2:compileLiteReleaseKotlin UP-TO-DATE
 > Task :app_v2:compileStandardReleaseKotlin UP-TO-DATE
 > Task :app_v2:compileStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:compileLegacyReleaseKotlin UP-TO-DATE
+> Task :app_v2:compilePhotosReleaseKotlin UP-TO-DATE
+> Task :app_v2:compileVrReleaseKotlin UP-TO-DATE
 > Task :app_v2:compileStandardDebugJavaWithJavac UP-TO-DATE
+> Task :app_v2:compileLiteDebugKotlin UP-TO-DATE
+> Task :app_v2:compileVrDebugKotlin UP-TO-DATE
+> Task :app_v2:compileStandardReleaseJavaWithJavac UP-TO-DATE
+> Task :app_v2:compileVrDebugJavaWithJavac UP-TO-DATE
+> Task :app_v2:hiltAggregateDepsStandardRelease UP-TO-DATE
+> Task :app_v2:hiltAggregateDepsVrDebug UP-TO-DATE
 > Task :app_v2:hiltAggregateDepsStandardDebug UP-TO-DATE
+> Task :app_v2:hiltJavaCompileStandardRelease UP-TO-DATE
+> Task :app_v2:hiltJavaCompileVrDebug UP-TO-DATE
 > Task :app_v2:hiltJavaCompileStandardDebug UP-TO-DATE
+> Task :app_v2:processStandardReleaseJavaRes UP-TO-DATE
+> Task :app_v2:processVrDebugJavaRes UP-TO-DATE
 > Task :app_v2:processStandardDebugJavaRes UP-TO-DATE
-> Task :app_v2:mergeStandardDebugJavaResource UP-TO-DATE
+> Task :app_v2:transformStandardReleaseClassesWithAsm UP-TO-DATE
+> Task :app_v2:expandStandardReleaseArtProfileWildcards UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :app_v2:transformVrDebugClassesWithAsm UP-TO-DATE
 > Task :app_v2:transformStandardDebugClassesWithAsm UP-TO-DATE
+> Task :app_v2:mergeStandardReleaseJavaResource UP-TO-DATE
+> Task :app_v2:mergeStandardDebugJavaResource UP-TO-DATE
+> Task :app_v2:mergeVrDebugJavaResource UP-TO-DATE
+> Task :app_v2:minifyStandardReleaseWithR8 UP-TO-DATE
+> Task :app_v2:dexBuilderVrDebug UP-TO-DATE
+> Task :app_v2:mergeProjectDexVrDebug UP-TO-DATE
 > Task :app_v2:dexBuilderStandardDebug UP-TO-DATE
 > Task :app_v2:mergeProjectDexStandardDebug UP-TO-DATE
+> Task :app_v2:mergeVrDebugGlobalSynthetics UP-TO-DATE
 > Task :app_v2:mergeStandardDebugGlobalSynthetics UP-TO-DATE
+> Task :app_v2:packageVrDebug UP-TO-DATE
 > Task :app_v2:packageStandardDebug UP-TO-DATE
 > Task :app_v2:assembleStandardDebug UP-TO-DATE
+> Task :app_v2:assembleVrDebug UP-TO-DATE
 > Task :app_v2:createStandardDebugApkListingFileRedirect UP-TO-DATE
-> Task :app_v2:compileStandardReleaseJavaWithJavac
-> Task :app_v2:hiltAggregateDepsStandardRelease
-> Task :wear:kspReleaseKotlin
-> Task :wear:kspDebugKotlin
-> Task :app_v2:compileLiteReleaseKotlin
+> Task :app_v2:createVrDebugApkListingFileRedirect UP-TO-DATE
 > Task :app_v2:compilePhotosDebugKotlin
-> Task :app_v2:compilePhotosReleaseKotlin
-> Task :app_v2:compileLegacyReleaseKotlin
-> Task :app_v2:compileLiteDebugKotlin
 > Task :app_v2:compileLegacyDebugKotlin
-> Task :app_v2:hiltJavaCompileStandardRelease
-> Task :app_v2:processStandardReleaseJavaRes
-> Task :app_v2:mergeStandardReleaseJavaResource
+> Task :app_v2:compileLiteReleaseJavaWithJavac
+> Task :app_v2:convertShrunkResourcesToBinaryStandardRelease
+> Task :app_v2:compileLegacyReleaseJavaWithJavac
+> Task :app_v2:compilePhotosReleaseJavaWithJavac
+> Task :app_v2:compileVrReleaseJavaWithJavac
+> Task :app_v2:compileLiteDebugJavaWithJavac
+> Task :app_v2:optimizeStandardReleaseResources
+> Task :app_v2:l8DexDesugarLibStandardRelease
+> Task :app_v2:hiltAggregateDepsPhotosRelease FROM-CACHE
+> Task :app_v2:hiltAggregateDepsLiteRelease FROM-CACHE
+> Task :app_v2:hiltAggregateDepsLegacyRelease FROM-CACHE
+> Task :app_v2:hiltAggregateDepsLiteDebug FROM-CACHE
+> Task :app_v2:hiltAggregateDepsVrRelease
+> Task :app_v2:hiltJavaCompilePhotosRelease
+> Task :app_v2:hiltJavaCompileLiteRelease
+> Task :app_v2:compileStandardReleaseArtProfile
+> Task :app_v2:processLiteReleaseJavaRes
+> Task :app_v2:processPhotosReleaseJavaRes
+> Task :app_v2:hiltJavaCompileVrRelease
+> Task :app_v2:hiltJavaCompileLegacyRelease
+> Task :app_v2:hiltJavaCompileLiteDebug
+> Task :app_v2:processLegacyReleaseJavaRes
+> Task :app_v2:processVrReleaseJavaRes
+> Task :app_v2:processLiteDebugJavaRes
+> Task :app_v2:packageStandardRelease
+> Task :app_v2:assembleStandardRelease
+> Task :app_v2:createStandardReleaseApkListingFileRedirect
+> Task :app_v2:mergePhotosReleaseJavaResource
+> Task :app_v2:mergeLiteReleaseJavaResource
+> Task :app_v2:mergeLegacyReleaseJavaResource
+> Task :app_v2:mergeVrReleaseJavaResource
+> Task :app_v2:mergeLiteDebugJavaResource
+> Task :app_v2:transformPhotosReleaseClassesWithAsm
+> Task :app_v2:transformLiteReleaseClassesWithAsm
+> Task :app_v2:transformVrReleaseClassesWithAsm
+> Task :app_v2:transformLegacyReleaseClassesWithAsm
+> Task :app_v2:transformLiteDebugClassesWithAsm
+> Task :app_v2:mergePhotosReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :app_v2:mergeLegacyReleaseGeneratedProguardFiles
+> Task :app_v2:mergeLiteReleaseGeneratedProguardFiles
+> Task :app_v2:mergeVrReleaseGeneratedProguardFiles
+> Task :app_v2:expandPhotosReleaseArtProfileWildcards
+> Task :app_v2:expandLegacyReleaseArtProfileWildcards
+> Task :app_v2:expandLiteReleaseArtProfileWildcards
+> Task :app_v2:expandVrReleaseArtProfileWildcards
+> Task :app_v2:dexBuilderLiteDebug
+> Task :app_v2:minifyPhotosReleaseWithR8
+> Task :app_v2:mergeLiteDebugGlobalSynthetics
+> Task :app_v2:mergeProjectDexLiteDebug
+> Task :app_v2:packageLiteDebug
+> Task :app_v2:assembleLiteDebug
+> Task :app_v2:createLiteDebugApkListingFileRedirect
 
-> Task :wear:compileReleaseKotlin
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt:61:43 'field versionCode: Int' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt:275:40 'val fileName: String!' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/viewmodel/AddNetworkSourceViewModel.kt:22:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
+> Task :app_v2:compileLegacyDebugKotlin
+w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt:55:20 'static fun setAccessibilityLiveRegion(p0: View, p1: Int): Unit' is deprecated. Deprecated in Java.
+w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt:46:13 Condition is always 'true'.
 
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/viewmodel/NetworkSourcesViewModel.kt:34:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
+> Task :app_v2:compilePhotosDebugKotlin
+w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt:55:20 'static fun setAccessibilityLiveRegion(p0: View, p1: Int): Unit' is deprecated. Deprecated in Java.
+w: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt:46:13 Condition is always 'true'.
 
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt:48:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
+> Task :app_v2:compileLegacyDebugJavaWithJavac
+> Task :app_v2:compilePhotosDebugJavaWithJavac
+> Task :app_v2:hiltAggregateDepsLegacyDebug FROM-CACHE
+> Task :app_v2:hiltAggregateDepsPhotosDebug FROM-CACHE
+> Task :app_v2:hiltJavaCompilePhotosDebug
+> Task :app_v2:hiltJavaCompileLegacyDebug
+> Task :app_v2:processLegacyDebugJavaRes
+> Task :app_v2:processPhotosDebugJavaRes
+> Task :app_v2:mergePhotosDebugJavaResource
+> Task :app_v2:mergeLegacyDebugJavaResource
+> Task :app_v2:transformLegacyDebugClassesWithAsm
+> Task :app_v2:transformPhotosDebugClassesWithAsm
+> Task :app_v2:dexBuilderLegacyDebug
+> Task :app_v2:dexBuilderPhotosDebug
+> Task :app_v2:mergePhotosDebugGlobalSynthetics
+> Task :app_v2:mergeLegacyDebugGlobalSynthetics
+> Task :app_v2:mergeProjectDexLegacyDebug
+> Task :app_v2:mergeProjectDexPhotosDebug
+> Task :app_v2:packagePhotosDebug
+> Task :app_v2:assemblePhotosDebug
+> Task :app_v2:createPhotosDebugApkListingFileRedirect
+> Task :app_v2:packageLegacyDebug
+> Task :app_v2:assembleLegacyDebug
+> Task :app_v2:createLegacyDebugApkListingFileRedirect
+> Task :app_v2:convertShrunkResourcesToBinaryPhotosRelease
+> Task :app_v2:optimizePhotosReleaseResources
+> Task :app_v2:l8DexDesugarLibPhotosRelease
+> Task :app_v2:compilePhotosReleaseArtProfile
+> Task :app_v2:packagePhotosRelease
+> Task :app_v2:assemblePhotosRelease
+> Task :app_v2:createPhotosReleaseApkListingFileRedirect
+> Task :app_v2:minifyLiteReleaseWithR8
+> Task :app_v2:convertShrunkResourcesToBinaryLiteRelease
+> Task :app_v2:optimizeLiteReleaseResources
+> Task :app_v2:l8DexDesugarLibLiteRelease
+> Task :app_v2:compileLiteReleaseArtProfile
+> Task :app_v2:packageLiteRelease
+> Task :app_v2:assembleLiteRelease
+> Task :app_v2:createLiteReleaseApkListingFileRedirect
+> Task :app_v2:minifyLegacyReleaseWithR8
+> Task :app_v2:convertShrunkResourcesToBinaryLegacyRelease
+> Task :app_v2:optimizeLegacyReleaseResources
+> Task :app_v2:l8DexDesugarLibLegacyRelease
+> Task :app_v2:compileLegacyReleaseArtProfile
+> Task :app_v2:packageLegacyRelease
+> Task :app_v2:assembleLegacyRelease
+> Task :app_v2:createLegacyReleaseApkListingFileRedirect
+> Task :app_v2:minifyVrReleaseWithR8
+> Task :app_v2:convertShrunkResourcesToBinaryVrRelease
+> Task :app_v2:optimizeVrReleaseResources
+> Task :app_v2:l8DexDesugarLibVrRelease
+> Task :app_v2:compileVrReleaseArtProfile
+> Task :app_v2:packageVrRelease
+> Task :app_v2:assembleVrRelease
+> Task :app_v2:createVrReleaseApkListingFileRedirect
 
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/image/ImageViewerViewModel.kt:41:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt:45:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:26:8 'class ScalingLazyListState : ScrollableState' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:41:16 'class ScalingLazyListState : ScrollableState' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:41:39 'fun rememberScalingLazyListState(initialCenterItemIndex: Int = ..., initialCenterItemScrollOffset: Int = ...): ScalingLazyListState' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:45:5 'fun ScalingLazyColumn(modifier: Modifier = ..., state: ScalingLazyListState = ..., contentPadding: PaddingValues = ..., reverseLayout: Boolean = ..., verticalArrangement: Arrangement.Vertical = ..., horizontalAlignment: Alignment.Horizontal = ..., flingBehavior: FlingBehavior = ..., userScrollEnabled: Boolean = ..., scalingParams: ScalingParams = ..., anchorType: ScalingLazyListAnchorType = ..., autoCentering: AutoCenteringParams? = ..., content: ScalingLazyListScope.() -> Unit): Unit' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsViewModel.kt:23:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsViewModel.kt:41:13 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>' & 'Serializable']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
-
-> Task :wear:compileDebugKotlin
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt:61:43 'field versionCode: Int' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt:275:40 'val fileName: String!' is deprecated. Deprecated in Java.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/viewmodel/AddNetworkSourceViewModel.kt:22:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/viewmodel/NetworkSourcesViewModel.kt:34:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt:48:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/image/ImageViewerViewModel.kt:41:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt:45:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:26:8 'class ScalingLazyListState : ScrollableState' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:41:16 'class ScalingLazyListState : ScrollableState' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:41:39 'fun rememberScalingLazyListState(initialCenterItemIndex: Int = ..., initialCenterItemScrollOffset: Int = ...): ScalingLazyListState' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt:45:5 'fun ScalingLazyColumn(modifier: Modifier = ..., state: ScalingLazyListState = ..., contentPadding: PaddingValues = ..., reverseLayout: Boolean = ..., verticalArrangement: Arrangement.Vertical = ..., horizontalAlignment: Alignment.Horizontal = ..., flingBehavior: FlingBehavior = ..., userScrollEnabled: Boolean = ..., scalingParams: ScalingParams = ..., anchorType: ScalingLazyListAnchorType = ..., autoCentering: AutoCenteringParams? = ..., content: ScalingLazyListScope.() -> Unit): Unit' is deprecated. Was moved to androidx.wear.compose.foundation.lazy package. Please use it instead.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsViewModel.kt:23:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
-- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
-- To keep applying to the value parameter only, use the '@param:' annotation target.
-
-See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
-w: file:///P:/ANDROID/FastMediaSorter_mob_v2/wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsViewModel.kt:41:13 Type argument for reified type parameter 'T' was inferred to the intersection of ['Comparable<*>' & 'Serializable']. Reification of an intersection type results in the common supertype being used. This may lead to subtle issues and an explicit type argument is encouraged. This will become an error in a future release.
-
-> Task :wear:compileDebugJavaWithJavac
-
-> Task :wear:compileReleaseJavaWithJavac
-
-> Task :wear:hiltAggregateDepsRelease
-> Task :wear:hiltAggregateDepsDebug
-> Task :app_v2:transformStandardReleaseClassesWithAsm
-> Task :app_v2:mergeStandardReleaseGeneratedProguardFiles
-
-> Task :wear:hiltJavaCompileRelease
-
-> Task :wear:hiltJavaCompileRelease FAILED
-
-> Task :wear:hiltJavaCompileDebug
-
-> Task :wear:hiltJavaCompileDebug FAILED
-> Task :app_v2:expandStandardReleaseArtProfileWildcards
+BUILD SUCCESSFUL in 12m 24s
+507 actionable tasks: 94 executed, 6 from cache, 407 up-to-date
+Configuration cache entry reused.

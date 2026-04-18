@@ -812,6 +812,48 @@
     <string name="welcome_feature_audio">Audio Player</string>
     <string name="welcome_feature_ebook">eBooks &amp; PDF</string>
 
+    <!-- VR-exclusive welcome page (overridden in vr/ source set; kept here for compilation) -->
+    <string name="welcome_vr_title">3D &amp; VR Experience</string>
+    <string name="welcome_vr_description">Immerse yourself in your media.\nFastMediaSorter VR detects stereoscopic 3D content and renders it directly in your headset — no extra apps needed.</string>
+    <string name="welcome_vr_feature_stereo">3D Stereo Detection</string>
+    <string name="welcome_vr_feature_headset">Quest Headset Playback</string>
+    <string name="welcome_vr_feature_formats">SBS / Top-Bottom / VR180</string>
+
+    <!-- VR Settings block (Settings → Media → Video, spec §5.7) -->
+    <string name="settings_vr_section_title">VR</string>
+    <string name="settings_vr_auto_detect">Auto-detect format</string>
+    <string name="settings_vr_auto_detect_desc">Detect SBS/OU/Mono via metadata and heuristics</string>
+    <string name="settings_vr_forced_format">Forced format</string>
+    <string name="settings_vr_forced_format_desc">Override auto-detection for the current session</string>
+    <string name="settings_vr_rendering_mode">VR rendering mode</string>
+    <string name="settings_vr_rendering_mode_desc">Cinema = flat screen in VR; Full = per-eye rendering</string>
+    <string name="settings_vr_remember_format">Remember file format</string>
+    <string name="settings_vr_remember_format_desc">Cache detected format per file in local database</string>
+    <string name="settings_vr_help_title">VR Settings</string>
+    <string name="settings_vr_help_message">These settings control how stereoscopic 3D content is detected and rendered in the VR headset.\n\nAuto-detect analyzes video metadata and aspect ratio to determine the stereo layout (SBS, Over-Under, or Mono).\n\nForced format lets you override auto-detection.\n\nRendering mode chooses between a flat cinema screen in VR space or full per-eye stereoscopic rendering.</string>
+    <string-array name="vr_forced_format_entries">
+        <item>Auto</item>
+        <item>SBS (Side-by-Side)</item>
+        <item>OU (Over-Under)</item>
+        <item>Mono</item>
+    </string-array>
+    <string-array name="vr_forced_format_values">
+        <item>AUTO</item>
+        <item>SBS</item>
+        <item>OU</item>
+        <item>MONO</item>
+    </string-array>
+    <string-array name="vr_rendering_mode_entries">
+        <item>Cinema</item>
+        <item>Full SBS</item>
+        <item>Full OU</item>
+    </string-array>
+    <string-array name="vr_rendering_mode_values">
+        <item>CINEMA</item>
+        <item>FULL_SBS</item>
+        <item>FULL_OU</item>
+    </string-array>
+
     <!-- Permissions -->
     <string name="permission_storage_title">Storage Access</string>
     <string name="permission_storage_rationale">FastMediaSorter needs access to your device storage to scan and display media files.</string>
@@ -1395,6 +1437,10 @@
     <string name="msg_scanning_subnet">Scanning local subnet…</string>
     <string name="msg_scan_complete">Scan complete</string>
     <string name="msg_host_selected">Selected %1$s (%2$s)</string>
+    <string name="msg_scan_again">Scan Again</string>
+    <string name="msg_no_shares_found">No shares found. Enter the share name manually.</string>
+    <string name="msg_share_scan_failed">Share scan failed: %1$s</string>
+    <string name="msg_select_share">Shares on %1$s</string>
     <string name="label_test_result">Test Result</string>
     <string name="msg_dropbox_auth_cancelled">Dropbox authentication cancelled</string>
     <string name="msg_onedrive_auth_success">OneDrive authenticated successfully</string>
@@ -1683,6 +1729,7 @@
     <string name="never_tested">Never tested</string>
     <string name="smb_resource_added_success">SMB resource added successfully</string>
     <string name="smb_resource_added_unavailable">SMB resource \'%1$s\' added but is currently unavailable. Check that the share exists and is accessible from this device.</string>
+    <string name="smb_resource_added_readonly">SMB resource added (read-only). Write operations will not be available.</string>
 
     <!-- Speed Test -->
     <string name="speed_test_preparing">Preparing speed test…</string>
@@ -2046,6 +2093,7 @@
     <string name="label_show_command_panel">Show Command Panel</string>
     <string name="label_destination_settings">Destination Settings</string>
     <string name="label_advanced_settings">Advanced Settings</string>
+    <string name="label_additional_options">Additional Options</string>
     <string name="label_scanning_settings">Scanning</string>
     <string name="label_connection_settings">Connection Settings</string>
     <string name="label_content_settings">Content Settings</string>
@@ -2445,11 +2493,26 @@
     <string name="playback_settings_3d_tab">3D</string>
     <string name="playback_settings_3d_auto">Auto-detect</string>
     <string name="playback_settings_3d_sbs">Side-by-Side (SBS)</string>
-    <string name="playback_settings_3d_ou">Over-Under (OU) — coming soon</string>
+    <string name="playback_settings_3d_ou">Over-Under (OU)</string>
     <string name="playback_settings_3d_mono">Mono (Disabled)</string>
     <string name="playback_settings_3d_detected">Auto-detected: %s</string>
     <string name="player_3d_detected_toast">3D video detected. Use File Info to open it in an external VR player.</string>
     <string name="playback_settings_3d_hint">For best effect, use a phone-based VR viewer (Google Cardboard, etc.)</string>
+
+    <!-- VR PlaybackControlDialog 3DVR tab (spec §5.8 — visible only in VR flavor) -->
+    <string name="playback_vr_content_type_video">Content: Video</string>
+    <string name="playback_vr_content_type_photo">Content: Photo</string>
+    <string name="playback_vr_rendering_mode">Rendering mode</string>
+    <string name="playback_vr_render_cinema">Cinema</string>
+    <string name="playback_vr_render_full_stereo">Full Stereo</string>
+    <string name="playback_vr_ipd_label">IPD: %s mm</string>
+    <string name="playback_vr_ipd_label_default">IPD (inter-pupillary distance)</string>
+
+    <!-- VR install CTA (shown in standard flavor when 3D content is detected) -->
+    <string name="vr_install_cta_title">This is a 3D video</string>
+    <string name="vr_install_cta_message">For the best experience, try the VR edition of FastMediaSorter on your Quest headset.</string>
+    <string name="vr_install_cta_action">Open in store</string>
+    <string name="vr_install_cta_dismiss">Play anyway</string>
 </resources>
 
 

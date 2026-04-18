@@ -107,6 +107,8 @@ class PlayerViewModel @Inject constructor(
         // Removed: LoadingProgress event (dialog not needed for single file loads)
         object FinishActivity : PlayerEvent()
         data class CastStateChanged(val isCasting: Boolean, val deviceName: String?) : PlayerEvent()
+        /** Standard flavor: 3D content detected, suggest VR edition. */
+        data class ShowVrInstallCta(val stereoMode: StereoMode) : PlayerEvent()
     }
 
     override fun getInitialState(): PlayerState {
@@ -162,6 +164,14 @@ class PlayerViewModel @Inject constructor(
      */
     fun resetStereoModeForNewFile() {
         _stereoMode.value = StereoMode.AUTO
+    }
+
+    /**
+     * Emit CTA event suggesting the user install the VR edition.
+     * Called from PlayerPlaybackCallbackImpl when 3D content is detected on standard flavor.
+     */
+    fun showVrInstallCta(mode: StereoMode) {
+        sendEvent(PlayerEvent.ShowVrInstallCta(mode))
     }
 
     init {

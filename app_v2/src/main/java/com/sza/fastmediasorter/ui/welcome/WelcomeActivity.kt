@@ -72,7 +72,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     ) {
         continueSpecialPermissionsFlowOrComplete()
     }
-    private val pageBackgrounds = intArrayOf(
+    private val pageBackgrounds = mutableListOf(
         R.color.welcome_page_1_background,
         R.color.welcome_page_2_background,
         R.color.welcome_page_3_background,
@@ -177,6 +177,23 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 )
             ),
         )
+
+        // VR-exclusive page: 3D/VR capabilities (only in VR flavor)
+        if (BuildConfig.SUPPORT_VR_PLAYER) {
+            pages.add(
+                WelcomePage(
+                    iconRes = R.drawable.welcome_hero_vr,
+                    titleRes = R.string.welcome_vr_title,
+                    descriptionRes = R.string.welcome_vr_description,
+                    featureCards = listOf(
+                        FeatureCard(R.drawable.ic_stereo_3d, R.string.welcome_vr_feature_stereo),
+                        FeatureCard(R.drawable.ic_vr_headset, R.string.welcome_vr_feature_headset),
+                        FeatureCard(R.drawable.ic_vr_formats, R.string.welcome_vr_feature_formats)
+                    )
+                )
+            )
+            pageBackgrounds.add(R.color.welcome_page_8_background)
+        }
 
         // Page 6 (first install only): Default Player onboarding
         // markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user reaches

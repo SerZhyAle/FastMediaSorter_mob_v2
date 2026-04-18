@@ -12,7 +12,7 @@ FastMediaSorter is a multi-module project with different build targets:
 | Module | Type | Purpose |
 |--------|------|---------|
 | **wear** | Wear OS App | Smartwatch companion app |
-| **app_v2** | Android App | Main phone app (4 flavors: standard, lite, photos, legacy) |
+| **app_v2** | Android App | Main phone app (5 flavors: standard, vr, lite, photos, legacy) |
 
 This guide explains how to select and configure which module runs by default.
 
@@ -94,6 +94,7 @@ All in `.idea/runConfigurations/`:
 | Flavor | Debug | Release |
 |--------|-------|---------|
 | standard | `app__standardDebug_` | `app__standardRelease_` |
+| vr | `app__vrDebug_` | `app__vrRelease_` |
 | lite | `app__liteDebug_` | `app__liteRelease_` |
 | photos | `app__photosDebug_` | `app__photosRelease_` |
 | legacy | `app__legacyDebug_` | `app__legacyRelease_` |
@@ -173,6 +174,7 @@ This reloads the project and applies the configuration changes.
 
 # Build Main App (all flavors)
 .\scripts\builders\build-standard-debug.ps1  # Standard Debug
+.\scripts\builders\build-vr-debug.ps1        # VR Debug (headset)
 .\scripts\builders\build-lite-debug.ps1      # Lite Debug
 .\scripts\builders\build-photos-debug.ps1    # Photos Debug
 .\scripts\builders\build-legacy-debug.ps1    # Legacy Debug
