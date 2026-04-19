@@ -35,6 +35,8 @@ $ProjectRoot = $PSScriptRoot
 # Script mapping
 $scripts = @{
     'r'   = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @() }
+    'vr'  = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @() }
+    'vrd' = @{ Path = 'scripts\builders\build-vr-debug.ps1'; Args = @() }
     'dc'  = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
     'd'   = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @() }
     'db'  = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @('-SkipZip') }
@@ -54,6 +56,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host ""
     Write-Host "Available commands:" -ForegroundColor Yellow
     Write-Host "  r   - Build AAB Release" -ForegroundColor Cyan
+    Write-Host "  vr  - Build VR Release" -ForegroundColor Cyan
+    Write-Host "  vrd - Build VR Debug" -ForegroundColor Cyan
     Write-Host "  dc  - Build Debug Clean" -ForegroundColor Cyan
     Write-Host "  d   - Build Debug" -ForegroundColor Cyan
     Write-Host "  db  - Build Debug without zip" -ForegroundColor Cyan

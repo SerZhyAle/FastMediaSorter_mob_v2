@@ -20,6 +20,11 @@ import timber.log.Timber
 
 class PlaybackControlDialogFragment : DialogFragment() {
 
+    private enum class StereoFamily {
+        FLAT,
+        SPHERICAL,
+    }
+
     private enum class ControlSection(val buttonId: Int) {
         VOLUME(R.id.rbSectionVolume),
         AUDIO(R.id.rbSectionAudio),
@@ -37,6 +42,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private val speedSteps = listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
     private val hueProgressCenter = 180
     private val brightnessProgressCenter = 50
+    private var isUpdatingStereoControls = false
 
     private val prefs by lazy {
         requireContext().getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
@@ -52,9 +58,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 add(ControlSection.VOLUME)
                 add(ControlSection.AUDIO)
                 add(ControlSection.SUBTITLES)
-                // 3D/Stereo tab: shown only in VR flavor where stereo rendering is functional.
-                // In standard flavor the crop-based preview is a placeholder — tab hidden.
-                if (BuildConfig.SUPPORT_VR_PLAYER) {
+                // 3D/Stereo tab: shown in VR flavor unconditionally, AND in any flavor
+                // when the current file has stereo content detected (SBS/OU image or video).
+                val currentStereo = playerActivity().viewModel.stereoMode.value
+                val isStereoContent = currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.AUTO &&
+                    currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.MONO &&
+                    currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.UNKNOWN
+                if (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent) {
                     add(ControlSection.STEREO)
                 }
                 add(ControlSection.HUE)
@@ -268,27 +278,37 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private fun setupStereoSection() {
         val currentMode = playerActivity().viewModel.stereoMode.value
-        val radioId = when (currentMode) {
-            StereoMode.SBS_FULL, StereoMode.SBS_HALF -> R.id.radio3DSbs
-            StereoMode.OU -> R.id.radio3DOU
-            StereoMode.MONO -> R.id.radio3DMono
-            else -> R.id.radio3DAuto
-        }
-        binding.radioGroup3D.check(radioId)
-        updateStereoDetectedLabel(currentMode)
+        bindStereoMode(currentMode)
 
         // Stereo mode is session-scoped in the ViewModel; switching it here immediately updates
         // the Media3 effects pipeline via the existing collector in PlayerManagerInitializer.
         binding.radioGroup3D.setOnCheckedChangeListener { _, checkedId ->
+            if (isUpdatingStereoControls) return@setOnCheckedChangeListener
             val mode = when (checkedId) {
                 R.id.radio3DSbs -> StereoMode.SBS_FULL
                 R.id.radio3DOU -> StereoMode.OU
                 R.id.radio3DMono -> StereoMode.MONO
                 else -> StereoMode.AUTO
             }
-            Timber.d("PlaybackControlDialog: Stereo mode selected → $mode")
-            playerActivity().viewModel.setStereoMode(mode)
-            updateStereoDetectedLabel(mode)
+            handleStereoModeSelection(mode)
+        }
+
+        binding.radioGroupSpherical3D.setOnCheckedChangeListener { _, checkedId ->
+            if (isUpdatingStereoControls) return@setOnCheckedChangeListener
+            val mode = when (checkedId) {
+                R.id.radio360Mono -> StereoMode.EQUIRECT_360_MONO
+                R.id.radio360Sbs -> StereoMode.EQUIRECT_360_SBS
+                R.id.radio360Ou -> StereoMode.EQUIRECT_360_OU
+                R.id.radioVr180 -> StereoMode.VR180_FISHEYE_SBS
+                R.id.radioCylinder180 -> StereoMode.CYLINDER_180
+                else -> StereoMode.AUTO
+            }
+            handleStereoModeSelection(mode)
+        }
+
+        binding.switchVrOverrideFormatType.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingStereoControls) return@setOnCheckedChangeListener
+            updateStereoFamilyAvailability(resolveStereoFamily(playerActivity().viewModel.stereoMode.value), isChecked)
         }
 
         // VR-specific controls (spec §5.8) — only visible in VR flavor
@@ -358,22 +378,92 @@ class PlaybackControlDialogFragment : DialogFragment() {
         binding.tvVrIpdLabel?.text = getString(R.string.playback_vr_ipd_label, "%.1f".format(ipdMm))
     }
 
+    private fun bindStereoMode(mode: StereoMode) {
+        isUpdatingStereoControls = true
+        binding.radioGroup3D.check(flatRadioIdFor(mode))
+        binding.radioGroupSpherical3D.check(sphericalRadioIdFor(mode))
+        binding.switchVrOverrideFormatType.isChecked = false
+        updateStereoFamilyAvailability(resolveStereoFamily(mode), allowCrossFamilyOverride = false)
+        updateStereoDetectedLabel(mode)
+        isUpdatingStereoControls = false
+    }
+
+    private fun handleStereoModeSelection(mode: StereoMode) {
+        Timber.d("PlaybackControlDialog: Stereo mode selected → $mode")
+
+        playerActivity().viewModel.rememberStereoModeIfEnabled(mode)
+        playerActivity().viewModel.setStereoMode(mode)
+
+        val effectiveMode = playerActivity().viewModel.stereoMode.value
+        bindStereoMode(effectiveMode)
+
+        if (mode != StereoMode.AUTO) {
+            playerActivity().viewModel.showMessage(
+                getString(R.string.playback_settings_3d_manual_toast, stereoModeLabel(effectiveMode))
+            )
+        }
+    }
+
     private fun updateStereoDetectedLabel(mode: StereoMode) {
         if (mode == StereoMode.AUTO) {
             binding.tvStereoDetected.isVisible = false
             return
         }
-        val modeLabelRes = when (mode) {
+        binding.tvStereoDetected.isVisible = true
+        binding.tvStereoDetected.text = getString(R.string.playback_settings_3d_current, stereoModeLabel(mode))
+    }
+
+    private fun updateStereoFamilyAvailability(activeFamily: StereoFamily, allowCrossFamilyOverride: Boolean) {
+        val flatEnabled = allowCrossFamilyOverride || activeFamily == StereoFamily.FLAT
+        val sphericalEnabled = allowCrossFamilyOverride || activeFamily == StereoFamily.SPHERICAL
+        setGroupEnabled(binding.radioGroup3D, flatEnabled)
+        setGroupEnabled(binding.radioGroupSpherical3D, sphericalEnabled)
+    }
+
+    private fun setGroupEnabled(group: ViewGroup, enabled: Boolean) {
+        group.alpha = if (enabled) 1f else 0.5f
+        group.isEnabled = enabled
+        for (index in 0 until group.childCount) {
+            group.getChildAt(index).isEnabled = enabled
+        }
+    }
+
+    private fun resolveStereoFamily(mode: StereoMode): StereoFamily {
+        if (mode.isSpherical()) return StereoFamily.SPHERICAL
+
+        val detectedMode = playerActivity().viewModel.detectedStereoMode.value
+        return if (detectedMode.isSpherical()) StereoFamily.SPHERICAL else StereoFamily.FLAT
+    }
+
+    private fun flatRadioIdFor(mode: StereoMode): Int = when (mode) {
+        StereoMode.SBS_FULL, StereoMode.SBS_HALF -> R.id.radio3DSbs
+        StereoMode.OU -> R.id.radio3DOU
+        StereoMode.MONO -> R.id.radio3DMono
+        else -> R.id.radio3DAuto
+    }
+
+    private fun sphericalRadioIdFor(mode: StereoMode): Int = when (mode) {
+        StereoMode.EQUIRECT_360_MONO, StereoMode.EQUIRECT_180_MONO -> R.id.radio360Mono
+        StereoMode.EQUIRECT_360_SBS, StereoMode.EQUIRECT_180_SBS -> R.id.radio360Sbs
+        StereoMode.EQUIRECT_360_OU -> R.id.radio360Ou
+        StereoMode.VR180_FISHEYE_SBS -> R.id.radioVr180
+        StereoMode.CYLINDER_180 -> R.id.radioCylinder180
+        else -> R.id.radio360Auto
+    }
+
+    private fun stereoModeLabel(mode: StereoMode): String = getString(
+        when (mode) {
             StereoMode.SBS_FULL, StereoMode.SBS_HALF -> R.string.playback_settings_3d_sbs
             StereoMode.OU -> R.string.playback_settings_3d_ou
-            else -> R.string.playback_settings_3d_mono
+            StereoMode.MONO -> R.string.playback_settings_3d_mono
+            StereoMode.EQUIRECT_360_MONO, StereoMode.EQUIRECT_180_MONO -> R.string.playback_settings_3d_360_mono
+            StereoMode.EQUIRECT_360_SBS, StereoMode.EQUIRECT_180_SBS -> R.string.playback_settings_3d_360_sbs
+            StereoMode.EQUIRECT_360_OU -> R.string.playback_settings_3d_360_ou
+            StereoMode.VR180_FISHEYE_SBS -> R.string.playback_settings_3d_vr180
+            StereoMode.CYLINDER_180 -> R.string.playback_settings_3d_cylinder_180
+            else -> R.string.playback_settings_3d_auto
         }
-        binding.tvStereoDetected.isVisible = true
-        binding.tvStereoDetected.text = getString(
-            R.string.playback_settings_3d_detected,
-            getString(modeLabelRes)
-        )
-    }
+    )
 
     private fun setupHueTab() {
         val savedHue = prefs.getFloat(

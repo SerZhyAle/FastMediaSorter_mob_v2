@@ -719,6 +719,13 @@
         <item>SBS (поруч)</item>
         <item>OU (зверху-знизу)</item>
         <item>Mono</item>
+        <item>360° моно</item>
+        <item>360° SBS</item>
+        <item>360° OU</item>
+        <item>180° моно</item>
+        <item>180° SBS</item>
+        <item>VR180</item>
+        <item>Циліндр 180°</item>
     </string-array>
     <string-array name="vr_rendering_mode_entries">
         <item>Кінотеатр</item>
@@ -1387,8 +1394,8 @@
     <string name="last_test_date">Ост. тест: %s</string>
     <string name="never_tested">Не тестувалось</string>
     <string name="smb_resource_added_success">SMB ресурс успішно додано</string>
+    <string name="smb_resource_added_readonly">SMB ресурс додано (лише читання). Операції запису будуть недоступні.</string>
     <string name="smb_resource_added_unavailable">SMB ресурс \'%1$s\' додано, але він тимчасово недоступний. Перевірте існування ресурсу та доступ до нього з цього пристрою.</string>
-    <string name="smb_resource_added_readonly">SMB ресурс додано (тільки для читання). Операції запису недоступні.</string>
 
     <!-- Speed Test -->
     <string name="speed_test_preparing">Підготовка тесту швидкості…</string>
@@ -2386,10 +2393,20 @@
     <!-- 3D відео / Режим стерео (v2.63) -->
     <string name="playback_settings_3d_tab">3D</string>
     <string name="playback_settings_3d_auto">Автовизначення</string>
+    <string name="playback_settings_3d_flat_format">Плоский формат</string>
+    <string name="playback_settings_3d_spherical_format">Сферичний формат</string>
+    <string name="playback_settings_3d_override_format_type">Перевизначити тип формату</string>
     <string name="playback_settings_3d_sbs">Пліч-о-пліч (SBS)</string>
-    <string name="playback_settings_3d_ou">Зверху-знизу (OU) — незабаром</string>
+    <string name="playback_settings_3d_ou">Зверху-знизу (OU)</string>
     <string name="playback_settings_3d_mono">Моно (вимкнено)</string>
     <string name="playback_settings_3d_detected">Визначено автоматично: %s</string>
+    <string name="playback_settings_3d_current">Поточний формат: %s</string>
+    <string name="playback_settings_3d_360_mono">360° моно</string>
+    <string name="playback_settings_3d_360_sbs">360° SBS</string>
+    <string name="playback_settings_3d_360_ou">360° OU</string>
+    <string name="playback_settings_3d_vr180">VR180</string>
+    <string name="playback_settings_3d_cylinder_180">Циліндр 180°</string>
+    <string name="playback_settings_3d_manual_toast">Формат: %s</string>
     <string name="player_3d_detected_toast">Виявлено 3D-відео. Скористайтеся «Інформація про файл», щоб відкрити його у зовнішньому VR-плеєрі.</string>
     <string name="playback_settings_3d_hint">Для кращого ефекту використовуйте VR-окуляри (Google Cardboard тощо)</string>
 

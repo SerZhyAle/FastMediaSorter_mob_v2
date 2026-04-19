@@ -41,10 +41,6 @@ sealed class PlaybackEntryDecision {
 class PlayerEntryCoordinatorImpl @Inject constructor() : PlayerEntryCoordinator {
 
     override fun resolveEntry(request: PlaybackEntryRequest): PlaybackEntryDecision {
-        val is3d = request.detectedStereoMode == StereoMode.SBS_FULL ||
-                request.detectedStereoMode == StereoMode.SBS_HALF ||
-                request.detectedStereoMode == StereoMode.OU
-
         // VR flavor path
         if (request.flavorSupportsVr) {
             return if (request.currentDeviceClass == DeviceClass.HEADSET) {
@@ -54,8 +50,11 @@ class PlayerEntryCoordinatorImpl @Inject constructor() : PlayerEntryCoordinator 
             }
         }
 
-        // Standard flavor path: CTA only for video/image 3D content
-        if (is3d && (request.mediaType == MediaType.VIDEO || request.mediaType == MediaType.IMAGE)) {
+        // Standard flavor path: show VR install CTA for any content that benefits
+        // from the VR edition — flat stereo (SBS/OU) plus spherical (360°/VR180/Cylinder).
+        val needsVr = request.detectedStereoMode.isStereoscopic() ||
+                request.detectedStereoMode.isSpherical()
+        if (needsVr && (request.mediaType == MediaType.VIDEO || request.mediaType == MediaType.IMAGE)) {
             return PlaybackEntryDecision.ShowVrInstallCta
         }
 

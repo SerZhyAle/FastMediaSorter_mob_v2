@@ -462,6 +462,21 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             }
         }
 
+        // Observe stereoMode changes for image stereo crop (3D tab mode switch while viewing an image).
+        // When the user changes the mode via the dialog, re-render the current image with the new crop.
+        activity.lifecycleScope.launch {
+            activity.viewModel.stereoMode.collect { mode ->
+                val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
+                if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
+                    currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
+                    activity.imageLoadingManager.setStereoMode(mode)
+                    // Re-display the current image so the new crop takes effect.
+                    val path = currentFile.path
+                    activity.imageLoadingManager.displayImage(path)
+                }
+            }
+        }
+
         activity.exoPlayerControlsManager = ExoPlayerControlsManager(
             binding = activity.activityBinding,
             videoPlayerManager = activity.videoPlayerManager,

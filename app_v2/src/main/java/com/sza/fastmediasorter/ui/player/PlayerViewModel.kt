@@ -16,6 +16,8 @@ import com.sza.fastmediasorter.domain.model.ScreenType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
+import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
+import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideEntity
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -45,6 +47,7 @@ class PlayerViewModel @Inject constructor(
     val fileOperationUseCase: FileOperationUseCase,
     val getDestinationsUseCase: GetDestinationsUseCase,
     private val settingsRepository: SettingsRepository,
+    private val stereoFormatOverrideDao: StereoFormatOverrideDao,
     private val resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository,
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
@@ -129,41 +132,139 @@ class PlayerViewModel @Inject constructor(
     private var saveLastViewedFileJob: Job? = null // Debounce job for database updates
 
     // ── Stereo / 3D video state ──────────────────────────────────────────────
-    // Separate flow from PlayerState because stereo mode is session-only (not persisted
-    // to the main state machine) and needs to be emitted independently of file navigation.
+    // Separate flow from PlayerState because the effective stereo mode needs to react
+    // immediately to auto-detection, dialog overrides, and remembered VR format settings.
     private val _stereoMode = MutableStateFlow(StereoMode.AUTO)
     val stereoMode: StateFlow<StereoMode> = _stereoMode.asStateFlow()
 
+    private val _detectedStereoMode = MutableStateFlow(StereoMode.UNKNOWN)
+    val detectedStereoMode: StateFlow<StereoMode> = _detectedStereoMode.asStateFlow()
+
+    @Volatile
+    private var hasManualStereoSelection = false
+
+    @Volatile
+    private var ignoreForcedFormatForCurrentFile = false
+
+    /** Cached vrForcedFormat from settings — read synchronously on image display. */
+    @Volatile
+    var vrForcedFormatCached: StereoMode? = null
+        private set
+
+    @Volatile
+    var vrRememberFileFormatEnabledCached: Boolean = true
+        private set
+
+    @Volatile
+    private var currentStereoOverridePath: String? = null
+
+    @Volatile
+    private var currentStereoOverrideMode: StereoMode? = null
+
     /**
      * Set the stereo display mode for the current video.
-     * [StereoMode.AUTO] triggers StereoDetector on the next video-ready callback.
+     * [StereoMode.AUTO] returns to detected mode for the current file and intentionally
+     * ignores any remembered forced format until the next file is loaded.
      */
     fun setStereoMode(mode: StereoMode) {
-        if (_stereoMode.value == mode) return
-        Timber.d("PlayerViewModel: stereoMode → $mode")
-        _stereoMode.value = mode
+        hasManualStereoSelection = mode != StereoMode.AUTO
+        ignoreForcedFormatForCurrentFile = mode == StereoMode.AUTO
+
+        val resolvedMode = if (mode == StereoMode.AUTO) {
+            resolveAutoStereoMode()
+        } else {
+            mode
+        }
+
+        if (_stereoMode.value == resolvedMode) return
+        Timber.d("PlayerViewModel: stereoMode → $resolvedMode (requested=$mode)")
+        _stereoMode.value = resolvedMode
     }
 
     /**
      * Set the stereo mode auto-detected from video metadata/dimensions.
-     * Only applies when the current mode is still AUTO — i.e. the user has NOT
-     * explicitly chosen a mode via the dialog. This prevents auto-detection
-     * from overriding a manual selection.
+     * Always updates the detected-mode cache so the dialog can return to AUTO immediately.
+     * Only applies to the effective mode when the user has not picked a manual override.
      */
     fun setAutoDetectedStereoMode(mode: StereoMode) {
-        if (_stereoMode.value != StereoMode.AUTO) return  // respect explicit user choice
         if (mode == StereoMode.UNKNOWN || mode == StereoMode.AUTO) return  // no useful info
-        Timber.d("PlayerViewModel: auto-detected stereoMode → $mode")
-        _stereoMode.value = mode
+        _detectedStereoMode.value = mode
+
+        if (hasManualStereoSelection) return
+
+        val resolvedMode = if (ignoreForcedFormatForCurrentFile) {
+            mode
+        } else {
+            resolveForcedStereoMode(mode)
+        }
+
+        if (_stereoMode.value == resolvedMode) return
+        Timber.d("PlayerViewModel: auto-detected stereoMode → $resolvedMode (detected=$mode)")
+        _stereoMode.value = resolvedMode
     }
 
     /**
-     * Reset stereo mode to AUTO when navigating to a new file so that
-     * auto-detection runs fresh on each new video.
-     * Called by VideoPlayerManager before loading a new URI.
+     * Reset stereo mode when navigating to a new file so auto-detection starts fresh,
+     * while remembered forced format may still seed the initial effective mode.
      */
-    fun resetStereoModeForNewFile() {
-        _stereoMode.value = StereoMode.AUTO
+    fun resetStereoModeForNewFile(filePath: String? = state.value.currentFile?.path) {
+        hasManualStereoSelection = false
+        ignoreForcedFormatForCurrentFile = false
+        _detectedStereoMode.value = StereoMode.UNKNOWN
+        currentStereoOverridePath = filePath
+        currentStereoOverrideMode = null
+        _stereoMode.value = resolveForcedStereoMode(StereoMode.AUTO)
+
+        // Load per-file remembered override asynchronously. The initial value falls back
+        // to global forced format so playback can start immediately even on slow storage.
+        if (!vrRememberFileFormatEnabledCached || filePath.isNullOrBlank()) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val rememberedMode = stereoFormatOverrideDao.getEntry(filePath)?.let { entry ->
+                StereoMode.fromKey(entry.stereoModeKey)
+            }?.takeUnless { it == StereoMode.UNKNOWN || it == StereoMode.AUTO }
+
+            withContext(Dispatchers.Main) {
+                if (currentStereoOverridePath != filePath) return@withContext
+                currentStereoOverrideMode = rememberedMode
+
+                if (!hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
+                    val resolvedMode = resolveForcedStereoMode(_detectedStereoMode.value)
+                    if (_stereoMode.value != resolvedMode) {
+                        Timber.d("PlayerViewModel: remembered per-file stereoMode -> $resolvedMode (path=$filePath)")
+                        _stereoMode.value = resolvedMode
+                    }
+                }
+            }
+        }
+    }
+
+    fun rememberStereoModeIfEnabled(mode: StereoMode) {
+        if (!vrRememberFileFormatEnabledCached) return
+
+        val filePath = state.value.currentFile?.path ?: return
+        currentStereoOverridePath = filePath
+
+        viewModelScope.launch(Dispatchers.IO) {
+            if (mode == StereoMode.AUTO) {
+                currentStereoOverrideMode = null
+                stereoFormatOverrideDao.deleteEntry(filePath)
+                return@launch
+            }
+
+            currentStereoOverrideMode = mode
+            stereoFormatOverrideDao.upsert(
+                StereoFormatOverrideEntity(
+                    filePath = filePath,
+                    stereoModeKey = mode.name,
+                    updatedAt = System.currentTimeMillis(),
+                )
+            )
+        }
+    }
+
+    fun showMessage(message: String) {
+        sendEvent(PlayerEvent.ShowMessage(message))
     }
 
     /**
@@ -206,6 +307,16 @@ class PlayerViewModel @Inject constructor(
             try {
                 settingsRepository.getSettings().collect { settings ->
                     val resource = state.value.resource
+
+                    // Cache vrForcedFormat for synchronous reads in image stereo detection.
+                    // Settings stores short keys ("SBS", "OU") not enum names ("SBS_FULL").
+                    vrForcedFormatCached = mapVrForcedFormat(settings.vrForcedFormat)
+                    val rememberFormatChanged = vrRememberFileFormatEnabledCached != settings.vrRememberFileFormat
+                    vrRememberFileFormatEnabledCached = settings.vrRememberFileFormat
+
+                    if (rememberFormatChanged && !hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
+                        _stereoMode.value = resolveForcedStereoMode(_detectedStereoMode.value)
+                    }
                     
                     // Determine showCommandPanel:
                     // Priority: runtime session value → initial load via same logic as loadMediaFiles()
@@ -1279,6 +1390,34 @@ class PlayerViewModel @Inject constructor(
     }
 
     suspend fun getSettings() = settingsRepository.getSettings().first()
+
+    private fun resolveAutoStereoMode(): StereoMode {
+        val detected = _detectedStereoMode.value
+        if (detected == StereoMode.UNKNOWN) return StereoMode.AUTO
+        return if (ignoreForcedFormatForCurrentFile) detected else resolveForcedStereoMode(detected)
+    }
+
+    private fun resolveForcedStereoMode(detected: StereoMode): StereoMode {
+        val perFileOverride = if (vrRememberFileFormatEnabledCached) currentStereoOverrideMode else null
+        if (perFileOverride != null) return perFileOverride
+
+        val forced = vrForcedFormatCached
+        return when {
+            forced == null -> detected
+            forced == StereoMode.AUTO -> detected
+            forced == StereoMode.UNKNOWN -> detected
+            else -> forced
+        }
+    }
+
+    /** Map the short settings key ("SBS", "OU") to [StereoMode] enum. */
+    private fun mapVrForcedFormat(key: String): StereoMode = when (key.uppercase()) {
+        "AUTO" -> StereoMode.AUTO
+        "SBS" -> StereoMode.SBS_FULL
+        "OU" -> StereoMode.OU
+        "MONO" -> StereoMode.MONO
+        else -> StereoMode.fromKey(key) // fallback to exact enum name match
+    }
     
     /**
      * Get adjacent files for preloading (previous + next).

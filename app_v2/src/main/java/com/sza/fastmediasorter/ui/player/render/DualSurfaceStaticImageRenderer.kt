@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.domain.model.StereoMode
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,6 +52,8 @@ class DualSurfaceStaticImageRenderer(
     private var activeSurface: ActiveSurface = ActiveSurface.A
     private var currentMode: RendererMode = RendererMode.MANUAL
     private var currentTarget: RenderTarget? = null
+    // Stereo crop mode for 3D images; MONO = no crop (default).
+    private var currentStereoMode: StereoMode = StereoMode.MONO
 
     private val appContext = surfaceA.context.applicationContext
     private val maxLoadDimension = if (memoryTier == MemoryTier.LOW) 2048 else 4096
@@ -128,6 +131,11 @@ class DualSurfaceStaticImageRenderer(
     override fun setMode(mode: RendererMode) {
         Timber.d("DualSurfaceStaticImageRenderer: setMode() $currentMode -> $mode")
         currentMode = mode
+    }
+
+    override fun setStereoMode(mode: StereoMode) {
+        Timber.d("DualSurfaceStaticImageRenderer: setStereoMode() $currentStereoMode -> $mode")
+        currentStereoMode = mode
     }
 
     override fun onPause() {
@@ -232,13 +240,24 @@ class DualSurfaceStaticImageRenderer(
         val mediaFile = target.mediaFile
         val cacheKey = "${mediaFile.path}_${mediaFile.size}"
 
+        // Include stereo mode in cache key so switching SBS↔MONO triggers a fresh decode.
+        val stereoCacheKey = "${cacheKey}_stereo_${currentStereoMode.name}"
+
         val glideRequest = Glide.with(appContext)
             .load(resolveGlideModel(target))
-            .signature(ObjectKey(cacheKey))
+            .signature(ObjectKey(stereoCacheKey))
             .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
             .priority(resolvePriority(target.priority))
             .override(maxLoadDimension, maxLoadDimension)
             .fitCenter()
+
+        // Apply stereo crop for 3D images (SBS → left half, OU → top half).
+        val isStereo = currentStereoMode == StereoMode.SBS_FULL ||
+            currentStereoMode == StereoMode.SBS_HALF ||
+            currentStereoMode == StereoMode.OU
+        if (isStereo) {
+            glideRequest.transform(StereoImageCropTransformation(currentStereoMode))
+        }
 
         if (memoryTier == MemoryTier.LOW) {
             glideRequest.format(DecodeFormat.PREFER_RGB_565)

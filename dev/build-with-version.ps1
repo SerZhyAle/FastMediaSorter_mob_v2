@@ -11,6 +11,54 @@ $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
 Write-Host "Working directory: $projectRoot" -ForegroundColor Gray
 
+function Stop-GradleDaemons {
+    Write-Host "Stopping Gradle daemons before cleanup.." -ForegroundColor DarkGray
+    & .\gradlew.bat --stop | Out-Null
+}
+
+function Remove-BuildPathIfExists {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RelativePath
+    )
+
+    $targetPath = Join-Path $projectRoot $RelativePath
+    if (Test-Path -Path $targetPath) {
+        Write-Host "Removing locked build path: $targetPath" -ForegroundColor DarkGray
+        Remove-Item -Path $targetPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Invoke-VersionedBuild {
+    param(
+        [switch]$DisableBuildCache,
+        [switch]$NoDaemon
+    )
+
+    $gradleArgs = @(":app_v2:assembleDebug")
+    if ($DisableBuildCache) {
+        $gradleArgs += "--no-build-cache"
+        $gradleArgs += "--rerun-tasks"
+    }
+    if ($NoDaemon) {
+        $gradleArgs += "--no-daemon"
+    }
+
+    Write-Host "Starting Gradle: .\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
+
+    $outputLines = New-Object System.Collections.Generic.List[string]
+    & .\gradlew.bat @gradleArgs 2>&1 | ForEach-Object {
+        $line = [string]$_
+        $outputLines.Add($line)
+        Write-Host $line
+    }
+
+    return [PSCustomObject]@{
+        ExitCode = $LASTEXITCODE
+        Output   = ($outputLines -join [Environment]::NewLine)
+    }
+}
+
 # Generate version code and name from current date/time
 # Format: Y.YM.MDDH.Hmm where:
 #   Y = first digit of year (2025 -> 2)
@@ -75,9 +123,49 @@ Write-Host "[RCS] Updated build.gradle.kts with version: $versionName" -Foregrou
 
 # Run gradle build
 Write-Host "`nStarting Gradle build..." -ForegroundColor Cyan
-& .\gradlew.bat :app_v2:assembleDebug
 
-if ($LASTEXITCODE -eq 0) {
+$buildResult = Invoke-VersionedBuild
+
+if ($buildResult.ExitCode -ne 0) {
+    $isKotlinCachePackError =
+    ($buildResult.Output -match "Failed to store cache entry") -and
+    ($buildResult.Output -match "Could not pack tree") -and
+    ($buildResult.Output -match "lookups\.tab\.values")
+
+    $isKaptIncrementalDataLockError =
+    ($buildResult.Output -match "Unable to delete directory") -and
+    ($buildResult.Output -match "kapt3[\\/]incrementalData[\\/]standardDebug")
+
+    if ($isKotlinCachePackError) {
+        Write-Host "`nDetected Kotlin/Gradle cache packing issue. Cleaning local caches and retrying once..." -ForegroundColor Yellow
+
+        $localGradleCachePath = Join-Path $projectRoot ".gradle"
+        $moduleKotlinCachePath = Join-Path $projectRoot "app_v2\build\kotlin"
+
+        if (Test-Path -Path $localGradleCachePath) {
+            Remove-Item -Path $localGradleCachePath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        if (Test-Path -Path $moduleKotlinCachePath) {
+            Remove-Item -Path $moduleKotlinCachePath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+
+        $buildResult = Invoke-VersionedBuild -DisableBuildCache
+    }
+
+    if (($buildResult.ExitCode -ne 0) -and $isKaptIncrementalDataLockError) {
+        Write-Host "`nDetected Windows file lock in kapt incremental data. Stopping daemons, cleaning kapt temp folders, and retrying once..." -ForegroundColor Yellow
+
+        Stop-GradleDaemons
+        # Clear only the volatile kapt/kotlin outputs because stale locked stubs block the next incremental run.
+        Remove-BuildPathIfExists -RelativePath ".gradle\8.11.1\executionHistory"
+        Remove-BuildPathIfExists -RelativePath "app_v2\build\tmp\kapt3"
+        Remove-BuildPathIfExists -RelativePath "app_v2\build\kotlin"
+
+        $buildResult = Invoke-VersionedBuild -DisableBuildCache -NoDaemon
+    }
+}
+
+if ($buildResult.ExitCode -eq 0) {
     Write-Host "`n==================================" -ForegroundColor Green
     Write-Host "BUILD SUCCESSFUL" -ForegroundColor Green
     Write-Host "Version: $versionName" -ForegroundColor Green

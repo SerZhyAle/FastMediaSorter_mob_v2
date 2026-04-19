@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
+import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
 import dagger.Module
 import dagger.Provides
@@ -81,7 +82,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_18_19,
                 AppDatabase.MIGRATION_19_20,
                 AppDatabase.MIGRATION_20_21,
-                AppDatabase.MIGRATION_21_22
+                AppDatabase.MIGRATION_21_22,
+                AppDatabase.MIGRATION_22_23
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
@@ -127,6 +129,12 @@ object DatabaseModule {
     @Singleton
     fun provideFileMetadataCacheDao(database: AppDatabase): FileMetadataCacheDao {
         return database.fileMetadataCacheDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStereoFormatOverrideDao(database: AppDatabase): StereoFormatOverrideDao {
+        return database.stereoFormatOverrideDao()
     }
 
     @Provides

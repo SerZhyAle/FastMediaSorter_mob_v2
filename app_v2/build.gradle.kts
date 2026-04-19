@@ -36,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260418235
-        versionName = "2.60.4182.356"
+        versionCode = 260419195
+        versionName = "2.60.4191.951"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -79,10 +79,24 @@ android {
     flavorDimensions += listOf("version")
     
     productFlavors {
+        // Per-flavor CMake target filtering: only vr builds the native OpenXR bridge.
+        // Non-vr flavors skip CMake entirely by declaring no build targets.
+        fun com.android.build.api.dsl.ProductFlavor.disableNativeBuild() {
+            externalNativeBuild {
+                cmake {
+                    targets.clear()
+                }
+            }
+            ndk {
+                abiFilters.clear()
+            }
+        }
+
         // ===== STANDARD (Full Featured) =====
         create("standard") {
             dimension = "version"
             isDefault = true
+            disableNativeBuild()
             // No applicationIdSuffix = keeps current package names
             // No versionNameSuffix = keeps current version format
             // Full feature set: Videos, Audio, Images, Cloud, Documents, Animations
@@ -97,6 +111,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
         }
         
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -104,6 +119,7 @@ android {
             dimension = "version"
             applicationIdSuffix = ".lite"
             versionNameSuffix = "-Lite"
+            disableNativeBuild()
             // Local files only: No cloud, no heavy features
             // Target: Users with limited storage/bandwidth, older devices
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
@@ -117,6 +133,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No background audio in lite
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "false")  // No default player in lite
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -124,6 +141,7 @@ android {
             dimension = "version"
             applicationIdSuffix = ".photos"
             versionNameSuffix = "-Photos"
+            disableNativeBuild()
             // Images + GIFs only, no video/audio player
             // Target: Photo management, cloud photo backup/sync
             buildConfigField("boolean", "SUPPORT_VIDEO", "false")       // No video player
@@ -137,6 +155,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No audio support
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")  // Image-only default player
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -147,6 +166,7 @@ android {
             minSdk = 23  // Android 6.0 (Marshmallow)
             applicationIdSuffix = ".legacy"
             versionNameSuffix = "-Legacy"
+            disableNativeBuild()
             // Full feature set but compatible with older Android versions
             // Target: Users with older Android devices (API 23-25)
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
@@ -160,6 +180,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
         }
 
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
@@ -167,6 +188,24 @@ android {
             dimension = "version"
             applicationIdSuffix = ".vr"
             versionNameSuffix = "-VR"
+            // Meta Quest 2/3/Pro use arm64-v8a exclusively; skip 32-bit to halve APK size.
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
+            externalNativeBuild {
+                cmake {
+                    // Build only the JNI bridge target; OpenXR loader ships prebuilt in the AAR.
+                    targets += listOf("openxr_native")
+                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                    arguments += listOf(
+                        "-DANDROID_STL=c++_shared",
+                        "-DANDROID_PLATFORM=android-26",
+                        // Gate OpenXR find_package in CMakeLists.txt: non-vr flavors omit this
+                        // flag so CMake configure succeeds without the Khronos AAR on the path.
+                        "-DENABLE_OPENXR=ON"
+                    )
+                }
+            }
             // Full feature set identical to standard, plus VR headset rendering
             // Target: Meta Quest headsets for stereoscopic 3D video/photo viewing
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
@@ -180,6 +219,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
         }
     }
     
@@ -321,6 +361,18 @@ android {
         viewBinding = true
         buildConfig = true
         compose = true
+        // Prefab consumes native headers/libs from AAR dependencies
+        // (required by OpenXR loader AAR in vr flavor).
+        prefab = true
+    }
+
+    // Native build (vr flavor only — gated via per-flavor CMake targets list below).
+    // CMake glues Kotlin JNI calls to the OpenXR loader shipped in the AAR.
+    externalNativeBuild {
+        cmake {
+            path = file("src/vr/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     packaging {

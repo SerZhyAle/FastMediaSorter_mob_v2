@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
+import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
@@ -130,11 +131,37 @@ class PlayerMediaLoaderManager(
         private const val NETWORK_AUDIO_PRECACHE_TIMEOUT_MS = 20_000L
     }
 
+    private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
+
     /**
-     * Display image (delegates to ImageLoadingManager)
+     * Display image (delegates to ImageLoadingManager).
+     * Runs still-image stereo detection first so that 3D / spherical images
+     * get the correct crop or XR layer selection and the 3D tab reflects the mode.
      */
     fun displayImage(path: String) {
         Timber.d("PlayerMediaLoaderManager.displayImage: path=$path")
+
+        val currentFile = viewModel.state.value.currentFile
+        viewModel.resetStereoModeForNewFile(path)
+
+        val detected = stereoDetector.detectForImage(
+            path = path,
+            width = currentFile?.width,
+            height = currentFile?.height,
+        )
+
+        // Propagate to ViewModel so the 3D tab reflects the current mode
+        // and VrStereoRenderer picks it up via stereoMode flow.
+        if (detected != com.sza.fastmediasorter.domain.model.StereoMode.UNKNOWN &&
+            detected != com.sza.fastmediasorter.domain.model.StereoMode.AUTO) {
+            viewModel.setAutoDetectedStereoMode(detected)
+            Timber.d("PlayerMediaLoaderManager: Image stereo detected → $detected")
+        }
+
+        // Tell the renderer which crop to apply (SBS left half, OU top half, or none).
+        val effectiveMode = viewModel.stereoMode.value
+        imageLoadingManager.setStereoMode(effectiveMode)
+
         imageLoadingManager.displayImage(path)
     }
 
@@ -348,6 +375,15 @@ class PlayerMediaLoaderManager(
         if (currentIndex < 0) {
             Timber.w("playLocalAudioViaService: file not found for path=$path")
             return
+        }
+
+        // Store context in service companion so notification contentIntent (tapping
+        // the notification body) can reopen the exact player screen via MainActivity.
+        val resource = viewModel.state.value.resource
+        if (resource != null) {
+            AudioPlaybackService.currentResourceId = resource.id
+            AudioPlaybackService.currentInitialIndex = currentIndex
+            Timber.d("playLocalAudioViaService: stored resourceId=${resource.id} index=$currentIndex in AudioPlaybackService")
         }
 
         val nowPlayingManager = activity.nowPlayingManager

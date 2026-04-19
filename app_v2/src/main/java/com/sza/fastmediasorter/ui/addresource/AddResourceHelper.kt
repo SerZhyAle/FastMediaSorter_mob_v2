@@ -76,6 +76,11 @@ class AddResourceHelper(
                 // Pre-fill remember file list
                 binding.cbSmbRememberFileList.isChecked = resource.rememberFileList
 
+                // Pre-fill show subfolders as items and disable thumbnails — were added to create
+                // form as part of option-parity fix; must be restored from source resource on copy
+                binding.cbSmbShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+                binding.cbSmbDisableThumbnails.isChecked = resource.disableThumbnails
+
                 // Pre-fill supported media types
                 binding.cbSmbSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes
                 binding.cbSmbSupportVideo.isChecked = com.sza.fastmediasorter.domain.model.MediaType.VIDEO in resource.supportedMediaTypes
@@ -141,6 +146,10 @@ class AddResourceHelper(
                 // Pre-fill remember file list
                 binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
 
+                // Pre-fill show subfolders as items and disable thumbnails — option-parity fields
+                binding.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+                binding.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
+
                 // Pre-fill supported media types
                 binding.cbSftpSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes
                 binding.cbSftpSupportVideo.isChecked = com.sza.fastmediasorter.domain.model.MediaType.VIDEO in resource.supportedMediaTypes
@@ -197,6 +206,10 @@ class AddResourceHelper(
 
                 // Pre-fill remember file list
                 binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
+
+                // Pre-fill show subfolders as items and disable thumbnails — option-parity fields
+                binding.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+                binding.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
 
                 // Pre-fill supported media types
                 binding.cbSftpSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes

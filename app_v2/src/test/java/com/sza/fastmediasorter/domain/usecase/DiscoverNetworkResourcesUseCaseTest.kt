@@ -45,7 +45,7 @@ class DiscoverNetworkResourcesUseCaseTest {
     // -- extractSubnet ---------------------------------------------------------
 
     @Test
-    fun `extractSubnet returns /24 prefix`() {
+    fun `extractSubnet returns slash24 prefix`() {
         val useCase = FakeUseCase()
         assertEquals("192.168.1", useCase.extractSubnet("192.168.1.5"))
         assertEquals("10.0.0", useCase.extractSubnet("10.0.0.254"))

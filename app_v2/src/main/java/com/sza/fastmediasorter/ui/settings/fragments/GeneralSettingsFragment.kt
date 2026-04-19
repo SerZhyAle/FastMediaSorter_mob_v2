@@ -2192,6 +2192,12 @@ class GeneralSettingsFragment : Fragment() {
     // ==================== Backup/Restore ====================
 
     private fun setupWearCompanionButton() {
+        // Hide Wear Companion in flavors without wearable support (VR headset, lite, photos).
+        if (!BuildConfig.SUPPORT_WEAR_COMPANION) {
+            binding.btnWearCompanion?.visibility = View.GONE
+            binding.dividerWearCompanion?.visibility = View.GONE
+            return
+        }
         binding.btnWearCompanion?.setOnClickListener {
             if (childFragmentManager.findFragmentByTag("wear_sync") == null) {
                 WearSyncSettingsFragment().show(childFragmentManager, "wear_sync")

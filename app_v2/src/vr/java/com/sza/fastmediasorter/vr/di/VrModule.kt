@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.vr.di
 
 import com.sza.fastmediasorter.vr.playback.ExoVrPlaybackEngine
 import com.sza.fastmediasorter.vr.playback.VrPlaybackEngine
+import com.sza.fastmediasorter.vr.render.DefaultVrLayerFactory
+import com.sza.fastmediasorter.vr.render.VrLayerFactory
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -20,4 +22,9 @@ abstract class VrModule {
     @Singleton
     @Binds
     abstract fun bindVrPlaybackEngine(impl: ExoVrPlaybackEngine): VrPlaybackEngine
+
+    /** Layer selection stays injectable so future phases can swap heuristics without touching the host. */
+    @Singleton
+    @Binds
+    abstract fun bindVrLayerFactory(impl: DefaultVrLayerFactory): VrLayerFactory
 }

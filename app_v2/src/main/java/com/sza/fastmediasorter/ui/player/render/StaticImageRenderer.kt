@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.render
 
+import com.sza.fastmediasorter.domain.model.StereoMode
 import kotlinx.coroutines.flow.StateFlow
 
 enum class RendererMode {
@@ -28,6 +29,8 @@ interface StaticImageRenderer {
     suspend fun render(target: RenderTarget)
     suspend fun prefetch(targets: List<RenderTarget>)
     fun setMode(mode: RendererMode)
+    /** Set the stereo crop mode for 3D images (SBS / OU). MONO = no crop. */
+    fun setStereoMode(mode: StereoMode)
     fun onPause()
     fun onResume()
     fun release()

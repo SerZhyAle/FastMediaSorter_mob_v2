@@ -1,5 +1,6 @@
 # Master Build and Push Script
 # Builds ALL flavors (Standard, Lite, Photos, Legacy, VR) in both Debug and Release modes
+# Also builds Wear OS (Debug + Release)
 # Copies artifacts to DOWNLOADS folder
 # Commits and pushes to git
 
@@ -11,7 +12,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # 1. Clean and Build All
-Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR — Debug + Release ===" -ForegroundColor Cyan
+Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR + Wear OS — Debug + Release ===" -ForegroundColor Cyan
 Write-Host "This may take a while..." -ForegroundColor Yellow
 
 # Try to force-delete locked wear build directory (Windows file lock issue)
@@ -38,6 +39,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         & $gradlew `
             assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
             assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
+            :wear:assembleDebug :wear:assembleRelease `
             | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
         
         if ($LASTEXITCODE -eq 0) {
@@ -136,6 +138,60 @@ foreach ($apk in $apkFiles) {
 
 Write-Host "`nArtifacts copied to $downloadsDir" -ForegroundColor Green
 
+# 2b. Copy Wear OS APKs
+Write-Host "`nProcessing Wear OS artifacts..." -ForegroundColor Cyan
+$wearApkRoot = "$projectRoot\wear\build\outputs\apk"
+if (Test-Path $wearApkRoot) {
+    foreach ($buildType in @("debug", "release")) {
+        $wearApkDir = "$wearApkRoot\$buildType"
+        if (-not (Test-Path $wearApkDir)) { continue }
+
+        # Prefer output-metadata.json; fall back to newest .apk
+        $apkPath = $null
+        $metaPath = "$wearApkDir\output-metadata.json"
+        if (Test-Path $metaPath) {
+            try {
+                $meta = Get-Content $metaPath -Raw | ConvertFrom-Json
+                if ($meta.elements -and $meta.elements.Count -gt 0) {
+                    $apkPath = Join-Path $wearApkDir $meta.elements[0].outputFile
+                }
+            } catch { }
+        }
+        if (-not $apkPath -or -not (Test-Path $apkPath)) {
+            $latest = Get-ChildItem $wearApkDir -Filter *.apk -ErrorAction SilentlyContinue |
+                      Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($latest) { $apkPath = $latest.FullName }
+        }
+
+        if (-not $apkPath -or -not (Test-Path $apkPath)) {
+            Write-Host "  Warning: Wear $buildType APK not found, skipping." -ForegroundColor Yellow
+            continue
+        }
+
+        $wearDest = "$downloadsDir\FastMediaSorter_wear_$buildType.apk"
+        Copy-Item -Path $apkPath -Destination $wearDest -Force
+        Write-Host "Copied: FastMediaSorter_wear_$buildType.apk" -ForegroundColor Gray
+
+        $logEntry = "$timestamp | wear-$buildType-batch | FastMediaSorter_wear_$buildType.apk"
+        Add-Content -Path $journalPath -Value $logEntry
+
+        # Zip to Google Drive
+        $gdDir = "c:\GD\WORK\FastMediaSorter"
+        if (!(Test-Path $gdDir)) { New-Item -ItemType Directory -Path $gdDir | Out-Null }
+        $7zipPath = "C:\Program Files\7-Zip\7z.exe"
+        if (Test-Path $7zipPath) {
+            & $7zipPath a -tzip -p1 "$gdDir\FastMediaSorter_wear_$buildType.zip" "$wearDest" | Out-Null
+        }
+
+        # Copy to tc folder
+        $tcDir = "c:\GD\tc\SZA\_APP"
+        if (!(Test-Path $tcDir)) { New-Item -ItemType Directory -Path $tcDir | Out-Null }
+        Copy-Item -Path $wearDest -Destination "$tcDir\FastMediaSorter_wear_$buildType.apk" -Force
+    }
+} else {
+    Write-Host "  Warning: Wear build output not found at $wearApkRoot" -ForegroundColor Yellow
+}
+
 # 3. Git Operations
 Write-Host "`nStarting Git Push..." -ForegroundColor Cyan
 
@@ -147,7 +203,7 @@ if ($gitStatus) {
     # Add all changes (including new APKs thanks to .gitignore update)
     git add .
     
-    $commitMsg = "Build artifacts $timestamp (Standard / Lite / Photos / Legacy / VR)"
+    $commitMsg = "Build artifacts $timestamp (Standard / Lite / Photos / Legacy / VR + Wear OS)"
     git commit -m "$commitMsg"
     
     Write-Host "Pushing to remote..." -ForegroundColor Yellow

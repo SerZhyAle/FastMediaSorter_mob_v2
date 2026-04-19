@@ -125,6 +125,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
 
+        // If AudioPlaybackService is already running when MainActivity is freshly created
+        // (Android 8.x OEM ROMs can clear the activity back stack while keeping the foreground
+        // service alive), restore the user to the player that is currently playing.
+        // FLAG_ACTIVITY_REORDER_TO_FRONT: brings an existing PlayerActivity to the top of the
+        // stack without creating a duplicate instance; creates a new one if not present.
+        if (intent?.action == Intent.ACTION_MAIN
+            && AudioPlaybackService.isRunning
+            && AudioPlaybackService.currentResourceId > 0L) {
+            Timber.d("MainActivity: service active on fresh launch — restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
+            binding.root.post {
+                val playerIntent = PlayerActivity.createIntent(
+                    context = this,
+                    resourceId = AudioPlaybackService.currentResourceId,
+                    initialIndex = AudioPlaybackService.currentInitialIndex,
+                    skipAvailabilityCheck = true
+                ).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT }
+                startActivity(playerIntent)
+            }
+            // MainActivity continues loading as the back-stack root; do NOT finish().
+        }
+
         // Resume playback logic — only for standard launcher start with killed process
         if (shouldAttemptResume()) {
             attemptResumePlayback()
@@ -160,6 +181,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
             }
         }
+        if (intent?.action == ACTION_RESUME_PLAYER) {
+            // Notification body tap: reopen the player for the currently playing audio track.
+            // The resource/index are stored in AudioPlaybackService companion by PlayerMediaLoaderManager.
+            binding.root.post { openAudioPlayerFromNotification() }
+        }
         
         // Initialize keyboard navigation handler
         keyboardNavigationHandler = KeyboardNavigationHandler(
@@ -185,7 +211,29 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         
         // UI setup and resource loading deferred to setupViews() via BaseActivity.onCreate()
     }
-    
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Called when MainActivity is already running (singleTop/CLEAR_TOP) and receives a new intent.
+        // Handles notification body tap while the app is in the foreground or background stack.
+        if (intent.action == ACTION_RESUME_PLAYER) {
+            openAudioPlayerFromNotification()
+        }
+    }
+
+    /** Navigate to PlayerActivity for the currently playing audio resource.
+     *  Called from notification contentIntent (ACTION_RESUME_PLAYER) via onCreate/onNewIntent. */
+    private fun openAudioPlayerFromNotification() {
+        val resourceId = AudioPlaybackService.currentResourceId
+        val index = AudioPlaybackService.currentInitialIndex
+        if (resourceId <= 0L) {
+            Timber.w("openAudioPlayerFromNotification: no valid resourceId stored, ignoring")
+            return
+        }
+        Timber.d("openAudioPlayerFromNotification: resourceId=$resourceId index=$index")
+        startActivity(PlayerActivity.createIntent(this, resourceId, index, skipAvailabilityCheck = true))
+    }
+
     override fun onResume() {
         super.onResume()
         
@@ -1087,9 +1135,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (intent?.action != Intent.ACTION_MAIN) return false
         // Skip if slideshow widget action
         if (intent?.action == ACTION_START_SLIDESHOW) return false
-        // Skip if AudioPlaybackService is still running (process wasn't killed)
+        // Skip DB-based resume if AudioPlaybackService is still running (process wasn't killed).
+        // The redirect to PlayerActivity is handled in onCreate() above this call.
         if (AudioPlaybackService.isRunning) {
-            Timber.d("MainActivity: Skipping resume — AudioPlaybackService is running")
+            Timber.d("MainActivity: Skipping DB resume — AudioPlaybackService is running")
             return false
         }
         // Skip if storage permissions are missing
@@ -1246,6 +1295,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val ACTION_CAMERA_PHOTOS = "com.sza.fastmediasorter.ACTION_CAMERA_PHOTOS"
         const val ACTION_OPEN_FAVORITES = "com.sza.fastmediasorter.ACTION_OPEN_FAVORITES"
         const val ACTION_BROWSE_RESOURCE = "com.sza.fastmediasorter.ACTION_BROWSE_RESOURCE"
+        /** Sent by AudioPlaybackService notification contentIntent (tapping the notification body).
+         *  Routes the user back to PlayerActivity for the currently playing audio resource. */
+        const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"
         const val EXTRA_SHORTCUT_RESOURCE_ID = "shortcut_resource_id"
         private const val PREFS_NAME_APP = "app_prefs"
         private const val KEY_STORAGE_PERMISSION_REQUESTED = "storage_permission_requested"

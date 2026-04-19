@@ -44,15 +44,39 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 Set-Location $projectRoot
 
 
+function Stop-GradleDaemons {
+    Write-Host "Stopping Gradle daemons before cleanup.." -ForegroundColor DarkGray
+    & "$PSScriptRoot\..\..\\gradlew.bat" --stop | Out-Null
+}
+
+
+function Remove-BuildPathIfExists {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RelativePath
+    )
+
+    $targetPath = Join-Path $projectRoot $RelativePath
+    if (Test-Path -Path $targetPath) {
+        Write-Host "Removing locked build path: $targetPath" -ForegroundColor DarkGray
+        Remove-Item -Path $targetPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+
 function Invoke-DebugBuild {
     param(
-        [switch]$DisableBuildCache
+        [switch]$DisableBuildCache,
+        [switch]$NoDaemon
     )
 
     $gradleArgs = @("assembleStandardDebug")
     if ($DisableBuildCache) {
         $gradleArgs += "--no-build-cache"
         $gradleArgs += "--rerun-tasks"
+    }
+    if ($NoDaemon) {
+        $gradleArgs += "--no-daemon"
     }
 
     Write-Host "Starting Gradle: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
@@ -78,6 +102,10 @@ if ($buildResult.ExitCode -ne 0) {
     ($buildResult.Output -match "Could not pack tree") -and
     ($buildResult.Output -match "lookups\.tab\.values")
 
+    $isKaptIncrementalDataLockError =
+    ($buildResult.Output -match "Unable to delete directory") -and
+    ($buildResult.Output -match "kapt3[\\/]incrementalData[\\/]standardDebug")
+
     if ($isKotlinCachePackError) {
         Write-Host "`nDetected Kotlin/Gradle cache packing issue. Cleaning local caches and retrying once..." -ForegroundColor Yellow
 
@@ -92,6 +120,18 @@ if ($buildResult.ExitCode -ne 0) {
         }
 
         $buildResult = Invoke-DebugBuild -DisableBuildCache
+    }
+
+    if (($buildResult.ExitCode -ne 0) -and $isKaptIncrementalDataLockError) {
+        Write-Host "`nDetected Windows file lock in kapt incremental data. Stopping daemons, cleaning kapt temp folders, and retrying once..." -ForegroundColor Yellow
+
+        Stop-GradleDaemons
+        # Clear only the volatile kapt/kotlin outputs because stale locked stubs block the next incremental run.
+        Remove-BuildPathIfExists -RelativePath ".gradle\8.11.1\executionHistory"
+        Remove-BuildPathIfExists -RelativePath "app_v2\build\tmp\kapt3"
+        Remove-BuildPathIfExists -RelativePath "app_v2\build\kotlin"
+
+        $buildResult = Invoke-DebugBuild -DisableBuildCache -NoDaemon
     }
 }
 

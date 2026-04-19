@@ -836,12 +836,26 @@
         <item>SBS (Side-by-Side)</item>
         <item>OU (Over-Under)</item>
         <item>Mono</item>
+        <item>360° Mono</item>
+        <item>360° SBS</item>
+        <item>360° OU</item>
+        <item>180° Mono</item>
+        <item>180° SBS</item>
+        <item>VR180</item>
+        <item>Cylinder 180°</item>
     </string-array>
     <string-array name="vr_forced_format_values">
         <item>AUTO</item>
         <item>SBS</item>
         <item>OU</item>
         <item>MONO</item>
+        <item>EQUIRECT_360_MONO</item>
+        <item>EQUIRECT_360_SBS</item>
+        <item>EQUIRECT_360_OU</item>
+        <item>EQUIRECT_180_MONO</item>
+        <item>EQUIRECT_180_SBS</item>
+        <item>VR180_FISHEYE_SBS</item>
+        <item>CYLINDER_180</item>
     </string-array>
     <string-array name="vr_rendering_mode_entries">
         <item>Cinema</item>
@@ -1728,8 +1742,8 @@
     <string name="last_test_date">Last test: %s</string>
     <string name="never_tested">Never tested</string>
     <string name="smb_resource_added_success">SMB resource added successfully</string>
-    <string name="smb_resource_added_unavailable">SMB resource \'%1$s\' added but is currently unavailable. Check that the share exists and is accessible from this device.</string>
     <string name="smb_resource_added_readonly">SMB resource added (read-only). Write operations will not be available.</string>
+    <string name="smb_resource_added_unavailable">SMB resource \'%1$s\' added but is currently unavailable. Check that the share exists and is accessible from this device.</string>
 
     <!-- Speed Test -->
     <string name="speed_test_preparing">Preparing speed test…</string>
@@ -2492,10 +2506,20 @@
     <!-- 3D Video / Stereo mode settings (v2.63) -->
     <string name="playback_settings_3d_tab">3D</string>
     <string name="playback_settings_3d_auto">Auto-detect</string>
+    <string name="playback_settings_3d_flat_format">Flat format</string>
+    <string name="playback_settings_3d_spherical_format">Spherical format</string>
+    <string name="playback_settings_3d_override_format_type">Override format type</string>
     <string name="playback_settings_3d_sbs">Side-by-Side (SBS)</string>
     <string name="playback_settings_3d_ou">Over-Under (OU)</string>
     <string name="playback_settings_3d_mono">Mono (Disabled)</string>
     <string name="playback_settings_3d_detected">Auto-detected: %s</string>
+    <string name="playback_settings_3d_current">Current format: %s</string>
+    <string name="playback_settings_3d_360_mono">360° Mono</string>
+    <string name="playback_settings_3d_360_sbs">360° SBS</string>
+    <string name="playback_settings_3d_360_ou">360° OU</string>
+    <string name="playback_settings_3d_vr180">VR180</string>
+    <string name="playback_settings_3d_cylinder_180">Cylinder 180°</string>
+    <string name="playback_settings_3d_manual_toast">Format: %s</string>
     <string name="player_3d_detected_toast">3D video detected. Use File Info to open it in an external VR player.</string>
     <string name="playback_settings_3d_hint">For best effect, use a phone-based VR viewer (Google Cardboard, etc.)</string>
 

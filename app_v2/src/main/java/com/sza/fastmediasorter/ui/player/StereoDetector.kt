@@ -6,38 +6,56 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
 
 /**
- * Detects the stereoscopic format of a video from its track metadata.
+ * Detects the stereoscopic / spherical format of a piece of media from its track metadata
+ * and/or filename.
  *
  * Detection strategy (highest-confidence first):
- *  1. Matroska StereoMode tag embedded in format extras (100% accurate when present;
+ *  1. MP4 Spatial Media boxes (`st3d` + `sv3d/proj/mshp`) when a readable local MP4 path exists.
+ *  2. Filename tokens (see [detectFromFilename]) — explicit creator markers for both flat
+ *     (SBS/OU/MONO) and spherical (360°/VR180/Cylinder) formats.
+ *  3. GPano / Photo Sphere XMP metadata for local still images.
+ *  4. Matroska StereoMode tag embedded in format extras (100% accurate when present;
  *     ~60% of real-world 3D MKV files carry this tag).
- *  2. Aspect ratio heuristic — reliable for SBS 3D content (≈94% accuracy overall):
- *      • 3840×1080, 1920×540, etc.  →  StereoMode.SBS_FULL   (AR ≈ 32:9)
- *      • 1920×1080 with height ≥ 1800 squeezed SBS  →  StereoMode.SBS_HALF
- *      • AR ≈ 16:27 (e.g., 1920×2160)              →  StereoMode.OU  (reserved)
- *      • Everything else                            →  StereoMode.MONO
+ *  5. Aspect ratio heuristic — reliable for SBS 3D content and for 360°/VR180 at
+ *     characteristic AR values (2:1, 4:1, 1:1) with a resolution floor to reject
+ *     low-res anamorphic false positives.
  *
- * Returns [StereoMode.UNKNOWN] only when both strategies are inconclusive.
+ * Returns [StereoMode.UNKNOWN] only when all strategies are inconclusive.
  * Callers MUST map UNKNOWN to AUTO/MONO before storing to preferences or
  * passing to the renderer.
  */
 class StereoDetector @javax.inject.Inject constructor() {
 
+    private val mp4SpatialMetadataReader = Mp4SpatialMetadataReader()
+    private var photoSphereReader: PhotoSphereMetadataReader = ExifPhotoSphereReader()
+
+    internal constructor(photoSphereReader: PhotoSphereMetadataReader) : this() {
+        this.photoSphereReader = photoSphereReader
+    }
+
     companion object {
-        // SBS: width / height ≈ 32:9 (3.555…)
-        // Allow ±5% tolerance around the ideal value.
+        // Flat SBS: width / height ≈ 32:9 (3.555…). ±5% tolerance around the ideal value.
         private const val SBS_AR_MIN = 3.2f
         private const val SBS_AR_MAX = 3.8f
 
-        // SBS half (anamorphic / squeezed): normal AR but unusually tall
-        private const val SBS_HALF_MIN_HEIGHT = 1800
+        // Spherical AR centres with tight tolerances to avoid colliding with flat SBS (3.2-3.8).
+        // Equirect 360° mono: AR 2:1. Equirect 360° SBS: 2 × 2:1 spheres laid out side-by-side
+        // → AR 4:1. Equirect 360° OU: 2 × 2:1 spheres stacked → AR 1:1.
+        private const val EQUIRECT_AR_TOL = 0.05f
+        private const val EQUIRECT_360_MONO_AR = 2.0f
+        private const val EQUIRECT_360_SBS_AR = 4.0f
+        private const val EQUIRECT_360_OU_AR = 1.0f
 
-        // Over-Under: real OU 3D content is 1920×2160 → AR ≈ 0.889, or 1280×1440 → 0.889.
-        // AR range 0.50-0.65 was catching ordinary portrait video (9:16 = 0.5625) → false positives.
-        // OU is now detected ONLY via Matroska metadata; AR heuristic always returns MONO for
-        // portrait-looking videos. These constants are kept for documentation only.
-        private const val OU_AR_MIN = 0.82f
-        private const val OU_AR_MAX = 0.95f
+        // Resolution floors for AR heuristic — prevents 320×160 anamorphic noise from being
+        // auto-detected as 360° content.
+        private const val SPHERICAL_MIN_WIDTH = 2048
+        private const val SPHERICAL_SBS_MIN_WIDTH = 4096
+        private const val SPHERICAL_OU_MIN_WIDTH = 3840
+
+        // SBS half (anamorphic / squeezed): normal AR but unusually tall. Kept for documentation;
+        // detection of SBS_HALF via AR alone is unreliable, so we rely on filename tokens.
+        @Suppress("unused")
+        private const val SBS_HALF_MIN_HEIGHT = 1800
 
         // Matroska StereoMode values (EBML element 0x53B8)
         // https://www.matroska.org/technical/elements.html#StereoMode
@@ -54,27 +72,156 @@ class StereoDetector @javax.inject.Inject constructor() {
     }
 
     /**
+     * Detect stereo mode from the media filename.
+     *
+     * Filename conventions recognised (case-insensitive, token-boundary aware):
+     *
+     * **Spherical / panoramic** (checked first — wins over flat markers when present):
+     *  - `cylinder`, `cylinder180`  → [StereoMode.CYLINDER_180]
+     *  - `vr180`, `180x180`         → [StereoMode.VR180_FISHEYE_SBS]
+     *  - `180` + `sbs`              → [StereoMode.EQUIRECT_180_SBS]
+     *  - `180` (alone, or with `ou`) → [StereoMode.EQUIRECT_180_MONO]
+     *  - `360` + `sbs`              → [StereoMode.EQUIRECT_360_SBS]
+     *  - `360` + `ou`/`tb`          → [StereoMode.EQUIRECT_360_OU]
+     *  - `360`, `equirect`          → [StereoMode.EQUIRECT_360_MONO]
+     *  - `cubemap`                  → [StereoMode.UNKNOWN] (unsupported projection)
+     *
+     * **Flat stereo** (fallback when no spherical marker matches):
+     *  - `_3dh`, `_sbs`, `_lr`      → [StereoMode.SBS_FULL]
+     *  - `_3dv`, `_ou`, `_tb`       → [StereoMode.OU]
+     *  - `_hsbs`, `_halfsbs`        → [StereoMode.SBS_HALF]
+     *
+     * Should be called BEFORE [detectFromFormat] — explicit filename markers from the
+     * content creator are more reliable than heuristics on MP4 track metadata.
+     * Most commercial VR content is distributed as MP4 without Matroska StereoMode tags.
+     *
+     * @param filename Bare filename, URI, or full path — only the last segment and stem are used.
+     * @return Detected [StereoMode]; [StereoMode.UNKNOWN] when no pattern matches.
+     */
+    fun detectFromFilename(filename: String): StereoMode {
+        val stem = filename
+            .substringAfterLast('/')
+            .substringAfterLast('\\')
+            .substringBeforeLast('.')
+            .lowercase()
+
+        Timber.d("$TAG: detectFromFilename stem='$stem'")
+
+        // Precompute token presence. `containsToken` requires a non-alphanumeric boundary,
+        // so "DJI_0360" does NOT match "360" (the preceding "0" is alphanumeric), while
+        // "vacation_360" does. `contains` is used for multi-token compounds like "180x180".
+        val hasCylinder = containsToken(stem, "cylinder") || stem.contains("cylinder180")
+        val hasVr180 = containsToken(stem, "vr180") || stem.contains("180x180")
+        val has180 = containsToken(stem, "180") || stem.contains("equirect180") || hasVr180
+        val has360 = containsToken(stem, "360") || stem.contains("equirect360") || containsToken(stem, "equirect")
+        val hasSbs = containsToken(stem, "sbs") || containsToken(stem, "3dh") || containsToken(stem, "lr")
+        val hasOu = containsToken(stem, "ou") || containsToken(stem, "tb") || containsToken(stem, "3dv")
+        val hasHalfSbs = containsToken(stem, "hsbs") || containsToken(stem, "halfsbs")
+        val hasCubemap = containsToken(stem, "cubemap")
+
+        return when {
+            // ─── Spherical / panoramic (priority over flat) ───
+            hasCylinder -> logMatch("CYLINDER_180", StereoMode.CYLINDER_180)
+            hasVr180    -> logMatch("VR180_FISHEYE_SBS", StereoMode.VR180_FISHEYE_SBS)
+            has180 && hasSbs -> logMatch("EQUIRECT_180_SBS", StereoMode.EQUIRECT_180_SBS)
+            // 180° + OU or plain 180° → mono (EQUIRECT_180_OU intentionally not modelled;
+            // 180° OU content is rare and renders acceptably as mono half-sphere).
+            has180 -> logMatch("EQUIRECT_180_MONO", StereoMode.EQUIRECT_180_MONO)
+            has360 && hasSbs -> logMatch("EQUIRECT_360_SBS", StereoMode.EQUIRECT_360_SBS)
+            has360 && hasOu  -> logMatch("EQUIRECT_360_OU",  StereoMode.EQUIRECT_360_OU)
+            has360 -> logMatch("EQUIRECT_360_MONO", StereoMode.EQUIRECT_360_MONO)
+            hasCubemap -> {
+                Timber.d("$TAG: cubemap marker detected — unsupported projection, UNKNOWN")
+                StereoMode.UNKNOWN
+            }
+            // ─── Flat stereo patterns ───
+            hasOu       -> logMatch("OU", StereoMode.OU)
+            hasHalfSbs  -> logMatch("SBS_HALF", StereoMode.SBS_HALF)
+            hasSbs      -> logMatch("SBS_FULL", StereoMode.SBS_FULL)
+            else -> StereoMode.UNKNOWN
+        }
+    }
+
+    /**
+     * Read authoritative MP4 spatial metadata when a readable local MP4 path exists.
+     * Unknown, missing, or unsupported boxes deliberately fall through to older heuristics.
+     */
+    fun detectFromMp4Path(path: String): StereoMode {
+        if (!path.endsWith(".mp4", ignoreCase = true) && !path.contains(".mp4?", ignoreCase = true)) {
+            return StereoMode.UNKNOWN
+        }
+
+        val detected = mp4SpatialMetadataReader.detectStereoMode(path)
+        if (detected != StereoMode.UNKNOWN) {
+            Timber.d("$TAG: MP4 spatial metadata detection → $detected")
+        }
+        return detected
+    }
+
+    /**
+     * Full video detection path.
+     * MP4 spatial metadata is authoritative, so it must run before filename or AR heuristics.
+     */
+    fun detectForVideo(path: String?, format: Format): StereoMode {
+        val mp4Result = path?.let { detectFromMp4Path(it) } ?: StereoMode.UNKNOWN
+        if (mp4Result != StereoMode.UNKNOWN) return mp4Result
+
+        val filenameResult = path?.let { detectFromFilename(it) } ?: StereoMode.UNKNOWN
+        if (filenameResult != StereoMode.UNKNOWN) return filenameResult
+
+        return detectFromFormat(format)
+    }
+
+    /**
+     * Full still-image detection path.
+     *
+     * Filename tokens remain authoritative because they carry stereo-layout details (SBS/OU/180).
+     * GPano XMP is then used as a local-file fallback so plain `IMG_1234.JPG` panoramas do not
+     * collapse to flat MONO when the filename is silent.
+     */
+    fun detectForImage(path: String, width: Int? = null, height: Int? = null): StereoMode {
+        val filenameResult = detectFromFilename(path)
+        if (filenameResult != StereoMode.UNKNOWN) return filenameResult
+
+        val dimensionResult = if (width != null && height != null) {
+            detectFromDimensions(width, height)
+        } else {
+            StereoMode.UNKNOWN
+        }
+
+        val photoSphere = photoSphereReader.read(path)
+        if (photoSphere?.isEquirectangular == true) {
+            return when {
+                photoSphere.is180Projection() -> StereoMode.EQUIRECT_180_MONO
+                dimensionResult.isSpherical() -> dimensionResult
+                else -> StereoMode.EQUIRECT_360_MONO
+            }
+        }
+
+        return dimensionResult
+    }
+
+    /**
      * Derive the stereo mode from a video [Format] object.
      *
-     * @param format Video track format from [ExoPlayer.currentTracks]. Must be a video format
+     * @param format Video track format from ExoPlayer's `currentTracks`. Must be a video format
      *               (format.height > 0 and format.width > 0).
      * @return Detected [StereoMode]; [StereoMode.UNKNOWN] when undecidable.
      */
     fun detectFromFormat(format: Format): StereoMode {
-        // Guard: non-video formats have width == Format.NO_VALUE
         if (format.width <= 0 || format.height <= 0) {
             Timber.w("$TAG: Invalid format dimensions (${format.width}×${format.height}) — returning UNKNOWN")
             return StereoMode.UNKNOWN
         }
 
-        // --- Step 1: Matroska container metadata ---
+        // --- Step 1: Matroska container metadata (flat stereo only; spherical requires filename or MP4 spatial boxes) ---
         val metaResult = detectFromMatroskaTag(format)
         if (metaResult != StereoMode.UNKNOWN) {
             Timber.d("$TAG: Metadata detection → $metaResult (${format.width}×${format.height})")
             return metaResult
         }
 
-        // --- Step 2: Aspect ratio heuristic ---
+        // --- Step 2: Aspect ratio heuristic (flat + spherical) ---
         val arResult = detectFromAspectRatio(format.width, format.height)
         Timber.d("$TAG: AR heuristic (${format.width}×${format.height}, AR=${format.width.toFloat() / format.height}) → $arResult")
         return arResult
@@ -97,8 +244,6 @@ class StereoDetector @javax.inject.Inject constructor() {
      * Media3 API exposure differs across versions: some builds surface a Bundle-like
      * object via a custom-data getter, others do not expose it at compile time.
      * We therefore use reflection and fall back to UNKNOWN when the data is absent.
-     *
-     * If the tag is absent, returns [StereoMode.UNKNOWN] so the heuristic runs.
      */
     private fun detectFromMatroskaTag(format: Format): StereoMode {
         val customData = extractCustomDataBundle(format) ?: return StereoMode.UNKNOWN
@@ -129,32 +274,58 @@ class StereoDetector @javax.inject.Inject constructor() {
     }
 
     /**
+     * Word-boundary token match: [token] must not be preceded or followed by an
+     * alphanumeric character. Prevents false positives such as "sbs" matching "absorbs"
+     * or "360" matching camera sequence numbers like "DJI_0360".
+     *
+     * Input [text] is expected to already be lowercase.
+     */
+    private fun containsToken(text: String, token: String): Boolean {
+        val pattern = Regex("(?<![a-z0-9])${Regex.escape(token)}(?![a-z0-9])")
+        return pattern.containsMatchIn(text)
+    }
+
+    /**
      * Classify stereo mode by the video's aspect ratio.
      *
-     * Typical SBS 3D content:
-     *  • 3840×1080 (4K SBS)   → AR 3.555
-     *  • 1920×540  (1080p SBS) → AR 3.555
+     * Priority: spherical AR checks run first with narrow tolerance + resolution floor,
+     * then fall back to flat SBS (wider range), finally MONO.
      *
-     * Squeezed/half SBS:
-     *  • 1920×1080 SBS-half    → AR 1.778 but height exactly 1080; detected via height heuristic
-     *    Not perfectly distinguishable from mono without metadata — skipped in this heuristic.
+     * Flat SBS:
+     *  - 3840×1080, 1920×540 (AR 3.555, ±SBS tolerance) → [StereoMode.SBS_FULL]
      *
-     * Over-Under:
-     *  • 1920×2160 (4K OU) → AR 0.889
-     *  OU is not detected by AR heuristic: portrait video (9:16 = AR 0.5625) and OU (AR 0.889)
-     *  are only distinguishable via Matroska metadata. Without metadata, return MONO to avoid
-     *  false positives that break ExoPlayer's video pipeline via setVideoEffects().
+     * Spherical candidates (narrow windows, high-res only):
+     *  - AR ≈ 4.0 + width ≥ 4096 → [StereoMode.EQUIRECT_360_SBS] (stacked stereo spheres)
+     *  - AR ≈ 2.0 + width ≥ 2048 → [StereoMode.EQUIRECT_360_MONO] (classic 360° mono)
+    *  - AR ≈ 1.0 + width ≥ 3840 → [StereoMode.EQUIRECT_360_OU] (top-bottom stereo spheres)
+     *
+     * OU flat detection via AR is intentionally disabled — portrait video (9:16 = 0.5625)
+     * and flat OU (0.889) are not reliably distinguishable without metadata. Rely on
+     * [detectFromFilename] or Matroska tag for flat OU.
      */
     private fun detectFromAspectRatio(width: Int, height: Int): StereoMode {
         val ar = width.toFloat() / height.toFloat()
         return when {
-            ar in SBS_AR_MIN..SBS_AR_MAX         -> StereoMode.SBS_FULL
-            // OU detection disabled for AR heuristic — too many false positives on portrait video.
-            // Matroska tag detection (Step 1) handles real OU 3D files correctly.
-            // SBS_HALF: normal-ish AR but doubled width squeezed into standard 16:9 frame.
-            // Reliable detection requires Matroska tag; heuristic returns MONO to avoid
-            // false-positives on ultra-wide 21:9 content.
-            else                                 -> StereoMode.MONO
+            // Spherical — narrow windows + resolution floor
+            isNear(ar, EQUIRECT_360_SBS_AR, EQUIRECT_AR_TOL) && width >= SPHERICAL_SBS_MIN_WIDTH ->
+                StereoMode.EQUIRECT_360_SBS
+            isNear(ar, EQUIRECT_360_MONO_AR, EQUIRECT_AR_TOL) && width >= SPHERICAL_MIN_WIDTH ->
+                StereoMode.EQUIRECT_360_MONO
+            // 3840x3840 is a common full-sphere OU master, so the floor is lower than 4:1 SBS.
+            isNear(ar, EQUIRECT_360_OU_AR, EQUIRECT_AR_TOL) && width >= SPHERICAL_OU_MIN_WIDTH ->
+                StereoMode.EQUIRECT_360_OU
+            // Flat SBS (existing behaviour)
+            ar in SBS_AR_MIN..SBS_AR_MAX -> StereoMode.SBS_FULL
+            // Everything else — mono. Flat OU not detected by AR alone.
+            else -> StereoMode.MONO
         }
+    }
+
+    private fun isNear(value: Float, target: Float, tolerance: Float): Boolean =
+        value >= target - tolerance && value <= target + tolerance
+
+    private fun logMatch(label: String, mode: StereoMode): StereoMode {
+        Timber.d("$TAG: filename match → $label")
+        return mode
     }
 }

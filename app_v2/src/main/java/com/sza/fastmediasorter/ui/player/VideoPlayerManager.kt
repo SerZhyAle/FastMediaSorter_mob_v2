@@ -1,91 +1,91 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.content.ContentUris
 import android.content.Context
-import android.net.Uri
-import android.provider.MediaStore
+import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.media3.common.Format
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
-import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.Tracks
-import com.sza.fastmediasorter.domain.model.StereoMode
-import androidx.media3.datasource.DataSource
-import androidx.media3.exoplayer.DefaultLoadControl
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
+import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.util.PathUtils
-import com.sza.fastmediasorter.data.cloud.datasource.CloudDataSourceFactory
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.DropboxClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
-import com.sza.fastmediasorter.data.network.datasource.SmbDataSourceFactory
-import com.sza.fastmediasorter.data.network.datasource.SftpDataSourceFactory
-import com.sza.fastmediasorter.data.network.datasource.FtpDataSourceFactory
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
-import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
+import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
+import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
+import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
+import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
+import com.sza.fastmediasorter.ui.player.helpers.formatTime
+import com.sza.fastmediasorter.ui.player.helpers.logMemoryStats
+import com.sza.fastmediasorter.ui.player.helpers.playCloudVideo
+import com.sza.fastmediasorter.ui.player.helpers.playFtpVideo
+import com.sza.fastmediasorter.ui.player.helpers.playLocalVideoInternal
+import com.sza.fastmediasorter.ui.player.helpers.playWithMediaPlayer
+import com.sza.fastmediasorter.ui.player.helpers.releaseMediaPlayer
+import com.sza.fastmediasorter.ui.player.helpers.saveCurrentPosition
+import com.sza.fastmediasorter.ui.player.helpers.playSmbVideo
+import com.sza.fastmediasorter.ui.player.helpers.playSftpVideo
+import com.sza.fastmediasorter.ui.player.helpers.startPlaybackHealthCheck
+import com.sza.fastmediasorter.ui.player.helpers.startPositionSaving
+import com.sza.fastmediasorter.ui.player.helpers.stopPositionSaving
+import com.sza.fastmediasorter.domain.models.TranslationFontFamily
+import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.Locale
-import java.io.File
-import android.media.MediaPlayer
-import android.view.SurfaceHolder
-import com.sza.fastmediasorter.domain.models.TranslationFontSize
-import com.sza.fastmediasorter.domain.models.TranslationFontFamily
-
 /**
- * Manager for video playback using ExoPlayer.
- * Handles ExoPlayer lifecycle, network streaming, retry logic, and buffering.
- * 
- * Responsibilities:
- * - ExoPlayer creation and configuration
- * - Video playback (local, network: SMB/SFTP/FTP, cloud)
- * - Network stream retry logic with exponential backoff (EOF exceptions)
- * - Buffering and loading state management
- * - Audio format information extraction
- * - Connection throttling integration
- * - Playback position save/restore (audiobook mode)
+ * Orchestrator for video/audio playback using ExoPlayer (with MediaPlayer fallback).
+ *
+ * Protocol-specific setup, video-effect pipeline, position saving, and health monitoring
+ * are extracted to extension-function files in [com.sza.fastmediasorter.ui.player.helpers]
+ * to reduce per-file ControlFlowGraph size and prevent GC overhead limit crashes during
+ * parallel flavor compilation.
+ *
+ * Responsibilities kept here:
+ * - All shared mutable state fields
+ * - [Player.Listener] (playerListener) — tightly coupled to all state, cannot be split cleanly
+ * - [playVideo] dispatch (routes to protocol-specific extension)
+ * - Public API surface (play/pause/seek/track selection)
+ * - Lifecycle callbacks
  */
 class VideoPlayerManager(
-    private val context: Context,
+    internal val context: Context,
     private val lifecycle: Lifecycle,
-    private val playerCallback: PlayerCallback,
-    private val credentialsRepository: NetworkCredentialsRepository,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val googleDriveClient: GoogleDriveRestClient,
-    private val oneDriveClient: OneDriveRestClient,
-    private val dropboxClient: DropboxClient,
-    private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    internal val playerCallback: PlayerCallback,
+    internal val credentialsRepository: NetworkCredentialsRepository,
+    internal val smbClient: SmbClient,
+    internal val sftpClient: SftpClient,
+    internal val ftpClient: FtpClient,
+    internal val googleDriveClient: GoogleDriveRestClient,
+    internal val oneDriveClient: OneDriveRestClient,
+    internal val dropboxClient: DropboxClient,
+    internal val playbackPositionRepository: PlaybackPositionRepository
 ) : DefaultLifecycleObserver {
-    
-    /**
-     * Callback interface for player events
-     */
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Callback interface
+    // ═══════════════════════════════════════════════════════════════════════
+
     interface PlayerCallback {
         fun onPlaybackReady()
         fun onPlaybackError(error: Throwable)
@@ -102,43 +102,50 @@ class VideoPlayerManager(
         /** Fired once per video load when a stereo format is detected. Default no-op. */
         fun onStereoDetected(mode: StereoMode) {}
     }
-    
-    /**
-     * Audio format information
-     */
+
+    /** Audio format information exposed via [getAudioFormat]. */
     data class AudioFormat(
         val codec: String,
         val sampleRate: Int,
         val channelCount: Int,
         val bitrate: Int
     )
-    
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Constants
+    // ═══════════════════════════════════════════════════════════════════════
+
     companion object {
-        // Retry configuration (EOF exceptions)
         private const val MAX_EOF_RETRIES = 3
-        
-        // Buffer configuration (ms) - default for SMB/SFTP/FTP
-        // Reduced to prevent OOM on 4K content (50-120s at 100Mbps = 625MB-1.5GB)
-        private const val MIN_BUFFER_MS = 15000  // 15 seconds min
-        private const val MAX_BUFFER_MS = 30000  // 30 seconds max
-        private const val BUFFER_FOR_PLAYBACK_MS = 5000  // Wait 5s before starting
-        private const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 8000  // Buffer 8s after stall
-        
-        // Buffer configuration for Cloud (slower, need more buffering)
-        private const val CLOUD_MIN_BUFFER_MS = 20000
-        private const val CLOUD_MAX_BUFFER_MS = 45000
-        private const val CLOUD_BUFFER_FOR_PLAYBACK_MS = 8000
-        private const val CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 12000
-        
-        // Playback position auto-save interval (5 seconds)
-        private const val POSITION_SAVE_INTERVAL_MS = 5000L
-        private const val DEFAULT_BRIGHTNESS_PROGRESS = 50
+
+        // Buffer configuration (ms) — default for SMB/SFTP/FTP.
+        // Reduced to prevent OOM on 4K content (50-120 s at 100 Mbps = 625 MB-1.5 GB).
+        internal const val MIN_BUFFER_MS = 15_000
+        internal const val MAX_BUFFER_MS = 30_000
+        internal const val BUFFER_FOR_PLAYBACK_MS = 5_000
+        internal const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 8_000
+
+        // Buffer configuration for Cloud (slower; higher initial-latency overhead)
+        internal const val CLOUD_MIN_BUFFER_MS = 20_000
+        internal const val CLOUD_MAX_BUFFER_MS = 45_000
+        internal const val CLOUD_BUFFER_FOR_PLAYBACK_MS = 8_000
+        internal const val CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 12_000
+
+        internal const val POSITION_SAVE_INTERVAL_MS = 5_000L
+        internal const val DEFAULT_BRIGHTNESS_PROGRESS = 50
+
+        // Playback health-check — thresholds for detecting stuck / white-noise audio
+        internal const val PLAYBACK_HEALTH_CHECK_DELAY_MS = 2_000L
+        internal const val MAX_PLAYBACK_STUCK_COUNT = 2
     }
-    
-    private var exoPlayer: ExoPlayer? = null
-    private var mediaPlayer: MediaPlayer? = null
-    private var currentPlayerView: PlayerView? = null
-    private var isUsingMediaPlayer = false
+    // ═══════════════════════════════════════════════════════════════════════
+    // Mutable state — internal so extension functions in helpers/ can access
+    // ═══════════════════════════════════════════════════════════════════════
+
+    internal var exoPlayer: ExoPlayer? = null
+    internal var mediaPlayer: MediaPlayer? = null
+    internal var currentPlayerView: PlayerView? = null
+    internal var isUsingMediaPlayer = false
 
     private val playbackControlPrefs =
         context.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
@@ -147,8 +154,8 @@ class VideoPlayerManager(
     private val stereoDetector = StereoDetector()
 
     // Stereo GL effect builder — Phase 2: builds Crop effects for ExoPlayer.setVideoEffects()
-    private val stereoVideoProcessor = StereoVideoProcessor()
-    private val videoColorProcessor = VideoColorProcessor(
+    internal val stereoVideoProcessor = StereoVideoProcessor()
+    internal val videoColorProcessor = VideoColorProcessor(
         initialHueDegrees = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f),
         initialBrightnessAdjustment = brightnessProgressToAdjustment(
             playbackControlPrefs.getInt(
@@ -163,67 +170,70 @@ class VideoPlayerManager(
         getPlayerView = { currentPlayerView }
     )
 
-    // Retry logic for EOF exceptions
+    // Retry logic for EOF exceptions (used only inside playerListener — stays private)
     private var playbackRetryCount = 0
     private var lastPlaybackPosition = 0L
-    private val retryHandler = Handler(Looper.getMainLooper())
+    internal val retryHandler = Handler(Looper.getMainLooper())
     private var retryRunnable: Runnable? = null
-    
+
     // Playback position saving
-    private var currentFilePath: String? = null
-    private var positionSaveRunnable: Runnable? = null
-    private var lastSavedPosition: Long = -1L  // Track last saved position to avoid redundant saves
-    private var wasPlayingBeforePause = false  // Tracks whether to resume after lifecycle onPause
-    
+    internal var currentFilePath: String? = null
+    internal var positionSaveRunnable: Runnable? = null
+    internal var lastSavedPosition: Long = -1L
+
+    private var wasPlayingBeforePause = false
+
     // Playback health monitoring (detect "white noise" / stuck playback)
-    private var playbackHealthCheckRunnable: Runnable? = null
-    private var lastCheckedPosition = 0L
-    private var playbackStuckCount = 0
-    private val PLAYBACK_HEALTH_CHECK_DELAY_MS = 2000L  // Check after 2 seconds
-    private val MAX_PLAYBACK_STUCK_COUNT = 2  // If stuck twice, fallback to MediaPlayer
-    
-    // Connection throttling tracking
-    private var activeResourceKey: String? = null
-    
-    // Coroutine scope for async operations
-    private val managerScope = CoroutineScope(Dispatchers.Main + Job())
+    internal var playbackHealthCheckRunnable: Runnable? = null
+    internal var lastCheckedPosition = 0L
+    internal var playbackStuckCount = 0
+
+    // Connection throttling — resource key of the currently streaming server
+    internal var activeResourceKey: String? = null
+
+    internal val managerScope = CoroutineScope(Dispatchers.Main + Job())
 
     /**
      * Optional callback invoked with the first decoded video frame bitmap.
      * Only fires for local files (MediaMetadataRetriever does not support SMB/SFTP/FTP/cloud).
-     * Consumed by PlayerMediaLoaderManager to feed DynamicBackgroundProcessor.
      */
     var onFirstFrameReady: ((android.graphics.Bitmap) -> Unit)? = null
 
-    /** Callback invoked after each periodic position save (every 5s). Used for resume state persistence. */
+    /** Callback invoked after each periodic position save (every 5 s). */
     var onPositionSaved: (() -> Unit)? = null
 
-    private val playerListener = object : Player.Listener {
+    // Tracks whether a previous setVideoEffects() call installed a non-empty pipeline.
+    // Skipping redundant setVideoEffects(emptyList()) calls avoids a black screen at pause
+    // on some devices/emulators.
+    internal var effectsPipelineActive = false
+
+    // Debounce handler for applyConfiguredVideoEffects() — see PlayerSetupHelper.kt.
+    // 80 ms window coalesces rapid slider drags into a single pipeline rebuild,
+    // preventing TexturePool race crash in Media3 1.2.x.
+    internal val effectsHandler = Handler(Looper.getMainLooper())
+    internal var pendingEffectsRunnable: Runnable? = null
+    // ═══════════════════════════════════════════════════════════════════════
+    // Player.Listener — stays in orchestrator (tightly coupled to all state)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    internal val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playerCallback.isActivityDestroyed()) {
                 Timber.w("VideoPlayerManager: Activity destroyed, ignoring state change")
                 return
             }
-            
             when (playbackState) {
                 Player.STATE_READY -> {
                     Timber.d("VideoPlayerManager: Playback ready")
-                    
-                    // Log memory state AFTER video becomes ready
                     logMemoryStats("AFTER STATE_READY")
-                    
-                    playbackRetryCount = 0  // Reset retry counter
+                    playbackRetryCount = 0
                     playerCallback.onBuffering(false)
                     playerCallback.onPlaybackReady()
-                    
-                    // Start playback health monitoring for audio files
-                    // Check if playback is actually progressing (detect "white noise" issues)
                     startPlaybackHealthCheck()
                 }
                 Player.STATE_BUFFERING -> {
-                    Timber.d("VideoPlayerManager: Buffering...")
+                    Timber.d("VideoPlayerManager: Buffering..")
                     playerCallback.onBuffering(true)
-                    // Cancel health check during buffering
                     cancelPlaybackHealthCheck()
                 }
                 Player.STATE_ENDED -> {
@@ -237,102 +247,76 @@ class VideoPlayerManager(
                 }
             }
         }
-        
+
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             playerCallback.onPlaybackStateChanged(isPlaying)
         }
-        
+
         override fun onPlayerError(error: PlaybackException) {
             val isEOFException = error.cause is java.io.EOFException ||
-                                 error.cause?.cause is java.io.EOFException
-            
-            val isMediaCodecError = error.errorCode >= 4000 && error.errorCode < 5000 // Decoder errors
-            
-            // Handle EOF exceptions with retry logic
+                error.cause?.cause is java.io.EOFException
+            val isMediaCodecError = error.errorCode >= 4000 && error.errorCode < 5000
+
             if (isEOFException && playbackRetryCount < MAX_EOF_RETRIES && !playerCallback.isActivityDestroyed()) {
                 playbackRetryCount++
                 lastPlaybackPosition = exoPlayer?.currentPosition ?: 0L
-                
-                Timber.w("VideoPlayerManager: EOFException, retry attempt $playbackRetryCount/$MAX_EOF_RETRIES, position=$lastPlaybackPosition")
-                
+                Timber.w("VideoPlayerManager: EOFException, retry $playbackRetryCount/$MAX_EOF_RETRIES, position=$lastPlaybackPosition")
                 Toast.makeText(
                     context,
-                    "Network stream interrupted, retrying... ($playbackRetryCount/$MAX_EOF_RETRIES)",
+                    "Network stream interrupted, retrying.. ($playbackRetryCount/$MAX_EOF_RETRIES)",
                     Toast.LENGTH_SHORT
                 ).show()
-                
-                // Cancel previous retry
                 retryRunnable?.let { retryHandler.removeCallbacks(it) }
-                
-                // Retry after 1 second
                 retryRunnable = Runnable {
-                    if (!playerCallback.isActivityDestroyed()) {
-                        Timber.d("VideoPlayerManager: Retrying playback from position $lastPlaybackPosition")
-                        retryPlayback()
-                    }
+                    if (!playerCallback.isActivityDestroyed()) retryPlayback()
                 }
                 retryHandler.postDelayed(retryRunnable!!, 1000)
                 return
             } else if (isEOFException) {
-                Timber.e("VideoPlayerManager: EOFException - max retries exceeded")
+                Timber.e("VideoPlayerManager: EOFException — max retries exceeded")
             }
-            
-            // Log MediaCodec errors as warnings (often recoverable)
+
             if (isMediaCodecError) {
-                Timber.w("VideoPlayerManager: MediaCodec error (often recoverable) - errorCode=${error.errorCode}, message=${error.message}")
-                Timber.w("VideoPlayerManager: Cause: ${error.cause?.javaClass?.simpleName}")
+                Timber.w("VideoPlayerManager: MediaCodec error — errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
             } else {
-                Timber.e(error, "VideoPlayerManager: Playback error - errorCode=${error.errorCode}")
+                Timber.e(error, "VideoPlayerManager: Playback error — errorCode=${error.errorCode}")
             }
-            
-            if (playerCallback.isActivityDestroyed()) {
-                return
-            }
-            
-            // Try fallback to MediaPlayer if ExoPlayer fails
-            // Don't fallback for network errors or file not found, only for format issues
+
+            if (playerCallback.isActivityDestroyed()) return
+
             val isFormatError = error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED ||
-                               error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
-                               error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
-                               error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED
+                error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
+                error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
+                error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED
 
             // MediaPlayer cannot handle network protocols (smb://, sftp://, ftp://, etc.)
             // setDataSource() with such URIs fails immediately (what=1, extra=Integer.MIN_VALUE).
             // Only attempt fallback for local file:// paths.
             val isLocalPath = currentFilePath?.let { p ->
                 !p.startsWith("smb://") && !p.startsWith("sftp://") &&
-                !p.startsWith("ftp://") && !p.startsWith("ftps://") &&
-                !p.startsWith("http://") && !p.startsWith("https://") &&
-                !p.startsWith("gdrive://") && !p.startsWith("onedrive://") &&
-                !p.startsWith("dropbox://")
+                    !p.startsWith("ftp://") && !p.startsWith("ftps://") &&
+                    !p.startsWith("http://") && !p.startsWith("https://") &&
+                    !p.startsWith("gdrive://") && !p.startsWith("onedrive://") &&
+                    !p.startsWith("dropbox://")
             } ?: false
 
             if (isFormatError && currentFilePath != null && !isUsingMediaPlayer && isLocalPath) {
-                Timber.i("VideoPlayerManager: ExoPlayer failed with format error, trying MediaPlayer fallback...")
-                // Run on main thread to be safe with UI/Player updates
-                Handler(Looper.getMainLooper()).post {
-                    playWithMediaPlayer(currentFilePath!!)
-                }
+                Timber.i("VideoPlayerManager: ExoPlayer format error, trying MediaPlayer fallback..")
+                Handler(Looper.getMainLooper()).post { playWithMediaPlayer(currentFilePath!!) }
                 return
             }
-
             if (isFormatError && currentFilePath != null && !isLocalPath) {
-                Timber.w("VideoPlayerManager: ExoPlayer format error on network path – MediaPlayer fallback skipped (unsupported protocol)")
+                Timber.w("VideoPlayerManager: ExoPlayer format error on network path — MediaPlayer fallback skipped")
             }
-            
-            // Hide loading indicator
+
             playerCallback.onBuffering(false)
-            
-            // Auto-skip on any non-recoverable error (format, source, network, etc.)
-            // Detailed error info is already logged via Timber above
             playerCallback.onPlaybackError(error)
         }
 
         override fun onRenderedFirstFrame() {
-            Timber.d("VideoPlayerManager: onRenderedFirstFrame")
             val path = currentFilePath ?: return
             val callback = onFirstFrameReady ?: return
-            // MediaMetadataRetriever only supports local files; skip for network/cloud sources
+            // MediaMetadataRetriever only supports local files — skip for network/cloud
             if (path.startsWith("smb://") || path.startsWith("sftp://") ||
                 path.startsWith("ftp://") || path.startsWith("cloud://")) {
                 Timber.d("VideoPlayerManager: Skipping first-frame capture for network/cloud source")
@@ -343,10 +327,7 @@ class VideoPlayerManager(
                     val retriever = android.media.MediaMetadataRetriever()
                     try {
                         retriever.setDataSource(path)
-                        val bitmap = retriever.getFrameAtTime(
-                            0L,
-                            android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC
-                        )
+                        val bitmap = retriever.getFrameAtTime(0L, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
                         if (bitmap != null) {
                             Timber.d("VideoPlayerManager: First frame extracted (${bitmap.width}x${bitmap.height})")
                             withContext(Dispatchers.Main) { callback(bitmap) }
@@ -363,104 +344,67 @@ class VideoPlayerManager(
         }
 
         override fun onTracksChanged(tracks: Tracks) {
-            // Auto-detect stereo format from the first selected video track.
-            // This fires once per media item load and only affects the ViewModel when AUTO is active.
             val videoFormat = tracks.groups
                 .firstOrNull { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }
                 ?.getTrackFormat(0)
             if (videoFormat != null) {
-                val detected = stereoDetector.detectFromFormat(videoFormat)
-                if (detected != StereoMode.UNKNOWN) {
-                    Timber.d("VideoPlayerManager: onTracksChanged → detected stereo=$detected")
-                    playerCallback.onStereoDetected(detected)
+                val requestedPath = currentFilePath
+                managerScope.launch {
+                    // MP4 spatial metadata can live in moov at EOF, so detection cannot block main.
+                    val detected = withContext(Dispatchers.IO) {
+                        stereoDetector.detectForVideo(requestedPath, videoFormat)
+                    }
+                    if (requestedPath == currentFilePath && detected != StereoMode.UNKNOWN) {
+                        Timber.d("VideoPlayerManager: onTracksChanged → detected stereo=$detected")
+                        playerCallback.onStereoDetected(detected)
+                    }
                 }
             }
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // Init
+    // ═══════════════════════════════════════════════════════════════════════
+
     init {
         lifecycle.addObserver(this)
     }
-    
-    /**
-     * Set PlayerView for video rendering. Must be called before playback.
-     */
+    // ═══════════════════════════════════════════════════════════════════════
+    // Public API — PlayerView
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /** Attach the [PlayerView] used for video rendering. Must be called before playback. */
     fun setPlayerView(playerView: PlayerView) {
         currentPlayerView = playerView
         Timber.d("VideoPlayerManager: PlayerView set")
     }
-    
-    /**
-     * Create and configure ExoPlayer instance with standard buffers
-     */
-    fun createPlayer(playerView: PlayerView): ExoPlayer {
-        releasePlayer()
-        
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                MIN_BUFFER_MS,
-                MAX_BUFFER_MS,
-                BUFFER_FOR_PLAYBACK_MS,
-                BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            )
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-        
-        // Configure audio attributes for proper audio/music playback
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .setUsage(C.USAGE_MEDIA)
-            .build()
-        
-        // P1-1: Enable SW decoder fallback so HW codec failures (e.g., VP8 on API 28) are
-        // handled transparently without surface-mode errors or startup freezes.
-        val renderersFactory = DefaultRenderersFactory(context)
-            .setEnableDecoderFallback(true)
 
-        val player = ExoPlayer.Builder(context, renderersFactory)
-            .setLoadControl(loadControl)
-            .setAudioAttributes(audioAttributes, true) // handleAudioFocus=true
-            .build()
-        
-        player.addListener(playerListener)
-        playerView.player = player
-        currentPlayerView = playerView
-        exoPlayer = player
-
-        // New player instance — reset pipeline state so we don't skip a legitimate setVideoEffects()
-        // call on the fresh instance when re-applying previously active effects.
-        effectsPipelineActive = false
-
-        // Reapply the full effect chain to a fresh ExoPlayer instance.
-        // Without this, config changes/player recreation silently drop active video adjustments.
-        applyConfiguredVideoEffects()
-        
-        Timber.d("VideoPlayerManager: ExoPlayer created")
-        return player
-    }
+    // ═══════════════════════════════════════════════════════════════════════
+    // Public API — Stereo / color adjustments
+    // ═══════════════════════════════════════════════════════════════════════
 
     /**
-    * Apply the stereo GL effect matching [mode] to the active ExoPlayer instance.
+     * Apply stereo crop effect matching [mode].
+     * AUTO and UNKNOWN are resolved to MONO (flat display, no crop).
      *
-     * Called whenever [stereoMode] changes (from user selection or auto-detection).
-     * Must be called on the main thread — ExoPlayer.setVideoEffects() is main-thread only.
-     *
-     * Delegates effect construction to [StereoVideoProcessor.buildGlEffect] and then composes
-     * it with the active color-processing chain so later calls do not clobber HUE adjustments.
+     * On VR headsets (SUPPORT_VR_PLAYER=true), the ExoPlayer Crop effect is intentionally
+     * skipped — VrStereoRenderer handles per-eye UV-crop directly from the full SBS/OU frame.
+     * Applying the phone-screen Crop here would pre-clip the frame before VrStereoRenderer
+     * samples it, resulting in a half-width image in each eye.
      */
     fun applyStereoEffect(mode: StereoMode) {
         val resolved = when (mode) {
-            StereoMode.AUTO, StereoMode.UNKNOWN -> StereoMode.MONO // treat unresolved as mono
+            StereoMode.AUTO, StereoMode.UNKNOWN -> StereoMode.MONO
             else -> mode
         }
         Timber.d("VideoPlayerManager: applyStereoEffect requested=$mode resolved=$resolved")
-        stereoVideoProcessor.setStereoMode(resolved)
+        // On VR the renderer (VrStereoRenderer) owns per-eye cropping — pass full frame through.
+        val effectiveMode = if (BuildConfig.SUPPORT_VR_PLAYER) StereoMode.MONO else resolved
+        stereoVideoProcessor.setStereoMode(effectiveMode)
         applyConfiguredVideoEffects()
     }
 
-    /**
-     * Apply HUE rotation using Media3's frame processor instead of a view overlay.
-     */
     fun setHueAdjustmentDegrees(hueDegrees: Float) {
         videoColorProcessor.setHueAdjustmentDegrees(hueDegrees)
         Timber.d(
@@ -502,104 +446,46 @@ class VideoPlayerManager(
     fun getBrightnessPercentOffset(): Int =
         ((getBrightnessProgress() - DEFAULT_BRIGHTNESS_PROGRESS) * 100f / DEFAULT_BRIGHTNESS_PROGRESS).toInt()
 
-    // Tracks whether a previous setVideoEffects() call installed a non-empty pipeline.
-    // Used to skip redundant setVideoEffects(emptyList()) calls that would reset the GPU
-    // pipeline unnecessarily — on some devices/emulators this causes a black screen at pause.
-    private var effectsPipelineActive = false
-
-    // Debounce handler for applyConfiguredVideoEffects().
-    // Media3 1.2.x crashes (TexturePool.freeTexture → IllegalStateException) when
-    // setVideoEffects() is called while the GL task executor still has in-flight frames from
-    // the previous pipeline. Rapid slider drags cause dozens of calls per second — coalescing
-    // them into one deferred call (80 ms after the last change) eliminates the race.
-    private val effectsHandler = android.os.Handler(android.os.Looper.getMainLooper())
-    private var pendingEffectsRunnable: Runnable? = null
-
-    private fun applyConfiguredVideoEffects() {
-        val effects = mutableListOf<androidx.media3.common.Effect>()
-
-        stereoVideoProcessor.buildGlEffect(stereoVideoProcessor.getCurrentMode())?.let(effects::add)
-        videoColorProcessor.buildHueEffect()?.let(effects::add)
-        videoColorProcessor.buildBrightnessEffect()?.let(effects::add)
-
-        // Guard: skip scheduling when no effects are active and none were previously installed.
-        if (effects.isEmpty() && !effectsPipelineActive) {
-            Timber.d(
-                "VideoPlayerManager: applyConfiguredVideoEffects — no effects, pipeline already clean, skipping"
-            )
-            return
-        }
-
-        // Cancel any pending deferred call and reschedule with the latest effect list.
-        // The 80 ms window coalesces rapid slider updates into a single pipeline rebuild,
-        // preventing the TexturePool race crash in Media3 1.2.x.
-        pendingEffectsRunnable?.let { effectsHandler.removeCallbacks(it) }
-        val runnable = Runnable {
-            pendingEffectsRunnable = null
-            exoPlayer?.setVideoEffects(effects)
-            effectsPipelineActive = effects.isNotEmpty()
-            Timber.d(
-                "VideoPlayerManager: applyConfiguredVideoEffects applied — " +
-                    "stereo=${stereoVideoProcessor.getCurrentMode()} " +
-                    "hue=${videoColorProcessor.getHueAdjustmentDegrees()} " +
-                    "brightness=${videoColorProcessor.getBrightnessAdjustment()} effects=${effects.size}"
-            )
-        }
-        pendingEffectsRunnable = runnable
-        effectsHandler.postDelayed(runnable, 80L)
-    }
-
-    private fun brightnessProgressToAdjustment(progress: Int): Float =
-        ((progress.coerceIn(0, 100) - DEFAULT_BRIGHTNESS_PROGRESS) / DEFAULT_BRIGHTNESS_PROGRESS.toFloat())
-
-    private fun brightnessAdjustmentToProgress(adjustment: Float): Int =
-        ((adjustment.coerceIn(-1f, 1f) * DEFAULT_BRIGHTNESS_PROGRESS) + DEFAULT_BRIGHTNESS_PROGRESS).toInt()
+    // ═══════════════════════════════════════════════════════════════════════
+    // Public API — Playback dispatch
+    // ═══════════════════════════════════════════════════════════════════════
 
     /**
-     * Play video from path - handles local, network (SMB/S/FTP), and cloud.
+     * Start playback for [path], routing to the correct protocol handler based on [resourceType].
+     * Restores a previously saved position and starts the auto-save loop after setup.
      */
     fun playVideo(
-        path: String, 
-        resourceType: ResourceType, 
+        path: String,
+        resourceType: ResourceType,
         credentialsId: String?,
         playWhenReady: Boolean = true,
         onComplete: () -> Unit = {}
     ) {
         Timber.d("VideoPlayerManager: playVideo - path=$path, type=$resourceType")
 
-        // Auto-detection is file-local state. Reset before every new video so the next
-        // onTracksChanged callback can resolve stereo freshly instead of reusing prior media.
+        // Reset per-file stereo detection before every new video
         playerCallback.onBeforeVideoLoad(path)
-        
-        // Log memory state BEFORE video loading
         logMemoryStats("BEFORE playVideo")
-        
-        // Store current file path for position saving
+
         currentFilePath = path
-        lastSavedPosition = -1L  // Reset last saved position for new file
-        
-        // Stop previous position saving
+        lastSavedPosition = -1L
         stopPositionSaving()
-        
+
         managerScope.launch {
             try {
-                // Restore saved position
                 val savedPosition = playbackPositionRepository.getPosition(path)
-                
-                // Check if this is a format best suited for MediaPlayer (MIDI)
-                // MediaPlayer only supports LOCAL files - cannot handle SMB/S/FTP/Cloud
-                // MIDI: ExoPlayer doesn't support MIDI natively
+
+                // MIDI requires MediaPlayer — ExoPlayer has no native MIDI decoder.
+                // Restrict to LOCAL files: MediaPlayer cannot handle network URIs.
                 val isLocalFile = resourceType == ResourceType.LOCAL
                 val shouldUseMediaPlayer = isLocalFile && (
-                    path.endsWith(".mid", ignoreCase = true) || 
-                    path.endsWith(".midi", ignoreCase = true)
-                )
-                
+                    path.endsWith(".mid", ignoreCase = true) ||
+                        path.endsWith(".midi", ignoreCase = true)
+                    )
+
                 if (shouldUseMediaPlayer) {
-                    Timber.i("VideoPlayerManager: Using MediaPlayer for ${path.substringAfterLast('/')} (forced for this format)")
-                    withContext(Dispatchers.Main) {
-                        playWithMediaPlayer(path)
-                    }
+                    Timber.i("VideoPlayerManager: Using MediaPlayer for ${path.substringAfterLast('/')} (MIDI)")
+                    withContext(Dispatchers.Main) { playWithMediaPlayer(path) }
                     onComplete()
                     return@launch
                 }
@@ -611,14 +497,11 @@ class VideoPlayerManager(
                     ResourceType.FTP -> playFtpVideo(path, credentialsId, playWhenReady)
                     ResourceType.LOCAL -> playLocalVideoInternal(path, playWhenReady)
                 }
-                
-                // Restore position if saved (after media is loaded)
+
                 if (savedPosition != null && savedPosition > 0 && !isUsingMediaPlayer) {
                     withContext(Dispatchers.Main) {
                         exoPlayer?.seekTo(savedPosition)
                         Timber.d("VideoPlayerManager: Restored playback position: ${savedPosition}ms")
-                        
-                        // Show toast notification
                         Toast.makeText(
                             context,
                             context.getString(R.string.playback_resumed_from, formatTime(savedPosition)),
@@ -626,10 +509,8 @@ class VideoPlayerManager(
                         ).show()
                     }
                 }
-                
-                // Start auto-saving position
+
                 startPositionSaving()
-                
                 onComplete()
             } catch (e: Exception) {
                 Timber.e(e, "VideoPlayerManager: Failed to play video")
@@ -638,255 +519,17 @@ class VideoPlayerManager(
             }
         }
     }
-    
-    /**
-     * Determine MIME type from file path extension
-     */
-    private fun getMimeTypeFromPath(path: String): String? {
-        // Cloud URIs (cloud://provider/fileId) have no extension - skip detection
-        if (path.startsWith("cloud://")) return null
-        // content:// URIs have no file extension — use ContentResolver for accurate MIME type
-        if (path.startsWith("content://")) {
-            return try {
-                context.contentResolver.getType(android.net.Uri.parse(path))
-                    .also { Timber.d("VideoPlayerManager.getMimeTypeFromPath: content:// → ContentResolver type=$it") }
-            } catch (e: Exception) {
-                Timber.d("VideoPlayerManager.getMimeTypeFromPath: ContentResolver failed for $path: ${e.message}")
-                null
-            }
-        }
-        // Extract filename from URI path (remove query parameters and fragments)
-        val cleanPath = path.substringBefore('?').substringBefore('#')
-        val extension = cleanPath.substringAfterLast('.', "").lowercase()
-        
-        Timber.d("VideoPlayerManager.getMimeTypeFromPath: path=$path, extension=$extension")
-        
-        return when (extension) {
-            "mp3" -> MimeTypes.AUDIO_MPEG
-            "m4a", "aac", "adts" -> MimeTypes.AUDIO_AAC
-            "flac" -> MimeTypes.AUDIO_FLAC
-            "ogg", "oga" -> MimeTypes.AUDIO_OGG
-            "opus" -> MimeTypes.AUDIO_OPUS
-            "amr" -> MimeTypes.AUDIO_AMR_NB
-            "awb" -> MimeTypes.AUDIO_AMR_WB
-            "ac3" -> MimeTypes.AUDIO_AC3
-            "ec3" -> MimeTypes.AUDIO_E_AC3
-            "ac4" -> MimeTypes.AUDIO_AC4
-            "mka" -> MimeTypes.AUDIO_MATROSKA
-            "alac", "caf" -> MimeTypes.AUDIO_ALAC
-            "mid", "midi" -> MimeTypes.AUDIO_MIDI // Note: requires extension decoder usually
-            "mp4", "m4v" -> MimeTypes.VIDEO_MP4
-            "webm" -> MimeTypes.VIDEO_WEBM
-            "mkv" -> MimeTypes.VIDEO_MATROSKA
-            "ts", "m2ts", "mts" -> MimeTypes.VIDEO_MP2T
-            "ogv" -> MimeTypes.VIDEO_OGG
-            "vob", "mpg", "mpeg", "m2v" -> MimeTypes.VIDEO_MPEG2
-            "divx" -> MimeTypes.VIDEO_DIVX
-            "flv" -> "video/x-flv"  // FLV not natively supported by ExoPlayer
-            else -> {
-                Timber.w("VideoPlayerManager.getMimeTypeFromPath: Unknown extension '$extension' for path: $path")
-                null
-            }
-        }
-    }
 
-    /**
-     * Create MediaItem with explicit MIME type if detectable
-     */
-    private fun createMediaItem(uri: String, path: String): MediaItem {
-        val mimeType = getMimeTypeFromPath(path)
-        
-        Timber.d("VideoPlayerManager.createMediaItem: uri=$uri, path=$path, mimeType=$mimeType")
-        
-        return if (mimeType != null) {
-            val item = MediaItem.Builder()
-                .setUri(uri)
-                .setMimeType(mimeType)
-                .build()
-            Timber.i("VideoPlayerManager.createMediaItem: Created with explicit MIME type: $mimeType")
-            item
-        } else {
-            Timber.w("VideoPlayerManager.createMediaItem: No MIME type detected, using auto-detection")
-            MediaItem.fromUri(uri)
-        }
-    }
+    // ═══════════════════════════════════════════════════════════════════════
+    // Public API — Player controls
+    // ═══════════════════════════════════════════════════════════════════════
 
-    /**
-     * Play local video file
-     */
-    fun playLocalVideo(path: String, playWhenReady: Boolean = true) {
-        managerScope.launch {
-            playLocalVideoInternal(path, playWhenReady)
-        }
-    }
-
-    private suspend fun playLocalVideoInternal(path: String, playWhenReady: Boolean = true) {
-        val normalizedPath = normalizeLocalPath(path)
-        Timber.d("VideoPlayerManager: Playing local video - path=$path, normalizedPath=$normalizedPath")
-        
-        // Validate file exists for local files (IO thread to avoid StrictMode DiskReadViolation)
-        if (!normalizedPath.startsWith("content://")) {
-            val file = File(normalizedPath)
-            val fileCheck = withContext(Dispatchers.IO) {
-                Triple(file.exists(), file.canRead(), if (file.exists()) file.length() else 0L)
-            }
-
-            if (!fileCheck.first) {
-                Timber.w("VideoPlayerManager: Local file does not exist: $normalizedPath (originalPath=$path)")
-                playerCallback.showFileNotFound(file.name)
-                return
-            }
-            if (!fileCheck.second) {
-                // File exists but not readable — try content URI fallback (Android 11+ scoped storage)
-                val contentUri = resolveContentUriForPath(normalizedPath)
-                if (contentUri != null) {
-                    Timber.i("VideoPlayerManager: File not readable via path, using content URI fallback: $contentUri")
-                    playLocalVideoInternal(contentUri, playWhenReady)
-                    return
-                }
-                Timber.e("VideoPlayerManager: Cannot read local file: $normalizedPath (originalPath=$path)")
-                playerCallback.showError(context.getString(R.string.cannot_read_file, file.name))
-                return
-            }
-            Timber.d("VideoPlayerManager: File exists and readable: ${file.name}, size=${fileCheck.third} bytes")
-        }
-        
-        if (exoPlayer == null && currentPlayerView != null) {
-            createPlayer(currentPlayerView!!)
-        }
-        
-        exoPlayer?.apply {
-            val uri = if (normalizedPath.startsWith("content://")) {
-                normalizedPath
-            } else {
-                File(normalizedPath).toURI().toString()
-            }
-            
-            Timber.d("VideoPlayerManager: Setting media item for URI: $uri")
-            setMediaItem(createMediaItem(uri, normalizedPath))
-            prepare()
-            this.playWhenReady = playWhenReady
-        }
-        
-        Timber.d("VideoPlayerManager: Local video setup complete")
-    }
-
-    private suspend fun resolveContentUriForPath(filePath: String): String? = withContext(Dispatchers.IO) {
-        try {
-            val uri = MediaStore.Files.getContentUri("external")
-            val projection = arrayOf(MediaStore.Files.FileColumns._ID)
-            val selection = "${MediaStore.Files.FileColumns.DATA} = ?"
-            val selectionArgs = arrayOf(filePath)
-            context.contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val id = cursor.getLong(0)
-                    ContentUris.withAppendedId(uri, id).toString()
-                } else null
-            }
-        } catch (e: Exception) {
-            Timber.w(e, "VideoPlayerManager: Failed to resolve content URI for $filePath")
-            null
-        }
-    }
-
-    private fun normalizeLocalPath(path: String): String {
-        if (path.startsWith("content://")) {
-            return path
-        }
-
-        if (path.startsWith("file:", ignoreCase = true)) {
-            return try {
-                Uri.parse(path).path?.takeIf { it.isNotBlank() } ?: path
-            } catch (e: Exception) {
-                Timber.w(e, "VideoPlayerManager: Failed to normalize file URI, using original path")
-                path
-            }
-        }
-
-        return path
-    }
-    
-    /**
-     * Retry playback after error - restores position
-     */
-    private fun retryPlayback() {
-        exoPlayer?.seekTo(lastPlaybackPosition)
-        exoPlayer?.prepare()
-        exoPlayer?.play()
-    }
-    
-    /**
-     * Get current audio format information
-     */
-    fun getAudioFormat(): AudioFormat? {
-        val player = exoPlayer ?: return null
-        
-        // Extract audio format from current track selection
-        val currentTracks = player.currentTracks
-        val audioTrack = currentTracks.groups.firstOrNull { 
-            it.type == androidx.media3.common.C.TRACK_TYPE_AUDIO 
-        }?.getTrackFormat(0) ?: return null
-        
-        return AudioFormat(
-            codec = audioTrack.sampleMimeType ?: "Unknown",
-            sampleRate = audioTrack.sampleRate,
-            channelCount = audioTrack.channelCount,
-            bitrate = audioTrack.bitrate
-        )
-    }
-    
-    /**
-     * Release player resources
-     */
-    fun releasePlayer() {
-        // Skip if already released (prevent redundant calls)
-        if (exoPlayer == null && activeResourceKey == null) {
-            return
-        }
-
-        // Cancel any pending effects pipeline update — player is going away.
-        pendingEffectsRunnable?.let { effectsHandler.removeCallbacks(it) }
-        pendingEffectsRunnable = null
-
-        Timber.d("VideoPlayerManager: releasePlayer() called. exoPlayer=${if(exoPlayer != null) "NOT_NULL" else "NULL"}, isActive=$activeResourceKey")
-        exoPlayer?.let { player ->
-            player.removeListener(playerListener)
-            player.release()
-            exoPlayer = null
-            Timber.d("VideoPlayerManager: ExoPlayer released")
-        }
-        
-        releaseMediaPlayer()
-        
-        // Cancel health monitoring
-        cancelPlaybackHealthCheck()
-        
-        // Deactivate video player mode - resume thumbnail loading
-        activeResourceKey?.let { key ->
-            ConnectionThrottleManager.deactivateVideoPlayerMode(key)
-            activeResourceKey = null
-        }
-        
-        // Cancel any pending retries
-        retryRunnable?.let { retryHandler.removeCallbacks(it) }
-        retryRunnable = null
-    }
-    
-    /**
-     * Get current ExoPlayer instance
-     */
     fun getPlayer(): ExoPlayer? = exoPlayer
-    
-    /**
-     * Set repeat mode
-     */
+
     fun setRepeatMode(repeatMode: Int) {
         exoPlayer?.repeatMode = repeatMode
     }
-    
-    /**
-     * Pause playback
-     */
+
     fun pause() {
         saveCurrentPosition()
         if (isUsingMediaPlayer) {
@@ -895,57 +538,33 @@ class VideoPlayerManager(
             exoPlayer?.pause()
         }
     }
-    
-    /**
-     * Play
-     */
+
     fun play() {
-        if (isUsingMediaPlayer) {
-            mediaPlayer?.start()
-        } else {
-            exoPlayer?.play()
-        }
+        if (isUsingMediaPlayer) mediaPlayer?.start() else exoPlayer?.play()
     }
-    
-    /**
-     * Set playback speed
-     */
+
     fun setPlaybackSpeed(speed: Float) {
-        Timber.d("VideoPlayerManager: setPlaybackSpeed ${speed}x (exoPlayer=${if(exoPlayer != null) "active" else "null"})")
+        Timber.d("VideoPlayerManager: setPlaybackSpeed ${speed}x")
         exoPlayer?.setPlaybackSpeed(speed)
-        // Persist so applyPlayerSettings() can restore the value after onPlaybackReady() fires
-        // for each new media item (which would otherwise reset to the PlayerSettingsDialog default).
+        // Persist so applyPlayerSettings() restores speed after onPlaybackReady() for each item
         playbackControlPrefs.edit().putFloat(PlaybackControlPreferences.KEY_SPEED, speed).apply()
     }
 
-    /**
-     * Apply UI PlayerSettingsDialog settings to ExoPlayer.
-     */
+    /** Apply [PlayerSettingsDialog.PlayerSettings] to the active ExoPlayer instance. */
     fun applyPlayerSettings(settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) {
         val player = exoPlayer ?: return
-
-        // Prefer the speed persisted by the Control dialog over the session default from
-        // PlayerSettingsDialog.PlayerSettings (which is always 1.0f because that dialog is no
-        // longer shown). Fall back to settings.playbackSpeed only when no Control-dialog value
-        // has been saved yet (first launch, or prefs cleared).
+        // Prefer speed persisted by Control dialog; fall back to settings.playbackSpeed on first launch
         val savedSpeed = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_SPEED, -1f)
         val speedToApply = if (savedSpeed > 0f) savedSpeed else settings.playbackSpeed
         exoPlayer?.setPlaybackSpeed(speedToApply)
         Timber.d("VideoPlayerManager: Set playback speed to ${speedToApply}x (saved=$savedSpeed, settings=${settings.playbackSpeed})")
-
-        setRepeatMode(
-            if (settings.repeatVideo) {
-                Player.REPEAT_MODE_ONE
-            } else {
-                Player.REPEAT_MODE_OFF
-            }
-        )
-        Timber.d("VideoPlayerManager: Set repeat mode to ${if (settings.repeatVideo) "ONE" else "OFF"}")
-
+        setRepeatMode(if (settings.repeatVideo) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF)
         trackSelectionManager.applyTrackSelection(player, settings, appLanguage)
     }
 
-    // === Track Selection — delegated to VideoTrackSelectionManager ===
+    // ═══════════════════════════════════════════════════════════════════════
+    // Public API — Track selection (delegated to VideoTrackSelectionManager)
+    // ═══════════════════════════════════════════════════════════════════════
 
     /** Track info for display in quick-switcher dialogs. */
     data class TrackInfo(
@@ -955,17 +574,16 @@ class VideoPlayerManager(
         val isSelected: Boolean
     )
 
-    private fun applyTrackSelection(player: ExoPlayer, settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) =
-        trackSelectionManager.applyTrackSelection(player, settings, appLanguage)
-
     fun applySubtitleStyle(fontSize: TranslationFontSize, fontFamily: TranslationFontFamily) =
         trackSelectionManager.applySubtitleStyle(fontSize, fontFamily)
 
     fun getAvailableAudioTracks(): List<TrackInfo> =
-        trackSelectionManager.getAvailableAudioTracks().map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+        trackSelectionManager.getAvailableAudioTracks()
+            .map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
 
     fun getAvailableSubtitleTracks(): List<TrackInfo> =
-        trackSelectionManager.getAvailableSubtitleTracks().map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+        trackSelectionManager.getAvailableSubtitleTracks()
+            .map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
 
     fun selectAudioTrack(groupIndex: Int, trackIndex: Int) =
         trackSelectionManager.selectAudioTrack(groupIndex, trackIndex)
@@ -976,658 +594,70 @@ class VideoPlayerManager(
     fun hasMultipleAudioTracks(): Boolean = trackSelectionManager.hasMultipleAudioTracks()
 
     fun hasSubtitleTracks(): Boolean = trackSelectionManager.hasSubtitleTracks()
-    
-    // === Protocol-specific playback methods ===
-    
-    /**
-     * Play video from Google Drive (Cloud)
-     */
-    private fun playCloudVideo(path: String, playWhenReady: Boolean) {
-        val fileId = path.substringAfterLast("/")
-        if (fileId.isEmpty() || fileId == path) {
-            Timber.e("VideoPlayerManager: Invalid cloud path, no fileId")
-            playerCallback.showError("Invalid cloud file path")
-            return
-        }
-        
-        Timber.d("VideoPlayerManager: Playing cloud video - fileId=$fileId")
-        releasePlayer()
-        
-        val clients = mapOf(
-            "googledrive" to googleDriveClient,
-            "onedrive" to oneDriveClient,
-            "dropbox" to dropboxClient
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Audio format info
+    // ═══════════════════════════════════════════════════════════════════════
+
+    fun getAudioFormat(): AudioFormat? {
+        val player = exoPlayer ?: return null
+        val audioTrack = player.currentTracks.groups
+            .firstOrNull { it.type == C.TRACK_TYPE_AUDIO }
+            ?.getTrackFormat(0) ?: return null
+        return AudioFormat(
+            codec = audioTrack.sampleMimeType ?: "Unknown",
+            sampleRate = audioTrack.sampleRate,
+            channelCount = audioTrack.channelCount,
+            bitrate = audioTrack.bitrate
         )
-        val dataSourceFactory = CloudDataSourceFactory(clients)
-        
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                CLOUD_MIN_BUFFER_MS,
-                CLOUD_MAX_BUFFER_MS,
-                CLOUD_BUFFER_FOR_PLAYBACK_MS,
-                CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            )
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-        
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .setUsage(C.USAGE_MEDIA)
-            .build()
-        
-        exoPlayer = ExoPlayer.Builder(context)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(dataSourceFactory as DataSource.Factory)
-            )
-            .setLoadControl(loadControl)
-            .setAudioAttributes(audioAttributes, true)
-            .build()
-        
-        exoPlayer?.addListener(playerListener)
-        currentPlayerView?.player = exoPlayer
-        
-        val cloudUri = PathUtils.safeParseUri(path)
-        val mediaItem = createMediaItem(cloudUri.toString(), path)
-        exoPlayer?.setMediaItem(mediaItem)
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Internal helpers
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /** Re-prepare and resume from [lastPlaybackPosition] after an EOF retry. */
+    private fun retryPlayback() {
+        exoPlayer?.seekTo(lastPlaybackPosition)
         exoPlayer?.prepare()
-        exoPlayer?.playWhenReady = playWhenReady
-        
-        Timber.i("VideoPlayerManager: Cloud video setup complete - fileId=$fileId")
+        exoPlayer?.play()
     }
-    
-    /**
-     * Play video from SMB share
-     */
-    /**
-     * Play video from SMB share
-     */
-    private suspend fun playSmbVideo(path: String, credentialsId: String?, playWhenReady: Boolean) {
-        if (credentialsId == null) {
-            Timber.e("VideoPlayerManager: No credentials for SMB")
-            playerCallback.showError("No credentials found")
-            return
-        }
-        
-        val credentials = credentialsRepository.getByCredentialId(credentialsId)
-        if (credentials == null) {
-            Timber.e("VideoPlayerManager: Credentials not found in DB")
-            playerCallback.showError("Credentials not found")
-            return
-        }
-        
-        Timber.d("VideoPlayerManager: Playing SMB video - server=${credentials.server}, path=$path")
-        releasePlayer()
-        
-        // Parse path to extract correct share name (might differ from credentials default share)
-        val pathInfo = com.sza.fastmediasorter.utils.SmbPathUtils.parseSmbPath(path)
-        
-        // Use share from path if available, otherwise fallback to credentials share
-        val targetShare = pathInfo?.connectionInfo?.shareName?.ifEmpty { null } ?: credentials.shareName ?: ""
-        val targetRemotePath = pathInfo?.remotePath ?: ""
-        
-        if (targetShare.isEmpty()) {
-            Timber.e("VideoPlayerManager: Could not determine share name for SMB playback")
-            playerCallback.showError("Invalid SMB path: missing share name")
-            return
-        }
-        
-        Timber.d("VideoPlayerManager: Resolved SMB target - share='$targetShare', remotePath='$targetRemotePath'")
-        
-        val connectionInfo = SmbConnectionInfo(
-            server = credentials.server,
-            shareName = targetShare,
-            username = credentials.username,
-            password = credentials.password,
-            domain = credentials.domain,
-            port = credentials.port
-        )
-        
-        // Activate video player priority mode
-        val resourceKey = "smb://${credentials.server}:${credentials.port}"
-        activeResourceKey = resourceKey
-        ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
-        
-        val dataSourceFactory = SmbDataSourceFactory(smbClient, connectionInfo)
-        
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                MIN_BUFFER_MS,
-                MAX_BUFFER_MS,
-                BUFFER_FOR_PLAYBACK_MS,
-                BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            )
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-        
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .setUsage(C.USAGE_MEDIA)
-            .build()
-        
-        exoPlayer = ExoPlayer.Builder(context)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(dataSourceFactory as DataSource.Factory)
-            )
-            .setLoadControl(loadControl)
-            .setAudioAttributes(audioAttributes, true)
-            .build()
-        
-        exoPlayer?.addListener(playerListener)
-        currentPlayerView?.player = exoPlayer
-        
-        // Construct clean SMB URI for ExoPlayer/SmbDataSource
-        // We need to pass the FULL path including share so SmbDataSource can verify/log it,
-        // but SmbDataSource logic handles stripping share if needed.
-        // Actually SmbDataSource expects: /share/path/to/file in the URI path.
-        
-        // Encode path segments (preserve # and special chars)
-        val encodedPath = targetRemotePath.split("/")
-            .joinToString("/") { segment ->
-                Uri.encode(segment, "@")
-            }
-        
-        // The URI path should start with /shareName/path/to/file
-        val finalUriPath = "/$targetShare/$encodedPath"
-        
-        val smbUri = Uri.Builder()
-            .scheme("smb")
-            .authority(credentials.server)
-            .encodedPath(finalUriPath)
-            .build()
-        
-        Timber.d("VideoPlayerManager: Created SMB URI=$smbUri")
-        
-        val mediaItem = createMediaItem(smbUri.toString(), path)
-        exoPlayer?.setMediaItem(mediaItem)
-        exoPlayer?.prepare()
-        exoPlayer?.playWhenReady = playWhenReady
-        
-        Timber.i("VideoPlayerManager: SMB video setup complete")
-    }
-    
-    /**
-     * Play video from SFTP server
-     */
-    private suspend fun playSftpVideo(path: String, credentialsId: String?, playWhenReady: Boolean) {
-        if (credentialsId == null) {
-            Timber.e("VideoPlayerManager: No credentials for SFTP")
-            playerCallback.showError("No credentials found")
-            return
-        }
-        
-        val credentials = credentialsRepository.getByCredentialId(credentialsId)
-        if (credentials == null) {
-            Timber.e("VideoPlayerManager: Credentials not found in DB")
-            playerCallback.showError("Credentials not found")
-            return
-        }
-        
-        Timber.d("VideoPlayerManager: Playing SFTP video - server=${credentials.server}")
-        releasePlayer()
-        
-        // Activate video player priority mode
-        val resourceKey = "sftp://${credentials.server}:${credentials.port}"
-        activeResourceKey = resourceKey
-        ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
-        
-        val dataSourceFactory = SftpDataSourceFactory(
-            sftpClient,
-            credentials.server,
-            credentials.port,
-            credentials.username,
-            credentials.password
-        )
-        
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                MIN_BUFFER_MS,
-                MAX_BUFFER_MS,
-                BUFFER_FOR_PLAYBACK_MS,
-                BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            )
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-        
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .setUsage(C.USAGE_MEDIA)
-            .build()
-        
-        exoPlayer = ExoPlayer.Builder(context)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(dataSourceFactory as DataSource.Factory)
-            )
-            .setLoadControl(loadControl)
-            .setAudioAttributes(audioAttributes, true)
-            .build()
-        
-        exoPlayer?.addListener(playerListener)
-        currentPlayerView?.player = exoPlayer
-        
-        // Construct SFTP URI with encoded path
-        val rawUri = if (path.startsWith("sftp://")) {
-            path
-        } else {
-            "sftp://${credentials.server}:${credentials.port}$path"
-        }
-        
-        val parsedUri = PathUtils.safeParseUri(rawUri)
-        val encodedPath = parsedUri.path?.split("/")
-            ?.joinToString("/") { segment ->
-                if (segment.isEmpty()) "" else Uri.encode(segment, "@")
-            } ?: ""
-        
-        val sftpUri = Uri.Builder()
-            .scheme("sftp")
-            .authority(parsedUri.authority)
-            .encodedPath(encodedPath)
-            .build()
-        
-        Timber.d("VideoPlayerManager: SFTP URI=$sftpUri")
-        
-        val mediaItem = createMediaItem(sftpUri.toString(), path)
-        exoPlayer?.setMediaItem(mediaItem)
-        exoPlayer?.prepare()
-        exoPlayer?.playWhenReady = playWhenReady
-        
-        Timber.i("VideoPlayerManager: SFTP video setup complete")
-    }
-    
-    /**
-     * Play video from FTP server
-     */
-    private suspend fun playFtpVideo(path: String, credentialsId: String?, playWhenReady: Boolean) {
-        if (credentialsId == null) {
-            Timber.e("VideoPlayerManager: No credentials for FTP")
-            playerCallback.showError("No credentials found")
-            return
-        }
-        
-        val credentials = credentialsRepository.getByCredentialId(credentialsId)
-        if (credentials == null) {
-            Timber.e("VideoPlayerManager: Credentials not found in DB")
-            playerCallback.showError("Credentials not found")
-            return
-        }
-        
-        Timber.d("VideoPlayerManager: Playing FTP video - server=${credentials.server}")
-        releasePlayer()
-        
-        // Activate video player priority mode
-        val resourceKey = "ftp://${credentials.server}:${credentials.port}"
-        activeResourceKey = resourceKey
-        ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
-        
-        val dataSourceFactory = FtpDataSourceFactory(
-            ftpClient,
-            credentials.server,
-            credentials.port,
-            credentials.username,
-            credentials.password
-        )
-        
-        val loadControl = DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                MIN_BUFFER_MS,
-                MAX_BUFFER_MS,
-                2500,  // FTP: Lower initial buffer
-                5000   // FTP: Lower rebuffer
-            )
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-        
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .setUsage(C.USAGE_MEDIA)
-            .build()
-        
-        exoPlayer = ExoPlayer.Builder(context)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(dataSourceFactory as DataSource.Factory)
-            )
-            .setLoadControl(loadControl)
-            .setAudioAttributes(audioAttributes, true)
-            .build()
-        
-        exoPlayer?.addListener(playerListener)
-        currentPlayerView?.player = exoPlayer
-        
-        // Construct FTP URI with encoded path
-        val parsedUri = PathUtils.safeParseUri(path)
-        val encodedPath = parsedUri.path?.split("/")
-            ?.joinToString("/") { segment ->
-                if (segment.isEmpty()) "" else Uri.encode(segment, "@")
-            } ?: ""
-        
-        val ftpUri = Uri.Builder()
-            .scheme("ftp")
-            .authority(parsedUri.authority)
-            .encodedPath(encodedPath)
-            .build()
-        
-        Timber.d("VideoPlayerManager: FTP URI=$ftpUri")
-        
-        val mediaItem = createMediaItem(ftpUri.toString(), path)
-        exoPlayer?.setMediaItem(mediaItem)
-        exoPlayer?.prepare()
-        exoPlayer?.playWhenReady = playWhenReady
-        
-        Timber.i("VideoPlayerManager: FTP video setup complete")
-    }
-    
-    // === Playback Position Management ===
-    
-    /**
-     * Start auto-saving playback position every 5 seconds
-     */
-    private fun startPositionSaving() {
-        stopPositionSaving()
-        
-        positionSaveRunnable = object : Runnable {
-            override fun run() {
-                saveCurrentPosition()
-                retryHandler.postDelayed(this, POSITION_SAVE_INTERVAL_MS)
-            }
-        }
-        
-        retryHandler.postDelayed(positionSaveRunnable!!, POSITION_SAVE_INTERVAL_MS)
-        Timber.d("VideoPlayerManager: Started position auto-save")
-    }
-    
-    /**
-     * Stop auto-saving playback position
-     */
-    private fun stopPositionSaving() {
-        positionSaveRunnable?.let {
-            retryHandler.removeCallbacks(it)
-            positionSaveRunnable = null
-            Timber.d("VideoPlayerManager: Stopped position auto-save")
-        }
-    }
-    
-    /**
-     * Save current playback position to database
-     */
-    private fun saveCurrentPosition() {
-        val path = currentFilePath ?: return
-        val player = exoPlayer ?: return
-        
-        val position = player.currentPosition
-        val duration = player.duration
-        
-        // Skip save if position hasn't changed (e.g., paused)
-        if (position == lastSavedPosition) {
-            return
-        }
-        
-        if (duration > 0 && position >= 0) {
-            lastSavedPosition = position
-            managerScope.launch(Dispatchers.IO) {
-                try {
-                    playbackPositionRepository.savePosition(path, position, duration)
-                } catch (e: Exception) {
-                    Timber.e(e, "VideoPlayerManager: Failed to save position")
-                }
-            }
-            onPositionSaved?.invoke()
-        }
-    }
-    
-    /**
-     * Seek forward by specified seconds
-     */
-    fun seekForward(seconds: Int) {
+
+    /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
+    fun releasePlayer() {
+        if (exoPlayer == null && activeResourceKey == null) return
+
+        pendingEffectsRunnable?.let { effectsHandler.removeCallbacks(it) }
+        pendingEffectsRunnable = null
+
+        Timber.d("VideoPlayerManager: releasePlayer() — exoPlayer=${if (exoPlayer != null) "NOT_NULL" else "NULL"}, resourceKey=$activeResourceKey")
+
         exoPlayer?.let { player ->
-            val newPosition = (player.currentPosition + seconds * 1000).coerceAtMost(player.duration)
-            player.seekTo(newPosition)
-            Timber.d("VideoPlayerManager: Seek forward ${seconds}s to ${newPosition}ms")
+            player.removeListener(playerListener)
+            player.release()
+            exoPlayer = null
+            Timber.d("VideoPlayerManager: ExoPlayer released")
         }
-    }
-    
-    /**
-     * Seek backward by specified seconds
-     */
-    fun seekBackward(seconds: Int) {
-        exoPlayer?.let { player ->
-            val newPosition = (player.currentPosition - seconds * 1000).coerceAtLeast(0)
-            player.seekTo(newPosition)
-            Timber.d("VideoPlayerManager: Seek backward ${seconds}s to ${newPosition}ms")
-        }
-    }
-    
-    /**
-     * Format time in milliseconds to MM:SS or HH:MM:SS
-     */
-    private fun formatTime(millis: Long): String {
-        val totalSeconds = millis / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        val seconds = totalSeconds % 60
-        
-        return if (hours > 0) {
-            String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
-        }
-    }
-    
-    /**
-     * Start monitoring playback health to detect "white noise" / stuck playback issues
-     * This checks if playback position is actually progressing after STATE_READY
-     */
-    private fun startPlaybackHealthCheck() {
-        // Cancel any existing check
+
+        releaseMediaPlayer()
         cancelPlaybackHealthCheck()
-        
-        // Only check for audio files (FLAC, AC3, etc.)
-        val isAudioFile = currentFilePath?.let { path ->
-            path.endsWith(".flac", ignoreCase = true) ||
-            path.endsWith(".ac3", ignoreCase = true) ||
-            path.endsWith(".eac3", ignoreCase = true) ||
-            path.endsWith(".wv", ignoreCase = true)
-        } ?: false
-        
-        if (!isAudioFile || isUsingMediaPlayer) {
-            return
+
+        activeResourceKey?.let { key ->
+            ConnectionThrottleManager.deactivateVideoPlayerMode(key)
+            activeResourceKey = null
         }
-        
-        // Record initial position
-        lastCheckedPosition = exoPlayer?.currentPosition ?: 0L
-        
-        playbackHealthCheckRunnable = Runnable {
-            checkPlaybackHealth()
-        }
-        
-        // Schedule check after delay
-        retryHandler.postDelayed(playbackHealthCheckRunnable!!, PLAYBACK_HEALTH_CHECK_DELAY_MS)
-        Timber.d("VideoPlayerManager: Started playback health monitoring for audio file")
+
+        retryRunnable?.let { retryHandler.removeCallbacks(it) }
+        retryRunnable = null
     }
-    
-    /**
-     * Check if playback is progressing or stuck
-     */
-    private fun checkPlaybackHealth() {
-        val player = exoPlayer ?: return
-        
-        // Check if player is actually playing
-        if (!player.isPlaying || player.playbackState != Player.STATE_READY) {
-            Timber.d("VideoPlayerManager: Health check skipped - player not playing or not ready")
-            return
-        }
-        
-        val currentPosition = player.currentPosition
-        val positionDelta = currentPosition - lastCheckedPosition
-        
-        Timber.d("VideoPlayerManager: Health check - position delta: ${positionDelta}ms (from ${lastCheckedPosition}ms to ${currentPosition}ms)")
-        
-        // If position hasn't changed significantly (< 500ms progress in 2 seconds)
-        // this indicates playback is stuck (white noise scenario)
-        if (positionDelta < 500) {
-            playbackStuckCount++
-            Timber.w("VideoPlayerManager: Playback appears stuck! Stuck count: $playbackStuckCount/$MAX_PLAYBACK_STUCK_COUNT")
-            
-            if (playbackStuckCount >= MAX_PLAYBACK_STUCK_COUNT && currentFilePath != null) {
-                Timber.e("VideoPlayerManager: Playback confirmed stuck (white noise), falling back to MediaPlayer")
-                
-                // Show toast to user
-                Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(
-                        context,
-                        "Audio playback issue detected, switching to alternative player...",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    
-                    // Switch to MediaPlayer
-                    playWithMediaPlayer(currentFilePath!!)
-                }
-                return
-            }
-            
-            // Schedule another check
-            lastCheckedPosition = currentPosition
-            retryHandler.postDelayed(playbackHealthCheckRunnable!!, PLAYBACK_HEALTH_CHECK_DELAY_MS)
-        } else {
-            // Playback is healthy, reset stuck counter
-            playbackStuckCount = 0
-            Timber.d("VideoPlayerManager: Playback is healthy")
-            cancelPlaybackHealthCheck()
-        }
-    }
-    
-    /**
-     * Cancel playback health monitoring
-     */
-    private fun cancelPlaybackHealthCheck() {
-        playbackHealthCheckRunnable?.let {
-            retryHandler.removeCallbacks(it)
-            playbackHealthCheckRunnable = null
-            playbackStuckCount = 0
-            Timber.d("VideoPlayerManager: Cancelled playback health monitoring")
-        }
-    }
-    
-    /**
-     * Fallback player using Android MediaPlayer for formats ExoPlayer cannot handle
-     */
-    private fun playWithMediaPlayer(path: String) {
-        try {
-            // Cancel any health monitoring
-            cancelPlaybackHealthCheck()
-            
-            isUsingMediaPlayer = true
-            releaseMediaPlayer()
-            
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(path)
-                setOnPreparedListener {
-                    playerCallback.onPlaybackReady()
-                    playerCallback.onBuffering(false)
-                    start()
-                }
-                setOnCompletionListener {
-                    playerCallback.onPlaybackEnded()
-                }
-                setOnErrorListener { _, what, extra ->
-                    Timber.e("MediaPlayer error: what=$what, extra=$extra, file=$path")
-                    
-                    // MediaPlayer error codes (what):
-                    // MEDIA_ERROR_UNKNOWN = 1 - Unspecified media player error
-                    // MEDIA_ERROR_SERVER_DIED = 100 - Media server died
-                    //
-                    // MediaPlayer extra error codes (extra):
-                    // MEDIA_ERROR_IO = -1004 - File or network related I/O error
-                    // MEDIA_ERROR_MALFORMED = -1007 - Bitstream is not conforming to spec
-                    // MEDIA_ERROR_UNSUPPORTED = -1010 - Format not supported
-                    // MEDIA_ERROR_TIMED_OUT = -110 - Operation timed out
-                    
-                    val errorMessage = buildString {
-                        append("MediaPlayer fallback failed\n\n")
-                        
-                        // Decode 'what' error code
-                        append("Error type: ")
-                        when (what) {
-                            1 -> append("Unknown error")
-                            100 -> append("Media server died")
-                            else -> append("Code $what")
-                        }
-                        append("\n\n")
-                        
-                        // Decode 'extra' error code (more specific)
-                        when (extra) {
-                            -1004 -> {
-                                append("Issue: I/O error - file may be corrupted, incomplete, or inaccessible")
-                                append("\n\nTroubleshooting:")
-                                append("\n• Check if file is complete (not partially downloaded)")
-                                append("\n• Verify file is not corrupted")
-                                append("\n• For network files: check connection stability")
-                            }
-                            -1007 -> {
-                                append("Issue: File format is malformed or corrupted")
-                                append("\n\nThe file structure doesn't conform to media specifications.")
-                                append("\n\nTroubleshooting:")
-                                append("\n• File may be damaged or incomplete")
-                                append("\n• Try re-downloading or re-encoding the file")
-                                append("\n• Check if file was properly transferred")
-                            }
-                            -1010 -> {
-                                append("Issue: Format not supported")
-                                append("\n\nThis file format/codec is not supported by MediaPlayer.")
-                                append("\n\nTroubleshooting:")
-                                append("\n• Try opening in external media player")
-                                append("\n• Consider converting to a standard format (MP4, H.264)")
-                            }
-                            -110 -> {
-                                append("Issue: Operation timed out")
-                                append("\n\nTroubleshooting:")
-                                append("\n• Check network connection")
-                                append("\n• Verify server is responsive")
-                                append("\n• Try again later")
-                            }
-                            else -> {
-                                append("Details: Extra error code: $extra")
-                                append("\n\nFile may be corrupted, incomplete, or in unsupported format.")
-                            }
-                        }
-                        
-                        append("\n\nFile: ${path.substringAfterLast('/')}")
-                    }
-                    
-                    playerCallback.showError(errorMessage)
-                    true
-                }
-                prepareAsync()
-            }
-            
-            playerCallback.onBuffering(true)
-            Timber.i("VideoPlayerManager: Using MediaPlayer fallback for: $path")
-        } catch (e: Exception) {
-            Timber.e(e, "VideoPlayerManager: MediaPlayer fallback failed")
-            playerCallback.showError("Failed to play with MediaPlayer: ${e.message}")
-            isUsingMediaPlayer = false
-        }
-    }
-    
-    /**
-     * Release MediaPlayer resources
-     */
-    private fun releaseMediaPlayer() {
-        mediaPlayer?.apply {
-            try {
-                if (isPlaying) stop()
-                release()
-            } catch (e: Exception) {
-                Timber.e(e, "Error releasing MediaPlayer")
-            }
-        }
-        mediaPlayer = null
-        isUsingMediaPlayer = false
-    }
-    
-    // === Lifecycle callbacks ===
-    
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Lifecycle
+    // ═══════════════════════════════════════════════════════════════════════
+
     override fun onPause(owner: LifecycleOwner) {
-        wasPlayingBeforePause = exoPlayer?.isPlaying == true || (isUsingMediaPlayer && mediaPlayer?.isPlaying == true)
-        // Save position before pausing
+        wasPlayingBeforePause = exoPlayer?.isPlaying == true ||
+            (isUsingMediaPlayer && mediaPlayer?.isPlaying == true)
         pause()
         stopPositionSaving()
     }
@@ -1642,26 +672,19 @@ class VideoPlayerManager(
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
-        // Final position save
         saveCurrentPosition()
         stopPositionSaving()
 
         val playerToRelease = exoPlayer
         exoPlayer = null
-
         val mediaPlayerToRelease = mediaPlayer
         mediaPlayer = null
         isUsingMediaPlayer = false
 
-        try {
-            playerToRelease?.removeListener(playerListener)
-        } catch (e: Exception) {
+        try { playerToRelease?.removeListener(playerListener) } catch (e: Exception) {
             Timber.w(e, "VideoPlayerManager: Failed to remove listener")
         }
-
-        try {
-            currentPlayerView?.player = null
-        } catch (e: Exception) {
+        try { currentPlayerView?.player = null } catch (e: Exception) {
             Timber.w(e, "VideoPlayerManager: Failed to detach PlayerView")
         }
 
@@ -1675,21 +698,16 @@ class VideoPlayerManager(
         retryRunnable?.let { retryHandler.removeCallbacks(it) }
         retryRunnable = null
 
-        // Release ExoPlayer on main thread to avoid IllegalStateException
-        try {
-            playerToRelease?.release()
-        } catch (e: Exception) {
+        // Release ExoPlayer on the main thread to avoid IllegalStateException
+        try { playerToRelease?.release() } catch (e: Exception) {
             Timber.e(e, "VideoPlayerManager: Error releasing ExoPlayer")
         }
 
-        // Release MediaPlayer in background thread (safe)
+        // Release MediaPlayer on a background thread (no UI interaction needed)
         Thread {
             try {
                 mediaPlayerToRelease?.apply {
-                    try {
-                        if (isPlaying) stop()
-                    } catch (_: Exception) {
-                    }
+                    try { if (isPlaying) stop() } catch (_: Exception) { }
                     release()
                 }
             } catch (e: Exception) {
@@ -1699,37 +717,5 @@ class VideoPlayerManager(
 
         videoColorProcessor.release()
         lifecycle.removeObserver(this)
-    }
-    
-    /**
-     * Logs current memory usage for debugging memory leaks during video playback.
-     * Tracks heap memory, native memory, and provides context for log filtering.
-     * 
-     * @param context Contextual description (e.g., "BEFORE playVideo", "AFTER first frame")
-     */
-    private fun logMemoryStats(context: String) {
-        try {
-            val runtime = Runtime.getRuntime()
-            
-            // Heap memory stats (in MB)
-            val totalMemory = runtime.totalMemory() / (1024 * 1024)
-            val freeMemory = runtime.freeMemory() / (1024 * 1024)
-            val maxMemory = runtime.maxMemory() / (1024 * 1024)
-            val usedMemory = totalMemory - freeMemory
-            val percentUsed = (usedMemory * 100) / maxMemory
-            
-            // Native memory (approximate)
-            val nativeHeapSize = android.os.Debug.getNativeHeapSize() / (1024 * 1024)
-            val nativeHeapAllocated = android.os.Debug.getNativeHeapAllocatedSize() / (1024 * 1024)
-            val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
-            
-            Timber.i(
-                "MEMORY_DEBUG [$context] | " +
-                "Heap: ${usedMemory}MB/${maxMemory}MB (${percentUsed}%) | " +
-                "Native: ${nativeHeapAllocated}MB/${nativeHeapSize}MB (free: ${nativeHeapFree}MB)"
-            )
-        } catch (e: Exception) {
-            Timber.w(e, "MEMORY_DEBUG: Failed to log memory stats (VideoPlayer)")
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.render
 
+import com.sza.fastmediasorter.domain.model.StereoMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -15,6 +16,8 @@ class NoOpStaticImageRenderer : StaticImageRenderer {
     override suspend fun prefetch(targets: List<RenderTarget>) = Unit
 
     override fun setMode(mode: RendererMode) = Unit
+
+    override fun setStereoMode(mode: StereoMode) = Unit
 
     override fun onPause() = Unit
 

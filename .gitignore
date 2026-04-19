@@ -152,6 +152,7 @@ downloads/
 V1/
 v2_6/
 spec_v2/
+temp/
 
 # ============================================================================
 # EXTERNAL DEPENDENCIES
@@ -244,3 +245,4 @@ test_credentials.json
 **/test_media/test_credentials.json
 sza_resources.xml .gradle_temp/
 .gradle_temp/
+.playwright-mcp/

@@ -185,6 +185,14 @@ class ImageLoadingManager(
     }
 
     /**
+     * Set stereo crop mode for 3D images. Delegates to the underlying renderer.
+     * SBS crops to left half, OU crops to top half, MONO = no crop.
+     */
+    fun setStereoMode(mode: com.sza.fastmediasorter.domain.model.StereoMode) {
+        staticImageRenderer.setStereoMode(mode)
+    }
+
+    /**
      * Enable or disable the dynamic background extension effect.
      * When enabled, a [DynamicBackgroundProcessor] is created and attached to [ivDynamicBackground].
      * When disabled, the processor is cleared and the background view is hidden.

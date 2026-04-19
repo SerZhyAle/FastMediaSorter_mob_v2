@@ -6,6 +6,11 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 
 Write-Host "Cleaning Gradle caches and build artifacts..." -ForegroundColor Cyan
 
+$gradleWrapper = Join-Path $projectRoot "gradlew.bat"
+
+Write-Host "Stopping Gradle daemons..." -ForegroundColor Gray
+& $gradleWrapper --stop | Out-Null
+
 $pathsToRemove = @(
     (Join-Path $projectRoot ".gradle"),
     (Join-Path $projectRoot "build"),
@@ -18,11 +23,6 @@ foreach ($path in $pathsToRemove) {
         Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
-
-$gradleWrapper = Join-Path $projectRoot "gradlew.bat"
-
-Write-Host "Stopping Gradle daemons..." -ForegroundColor Gray
-& $gradleWrapper --stop | Out-Null
 
 Write-Host "Running gradlew clean --no-build-cache..." -ForegroundColor Gray
 & $gradleWrapper clean --no-build-cache

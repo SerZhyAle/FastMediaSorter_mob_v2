@@ -16,11 +16,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ThumbnailCacheEntity::class,
         CachedFileListEntity::class,
         FileMetadataCacheEntity::class,
+        StereoFormatOverrideEntity::class,
         PendingRevocationEntity::class,
         ScheduledOperationEntity::class,
         DuplicateHashCacheEntity::class
     ],
-    version = 22,
+    version = 23,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -33,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun thumbnailCacheDao(): ThumbnailCacheDao
     abstract fun cachedFileListDao(): CachedFileListDao
     abstract fun fileMetadataCacheDao(): FileMetadataCacheDao
+    abstract fun stereoFormatOverrideDao(): StereoFormatOverrideDao
     abstract fun scheduledOperationDao(): ScheduledOperationDao
     abstract fun duplicateHashCacheDao(): DuplicateHashCacheDao
 
@@ -575,6 +577,25 @@ abstract class AppDatabase : RoomDatabase() {
             ensureIndex(db, "idx_sched_ops_enabled", "CREATE INDEX idx_sched_ops_enabled ON scheduled_operations (is_enabled)")
         }
 
+
+        val MIGRATION_22_23 = object : Migration(22, 23) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `stereo_format_overrides` (
+                        `filePath` TEXT NOT NULL,
+                        `stereoModeKey` TEXT NOT NULL,
+                        `updatedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`filePath`)
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `idx_sfo_updated_at` " +
+                    "ON `stereo_format_overrides` (`updatedAt`)"
+                )
+            }
+        }
         private fun createFinalPendingRevocationsTable(db: SupportSQLiteDatabase) {
             db.execSQL(
                 """

@@ -17,7 +17,10 @@ interface StereoDetectionFacade {
      */
     fun detectFromDimensions(mediaFile: MediaFile): StereoMode
 
-    /** Returns true if the media file is likely stereoscopic (SBS or OU). */
+    /**
+     * Returns true if the media file benefits from VR playback.
+     * This includes flat stereoscopic content plus spherical mono/stereo projections.
+     */
     fun isStereoContent(mediaFile: MediaFile): Boolean
 }
 
@@ -33,7 +36,8 @@ class StereoDetectionFacadeImpl @Inject constructor(
     }
 
     override fun isStereoContent(mediaFile: MediaFile): Boolean {
-        val mode = detectFromDimensions(mediaFile)
-        return mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU
+        val detectedMode = detectFromDimensions(mediaFile)
+        // Spherical mono still needs the VR edition even though it is not stereoscopic.
+        return detectedMode.isStereoscopic() || detectedMode.isSpherical()
     }
 }

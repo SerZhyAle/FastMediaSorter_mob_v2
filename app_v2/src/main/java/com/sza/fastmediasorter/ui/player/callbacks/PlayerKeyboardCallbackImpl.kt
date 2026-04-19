@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
+import com.sza.fastmediasorter.ui.player.helpers.seekBackward
+import com.sza.fastmediasorter.ui.player.helpers.seekForward
 
 /**
  * Implementation of PlayerKeyboardHandler.PlayerKeyboardCallback extracted from PlayerActivity.

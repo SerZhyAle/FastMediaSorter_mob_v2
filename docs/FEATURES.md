@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Complete Feature List
 
-*Last updated: 2026-03-27*
+*Last updated: 2026-04-19*
 
 This document is the canonical, up-to-date inventory of all user-facing features implemented in the application. It serves as a comprehensive guide to what the application can do, how each feature works, and why it is useful for the user.
 
@@ -134,7 +134,10 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Sleep timer**: Safely fall asleep while watching videos. Set a timer (from 15 up to 120 minutes) with an onscreen countdown badge that automatically halts playback when time expires.
 - **Save Frame**: Capture the current video frame as a PNG with a single tap on the overflow menu. The frame is saved to a configurable destination resource (local path); falls back to the Downloads folder if no destination is selected or the resource is unavailable. Works for any video source: local, SMB, SFTP, FTP, and cloud.
 - **3D stereo detection**: Automatically detects Side-by-Side (SBS) and Over-Under (OU) stereoscopic video via metadata and heuristics. In the standard edition, detecting 3D content shows a prompt to install the dedicated VR edition for headset playback.
-- **VR edition (separate flavor)**: The VR edition of FastMediaSorter provides full stereoscopic viewing of both 3D video (SBS/OU) and 3D photos in Meta Quest and Android XR headsets. It is a complete player identical to the standard edition, extended with OpenXR rendering. Save Frame in VR captures a stereoscopic SBS PNG with both eye views side by side.
+- **360° MP4 spatial metadata detection**: Recognizes Google Spatial Media `st3d`/`sv3d` boxes in local MP4 files and prefers them over filename guesses, so equirect 360° mono/SBS/OU video is auto-detected correctly even when the file name is ambiguous.
+- **VR edition (separate flavor)**: The VR edition of FastMediaSorter provides full stereoscopic viewing of both 3D video (SBS/OU) and 3D photos in Meta Quest and Android XR headsets. It is a complete player identical to the standard edition, extended with OpenXR rendering. Its OpenXR layer factory routes 2D content to a cinema quad, flat SBS/OU content to projection layers, equirect 360°/VR180 content to `Equirect2KHR`, and cylindrical 180° content to `CylinderKHR`. The VR renderer now writes flat per-eye pixels into those XR targets with correct SBS/OU/mono splits and an aspect-preserving cinema blit, leaving sphere/cylinder warping to the OpenXR compositor. Save Frame in VR captures a stereoscopic SBS PNG with both eye views side by side.
+- **3D Image Viewing**: Automatic SBS/OU detection from filename for images; stereo crop preview on phone (left-eye half); 3D tab in playback dialog shown when stereo content detected (all flavors); per-eye rendering in VR. Forced format override from VR settings is applied to images.
+- **Dual-group VR format override dialog**: In the VR edition, the `Control -> 3D` dialog now shows flat and spherical format groups at the same time. The inactive family stays visible but disabled by default, a dedicated `Override format type` switch unlocks cross-family overrides, manual selections toast briefly, and remembered selections restore per file on reopen when `Remember file format` is enabled.
 
 ## 8. Audio Player
 

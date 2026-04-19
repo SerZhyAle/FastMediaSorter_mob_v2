@@ -1,9 +1,12 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.IBinder
+import com.sza.fastmediasorter.ui.main.MainActivity
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
@@ -62,6 +65,15 @@ class AudioPlaybackService : MediaSessionService() {
         const val DIRECTION_PREV = -1
         @Volatile
         var pendingDirection: Int = DIRECTION_NEXT
+
+        /** Resource/playlist context of the currently playing audio.
+         *  Set by PlayerMediaLoaderManager before starting playback so the notification
+         *  contentIntent (sessionActivity) can navigate back to the exact player screen.
+         *  -1L means unknown (e.g. legacy single-file mode without resource context). */
+        @Volatile
+        var currentResourceId: Long = -1L
+        @Volatile
+        var currentInitialIndex: Int = 0
     }
 
     override fun onCreate() {
@@ -177,8 +189,25 @@ class AudioPlaybackService : MediaSessionService() {
         // The OS delivers MEDIA_BUTTON intents to that receiver when this session is inactive (service dead).
         // Media3 1.2.1 MediaSession.Builder does not expose setMediaButtonReceiver() — cold-restart
         // is handled entirely by the manifest BroadcastReceiver + PackageManager component toggling.
+        //
+        // sessionActivity: tapping the notification body (not media buttons) opens the app
+        // and routes to PlayerActivity via MainActivity.ACTION_RESUME_PLAYER.
+        // MainActivity reads currentResourceId/currentInitialIndex (set before playback starts)
+        // to reopen the exact player screen, even if the app process was killed.
+        val resumeIntent = Intent(this, MainActivity::class.java).apply {
+            action = MainActivity.ACTION_RESUME_PLAYER
+            // FLAG_ACTIVITY_SINGLE_TOP: if MainActivity is already on top, deliver via onNewIntent
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val resumePendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            resumeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         mediaSession = MediaSession.Builder(this, wrappedPlayer)
             .setCallback(AudioSessionCallback())
+            .setSessionActivity(resumePendingIntent)
             .build()
 
         Timber.d("AudioPlaybackService: MediaSession created")

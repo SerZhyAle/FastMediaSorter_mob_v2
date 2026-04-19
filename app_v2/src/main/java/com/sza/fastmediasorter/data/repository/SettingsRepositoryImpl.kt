@@ -374,7 +374,21 @@ class SettingsRepositoryImpl @Inject constructor(
                     // VR settings (spec §5.7)
                     vrAutoDetectFormat = preferences[KEY_VR_AUTO_DETECT_FORMAT] ?: true,
                     vrForcedFormat = preferences[KEY_VR_FORCED_FORMAT]
-                        ?.takeIf { it in listOf("AUTO", "SBS", "OU", "MONO") }
+                        ?.takeIf {
+                            it in listOf(
+                                "AUTO",
+                                "SBS",
+                                "OU",
+                                "MONO",
+                                "EQUIRECT_360_MONO",
+                                "EQUIRECT_360_SBS",
+                                "EQUIRECT_360_OU",
+                                "EQUIRECT_180_MONO",
+                                "EQUIRECT_180_SBS",
+                                "VR180_FISHEYE_SBS",
+                                "CYLINDER_180"
+                            )
+                        }
                         ?: "AUTO",
                     vrRenderingMode = preferences[KEY_VR_RENDERING_MODE]
                         ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }

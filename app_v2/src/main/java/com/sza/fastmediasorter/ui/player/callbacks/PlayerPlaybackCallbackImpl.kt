@@ -107,9 +107,9 @@ class PlayerPlaybackCallbackImpl(
     }
 
     override fun onBeforeVideoLoad(path: String) {
-        // Keep explicit per-file behaviour predictable: every new video starts in AUTO,
-        // then onTracksChanged may override it if the user has not picked a manual mode.
-        viewModel.resetStereoModeForNewFile()
+        // Keep explicit per-file behaviour predictable: every new video starts from a clean
+        // detection state, but remembered VR format may still seed the effective renderer mode.
+        viewModel.resetStereoModeForNewFile(path)
         // Reset flag so the 3D toast can fire once for the new file.
         stereoToastShownForCurrentFile = false
     }
@@ -122,7 +122,7 @@ class PlayerPlaybackCallbackImpl(
         // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO.
         viewModel.setAutoDetectedStereoMode(mode)
 
-        // Show VR CTA or toast for actual 3D content (SBS/OU), not for MONO/AUTO/UNKNOWN.
+        // Show VR CTA for actual flat 3D content (SBS/OU), not for MONO/AUTO/UNKNOWN.
         val is3d = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU
         if (is3d && !stereoToastShownForCurrentFile && !activity.isDestroyed && !activity.isFinishing) {
             stereoToastShownForCurrentFile = true
@@ -130,20 +130,6 @@ class PlayerPlaybackCallbackImpl(
             if (!com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER) {
                 Timber.d("PlayerPlaybackCallbackImpl: showing VR install CTA for mode=$mode")
                 viewModel.showVrInstallCta(mode)
-            } else {
-                // In VR flavor: show a brief toast confirming stereo detection.
-                // The user can fine-tune format in the 3D tab of PlaybackControlDialog.
-                Timber.d("PlayerPlaybackCallbackImpl: VR flavor, 3D detected mode=$mode — showing toast")
-                val modeName = when (mode) {
-                    StereoMode.SBS_FULL, StereoMode.SBS_HALF -> "SBS"
-                    StereoMode.OU -> "OU"
-                    else -> mode.name
-                }
-                android.widget.Toast.makeText(
-                    activity,
-                    "3D: $modeName",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
             }
         }
     }
