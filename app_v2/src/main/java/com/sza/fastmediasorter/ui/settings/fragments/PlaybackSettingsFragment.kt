@@ -37,6 +37,7 @@ class PlaybackSettingsFragment : Fragment() {
         private const val KEY_GRID_VIEW_EXPANDED = "section_grid_view_expanded"
         private const val KEY_PLAYER_UI_EXPANDED = "section_player_ui_expanded"
         private const val KEY_TOUCH_ZONES_EXPANDED = "section_touch_zones_expanded"
+        private const val KEY_BEHAVIOUR_EXPANDED = "section_behaviour_expanded"
     }
     
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -198,8 +199,8 @@ class PlaybackSettingsFragment : Fragment() {
             ).show()
         }
 
-        // Phase 7: Hide Default Player section for flavors that don't support it
-        binding.cardDefaultPlayer.isVisible = BuildConfig.SUPPORTS_DEFAULT_PLAYER
+        // Hide primary-player row for flavors that don't support it; resume toggle is always visible
+        binding.layoutDefaultPlayerToggles.isVisible = BuildConfig.SUPPORTS_DEFAULT_PLAYER
 
         if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
             binding.switchPrimaryMediaPlayer.setOnCheckedChangeListener { _, isChecked ->
@@ -214,6 +215,22 @@ class PlaybackSettingsFragment : Fragment() {
                 DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked)
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(acceptSharedFiles = isChecked))
+            }
+        }
+
+        binding.switchResumeOnNextLaunch.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(resumeOnNextLaunch = isChecked))
+        }
+
+        // Disable 3D/VR — visible only in VR flavor
+        binding.layoutDisable3dVr.isVisible = BuildConfig.SUPPORT_VR_PLAYER
+        if (BuildConfig.SUPPORT_VR_PLAYER) {
+            binding.switchDisable3dVr.setOnCheckedChangeListener { _, isChecked ->
+                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(disable3dVr = isChecked))
             }
         }
 
@@ -346,13 +363,23 @@ class PlaybackSettingsFragment : Fragment() {
                         binding.etIconSize.setText(getString(R.string.number_format, settings.defaultIconSize), false)
                     }
 
-                    // Phase 5+6: Default Player toggles
+                    // Default Player toggles (visible only when SUPPORTS_DEFAULT_PLAYER)
                     if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
                         if (binding.switchPrimaryMediaPlayer.isChecked != settings.isPrimaryMediaPlayer) {
                             binding.switchPrimaryMediaPlayer.isChecked = settings.isPrimaryMediaPlayer
                         }
                         if (binding.switchAcceptSharedFiles.isChecked != settings.acceptSharedFiles) {
                             binding.switchAcceptSharedFiles.isChecked = settings.acceptSharedFiles
+                        }
+                    }
+
+                    if (binding.switchResumeOnNextLaunch.isChecked != settings.resumeOnNextLaunch) {
+                        binding.switchResumeOnNextLaunch.isChecked = settings.resumeOnNextLaunch
+                    }
+
+                    if (BuildConfig.SUPPORT_VR_PLAYER) {
+                        if (binding.switchDisable3dVr.isChecked != settings.disable3dVr) {
+                            binding.switchDisable3dVr.isChecked = settings.disable3dVr
                         }
                     }
 
@@ -395,11 +422,18 @@ class PlaybackSettingsFragment : Fragment() {
             savedStates[KEY_PLAYER_UI_EXPANDED] ?: false
         )
         bindSectionToggle(
-            binding.headerTouchZones, 
-            binding.containerTouchZones, 
+            binding.headerTouchZones,
+            binding.containerTouchZones,
             getString(R.string.settings_category_touch_zones),
             KEY_TOUCH_ZONES_EXPANDED,
             savedStates[KEY_TOUCH_ZONES_EXPANDED] ?: false
+        )
+        bindSectionToggle(
+            binding.headerBehaviour,
+            binding.containerBehaviour,
+            getString(R.string.settings_category_behaviour),
+            KEY_BEHAVIOUR_EXPANDED,
+            savedStates[KEY_BEHAVIOUR_EXPANDED] ?: false
         )
     }
 
@@ -439,7 +473,8 @@ class PlaybackSettingsFragment : Fragment() {
                 KEY_FILE_OPS_EXPANDED to prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false),
                 KEY_GRID_VIEW_EXPANDED to prefs.getBoolean(KEY_GRID_VIEW_EXPANDED, false),
                 KEY_PLAYER_UI_EXPANDED to prefs.getBoolean(KEY_PLAYER_UI_EXPANDED, false),
-                KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false)
+                KEY_TOUCH_ZONES_EXPANDED to prefs.getBoolean(KEY_TOUCH_ZONES_EXPANDED, false),
+                KEY_BEHAVIOUR_EXPANDED to prefs.getBoolean(KEY_BEHAVIOUR_EXPANDED, false)
             )
         }
     }

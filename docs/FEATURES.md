@@ -15,22 +15,23 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - [5. Image Viewer](#5-image-viewer)
 - [6. GIF Viewer](#6-gif-viewer)
 - [7. Video Player](#7-video-player)
-- [8. Audio Player](#8-audio-player)
-- [9. Slideshow](#9-slideshow)
-- [10. PDF Viewer](#10-pdf-viewer)
-- [11. EPUB Viewer](#11-epub-viewer)
-- [12. Text Viewer / Editor](#12-text-viewer--editor)
-- [13. Translation & OCR (cross-viewer feature)](#13-translation--ocr-cross-viewer-feature)
-- [14. Network Sources](#14-network-sources)
-- [15. Cloud Integration](#15-cloud-integration)
-- [16. Favorites](#16-favorites)
-- [17. Home Screen Widgets](#17-home-screen-widgets)
-- [18. Settings](#18-settings)
-- [19. Settings Search](#19-settings-search)
-- [20. Wear OS Companion App](#20-wear-os-companion-app)
-- [21. Background & System Services](#21-background--system-services)
-- [22. Scheduled File Operations](#22-scheduled-file-operations)
-- [23. Apps FMS Can Replace — Competitor Comparison](#23-apps-fms-can-replace--competitor-comparison)
+- [8. VR Edition](#8-vr-edition)
+- [9. Audio Player](#9-audio-player)
+- [10. Slideshow](#10-slideshow)
+- [11. PDF Viewer](#11-pdf-viewer)
+- [12. EPUB Viewer](#12-epub-viewer)
+- [13. Text Viewer / Editor](#13-text-viewer--editor)
+- [14. Translation & OCR (cross-viewer feature)](#14-translation--ocr-cross-viewer-feature)
+- [15. Network Sources](#15-network-sources)
+- [16. Cloud Integration](#16-cloud-integration)
+- [17. Favorites](#17-favorites)
+- [18. Home Screen Widgets](#18-home-screen-widgets)
+- [19. Settings](#19-settings)
+- [20. Settings Search](#20-settings-search)
+- [21. Wear OS Companion App](#21-wear-os-companion-app)
+- [22. Background & System Services](#22-background--system-services)
+- [23. Scheduled File Operations](#23-scheduled-file-operations)
+- [24. Apps FMS Can Replace — Competitor Comparison](#24-apps-fms-can-replace--competitor-comparison)
 
 ---
 
@@ -135,11 +136,17 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Save Frame**: Capture the current video frame as a PNG with a single tap on the overflow menu. The frame is saved to a configurable destination resource (local path); falls back to the Downloads folder if no destination is selected or the resource is unavailable. Works for any video source: local, SMB, SFTP, FTP, and cloud.
 - **3D stereo detection**: Automatically detects Side-by-Side (SBS) and Over-Under (OU) stereoscopic video via metadata and heuristics. In the standard edition, detecting 3D content shows a prompt to install the dedicated VR edition for headset playback.
 - **360° MP4 spatial metadata detection**: Recognizes Google Spatial Media `st3d`/`sv3d` boxes in local MP4 files and prefers them over filename guesses, so equirect 360° mono/SBS/OU video is auto-detected correctly even when the file name is ambiguous.
-- **VR edition (separate flavor)**: The VR edition of FastMediaSorter provides full stereoscopic viewing of both 3D video (SBS/OU) and 3D photos in Meta Quest and Android XR headsets. It is a complete player identical to the standard edition, extended with OpenXR rendering. Its OpenXR layer factory routes 2D content to a cinema quad, flat SBS/OU content to projection layers, equirect 360°/VR180 content to `Equirect2KHR`, and cylindrical 180° content to `CylinderKHR`. The VR renderer now writes flat per-eye pixels into those XR targets with correct SBS/OU/mono splits and an aspect-preserving cinema blit, leaving sphere/cylinder warping to the OpenXR compositor. Save Frame in VR captures a stereoscopic SBS PNG with both eye views side by side.
-- **3D Image Viewing**: Automatic SBS/OU detection from filename for images; stereo crop preview on phone (left-eye half); 3D tab in playback dialog shown when stereo content detected (all flavors); per-eye rendering in VR. Forced format override from VR settings is applied to images.
-- **Dual-group VR format override dialog**: In the VR edition, the `Control -> 3D` dialog now shows flat and spherical format groups at the same time. The inactive family stays visible but disabled by default, a dedicated `Override format type` switch unlocks cross-family overrides, manual selections toast briefly, and remembered selections restore per file on reopen when `Remember file format` is enabled.
 
-## 8. Audio Player
+## 8. VR Edition
+
+- **Dedicated VR flavor**: FastMediaSorter VR is a dedicated `vr` product flavor for Meta Quest and Android XR headsets. It is the same core player as the standard edition, extended with an OpenXR rendering layer for headset playback.
+- **VR stereoscopic playback**: The VR edition provides full stereoscopic viewing of both 3D video (SBS/OU) and 3D photos. Its OpenXR layer factory routes 2D content to a cinema quad, flat SBS/OU content to projection layers, equirect 360°/VR180 content to `Equirect2KHR`, and cylindrical 180° content to `CylinderKHR`.
+- **Per-eye VR renderer and frame capture**: The VR renderer writes flat per-eye pixels into XR targets with correct SBS/OU/mono splits and an aspect-preserving cinema blit, leaving sphere/cylinder warping to the OpenXR compositor. Save Frame in VR captures a timestamped stereoscopic SBS PNG into `Pictures/FastMediaSorter_VR` and exposes an immediate Open action for the saved file. The shared fullscreen button now stays a safe no-op with a VR toast, while VR system-ui input toggles the headset control overlay instead of Android bars.
+- **3D image handling across phone and headset**: SBS/OU image format is detected automatically from the filename; the phone build can show a left-eye crop preview and a `3D` tab in the playback dialog, while the VR flavor renders the same content per eye. Forced format override from VR settings is also applied to images.
+- **Dual-group VR format override dialog**: In the VR edition, the `Control -> 3D` dialog shows flat and spherical format groups at the same time. The inactive family stays visible but disabled by default, a dedicated `Override format type` switch unlocks cross-family overrides, manual selections toast briefly, and remembered selections restore per file on reopen when `Remember file format` is enabled.
+- **Split VR forced-format settings**: The VR settings screen exposes separate `Forced flat format` and `Forced spherical format` spinners. Legacy installs keep their old `vrForcedFormat` value through compatibility fallback, flat overrides never affect 360°/VR180 content, spherical overrides never affect flat cinema playback, and backup export/import preserves both fields.
+
+## 9. Audio Player
 
 - **Robust engine**: Rely on ExoPlayer for high-fidelity audio decoding, perfectly parsing both local and high-latency network music tracks.
 - **Background playback**: Keep the music going even when you leave the app or lock the screen. A persistent foreground service with rich notification controls ensures uninterrupted listening.
@@ -158,7 +165,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Resume Next Time**: Seamlessly pickup your listening session. Upon a cold start, the app restores your last active audio track and perfectly reconstructs your entire historical playlist and queue.
 - **Now Playing UI**: While audio plays in the background, a persistent mini bar at the bottom of the player shows the current track title and play/pause button. Tapping it opens a full bottom sheet with album art, seek bar, prev/next controls, and a scrollable queue panel where you can tap any track to jump directly to it.
 
-## 9. Slideshow
+## 10. Slideshow
 
 - **Time-based advancement**: Automate your viewing experience by having images and GIFs advance on their own. The transition interval can be configured anywhere from a rapid 1 second to a lingering 3600 seconds.
 - **Random sequence order**: Ensure a fresh experience every time by shuffling your photos and GIFs randomly rather than following strict alphabetical or date sorting.
@@ -167,7 +174,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Countdown display**: Anticipate transitions easily with a subtle, non-intrusive "3 – 2 – 1" countdown badge that appears just before advancing to the slide.
 - **Per-resource interval configuration**: Tailor slideshows to individual folders. Easily set a unique transition interval for a specific directory that safely overrides the app's global default settings.
 
-## 10. PDF Viewer
+## 11. PDF Viewer
 
 - **Render and display multi-page PDF documents**: Open and read your PDF files natively within the app without needing third-party viewers. The built-in engine guarantees smooth scrolling and sharp rendering even for graphics-heavy documents.
 - **Page mode (flip) and vertical scroll mode**: Choose the reading style that suits your content best. Flip through pages horizontally just like a physical book, or use continuous vertical scrolling for reports and articles.
@@ -179,7 +186,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Read Aloud (TTS)**: Tap Read Aloud in the command panel to have the current PDF page spoken through the system text-to-speech engine. Works natively on Android 15+ (no OCR delay) and falls back to ML Kit OCR on earlier versions. TTS pauses automatically when you navigate to another page.
 - **Large PDF thumbnail support for network files**: Identify your PDFs by their cover before fully downloading them from your remote server or cloud. This optional setting avoids unnecessary network usage when looking for a specific document.
 
-## 11. EPUB Viewer
+## 12. EPUB Viewer
 
 - **Comprehensive EPUB rendering**: Read standard EPUB e-books beautifully. The epub4j-powered engine deeply parses metadata, chapters, and styling to provide a highly polished native reading application.
 - **Chapter navigation**: Swiftly move between narrative breaks using dedicated previous and next chapter gestures or buttons, avoiding tedious scrolling.
@@ -195,7 +202,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Selection action menu**: Long-press any word in an EPUB chapter to reveal the standard selection handles. The floating action menu includes **Translate** (sends the selected fragment to the translator), **Read Aloud** (speaks the selected fragment via TTS), and **Search in Google** alongside the platform's built-in Copy / Share / Select All items.
 - **Read Aloud (TTS)**: Tap Read Aloud in the command panel to hear the entire current chapter spoken by the system text-to-speech engine. TTS pauses automatically when you move to another chapter.
 
-## 12. Text Viewer / Editor
+## 13. Text Viewer / Editor
 
 - **Universal text and code viewer**: Read plain text files, logs, and programming code natively. An intelligent automatic charset detection system guarantees files decode properly without garbled symbols.
 - **Markdown rendering**: View documentation and readme files exactly how they were intended. The powerful Markwon library parses markdown syntax and beautifully renders headers, lists, and tables natively.
@@ -210,7 +217,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Copy all text**: Extract contents rapidly with a single-tap button tailored to pull the entirety of a heavy document onto your system clipboard.
 - **Inline search panel (standalone parity)**: Tap-to-search with Next/Prev navigation works in both the internal file browser and the standalone "Open with" mode for PDF, EPUB (current chapter), and TXT files.
 
-## 13. Translation & OCR (cross-viewer feature)
+## 14. Translation & OCR (cross-viewer feature)
 
 - **ML Kit OCR (Latin script)**: Extract pure unselectable text natively from images and flattened PDFs using Google's rapid ML Kit framework, bypassing the need for typing out data manually.
 - **Expanded Tesseract support**: When standard Latin characters aren't enough, fallback onto the heavy-duty Tesseract engine to pull text from a broader variety of scripts and challenging fonts.
@@ -223,7 +230,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Result typography styling**: Choose exactly how your OCR results and overlapping translation blocks look by configuring their native font size and dedicated font family.
 - **Text copying**: Effortlessly lift the deeply recognized text, or its resultant translation, directly into the system clipboard for immediate usage in emails, notes, or messages.
 
-## 14. Network Sources
+## 15. Network Sources
 
 - **SMB (Windows Share / NAS)**: Deeply interface with your local network storage safely utilizing standard SMB protocol, unlocking the ability to browse, manage, stream, and edit massive remote collections effortlessly.
 - **FTP integration**: Access traditional web servers and legacy systems via rigid File Transfer Protocol, empowering complete and compliant browse and file management pipelines.
@@ -235,7 +242,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Connection throttling**: Protect aging servers from crippling under heavy load. The network layer actively limits requests appropriately to prevent stalling or crashing congested or weak NAS hardware.
 - **Periodic background sync**: Prevent navigating outdated file structures. Utilizing Android's WorkManager framework, the app wakes periodically (from 1 to 24 hours) strictly in the background to update the local database with remote changes.
 
-## 15. Cloud Integration
+## 16. Cloud Integration
 
 - **Google Drive access**: Break out of phone storage limits completely. Authenticate to utilize Google Drive, unlocking natively integrated folder picking, high-speed streaming, direct downloads, and rigorous file modifications remotely.
 - **Dropbox connectivity**: Integrate seamlessly with your Dropbox vaults. Browse nested hierarchies elegantly, stream media live, and copy files directly between disparate locations.
@@ -244,13 +251,13 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Rigorous state backups**: Guard heavily against data loss. You can serialize your customized application settings, connection profiles, directories, and favorites into a strict JSON payload format tightly vaulted straight into your Google Drive.
 - **Seamless cloud restoration**: Recover instantly upon installing on a new device. Connect to Google Drive specifically to download your backup JSON, magically reconstructing your settings, endpoints, and favorites effortlessly.
 
-## 16. Favorites
+## 17. Favorites
 
 - **One-tap marking**: Save important media files rapidly. Utilize the dedicated favorite star icon situated within the player and viewer interfaces to instantly flag or un-flag files as Favorites.
 - **Dedicated accessible list**: Revisit essential files dynamically. Navigate seamlessly to the distinct Favorites List anchored on the app's main screen, compiling flagged files universally from all connected directories and protocols.
 - **Interactive home screen widget**: Bring crucial media directly to your home launcher. Deploy an actively scrollable widget that elegantly lists exclusively favorite files heavily prioritizing immediate launching.
 
-## 17. Home Screen Widgets
+## 18. Home Screen Widgets
 
 - **Favorites interactive list**: Deploy a rapidly accessible panel right on your Android home screen. This scrollable widget exclusively displays your flagged favorite files, allowing you to bypass menus completely and launch media instantly.
 - **Resource Launch shortcut**: Condense navigation strictly down to a single tap. Set an actionable widget uniquely mapped to a specific folder or NAS drive, triggering the application to instantly open that specific browser or player view.
@@ -260,7 +267,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **App Shortcuts (long-press)**: Long-press the app icon on your launcher to access static shortcuts (Favorites, Slideshow) and up to 3 dynamic shortcuts for your most recently browsed resources. Jump straight into any folder or NAS share without opening the main screen.
 - **Quick Settings Audio Tile**: Control background audio playback directly from the Android notification shade. Add the "FMS Audio" tile to your Quick Settings panel to play, pause, or start shuffled music in a single tap — no need to unlock and navigate to the player. Available on flavors with audio support.
 
-## 18. Settings
+## 19. Settings
 
 The Settings module provides deeply comprehensive control over nearly every facet of the application:
 
@@ -283,12 +290,12 @@ The Settings module provides deeply comprehensive control over nearly every face
 
 - **Landscape-adaptive dialogs**: All dialogs across the app include dedicated landscape layout variants (`layout-land/`). In landscape orientation every dialog is constrained to 320 dp maximum height and made scrollable, with action buttons and close controls pinned at the top of content so they are always immediately reachable regardless of how far the user has scrolled. Applies to all product flavors (Standard, Lite, Photos, Legacy).
 
-## 19. Settings Search
+## 20. Settings Search
 
 - **Comprehensive full-text indexing**: Stop navigating dense nested configuration menus pointlessly. Swiftly execute a full-text query search that aggressively scans identically across every single settings entry, toggle, and section instantly.
 - **Direct highlighting navigation**: Resolve settings adjustments securely and rapidly. Engaging a search result completely bypasses menus, rocketing you strictly to the accurate page while dynamically highlighting the specific sought parameter directly on screen.
 
-## 20. Wear OS Companion App
+## 21. Wear OS Companion App
 
 - **SMB network access**: Liberate your wrist natively. Browse your massive home network storage drives and Windows Shares dynamically using strictly your Wear OS smart watch entirely independently.
 - **Remote media list**: Discover your content swiftly specifically on a tiny screen. Accurately browse filtered, comprehensive lists of available media items directly on your smartwatch display.
@@ -302,7 +309,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Polished on-watch controls and localization**: The watch companion now uses localized loading, empty-state, error, and retry labels, replaces emoji-only home shortcuts with native icons, and provides an on-watch slideshow interval stepper for quick tuning.
 - **Reactive source list refresh**: Network sources on the watch now refresh automatically after sync, import, and delete operations, and the error screen retries in place instead of forcing navigation away.
 
-## 21. Background & System Services
+## 22. Background & System Services
 
 - **Automated Trash cleanup**: Maintain storage hygiene effortlessly without thinking. Scheduled WorkManager jobs execute periodically precisely identifying and permanently purging any trash files rigidly exceeding their configured retention timeframe.
 - **Orphan temp file cleanup**: Recover dead storage seamlessly natively. Boot routines rigidly scan internal temporary repositories identifying and aggressively eliminating abandoned download artifacts and failed upload segments immediately.
@@ -321,7 +328,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Standalone player video UX parity**: Command buttons (close, share, delete, open-in-FMS) are fully visible in both portrait and landscape on all devices — padded away from status bar and navigation bar. Screen rotates with physical device sensor even when OS auto-rotate is off.
 - **Standalone player video controls**: The standalone `Open with` video player now mirrors the main player with the same bottom-bar `Control` dialog, the same HUE + GPU brightness pipeline, the same reset actions, and the same touch gestures. This parity works in both portrait and landscape because both orientations use the same custom ExoPlayer controller layout.
 
-## 22. Scheduled File Operations
+## 23. Scheduled File Operations
 
 - **Scheduled copy / move / delete**: Automate recurring file management tasks by creating scheduled operations that run in the background at a set time and repeat on a chosen interval (minimum 15 minutes). Ideal for automatically moving camera photos to a NAS every night or clearing a downloads folder daily.
 - **Multi-flag file-type filter**: Choose any combination of file categories — All files (including non-media), Images, Audio, Video, and Documents — for each scheduled operation. Selecting "All files" processes every file in the resource (respecting the scan-subdirectories setting), while media flags filter by extension. Multiple categories can be active simultaneously.
@@ -336,7 +343,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Boot persistence**: Scheduled operations are automatically rescheduled after a device reboot so your automation survives restarts without manual intervention.
 - **Battery optimization prompt**: On first use, the app offers to disable battery optimization for itself, ensuring operations run reliably on OEM devices (Xiaomi, Huawei, Samsung) that aggressively kill background processes. The same setting is accessible at any time from the General settings screen.
 
-## 23. Apps FMS Can Replace — Competitor Comparison
+## 24. Apps FMS Can Replace — Competitor Comparison
 
 FastMediaSorter consolidates functionality that typically requires 5–10 separate apps into a single, unified tool. Below is a category-by-category breakdown showing which popular apps FMS can replace and what advantages it offers over each.
 

@@ -1,5 +1,11 @@
 package com.sza.fastmediasorter.vr.di
 
+import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
+import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
+import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
+import com.sza.fastmediasorter.vr.commands.VrFullscreenCommandOverride
+import com.sza.fastmediasorter.vr.commands.VrSaveFrameCommandOverride
+import com.sza.fastmediasorter.vr.commands.VrSystemUiCommandOverride
 import com.sza.fastmediasorter.vr.playback.ExoVrPlaybackEngine
 import com.sza.fastmediasorter.vr.playback.VrPlaybackEngine
 import com.sza.fastmediasorter.vr.render.DefaultVrLayerFactory
@@ -27,4 +33,16 @@ abstract class VrModule {
     @Singleton
     @Binds
     abstract fun bindVrLayerFactory(impl: DefaultVrLayerFactory): VrLayerFactory
+
+    @Singleton
+    @Binds
+    abstract fun bindVrFullscreenCommandOverride(impl: VrFullscreenCommandOverride): FullscreenCommandOverride
+
+    @Singleton
+    @Binds
+    abstract fun bindVrSaveFrameCommandOverride(impl: VrSaveFrameCommandOverride): SaveFrameCommandOverride
+
+    @Singleton
+    @Binds
+    abstract fun bindVrSystemUiCommandOverride(impl: VrSystemUiCommandOverride): SystemUiCommandOverride
 }

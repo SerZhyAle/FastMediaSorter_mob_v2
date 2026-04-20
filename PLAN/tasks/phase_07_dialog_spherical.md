@@ -25,7 +25,7 @@ Add a second RadioGroup (Spherical: 360°/VR180/Cylinder/OFF) alongside the exis
    - User can enable the inactive one via a small "Override format type" switch above both groups.
 4. Wire selection to ViewModel:
    - Persist remembered manual overrides per file in Room when `vrRememberFileFormat=true`.
-   - Keep global `AppSettings.vrForcedFormat` available for the dedicated VR settings screen.
+   - Keep the dedicated VR settings screen in sync with the global flat/spherical forced-format defaults.
    - Emit updated `StereoMode` to the active renderer.
 5. Toast on manual change (per frozen decision: "Format: 360° SBS"); silent on auto.
 

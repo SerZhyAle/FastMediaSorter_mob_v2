@@ -94,14 +94,32 @@
 -keep class * extends com.google.api.client.json.GenericJson { *; }
 -keep class * extends com.google.api.client.http.HttpTransport { *; }
 
-# Dropbox SDK - uses reflection for API calls
--keep class com.dropbox.core.** { *; }
+# Dropbox SDK - targeted keep rules (we only use files/users/auth APIs, NOT team/teamcommon).
+# DO NOT use a blanket -keep class com.dropbox.core.** — it prevents R8 from stripping unused
+# team management classes (GroupSummary, GroupManagementType, etc.) that cause dex2oat
+# "Method processed more than once" warnings at install time.
+-keep class com.dropbox.core.DbxRequestConfig { *; }
+-keep class com.dropbox.core.DbxRequestConfig$Builder { *; }
+-keep class com.dropbox.core.DbxException { *; }
+-keep class com.dropbox.core.android.Auth { *; }
+-keep class com.dropbox.core.oauth.DbxCredential { *; }
+-keep class com.dropbox.core.http.OkHttp3Requestor { *; }
+-keep class com.dropbox.core.v2.DbxClientV2 { *; }
+-keep class com.dropbox.core.v2.files.** { *; }
+-keep class com.dropbox.core.v2.users.** { *; }
+-keep class com.dropbox.core.v2.auth.** { *; }
+# Internal framework classes needed by SDK (request/response routing, error handling)
+-keep class com.dropbox.core.v2.common.** { *; }
+-keep class com.dropbox.core.json.** { *; }
+-keep class com.dropbox.core.util.** { *; }
+-keep class com.dropbox.core.http.** { *; }
+-keep class com.dropbox.core.DbxApiException { *; }
+-keep class com.dropbox.core.InvalidAccessTokenException { *; }
+# team/teamcommon are intentionally NOT kept — R8 will strip them.
+# This eliminates GroupSummary$Builder and related classes from the APK.
 -dontwarn com.dropbox.core.**
 -dontwarn okhttp3.**
 -dontwarn okio.**
-
-# Keep Dropbox model classes (used via reflection)
--keepclassmembers class com.dropbox.core.v2.** { *; }
 
 # Microsoft MSAL (OneDrive) - uses reflection heavily
 -keep class com.microsoft.identity.** { *; }

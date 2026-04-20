@@ -131,11 +131,14 @@ class VideoTrackSelectionManager(
                     codec.ifEmpty { null },
                     channels.ifEmpty { null }
                 )
-                val label = if (parts.isNotEmpty()) {
+                // Mark tracks that the device cannot decode so the user is informed before selecting
+                val isSupported = group.getTrackSupport(trackIndex) == C.FORMAT_HANDLED
+                val baseLabel = if (parts.isNotEmpty()) {
                     "Track $trackNumber (${parts.joinToString(", ")})"
                 } else {
                     "Track $trackNumber"
                 }
+                val label = if (isSupported) baseLabel else "$baseLabel ⚠ Unsupported"
                 result.add(TrackInfo(groupIndex, trackIndex, label, group.isTrackSelected(trackIndex)))
                 trackNumber++
             }

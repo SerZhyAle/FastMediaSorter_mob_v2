@@ -66,6 +66,18 @@ internal object OpenXrNative {
     /** @return false when the session state requested exit (STOPPING/EXITING). */
     @JvmStatic external fun nativeShouldContinue(): Boolean
 
+    /** Request a one-shot stereo snapshot from the active XR render loop. */
+    @JvmStatic external fun nativeRequestStereoSnapshot(): Boolean
+
+    /** Returns true once the requested stereo snapshot pixels are ready for consumption. */
+    @JvmStatic external fun nativeIsStereoSnapshotReady(): Boolean
+
+    /** Consume one eye of the pending stereo snapshot as ARGB pixels. */
+    @JvmStatic external fun nativeConsumeStereoSnapshotPixels(eye: Int): IntArray?
+
+    /** Release any native buffers held for the pending/ready stereo snapshot. */
+    @JvmStatic external fun nativeReleaseStereoSnapshot()
+
     /** Cooperatively signal the native loop to exit (e.g. on Activity finish). */
     @JvmStatic external fun nativeRequestExit()
 

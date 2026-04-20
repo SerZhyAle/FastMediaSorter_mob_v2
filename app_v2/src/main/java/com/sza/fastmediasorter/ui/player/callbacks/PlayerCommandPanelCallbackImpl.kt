@@ -60,6 +60,10 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onFullscreenClicked() {
+        if (activity.tryHandleFullscreenCommandOverride()) {
+            return
+        }
+
         // Transition FROM command panel mode TO fullscreen mode
         // (no return logic needed - fullscreen has no buttons!)
         activity.isExplicitFullscreenMode = true
@@ -246,7 +250,12 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onSaveFrameClicked() {
-        // Delegate to SaveVideoFrameManager which handles TextureView capture + file save
-        activity.saveVideoFrameManager.saveCurrentFrame()
+        if (activity.tryHandleSaveFrameCommandOverride()) {
+            return
+        }
+
+        // PlayerActivity decides the correct capture backend: TextureView on phone/tablet,
+        // OpenXR swapchain in VrPlayerActivity.
+        activity.saveCurrentFrame()
     }
 }

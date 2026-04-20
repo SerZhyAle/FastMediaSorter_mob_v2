@@ -23,7 +23,9 @@ android {
     namespace = "com.sza.fastmediasorter"
     // CRITICAL: Do not change - required for latest Android features and Play Store requirements
     compileSdk = 35
-    ndkVersion = "25.1.8937393"
+    // NDK r27c required: first NDK release that ships a 16 KB page-size aligned libc++_shared.so
+    // (Google Play requirement since Nov 1 2025 for apps targeting Android 15+).
+    ndkVersion = "27.2.12479018"
 
     defaultConfig {
         applicationId = "com.sza.fastmediasorter"
@@ -36,8 +38,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260419195
-        versionName = "2.60.4191.951"
+        versionCode = 260420020
+        versionName = "2.60.4200.202"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -88,7 +90,11 @@ android {
                 }
             }
             ndk {
+                // Restrict to arm64-v8a only: real Android 8+ devices are almost exclusively 64-bit.
+                // Without this filter, AGP packs .so libs from AAR deps for ALL ABIs (armeabi-v7a,
+                // arm64-v8a, x86, x86_64), inflating the APK 3-4x. x86/x86_64 are emulator-only.
                 abiFilters.clear()
+                abiFilters += listOf("arm64-v8a")
             }
         }
 
@@ -111,6 +117,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
         }
         
@@ -133,6 +140,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No background audio in lite
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "false")  // No default player in lite
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
         }
 
@@ -155,6 +163,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No audio support
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")  // Image-only default player
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
         }
 
@@ -180,6 +189,7 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
         }
 
@@ -219,6 +229,8 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
+            // VR flavor routes all player launches to VrPlayerActivity (OpenXR host)
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
         }
     }

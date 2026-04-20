@@ -48,4 +48,8 @@ if(ENABLE_OPENXR)
         EGL
         GLESv3
     )
+
+    # 16 KB page size compliance (Google Play requirement for Android 15+ targets since Nov 2025).
+    # Aligns LOAD segments of libopenxr_native.so at 16 KB boundaries.
+    target_link_options(openxr_native PRIVATE "-Wl,-z,max-page-size=16384")
 endif()

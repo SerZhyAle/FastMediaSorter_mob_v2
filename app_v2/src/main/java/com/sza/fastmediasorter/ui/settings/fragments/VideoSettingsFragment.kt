@@ -202,13 +202,25 @@ class VideoSettingsFragment : Fragment() {
             }
         }
 
-        // Forced format spinner
-        val forcedFormatValues = resources.getStringArray(R.array.vr_forced_format_values)
+        // Forced flat format spinner
+        val forcedPlatFormatValues = resources.getStringArray(R.array.vr_forced_format_values)
         binding.spinnerVrForcedFormat.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!isUpdatingFromSettings && position in forcedFormatValues.indices) {
+                if (!isUpdatingFromSettings && position in forcedPlatFormatValues.indices) {
                     val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(vrForcedFormat = forcedFormatValues[position]))
+                    viewModel.updateSettings(current.copy(vrForcedPlatFormat = forcedPlatFormatValues[position]))
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+
+        // Forced spherical format spinner
+        val forcedSphericalFormatValues = resources.getStringArray(R.array.vr_forced_spherical_format_values)
+        binding.spinnerVrForcedSphericalFormat.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!isUpdatingFromSettings && position in forcedSphericalFormatValues.indices) {
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(vrForcedSphericalFormat = forcedSphericalFormatValues[position]))
                 }
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -282,8 +294,12 @@ class VideoSettingsFragment : Fragment() {
                         binding.switchVrAutoDetect.isChecked = settings.vrAutoDetectFormat
 
                         val forcedFormatValues = resources.getStringArray(R.array.vr_forced_format_values)
-                        val forcedIdx = forcedFormatValues.indexOf(settings.vrForcedFormat).coerceAtLeast(0)
+                        val forcedIdx = forcedFormatValues.indexOf(settings.vrForcedPlatFormat).coerceAtLeast(0)
                         binding.spinnerVrForcedFormat.setSelection(forcedIdx)
+
+                        val forcedSphericalFormatValues = resources.getStringArray(R.array.vr_forced_spherical_format_values)
+                        val forcedSphericalIdx = forcedSphericalFormatValues.indexOf(settings.vrForcedSphericalFormat).coerceAtLeast(0)
+                        binding.spinnerVrForcedSphericalFormat.setSelection(forcedSphericalIdx)
 
                         val renderingModeValues = resources.getStringArray(R.array.vr_rendering_mode_values)
                         val modeIdx = renderingModeValues.indexOf(settings.vrRenderingMode).coerceAtLeast(0)

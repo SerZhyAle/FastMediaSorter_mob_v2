@@ -64,6 +64,9 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
+import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
+import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
+import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -72,9 +75,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import java.io.File
+import java.util.Optional
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -278,6 +283,15 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     @Inject
     lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+
+    @Inject
+    internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
+
+    @Inject
+    internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
+
+    @Inject
+    internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
     
     @Inject
     lateinit var credentialsRepository: NetworkCredentialsRepository
@@ -680,6 +694,30 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
 
+    /**
+     * Let flavor-specific code replace the fullscreen button behavior when Android system bars
+     * are no longer the primary UX surface, such as inside an active XR session.
+     */
+    internal fun tryHandleFullscreenCommandOverride(): Boolean {
+        return fullscreenCommandOverride.orElse(null)?.execute(this, viewModel) == true
+    }
+
+    /**
+     * VR binds a dedicated Save Frame override so command routing no longer depends on hidden
+     * phone-only surfaces when the player is rendered by OpenXR.
+     */
+    internal fun tryHandleSaveFrameCommandOverride(): Boolean {
+        return saveFrameCommandOverride.orElse(null)?.execute(this) == true
+    }
+
+    /**
+     * Shared player has no separate system-UI toggle command, but VR maps controller/menu input
+     * to this override so it can show or hide the headset overlay instead of Android system bars.
+     */
+    internal fun tryHandleSystemUiCommandOverride(): Boolean {
+        return systemUiCommandOverride.orElse(null)?.execute(this) == true
+    }
+
 
 
 
@@ -924,6 +962,14 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun reloadCurrentImage() {
         mediaLoaderManager.reloadCurrentImage()
+    }
+
+    /**
+     * Save the currently visible frame using the activity-specific rendering path.
+     * VR overrides this so Save Frame targets the OpenXR swapchain instead of TextureView.
+     */
+    internal open fun saveCurrentFrame() {
+        saveVideoFrameManager.saveCurrentFrame()
     }
     
     /**
@@ -1241,7 +1287,17 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             isSlideshowEnabled: Boolean = false,
             shuffleOnStart: Boolean = false
         ): Intent {
-            return Intent(context, PlayerActivity::class.java).apply {
+            // PLAYER_ACTIVITY_CLASS is set per-flavor in build.gradle.kts.
+            // VR flavor routes here to VrPlayerActivity (OpenXR host); all other
+            // flavors resolve to PlayerActivity. Using Class.forName avoids a direct
+            // compile-time dependency on VrPlayerActivity from the main source set.
+            val playerClass: Class<*> = try {
+                Class.forName(BuildConfig.PLAYER_ACTIVITY_CLASS)
+            } catch (e: ClassNotFoundException) {
+                Timber.w("PLAYER_ACTIVITY_CLASS not found: ${BuildConfig.PLAYER_ACTIVITY_CLASS}, falling back to PlayerActivity")
+                PlayerActivity::class.java
+            }
+            return Intent(context, playerClass).apply {
                 putExtra("resourceId", resourceId)
                 putExtra("initialIndex", initialIndex)
                 putExtra("skipAvailabilityCheck", skipAvailabilityCheck)

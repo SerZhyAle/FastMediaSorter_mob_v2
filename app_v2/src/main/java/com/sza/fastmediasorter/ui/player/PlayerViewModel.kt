@@ -146,9 +146,13 @@ class PlayerViewModel @Inject constructor(
     @Volatile
     private var ignoreForcedFormatForCurrentFile = false
 
-    /** Cached vrForcedFormat from settings — read synchronously on image display. */
+    /** Cached VR family-specific overrides from settings — read synchronously on image display. */
     @Volatile
-    var vrForcedFormatCached: StereoMode? = null
+    var vrForcedPlatFormatCached: StereoMode? = null
+        private set
+
+    @Volatile
+    var vrForcedSphericalFormatCached: StereoMode? = null
         private set
 
     @Volatile
@@ -308,13 +312,18 @@ class PlayerViewModel @Inject constructor(
                 settingsRepository.getSettings().collect { settings ->
                     val resource = state.value.resource
 
-                    // Cache vrForcedFormat for synchronous reads in image stereo detection.
-                    // Settings stores short keys ("SBS", "OU") not enum names ("SBS_FULL").
-                    vrForcedFormatCached = mapVrForcedFormat(settings.vrForcedFormat)
+                    // Cache family-specific forced settings for synchronous reads in image stereo detection.
+                    val forcedPlatFormat = VrForcedFormatResolver.mapPlatSetting(settings.vrForcedPlatFormat)
+                    val forcedSphericalFormat = VrForcedFormatResolver.mapSphericalSetting(settings.vrForcedSphericalFormat)
+                    val forcedFormatChanged =
+                        vrForcedPlatFormatCached != forcedPlatFormat ||
+                            vrForcedSphericalFormatCached != forcedSphericalFormat
+                    vrForcedPlatFormatCached = forcedPlatFormat
+                    vrForcedSphericalFormatCached = forcedSphericalFormat
                     val rememberFormatChanged = vrRememberFileFormatEnabledCached != settings.vrRememberFileFormat
                     vrRememberFileFormatEnabledCached = settings.vrRememberFileFormat
 
-                    if (rememberFormatChanged && !hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
+                    if ((rememberFormatChanged || forcedFormatChanged) && !hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
                         _stereoMode.value = resolveForcedStereoMode(_detectedStereoMode.value)
                     }
                     
@@ -1399,24 +1408,12 @@ class PlayerViewModel @Inject constructor(
 
     private fun resolveForcedStereoMode(detected: StereoMode): StereoMode {
         val perFileOverride = if (vrRememberFileFormatEnabledCached) currentStereoOverrideMode else null
-        if (perFileOverride != null) return perFileOverride
-
-        val forced = vrForcedFormatCached
-        return when {
-            forced == null -> detected
-            forced == StereoMode.AUTO -> detected
-            forced == StereoMode.UNKNOWN -> detected
-            else -> forced
-        }
-    }
-
-    /** Map the short settings key ("SBS", "OU") to [StereoMode] enum. */
-    private fun mapVrForcedFormat(key: String): StereoMode = when (key.uppercase()) {
-        "AUTO" -> StereoMode.AUTO
-        "SBS" -> StereoMode.SBS_FULL
-        "OU" -> StereoMode.OU
-        "MONO" -> StereoMode.MONO
-        else -> StereoMode.fromKey(key) // fallback to exact enum name match
+        return VrForcedFormatResolver.resolve(
+            detected = detected,
+            perFileOverride = perFileOverride,
+            forcedPlat = vrForcedPlatFormatCached,
+            forcedSpherical = vrForcedSphericalFormatCached,
+        )
     }
     
     /**

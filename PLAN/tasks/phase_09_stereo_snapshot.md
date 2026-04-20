@@ -1,6 +1,6 @@
 # Phase 9 — Stereo Snapshot (SBS PNG)
 
-**Status:** Not started · **Depends on:** Phase 1 · **Parent:** [../spec_vr-master.md](../spec_vr-master.md)
+**Status:** Implemented · **Depends on:** Phase 1 · **Parent:** [../spec_vr-master.md](../spec_vr-master.md)
 
 ## Goal
 
@@ -8,8 +8,9 @@ Capture a single frame from the active VR render loop as an SBS PNG (left half =
 
 ## Current State
 
-- No snapshot facility in vr flavor.
-- Standard flavor has `SaveFrameCommand` using ExoPlayer frame extraction — not applicable to VR swapchain content.
+- `VrStereoSnapshotManager` requests a one-shot stereo capture from the active OpenXR render loop.
+- The native bridge reads both eye swapchain images, exposes them as ARGB buffers, and Kotlin composes a single SBS PNG.
+- Snapshots are written to `Pictures/FastMediaSorter_VR` with a timestamped `*_SBS.png` filename and an immediate open action.
 
 ## Work
 
@@ -33,6 +34,11 @@ Capture a single frame from the active VR render loop as an SBS PNG (left half =
 - `app_v2/src/vr/cpp/OpenXrNative.cpp` — readback helper
 - [vr/VrPlayerActivity.kt](../../app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt) — expose capture method to command overrides
 - `app_v2/src/main/res/values{,-ru,-uk}/strings.xml` — toast labels
+
+## Validation
+
+- `./gradlew.bat :app_v2:assembleVrDebug`
+- `./gradlew.bat :app_v2:testVrDebugUnitTest --tests com.sza.fastmediasorter.vr.capture.VrStereoSnapshotManagerTest`
 
 ## Out of Scope
 

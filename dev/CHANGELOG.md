@@ -2857,3 +2857,128 @@ Format: | datetime | file | target | description |
 | 2026-04-19 19:46:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Phase 7: switched remember-format flow from global setting to per-file Room overrides |
 | 2026-04-19 19:46:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | Phase 7: pass file path into stereo reset for per-file override resolution |
 | 2026-04-19 19:46:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | Phase 7: pass image path into stereo reset for per-file override resolution |
+| 2026-04-19 20:05:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Phase 8: split VR forced format into flat and spherical settings |
+| 2026-04-19 20:05:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData` | Phase 8: bumped backup schema and added split VR forced-format fields |
+| 2026-04-19 20:05:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | Phase 8: migrated backup import-export for split VR forced-format settings |
+| 2026-04-19 20:05:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Phase 8: added legacy-compatible DataStore migration for flat and spherical VR forced formats |
+| 2026-04-19 20:05:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `VideoSettingsFragment` | Phase 8: added separate flat and spherical VR forced-format spinners |
+| 2026-04-19 20:05:15 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Phase 8: added second VR forced-format spinner and updated labels |
+| 2026-04-19 20:05:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Phase 8: applied family-aware VR forced-format resolution |
+| 2026-04-19 20:05:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VrForcedFormatResolver.kt` | `VrForcedFormatResolver` | Phase 8: added helper for flat versus spherical VR forced-format priority |
+| 2026-04-19 20:05:15 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VrForcedFormatResolverTest.kt` | `VrForcedFormatResolverTest` | Phase 8: added focused unit coverage for split VR forced-format resolution |
+| 2026-04-19 20:05:15 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Phase 8: split VR settings strings and arrays into flat and spherical options |
+| 2026-04-19 20:05:15 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | Phase 8: split RU VR settings strings and arrays into flat and spherical options |
+| 2026-04-19 20:05:15 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Phase 8: split UK VR settings strings and arrays into flat and spherical options |
+| 2026-04-19 20:08:56 | `PLAN/tasks/phase_08_settings_360.md` | `phase_08_settings_360` | Phase 8: marked VR split forced-format task as implemented with validation note |
+| 2026-04-19 20:08:56 | `docs/FEATURES.md` | `FEATURES` | Phase 8: documented split flat and spherical VR forced-format settings |
+| 2026-04-19 20:08:56 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 8: documented split flat and spherical VR forced-format settings in Russian |
+| 2026-04-19 20:08:56 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 8: documented split flat and spherical VR forced-format settings in Ukrainian |
+| 2026-04-19 20:09:34 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Phase 8: synced master VR spec with split flat and spherical forced-format settings |
+| 2026-04-19 20:09:34 | `PLAN/tasks/phase_07_dialog_spherical.md` | `phase_07_dialog_spherical` | Phase 8: updated Phase 7 task note to reference split VR settings |
+| 2026-04-19 20:10:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `resolveStereoFamily` | Fix: explicit flat modes (SBS/OU/MONO) now return FLAT directly instead of falling back to detectedStereoMode |
+| 2026-04-19 20:18:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Phase 9: added overridable Save Frame entrypoint for flavor-specific snapshot backends |
+| 2026-04-19 20:18:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Phase 9: routed Save Frame through PlayerActivity backend selection |
+| 2026-04-19 20:18:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrNative.kt` | `OpenXrNative` | Phase 9: added JNI snapshot request and consume bindings |
+| 2026-04-19 20:18:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | Phase 9: exposed stereo snapshot request and polling API |
+| 2026-04-19 20:18:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/capture/VrStereoSnapshotManager.kt` | `VrStereoSnapshotManager` | Phase 9: added VR stereo SBS snapshot capture and save manager |
+| 2026-04-19 20:18:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Phase 9: delegated Save Frame to VR stereo snapshot manager |
+| 2026-04-19 20:18:39 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Phase 9: added OpenXR swapchain stereo snapshot readback support |
+| 2026-04-19 20:19:19 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/capture/VrStereoSnapshotManagerTest.kt` | `VrStereoSnapshotManagerTest` | Phase 9: added focused VR unit test for stereo snapshot file naming |
+| 2026-04-19 20:19:19 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Phase 9: added VR stereo snapshot toast and snackbar strings |
+| 2026-04-19 20:19:19 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | Phase 9: added RU VR stereo snapshot toast and snackbar strings |
+| 2026-04-19 20:19:19 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Phase 9: added UK VR stereo snapshot toast and snackbar strings |
+| 2026-04-19 20:21:17 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/capture/VrStereoSnapshotManagerTest.kt` | `VrStereoSnapshotManagerTest` | Phase 9: aligned VR snapshot test with current MediaFile constructor |
+| 2026-04-19 20:22:28 | `PLAN/tasks/phase_09_stereo_snapshot.md` | `phase_09_stereo_snapshot` | Phase 9: marked stereo snapshot task implemented and added validation commands |
+| 2026-04-19 20:22:28 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Phase 9: marked stereo snapshot complete in VR master spec |
+| 2026-04-19 20:22:28 | `docs/FEATURES.md` | `FEATURES` | Phase 9: refined VR feature inventory entry with stereo snapshot save/open details |
+| 2026-04-19 20:22:28 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 9: refined RU VR feature inventory entry with stereo snapshot save/open details |
+| 2026-04-19 20:22:28 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 9: refined UK VR feature inventory entry with stereo snapshot save/open details |
+| 2026-04-19 20:36:05 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `StereoSnapshot` | Fix data race: changed ready from plain bool to std::atomic<bool> with release/acquire ordering |
+| 2026-04-19 20:36:08 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `StereoSnapshotPixels` | Override equals/hashCode to use contentEquals for IntArray fields (data class value semantics) |
+| 2026-04-19 20:36:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/commands/PlayerCommandOverrides.kt` | `PlayerCommandOverrides` | Phase 10: added optional player command override contracts for flavor-specific behavior |
+| 2026-04-19 20:36:20 | `app_v2/src/main/java/com/sza/fastmediasorter/di/PlayerCommandOverrideModule.kt` | `PlayerCommandOverrideModule` | Phase 10: added optional Hilt bindings for VR player command overrides |
+| 2026-04-19 20:36:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Phase 10: injected flavor-specific fullscreen save-frame and system-ui command hooks |
+| 2026-04-19 20:36:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Phase 10: routed fullscreen and save-frame buttons through override hooks |
+| 2026-04-19 20:36:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/commands/VrFullscreenCommandOverride.kt` | `VrFullscreenCommandOverride` | Phase 10: added VR fullscreen no-op command with toast feedback |
+| 2026-04-19 20:36:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/commands/VrSaveFrameCommandOverride.kt` | `VrSaveFrameCommandOverride` | Phase 10: added VR save-frame command bound to stereo snapshot capture |
+| 2026-04-19 20:36:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/commands/VrSystemUiCommandOverride.kt` | `VrSystemUiCommandOverride` | Phase 10: added VR system-ui command bound to control overlay toggle |
+| 2026-04-19 20:36:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/di/VrModule.kt` | `VrModule` | Phase 10: bound VR command overrides via Hilt |
+| 2026-04-19 20:36:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Phase 10: wired system-ui override to controller keys and OpenControls routing |
+| 2026-04-19 20:36:20 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Phase 10: added EN VR fullscreen command toast |
+| 2026-04-19 20:36:20 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | Phase 10: added RU VR fullscreen command toast |
+| 2026-04-19 20:36:20 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Phase 10: added UK VR fullscreen command toast |
+| 2026-04-19 20:36:36 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManagerTest.kt` | `VrControlOverlayManagerTest` | Phase 10: added focused VR unit test for control overlay state and command filtering |
+| 2026-04-19 20:37:22 | `docs/FEATURES.md` | `FEATURES.md` | Moved VR capabilities into a dedicated VR Edition section and renumbered sections |
+| 2026-04-19 20:37:22 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Moved VR capabilities into a dedicated VR section and renumbered sections |
+| 2026-04-19 20:37:22 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Moved VR capabilities into a dedicated VR section and renumbered sections |
+| 2026-04-19 20:39:12 | `PLAN/tasks/phase_10_vr_commands.md` | `phase_10_vr_commands` | Phase 10: marked VR command override task implemented with validation commands |
+| 2026-04-19 20:39:12 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Phase 10: marked VR command overrides complete in master spec |
+| 2026-04-19 20:39:12 | `docs/FEATURES.md` | `FEATURES` | Phase 10: documented VR fullscreen and system-ui command behavior |
+| 2026-04-19 20:39:12 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 10: documented RU VR fullscreen and system-ui command behavior |
+| 2026-04-19 20:39:12 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 10: documented UK VR fullscreen and system-ui command behavior |
+| 2026-04-19 20:59:17 | `app_v2/build.gradle.kts` | `disableNativeBuild()` | Fix: set abiFilters=arm64-v8a for non-VR flavors — was empty (all ABIs), causing standard APK to be 3-4x larger than vr |
+| 2026-04-19 21:43:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.createIntent` | Fix: use BuildConfig.PLAYER_ACTIVITY_CLASS to route to VrPlayerActivity in vr flavor instead of hardcoded PlayerActivity::class.java |
+| 2026-04-19 21:43:17 | `app_v2/build.gradle.kts` | `productFlavors` | Fix: add PLAYER_ACTIVITY_CLASS buildConfigField per flavor (vr=VrPlayerActivity, others=PlayerActivity) |
+| 2026-04-19 21:45:05 | `app_v2/src/main/res/layout/dialog_playback_control.xml` | `sectionStereo3d` | 3D VR tab: portrait layout — Flat and Spherical radio groups now side-by-side (2-column) instead of single vertical stack |
+| 2026-04-19 21:45:09 | `app_v2/src/main/res/layout-land/dialog_playback_control.xml` | `sectionStereo3d` | 3D VR tab: landscape layout — two-column compact layout (Flat\|Spherical), 36dp minHeight rows, 11sp hint, 13sp section labels |
+| 2026-04-19 21:53:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Fix: add missing BuildConfig import for PLAYER_ACTIVITY_CLASS in createIntent |
+| 2026-04-19 22:22:51 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `createSessionAndSwapchains` | BUG FIX: add missing xrGetGraphicsRequirementsOpenGLESKHR call before xrCreateSession (fixes XR_ERROR_GRAPHICS_REQUIREMENTS_CHECK_MISSING -50); add LOGD macro + xrSessionStateName/xrEventTypeName helpers; verbose logging throughout: loader init, extension enumeration, system properties, EGL binding, swapchain FBO status, session state transitions, pollEvents, renderFrame throttled every 300 frames, xrEndFrame result check, nativeRunFrame idle loop throttle |
+| 2026-04-19 22:27:26 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `createSessionAndSwapchains` | FIX: replace PFN_xrGetGraphicsRequirementsOpenGLESKHR (undefined in this SDK version) with local typedef PFN_GetGfxReqsGLES — fixes C++ compiler error, VR debug build now green |
+| 2026-04-19 22:31:39 | `app_v2/build.gradle.kts` | `ndkVersion` | Upgrade NDK 25.1.8937393 -> 27.2.12479018 (r27c) for 16 KB page size aligned libc++_shared.so (Google Play requirement Android 15+) |
+| 2026-04-19 22:34:06 | `app_v2/src/vr/cpp/CMakeLists.txt` | `openxr_native` | Add target_link_options -Wl,-z,max-page-size=16384 for 16 KB LOAD segment alignment (Google Play requirement Android 15+) |
+| 2026-04-19 22:58:39 | `app_v2/src/vr/AndroidManifest.xml` | `VrPlayerActivity` | Added android:launchMode=singleTask to prevent dual VrPlayerActivity instances (dual audio / dual decoder bug) |
+| 2026-04-19 22:58:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Added onNewIntent (singleTask recreation), early Log.e diagnostic, ExoPlayer surface clear in onPause, fixed null-safe setVideoSurface logging |
+| 2026-04-19 23:15:32 | `app_v2/src/vr/AndroidManifest.xml` | `VrPlayerActivity` | Add com.oculus.supportedDevices + com.oculus.vr.focusaware to fix OpenXR broker authorization on HorizonOS v67+ |
+| 2026-04-19 23:15:40 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | Increase INIT_TIMEOUT_MS 5000->12000 — xrCreateInstance takes 5.4s on cold boot |
+| 2026-04-19 23:15:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager.closeEpubBook` | Catch SecurityException from WebView.loadUrl on HorizonOS/Quest where system prefs are denied |
+| 2026-04-19 23:28:47 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | X button (left controller) exits immersive; remove per-frame aspect ratio logs; add Log.e on XR session failure |
+| 2026-04-19 23:28:53 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `enumerateAndCreateInstance` | Remove per-extension LOGD loop (68 lines/session); keep count summary only |
+| 2026-04-19 23:39:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.dispatchKeyEvent` | Menu button (left controller three-stripe) opens PlaybackControlDialog instead of VR overlay |
+| 2026-04-19 23:41:00 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback` | Replace cardDefaultPlayer with collapsible Behaviour group; add switchResumeOnNextLaunch |
+| 2026-04-19 23:41:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | Wire Behaviour section: collapsible group, switchResumeOnNextLaunch |
+| 2026-04-19 23:41:10 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Add resumeOnNextLaunch field (default true) |
+| 2026-04-19 23:41:10 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Add KEY_RESUME_ON_NEXT_LAUNCH: read/write resumeOnNextLaunch (default true) |
+| 2026-04-19 23:41:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Gate attemptResumePlayback on resumeOnNextLaunch setting |
+| 2026-04-19 23:58:30 | `.vscode/mcp.json` | `filesystem_ro` | Replace Docker-based filesystem_ro MCP startup with a local Node read-only server |
+| 2026-04-19 23:58:30 | `scripts/mcp/docs-search-mcp/filesystem-ro-server.js` | `filesystem_ro` | Add local read-only MCP server to avoid Docker dependency on Windows |
+| 2026-04-20 00:00:04 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Force-stop player on XR init failure, explicit VR exit, and onNewIntent recreation to prevent background audio |
+| 2026-04-20 00:26:00 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Fix subclass access to PlayerActivity lifecycleManager by removing invalid lateinit initialization check in VR playback stop path |
+| 2026-04-20 00:39:23 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Route audio, ordinary 2D video, and flat MONO playback in VR flavor to standard PlayerActivity; delay XR init until media classification is known |
+| 2026-04-20 00:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `BrowseEventHandler` | Route flat video and audio directly to standard player before VR launch |
+| 2026-04-20 01:08:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `BrowseEventHandler` | Fix: route all non-video files, including photos, to standard player to avoid unexpected immersive launch in vr flavor |
+| 2026-04-20 01:08:35 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Fix: fallback all non-video content to standard PlayerActivity so photos do not auto-enter immersive mode |
+| 2026-04-20 01:30:06 | `PLAN/spec_vr-panel-and-immersive.md` | `spec_vr-panel-and-immersive` | Update VR panel/immersive spec with VR-only Disable 3D/VR setting, hidden 3D page behavior, and global routing override |
+| 2026-04-20 01:38:22 | `app_v2/build.gradle.kts` | `dependencies` | Add media3-decoder-ffmpeg:1.2.1 for DTS/DTS-HD SW audio decoding |
+| 2026-04-20 01:38:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt` | `createPlayer` | Enable EXTENSION_RENDERER_MODE_PREFER so FFmpeg audio renderer is used for unsupported codecs |
+| 2026-04-20 01:38:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `onPlayerError` | Variant B: audio DecoderInit failure disables audio track and resumes video instead of skipping file |
+| 2026-04-20 01:38:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoTrackSelectionManager.kt` | `getAvailableAudioTracks` | Mark unsupported audio tracks with warning emoji in track picker dialog |
+| 2026-04-20 01:38:22 | `app_v2/src/main/res/values/strings.xml` | `warning_audio_format_unsupported` | Add EN/RU/UK string for audio format unsupported toast |
+| 2026-04-20 01:38:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt` | `createPlayer` | Enable EXTENSION_RENDERER_MODE_PREFER so FFmpeg audio renderer is used for unsupported codecs |
+| 2026-04-20 01:38:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `onPlayerError` | Variant B: audio DecoderInit failure disables audio track and resumes video without skipping file |
+| 2026-04-20 01:38:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoTrackSelectionManager.kt` | `getAvailableAudioTracks` | Mark unsupported audio tracks with warning emoji in track picker dialog |
+| 2026-04-20 01:38:29 | `app_v2/src/main/res/values/strings.xml` | `warning_audio_format_unsupported` | Add EN/RU/UK string for audio format unsupported toast |
+| 2026-04-20 01:38:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoTrackSelectionManager.kt` | `getAvailableAudioTracks` | Mark unsupported audio tracks with warning emoji in track picker dialog |
+| 2026-04-20 01:38:32 | `app_v2/src/main/res/values/strings.xml` | `warning_audio_format_unsupported` | Add EN/RU/UK strings for audio format unsupported toast |
+| 2026-04-20 01:38:35 | `app_v2/src/main/res/values/strings.xml` | `warning_audio_format_unsupported` | Add EN/RU/UK strings for audio format unsupported toast |
+| 2026-04-20 01:40:25 | `app_v2/build.gradle.kts` | `media3-decoder-ffmpeg` | Remove media3-decoder-ffmpeg: prebuilt Maven artifact does not include DTS decoder (patent restriction), dependency had no effect |
+| 2026-04-20 01:40:28 | `app_v2/src/.../PlayerSetupHelper.kt` | `DefaultRenderersFactory` | Remove EXTENSION_RENDERER_MODE_PREFER: has no effect without FFmpeg extension on classpath |
+| 2026-04-20 01:41:20 | `app_v2/src/vr/AndroidManifest.xml` | `AndroidManifest` | Phase B: remove VR intent-filter from VrPlayerActivity; add VR entry on MainActivity (panel mode fix) |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Phase D: add disable3dVr flag (VR global kill-switch, default false) |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Phase D: add KEY_VR_DISABLE_3D read/write for disable3dVr setting |
+| 2026-04-20 01:41:20 | `app_v2/src/main/res/values/strings.xml` | `strings` | Phase D: add settings_vr_disable_3d EN strings |
+| 2026-04-20 01:41:20 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Phase D: add settings_vr_disable_3d RU strings |
+| 2026-04-20 01:41:20 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Phase D: add settings_vr_disable_3d UK strings |
+| 2026-04-20 01:41:20 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback` | Phase D: add layoutDisable3dVr / switchDisable3dVr row in Behaviour section (VR-only, gone by default) |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | Phase D: wire switchDisable3dVr toggle (visible only in VR flavor) |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `BrowseEventHandler` | Phase C: add disable3dVr kill-switch check in shouldLaunchStandardPlayer |
+| 2026-04-20 01:41:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Phase C: add disable3dVr kill-switch check in shouldUseStandardPlayer |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `PlaybackControlDialogFragment` | Phase E: hide STEREO tab when disable3dVr=true (ARG_DISABLE_3D_VR bundle arg + newInstance factory) |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `PlayerDialogHelper` | Phase E: read disable3dVr asynchronously and pass to PlaybackControlDialogFragment.newInstance |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData` | Phase D: add nullable disable3dVr field to BackupSettings (null-safe restore from old backups) |
+| 2026-04-20 01:41:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | Phase D: serialize/deserialize disable3dVr in backup (null falls back to current setting) |
+| 2026-04-20 01:45:07 | `PLAN/spec_ffmpeg-custom-build-dts.md` | `spec_ffmpeg-custom-build-dts` | New spec: custom FFmpeg build with DTS decoder (libdca) for Quest 3 sideload; covers build env, NDK r25c, legal risk, flavor scope, phasing 16-32h |
+| 2026-04-20 01:57:06 | `app_v2/proguard-rules.pro` | `Dropbox ProGuard rules` | Replace blanket -keep com.dropbox.core.** with targeted rules — allows R8 to strip unused team/teamcommon API (GroupSummary), eliminating dex2oat 'Method processed more than once' warning in release builds |
+| 2026-04-20 02:11:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity.shouldAttemptResume` | Block resume-on-launch for VR flavor: SUPPORT_VR_PLAYER=true skips DB resume to prevent auto-entry into immersive XR mode on app start |
+| 2026-04-20 02:21:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity.attemptResumePlayback` | Block only PLAYER-type resume on VR flavor (not ALL resume); browser resume stays functional; clears stale resume state |
+| 2026-04-20 02:21:12 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.dispatchKeyEvent` | Add KEYCODE_BUTTON_B as exit fallback; make KEYCODE_BACK always exit immersive (not only when overlay visible) |
+| 2026-04-20 02:21:19 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.dispatchKeyEvent` | Add KEYCODE_BUTTON_B as exit fallback; make KEYCODE_BACK always exit immersive (not only when overlay visible) |

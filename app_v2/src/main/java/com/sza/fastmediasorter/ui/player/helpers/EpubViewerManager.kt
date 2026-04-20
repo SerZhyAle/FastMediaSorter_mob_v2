@@ -1120,8 +1120,14 @@ class EpubViewerManager(
         currentChapterIndex = 0
         chapterCount = 0
         
-        webView?.loadUrl("about:blank")
-        
+        // SecurityException is thrown on HorizonOS (Quest) because the underlying
+        // Chromium WebView tries to read system preferences it has no access to.
+        try {
+            webView?.loadUrl("about:blank")
+        } catch (e: SecurityException) {
+            Timber.w("EpubViewerManager: loadUrl(about:blank) denied by system (Quest/HorizonOS) — ignored")
+        }
+
         Timber.d("EPUB: Book closed, resources released")
     }
 

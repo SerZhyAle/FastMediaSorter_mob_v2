@@ -1150,12 +1150,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun attemptResumePlayback() {
-        // Show loading overlay immediately
-        binding.navigationProgressLayout.isVisible = true
-        binding.tvNavigationMessage.text = getString(R.string.resume_checking)
-
         lifecycleScope.launch {
             try {
+                // Gate on user preference before any UI is shown
+                val resumeEnabled = settingsRepository.getSettings().first().resumeOnNextLaunch
+                if (!resumeEnabled) {
+                    Timber.d("MainActivity: Resume on next launch disabled by user setting")
+                    return@launch
+                }
+
+                // Show loading overlay only when we will actually attempt resume
+                binding.navigationProgressLayout.isVisible = true
+                binding.tvNavigationMessage.text = getString(R.string.resume_checking)
+
                 val state = getResumeStateUseCase()
                 if (state == null) {
                     Timber.d("MainActivity: No resume state found")
@@ -1210,6 +1217,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     resource.type == ResourceType.CLOUD
                             && state.mediaType == MediaType.VIDEO -> false
                     else -> state.isPlaying
+                }
+
+                // VR flavor: resuming into PlayerActivity routes to VrPlayerActivity, which
+                // immediately starts an XR/immersive session — disorienting and broken while
+                // VR resume flow is not yet stable. Skip PLAYER resume only; browser resume
+                // (2D panel mode) is safe and continues to work.
+                if (com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER
+                    && state.screenType == com.sza.fastmediasorter.domain.model.ScreenType.PLAYER) {
+                    Timber.d("MainActivity: Skipping PLAYER resume on VR flavor — XR auto-entry not supported yet")
+                    clearResumeStateUseCase()
+                    dismissResumeLoading()
+                    return@launch
                 }
 
                 // Navigate to target screen

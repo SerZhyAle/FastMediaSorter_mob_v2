@@ -44,7 +44,7 @@ class VrVideoSurfaceTextureBridge {
      */
     fun initialize() {
         if (isInitialized) {
-            Timber.w("VrVideoSurfaceTextureBridge: already initialized, skipping")
+            Timber.w("VrVideoSurfaceTextureBridge: already initialized, skipping (textureId=%d)", textureId)
             return
         }
 
@@ -52,6 +52,12 @@ class VrVideoSurfaceTextureBridge {
         val textures = IntArray(1)
         GLES20.glGenTextures(1, textures, 0)
         textureId = textures[0]
+        val genError = GLES20.glGetError()
+        if (genError != GLES20.GL_NO_ERROR) {
+            Timber.e("VrVideoSurfaceTextureBridge: glGenTextures error=0x%x — textureId=%d", genError, textureId)
+        } else {
+            Timber.d("VrVideoSurfaceTextureBridge: glGenTextures OK textureId=%d", textureId)
+        }
 
         // Configure the OES texture — SurfaceTexture manages filtering internally,
         // but we set reasonable defaults for the rare case of manual sampling.
@@ -72,7 +78,8 @@ class VrVideoSurfaceTextureBridge {
         surface = Surface(surfaceTexture)
 
         isInitialized = true
-        Timber.d("VrVideoSurfaceTextureBridge: initialized, textureId=$textureId")
+        Timber.i("VrVideoSurfaceTextureBridge: initialized OK  textureId=%d  surface=%s",
+            textureId, surface)
     }
 
     /**
@@ -81,6 +88,10 @@ class VrVideoSurfaceTextureBridge {
      * before VrStereoRenderer samples the texture.
      */
     fun updateFrame() {
+        if (!isInitialized) {
+            Timber.w("VrVideoSurfaceTextureBridge: updateFrame called but NOT initialized")
+            return
+        }
         surfaceTexture?.updateTexImage()
     }
 

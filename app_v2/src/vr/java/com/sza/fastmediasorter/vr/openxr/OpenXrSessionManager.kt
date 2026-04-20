@@ -42,6 +42,31 @@ class OpenXrSessionManager(
     private val onSessionStopped: (() -> Unit)? = null,
 ) {
 
+    data class StereoSnapshotPixels(
+        val width: Int,
+        val height: Int,
+        val leftEyePixels: IntArray,
+        val rightEyePixels: IntArray,
+    ) {
+        // IntArray is not structurally compared by Kotlin data-class defaults;
+        // override to maintain correct value semantics.
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is StereoSnapshotPixels) return false
+            return width == other.width &&
+                height == other.height &&
+                leftEyePixels.contentEquals(other.leftEyePixels) &&
+                rightEyePixels.contentEquals(other.rightEyePixels)
+        }
+
+        override fun hashCode(): Int {
+            var result = width
+            result = 31 * result + height
+            result = 31 * result + leftEyePixels.contentHashCode()
+            result = 31 * result + rightEyePixels.contentHashCode()
+            return result
+        }
+    }
     @Volatile
     private var currentLayerDescriptor = VrLayerDescriptor()
 
@@ -79,19 +104,28 @@ class OpenXrSessionManager(
         val startLatch = Object()
 
         val renderThread = Thread({
+            val threadName = Thread.currentThread().name
+            val threadId   = Thread.currentThread().id
+            Timber.i("OpenXrSessionManager: render thread started — name='%s' id=%d", threadName, threadId)
+
             val egl = XrEglContext()
+            Timber.d("OpenXrSessionManager: creating EGL context...")
             if (!egl.create()) {
-                Timber.e("OpenXrSessionManager: EGL setup failed")
+                Timber.e("OpenXrSessionManager: EGL setup FAILED — no GL context, XR cannot start")
                 starting.set(false)
                 initFinished.set(true)
                 synchronized(startLatch) { startLatch.notifyAll() }
                 return@Thread
             }
+            Timber.i("OpenXrSessionManager: EGL context created OK")
 
+            Timber.i("OpenXrSessionManager: calling nativeInitialize...")
             val ok = try {
-                OpenXrNative.nativeInitialize(activity, callback)
+                val result = OpenXrNative.nativeInitialize(activity, callback)
+                Timber.i("OpenXrSessionManager: nativeInitialize returned %b", result)
+                result
             } catch (t: Throwable) {
-                Timber.e(t, "OpenXrSessionManager: nativeInitialize threw")
+                Timber.e(t, "OpenXrSessionManager: nativeInitialize THREW — see stack above")
                 false
             }
 
@@ -100,6 +134,7 @@ class OpenXrSessionManager(
             synchronized(startLatch) { startLatch.notifyAll() }
 
             if (!ok) {
+                Timber.e("OpenXrSessionManager: nativeInitialize failed — tearing down EGL")
                 starting.set(false)
                 egl.destroy()
                 return@Thread
@@ -121,30 +156,45 @@ class OpenXrSessionManager(
             running.set(true)
             starting.set(false)
 
+            Timber.i("OpenXrSessionManager: applying initial layer descriptor type=%s", currentLayerDescriptor.type)
             applyLayerDescriptor(currentLayerDescriptor)
 
             // Initialise GL bridge/renderer resources on the GL thread before the loop.
             // This must run after nativeInitialize so the EGL context + XR session exist.
+            Timber.i("OpenXrSessionManager: invoking onSessionReady callback")
             try {
                 onSessionReady?.invoke()
+                Timber.i("OpenXrSessionManager: onSessionReady completed OK")
             } catch (t: Throwable) {
-                Timber.e(t, "OpenXrSessionManager: onSessionReady threw — continuing without pipeline")
+                Timber.e(t, "OpenXrSessionManager: onSessionReady THREW — continuing without pipeline")
             }
 
+            // Frame counter for render loop health diagnostics.
+            var frameCount = 0L
             Timber.i("OpenXrSessionManager: render loop starting")
             while (!stopRequested.get() && running.get() && OpenXrNative.nativeShouldContinue()) {
                 OpenXrNative.nativeRunFrame()
+                frameCount++
+                if (frameCount % 300L == 1L) {
+                    Timber.d("OpenXrSessionManager: render loop alive — frame #%d  stopReq=%b",
+                        frameCount, stopRequested.get())
+                }
             }
-            Timber.i("OpenXrSessionManager: render loop exited")
+            Timber.i("OpenXrSessionManager: render loop exited after %d frames  stopReq=%b  running=%b  nativeShouldContinue=%b",
+                frameCount, stopRequested.get(), running.get(), runCatching { OpenXrNative.nativeShouldContinue() }.getOrDefault(false))
 
             running.set(false)
+            Timber.i("OpenXrSessionManager: invoking onSessionStopped for GL cleanup")
             try {
                 onSessionStopped?.invoke()
+                Timber.i("OpenXrSessionManager: onSessionStopped completed OK")
             } catch (t: Throwable) {
-                Timber.e(t, "OpenXrSessionManager: onSessionStopped threw during GL cleanup")
+                Timber.e(t, "OpenXrSessionManager: onSessionStopped THREW during GL cleanup")
             }
 
+            Timber.i("OpenXrSessionManager: calling nativeRelease")
             OpenXrNative.nativeRelease()
+            Timber.i("OpenXrSessionManager: destroying EGL context")
             egl.destroy()
 
             synchronized(this@OpenXrSessionManager) {
@@ -175,21 +225,27 @@ class OpenXrSessionManager(
         }
 
         if (!initFinished.get()) {
-            Timber.e("OpenXrSessionManager: init timed out after ${INIT_TIMEOUT_MS}ms")
+            Timber.e("OpenXrSessionManager: init TIMED OUT after ${INIT_TIMEOUT_MS}ms — calling release")
             release()
             return false
         }
 
-        return initialized.get()
+        val result = initialized.get()
+        Timber.i("OpenXrSessionManager: initialize() returning %b", result)
+        return result
     }
 
     /** Signal the render thread to exit and wait briefly for it to finish. */
     fun release() {
+        Timber.i("OpenXrSessionManager: release() called")
         val renderThread = synchronized(this) {
             val activeThread = thread
             if (activeThread == null && !running.get() && !starting.get()) {
+                Timber.d("OpenXrSessionManager: release() — nothing to stop (no active thread)")
                 return
             }
+            Timber.d("OpenXrSessionManager: release() — setting stopRequested, thread=%s",
+                activeThread?.name ?: "null")
             stopRequested.set(true)
             running.set(false)
             starting.set(false)
@@ -198,12 +254,18 @@ class OpenXrSessionManager(
 
         try {
             OpenXrNative.nativeRequestExit()
+            Timber.d("OpenXrSessionManager: nativeRequestExit sent")
         } catch (t: Throwable) {
             Timber.w(t, "OpenXrSessionManager: nativeRequestExit failed during release")
         }
 
         try {
             renderThread?.join(RELEASE_TIMEOUT_MS)
+            if (renderThread?.isAlive == true) {
+                Timber.w("OpenXrSessionManager: render thread still alive after %dms join timeout!", RELEASE_TIMEOUT_MS)
+            } else {
+                Timber.i("OpenXrSessionManager: render thread joined OK")
+            }
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
         }
@@ -227,6 +289,53 @@ class OpenXrSessionManager(
     fun eyeWidth(eye: Int): Int = OpenXrNative.nativeGetEyeWidth(eye)
     fun eyeHeight(eye: Int): Int = OpenXrNative.nativeGetEyeHeight(eye)
 
+    fun requestStereoSnapshot(): Boolean {
+        if (!running.get()) return false
+        return try {
+            OpenXrNative.nativeRequestStereoSnapshot()
+        } catch (t: Throwable) {
+            Timber.w(t, "OpenXrSessionManager: failed to request stereo snapshot")
+            false
+        }
+    }
+
+    fun pollStereoSnapshot(): StereoSnapshotPixels? {
+        if (!running.get()) return null
+        return try {
+            if (!OpenXrNative.nativeIsStereoSnapshotReady()) return null
+
+            val width = eyeWidth(0)
+            val height = eyeHeight(0)
+            if (width <= 0 || height <= 0) {
+                OpenXrNative.nativeReleaseStereoSnapshot()
+                return null
+            }
+
+            val leftEyePixels = OpenXrNative.nativeConsumeStereoSnapshotPixels(0)
+            val rightEyePixels = OpenXrNative.nativeConsumeStereoSnapshotPixels(1)
+            if (leftEyePixels == null || rightEyePixels == null) {
+                OpenXrNative.nativeReleaseStereoSnapshot()
+                return null
+            }
+
+            val snapshot = StereoSnapshotPixels(
+                width = width,
+                height = height,
+                leftEyePixels = leftEyePixels,
+                rightEyePixels = rightEyePixels,
+            )
+            OpenXrNative.nativeReleaseStereoSnapshot()
+            snapshot
+        } catch (t: Throwable) {
+            Timber.w(t, "OpenXrSessionManager: failed to consume stereo snapshot")
+            try {
+                OpenXrNative.nativeReleaseStereoSnapshot()
+            } catch (_: Throwable) {
+            }
+            null
+        }
+    }
+
     private fun applyLayerDescriptor(descriptor: VrLayerDescriptor) {
         try {
             OpenXrNative.nativeConfigureLayer(
@@ -245,7 +354,11 @@ class OpenXrSessionManager(
     }
 
     companion object {
-        private const val INIT_TIMEOUT_MS = 5_000L
+        // xrCreateInstance can take 5+ seconds on a cold process start (first launch after
+        // reboot) while the Meta runtime loader initialises all plugins. 12 s covers the
+        // observed worst case (~5.4 s) with a safe margin; subsequent warm launches finish
+        // in ~130 ms so the extra headroom has no practical cost.
+        private const val INIT_TIMEOUT_MS = 12_000L
         private const val RELEASE_TIMEOUT_MS = 2_000L
     }
 }

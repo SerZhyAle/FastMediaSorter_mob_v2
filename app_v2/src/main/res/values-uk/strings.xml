@@ -706,19 +706,32 @@
     <string name="settings_vr_section_title">VR</string>
     <string name="settings_vr_auto_detect">Автовизначення формату</string>
     <string name="settings_vr_auto_detect_desc">Визначати SBS/OU/Mono за метаданими та евристикою</string>
-    <string name="settings_vr_forced_format">Примусовий формат</string>
-    <string name="settings_vr_forced_format_desc">Перевизначити автовизначення для поточної сесії</string>
+    <string name="settings_vr_forced_flat_format">Примусовий плоский формат</string>
+    <string name="settings_vr_forced_flat_format_desc">Перевизначити автовизначення для плоского SBS/OU/mono у поточній сесії</string>
+    <string name="settings_vr_forced_spherical_format">Примусовий сферичний формат</string>
+    <string name="settings_vr_forced_spherical_format_desc">Перевизначити автовизначення для 360°, VR180 і циліндричного відтворення</string>
     <string name="settings_vr_rendering_mode">Режим VR-рендерингу</string>
     <string name="settings_vr_rendering_mode_desc">Cinema = плоский екран у VR; Full = окремий рендеринг для кожного ока</string>
     <string name="settings_vr_remember_format">Запам\'ятовувати формат файлу</string>
     <string name="settings_vr_remember_format_desc">Кешувати визначений формат кожного файлу в локальній базі</string>
+    <string name="settings_vr_disable_3d">Вимкнути 3D/VR</string>
+    <string name="settings_vr_disable_3d_desc">Відкривати весь контент як звичайне 2D; вимикає розпізнавання 3D/VR та вкладку «3D» в діалозі керування відтворенням</string>
     <string name="settings_vr_help_title">Налаштування VR</string>
-    <string name="settings_vr_help_message">Ці налаштування керують розпізнаванням та відображенням стереоскопічного 3D-контенту у VR-шоломі.\n\nАвтовизначення аналізує метадані відео та співвідношення сторін для визначення стереорозкладки (SBS, Over-Under або Mono).\n\nПримусовий формат дозволяє перевизначити автодетекцію.\n\nРежим рендерингу обирає між плоским екраном-кінотеатром у VR-просторі або повним стереоскопічним рендерингом для кожного ока.</string>
+    <string name="settings_vr_help_message">Ці налаштування керують розпізнаванням і відображенням стереоскопічного 3D- та сферичного контенту у VR-шоломі.\n\nАвтовизначення аналізує метадані та співвідношення сторін, щоб визначити сімейство стереоформату.\n\nПримусовий плоский формат застосовується лише до SBS, Over-Under і mono cinema. Примусовий сферичний формат застосовується лише до 360°, VR180 і циліндричного відтворення.\n\nРежим рендерингу обирає між плоским екраном-кінотеатром у VR-просторі або повним стереоскопічним рендерингом для кожного ока.</string>
     <string-array name="vr_forced_format_entries">
         <item>Авто</item>
         <item>SBS (поруч)</item>
         <item>OU (зверху-знизу)</item>
         <item>Mono</item>
+    </string-array>
+    <string-array name="vr_forced_format_values">
+        <item>AUTO</item>
+        <item>SBS</item>
+        <item>OU</item>
+        <item>MONO</item>
+    </string-array>
+    <string-array name="vr_forced_spherical_format_entries">
+        <item>Авто</item>
         <item>360° моно</item>
         <item>360° SBS</item>
         <item>360° OU</item>
@@ -726,6 +739,16 @@
         <item>180° SBS</item>
         <item>VR180</item>
         <item>Циліндр 180°</item>
+    </string-array>
+    <string-array name="vr_forced_spherical_format_values">
+        <item>AUTO</item>
+        <item>EQUIRECT_360_MONO</item>
+        <item>EQUIRECT_360_SBS</item>
+        <item>EQUIRECT_360_OU</item>
+        <item>EQUIRECT_180_MONO</item>
+        <item>EQUIRECT_180_SBS</item>
+        <item>VR180_FISHEYE_SBS</item>
+        <item>CYLINDER_180</item>
     </string-array>
     <string-array name="vr_rendering_mode_entries">
         <item>Кінотеатр</item>
@@ -831,6 +854,11 @@
     <string name="save_frame_error">Не вдалося зберегти кадр</string>
     <string name="save_frame_drm_error">Захищений контент не може бути збережений</string>
     <string name="save_frame_no_video">Відео не відтворюється</string>
+    <string name="vr_fullscreen_already_active">У VR вже активний повноекранний режим</string>
+    <string name="vr_save_frame_saved_to_pictures">Стереознімок збережено в Pictures</string>
+    <string name="vr_save_frame_unavailable">Стереознімок VR зараз недоступний</string>
+    <string name="vr_save_frame_timeout">Не вдалося дочекатися стереознімка VR</string>
+    <string name="vr_save_frame_open_failed">Немає застосунку для відкриття збереженого знімка</string>
     <string name="snapshot_format_label">Тип файлу кадру:</string>
     <string name="snapshot_format_png">PNG</string>
     <string name="snapshot_format_jpg">JPG</string>
@@ -1243,6 +1271,7 @@
     <string name="msg_network_error_max_retries">Помилка мережі після %1$d спроб: %2$s</string>
     <string name="msg_playback_error">Помилка відтворення: %1$s</string>
     <string name="error_loading_media">Помилка завантаження файлу, пропуск</string>
+    <string name="warning_audio_format_unsupported">Аудіоформат не підтримується — відтворення без звуку</string>
 
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Ви впевнені, що хочете очистити кеш додатку?</string>
@@ -2094,6 +2123,9 @@
     <string name="settings_accept_shared_files">Приймати спільні файли</string>
     <string name="settings_category_default_player">Медіапрогравач за замовчуванням</string>
     <string name="settings_primary_media_player">Основний медіапрогравач</string>
+    <string name="settings_category_behaviour">Поведінка</string>
+    <string name="setting_resume_on_next_launch">Продовжувати відтворення при наступному запуску</string>
+    <string name="setting_resume_on_next_launch_desc">При запуску застосунку автоматично відкривати останній відтворюваний файл з того місця, де було зупинено</string>
 
     <!-- Virtual resources -->
     <string name="virtual_camera_photos">Фото з камери</string>

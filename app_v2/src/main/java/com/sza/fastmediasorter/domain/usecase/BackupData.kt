@@ -27,7 +27,7 @@ data class BackupPayload(
     val scheduledOperations: List<BackupScheduledOperation>? = null
 ) {
     companion object {
-        const val CURRENT_VERSION = 3
+        const val CURRENT_VERSION = 4
     }
 }
 
@@ -137,11 +137,16 @@ data class BackupSettings(
     val videoSnapshotResourceId: Long? = null,
     // Video frame snapshot format: "PNG" (default) or "JPG"
     val videoSnapshotFormat: String = "JPG",
-    // VR settings (spec §5.7)
+    // VR settings (spec §5.7 / Phase 8)
     val vrAutoDetectFormat: Boolean = true,
-    val vrForcedFormat: String = "AUTO",
+    val vrForcedPlatFormat: String = "AUTO",
+    val vrForcedSphericalFormat: String = "AUTO",
     val vrRenderingMode: String = "CINEMA",
-    val vrRememberFileFormat: Boolean = true
+    val vrRememberFileFormat: Boolean = true,
+    // Global VR kill-switch (spec §3.0.2); nullable for forward-compat with older backup files
+    val disable3dVr: Boolean? = null,
+    // Legacy alias kept nullable so old exports still restore after the split.
+    val vrForcedFormat: String? = null
 )
 
 /**

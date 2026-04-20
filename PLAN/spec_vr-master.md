@@ -45,7 +45,7 @@ Ship a dedicated **vr flavor** of FastMediaSorter for Meta Quest 3 that renders 
 | Entry routing (PHONE/TABLET/HEADSET × flavor × stereo) | [ui/player/entry/PlayerEntryCoordinator.kt](../app_v2/src/main/java/com/sza/fastmediasorter/ui/player/entry/PlayerEntryCoordinator.kt) |
 | PlaybackControlDialog STEREO tab + IPD + rendering-mode chips | [ui/player/PlaybackControlDialogFragment.kt](../app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt) |
 | PlaybackControlDialog dual flat/spherical RadioGroups + override switch + per-file remember-format cache | [ui/player/PlaybackControlDialogFragment.kt](../app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt), [ui/player/PlayerViewModel.kt](../app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt), `data/local/db/StereoFormatOverride*.kt` |
-| Settings keys (`vrForcedFormat`, `vrRenderingMode`, `vrRememberFileFormat`, `vrAutoDetectFormat`) | [domain/model/AppSettings.kt](../app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt) |
+| Settings keys (`vrForcedPlatFormat`, `vrForcedSphericalFormat`, `vrRenderingMode`, `vrRememberFileFormat`, `vrAutoDetectFormat`) | [domain/model/AppSettings.kt](../app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt) |
 | VR settings block in Video settings fragment | [ui/settings/fragments/VideoSettingsFragment.kt](../app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt) |
 | ExoPlayer → OpenXR bridge (`VrVideoSurfaceTextureBridge`) | `vr/VrVideoSurfaceTextureBridge.kt` |
 | Layer-aware stereo renderer dispatch for projection, cinema quad, equirect, and cylinder targets | [vr/render/VrStereoRenderer.kt](../app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt), [vr/render/VrRenderContext.kt](../app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrRenderContext.kt) |
@@ -63,9 +63,7 @@ Ship a dedicated **vr flavor** of FastMediaSorter for Meta Quest 3 that renders 
 
 - `VrStereoRenderer` dispatcher for sphere/cylinder geometry.
 - 360° photo support (bitmap → equirect layer or sphere mesh).
-- VR settings forced 360° format options.
-- `VrStereoSnapshotManager` (SBS PNG capture from render loop).
-- VR command overrides for Fullscreen + Save Frame.
+- VR settings forced flat and spherical format options.
 - Store submission: Meta Horizon manifest, icon branding, sideload docs.
 - Doc updates: `docs/FEATURES.md` EN/RU/UK, `docs/VR_EDITION.md`, `docs/VR_SIDELOAD.md`.
 
@@ -122,13 +120,13 @@ Each phase has its own tactical doc in [`PLAN/tasks/`](./tasks/) with acceptance
 | 5 | Sphere/cylinder renderer dispatch ✅ | 4 | [phase_05_sphere_cylinder_render.md](./tasks/phase_05_sphere_cylinder_render.md) |
 | 6 | 360° photo support | 2, 4 | [phase_06_photo_sphere.md](./tasks/phase_06_photo_sphere.md) |
 | 7 | PlaybackControlDialog spherical RadioGroup ✅ | 2 | [phase_07_dialog_spherical.md](./tasks/phase_07_dialog_spherical.md) |
-| 8 | VR settings — forced 360° format options | 2, 7 | [phase_08_settings_360.md](./tasks/phase_08_settings_360.md) |
-| 9 | Stereo snapshot (SBS PNG) | 1 | [phase_09_stereo_snapshot.md](./tasks/phase_09_stereo_snapshot.md) |
-| 10 | VR command overrides (Fullscreen, Save Frame) | 9 | [phase_10_vr_commands.md](./tasks/phase_10_vr_commands.md) |
+| 8 | VR settings — forced 360° format options ✅ | 2, 7 | [phase_08_settings_360.md](./tasks/phase_08_settings_360.md) |
+| 9 | Stereo snapshot (SBS PNG) ✅ | 1 | [phase_09_stereo_snapshot.md](./tasks/phase_09_stereo_snapshot.md) |
+| 10 | VR command overrides (Fullscreen, Save Frame) ✅ | 9 | [phase_10_vr_commands.md](./tasks/phase_10_vr_commands.md) |
 | 11 | Store submission + sideload infra | 1–10 | [phase_11_store_submission.md](./tasks/phase_11_store_submission.md) |
 | 12 | Docs sync (FEATURES EN/RU/UK + VR_EDITION + VR_SIDELOAD) | 1–11 | [phase_12_docs.md](./tasks/phase_12_docs.md) |
 
-Phases 1, 2, 3, 4, 5, and 7 are complete in code. Phase 6 photo-sphere closeout and phase 8 settings work are the next VR implementation milestones; phase 11 is the release gate and phase 12 ships with it.
+Phases 1, 2, 3, 4, 5, 7, 8, 9, and 10 are complete in code. Phase 6 photo-sphere closeout is the next VR implementation milestone; phase 11 is the release gate and phase 12 ships with it.
 
 ## 7. Acceptance Criteria (master)
 
@@ -143,7 +141,7 @@ The VR edition is shipable when:
 3. Auto-detection covers: filename patterns, MP4 `st3d`/`sv3d`, Matroska `StereoMode`, aspect-ratio heuristics.
 4. User can override detected format from PlaybackControlDialog; override persists per-file when `vrRememberFileFormat=true`.
 5. SBS PNG snapshot capture produces a 2×width image with both eyes composited.
-6. Settings screen on VR flavor exposes forced format for flat + spherical.
+6. Settings screen on VR flavor exposes separate forced-format defaults for flat + spherical playback.
 7. Phone fallback screen shows on any non-headset device running vr flavor.
 8. `docs/FEATURES.md` EN/RU/UK mirror the shipped feature set.
 

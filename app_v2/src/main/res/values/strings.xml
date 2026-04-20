@@ -629,6 +629,9 @@
     <string name="cb_play_to_end_desc">Waits for the end of each video or audio before moving in the slideshow</string>
     <string name="settings_accept_shared_files">Accept shared files</string>
     <string name="settings_category_default_player">Default Media Player</string>
+    <string name="settings_category_behaviour">Behaviour</string>
+    <string name="setting_resume_on_next_launch">Resume playback on next launch</string>
+    <string name="setting_resume_on_next_launch_desc">On app start, automatically reopen the last played file from where you left off</string>
     <string name="settings_primary_media_player">Primary media player</string>
     <string name="welcome_default_player_btn_audio">Audio</string>
     <string name="welcome_default_player_btn_docs">Documents</string>
@@ -823,19 +826,32 @@
     <string name="settings_vr_section_title">VR</string>
     <string name="settings_vr_auto_detect">Auto-detect format</string>
     <string name="settings_vr_auto_detect_desc">Detect SBS/OU/Mono via metadata and heuristics</string>
-    <string name="settings_vr_forced_format">Forced format</string>
-    <string name="settings_vr_forced_format_desc">Override auto-detection for the current session</string>
+    <string name="settings_vr_forced_flat_format">Forced flat format</string>
+    <string name="settings_vr_forced_flat_format_desc">Override auto-detection for flat SBS/OU/mono playback in the current session</string>
+    <string name="settings_vr_forced_spherical_format">Forced spherical format</string>
+    <string name="settings_vr_forced_spherical_format_desc">Override auto-detection for 360°, VR180, and cylinder playback in the current session</string>
     <string name="settings_vr_rendering_mode">VR rendering mode</string>
     <string name="settings_vr_rendering_mode_desc">Cinema = flat screen in VR; Full = per-eye rendering</string>
     <string name="settings_vr_remember_format">Remember file format</string>
     <string name="settings_vr_remember_format_desc">Cache detected format per file in local database</string>
+    <string name="settings_vr_disable_3d">Disable 3D/VR</string>
+    <string name="settings_vr_disable_3d_desc">Treat all content as plain 2D; disables 3D/VR detection and the 3D tab in the playback dialog</string>
     <string name="settings_vr_help_title">VR Settings</string>
-    <string name="settings_vr_help_message">These settings control how stereoscopic 3D content is detected and rendered in the VR headset.\n\nAuto-detect analyzes video metadata and aspect ratio to determine the stereo layout (SBS, Over-Under, or Mono).\n\nForced format lets you override auto-detection.\n\nRendering mode chooses between a flat cinema screen in VR space or full per-eye stereoscopic rendering.</string>
+    <string name="settings_vr_help_message">These settings control how stereoscopic 3D and spherical content is detected and rendered in the VR headset.\n\nAuto-detect analyzes media metadata and aspect ratio to determine the stereo layout family.\n\nForced flat format applies only to SBS, Over-Under, and mono cinema playback. Forced spherical format applies only to 360°, VR180, and cylinder playback.\n\nRendering mode chooses between a flat cinema screen in VR space or full per-eye stereoscopic rendering.</string>
     <string-array name="vr_forced_format_entries">
         <item>Auto</item>
         <item>SBS (Side-by-Side)</item>
         <item>OU (Over-Under)</item>
         <item>Mono</item>
+    </string-array>
+    <string-array name="vr_forced_format_values">
+        <item>AUTO</item>
+        <item>SBS</item>
+        <item>OU</item>
+        <item>MONO</item>
+    </string-array>
+    <string-array name="vr_forced_spherical_format_entries">
+        <item>Auto</item>
         <item>360° Mono</item>
         <item>360° SBS</item>
         <item>360° OU</item>
@@ -844,11 +860,8 @@
         <item>VR180</item>
         <item>Cylinder 180°</item>
     </string-array>
-    <string-array name="vr_forced_format_values">
+    <string-array name="vr_forced_spherical_format_values">
         <item>AUTO</item>
-        <item>SBS</item>
-        <item>OU</item>
-        <item>MONO</item>
         <item>EQUIRECT_360_MONO</item>
         <item>EQUIRECT_360_SBS</item>
         <item>EQUIRECT_360_OU</item>
@@ -972,6 +985,11 @@
     <string name="save_frame_error">Failed to save frame</string>
     <string name="save_frame_drm_error">Protected content cannot be saved</string>
     <string name="save_frame_no_video">No video playing</string>
+    <string name="vr_fullscreen_already_active">Already fullscreen in VR</string>
+    <string name="vr_save_frame_saved_to_pictures">Stereo snapshot saved to Pictures</string>
+    <string name="vr_save_frame_unavailable">VR stereo snapshot is unavailable right now</string>
+    <string name="vr_save_frame_timeout">VR stereo snapshot timed out</string>
+    <string name="vr_save_frame_open_failed">No app can open the saved snapshot</string>
     <string name="snapshot_format_label">Frame file type:</string>
     <string name="snapshot_format_png">PNG</string>
     <string name="snapshot_format_jpg">JPG</string>
@@ -1527,6 +1545,7 @@
     <string name="msg_network_error_max_retries">Network stream error after %1$d retries: %2$s</string>
     <string name="msg_playback_error">Playback error: %1$s</string>
     <string name="error_loading_media">Error loading file, skipping</string>
+    <string name="warning_audio_format_unsupported">Audio format not supported — playing without sound</string>
 
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Are you sure you want to clear the app cache?</string>

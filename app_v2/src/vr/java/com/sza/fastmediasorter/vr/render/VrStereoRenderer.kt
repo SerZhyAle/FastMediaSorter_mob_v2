@@ -42,6 +42,9 @@ class VrStereoRenderer {
 
     private val planner = VrRenderPlanner()
 
+    /** Throttle counter for per-eye render debug logs — not persisted across GL contexts. */
+    private var dbgRenderEyeCount = 0L
+
     /**
      * Set the stereo mode for the current media.
      * Called by VrPlayerActivity when StereoDetectionFacade returns a result.
@@ -149,7 +152,8 @@ class VrStereoRenderer {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
 
         isGlInitialized = true
-        Timber.d("VrStereoRenderer: GL initialized, program=$shaderProgram")
+        Timber.i("VrStereoRenderer: GL initialized  program=%d  aPos=%d aTexCoord=%d uTex=%d uUvOffset=%d uUvScale=%d  vbo=%d",
+            shaderProgram, aPositionLoc, aTexCoordLoc, uTextureLoc, uUvOffsetLoc, uUvScaleLoc, quadVbo)
     }
 
     /**
@@ -164,6 +168,15 @@ class VrStereoRenderer {
         oesTextureId: Int,
         descriptor: VrLayerDescriptor,
     ) {
+        // Throttled per-eye log every 300 calls on left eye only to halve log volume.
+        if (context.eye == VrEye.LEFT) {
+            val n = ++dbgRenderEyeCount
+            if (n % 300L == 1L) {
+                Timber.d("VrStereoRenderer: renderEye #%d  eye=%s layer=%s stereo=%s tex=%d  %dx%d",
+                    n, context.eye, context.layerType, context.stereoMode,
+                    oesTextureId, context.targetWidthPx, context.targetHeightPx)
+            }
+        }
         val plan = planner.buildRenderPlan(context, descriptor)
         renderQuad(
             oesTextureId = oesTextureId,

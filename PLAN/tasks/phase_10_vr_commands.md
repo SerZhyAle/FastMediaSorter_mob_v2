@@ -1,6 +1,6 @@
 # Phase 10 — VR Command Overrides (Fullscreen, Save Frame)
 
-**Status:** Not started · **Depends on:** Phase 9 · **Parent:** [../spec_vr-master.md](../spec_vr-master.md)
+**Status:** Implemented · **Depends on:** Phase 9 · **Parent:** [../spec_vr-master.md](../spec_vr-master.md)
 
 ## Goal
 
@@ -8,9 +8,9 @@ Override a small set of standard player commands in the vr flavor so they behave
 
 ## Current State
 
-- Standard player commands (`FullscreenCommand`, `SaveFrameCommand`, `ToggleSystemUiCommand`, etc.) are defined in `ui/player/commands/`.
-- They manipulate Android window flags or ExoPlayer frame grab.
-- In vr flavor they either no-op or crash (the VR render loop owns the surface).
+- Shared player callbacks now expose optional Hilt-based command override hooks for fullscreen, save-frame, and system-ui behavior.
+- VR flavor binds dedicated overrides in `vr/commands/` so fullscreen becomes a toast-only no-op, Save Frame uses the Phase 9 stereo snapshot backend, and controller system-ui input toggles the VR control overlay state instead of Android bars.
+- `PlaybackCommand.OpenControls` is now handled in `VrPlayerActivity` so the VR overlay can still open the shared playback-control dialog.
 
 ## Work
 
@@ -31,9 +31,19 @@ Override a small set of standard player commands in the vr flavor so they behave
 
 ## Files Touched
 
+- `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/commands/PlayerCommandOverrides.kt` (new)
+- `app_v2/src/main/java/com/sza/fastmediasorter/di/PlayerCommandOverrideModule.kt` (new)
+- `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt`
+- `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt`
 - `app_v2/src/vr/java/com/sza/fastmediasorter/vr/commands/` (new package, 3-4 files)
 - `vr/di/VrModule.kt` — `@Binds` replacements
-- Audit: `ui/player/commands/*Command.kt` (identify which ones need VR overrides)
+- `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt`
+- `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManagerTest.kt`
+
+## Validation
+
+- `./gradlew.bat :app_v2:assembleVrDebug`
+- `./gradlew.bat :app_v2:testVrDebugUnitTest --tests com.sza.fastmediasorter.vr.capture.VrStereoSnapshotManagerTest --tests com.sza.fastmediasorter.vr.ui.VrControlOverlayManagerTest`
 
 ## Out of Scope
 

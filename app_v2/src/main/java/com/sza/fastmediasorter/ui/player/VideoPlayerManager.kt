@@ -12,6 +12,7 @@ import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
+import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -283,6 +284,40 @@ class VideoPlayerManager(
             }
 
             if (playerCallback.isActivityDestroyed()) return
+
+            // --- Variant B: graceful audio-decoder fallback ---
+            // When the audio renderer fails to initialize (e.g., DTS on Quest 3 — no platform
+            // decoder, and FFmpeg extension also unavailable for this specific codec),
+            // disable the audio track and resume video playback instead of skipping the file.
+            // This prevents jarring auto-navigation away from a perfectly valid video file.
+            val isAudioRendererFailure = run {
+                val exoEx = error as? ExoPlaybackException ?: return@run false
+                if (exoEx.type != ExoPlaybackException.TYPE_RENDERER) return@run false
+                val rendererType = try { exoPlayer?.getRendererType(exoEx.rendererIndex) } catch (_: Exception) { null }
+                rendererType == C.TRACK_TYPE_AUDIO
+            }
+            if (isAudioRendererFailure) {
+                val savedPosition = exoPlayer?.currentPosition ?: 0L
+                Timber.w("VideoPlayerManager: Audio renderer failed (errorCode=${error.errorCode}) — disabling audio, resuming video at ${savedPosition}ms")
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.warning_audio_format_unsupported),
+                    Toast.LENGTH_LONG
+                ).show()
+                playerCallback.onBuffering(false)
+                exoPlayer?.let { player ->
+                    // Disable all audio tracks so ExoPlayer skips audio renderer on next prepare
+                    player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                        .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                        .build()
+                    // Re-prepare from IDLE and seek back to the position before the error
+                    player.prepare()
+                    player.seekTo(savedPosition)
+                    player.play()
+                }
+                return
+            }
+            // --- end Variant B ---
 
             val isFormatError = error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED ||
                 error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||

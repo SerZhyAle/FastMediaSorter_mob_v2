@@ -58,13 +58,14 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 add(ControlSection.VOLUME)
                 add(ControlSection.AUDIO)
                 add(ControlSection.SUBTITLES)
-                // 3D/Stereo tab: shown in VR flavor unconditionally, AND in any flavor
+                // 3D/Stereo tab: shown in VR flavor (unless kill-switch is ON), AND in any flavor
                 // when the current file has stereo content detected (SBS/OU image or video).
+                val disable3dVr = arguments?.getBoolean(ARG_DISABLE_3D_VR, false) ?: false
                 val currentStereo = playerActivity().viewModel.stereoMode.value
                 val isStereoContent = currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.AUTO &&
                     currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.MONO &&
                     currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.UNKNOWN
-                if (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent) {
+                if (!disable3dVr && (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent)) {
                     add(ControlSection.STEREO)
                 }
                 add(ControlSection.HUE)
@@ -430,7 +431,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private fun resolveStereoFamily(mode: StereoMode): StereoFamily {
         if (mode.isSpherical()) return StereoFamily.SPHERICAL
-
+        // Explicit flat modes (SBS/OU/MONO) always map to FLAT regardless of detectedStereoMode.
+        // Only AUTO/UNKNOWN fall back to the detected result so the correct group is pre-selected.
+        if (mode != StereoMode.AUTO && mode != StereoMode.UNKNOWN) return StereoFamily.FLAT
         val detectedMode = playerActivity().viewModel.detectedStereoMode.value
         return if (detectedMode.isSpherical()) StereoFamily.SPHERICAL else StereoFamily.FLAT
     }
@@ -616,5 +619,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
     companion object {
         const val TAG = "PlaybackControlDialog"
         private const val STATE_SELECTED_TAB = "selected_tab"
+        private const val ARG_DISABLE_3D_VR = "disable_3d_vr"
+
+        fun newInstance(disable3dVrEnabled: Boolean = false): PlaybackControlDialogFragment =
+            PlaybackControlDialogFragment().apply {
+                arguments = android.os.Bundle().apply {
+                    putBoolean(ARG_DISABLE_3D_VR, disable3dVrEnabled)
+                }
+            }
     }
 }

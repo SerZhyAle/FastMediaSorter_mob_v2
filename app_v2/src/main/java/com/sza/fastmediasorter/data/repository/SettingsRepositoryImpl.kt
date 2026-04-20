@@ -177,11 +177,30 @@ class SettingsRepositoryImpl @Inject constructor(
         // Video frame snapshot file format ("PNG" or "JPG")
         private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
 
+        // Resume on next launch
+        private val KEY_RESUME_ON_NEXT_LAUNCH = booleanPreferencesKey("resume_on_next_launch")
+
         // VR settings (spec §5.7)
         private val KEY_VR_AUTO_DETECT_FORMAT = booleanPreferencesKey("vr_auto_detect_format")
         private val KEY_VR_FORCED_FORMAT = stringPreferencesKey("vr_forced_format")
+        private val KEY_VR_FORCED_PLAT_FORMAT = stringPreferencesKey("vr_forced_plat_format")
+        private val KEY_VR_FORCED_SPHERICAL_FORMAT = stringPreferencesKey("vr_forced_spherical_format")
         private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
         private val KEY_VR_REMEMBER_FILE_FORMAT = booleanPreferencesKey("vr_remember_file_format")
+        // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
+        private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
+
+        private val VR_FORCED_PLAT_VALUES = setOf("AUTO", "SBS", "OU", "MONO")
+        private val VR_FORCED_SPHERICAL_VALUES = setOf(
+            "AUTO",
+            "EQUIRECT_360_MONO",
+            "EQUIRECT_360_SBS",
+            "EQUIRECT_360_OU",
+            "EQUIRECT_180_MONO",
+            "EQUIRECT_180_SBS",
+            "VR180_FISHEYE_SBS",
+            "CYLINDER_180"
+        )
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -371,29 +390,19 @@ class SettingsRepositoryImpl @Inject constructor(
                             ?.takeIf { it == "PNG" || it == "JPG" }
                             ?: "JPG",
 
-                    // VR settings (spec §5.7)
+                    // VR settings (spec §5.7 / Phase 8)
                     vrAutoDetectFormat = preferences[KEY_VR_AUTO_DETECT_FORMAT] ?: true,
-                    vrForcedFormat = preferences[KEY_VR_FORCED_FORMAT]
-                        ?.takeIf {
-                            it in listOf(
-                                "AUTO",
-                                "SBS",
-                                "OU",
-                                "MONO",
-                                "EQUIRECT_360_MONO",
-                                "EQUIRECT_360_SBS",
-                                "EQUIRECT_360_OU",
-                                "EQUIRECT_180_MONO",
-                                "EQUIRECT_180_SBS",
-                                "VR180_FISHEYE_SBS",
-                                "CYLINDER_180"
-                            )
-                        }
-                        ?: "AUTO",
+                    vrForcedPlatFormat = readVrForcedPlatFormat(preferences),
+                    vrForcedSphericalFormat = readVrForcedSphericalFormat(preferences),
                     vrRenderingMode = preferences[KEY_VR_RENDERING_MODE]
                         ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }
                         ?: "CINEMA",
-                    vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true
+                    vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true,
+                    disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
+
+                    // Default true: resumes playback on fresh installs and on update from old versions
+                    // (absent key → null → default true, matching the user's existing behaviour)
+                    resumeOnNextLaunch = preferences[KEY_RESUME_ON_NEXT_LAUNCH] ?: true
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -593,11 +602,18 @@ class SettingsRepositoryImpl @Inject constructor(
             // Video frame snapshot format — always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
 
-            // VR settings (spec §5.7)
+            // VR settings (spec §5.7 / Phase 8 split). Legacy key is removed on write so
+            // existing installs migrate forward after the first successful save.
             preferences[KEY_VR_AUTO_DETECT_FORMAT] = settings.vrAutoDetectFormat
-            preferences[KEY_VR_FORCED_FORMAT] = settings.vrForcedFormat
+            preferences[KEY_VR_FORCED_PLAT_FORMAT] = settings.vrForcedPlatFormat
+            preferences[KEY_VR_FORCED_SPHERICAL_FORMAT] = settings.vrForcedSphericalFormat
+            preferences.remove(KEY_VR_FORCED_FORMAT)
             preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
             preferences[KEY_VR_REMEMBER_FILE_FORMAT] = settings.vrRememberFileFormat
+            preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
+
+            // Resume on next launch
+            preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
         }
     }
 
@@ -739,5 +755,25 @@ class SettingsRepositoryImpl @Inject constructor(
             Timber.e("Failed to decrypt password, returning empty string")
             ""
         }
+    }
+
+    private fun readVrForcedPlatFormat(preferences: Preferences): String {
+        preferences[KEY_VR_FORCED_PLAT_FORMAT]
+            ?.uppercase()
+            ?.takeIf { it in VR_FORCED_PLAT_VALUES }
+            ?.let { return it }
+
+        val legacy = preferences[KEY_VR_FORCED_FORMAT]?.uppercase() ?: return "AUTO"
+        return legacy.takeIf { it in VR_FORCED_PLAT_VALUES } ?: "AUTO"
+    }
+
+    private fun readVrForcedSphericalFormat(preferences: Preferences): String {
+        preferences[KEY_VR_FORCED_SPHERICAL_FORMAT]
+            ?.uppercase()
+            ?.takeIf { it in VR_FORCED_SPHERICAL_VALUES }
+            ?.let { return it }
+
+        val legacy = preferences[KEY_VR_FORCED_FORMAT]?.uppercase() ?: return "AUTO"
+        return legacy.takeIf { it in VR_FORCED_SPHERICAL_VALUES } ?: "AUTO"
     }
 }
