@@ -11,6 +11,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
@@ -44,6 +45,7 @@ class CommandPanelController(
     interface CommandPanelCallback {
         fun onBackClicked()
         fun onPreviousClicked()
+        fun onRandomClicked()
         fun onNextClicked()
         fun onRenameClicked()
         fun onDeleteClicked()
@@ -119,6 +121,11 @@ class CommandPanelController(
             callback.onPreviousClicked()
         }
 
+        binding.btnRandomCmd.setOnClickListener {
+            Timber.d("CommandPanelController: btnRandomCmd clicked")
+            callback.onRandomClicked()
+        }
+
         binding.btnNextCmd.setOnClickListener {
             Timber.d("CommandPanelController: btnNextCmd clicked")
             callback.onNextClicked()
@@ -142,6 +149,10 @@ class CommandPanelController(
 
         safeViews.btnSaveFrameCmd.setOnClickListener {
             callback.onSaveFrameClicked()
+        }
+
+        safeViews.btnPrintCmd.setOnClickListener {
+            callback.onPrintClicked()
         }
         
         safeViews.btnUndoCmd.setOnClickListener {
@@ -251,12 +262,16 @@ class CommandPanelController(
         val showInLandscape = effectiveShowCommandPanel && isLandscapeMode
         val showInPortrait = effectiveShowCommandPanel && !isLandscapeMode
         
+        // Random stays limited to library-like profiles where stochastic browsing makes sense.
+        val showRandomNavigation = shouldShowRandomNavigation(resource?.profile)
+
         // Back, Delete, Fullscreen, Previous, Next: always visible in command panel mode
         binding.btnBack.isVisible = effectiveShowCommandPanel
         // Hide delete button if not writable or not allowed
         binding.btnDeleteCmd.isVisible = effectiveShowCommandPanel && canWrite && state.allowDelete
         binding.btnDeleteCmd.isEnabled = canWrite && canRead && state.allowDelete
         binding.btnPreviousCmd.isVisible = effectiveShowCommandPanel
+        binding.btnRandomCmd.isVisible = effectiveShowCommandPanel && showRandomNavigation
         binding.btnNextCmd.isVisible = effectiveShowCommandPanel
         
         // Fullscreen: not applicable for audio; visible in both modes for image/video/document
@@ -379,6 +394,9 @@ class CommandPanelController(
                 safeViews.btnOcrImageCmd.isVisible = false
                 safeViews.btnGoogleLensImageCmd.isVisible = false
             }
+
+            // Print: visible for PDF, TEXT, and IMAGE/GIF; not for video/audio/epub
+            safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage
         } else {
             // Command panel hidden
             safeViews.btnOverflowMenu.isVisible = false
@@ -389,6 +407,7 @@ class CommandPanelController(
         // Enable state for always-enabled buttons
         binding.btnBack.isEnabled = true
         binding.btnPreviousCmd.isEnabled = true
+        binding.btnRandomCmd.isEnabled = state.files.size > 1
         binding.btnNextCmd.isEnabled = true
         binding.btnSlideshowCmd.isEnabled = true
         
@@ -645,6 +664,7 @@ class CommandPanelController(
         // Navigation
         binding.btnBack,
         binding.btnPreviousCmd,
+        binding.btnRandomCmd,
         binding.btnNextCmd,
         // File operations
         safeViews.btnRenameCmd,
@@ -840,6 +860,7 @@ class CommandPanelController(
         safeViews.btnCastCmd,
         safeViews.btnEditCmd,
         safeViews.btnSaveFrameCmd,
+        safeViews.btnPrintCmd,
         safeViews.btnUndoCmd,
         safeViews.btnGoogleLensPdfCmd,
         safeViews.btnOcrPdfCmd,
@@ -891,6 +912,7 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.IMAGE_TEXT_SETTINGS -> safeViews.btnImageTextSettingsCmd
             CommandPanelLayoutPlanner.PlayerCommand.OCR_IMAGE -> safeViews.btnOcrImageCmd
             CommandPanelLayoutPlanner.PlayerCommand.GOOGLE_LENS_IMAGE -> safeViews.btnGoogleLensImageCmd
+            CommandPanelLayoutPlanner.PlayerCommand.PRINT -> safeViews.btnPrintCmd
             else -> null // Overflow-only commands have no bar view
         }
     }
@@ -899,7 +921,7 @@ class CommandPanelController(
      * Count how many fixed right-group buttons will be visible for the given [state].
      * Used to calculate the space left for the adaptive center group in portrait mode.
      *
-     * Counts: Previous, Next (always) + Delete, Fullscreen, Slideshow, Share, Info,
+     * Counts: Previous, Random, Next (fixed nav group) + Delete, Fullscreen, Slideshow, Share, Info,
      * Favorite (conditional). Favorite uses [lastKnownFavoriteVisible] because its
      * visibility is resolved asynchronously.
      */
@@ -909,6 +931,7 @@ class CommandPanelController(
     ): Int {
         val file = state.currentFile ?: return 2 // at least Previous + Next
         var count = 2 // btnPreviousCmd + btnNextCmd always
+        if (shouldShowRandomNavigation(state.resource?.profile)) count++
         if (canWrite && state.allowDelete) count++
         val type = file.type
         if (type == MediaType.IMAGE || type == MediaType.GIF || type == MediaType.VIDEO ||
@@ -921,6 +944,10 @@ class CommandPanelController(
         count++ // btnInfoCmd (always visible when panel shown)
         if (lastKnownFavoriteVisible) count++ // btnFavorite (async; use last known state)
         return count
+    }
+
+    private fun shouldShowRandomNavigation(profile: ResourceProfile?): Boolean {
+        return profile == ResourceProfile.AUDIO_LIBRARY || profile == ResourceProfile.PHOTO_STORAGE
     }
 
     /**

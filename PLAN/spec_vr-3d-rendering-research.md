@@ -58,7 +58,7 @@
 
 ## 2. Фундаментальные ограничения платформы
 
-### 2.1 Panel mode = монокулярный рендеринг (НЕПРЕОДОЛИМО)
+### 2.1 Panel mode = монокулярный рендеринг (для обычных 2D-приложений)
 
 | Характеристика | Panel Mode (2D app) | Immersive Mode (OpenXR) |
 |---|---|---|
@@ -69,9 +69,53 @@
 | Пользовательский контроль | Стандартный Android touch/pointer | Контроллеры Quest / hand tracking |
 | OpenXR сессия | НЕ нужна | ОБЯЗАТЕЛЬНА |
 
-**Вывод:** Стерео-3D (SBS/OU) в обычном Android-окне на Quest **технически невозможно**. Оба глаза пользователя видят одну и ту же 2D-текстуру.
+**Вывод:** Настоящее стерео-3D (SBS/OU — разная картинка на каждый глаз) в panel mode **невозможно для сторонних разработчиков** через стандартные Android API. Оба глаза видят одну и ту же 2D-текстуру.
 
-### 2.2 Что могут конкуренты? (Skybox, Pigasus, 4XVR, Moon VR)
+### 2.2 А как Instagram показывает «3D» в панельке? (уточнение)
+
+Instagram на Quest 3/3S действительно показывает фотографии с эффектом глубины в panel mode. **Но это не настоящее стерео (SBS/OU).** Механизм принципиально другой:
+
+| Характеристика | Instagram «3D фото» | Настоящее SBS/OU стерео |
+|---|---|---|
+| Исходные данные | Одна 2D-фотография | Две картинки (левый + правый глаз) |
+| Алгоритм глубины | **AI view synthesis** — нейросеть генерирует depth map из одного кадра | Параллакс уже заложен в исходном контенте |
+| Per-eye рендеринг | ❌ Нет — эффект параллакса внутри одной текстуры панели | ✅ Да — каждый глаз получает своё изображение |
+| Ощущение | «Слои» на разной глубине, фото «выскакивает» из панели | Полноценное стерео с бинокулярным зрением |
+| Доступность API | ❌ Закрытая фича Meta (тестовая фаза, май 2025+) | ✅ Открытый OpenXR API |
+| Применимо к видео | ❌ Только к фото | ✅ Да — видео и фото |
+
+**Ключевое различие:** Instagram создаёт **иллюзию глубины** из 2D-контента с помощью AI. Это **не** то же самое, что показать SBS-видео, где левая и правая половины кадра — реально разные изображения для каждого глаза.
+
+**Для нашего use case (SBS/OU видео и фото)** этот подход неприменим:
+
+- Мы работаем с уже готовым стерео-контентом (две картинки), а не генерируем глубину из одной.
+- Instagram API закрыт и недоступен сторонним разработчикам.
+- Даже если бы был доступен — AI depth map для одной фотографии ≠ per-eye рендеринг двух разных изображений.
+
+### 2.3 Meta Spatial SDK — Hybrid Apps (ВАЖНАЯ НАХОДКА)
+
+**Meta Spatial SDK** — нативный Android-фреймворк, доступный всем разработчикам, который позволяет создавать **гибридные приложения** с двумя типами Activity в одном APK:
+
+- **Panel Activity** (`com.oculus.intent.category.2D`) — стандартное 2D-окно.
+- **Immersive Activity** (`com.oculus.intent.category.VR`) — полноценная OpenXR-сессия.
+
+**Два режима взаимодействия:**
+
+1. **Exclusive mode** — одна Activity за раз (panel → immersive или обратно). Именно это мы планируем.
+2. **Cooperative mode** — panel overlay **поверх** immersive Activity. Панельное окно отображается внутри immersive-сцены.
+
+**Cooperative mode** означает, что можно показать UI-панель (настройки, playlist) как overlay внутри immersive VR-плеера. Это решает проблему UI плеера в immersive mode!
+
+**Требования:**
+
+- `horizonos:minSdkVersion="69"` в манифесте.
+- Каждая Activity должна иметь intent-filter с `2D` или `VR` категорией.
+- При переходе panel → immersive: `finishAndRemoveTask()` после `startActivity()`.
+- При overlay: просто `startActivity()` без `finishAndRemoveTask()`.
+
+**Это подтверждает нашу Hybrid D стратегию и даёт официальный API для её реализации.**
+
+### 2.4 Что могут конкуренты? (Skybox, Pigasus, 4XVR, Moon VR)
 
 Все эти приложения для воспроизведения SBS/OU/360° контента используют **immersive mode с OpenXR**:
 
@@ -121,6 +165,7 @@ Meta Quest 3 поддерживает **passthrough в immersive mode**:
 ```
 
 **Текущий код уже делает это!** В `OpenXrNative.cpp` функция `renderFrame()` уже:
+
 - Создаёт два Quad Layer (или Projection/Equirect2/Cylinder) с `eyeVisibility = LEFT / RIGHT`.
 - Вызывает callback `invokeRenderCallback()` для каждого глаза.
 - Отправляет оба слоя в `xrEndFrame`.
@@ -207,7 +252,7 @@ Meta Quest 3 поддерживает **passthrough в immersive mode**:
 
 ### Q: Могу ли я видеть 3D-стерео просто в окне на Quest, без immersive mode?
 
-**A: Нет.** Это фундаментальное ограничение Meta Quest: 2D-панельное приложение отображает одну и ту же картинку на оба глаза. Для стерео (разная картинка на каждый глаз) нужна OpenXR-сессия = immersive mode.
+**A: Нет — настоящее стерео невозможно.** Panel mode показывает одну и ту же картинку на оба глаза. Instagram на Quest показывает «3D-фото», но это **не стерео** — это AI-генерированный эффект параллакса из одного 2D-изображения (закрытая фича Meta, недоступная сторонним разработчикам). Для настоящего SBS/OU стерео нужна OpenXR-сессия = immersive mode.
 
 ### Q: Могу ли я при этом работать в браузере?
 
@@ -307,28 +352,28 @@ Meta Quest 3 поддерживает **passthrough в immersive mode**:
 
 ### Фаза 1: UI плеера в immersive mode (4-8 часов)
 
-4. **Воспроизвести UI стандартного плеера внутри immersive mode.** Виртуальный экран должен иметь те же кнопки и элементы управления, что и обычный плеер: play/pause, seekbar, название файла, prev/next, громкость.
-5. Overlay UI рендерится как дополнительный Quad Layer поверх видео-экрана.
-6. Показ/скрытие UI по нажатию кнопки контроллера или тапу.
+1. **Воспроизвести UI стандартного плеера внутри immersive mode.** Виртуальный экран должен иметь те же кнопки и элементы управления, что и обычный плеер: play/pause, seekbar, название файла, prev/next, громкость.
+2. Overlay UI рендерится как дополнительный Quad Layer поверх видео-экрана.
+3. Показ/скрытие UI по нажатию кнопки контроллера или тапу.
 
 ### Фаза 2: Routing logic (2-4 часа)
 
-7. При открытии файла: StereoDetector → stereo? → VrPlayerActivity : PlayerActivity.
-8. Настройка «Отключить 3D/VR» — принудительный panel mode для всего.
-9. Обработка edge cases: файл без метаданных, ручное переключение stereo mode.
+1. При открытии файла: StereoDetector → stereo? → VrPlayerActivity : PlayerActivity.
+2. Настройка «Отключить 3D/VR» — принудительный panel mode для всего.
+3. Обработка edge cases: файл без метаданных, ручное переключение stereo mode.
 
 ### Фаза 3: Стабилизация (4-8 часов)
 
-10. Обработка контроллеров (Menu, Back, B — выход из immersive).
-11. Позиционирование экрана: настраиваемые distance/size.
-12. Fallback: если XR-сессия не стартует → показать ошибку, открыть в panel mode.
-13. 360° photo sphere rendering (если применимо).
+1. Обработка контроллеров (Menu, Back, B — выход из immersive).
+2. Позиционирование экрана: настраиваемые distance/size.
+3. Fallback: если XR-сессия не стартует → показать ошибку, открыть в panel mode.
+4. 360° photo sphere rendering (если применимо).
 
-### Будущее (опционально — Подход C):
+### Будущее (опционально — Подход C)
 
-14. **Passthrough mode** — добавить `XR_FB_passthrough` для тех, кто хочет видеть комнату.
-15. **Seamless Multitasking** — `com.oculus.supportedFeatures` в манифесте.
-16. Это — опциональное улучшение, не блокер для релиза.
+1. **Passthrough mode** — добавить `XR_FB_passthrough` для тех, кто хочет видеть комнату.
+2. **Seamless Multitasking** — `com.oculus.supportedFeatures` в манифесте.
+3. Это — опциональное улучшение, не блокер для релиза.
 
 ---
 
@@ -358,6 +403,9 @@ Meta Quest 3 поддерживает **passthrough в immersive mode**:
 | **Seamless Multitasking** | Функция Quest 3: системные окна (браузер и т.п.) видны рядом с immersive-приложением |
 | **UV-кроп** | Техника выбора части текстуры (SBS → левая/правая половина) через UV-координаты в шейдере |
 | **Void Black** | Чёрный непрозрачный фон immersive-сессии (`XR_ENVIRONMENT_BLEND_MODE_OPAQUE`) |
+| **Meta Spatial SDK** | Нативный Android-фреймворк Meta для создания гибридных (panel + immersive) приложений на Quest. Доступен сторонним разработчикам. |
+| **Hybrid App** | Приложение с Panel Activity (2D окно) и Immersive Activity (OpenXR VR) в одном APK, переключение между ними через intent |
+| **AI View Synthesis** | Техника Instagram: AI генерирует depth map из 2D-фото для эффекта параллакса. Не является настоящим стерео. |
 
 ---
 
@@ -375,12 +423,14 @@ Meta Quest 3 поддерживает **passthrough в immersive mode**:
 ### Утверждённая модель (Hybrid D — void black)
 
 **Стереоскопический контент** (SBS, OU, 360°, VR180 — видео и фото):
+
 - Открывается в **immersive mode** через `VrPlayerActivity`.
 - Фон — **void black** (чёрная пустота, как в кинотеатре).
 - На экране — **виртуальный стерео-экран** с теми же кнопками и элементами управления, что и в обычном плеере (play/pause, seekbar, prev/next, название файла, громкость).
 - UI плеера — поверх видео, показывается/скрывается по нажатию.
 
 **Обычный контент** (не-стерео видео, обычные фото):
+
 - Открывается в **стандартном PlayerActivity** (panel mode).
 - Оконное приложение Quest — можно перетаскивать, ресайзить, работать с другими приложениями параллельно.
 - Поведение идентично стандартному flavor.
@@ -398,3 +448,368 @@ Meta Quest 3 поддерживает **passthrough в immersive mode**:
 2. Добавить UI плеера в immersive mode (кнопки, seekbar, controls).
 3. Маршрутизация: stereo → immersive, non-stereo → panel.
 4. Стабилизация, edge cases, fallback.
+
+---
+
+## 11. Среда immersive mode: Void Black vs Passthrough
+
+### 11.1 Текущее состояние
+
+Код использует `XR_ENVIRONMENT_BLEND_MODE_OPAQUE` — полностью чёрный фон (void black). Passthrough **не реализован**.
+
+### 11.2 Два режима фона
+
+| Характеристика | Void Black | Passthrough |
+|---|---|---|
+| Технология | `XR_ENVIRONMENT_BLEND_MODE_OPAQUE` — стандартный OpenXR, ничего дополнительно не нужно | Extension `XR_FB_passthrough` — Meta-специфичный, требует дополнительного кода |
+| Визуальный эффект | Чёрная пустота, как в кинотеатре — видео-экран плавает в темноте | Видна реальная комната через камеры Quest + видео-экран поверх |
+| Когда лучше | Кинопросмотр, полное погружение, тёмные фильмы, 360°-контент | Когда нужно видеть окружение (за ребёнком, домашние животные), светлое помещение |
+| Конкуренты | Skybox: «Void» scene, DeoVR: «Void» scene | Skybox: Passthrough toggle в Global Settings, DeoVR: Passthrough section в Player Settings |
+| Сложность реализации | ✅ Уже реализовано | 🔧 Средняя — нужен нативный код для extension |
+
+### 11.3 Как реализовать Passthrough (XR_FB_passthrough)
+
+**Шаги в нативном коде (`OpenXrNative.cpp`):**
+
+1. **Добавить extension при создании instance:**
+
+   ```cpp
+   // В списке enabledExtensionNames:
+   "XR_FB_passthrough"
+   ```
+
+2. **Создать passthrough handle после создания сессии:**
+
+   ```cpp
+   XrPassthroughCreateInfoFB ptCI{XR_TYPE_PASSTHROUGH_CREATE_INFO_FB};
+   ptCI.flags = 0;
+   PFN_xrCreatePassthroughFB pfnCreate = ...;  // xrGetInstanceProcAddr
+   pfnCreate(g_ctx.session, &ptCI, &g_ctx.passthrough);
+   ```
+
+3. **Создать passthrough layer:**
+
+   ```cpp
+   XrPassthroughLayerCreateInfoFB layerCI{XR_TYPE_PASSTHROUGH_LAYER_CREATE_INFO_FB};
+   layerCI.passthrough = g_ctx.passthrough;
+   layerCI.purpose = XR_PASSTHROUGH_LAYER_PURPOSE_RECONSTRUCTION_FB;
+   PFN_xrCreatePassthroughLayerFB pfnCreateLayer = ...;
+   pfnCreateLayer(g_ctx.session, &layerCI, &g_ctx.passthroughLayer);
+   ```
+
+4. **Включить/выключить passthrough:**
+
+   ```cpp
+   // Включить:
+   xrPassthroughStartFB(g_ctx.passthrough);
+   // Выключить:
+   xrPassthroughPauseFB(g_ctx.passthrough);
+   ```
+
+5. **Добавить composition layer в xrEndFrame:**
+
+   ```cpp
+   XrCompositionLayerPassthroughFB ptLayer{XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB};
+   ptLayer.layerHandle = g_ctx.passthroughLayer;
+   ptLayer.flags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+   // ВАЖНО: passthrough layer ПЕРВЫЙ в массиве (underlay), video layer — сверху
+   layers[0] = (XrCompositionLayerBaseHeader*)&ptLayer;
+   layers[1] = (XrCompositionLayerBaseHeader*)&videoLayer;
+   ```
+
+**Ключевой момент:** `environmentBlendMode` остаётся `OPAQUE` на Quest. Passthrough рендерится как composition layer, а не через blend mode. Это отличается от Android XR (Snapdragon-based), где используется `XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND`.
+
+### 11.4 Настройка: переключение Void ↔ Passthrough
+
+| Параметр | Значение |
+|---|---|
+| Ключ настройки | `vrEnvironmentMode` |
+| Расположение | Settings → Playback → VR Settings |
+| Тип | RadioGroup: `VOID` / `PASSTHROUGH` |
+| Default | `VOID` (кинотеатр) |
+| Видимость | Только VR flavor (`BuildConfig.SUPPORT_VR_PLAYER == true`) |
+
+**Best practice (по конкурентам):**
+
+- Skybox: «Cinema Scene» выбор (Void / Space Station / Moon / Custom) — environment как тема.
+- DeoVR: toggle Passthrough в Player Settings с цветовыми слайдерами.
+- **Наша реализация (MVP):** простой switch Void / Passthrough. Без сцен-тем.
+
+### 11.5 Passthrough с настройкой прозрачности (Phase 2)
+
+В будущем можно добавить:
+
+- **Opacity slider** (0% = полностью void, 100% = полностью passthrough) — через `XrPassthroughStyleFB`.
+- **Цветовые корректоры** (Hue, Saturation, Brightness) — DeoVR-стиль.
+- **Тёмный passthrough** — passthrough с пониженной яркостью для кинотеатра-с-комнатой.
+
+---
+
+## 12. Управление контроллерами Quest в immersive mode
+
+### 12.1 Анатомия контроллера Quest 3 Touch Plus
+
+```
+ЛЕВЫЙ КОНТРОЛЛЕР (Left)              ПРАВЫЙ КОНТРОЛЛЕР (Right)
+┌─────────────────────┐              ┌─────────────────────┐
+│                     │              │                     │
+│  [Y]         [≡]   │              │  [B]         [Meta] │
+│  [X]                │              │  [A]                │
+│                     │              │                     │
+│    ◉ Thumbstick     │              │    ◉ Thumbstick     │
+│                     │              │                     │
+│  ═══ Trigger ═══    │              │  ═══ Trigger ═══    │
+│  ═══ Grip    ═══    │              │  ═══ Grip    ═══    │
+└─────────────────────┘              └─────────────────────┘
+```
+
+### 12.2 OpenXR Action Paths для Quest Touch Controller
+
+Interaction profile: `/interaction_profiles/oculus/touch_controller`
+
+| Путь | Тип | Контроллер |
+|------|-----|------------|
+| `.../input/x/click` | Boolean | Left |
+| `.../input/y/click` | Boolean | Left |
+| `.../input/a/click` | Boolean | Right |
+| `.../input/b/click` | Boolean | Right |
+| `.../input/menu/click` | Boolean | Left (кнопка ≡) |
+| `.../input/trigger/value` | Float (0.0–1.0) | Both |
+| `.../input/trigger/touch` | Boolean | Both |
+| `.../input/squeeze/value` | Float (0.0–1.0) | Both |
+| `.../input/thumbstick` | Vector2f (x, y) | Both |
+| `.../input/thumbstick/click` | Boolean | Both |
+| `.../input/thumbstick/touch` | Boolean | Both |
+| `.../input/thumbrest/touch` | Boolean | Both |
+| `.../input/grip/pose` | Pose | Both |
+| `.../input/aim/pose` | Pose | Both |
+| `.../output/haptic` | Haptic | Both |
+
+**Примечание:** `.../input/system/click` (кнопка Meta на правом контроллере) **зарезервирована системой** и недоступна приложениям.
+
+### 12.3 Best Practices для кнопок (по Meta Developer Guidelines)
+
+**Общие правила Meta:**
+
+| Контекст | Функция | Рекомендуемая кнопка |
+|---|---|---|
+| Меню | Выбрать/подтвердить | A (предпочтительно) или X |
+| Меню | Назад/отмена | B (предпочтительно) или Y |
+| Меню | Открыть/закрыть меню | ≡ (Menu, левый контроллер) |
+| Меню | Навигация | Thumbstick L/R |
+| Опыт | Действие | Trigger (L/R) |
+| Опыт | Захват объекта | Grip (L/R) |
+| Опыт | Локомоция | Thumbstick |
+
+**Принцип:** пользователь в VR не может посмотреть на контроллер — маппинг должен быть интуитивным и консистентным с другими Quest-приложениями.
+
+### 12.4 Маппинг для VR-видеоплеера (наша спецификация)
+
+Разработан на основе анализа конкурентов (Skybox VR, DeoVR, 4XVR, Moon VR) и официальных Meta best practices.
+
+#### Кнопки (A/B/X/Y)
+
+| Кнопка | Действие | Обоснование |
+|--------|----------|-------------|
+| **A** (right) | Toggle Play/Pause | Skybox: A/X/Trigger double-click = play/pause. Наш подход проще: одинарное нажатие. A — самая естественная «действие» кнопка |
+| **B** (right) | Выход из immersive → возврат в panel | Meta BP: B = «назад». Skybox: B/Y = close video. Уже реализовано в `dispatchKeyEvent` |
+| **X** (left) | Toggle Play/Pause | Зеркало A для левой руки — одинаковое действие с обеих сторон |
+| **Y** (left) | Выход из immersive → возврат в panel | Зеркало B для левой руки |
+| **≡ Menu** (left) | Открыть/закрыть UI overlay (PlaybackControlDialog) | Meta BP: ≡ = меню. Skybox: ≡ = settings panel. Уже реализовано в `dispatchKeyEvent` |
+
+#### Thumbstick — правый контроллер (управление экраном)
+
+| Ось | Действие | Обоснование |
+|-----|----------|-------------|
+| **Вверх/Вниз** | Приблизить/отдалить экран (Screen Distance) | Skybox: thumbstick up/down = screen resize. Естественная ассоциация: pull toward / push away |
+| **Влево/Вправо** | Seek backward/forward (±15 сек) | Skybox: thumbstick left/right = seek. DeoVR: same. Стандарт для видеоплееров |
+| **Click (нажатие)** | Recenter экран (привязать к текущему направлению взгляда) | DeoVR: hold Menu = reset view. Skybox: long-press B/Y = reset. Click-to-recenter проще |
+
+#### Thumbstick — левый контроллер (масштаб и позиция)
+
+| Ось | Действие | Обоснование |
+|-----|----------|-------------|
+| **Вверх/Вниз** | Переместить экран выше/ниже (Screen Y-offset) | Для просмотра лёжа: пользователь поднимает экран вверх. DeoVR: grab + trigger = move screen |
+| **Влево/Вправо** | Предыдущий/следующий файл (Prev/Next) | Навигация по playlist. Логично: left = prev, right = next |
+| **Click (нажатие)** | Toggle Void ↔ Passthrough | Быстрый переключатель фона. Удобно, не требует открывать меню |
+
+#### Trigger & Grip
+
+| Вход | Действие | Обоснование |
+|------|----------|-------------|
+| **Right Trigger** | Point-and-click на UI overlay (когда открыт) | Meta BP: Trigger = select. Нужно для взаимодействия с UI-кнопками overlay |
+| **Left Trigger** | Point-and-click на UI overlay (зеркало) | Обе руки могут взаимодействовать с UI |
+| **Right Grip (hold)** + **Thumbstick** | Grab-and-drag экран в пространстве | DeoVR: Grab + Index Trigger = move screen. Grip = «схватить» экран и перетащить |
+| **Left Grip (hold)** + **Thumbstick** | То же самое — перемещение экрана | Обе руки могут двигать экран |
+
+### 12.5 Сводная карта управления
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║                ЛЕВЫЙ КОНТРОЛЛЕР                                  ║
+║                                                                  ║
+║  [Y] — Выход из immersive                                       ║
+║  [X] — Play / Pause                                             ║
+║  [≡] — Открыть/закрыть UI overlay (меню)                       ║
+║                                                                  ║
+║  Thumbstick ↑↓ — Переместить экран выше/ниже                   ║
+║  Thumbstick ←→ — Предыдущий/следующий файл                     ║
+║  Thumbstick Click — Toggle Void ↔ Passthrough                  ║
+║                                                                  ║
+║  Trigger — Point-and-click на UI overlay                        ║
+║  Grip (hold) + Thumbstick — Grab-and-drag экран                ║
+╠══════════════════════════════════════════════════════════════════╣
+║                ПРАВЫЙ КОНТРОЛЛЕР                                 ║
+║                                                                  ║
+║  [A] — Play / Pause                                             ║
+║  [B] — Выход из immersive                                       ║
+║  [Meta] — ЗАРЕЗЕРВИРОВАНА (системная)                           ║
+║                                                                  ║
+║  Thumbstick ↑↓ — Приблизить/отдалить экран                     ║
+║  Thumbstick ←→ — Seek назад/вперёд (±15 сек)                  ║
+║  Thumbstick Click — Recenter (привязать экран к взгляду)       ║
+║                                                                  ║
+║  Trigger — Point-and-click на UI overlay                        ║
+║  Grip (hold) + Thumbstick — Grab-and-drag экран                ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+### 12.6 Текущая реализация vs цель
+
+| Функция | Текущий статус | Как реализовано | Что нужно |
+|---|---|---|---|
+| Play/Pause по A/X | ❌ Нет | — | OpenXR XrAction + JNI callback |
+| Выход по B/Y | ✅ Частично | `dispatchKeyEvent(KEYCODE_BUTTON_B)` — Android KeyEvent fallback | Перенести на OpenXR XrAction для надёжности |
+| Меню по ≡ | ✅ Частично | `dispatchKeyEvent(KEYCODE_MENU)` | Перенести на OpenXR XrAction |
+| Thumbstick seek | ❌ Нет | — | OpenXR XrAction Vector2f + логика debounce |
+| Thumbstick distance | ❌ Нет | — | OpenXR XrAction + shader uniform для layer distance |
+| Thumbstick screen Y | ❌ Нет | — | OpenXR XrAction + layer offset |
+| Thumbstick prev/next | ❌ Нет | — | OpenXR XrAction + JNI callback |
+| Thumbstick recenter | ❌ Нет | — | OpenXR XrAction Boolean + recalculate reference space |
+| Void↔Passthrough toggle | ❌ Нет | — | Passthrough layer init + toggle |
+| Trigger UI select | ❌ Нет | — | Ray casting + hit test на overlay quad |
+| Grip drag screen | ❌ Нет | — | Grip action + pose tracking + layer position update |
+
+### 12.7 Приоритеты реализации контроллерного ввода
+
+**Phase 1 (MVP — минимально для использования):**
+
+1. Play/Pause по A/X
+2. Seek по правому thumbstick ←→
+3. Recenter по правому thumbstick click
+4. Всё это через OpenXR XrActionSet (заменить Android KeyEvent fallback)
+
+**Phase 2 (Удобство):**
+5. Screen distance по правому thumbstick ↑↓
+6. Prev/Next по левому thumbstick ←→
+7. Screen Y-offset по левому thumbstick ↑↓
+8. Void↔Passthrough toggle по левому thumbstick click
+
+**Phase 3 (Полноценный UX):**
+9. Trigger → ray-cast UI select на overlay
+10. Grip + thumbstick → grab-and-drag экран
+11. Haptic feedback на кнопках (короткая вибрация)
+
+### 12.8 Имплементация XrActionSet (скелет нативного кода)
+
+Для реализации полного контроллерного ввода в `OpenXrNative.cpp` нужно:
+
+```cpp
+// 1. Создать ActionSet
+XrActionSetCreateInfo asCI{XR_TYPE_ACTION_SET_CREATE_INFO};
+strcpy_s(asCI.actionSetName, "player");
+strcpy_s(asCI.localizedActionSetName, "Video Player");
+xrCreateActionSet(instance, &asCI, &g_ctx.actionSet);
+
+// 2. Создать Actions
+// Boolean actions: play_pause, exit, menu, recenter, toggle_passthrough
+// Float actions: (none needed — triggers used via boolean threshold)
+// Vector2f actions: right_thumbstick, left_thumbstick
+
+XrActionCreateInfo aCI{XR_TYPE_ACTION_CREATE_INFO};
+aCI.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+strcpy_s(aCI.actionName, "play_pause");
+strcpy_s(aCI.localizedActionName, "Play/Pause");
+aCI.countSubactionPaths = 0;  // no subaction — both hands do the same
+xrCreateAction(g_ctx.actionSet, &aCI, &g_ctx.playPauseAction);
+
+aCI.actionType = XR_ACTION_TYPE_VECTOR2F_INPUT;
+strcpy_s(aCI.actionName, "right_thumbstick");
+strcpy_s(aCI.localizedActionName, "Right Thumbstick");
+XrPath rightHand;
+xrStringToPath(instance, "/user/hand/right", &rightHand);
+aCI.countSubactionPaths = 1;
+aCI.subactionPaths = &rightHand;
+xrCreateAction(g_ctx.actionSet, &aCI, &g_ctx.rightThumbstickAction);
+
+// 3. Suggest Bindings
+XrPath touchProfile;
+xrStringToPath(instance, "/interaction_profiles/oculus/touch_controller",
+               &touchProfile);
+
+std::vector<XrActionSuggestedBinding> bindings = {
+    {g_ctx.playPauseAction, aClickPath},   // /user/hand/right/input/a/click
+    {g_ctx.playPauseAction, xClickPath},   // /user/hand/left/input/x/click
+    {g_ctx.exitAction, bClickPath},         // /user/hand/right/input/b/click
+    {g_ctx.exitAction, yClickPath},         // /user/hand/left/input/y/click
+    {g_ctx.menuAction, menuClickPath},      // /user/hand/left/input/menu/click
+    {g_ctx.rightThumbstickAction, rStickPath},
+    {g_ctx.leftThumbstickAction, lStickPath},
+    {g_ctx.recenterAction, rStickClickPath},
+    {g_ctx.togglePassthroughAction, lStickClickPath},
+};
+
+XrInteractionProfileSuggestedBinding sb{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
+sb.interactionProfile = touchProfile;
+sb.suggestedBindings = bindings.data();
+sb.countSuggestedBindings = (uint32_t)bindings.size();
+xrSuggestInteractionProfileBindings(instance, &sb);
+
+// 4. Attach + Sync (каждый кадр в render loop)
+XrSessionActionSetsAttachInfo attach{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
+attach.countActionSets = 1;
+attach.actionSets = &g_ctx.actionSet;
+xrAttachSessionActionSets(session, &attach);
+
+// В render loop:
+XrActiveActionSet activeAS{g_ctx.actionSet, XR_NULL_PATH};
+XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
+syncInfo.countActiveActionSets = 1;
+syncInfo.activeActionSets = &activeAS;
+xrSyncActions(session, &syncInfo);
+
+// 5. Читать состояние
+XrActionStateBoolean ppState{XR_TYPE_ACTION_STATE_BOOLEAN};
+XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+getInfo.action = g_ctx.playPauseAction;
+xrGetActionStateBoolean(session, &getInfo, &ppState);
+if (ppState.isActive && ppState.changedSinceLastSync && ppState.currentState) {
+    // Вызвать JNI callback → VrPlayerActivity → viewModel.togglePause()
+}
+
+XrActionStateVector2f stickState{XR_TYPE_ACTION_STATE_VECTOR2F};
+getInfo.action = g_ctx.rightThumbstickAction;
+xrGetActionStateVector2f(session, &getInfo, &stickState);
+if (stickState.isActive) {
+    float x = stickState.currentState.x;  // -1.0 .. +1.0
+    float y = stickState.currentState.y;  // -1.0 .. +1.0
+    // x > 0.7 → seek forward, x < -0.7 → seek backward (с debounce)
+    // y > 0.7 → screen closer, y < -0.7 → screen farther
+}
+```
+
+### 12.9 Сравнение с конкурентами
+
+| Функция | Skybox VR | DeoVR | 4XVR | **FMS VR (план)** |
+|---|---|---|---|---|
+| Play/Pause | A/X/Trigger double-click | Trigger click | A | **A/X single-click** |
+| Seek | Thumbstick ←→ | Configurable | Thumbstick ←→ | **Right thumbstick ←→** |
+| Screen distance | Thumbstick ↑↓ | FOV slider в UI | Thumbstick | **Right thumbstick ↑↓** |
+| Move screen | Trigger hold + drag | Grab + Index Trigger | — | **Grip hold + thumbstick** |
+| Recenter | Long-press B/Y | Hold Menu | — | **Right thumbstick click** |
+| Prev/Next file | UI only | UI only | — | **Left thumbstick ←→** |
+| Environment | Scene menu (Void/Space/Moon) | Passthrough toggle + sliders | Void/Passthrough | **Left thumbstick click toggle** |
+| Exit | B/Y single-click | Back button | B | **B/Y** |
+| Open menu | A/X single-click | ≡ | ≡ | **≡ (Menu)** |
+
+**Наше конкурентное преимущество:** навигация по файлам (prev/next) прямо с контроллера без открытия UI menu — ни один конкурент этого не делает через thumbstick.

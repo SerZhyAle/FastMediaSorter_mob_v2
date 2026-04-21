@@ -255,6 +255,11 @@ class ResourceRepositoryImpl @Inject constructor(
             order2 = resource2.displayOrder
         )
     }
+
+    override suspend fun updateResourcesDisplayOrder(resources: List<MediaResource>) {
+        val orders = resources.mapIndexed { index, resource -> resource.id to index }
+        resourceDao.updateAllDisplayOrders(orders)
+    }
     
     override suspend fun deleteResource(resourceId: Long) {
         resourceDao.deleteById(resourceId)

@@ -500,6 +500,10 @@
     <string name="playback_control_tab_speed">Speed</string>
     <string name="playback_control_mute">Mute</string>
     <string name="playback_control_unmute">Unmute</string>
+    <string name="playback_control_mute_active">Muted</string>
+    <string name="playback_control_mute_inactive">Sound on</string>
+    <string name="volume_50_percent">50%</string>
+    <string name="volume_max">MAX</string>
     <string name="playback_control_no_audio_tracks">No audio tracks available</string>
     <string name="playback_control_no_subtitles">No subtitles available</string>
     <string name="playback_control_done">Done</string>
@@ -789,6 +793,7 @@
     <string name="skip">Skip</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
+    <string name="random_file_description">Jump to a random file</string>
     <string name="finish">Finish</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
     <string name="welcome_description_1">Your all-in-one media organizer.\nBrowse, sort, and manage files across local, network, and cloud storage — all with intuitive touch gestures.</string>
@@ -1202,6 +1207,9 @@
     <string name="audio_channels_stereo">Stereo</string>
     <string name="audio_bitrate_label">Audio Bitrate: %1$s</string>
     <string name="audio_duration_label">Duration: %1$s</string>
+    <string name="audio_album_label">Album: %1$s</string>
+    <string name="audio_sample_rate_label">Sample Rate: %1$d Hz</string>
+    <string name="loading_placeholder">..</string>
     <string name="open_in_default_player">Open in Default Player</string>
     <string name="download_and_open">Download and Open</string>
     <string name="downloading_file">Downloading file…</string>
@@ -1598,6 +1606,7 @@
     <string name="more_options">More options</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
+    <string name="drag_handle_description">Drag to reorder</string>
 
     <!-- File Operation Error Formatter -->
     <string name="error_operation_title_copy">Copy Failed</string>
@@ -2550,6 +2559,10 @@
     <string name="playback_vr_render_full_stereo">Full Stereo</string>
     <string name="playback_vr_ipd_label">IPD: %s mm</string>
     <string name="playback_vr_ipd_label_default">IPD (inter-pupillary distance)</string>
+
+    <string name="vr_immersive_start_failed">Immersive mode failed to start. Playback was stopped to avoid background audio.</string>
+    <string name="vr_immersive_unsupported_media">Immersive mode is only available for stereo videos and supported 3D images. Opening this file in the standard player.</string>
+    <string name="vr_xr_fallback_flat_mode">Immersive mode unavailable — playing in flat mode. You can change the 3D format in player settings.</string>
 
     <!-- VR install CTA (shown in standard flavor when 3D content is detected) -->
     <string name="vr_install_cta_title">This is a 3D video</string>

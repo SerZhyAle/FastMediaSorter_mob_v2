@@ -1510,16 +1510,22 @@ class TextViewerManager(
     }
 
     private fun updateTranslateButtonTint() {
-        val color = if (translationEnabled) 0xFFF44336.toInt() else 0xFFFFFFFF.toInt()
-        binding.btnTranslateTextCmd.imageTintList = android.content.res.ColorStateList.valueOf(color)
+        // Use alpha instead of imageTintList: tinting with a solid colour destroys
+        // the LanguageBadgeDrawable text, making the badge appear as a solid block.
+        binding.btnTranslateTextCmd.alpha = if (translationEnabled) 1.0f else 0.55f
     }
 
     /**
      * Update translation button icon with language codes
      */
     fun updateTranslationButtonIcon(sourceLang: String, targetLang: String) {
+        // Clear XML tint first — otherwise selector_player_button_tint (white)
+        // colours the entire drawable and makes the badge text invisible.
+        binding.btnTranslateTextCmd.imageTintList = null
         val drawable = LanguageBadgeDrawable(context, sourceLang, targetLang)
         binding.btnTranslateTextCmd.setImageDrawable(drawable)
+        // Keep alpha consistent with current translation state
+        binding.btnTranslateTextCmd.alpha = if (translationEnabled) 1.0f else 0.55f
     }
 
     /**

@@ -19,6 +19,15 @@ class BrowseSortMenuManager(
     private val getCurrentSortMode: () -> SortMode,
     private val getCurrentResource: () -> MediaResource?
 ) {
+    companion object {
+        fun getSortModeIconRes(mode: SortMode): Int? {
+            return when (mode) {
+                SortMode.RANDOM -> R.drawable.ic_sort_random
+                else -> null
+            }
+        }
+    }
+
     /**
      * Returns sort modes relevant for the given resource's media type configuration.
      * Metadata-specific modes (artist, title, duration, dateTaken) are filtered

@@ -114,7 +114,9 @@ class CommandPanelLayoutPlanner {
             R.string.epub_reader_settings, R.drawable.ic_settings),
         EPUB_SEARCH_ALL(590, R.id.menu_epub_search_all, false,
             R.string.epub_search_all_chapters, android.R.drawable.ic_menu_search),
-        PRINT(600, R.id.menu_print, false, R.string.menu_print, R.drawable.ic_print);
+        // Low-priority bar-capable command: appears on bar only when all higher-priority
+        // commands fit and space remains; otherwise spills to overflow (⋯ menu).
+        PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print);
     }
 
     data class LayoutResult(
@@ -255,6 +257,16 @@ class CommandPanelLayoutPlanner {
         val onBar = barCapable.take(maxBarSlots)
         val spilledToOverflow = barCapable.drop(maxBarSlots)
         val allOverflow = (spilledToOverflow + overflowOnly).sortedBy { it.priority }
+
+        // Single bar-capable overflow item: promote to bar, hide overflow button
+        val singlePromote = allOverflow.singleOrNull { it.barCapable }
+        if (singlePromote != null && allOverflow.size == 1) {
+            return LayoutResult(
+                barCommands = onBar + singlePromote,
+                overflowCommands = emptyList(),
+                showOverflowButton = false
+            )
+        }
 
         return LayoutResult(
             barCommands = onBar,

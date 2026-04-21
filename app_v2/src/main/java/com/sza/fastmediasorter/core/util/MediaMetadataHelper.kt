@@ -43,6 +43,8 @@ data class DetailedMediaInfo(
     // Audio metadata
     val audioTitle: String? = null,
     val audioArtist: String? = null,
+    val audioAlbum: String? = null,   // Album from METADATA_KEY_ALBUM
+    val sampleRate: Int? = null,      // Sample rate in Hz from METADATA_KEY_SAMPLERATE
     // Document metadata (PDF/TXT/EPUB)
     val pageCount: Int? = null,         // PDF pages
     val docTitle: String? = null,       // PDF/EPUB title
@@ -273,6 +275,8 @@ class MediaMetadataHelper(
         var longitude: Double? = null
         var audioTitle: String? = null
         var audioArtist: String? = null
+        var audioAlbum: String? = null
+        var sampleRate: Int? = null
         
         // Validate file before attempting to read metadata
         if (!file.exists()) {
@@ -322,9 +326,11 @@ class MediaMetadataHelper(
                 }
             }
 
-            // Extract Title and Artist
+            // Extract Title, Artist, Album
             audioTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
             audioArtist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+            audioAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+            sampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)?.toIntOrNull()
             
             val extractor = MediaExtractor()
             extractor.setDataSource(file.absolutePath)
@@ -379,7 +385,7 @@ class MediaMetadataHelper(
         if (width == null && height == null && duration == null) {
             Timber.d("extractVideoAudioInfo: No metadata extracted (file size=${file.length()} bytes). Likely partial file without moov atom.")
         } else {
-            Timber.d("extractVideoAudioInfo result: width=$width, height=$height, duration=$duration, videoCodec=$videoCodec, audioCodec=$audioCodec, audioChannels=$audioChannels, audioBitrate=$audioBitrate, bitrate=$bitrate, fps=$frameRate")
+            Timber.d("extractVideoAudioInfo result: width=$width, height=$height, duration=$duration, videoCodec=$videoCodec, audioCodec=$audioCodec, audioChannels=$audioChannels, audioBitrate=$audioBitrate, bitrate=$bitrate, fps=$frameRate, album=$audioAlbum, sampleRate=$sampleRate")
         }
         
         return DetailedMediaInfo(
@@ -395,7 +401,9 @@ class MediaMetadataHelper(
             latitude = latitude,
             longitude = longitude,
             audioTitle = audioTitle,
-            audioArtist = audioArtist
+            audioArtist = audioArtist,
+            audioAlbum = audioAlbum,
+            sampleRate = sampleRate
         )
     }
 

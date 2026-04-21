@@ -422,7 +422,7 @@ class MainViewModel @Inject constructor(
     fun moveResourceDown(resource: MediaResource) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val currentList = state.value.resources
-            
+
             when (orderManager.moveResourceDown(resource, currentList)) {
                 is ResourceOrderManager.OrderResult.Success -> {
                     // Switch to manual sort mode to preserve user's ordering
@@ -435,6 +435,24 @@ class MainViewModel @Inject constructor(
                 is ResourceOrderManager.OrderResult.Error -> {
                     // Error handled by exception handler
                 }
+            }
+        }
+    }
+
+    /**
+     * Persist the new display order after a drag-to-reorder gesture.
+     * Switches to MANUAL sort mode so the new order is respected on next load.
+     */
+    fun saveResourceOrder(resources: List<MediaResource>) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            when (orderManager.saveResourceOrder(resources)) {
+                is ResourceOrderManager.OrderResult.Success -> {
+                    updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
+                }
+                is ResourceOrderManager.OrderResult.Error -> {
+                    // Error handled by exception handler
+                }
+                is ResourceOrderManager.OrderResult.CannotMove -> { /* not emitted by saveResourceOrder */ }
             }
         }
     }

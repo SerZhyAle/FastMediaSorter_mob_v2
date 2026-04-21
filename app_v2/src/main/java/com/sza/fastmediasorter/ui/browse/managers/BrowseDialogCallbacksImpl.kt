@@ -47,6 +47,10 @@ class BrowseDialogCallbacksImpl(
         viewModel.setSortMode(sortMode)
     }
 
+    override fun onRandomReshuffle() {
+        viewModel.reshuffleRandom()
+    }
+
     override fun onRenameConfirmed(oldName: String, newName: String) {
         // Not used - handled by RenameDialog directly
     }

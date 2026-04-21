@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.SortMode
 import timber.log.Timber
+import kotlin.random.Random
 
 /**
  * Manages file list manipulation operations for BrowseViewModel.
@@ -111,7 +112,12 @@ class BrowseFileListManager(
      * @param forceSort Force sorting even if list might be already sorted
      * @return Sorted list with directories on top (alphabetically) followed by files (per sortMode)
      */
-    fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean = false): List<MediaFile> {
+    fun sortFiles(
+        files: List<MediaFile>,
+        sortMode: SortMode,
+        forceSort: Boolean = false,
+        randomSeed: Long? = null
+    ): List<MediaFile> {
         if (!forceSort && files.size < 2) return files // Optimization: single-item list is always sorted
         
         // Separate directories and regular files
@@ -140,7 +146,9 @@ class BrowseFileListManager(
             SortMode.DATE_TAKEN_ASC -> regularFiles.sortedWith(compareBy<MediaFile> { it.exifDateTime ?: Long.MAX_VALUE }.thenBy { it.name.lowercase() })
             SortMode.DATE_TAKEN_DESC -> regularFiles.sortedWith(compareByDescending<MediaFile> { it.exifDateTime ?: Long.MIN_VALUE }.thenBy { it.name.lowercase() })
             SortMode.MANUAL -> regularFiles // No sorting for manual mode
-            SortMode.RANDOM -> regularFiles.shuffled()
+            SortMode.RANDOM -> {
+                if (randomSeed == null) regularFiles.shuffled() else regularFiles.shuffled(Random(randomSeed))
+            }
         }
         
         // Directories always on top

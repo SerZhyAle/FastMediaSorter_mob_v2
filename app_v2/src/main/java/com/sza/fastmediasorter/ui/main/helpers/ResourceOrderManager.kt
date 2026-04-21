@@ -116,4 +116,22 @@ class ResourceOrderManager(
     fun getRecommendedSortMode(): SortMode {
         return SortMode.MANUAL
     }
+
+    /**
+     * Persist the full reordered list after a drag-to-reorder gesture.
+     * Assigns displayOrder = list index for each item, then saves via repository.
+     *
+     * @param newOrder List in the new display order (index 0 = top).
+     * @return OrderResult indicating success or error.
+     */
+    suspend fun saveResourceOrder(newOrder: List<MediaResource>): OrderResult {
+        return try {
+            resourceRepository.updateResourcesDisplayOrder(newOrder)
+            Timber.d("ResourceOrderManager: saved drag order for ${newOrder.size} resources")
+            OrderResult.Success
+        } catch (e: Exception) {
+            Timber.e(e, "ResourceOrderManager: failed to save drag order")
+            OrderResult.Error(e)
+        }
+    }
 }

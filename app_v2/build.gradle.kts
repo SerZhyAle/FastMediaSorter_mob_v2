@@ -38,8 +38,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260420020
-        versionName = "2.60.4200.202"
+        versionCode = 260421031
+        versionName = "2.60.4210.314"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -119,6 +119,9 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
+            // AAR rebuilt with NDK r25c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
+            // 16 KB compatible — safe for Google Play.
+            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
         }
         
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -142,6 +145,7 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
+            buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in lite
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -165,6 +169,7 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
+            buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in photos
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -191,6 +196,8 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
+            // AAR rebuilt with NDK r25c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
+            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
         }
 
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
@@ -212,7 +219,9 @@ android {
                         "-DANDROID_PLATFORM=android-26",
                         // Gate OpenXR find_package in CMakeLists.txt: non-vr flavors omit this
                         // flag so CMake configure succeeds without the Khronos AAR on the path.
-                        "-DENABLE_OPENXR=ON"
+                        "-DENABLE_OPENXR=ON",
+                        // Force new cmake config hash to avoid stale .tmp file lock (2026-04-21)
+                        "-DFMS_BUILD_REVISION=3"
                     )
                 }
             }
@@ -232,9 +241,63 @@ android {
             // VR flavor routes all player launches to VrPlayerActivity (OpenXR host)
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
+            // AAR rebuilt with NDK r25c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
+            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
+        }
+
+        // ===== VR-UNLICENSED (ADB sideload only, always includes DTS) =====
+        // Distribution: ADB install via Developer Mode — no Meta Horizon Store.
+        // ~10% of VR users who prefer direct sideload over the store build.
+        // This flavor always ships DTS (libdca via custom FFmpeg AAR): no store review restrictions.
+        // If vr flavor is rejected by Meta due to DTS → ship vr without DTS, point sideloaders here.
+        // See ADR-004 in spec_ffmpeg-custom-build-dts.md.
+        create("vrUnlicensed") {
+            dimension = "version"
+            applicationIdSuffix = ".vr"          // Same app ID as vr — replaces it on the device
+            versionNameSuffix = "-VR-Unlicensed"
+            // Meta Quest 2/3/Pro: arm64-v8a only, same as vr.
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
+            externalNativeBuild {
+                cmake {
+                    // Same OpenXR native bridge as vr flavor.
+                    targets += listOf("openxr_native")
+                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                    arguments += listOf(
+                        "-DANDROID_STL=c++_shared",
+                        "-DANDROID_PLATFORM=android-26",
+                        "-DENABLE_OPENXR=ON"
+                    )
+                }
+            }
+            buildConfigField("boolean", "SUPPORT_VIDEO", "true")
+            buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_IMAGES", "true")
+            buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
+            buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
+            buildConfigField("boolean", "ENABLE_EPUB", "true")
+            buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
+            buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
+            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")  // Always true — no store restrictions
         }
     }
     
+    // vrUnlicensed shares the same VR Kotlin/Java/C++ sources as vr.
+    // AGP does not inherit flavor source sets automatically, so we add src/vr/ dirs explicitly.
+    sourceSets {
+        getByName("vrUnlicensed") {
+            java.srcDirs("src/vr/java")
+            res.srcDirs("src/vr/res")
+            manifest.srcFile("src/vr/AndroidManifest.xml")
+        }
+    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true // Required for Robolectric
@@ -626,8 +689,35 @@ dependencies {
     // Document Support - PDF extraction via built-in PdfRenderer (API 21+)
     // No external dependencies needed - metadata extraction removed to avoid conflicts
     
-    // OpenXR loader — only for vr flavor (headset XR rendering)
+    // OpenXR loader — only for vr and vr-unlicensed flavors (headset XR rendering)
     "vrImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
+    "vrUnlicensedImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
+
+    // SW AV1 decoder (libgav1) — source-only extension, not published on Google Maven.
+    // TODO: build from source (same pipeline as fms-ffmpeg-dts.aar) before enabling.
+    // "standardImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
+    // "legacyImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
+    // "vrImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
+    // "vrUnlicensedImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
+
+    // SW VP9 decoder (libvpx, incl. Profile 2 10-bit HDR) — source-only extension, not on Maven.
+    // TODO: build from source before enabling.
+    // "standardImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
+    // "legacyImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
+    // "vrImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
+    // "vrUnlicensedImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
+
+    // ── Custom FFmpeg AAR (DTS + APE/WMA/WavPack/TTA/DSD) ─────────────────────────────────────
+    // DTS/extended codec decoder via custom FFmpeg AAR — built from media3 1.2.1 sources.
+    // Build script: scripts/builders/build-ffmpeg-dts.sh
+    // Spec: PLAN/spec_ffmpeg-custom-build-dts.md §7, Phase 3
+    //
+    // AAR built: app_v2/libs/fms-ffmpeg-dts.aar (libffmpegJNI.so arm64-v8a + classes.jar)
+    // Rebuilt with NDK r25c + -Wl,-z,max-page-size=16384. readelf LOAD Align=0x4000 (16 KB). ✓ Play-safe.
+    "standardImplementation"(files("libs/fms-ffmpeg-dts.aar"))
+    "legacyImplementation"(files("libs/fms-ffmpeg-dts.aar"))
+    "vrImplementation"(files("libs/fms-ffmpeg-dts.aar"))
+    "vrUnlicensedImplementation"(files("libs/fms-ffmpeg-dts.aar"))
 
     // Testing
     testImplementation("junit:junit:4.13.2")

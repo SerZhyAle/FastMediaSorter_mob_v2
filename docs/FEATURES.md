@@ -58,6 +58,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **List and Grid display modes**: Choose how you want to browse your files. Use List mode for detailed file strings and metadata, or Grid mode to visually navigate through image and video thumbnails.
 - **Extensive sort modes**: Organize files exactly how you need them using sorting options like Name, Date, Size, Type, Artist, Title, Duration, Date Taken, Random, or Manual order. Every sort mode supports ascending and descending directions.
 - **Advanced filter panel**: Narrow down massive folders by filtering items using a filename substring, date ranges, size limits, or specific media types. This is essential for quickly locating a particular file in a cluttered directory.
+- **Random file jump in player**: Audio Library and Photo Storage profiles show a dedicated dice button in the player command bar, letting you jump to a random file from the current library without enabling a full shuffle mode.
 - **Multi-select**: Perform actions on multiple files at once to save time. Select continuous ranges or individual files to batch copy, move, delete, or share them simultaneously.
 - **Subfolder navigation**: Seamlessly dive deep into nested folder structures while maintaining a clear back-stack. This allows straightforward navigation back to higher-level directories without losing context.
 - **Show subfolders as items**: Treat subdirectories as clickable entries mixed directly into your file list. Unchecking this option flattens the view, which is useful when you only care about the media files inside.
@@ -73,6 +74,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Pagination**: Navigate incredibly large catalogs smoothly without memory crashes. The app automatically switches to paged loading to ensure the interface remains highly responsive regardless of folder size.
 - **Inline audio mini-player**: Start playing music tracks seamlessly directly from the file browser. This avoids disrupting your navigation flow and lets you preview audio files instantly.
 - **Keyboard navigation**: Use external or hardware keyboards to navigate lists and trigger actions. This facilitates a rapid, desktop-like browsing experience on tablets or devices with physical keyboards.
+- **Manual drag-to-reorder**: In Manual sort mode, drag files using the handle that appears next to each item to set a custom display order. The order is persisted per directory and automatically restored on the next visit.
 
 ## 3. File Operations
 
@@ -140,7 +142,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 ## 8. VR Edition
 
 - **Dedicated VR flavor**: FastMediaSorter VR is a dedicated `vr` product flavor for Meta Quest and Android XR headsets. It is the same core player as the standard edition, extended with an OpenXR rendering layer for headset playback.
-- **VR stereoscopic playback**: The VR edition provides full stereoscopic viewing of both 3D video (SBS/OU) and 3D photos. Its OpenXR layer factory routes 2D content to a cinema quad, flat SBS/OU content to projection layers, equirect 360°/VR180 content to `Equirect2KHR`, and cylindrical 180° content to `CylinderKHR`.
+- **VR stereoscopic playback**: The VR edition provides full stereoscopic viewing of both 3D video (SBS/OU) and supported 3D photos, including direct panel-to-immersive handoff for stereoscopic images. Its OpenXR layer factory routes 2D content to a cinema quad, flat SBS/OU content to projection layers, equirect 360°/VR180 content to `Equirect2KHR`, and cylindrical 180° content to `CylinderKHR`.
+- **Explicit immersive fallback feedback**: If immersive startup fails or a file asks for an unsupported immersive path, the VR build now shows an explicit error before falling back instead of silently returning to the standard player flow.
 - **Per-eye VR renderer and frame capture**: The VR renderer writes flat per-eye pixels into XR targets with correct SBS/OU/mono splits and an aspect-preserving cinema blit, leaving sphere/cylinder warping to the OpenXR compositor. Save Frame in VR captures a timestamped stereoscopic SBS PNG into `Pictures/FastMediaSorter_VR` and exposes an immediate Open action for the saved file. The shared fullscreen button now stays a safe no-op with a VR toast, while VR system-ui input toggles the headset control overlay instead of Android bars.
 - **3D image handling across phone and headset**: SBS/OU image format is detected automatically from the filename; the phone build can show a left-eye crop preview and a `3D` tab in the playback dialog, while the VR flavor renders the same content per eye. Forced format override from VR settings is also applied to images.
 - **Dual-group VR format override dialog**: In the VR edition, the `Control -> 3D` dialog shows flat and spherical format groups at the same time. The inactive family stays visible but disabled by default, a dedicated `Override format type` switch unlocks cross-family overrides, manual selections toast briefly, and remembered selections restore per file on reopen when `Remember file format` is enabled.
@@ -185,6 +188,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Text selection mode**: Tap the "T" button in the PDF controls bar to extract the current page's text (via OCR on most devices; natively on Android 15+) into a selectable overlay. Long-press any word to get selection handles, then choose **Translate** (sends only your selection to the translator), **Read Aloud** (speaks the selected fragment via TTS), or **Search in Google** from the floating action menu.
 - **Read Aloud (TTS)**: Tap Read Aloud in the command panel to have the current PDF page spoken through the system text-to-speech engine. Works natively on Android 15+ (no OCR delay) and falls back to ML Kit OCR on earlier versions. TTS pauses automatically when you navigate to another page.
 - **Large PDF thumbnail support for network files**: Identify your PDFs by their cover before fully downloading them from your remote server or cloud. This optional setting avoids unnecessary network usage when looking for a specific document.
+- **Print**: Send the current PDF, text file, or image directly to any printer via the standard Android Print dialog. Available from the command bar (or overflow menu when space is limited) in both portrait and landscape orientations. Remote files are automatically cached locally before printing and the temporary file is deleted afterwards.
 
 ## 12. EPUB Viewer
 

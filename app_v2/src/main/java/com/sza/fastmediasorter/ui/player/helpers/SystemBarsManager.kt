@@ -7,6 +7,7 @@ import android.view.WindowInsetsController
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.sza.fastmediasorter.domain.model.AppSettings
 import timber.log.Timber
 
 /**
@@ -149,5 +150,52 @@ class SystemBarsManager(
         } else {
             enterFullscreenMode()
         }
+    }
+
+    /**
+     * Central player system-bars update logic extracted from PlayerActivity.
+     *
+     * Evaluates document fullscreen, explicit fullscreen, slideshow, and audio-slideshow-photo
+     * states to decide whether to hide or show system bars. Also manages topCommandPanel
+     * top-padding: zero in fullscreen (status bar hidden), restored via insets in normal mode.
+     *
+     * @return updated value of isExplicitFullscreenMode (cleared when command panel is shown)
+     */
+    fun updateForPlayerState(
+        showCommandPanel: Boolean,
+        isExplicitFullscreenMode: Boolean,
+        settings: AppSettings?,
+        isDocumentFullscreen: Boolean,
+        isMediaSlideshow: Boolean,
+        isAudioSlideshowPhotoMode: Boolean,
+        topCommandPanel: View
+    ): Boolean {
+        val newExplicitFullscreen = if (showCommandPanel) false else isExplicitFullscreenMode
+        val hideSystemUiEnabled = settings?.hideSystemUiInFullscreen != false
+
+        if (isDocumentFullscreen) {
+            if (hideSystemUiEnabled) enterFullscreenMode() else exitFullscreenMode()
+            return newExplicitFullscreen
+        }
+
+        val shouldHide = hideSystemUiEnabled &&
+            (newExplicitFullscreen || isMediaSlideshow || isAudioSlideshowPhotoMode)
+
+        if (shouldHide) {
+            enterFullscreenMode()
+            // Remove top padding so command panel doesn't leave gap when status bar is hidden
+            topCommandPanel.setPadding(
+                topCommandPanel.paddingLeft, 0,
+                topCommandPanel.paddingRight, topCommandPanel.paddingBottom
+            )
+        } else {
+            exitFullscreenMode()
+            // Force insets reapplication so command panel moves below the restored status bar
+            topCommandPanel.post {
+                topCommandPanel.requestApplyInsets()
+                Timber.d("TopCommandPanel: Forced insets reapply after exitFullscreen")
+            }
+        }
+        return newExplicitFullscreen
     }
 }

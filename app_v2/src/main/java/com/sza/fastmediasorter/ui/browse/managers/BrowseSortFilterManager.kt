@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.random.Random
 
 /**
  * Manages sort mode, display mode, and file filtering in the Browse screen.
@@ -50,6 +51,8 @@ class BrowseSortFilterManager(
     private val resourceId: Long,
     private val paginationThreshold: Int = DEFAULT_PAGINATION_THRESHOLD
 ) {
+    private var randomShuffleSeed: Long = System.nanoTime()
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
@@ -99,6 +102,37 @@ class BrowseSortFilterManager(
             }
             loadMediaFiles()
         }
+    }
+
+    /**
+     * RANDOM is intentionally re-entrant from the sort dialog: every tap should reshuffle.
+     */
+    fun reshuffleRandom() {
+        refreshRandomShuffleSeed()
+
+        if (stateFlow.value.sortMode != SortMode.RANDOM) {
+            setSortMode(SortMode.RANDOM)
+            return
+        }
+
+        val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
+        if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+            val currentFilter = stateFlow.value.filter ?: FileFilter()
+            val filteredFiles = applyFilterToList(cachedFiles, currentFilter)
+            val reshuffledFiles = reshuffleVisibleFiles(filteredFiles)
+            val reshuffledCache = sortFiles(cachedFiles, SortMode.RANDOM, forceSort = true)
+            MediaFilesCacheManager.setCachedList(resourceId, reshuffledCache)
+            updateState { it.copy(mediaFiles = reshuffledFiles) }
+            return
+        }
+
+        val currentFiles = stateFlow.value.mediaFiles
+        if (currentFiles.isNotEmpty()) {
+            updateState { it.copy(mediaFiles = reshuffleVisibleFiles(currentFiles)) }
+            return
+        }
+
+        loadMediaFiles()
     }
 
     /**
@@ -236,7 +270,7 @@ class BrowseSortFilterManager(
             Timber.d("BrowseSortFilterManager.sortFiles: large folder (${files.size}) — skipping auto-sort")
             return files
         }
-        return fileListManager.sortFiles(files, mode, forceSort)
+        return fileListManager.sortFiles(files, mode, forceSort, randomShuffleSeed)
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -266,6 +300,29 @@ class BrowseSortFilterManager(
             }
             else -> false
         }
+    }
+
+    private fun reshuffleVisibleFiles(files: List<MediaFile>): List<MediaFile> {
+        if (files.count { !it.isDirectory } < 2) return files
+
+        val currentOrder = files.map { it.path }
+        repeat(3) {
+            refreshRandomShuffleSeed()
+            val reshuffled = sortFiles(files, SortMode.RANDOM, forceSort = true)
+            if (reshuffled.map { it.path } != currentOrder) {
+                return reshuffled
+            }
+        }
+
+        val directories = files.filter { it.isDirectory }.sortedBy { it.name.lowercase() }
+        val regularFiles = files.filter { !it.isDirectory }
+        // As a last resort, rotate the current order so a repeat never looks like a no-op.
+        return directories + (regularFiles.drop(1) + regularFiles.first())
+    }
+
+    private fun refreshRandomShuffleSeed() {
+        // Mix monotonic time and current size so rapid consecutive taps don't replay a seed.
+        randomShuffleSeed = System.nanoTime() xor stateFlow.value.mediaFiles.size.toLong() xor Random.nextLong()
     }
 
     companion object {

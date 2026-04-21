@@ -130,6 +130,10 @@ class SafUriExtractor(private val context: Context) {
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull()
             val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
             val bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toIntOrNull()
+            val audioTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+            val audioArtist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+            val audioAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+            val sampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)?.toIntOrNull()
             
             var videoCodec: String? = null
             var audioCodec: String? = null
@@ -180,7 +184,11 @@ class SafUriExtractor(private val context: Context) {
                 audioCodec = audioCodec,
                 audioChannels = audioChannels,
                 audioBitrate = audioBitrate,
-                frameRate = frameRate
+                frameRate = frameRate,
+                audioTitle = audioTitle,
+                audioArtist = audioArtist,
+                audioAlbum = audioAlbum,
+                sampleRate = sampleRate
             )
         } catch (e: Exception) {
             Timber.e(e, "Failed to extract video/audio info from SAF URI: $uriPath")

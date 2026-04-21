@@ -33,6 +33,18 @@ Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Gree
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
 
+# Clean stale Gradle CMake .tmp files that cause "Access is denied" lock errors.
+# These are left behind when a previous build is aborted; new builds cannot hash them.
+$cxxDebugDir = Join-Path $projectRoot "app_v2\build\intermediates\cxx\Debug"
+if (Test-Path $cxxDebugDir) {
+    Get-ChildItem -Path $cxxDebugDir -Recurse -Filter "*.tmp" | ForEach-Object {
+        Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
+        if (-not (Test-Path $_.FullName)) {
+            Write-Host "  Cleaned stale lock: $($_.Name)" -ForegroundColor DarkGray
+        }
+    }
+}
+
 # Update build.gradle.kts
 $buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
 $content = Get-Content $buildGradlePath -Raw

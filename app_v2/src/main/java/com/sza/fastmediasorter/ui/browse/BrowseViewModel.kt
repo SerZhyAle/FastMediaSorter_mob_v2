@@ -67,6 +67,7 @@ class BrowseViewModel @Inject constructor(
     private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor,
     private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
     private val browseStateDataStore: com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore,
+    private val manualOrderPrefs: com.sza.fastmediasorter.data.local.preferences.BrowseManualOrderPrefs,
     private val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
     private val syncMediaStoreUseCase: com.sza.fastmediasorter.domain.usecase.SyncMediaStoreUseCase,
     private val clearResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase,
@@ -584,6 +585,7 @@ class BrowseViewModel @Inject constructor(
 
     // Sort / Display Mode - delegated to BrowseSortFilterManager
     fun setSortMode(sortMode: SortMode) = sortFilterManager.setSortMode(sortMode)
+    fun reshuffleRandom() = sortFilterManager.reshuffleRandom()
     fun toggleDisplayMode() = sortFilterManager.toggleDisplayMode()
 
     fun selectFile(filePath: String) {
@@ -641,7 +643,41 @@ class BrowseViewModel @Inject constructor(
     fun setFilter(filter: FileFilter?) = sortFilterManager.setFilter(filter)
     fun applyFilter() = sortFilterManager.applyFilter()
     internal fun applyFilterToList(files: List<com.sza.fastmediasorter.domain.model.MediaFile>, filter: com.sza.fastmediasorter.domain.model.FileFilter): List<MediaFile> = sortFilterManager.applyFilterToList(files, filter)
-    private fun sortFiles(files: List<com.sza.fastmediasorter.domain.model.MediaFile>, mode: com.sza.fastmediasorter.domain.model.SortMode, forceSort: Boolean = false): List<MediaFile> = sortFilterManager.sortFiles(files, mode, forceSort)
+    private fun sortFiles(files: List<com.sza.fastmediasorter.domain.model.MediaFile>, mode: com.sza.fastmediasorter.domain.model.SortMode, forceSort: Boolean = false): List<MediaFile> {
+        if (mode == com.sza.fastmediasorter.domain.model.SortMode.MANUAL) {
+            val savedOrder = manualOrderPrefs.loadOrder(resourceId, currentDirPath())
+            if (savedOrder != null) return applyManualOrder(files, savedOrder)
+        }
+        return sortFilterManager.sortFiles(files, mode, forceSort)
+    }
+
+    private fun currentDirPath(): String =
+        state.value.currentPath ?: state.value.resource?.path ?: ""
+
+    private fun applyManualOrder(
+        files: List<MediaFile>,
+        orderedPaths: List<String>
+    ): List<MediaFile> {
+        val pathIndex = orderedPaths.withIndex().associate { (i, p) -> p to i }
+        val dirs = files.filter { it.isDirectory }.sortedBy { it.name.lowercase() }
+        val regular = files.filter { !it.isDirectory }
+            .sortedBy { pathIndex[it.path] ?: Int.MAX_VALUE }
+        return dirs + regular
+    }
+
+    /**
+     * Persists drag-reordered file paths and updates the visible list immediately.
+     * Called from BrowseManagerInitializer after drag ends (clearView).
+     */
+    fun saveManualOrder(orderedPaths: List<String>) {
+        val dirPath = currentDirPath()
+        manualOrderPrefs.saveOrder(resourceId, dirPath, orderedPaths)
+        Timber.d("BrowseViewModel.saveManualOrder: saved ${orderedPaths.size} paths for $dirPath")
+        if (state.value.sortMode == com.sza.fastmediasorter.domain.model.SortMode.MANUAL) {
+            val reordered = applyManualOrder(state.value.mediaFiles, orderedPaths)
+            updateState { it.copy(mediaFiles = reordered) }
+        }
+    }
 
     fun saveLastViewedFile(filePath: String) = resourceStateManager.saveLastViewedFile(filePath)
     

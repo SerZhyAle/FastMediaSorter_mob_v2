@@ -8,8 +8,13 @@
     and provides filtering, searching, context display, crash detection, flow tracing, and stats.
 
 .PARAMETER LogFile
-    Path to the logcat file. Default: temp\current.log.
+    Path to the log file. Default: temp\current.log.
+    Accepts ALL three log formats — auto-detected at load time:
+      FORMAT 1 LOGCAT  — standard adb/AS copy-paste: DATE TIME PID-TID TAG PKG LVL  MSG
+      FORMAT 2 JSON    — Android Studio "Export to File" (.logcat JSON)
+      FORMAT 3 TIMBER  — app device export: DATE TIME LVL/TAG: MSG
     Use .\scripts\utils\extract-device-logs.ps1 to pull a fresh log from a connected device.
+    Use .\scripts\utils\convert-log.ps1 to pre-convert any format to standard logcat text.
 
 .EXAMPLES
     # ── Basic filters ──────────────────────────────────────────────
@@ -168,8 +173,38 @@ function Show-Stats([object[]]$items, [string]$label) {
     $byTag | ForEach-Object { Write-Out ("    {0,5}  {1}" -f $_.Count, $_.Name) "Gray" }
 }
 
+# ─── Format detection ─────────────────────────────────────────────────────────
+# Returns: "LOGCAT" | "JSON" | "TIMBER"
+function Get-LogFormat([string]$path) {
+    $preview = Get-Content -Path $path -TotalCount 10
+    $firstNonEmpty = $preview | Where-Object { $_.Trim() -ne "" } | Select-Object -First 1
+    if (-not $firstNonEmpty) { return "LOGCAT" }
+    # JSON: Android Studio .logcat export
+    if ($firstNonEmpty.Trim().StartsWith("{")) { return "JSON" }
+    # TIMBER: YYYY-MM-DD HH:MM:SS.mmm LVL/TAG: MSG  (no PID-TID between timestamp and tag)
+    if ($firstNonEmpty -match '^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+\s+[VDIWEF]/') { return "TIMBER" }
+    if ($firstNonEmpty -match '^={3,}\s*Log') { return "TIMBER" }
+    # LOGCAT: standard adb / AS copy-paste
+    return "LOGCAT"
+}
+
+# ─── Level character helper ────────────────────────────────────────────────────
+function ConvertTo-LevelChar([string]$level) {
+    switch ($level.ToUpper()) {
+        "VERBOSE" { return "V" }
+        "DEBUG"   { return "D" }
+        "INFO"    { return "I" }
+        "WARN"    { return "W" }
+        "WARNING" { return "W" }
+        "ERROR"   { return "E" }
+        "FATAL"   { return "E" }
+        "ASSERT"  { return "E" }
+        default   { return "D" }
+    }
+}
+
 # ─── Parse line into PSCustomObject ──────────────────────────────────────────
-# Format: DATE TIME PID-TID TAG<spaces> PACKAGE<spaces> LEVEL  MESSAGE
+# Format 1 — standard logcat: DATE TIME PID-TID TAG<spaces> PACKAGE<spaces> LEVEL  MESSAGE
 $LineRegex = '^(?<ts>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+)\s+(?<pid>\d+-\d+)\s+(?<tag>\S+)\s+(?<pkg>\S+)\s+(?<lvl>[VDIWEF])\s+(?<msg>.*)$'
 
 function Parse-Line([string]$line) {
@@ -188,28 +223,118 @@ function Parse-Line([string]$line) {
     return $null
 }
 
-# ─── Load and parse (index-aware) ────────────────────────────────────────────
-$rawLines = Get-Content -Path $LogFile -Encoding UTF8
-$parsedList = [System.Collections.Generic.List[object]]::new()
+# Format 3 — Timber device export: DATE TIME LVL/TAG: MSG
+$TimberLineRegex = '^(?<ts>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+)\s+(?<lvl>[VDIWEF])/(?<tag>[^:]+):\s*(?<msg>.*)$'
 
-for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
-    $p = Parse-Line $rawLines[$idx]
-    if ($null -ne $p) {
-        Add-Member -InputObject $p -NotePropertyName LineIdx      -NotePropertyValue $idx
-        Add-Member -InputObject $p -NotePropertyName Continuation -NotePropertyValue ([System.Collections.Generic.List[string]]::new())
+function Parse-TimberLine([string]$line) {
+    if ($line -match $TimberLineRegex) {
+        return [PSCustomObject]@{
+            Raw  = $line
+            TS   = $Matches['ts']
+            Time = $Matches['ts'].Substring(11, 8)
+            PID  = "0-0"
+            Tag  = $Matches['tag'].Trim()
+            Pkg  = "com.sza.fastmediasorter"  # Timber is always app-only — package is implicit
+            Lvl  = $Matches['lvl']
+            Msg  = $Matches['msg']
+        }
+    }
+    return $null
+}
+
+# ─── Format-aware load and parse ─────────────────────────────────────────────
+$logFormat = Get-LogFormat $LogFile
+$parsedList = [System.Collections.Generic.List[object]]::new()
+$rawLines   = [string[]]@()
+
+if ($logFormat -eq "JSON") {
+    # ── Format 2: Android Studio .logcat JSON export ─────────────────────────
+    Write-Host ("Loading JSON .logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
+    $json = Get-Content -Path $LogFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    $syntheticLines = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($entry in $json.logcatMessages) {
+        $h   = $entry.header
+        $lvl = ConvertTo-LevelChar $h.logLevel
+        $pidNum = $h.pid
+        $tidNum = $h.tid
+        $tag = $h.tag
+        $pkg = if ($h.applicationId) { $h.applicationId } else { $h.processName }
+
+        # Convert Unix timestamp {seconds, nanos} → local datetime
+        $epochSec = [long]$h.timestamp.seconds
+        $nanos    = [long]$h.timestamp.nanos
+        $dt = [DateTimeOffset]::FromUnixTimeSeconds($epochSec).ToLocalTime()
+        $ms = [int]($nanos / 1000000)
+        $ts = $dt.ToString("yyyy-MM-dd HH:mm:ss") + ".$($ms.ToString('D3'))"
+        $time = $ts.Substring(11, 8)
+
+        $msg = $entry.message
+        # Synthetic standard-format raw line (used by context mode)
+        $raw = "$ts $pidNum-$tidNum $tag $pkg $lvl  $msg"
+        $syntheticLines.Add($raw)
+
+        $p = [PSCustomObject]@{
+            Raw  = $raw
+            TS   = $ts
+            Time = $time
+            PID  = "$pidNum-$tidNum"
+            Tag  = $tag
+            Pkg  = $pkg
+            Lvl  = $lvl
+            Msg  = $msg
+            LineIdx      = $syntheticLines.Count - 1
+            Continuation = [System.Collections.Generic.List[string]]::new()
+        }
         $parsedList.Add($p)
-    } else {
-        # Attach continuation lines (stack traces, banner, separators) to the previous entry
-        if ($parsedList.Count -gt 0) {
-            $parsedList[$parsedList.Count - 1].Continuation.Add($rawLines[$idx])
+    }
+
+    $rawLines = $syntheticLines.ToArray()
+
+} elseif ($logFormat -eq "TIMBER") {
+    # ── Format 3: Timber / app device export ────────────────────────────────
+    Write-Host ("Loading Timber log: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
+    $rawLines = Get-Content -Path $LogFile -Encoding UTF8
+
+    for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
+        $p = Parse-TimberLine $rawLines[$idx]
+        if ($null -ne $p) {
+            Add-Member -InputObject $p -NotePropertyName LineIdx      -NotePropertyValue $idx
+            Add-Member -InputObject $p -NotePropertyName Continuation -NotePropertyValue ([System.Collections.Generic.List[string]]::new())
+            $parsedList.Add($p)
+        } else {
+            # Header lines (=== Log started ===, banner text, stack traces)
+            if ($parsedList.Count -gt 0) {
+                $parsedList[$parsedList.Count - 1].Continuation.Add($rawLines[$idx])
+            }
+        }
+    }
+
+} else {
+    # ── Format 1: Standard logcat (adb / AS copy-paste) ─────────────────────
+    Write-Host ("Loading logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
+    $rawLines = Get-Content -Path $LogFile -Encoding UTF8
+
+    for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
+        $p = Parse-Line $rawLines[$idx]
+        if ($null -ne $p) {
+            Add-Member -InputObject $p -NotePropertyName LineIdx      -NotePropertyValue $idx
+            Add-Member -InputObject $p -NotePropertyName Continuation -NotePropertyValue ([System.Collections.Generic.List[string]]::new())
+            $parsedList.Add($p)
+        } else {
+            # Attach continuation lines (stack traces, banner, separators) to the previous entry
+            if ($parsedList.Count -gt 0) {
+                $parsedList[$parsedList.Count - 1].Continuation.Add($rawLines[$idx])
+            }
         }
     }
 }
+
 $parsed = $parsedList.ToArray()
 $continuationCount = $rawLines.Count - $parsed.Count
 
-Write-Host ("Loaded {0} raw lines → {1} structured + {2} continuation/separator  [{3}]" -f `
-    $rawLines.Count, $parsed.Count, $continuationCount, (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray
+Write-Host ("Loaded {0} raw lines → {1} structured + {2} continuation/separator  [{3}] [FORMAT: {4}]" -f `
+    $rawLines.Count, $parsed.Count, $continuationCount, (Split-Path $LogFile -Leaf), $logFormat) -ForegroundColor DarkGray
 
 # ─── SUMMARY mode ─────────────────────────────────────────────────────────────
 if ($Summary) {
@@ -242,11 +367,33 @@ if ($Summary) {
         }
     }
 
-    # Startup banner — extract from continuation lines of the banner log entry
+    # For JSON format — show device metadata from the .logcat header
+    if ($logFormat -eq "JSON") {
+        $jsonMeta = (Get-Content -Path $LogFile -Raw -Encoding UTF8 | ConvertFrom-Json).metadata
+        if ($jsonMeta.device.physicalDevice) {
+            $dev = $jsonMeta.device.physicalDevice
+            Write-Out "`n[Device (JSON metadata)]" "White"
+            Write-Out ("  $($dev.manufacturer) $($dev.model)  Android $($dev.release)  API $($dev.featureLevel)") "Gray"
+        }
+        if ($jsonMeta.filter) {
+            Write-Out ("  Filter: $($jsonMeta.filter.Trim())") "Gray"
+        }
+    }
+
+    # Startup banner — check continuation lines (LOGCAT/TIMBER) and Timber header lines
     $bannerEntry = $parsed | Where-Object {
         $_.Continuation.Count -gt 5 -and
         ($_.Continuation | Where-Object { $_ -match 'FAST MEDIA SORTER' })
     } | Select-Object -First 1
+
+    # For Timber format — also look for the === App version === header line in raw lines
+    if (-not $bannerEntry -and $logFormat -eq "TIMBER") {
+        $verLine = $rawLines | Where-Object { $_ -match '^={3,}\s*App version:' } | Select-Object -First 1
+        if ($verLine -and $verLine -match 'App version:\s*(.+?)\s*={0,}$') {
+            Write-Out "`n[App Version (Timber header)]" "White"
+            Write-Out ("  $($Matches[1])") "Gray"
+        }
+    }
     if ($bannerEntry) {
         Write-Out "`n[Startup Banner]" "White"
         $keyFields = @(

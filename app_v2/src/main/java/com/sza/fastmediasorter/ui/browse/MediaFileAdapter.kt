@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.text.format.DateFormat
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
@@ -77,6 +78,46 @@ class MediaFileAdapter(
     private var showFavoriteButton: Boolean = true // Show/hide favorite button based on settings
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
     private var isAudioOnlyMode: Boolean = false
+
+    // ── Drag-to-reorder (MANUAL sort mode) ───────────────────────────────────
+    interface DragStartListener {
+        fun onStartDrag(viewHolder: RecyclerView.ViewHolder)
+    }
+
+    private var dragStartListener: DragStartListener? = null
+    private var showDragHandles: Boolean = false
+    // Shadow copy maintained during drag to track visual order without mutating currentList
+    private val dragOrderedList = mutableListOf<com.sza.fastmediasorter.domain.model.MediaFile>()
+
+    fun setDragStartListener(listener: DragStartListener?) {
+        dragStartListener = listener
+    }
+
+    fun showDragHandles(show: Boolean) {
+        if (showDragHandles == show) return
+        showDragHandles = show
+        if (show) {
+            dragOrderedList.clear()
+            dragOrderedList.addAll(currentList)
+        }
+        notifyItemRangeChanged(0, itemCount)
+    }
+
+    /** Called by ItemTouchHelper.onMove — reorders the shadow list and notifies RecyclerView. */
+    fun moveItem(from: Int, to: Int) {
+        if (from < 0 || to < 0 || from >= dragOrderedList.size || to >= dragOrderedList.size) return
+        if (from < to) {
+            for (i in from until to) dragOrderedList.add(i + 1, dragOrderedList.removeAt(i))
+        } else {
+            for (i in from downTo to + 1) dragOrderedList.add(i - 1, dragOrderedList.removeAt(i))
+        }
+        notifyItemMoved(from, to)
+    }
+
+    /** Returns file paths in current drag-visual order (call from clearView). */
+    fun getOrderedPaths(): List<String> = dragOrderedList.map { it.path }.toList()
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     // Inline audio player state (adapter-level, not part of MediaFile model)
     private var inlinePlayerState: InlinePlayerState = InlinePlayerState()
@@ -484,6 +525,18 @@ class MediaFileAdapter(
         }
     }
     
+    override fun onCurrentListChanged(
+        previousList: MutableList<com.sza.fastmediasorter.domain.model.MediaFile>,
+        currentList: MutableList<com.sza.fastmediasorter.domain.model.MediaFile>
+    ) {
+        super.onCurrentListChanged(previousList, currentList)
+        // Keep drag shadow in sync when a new list is submitted (e.g. after reload)
+        if (showDragHandles) {
+            dragOrderedList.clear()
+            dragOrderedList.addAll(currentList)
+        }
+    }
+
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
         // Explicitly clear Glide requests when view is recycled to free up
@@ -592,6 +645,13 @@ class MediaFileAdapter(
             binding.btnPlayInline.setOnClickListener {
                 val file = getItemByPosition() ?: return@setOnClickListener
                 onPlayClick(file)
+            }
+
+            binding.ivDragHandle.setOnTouchListener { _, event ->
+                if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                    dragStartListener?.onStartDrag(this)
+                }
+                false
             }
 
             // Task 8: Make item focusable for keyboard navigation
@@ -888,9 +948,12 @@ class MediaFileAdapter(
                     tvFileInfo.text = buildFileInfo(file)
                     applyInlineHighlight(false)
                 }
+
+                // Drag handle: visible only in MANUAL sort mode (set via showDragHandles)
+                ivDragHandle.isVisible = this@MediaFileAdapter.showDragHandles && !isFolder
             }
         }
-        
+
         private fun loadThumbnail(file: MediaFile) {
             // Skip thumbnail loading during fast scroll
             if (isScrolling) {

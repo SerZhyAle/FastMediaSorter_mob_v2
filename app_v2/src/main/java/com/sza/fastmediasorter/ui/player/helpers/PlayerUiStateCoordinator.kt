@@ -207,6 +207,7 @@ class PlayerUiStateCoordinator(
             binding.btnNext.isEnabled = state.hasNext
             binding.btnPreviousCmd.isEnabled = state.hasPrevious
             binding.btnPreviousCmd.isEnabled = state.hasPrevious
+            binding.btnRandomCmd.isEnabled = state.files.size > 1
             binding.btnNextCmd.isEnabled = state.hasNext
 
             binding.btnFavorite.setImageResource(

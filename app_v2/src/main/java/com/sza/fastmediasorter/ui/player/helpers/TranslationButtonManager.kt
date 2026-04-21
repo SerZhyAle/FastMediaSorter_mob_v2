@@ -140,18 +140,21 @@ class TranslationButtonManager(
                     val pdfDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
                     safeViews.btnTranslatePdfCmd.setImageDrawable(pdfDrawable)
                     safeViews.btnTranslatePdfCmd.imageTintList = null // Remove tint to show custom drawable
+                    safeViews.btnTranslatePdfCmd.alpha = 0.55f // Inactive by default; PdfViewerManager sets 1.0f when active
                     Timber.d("TranslationButtonManager: PDF button drawable set")
                     
                     // Update EPUB button (in command panel)
                     val epubDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
                     safeViews.btnTranslateEpubCmd.setImageDrawable(epubDrawable)
                     safeViews.btnTranslateEpubCmd.imageTintList = null // Remove tint to show custom drawable
+                    safeViews.btnTranslateEpubCmd.alpha = 0.55f // Inactive by default; EpubViewerManager sets 1.0f when active
                     Timber.d("TranslationButtonManager: EPUB button drawable set")
                     
                     // Update Image/GIF button (in command panel)
                     val imageDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
                     safeViews.btnTranslateImageCmd.setImageDrawable(imageDrawable)
                     safeViews.btnTranslateImageCmd.imageTintList = null // Remove tint to show custom drawable
+                    safeViews.btnTranslateImageCmd.alpha = 0.55f // Inactive by default
                     Timber.d("TranslationButtonManager: IMAGE button drawable set - drawable=$imageDrawable, tint removed")
                     
                     // Update deprecated overlay Image button

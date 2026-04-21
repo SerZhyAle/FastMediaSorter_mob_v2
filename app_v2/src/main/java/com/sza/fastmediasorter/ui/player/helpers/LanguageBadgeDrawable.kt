@@ -18,14 +18,16 @@ import android.util.TypedValue
  * Top row: Source language (2 chars ISO) or "A" for auto
  * Bottom row: Target language (2 chars ISO)
  * 
- * Uses theme-aware color (colorControlNormal) for consistent appearance
- * in both light and dark themes.
+ * Uses white text by default — safe for the dark player background.
+ * Pass forcedColor=null only when embedding in a light-background context.
  */
 class LanguageBadgeDrawable(
     private val context: Context,
     private var sourceLang: String,
     private var targetLang: String,
-    private val forcedColor: Int? = null
+    // Default to white: player background is always dark; theme-resolved color
+    // may be black (light theme) and would be invisible on the dark command bar.
+    private val forcedColor: Int? = android.graphics.Color.WHITE
 ) : Drawable() {
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

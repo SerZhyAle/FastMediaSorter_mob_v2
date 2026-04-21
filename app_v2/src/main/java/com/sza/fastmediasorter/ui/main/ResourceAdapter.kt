@@ -8,6 +8,7 @@ import android.text.format.DateUtils
 import android.text.style.ForegroundColorSpan
 import android.text.style.ImageSpan
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
@@ -25,6 +26,11 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import timber.log.Timber
+
+/** Callback from the adapter to the host (MainActivity) to start an ItemTouchHelper drag. */
+interface DragStartListener {
+    fun onStartDrag(viewHolder: RecyclerView.ViewHolder)
+}
 
 @android.annotation.SuppressLint("SetTextI18n")
 class ResourceAdapter(
@@ -153,6 +159,38 @@ class ResourceAdapter(
     private var isGridMode: Boolean = false
     private var useCompactElements: Boolean = false
     private var selectedResourceId: Long? = null
+
+    /**
+     * Optional listener set by the host after construction.
+     * When non-null, drag handles become visible and initiate ItemTouchHelper drags.
+     */
+    var dragStartListener: DragStartListener? = null
+
+    /**
+     * Mutable shadow of currentList used for live drag reordering (ADR-2).
+     * Differs from currentList during an active drag; reconciled in clearView via submitList().
+     */
+    private val _items = mutableListOf<MediaResource>()
+
+    override fun submitList(list: List<MediaResource>?) {
+        _items.clear()
+        if (list != null) _items.addAll(list)
+        super.submitList(list)
+    }
+
+    /**
+     * Move an item within _items and emit notifyItemMoved for live animation.
+     * Called by ResourceItemTouchCallback.onMove(). submitList() is deferred to clearView().
+     */
+    fun moveItem(from: Int, to: Int) {
+        if (from == to) return
+        val item = _items.removeAt(from)
+        _items.add(to, item)
+        notifyItemMoved(from, to)
+    }
+
+    /** Returns the current in-memory order after a drag, for persistence in clearView(). */
+    fun getDragOrderedList(): List<MediaResource> = _items.toList()
 
     fun setSelectedResource(resourceId: Long?) {
         val previousId = selectedResourceId
@@ -341,6 +379,16 @@ class ResourceAdapter(
                 // Focus support for keyboard navigation
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
+
+                // Drag handle — visible for real resources when drag is wired up
+                val isDraggable = dragStartListener != null && resource.id != -100L
+                ivDragHandle.visibility = if (isDraggable) android.view.View.VISIBLE else android.view.View.GONE
+                ivDragHandle.setOnTouchListener { _, event ->
+                    if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                        dragStartListener?.onStartDrag(this@GridViewHolder)
+                    }
+                    false
+                }
             }
         }
     }
@@ -595,11 +643,12 @@ class ResourceAdapter(
                 // Focus support for keyboard navigation
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
-                
+
                 // Hide actions for Favorites
                 if (resource.id == -100L) {
                     btnMoreActions.visibility = android.view.View.GONE
                     layoutInlineActions.visibility = android.view.View.GONE
+                    ivDragHandle.visibility = android.view.View.GONE
                 } else {
                     val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
 
@@ -621,7 +670,7 @@ class ResourceAdapter(
                     } else {
                         btnMoreActions.visibility = android.view.View.VISIBLE
                         layoutInlineActions.visibility = android.view.View.GONE
-                        
+
                         btnMoreActions.setOnClickListenerDebounced { view ->
                             val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
@@ -655,6 +704,16 @@ class ResourceAdapter(
                             }
                             popup.show()
                         }
+                    }
+
+                    // Drag handle — visible for real resources when drag is wired up
+                    val isDraggable = dragStartListener != null
+                    ivDragHandle.visibility = if (isDraggable) android.view.View.VISIBLE else android.view.View.GONE
+                    ivDragHandle.setOnTouchListener { _, event ->
+                        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                            dragStartListener?.onStartDrag(this@ResourceViewHolder)
+                        }
+                        false
                     }
                 }
 

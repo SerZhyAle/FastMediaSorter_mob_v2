@@ -172,6 +172,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             initializer.listSubmitManager.onListSubmitted(state)
                         }
                     }
+                    // Update drag handle visibility whenever sort mode changes
+                    if (sortChanged) {
+                        initializer.updateDragHandleVisibility(state.sortMode)
+                        initializer.updateSortButton(state.sortMode)
+                    }
 
                     initializer.mediaFileAdapter.setSelectedPaths(state.selectedFiles)
                     state.resource?.let { resource ->

@@ -13,7 +13,7 @@
           Required on HorizonOS v67+: tells the Meta runtime broker this app is a
           fully authorised VR app. Without this, the broker returns null cursor and
           the runtime falls back to the ODM JSON path, which does not register
-          xrGetGraphicsRequirementsOpenGLESKHR in its dispatch table — causing every
+          xrGetOpenGLESGraphicsRequirementsKHR in its dispatch table — causing every
           OpenXR session creation to fail with XR_ERROR_FUNCTION_UNSUPPORTED (-7).
         -->
         <meta-data
@@ -36,7 +36,7 @@
 
             <!--
               Required on HorizonOS v67+: grants the activity VR focus and enables
-              full OpenXR runtime capabilities (including xrGetGraphicsRequirementsOpenGLESKHR).
+              full OpenXR runtime capabilities (including xrGetOpenGLESGraphicsRequirementsKHR).
             -->
             <meta-data
                 android:name="com.oculus.vr.focusaware"
@@ -45,14 +45,29 @@
         </activity>
 
         <!--
-          MainActivity is the VR app entry point from Quest Library.
-          com.oculus.intent.category.VR here tells the Meta runtime this is a VR app,
-          enabling OpenXR runtime capabilities, while passthrough stays active (panel mode).
+          MainActivity is the Quest Library entry point for browsing (2D panel mode).
+          com.oculus.intent.category.2D = explicit panel/2D-window app in HorizonOS —
+          the OS renders the standard Android window as a flat Quad Layer in VR space.
+          com.oculus.intent.category.VR would force exclusive/immersive mode and require
+          OpenXR frame submission — causing an empty black screen since MainActivity has
+          no OpenXR rendering. VR immersive mode is handled by VrPlayerActivity which
+          carries com.oculus.vr.focusaware=true and is launched internally via startActivity().
+
+          <layout> provides a large landscape default for the first-ever launch before
+          MainActivity.onCreate() has a chance to apply the persisted size from SharedPrefs.
+          HorizonOS applies <layout> only on initial window creation; subsequent launches
+          use the runtime override in MainActivity.onCreate() + onConfigurationChanged().
         -->
         <activity android:name="com.sza.fastmediasorter.ui.main.MainActivity">
+            <layout
+                android:defaultWidth="1920dp"
+                android:defaultHeight="1080dp"
+                android:gravity="center"
+                android:minWidth="400dp"
+                android:minHeight="300dp" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="com.oculus.intent.category.VR" />
+                <category android:name="com.oculus.intent.category.2D" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

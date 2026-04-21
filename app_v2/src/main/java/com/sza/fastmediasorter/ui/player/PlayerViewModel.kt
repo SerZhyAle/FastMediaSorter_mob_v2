@@ -754,6 +754,30 @@ class PlayerViewModel @Inject constructor(
         updateState { it.copy(currentIndex = serviceIndex) }
     }
 
+    fun jumpToIndex(index: Int) {
+        val currentState = state.value
+        if (index !in currentState.files.indices) {
+            Timber.d("jumpToIndex: ABORT invalid index=$index for size=${currentState.files.size}")
+            return
+        }
+        if (index == currentState.currentIndex) {
+            Timber.d("jumpToIndex: ABORT target index matches current index=$index")
+            return
+        }
+
+        Timber.d("jumpToIndex: index ${currentState.currentIndex} → $index / ${currentState.files.size}")
+
+        // Reuse the same side effects as prev/next so resume and browse restore stay in sync.
+        updateState { it.copy(currentIndex = index) }
+        saveResumeState()
+
+        val resource = currentState.resource
+        if (resource != null) {
+            val fileToSave = currentState.files[index]
+            saveLastViewedFileDebounced(fileToSave.path)
+        }
+    }
+
     fun nextFile(skipDocuments: Boolean = false) {
         if (BuildConfig.DEBUG) {
             val stackTrace = Thread.currentThread().stackTrace

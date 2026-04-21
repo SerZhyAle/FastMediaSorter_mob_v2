@@ -49,24 +49,24 @@ enum class MediaType {
  * Sort mode enum matching specification
  */
 enum class SortMode {
-    MANUAL,      // Manual ordering by displayOrder (used when user manually reorders items)
+    RANDOM,          // Random order (useful for slideshows) — first in sort menu
     NAME_ASC,
     NAME_DESC,
     DATE_ASC,
     DATE_DESC,
     SIZE_ASC,
     SIZE_DESC,
-    TYPE_ASC,
-    TYPE_DESC,
+    MANUAL,          // Manual ordering by displayOrder — placed after SIZE per UX requirement
     ARTIST_ASC,
     ARTIST_DESC,
     TITLE_ASC,
     TITLE_DESC,
     DURATION_ASC,
     DURATION_DESC,
+    TYPE_ASC,        // Placed below DURATION per UX requirement
+    TYPE_DESC,
     DATE_TAKEN_ASC,
     DATE_TAKEN_DESC,
-    RANDOM       // Random order (useful for slideshows)
 }
 
 /**

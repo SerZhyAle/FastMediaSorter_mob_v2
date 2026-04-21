@@ -58,7 +58,20 @@
             <meta-data android:name="androidx.work.WorkManagerInitializer" android:value="androidx.startup" tools:node="remove" />
         </provider>
 
-        <activity android:name=".ui.main.MainActivity" android:exported="true" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden">
+        <activity android:name=".ui.main.MainActivity" android:exported="true" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            <!--
+              <layout> provides the initial large landscape window size when the app is launched
+              on a VR headset (Quest) in panel mode for any product flavor (standard/lite/photos/legacy).
+              HorizonOS uses defaultWidth/defaultHeight as the first-launch default; subsequent
+              launches restore the last user-adjusted size natively. Has no visible effect on
+              phones/tablets in non-freeform mode.
+            -->
+            <layout
+                android:defaultWidth="1920dp"
+                android:defaultHeight="1080dp"
+                android:gravity="center"
+                android:minWidth="400dp"
+                android:minHeight="300dp" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

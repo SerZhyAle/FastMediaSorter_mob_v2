@@ -45,6 +45,12 @@ interface ResourceRepository {
      * Used for manual reordering (moveUp/moveDown).
      */
     suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource)
+
+    /**
+     * Persist new display order for an entire reordered list.
+     * Assigns displayOrder = list index for each item. Used by drag-to-reorder.
+     */
+    suspend fun updateResourcesDisplayOrder(resources: List<MediaResource>)
     
     suspend fun deleteResource(resourceId: Long)
     

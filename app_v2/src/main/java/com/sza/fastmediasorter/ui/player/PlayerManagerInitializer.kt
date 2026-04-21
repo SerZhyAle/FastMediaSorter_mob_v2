@@ -20,10 +20,12 @@ import com.sza.fastmediasorter.ui.player.helpers.LyricsManager
 import com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
 import com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager
 import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
 import com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
@@ -667,6 +669,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
     }
 
     private fun initUiCoordinators() {
+        activity.audioMetadataManager = PlayerAudioMetadataManager(activity)
+
         activity.dialogAndUiStateManager = PlayerDialogAndUiStateManager(
             activity = activity,
             viewModel = activity.viewModel,
@@ -744,5 +748,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             viewModel = activity.viewModel,
             touchZoneGestureManager = activity.touchZoneGestureManager
         )
+
+        activity.touchZoneSetupManager = PlayerTouchZoneSetupManager(activity)
     }
 }

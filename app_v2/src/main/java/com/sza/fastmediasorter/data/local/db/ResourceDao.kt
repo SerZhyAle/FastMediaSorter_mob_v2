@@ -129,4 +129,15 @@ abstract class ResourceDao {
     
     @Query("UPDATE resources SET displayOrder = :newOrder WHERE id = :resourceId")
     abstract suspend fun updateDisplayOrder(resourceId: Long, newOrder: Int)
+
+    /**
+     * Batch-update displayOrder for a reordered list in a single transaction.
+     * Each pair is (resourceId, newDisplayOrder). Used by drag-to-reorder.
+     */
+    @Transaction
+    open suspend fun updateAllDisplayOrders(orders: List<Pair<Long, Int>>) {
+        for ((id, order) in orders) {
+            updateDisplayOrder(id, order)
+        }
+    }
 }

@@ -301,16 +301,21 @@ class FileInfoDialog(
     }
 
     private fun displayAudioInfo() {
-        // Duration — show only if actually known; async will update for network files
-        if (mediaFile.duration != null && mediaFile.duration > 0) {
+        // Duration — always visible: show real value or placeholder while async loads
+        val durationMs = mediaFile.duration ?: 0L
+        if (durationMs > 0) {
             binding.tvAudioDuration.text = context.getString(
                 R.string.audio_duration_label,
-                formatDuration(mediaFile.duration)
+                formatDuration(durationMs)
             )
-            binding.tvAudioDuration.visibility = View.VISIBLE
         } else {
-            binding.tvAudioDuration.visibility = View.GONE
+            // Placeholder: async updateDetailedInfo() will replace this once metadata arrives
+            binding.tvAudioDuration.text = context.getString(
+                R.string.audio_duration_label,
+                context.getString(R.string.loading_placeholder)
+            )
         }
+        binding.tvAudioDuration.visibility = View.VISIBLE
     }
 
     private fun displayVideoInfo() {
@@ -499,6 +504,12 @@ class FileInfoDialog(
             binding.tvAudioArtist?.text = context.getString(R.string.audio_artist_label, details.audioArtist)
             binding.tvAudioArtist?.visibility = View.VISIBLE
         }
+
+        // Audio Album
+        if (details.audioAlbum != null && mediaFile.type == MediaType.AUDIO) {
+            binding.tvAudioAlbum?.text = context.getString(R.string.audio_album_label, details.audioAlbum)
+            binding.tvAudioAlbum?.visibility = View.VISIBLE
+        }
         
         // Audio Channels
         if (details.audioChannels != null) {
@@ -515,6 +526,12 @@ class FileInfoDialog(
         if (details.audioBitrate != null) {
             binding.tvAudioBitrate.text = context.getString(R.string.audio_bitrate_label, formatBitrate(details.audioBitrate))
             binding.tvAudioBitrate.visibility = View.VISIBLE
+        }
+
+        // Audio Sample Rate
+        if (details.sampleRate != null && mediaFile.type == MediaType.AUDIO) {
+            binding.tvAudioSampleRate?.text = context.getString(R.string.audio_sample_rate_label, details.sampleRate)
+            binding.tvAudioSampleRate?.visibility = View.VISIBLE
         }
         
         // Audio Codec for video (in video section)

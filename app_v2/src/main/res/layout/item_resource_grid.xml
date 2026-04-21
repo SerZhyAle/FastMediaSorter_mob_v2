@@ -102,8 +102,20 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" 
+        tools:visibility="visible"
             android:contentDescription="@null" />
+
+    <ImageView
+        android:id="@+id/ivDragHandle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="@string/drag_handle_description"
+        android:src="@drawable/ic_drag_handle"
+        android:padding="8dp"
+        app:tint="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -18,6 +18,7 @@
     <string name="move">Переместить</string>
     <string name="move_up">Переместить вверх</string>
     <string name="move_down">Переместить вниз</string>
+    <string name="drag_handle_description">Перетащить для изменения порядка</string>
     <string name="delete">Удалить</string>
     <string name="rename">Переименовать</string>
     <string name="edit">Редактировать</string>
@@ -189,6 +190,9 @@
     <string name="audio_channels_stereo">Стерео</string>
     <string name="audio_bitrate_label">Аудио битрейт: %1$s</string>
     <string name="audio_duration_label">Длительность: %1$s</string>
+    <string name="audio_album_label">Альбом: %1$s</string>
+    <string name="audio_sample_rate_label">Частота дискретизации: %1$d Гц</string>
+    <string name="loading_placeholder">..</string>
 
     <!-- Common -->
     <string name="apply">Применить</string>
@@ -674,6 +678,7 @@
     <string name="skip">Пропустить</string>
     <string name="previous">Назад</string>
     <string name="next">Далее</string>
+    <string name="random_file_description">Перейти к случайному файлу</string>
     <string name="finish">Готово</string>
     <string name="welcome_title_1">Добро пожаловать в FastMediaSorter!</string>
     <string name="welcome_description_1">Ваш универсальный медиаорганайзер.\nПросматривайте, сортируйте и управляйте файлами на локальных, сетевых и облачных хранилищах — всё с помощью интуитивных жестов.</string>
@@ -1981,6 +1986,10 @@
     <string name="playback_control_tab_speed">Скорость</string>
     <string name="playback_control_mute">Без звука</string>
     <string name="playback_control_unmute">Вернуть звук</string>
+    <string name="playback_control_mute_active">Звук выключен</string>
+    <string name="playback_control_mute_inactive">Звук включён</string>
+    <string name="volume_50_percent">50%</string>
+    <string name="volume_max">MAX</string>
     <string name="playback_control_no_audio_tracks">Аудиодорожки недоступны</string>
     <string name="playback_control_no_subtitles">Субтитры недоступны</string>
     <string name="playback_control_done">Готово</string>
@@ -2490,6 +2499,10 @@
     <string name="playback_vr_render_full_stereo">Полное стерео</string>
     <string name="playback_vr_ipd_label">IPD: %s мм</string>
     <string name="playback_vr_ipd_label_default">IPD (межзрачковое расстояние)</string>
+
+    <string name="vr_immersive_start_failed">Не удалось запустить immersive-режим. Воспроизведение остановлено, чтобы не оставлять фоновое аудио.</string>
+    <string name="vr_immersive_unsupported_media">Immersive-режим доступен только для стерео-видео и поддерживаемых 3D-изображений. Этот файл будет открыт в стандартном плеере.</string>
+    <string name="vr_xr_fallback_flat_mode">Immersive-режим недоступен — воспроизведение в плоском режиме. Формат 3D можно изменить в настройках плеера.</string>
 
     <!-- VR install CTA (shown in standard flavor when 3D content is detected) -->
     <string name="vr_install_cta_title">Это 3D-видео</string>

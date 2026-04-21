@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
+import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
@@ -466,5 +469,78 @@ class PlayerLifecycleManager(
                 }
             }
         }
+    }
+
+    /**
+     * Handle successful file deletion from any permission callback path.
+     * Tracks the file, removes it from cache, and navigates away or finishes.
+     */
+    fun handleDeleteSuccess(deletedFilePath: String) {
+        trackModifiedFile(deletedFilePath)
+        viewModel.state.value.resource?.let { resource ->
+            MediaFilesCacheManager.removeFile(resource.id, deletedFilePath)
+        }
+        val hasRemainingFiles = viewModel.removeDeletedFile(deletedFilePath)
+        if (!hasRemainingFiles) activity.finish()
+    }
+
+    /**
+     * Handle Android 11+ batch delete permission result (createDeleteRequest).
+     * Called from the batchDeletePermissionLauncher result callback.
+     */
+    fun handleBatchDeleteResult(resultCode: Int, currentFilePath: String?) {
+        if (resultCode == Activity.RESULT_OK) {
+            Timber.i("PlayerLifecycleManager: Batch delete permission granted")
+            if (currentFilePath != null) handleDeleteSuccess(currentFilePath)
+        } else {
+            Timber.w("PlayerLifecycleManager: Batch delete permission denied")
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.error_delete_failed, "Permission denied"),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    /**
+     * Handle Android 10 single-file delete permission result (RecoverableSecurityException).
+     * Called from the deletePermissionLauncher result callback.
+     */
+    fun handleDeletePermissionResult(resultCode: Int) {
+        if (resultCode == Activity.RESULT_OK) {
+            Timber.d("PlayerLifecycleManager: Delete permission granted, retrying delete")
+            activity.fileOperationsHandler.performDelete()
+        } else {
+            Timber.w("PlayerLifecycleManager: Delete permission denied")
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.error_delete_failed, "Permission denied"),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    /**
+     * Stop video playback and release ExoPlayer resources.
+     * Called when switching to non-media files (EPUB, PDF, Text, Image).
+     */
+    fun stopVideoPlayback() {
+        Timber.d("PlayerLifecycleManager: stopVideoPlayback()")
+        if (activity._videoPlayerManager != null) {
+            // pause() internally calls saveCurrentPosition in VideoPlayerManager
+            activity.videoPlayerManager.pause()
+            activity.videoPlayerManager.releasePlayer()
+        }
+    }
+
+    /**
+     * Clear Glide memory cache to prevent OOM during long slideshows.
+     * No-op if imageLoadingManager is not yet initialized or Activity is finishing.
+     */
+    fun clearImageMemoryCache() {
+        if (activity.isFinishing || activity.isDestroyed) return
+        try {
+            activity.imageLoadingManager.clearMemoryCache()
+        } catch (_: UninitializedPropertyAccessException) {}
     }
 }

@@ -1,7 +1,7 @@
 # Specification: IV.1 — Decompose Giant Files
 
-**Status:** In Progress — Wave 1 COMPLETE (BrowseViewModel ≤700 lines achieved); Wave 2 active (PlayerActivity)
-**Date:** 2026-03-28 | **Last updated:** 2026-04-10
+**Status:** In Progress — Wave 1 COMPLETE; Wave 2 partially complete (PlayerActivity remains); Wave 3 not started
+**Date:** 2026-03-28 | **Last updated:** 2026-04-20
 **Tier:** 5 — Complex (16–50h, high risk)
 **Roadmap entry:** Decompose 11+ files exceeding 1000 LOC (25k+ total) | Touches core flows; BrowseViewModel 3.4k LOC
 
@@ -14,28 +14,40 @@
 | Sprint | Wave | Status | Notes |
 |--------|------|--------|-------|
 | Sprint 0 | Preparation | ❌ Not done | No `temp/backups/iv1/` backups created; Maestro baseline not documented |
-| Sprint 1 | Wave 1 — BrowseViewModel | ✅ Complete | `BrowseViewModel` **4 010 → 683 lines**; 14 managers + 3 standalone files extracted |
-| Sprint 2 | Wave 2 — Active Extractions | 🔄 In progress | `PlayerActivity` **1 475**, `BrowseActivity` **1 342**, `FileOperationUseCase` **511** |
-| Sprint 3 | Wave 3 — ≥2000 Lines        | ❌ Not started | `MediaFileAdapter` 2 463, `GeneralSettingsFragment` 2 268, etc. |
-| Sprint 4 | Wave 4 — ≥1500 Lines        | ❌ Not started | `AddResourceActivity` 1 963, `TextViewerManager` 1 764, etc. |
-| Sprint 5 | Wave 5 — ≥1000 Lines        | ❌ Not started | `GoogleDriveRestClient` 1 448, `PlayerViewModel` 1 434, etc. |
+| Sprint 1 | Wave 1 — BrowseViewModel | ✅ Complete | `BrowseViewModel` **4 010 → 700 lines**; 14 managers + 3 standalone files extracted |
+| Sprint 2 | Wave 2 — Active Extractions | 🔄 Partial | `BrowseActivity` ✅ **300**, `FileOperationUseCase` ✅ **511**; `PlayerActivity` 🔄 **1 311** (target ≤700) |
+| Sprint 3 | Wave 3 — ≥2000 Lines        | ❌ Not started | `MediaFileAdapter` **2 552** ▲, `GeneralSettingsFragment` **2 358** ▲, `ImageLoadingManager` **2 241** ▲ |
+| Sprint 4 | Wave 4 — ≥1500 Lines        | ❌ Not started | `AddResourceActivity` **2 074** ▲, `AddResourceViewModel` **1 827** ▲, `TextViewerManager` **1 817** ▲ |
+| Sprint 5 | Wave 5 — ≥1000 Lines        | ❌ Not started | `GoogleDriveRestClient` **1 452**, `PlayerViewModel` **1 709** ▲, `StandalonePlayerActivity` **1 150** ▲ (new!) |
 
-### Actual line counts (current)
+### Actual line counts (as of 2026-04-20)
 
 | File | Spec baseline | Current | Target | Delta |
 |------|:-------------:|:-------:|:------:|:-----:|
-| `BrowseViewModel.kt` | 3 521 | **689** | ≤ 700 | ✅ **-2 832** |
-| `BrowseActivity.kt` | 2 398 | **297** | ≤ 700 | ✅ **-2 101** |
-| `PlayerActivity.kt` | 2 400 | **1 475** | ≤ 700 | ▼ -925 |
-| `StandalonePlayerActivity.kt` | — | **830** | ≤ 700 | 🔄 close |
-| `GeneralSettingsFragment.kt` | 2 221 | **2 268** | ≤ 700 | ▲ grew |
-| `AddResourceActivity.kt` | 1 959 | **1 963** | ≤ 700 | ▲ grew |
+| `BrowseViewModel.kt` | 3 521 | **700** | ≤ 700 | ✅ **-2 821** |
+| `BrowseActivity.kt` | 2 398 | **300** | ≤ 700 | ✅ **-2 098** |
 | `FileOperationUseCase.kt` | 1 185 | **511** | ≤ 700 | ✅ **-674** |
-| `MediaFileAdapter.kt` | 2 477 | **2 463** | ≤ 700 | unchanged |
-| `EpubViewerManager.kt` | 2 062 | **2 062** | ≤ 700 | unchanged |
-| `TextViewerManager.kt` | 1 754 | **1 764** | ≤ 700 | unchanged |
-| `PdfViewerManager.kt` | 1 407 | **1 568** | ≤ 700 | ▲ grew |
-| `MainActivity.kt` | 1 148 | **1 153** | ≤ 700 | unchanged |
+| `VideoPlayerManager.kt` | 1 729 | **755** | ≤ 700 | 🔄 55 over — close |
+| `PlayerActivity.kt` | 2 400 | **1 311** | ≤ 700 | 🔄 active — **-1 089 needed** |
+| `StandalonePlayerActivity.kt` | — | **1 150** | ≤ 700 | ⚠️ crossed 1000, new concern |
+| `MediaFileAdapter.kt` | 2 477 | **2 552** | ≤ 700 | ▲ **+75** |
+| `GeneralSettingsFragment.kt` | 2 221 | **2 358** | ≤ 700 | ▲ **+137** |
+| `ImageLoadingManager.kt` | 2 104 | **2 241** | ≤ 700 | ▲ **+137** |
+| `EpubViewerManager.kt` | 2 062 | **2 188** | ≤ 700 | ▲ **+126** |
+| `AddResourceActivity.kt` | 1 959 | **2 074** | ≤ 700 | ▲ **+115** |
+| `AddResourceViewModel.kt` | 1 718 | **1 827** | ≤ 700 | ▲ **+109** |
+| `TextViewerManager.kt` | 1 754 | **1 817** | ≤ 700 | ▲ **+63** |
+| `PlayerViewModel.kt` | 1 434 | **1 709** | ≤ 700 | ▲ **+275** |
+| `PdfViewerManager.kt` | 1 407 | **1 643** | ≤ 700 | ▲ **+236** |
+| `FtpClient.kt` | 1 597 | **1 603** | ≤ 700 | ▲ **+6** |
+| `MainActivity.kt` | 1 148 | **1 324** | ≤ 700 | ▲ **+176** |
+| `GoogleDriveRestClient.kt` | 1 448 | **1 452** | ≤ 700 | unchanged |
+| `OneDriveRestClient.kt` | 1 431 | **1 433** | ≤ 700 | unchanged |
+| `SftpClient.kt` | 1 302 | **1 311** | ≤ 700 | ▲ **+9** |
+| `SmbClient.kt` | 1 276 | **1 291** | ≤ 700 | ▲ **+15** |
+| `CloudFileOperationHandler.kt` | 1 222 | **1 222** | ≤ 700 | unchanged |
+| `DropboxClient.kt` | 1 181 | **1 181** | ≤ 700 | unchanged |
+| `ResourceEditorFragment.kt` | 1 050 | **1 068** | ≤ 700 | ▲ **+18** |
 
 ### New helpers created (Wave 1 — BrowseViewModel) — COMPLETE
 
@@ -108,7 +120,13 @@ All business logic extracted. ViewModel now contains only: manager declarations,
 
 ## 1. Problem Statement
 
-Static analysis reveals **24 Kotlin source files exceeding 1000 lines** (total ~34k LOC) in `app_v2/`, violating the project's 1000-line limit and the Clean Architecture rule that Activities/ViewModels hold zero business logic. The most extreme offenders are `BrowseViewModel` (3 521 lines handling nine distinct responsibilities), `MediaFileAdapter` (2 477 lines mixing binding, thumbnail loading, and audio metadata), `BrowseActivity` (2 398 lines despite already delegating to 11 managers), and `PlayerActivity` (2 400 lines with 60+ helpers that still leave the host too large). These files are difficult to review, prone to merge conflicts, and carry high regression risk for every change because unrelated concerns share the same compilation unit.
+As of 2026-04-20, Wave 1 is fully complete (`BrowseViewModel` 3 521 → 700 lines, `BrowseActivity` 2 398 → 300, `FileOperationUseCase` 1 185 → 511). Wave 2 has one remaining target: **`PlayerActivity`** at **1 311 lines** (down from 2 400 at spec baseline). It is the sole blocker preventing Wave 3 from starting.
+
+**Critical trend: 16 of 21 remaining oversized files actively grew since the last audit.** The worst regressions are `PlayerViewModel` (+275), `PdfViewerManager` (+236), `MainActivity` (+176), and `GeneralSettingsFragment`/`ImageLoadingManager` (+137 each). `StandalonePlayerActivity` crossed the 1000-line boundary (now 1 150) and must be added to the backlog. No files outside of Wave 1 targets have been reduced.
+
+**Immediate next target — `PlayerActivity` (1 311 lines).** It has the strongest safety profile of any remaining oversized class: 60+ helpers already exist in `ui/player/helpers/`, the extraction pattern is battle-tested across two completed waves, and the remaining inline code is exclusively setup-and-wiring logic that can be moved to a `PlayerSetupOrchestrator` without touching any business logic. Estimated extraction: ~611 lines → target ≤700.
+
+After `PlayerActivity`, Wave 3 begins with `MediaFileAdapter` (2 552, largest remaining file), `GeneralSettingsFragment` (2 358), and `ImageLoadingManager` (2 241). All three are growing and have no helper infrastructure yet, making them the highest compound risk in the codebase.
 
 ---
 

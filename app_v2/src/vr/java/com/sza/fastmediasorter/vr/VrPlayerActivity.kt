@@ -6,7 +6,12 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.view.Surface
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
+import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -20,6 +25,8 @@ import com.sza.fastmediasorter.ui.player.helpers.seekBackward
 import com.sza.fastmediasorter.ui.player.render.RenderPriority
 import com.sza.fastmediasorter.ui.player.render.RenderTarget
 import com.sza.fastmediasorter.vr.capture.VrStereoSnapshotManager
+import com.sza.fastmediasorter.vr.helpers.VrRouteDecision
+import com.sza.fastmediasorter.vr.helpers.VrRouteDecisionHelper
 import com.sza.fastmediasorter.vr.openxr.OpenXrSessionManager
 import com.sza.fastmediasorter.vr.openxr.XrRenderCallback
 import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
@@ -68,6 +75,7 @@ class VrPlayerActivity : PlayerActivity() {
     private var controlOverlay: VrControlOverlayManager? = null
     private var stereoSnapshotManager: VrStereoSnapshotManager? = null
     private val stereoDetector = StereoDetector()
+    private val routeDecisionHelper = VrRouteDecisionHelper()
 
     @Volatile
     private var currentVrImageKey: String? = null
@@ -79,9 +87,16 @@ class VrPlayerActivity : PlayerActivity() {
     @Volatile
     private var currentLayerDescriptor = VrLayerDescriptor()
 
+    @Volatile
+    private var cachedPlayerSourceAspectRatio = 0f
+
+    @Volatile
+    private var cachedDescriptorSourceAspectRatio = VrRenderContext.DEFAULT_SOURCE_ASPECT_RATIO
+
     private var currentStereoMode = StereoMode.MONO
     private var currentRenderingMode = VrRenderingMode.CINEMA
     private var playbackRouteJob: Job? = null
+    private var observedVrPlayer: ExoPlayer? = null
 
     @Volatile
     private var xrInitializationRequested = false
@@ -92,6 +107,14 @@ class VrPlayerActivity : PlayerActivity() {
     /** Throttle counter for per-frame render debug logs — not persisted across sessions. */
     @Volatile
     private var dbgRenderFrameCount = 0L
+
+    // WHY: the XR callback runs on xr-render-thread, but Media3 requires all ExoPlayer access
+    // on the application's main looper. Keep render-time aspect data in a volatile cache instead.
+    private val vrPlayerListener = object : Player.Listener {
+        override fun onVideoSizeChanged(videoSize: VideoSize) {
+            cachePlayerAspectRatio(videoSize, "player-video-size")
+        }
+    }
 
     private val renderingModeListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
         if (key == PlaybackControlPreferences.KEY_VR_RENDERING_MODE) {
@@ -178,6 +201,7 @@ class VrPlayerActivity : PlayerActivity() {
         )
         playbackPrefs.registerOnSharedPreferenceChangeListener(renderingModeListener)
         refreshLayerDescriptor("activity-created")
+        ensureVrPlayerListenerAttached()
 
         // Propagate stereoMode ViewModel changes to VrStereoRenderer.
         // PlayerManagerInitializer already observes this to call VideoPlayerManager.applyStereoEffect()
@@ -187,14 +211,17 @@ class VrPlayerActivity : PlayerActivity() {
         if (localRenderer != null) {
             lifecycleScope.launch {
                 viewModel.stereoMode.collectLatest { mode ->
-                    val resolved = when (mode) {
-                        StereoMode.AUTO, StereoMode.UNKNOWN -> StereoMode.MONO
-                        else -> mode
+                    if (mode == StereoMode.AUTO || mode == StereoMode.UNKNOWN) {
+                        // AUTO/UNKNOWN: let resolvePlaybackRoute derive the effective mode from
+                        // filename/container detection. Directly resolving AUTO→MONO here would
+                        // override the correct VR stereo mode that resolvePlaybackRoute already
+                        // set (race: route resolves first, then this coroutine fires with AUTO).
+                        Timber.d("VrPlayerActivity: stereoMode → $mode (deferring to route decision)")
+                    } else {
+                        // Explicit user-selected mode — apply to renderer immediately.
+                        Timber.d("VrPlayerActivity: stereoMode → $mode → renderer=$mode")
+                        applyStereoModeToVrRenderers(mode, "stereo-mode")
                     }
-                    currentStereoMode = resolved
-                    Timber.d("VrPlayerActivity: stereoMode → $mode → renderer=$resolved")
-                    localRenderer.setStereoMode(resolved)
-                    refreshLayerDescriptor("stereo-mode")
                     resolvePlaybackRoute("stereo-mode")
                 }
             }
@@ -254,25 +281,13 @@ class VrPlayerActivity : PlayerActivity() {
         photoRenderer?.initGl()
         Timber.d("VrPlayerActivity: photoRenderer.initGl done (renderer=%s)", photoRenderer)
 
-        // Redirect ExoPlayer video output from PlayerView to the VR bridge surface.
-        // The inherited VideoPlayerManager exposes the ExoPlayer instance.
         val bridgeSurface = bridge.surface
-        val exoPlayerInstance = videoPlayerManager.exoPlayer
-        val videoSize = exoPlayerInstance?.videoSize
-        Timber.i("VrPlayerActivity: ExoPlayer instance=%s  videoSize=%s  bridgeSurface=%s",
-            exoPlayerInstance, videoSize, bridgeSurface)
-        if (bridgeSurface != null && exoPlayerInstance != null) {
-            exoPlayerInstance.setVideoSurface(bridgeSurface)
-            Timber.i("VrPlayerActivity: ExoPlayer video redirected to VR bridge surface (textureId=%d)",
-                bridge.textureId)
-        } else {
-            // This is a critical error — video will render to the hidden PlayerView and VR shows black.
-            // Possible causes: (a) exoPlayer not yet created (rare timing race on slow network sources),
-            // (b) bridge.initialize() produced a null Surface.
-            Timber.e("VrPlayerActivity: CANNOT redirect ExoPlayer to VR surface — exoPlayer=%s  bridgeSurface=%s  (VR will be BLACK!)",
-                exoPlayerInstance, bridgeSurface)
-            Log.e("VR_BOOT", "VrPlayerActivity: surface redirect FAILED — exoPlayer=$exoPlayerInstance bridgeSurface=$bridgeSurface")
-        }
+        val isStaticImageSession = isCurrentVrStaticImageSession()
+        syncVrPlayerBindingToBridgeSurface(
+            bridgeSurface = bridgeSurface,
+            textureId = bridge.textureId,
+            isStaticImageSession = isStaticImageSession,
+        )
 
         // The native session is now alive, so push the current layer choice again on the render thread.
         Timber.d("VrPlayerActivity: initializeVrRenderPipeline — refreshing layer descriptor")
@@ -346,22 +361,117 @@ class VrPlayerActivity : PlayerActivity() {
     }
 
     private fun resolveSourceAspectRatio(): Float {
-        val videoSize = videoPlayerManager.exoPlayer?.videoSize
-        if (videoSize != null && videoSize.width > 0 && videoSize.height > 0) {
-            return videoSize.width.toFloat() / videoSize.height.toFloat()
+        val playerAspectRatio = cachedPlayerSourceAspectRatio
+        if (playerAspectRatio > 0f) {
+            return playerAspectRatio
         }
 
-        val descriptorHeight = currentLayerDescriptor.heightMeters
-        if (descriptorHeight > 0f) {
-            return currentLayerDescriptor.widthMeters / descriptorHeight
+        val descriptorAspectRatio = cachedDescriptorSourceAspectRatio
+        if (descriptorAspectRatio > 0f) {
+            return descriptorAspectRatio
         }
 
-        Timber.w("VrPlayerActivity: resolveSourceAspectRatio — no videoSize + no descriptor, using default")
+        Timber.w("VrPlayerActivity: resolveSourceAspectRatio — no cached aspect ratio, using default")
         return VrRenderContext.DEFAULT_SOURCE_ASPECT_RATIO
+    }
+
+    private fun ensureVrPlayerListenerAttached() {
+        val player = videoPlayerManager.exoPlayer
+        if (player == null) {
+            detachVrPlayerListener()
+            return
+        }
+
+        if (observedVrPlayer === player) {
+            cachePlayerAspectRatio(player.videoSize, "listener-refresh")
+            return
+        }
+
+        observedVrPlayer?.let { previousPlayer ->
+            try {
+                previousPlayer.removeListener(vrPlayerListener)
+            } catch (t: Throwable) {
+                Timber.w(t, "VrPlayerActivity: failed to detach old VR player listener")
+            }
+        }
+
+        observedVrPlayer = player
+        player.addListener(vrPlayerListener)
+        cachePlayerAspectRatio(player.videoSize, "listener-attached")
+    }
+
+    private fun detachVrPlayerListener() {
+        observedVrPlayer?.let { player ->
+            try {
+                player.removeListener(vrPlayerListener)
+            } catch (t: Throwable) {
+                Timber.w(t, "VrPlayerActivity: failed to detach VR player listener")
+            }
+        }
+        observedVrPlayer = null
+        cachedPlayerSourceAspectRatio = 0f
+    }
+
+    private fun cachePlayerAspectRatio(videoSize: VideoSize?, reason: String) {
+        val width = videoSize?.width ?: 0
+        val height = videoSize?.height ?: 0
+        if (width > 0 && height > 0) {
+            val aspectRatio = width.toFloat() / height.toFloat()
+            cachedPlayerSourceAspectRatio = aspectRatio
+            Timber.d(
+                "VrPlayerActivity: cached player aspect ratio=%.4f (reason=%s size=%dx%d)",
+                aspectRatio,
+                reason,
+                width,
+                height,
+            )
+            return
+        }
+
+        cachedPlayerSourceAspectRatio = 0f
+        Timber.d("VrPlayerActivity: player aspect ratio unavailable (reason=%s size=%s)", reason, videoSize)
+    }
+
+    private fun syncVrPlayerBindingToBridgeSurface(
+        bridgeSurface: Surface?,
+        textureId: Int,
+        isStaticImageSession: Boolean,
+    ) {
+        // WHY: both videoSize reads and setVideoSurface() must happen on the player's main thread.
+        // Calling them from xr-render-thread floods logcat with IllegalStateException and starves VR rendering.
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+
+            ensureVrPlayerListenerAttached()
+
+            val exoPlayerInstance = videoPlayerManager.exoPlayer
+            val videoSize = exoPlayerInstance?.videoSize
+            cachePlayerAspectRatio(videoSize, "session-ready")
+
+            Timber.i("VrPlayerActivity: ExoPlayer instance=%s  videoSize=%s  bridgeSurface=%s",
+                exoPlayerInstance, videoSize, bridgeSurface)
+            if (isStaticImageSession) {
+                // Static VR images are rendered from a preloaded bitmap, so a missing ExoPlayer video
+                // surface is expected and must not be treated as a black-screen failure.
+                Timber.i("VrPlayerActivity: static-image immersive session — skipping ExoPlayer surface redirect")
+            } else if (bridgeSurface != null && exoPlayerInstance != null) {
+                exoPlayerInstance.setVideoSurface(bridgeSurface)
+                Timber.i("VrPlayerActivity: ExoPlayer video redirected to VR bridge surface (textureId=%d)",
+                    textureId)
+            } else {
+                // This is a critical error — video will render to the hidden PlayerView and VR shows black.
+                // Possible causes: (a) exoPlayer not yet created (rare timing race on slow network sources),
+                // (b) bridge.initialize() produced a null Surface.
+                Timber.e("VrPlayerActivity: CANNOT redirect ExoPlayer to VR surface — exoPlayer=%s  bridgeSurface=%s  (VR will be BLACK!)",
+                    exoPlayerInstance, bridgeSurface)
+                Log.e("VR_BOOT", "VrPlayerActivity: surface redirect FAILED — exoPlayer=$exoPlayerInstance bridgeSurface=$bridgeSurface")
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
+        ensureVrPlayerListenerAttached()
         Timber.i("VrPlayerActivity: onResume — resolving whether this file needs XR or standard playback")
         resolvePlaybackRoute("onResume")
     }
@@ -393,6 +503,7 @@ class VrPlayerActivity : PlayerActivity() {
         playbackRouteJob?.cancel()
         playbackRouteJob = null
         playbackPrefs.unregisterOnSharedPreferenceChangeListener(renderingModeListener)
+        detachVrPlayerListener()
         stereoSnapshotManager = null
         videoSurfaceBridge = null
         stereoRenderer = null
@@ -530,55 +641,48 @@ class VrPlayerActivity : PlayerActivity() {
 
         playbackRouteJob?.cancel()
         playbackRouteJob = lifecycleScope.launch {
-            val shouldUseStandardPlayer = shouldUseStandardPlayer(currentFile, viewModel.stereoMode.value)
+            val routeDecision = buildRouteDecision(currentFile, viewModel.stereoMode.value)
             if (standardPlayerFallbackLaunched || isFinishing || isDestroyed) return@launch
 
-            if (shouldUseStandardPlayer) {
-                launchStandardPlayerFallback(currentFile, reason)
-            } else if (!xrInitializationRequested) {
-                startXrInitialization(reason)
+            applyStereoModeToVrRenderers(routeDecision.effectiveStereoMode, "route-decision")
+
+            when (routeDecision.route) {
+                VrLaunchRoute.STANDARD_PANEL_FALLBACK -> {
+                    launchStandardPlayerFallback(currentFile, reason)
+                }
+
+                VrLaunchRoute.IMMERSIVE_VIDEO,
+                VrLaunchRoute.IMMERSIVE_STATIC_IMAGE -> {
+                    if (!xrInitializationRequested) {
+                        startXrInitialization(reason, routeDecision)
+                    }
+                }
+
+                VrLaunchRoute.UNSUPPORTED_IMMERSIVE_WITH_MESSAGE -> {
+                    launchUnsupportedImmersiveFallback(currentFile, reason, routeDecision)
+                }
             }
         }
     }
 
-    private suspend fun shouldUseStandardPlayer(
+    private suspend fun buildRouteDecision(
         currentFile: MediaFile,
         requestedStereoMode: StereoMode,
-    ): Boolean {
-        if (currentFile.type != MediaType.VIDEO) {
-            // VR image/doc support needs an explicit panel -> immersive transition.
-            // Until that exists, non-video content must stay on the inherited phone-style player
-            // so opening a photo never yanks the user into immersive mode unexpectedly.
-            Timber.i(
-                "VrPlayerActivity: standard-player fallback for non-video file=%s type=%s",
-                currentFile.path,
-                currentFile.type,
-            )
-            return true
-        }
-
+    ): VrRouteDecision {
         val settings = viewModel.getSettings()
-
-        // Global VR kill-switch: when enabled, skip all 3D/VR routing and stay on standard player.
-        if (settings.disable3dVr) {
-            Timber.i(
-                "VrPlayerActivity: disable3dVr=true — standard-player fallback for file=%s",
-                currentFile.path,
-            )
-            return true
-        }
-
         val effectiveMode = resolveLaunchStereoMode(currentFile, requestedStereoMode, settings.vrAutoDetectFormat)
-        val shouldFallback = !effectiveMode.isSpherical() && !effectiveMode.isStereoscopic()
+        val routeDecision = routeDecisionHelper.decide(currentFile, effectiveMode, settings)
         Timber.i(
-            "VrPlayerActivity: route decision file=%s requested=%s effective=%s autoDetect=%b -> standard=%b",
+            "VrPlayerActivity: route decision file=%s type=%s requested=%s effective=%s autoDetect=%b route=%s reason=%s",
             currentFile.path,
+            currentFile.type,
             requestedStereoMode,
-            effectiveMode,
+            routeDecision.effectiveStereoMode,
             settings.vrAutoDetectFormat,
-            shouldFallback,
+            routeDecision.route,
+            routeDecision.logReason,
         )
-        return shouldFallback
+        return routeDecision
     }
 
     private suspend fun resolveLaunchStereoMode(
@@ -636,9 +740,41 @@ class VrPlayerActivity : PlayerActivity() {
         finish()
     }
 
-    private fun startXrInitialization(reason: String) {
+    private fun launchUnsupportedImmersiveFallback(
+        currentFile: MediaFile,
+        reason: String,
+        routeDecision: VrRouteDecision,
+    ) {
+        if (standardPlayerFallbackLaunched || isFinishing || isDestroyed) return
+
+        standardPlayerFallbackLaunched = true
+        playbackRouteJob?.cancel()
+        playbackRouteJob = null
+
+        Timber.w(
+            "VrPlayerActivity: unsupported immersive route file=%s type=%s stereo=%s reason=%s",
+            currentFile.path,
+            currentFile.type,
+            routeDecision.effectiveStereoMode,
+            reason,
+        )
+        forceStopVrPlayback("unsupported-immersive:$reason")
+        showError(getString(routeDecision.userMessageResId ?: R.string.vr_immersive_unsupported_media))
+
+        // Give the shared error pipeline one UI frame to enqueue its toast/dialog before the
+        // activity hands control to PlayerActivity. Without this delay the fallback is silent.
+        window.decorView.postDelayed({
+            if (isFinishing || isDestroyed) return@postDelayed
+            startActivity(Intent(intent).apply {
+                setClass(this@VrPlayerActivity, PlayerActivity::class.java)
+            })
+            finish()
+        }, VR_FALLBACK_ERROR_DELAY_MS)
+    }
+
+    private fun startXrInitialization(reason: String, routeDecision: VrRouteDecision) {
         xrInitializationRequested = true
-        Timber.i("VrPlayerActivity: starting XR init (reason=%s)", reason)
+        Timber.i("VrPlayerActivity: starting XR init (reason=%s route=%s)", reason, routeDecision.route)
         // initialize() blocks up to 5 s waiting for nativeInitialize — run off main thread.
         // The decision is delayed until media classification is available so ordinary video/audio
         // can stay on the standard player path inside the VR flavor.
@@ -647,24 +783,54 @@ class VrPlayerActivity : PlayerActivity() {
             val ok = xrSessionManager?.initialize(this@VrPlayerActivity) ?: false
             Timber.i("VrPlayerActivity: [IO] xrSessionManager.initialize returned ok=%b  isFinishing=%b", ok, isFinishing)
             if (!ok && !isFinishing) {
-                // XR session failed — video will render to the hidden PlayerView; user sees black + hears audio.
-                Timber.w("VrPlayerActivity: XR session could not start — no video will be visible in headset")
-                Log.e("VR_BOOT", "VrPlayerActivity: XR session FAILED — video output unreachable from compositor")
-                launchVrFailureRecovery(
-                    userMessage = "VR player failed to start immersive mode. Playback was stopped to avoid background audio.",
-                    reason = "xr-session-init-failed",
-                    shouldFinish = true,
-                )
+                // XR session failed — fall back to flat cinema mode so the user can still see
+                // the content as a 2D panel in the headset and fix stereo settings without
+                // having to close and reopen the player.
+                // initializeVrRenderPipeline() was never called at this point, so ExoPlayer
+                // is already rendering to the regular PlayerView — no surface change needed.
+                Timber.w("VrPlayerActivity: XR session could not start — falling back to flat cinema mode")
+                Log.e("VR_BOOT", "VrPlayerActivity: XR session FAILED — falling back to flat cinema mode")
+                fallbackToFlatCinemaMode("xr-session-init-failed")
             }
+        }
+    }
+
+    /**
+     * Called when the XR session fails to initialize.
+     *
+     * Instead of stopping playback and closing the activity, we leave ExoPlayer running
+     * on the regular PlayerView — which the headset compositor shows as a flat 2D panel.
+     * The user can see the content, open the settings menu to correct the stereo format,
+     * and re-open the file when ready.
+     *
+     * Important: when XR init fails, [initializeVrRenderPipeline] was never called,
+     * so ExoPlayer is still on the PlayerView surface — no surface redirect is needed here.
+     */
+    private fun fallbackToFlatCinemaMode(reason: String) {
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            Timber.w("VrPlayerActivity: fallbackToFlatCinemaMode (reason=%s) — XR unavailable, keeping flat playback", reason)
+            // Allow a fresh XR attempt when the user changes stereo mode after a failed init.
+            xrInitializationRequested = false
+            // Release partial XR state to free resources (no active render loop to stop).
+            try {
+                xrSessionManager?.release()
+            } catch (t: Throwable) {
+                Timber.w(t, "VrPlayerActivity: fallbackToFlatCinemaMode — XR release failed, ignoring")
+            }
+            // Non-blocking info toast: user sees content in flat mode and can access
+            // player settings to fix the stereo format, then re-open the file.
+            showError(getString(R.string.vr_xr_fallback_flat_mode))
         }
     }
 
     private fun forceStopVrPlayback(reason: String) {
         Timber.w("VrPlayerActivity: forceStopVrPlayback reason=%s", reason)
+
         try {
-            xrSessionManager?.release()
+            lifecycleManager.saveCurrentPlaybackPosition()
         } catch (t: Throwable) {
-            Timber.w(t, "VrPlayerActivity: forceStopVrPlayback — XR release failed")
+            Timber.w(t, "VrPlayerActivity: forceStopVrPlayback — saveCurrentPlaybackPosition failed")
         }
 
         try {
@@ -674,21 +840,35 @@ class VrPlayerActivity : PlayerActivity() {
         }
 
         try {
-            lifecycleManager.saveCurrentPlaybackPosition()
-        } catch (t: Throwable) {
-            Timber.w(t, "VrPlayerActivity: forceStopVrPlayback — saveCurrentPlaybackPosition failed")
-        }
-
-        try {
             stopVideoPlayback()
         } catch (t: Throwable) {
             Timber.e(t, "VrPlayerActivity: forceStopVrPlayback — stopVideoPlayback failed")
         }
+
+        try {
+            xrSessionManager?.release()
+        } catch (t: Throwable) {
+            Timber.w(t, "VrPlayerActivity: forceStopVrPlayback — XR release failed")
+        }
+    }
+
+    private fun applyStereoModeToVrRenderers(mode: StereoMode, reason: String) {
+        if (currentStereoMode == mode) return
+
+        currentStereoMode = mode
+        stereoRenderer?.setStereoMode(mode)
+        photoSphereRenderer?.setStereoMode(mode)
+        refreshLayerDescriptor(reason)
     }
 
     private fun refreshLayerDescriptor(reason: String) {
         val descriptor = vrLayerFactory.describe(currentStereoMode, currentRenderingMode)
         currentLayerDescriptor = descriptor
+        cachedDescriptorSourceAspectRatio = if (descriptor.heightMeters > 0f) {
+            descriptor.widthMeters / descriptor.heightMeters
+        } else {
+            VrRenderContext.DEFAULT_SOURCE_ASPECT_RATIO
+        }
         xrSessionManager?.updateLayerDescriptor(descriptor)
         Timber.d(
             "VrPlayerActivity: layer descriptor → %s (reason=%s, stereo=%s, renderMode=%s)",
@@ -735,6 +915,12 @@ class VrPlayerActivity : PlayerActivity() {
         return currentFile.type == MediaType.IMAGE && photoSphereRenderer?.hasRenderableTexture() == true
     }
 
+    private fun isCurrentVrStaticImageSession(): Boolean {
+        val currentFile = viewModel.state.value.currentFile ?: return false
+        return currentFile.type == MediaType.IMAGE &&
+            (currentStereoMode.isSpherical() || currentStereoMode.isStereoscopic())
+    }
+
     private fun buildVrImageKey(file: MediaFile): String = listOf(
         file.path,
         file.size,
@@ -753,6 +939,7 @@ class VrPlayerActivity : PlayerActivity() {
     companion object {
         /** Seek increment for VR controller seek commands (seconds). */
         private const val VR_SEEK_SECONDS = 15
+        private const val VR_FALLBACK_ERROR_DELAY_MS = 350L
 
         /** Cached XR runtime probe — avoids repeated loadLibrary calls. */
         private val xrAvailable: Boolean by lazy {

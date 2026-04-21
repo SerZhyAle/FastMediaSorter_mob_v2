@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.SeekBar
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.R
@@ -39,7 +40,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private val binding: DialogPlaybackControlBinding
         get() = _binding!!
 
-    private val speedSteps = listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
+    private val speedSteps = listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f)
     private val hueProgressCenter = 180
     private val brightnessProgressCenter = 50
     private var isUpdatingStereoControls = false
@@ -174,10 +175,27 @@ class PlaybackControlDialogFragment : DialogFragment() {
         val audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         val maxVolume = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
         val currentVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
+        val halfVolume = (maxVolume / 2).coerceAtLeast(1)
 
         binding.seekVolume.max = maxVolume
         binding.seekVolume.progress = currentVolume
         updateVolumeLabel(currentVolume, maxVolume)
+        syncMuteToggleUi(currentVolume)
+
+        if (maxVolume == 0) {
+            binding.seekVolume.isEnabled = false
+            binding.btnMuteToggle.isEnabled = false
+            binding.btnVolumeHalf.isEnabled = false
+            binding.btnVolumeMax.isEnabled = false
+            return
+        }
+
+        binding.btnVolumeHalf.setOnClickListener {
+            applyVolumePreset(audioManager, halfVolume, maxVolume)
+        }
+        binding.btnVolumeMax.setOnClickListener {
+            applyVolumePreset(audioManager, maxVolume, maxVolume)
+        }
 
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -187,36 +205,60 @@ class PlaybackControlDialogFragment : DialogFragment() {
                     prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, progress).apply()
                 }
                 updateVolumeLabel(progress, maxVolume)
-                binding.btnMuteToggle.setText(
-                    if (progress == 0) R.string.playback_control_unmute else R.string.playback_control_mute
-                )
+                syncMuteToggleUi(progress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
             override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
         })
 
-        binding.btnMuteToggle.setText(if (currentVolume == 0) R.string.playback_control_unmute else R.string.playback_control_mute)
         binding.btnMuteToggle.setOnClickListener {
             val liveVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
             if (liveVolume == 0) {
                 // Restore previously saved non-zero volume
                 val restoreVolume = prefs.getInt(
                     PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME,
-                    (maxVolume / 2).coerceAtLeast(1)
+                    halfVolume
                 )
-                audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, restoreVolume, 0)
-                binding.seekVolume.progress = restoreVolume
-                updateVolumeLabel(restoreVolume, maxVolume)
-                binding.btnMuteToggle.setText(R.string.playback_control_mute)
+                applyVolumePreset(audioManager, restoreVolume, maxVolume)
             } else {
                 prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, liveVolume).apply()
                 audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, 0, 0)
                 binding.seekVolume.progress = 0
                 updateVolumeLabel(0, maxVolume)
-                binding.btnMuteToggle.setText(R.string.playback_control_unmute)
+                syncMuteToggleUi(0)
             }
         }
+    }
+
+    private fun applyVolumePreset(
+        audioManager: android.media.AudioManager,
+        volume: Int,
+        maxVolume: Int
+    ) {
+        val targetVolume = volume.coerceIn(0, maxVolume)
+        audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, targetVolume, 0)
+        binding.seekVolume.progress = targetVolume
+        if (targetVolume > 0) {
+            // Quick presets should become the new restore target after the next mute toggle.
+            prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, targetVolume).apply()
+        }
+        updateVolumeLabel(targetVolume, maxVolume)
+        syncMuteToggleUi(targetVolume)
+    }
+
+    private fun syncMuteToggleUi(volume: Int) {
+        val isMuted = volume == 0
+        binding.btnMuteToggle.isSelected = isMuted
+        binding.btnMuteToggle.setText(
+            if (isMuted) R.string.playback_control_unmute else R.string.playback_control_mute
+        )
+        ViewCompat.setStateDescription(
+            binding.btnMuteToggle,
+            getString(
+                if (isMuted) R.string.playback_control_mute_active else R.string.playback_control_mute_inactive
+            )
+        )
     }
 
     private fun setupAudioTab() {

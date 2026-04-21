@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -11,6 +12,8 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
+import com.sza.fastmediasorter.core.xr.VrPanelSizePreference
+import com.sza.fastmediasorter.core.xr.XrDeviceDetector
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -103,6 +106,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
+        // On VR headsets, force landscape orientation so the panel opens correctly.
+        // IMPORTANT: Do NOT set window.attributes.width/height here — fixed pixel values
+        // lock the window size in HorizonOS and prevent the user from resizing it.
+        // Initial large size is handled by <layout> in vr/AndroidManifest.xml (and main
+        // AndroidManifest.xml for non-vr flavors). HorizonOS then natively persists the
+        // user-adjusted size across sessions — no manual SharedPrefs restore needed.
+        if (XrDeviceDetector.isXrHeadset(this)) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            Timber.d("MainActivity: VR headset detected — forcing landscape orientation")
+        }
+
         super.onCreate(savedInstanceState)
         
         // Log config changes to detect unexpected recreations
@@ -266,6 +280,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         isReturningFromAnotherActivity = true
     }
     
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // On VR headsets, HorizonOS delivers window resize events via onConfigurationChanged.
+        // Persist the new size so it is restored on the next cold start.
+        if (!XrDeviceDetector.isXrHeadset(this)) return
+        val bounds = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            windowManager.currentWindowMetrics.bounds
+        } else {
+            @Suppress("DEPRECATION")
+            val sz = android.graphics.Point()
+            windowManager.defaultDisplay.getRealSize(sz)
+            android.graphics.Rect(0, 0, sz.x, sz.y)
+        }
+        Timber.d("MainActivity: VR panel resize detected — ${bounds.width()}x${bounds.height()}")
+        VrPanelSizePreference.save(this, bounds.width(), bounds.height())
+    }
+
     override fun onDestroy() {
         Timber.d("MainActivity.onDestroy: isFinishing=$isFinishing, isChangingConfigurations=$isChangingConfigurations")
         super.onDestroy()

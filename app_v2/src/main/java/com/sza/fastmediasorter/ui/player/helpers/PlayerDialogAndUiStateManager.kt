@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.util.Locale
 
 /**
  * Manager for dialog operations and UI state coordination in PlayerActivity.
@@ -505,6 +506,54 @@ class PlayerDialogAndUiStateManager(
         } else {
             safeViews.tvBackgroundMusicTrack.isVisible = false
             Timber.d("BackgroundMusic: Hiding track name")
+        }
+    }
+
+    /**
+     * Show file-info dialog enriched with live ExoPlayer data (duration, dimensions).
+     * ExoPlayer already parsed the container during streaming, so its values override
+     * the potentially-empty fields from the network file listing.
+     */
+    fun showFileInfo() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(activity, activity.getString(R.string.file_info_unavailable), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val player = activity._videoPlayerManager?.getPlayer()
+        val exoDuration = player?.duration?.takeIf { it > 0 }
+        val exoWidth = player?.videoSize?.width?.takeIf { it > 0 }
+        val exoHeight = player?.videoSize?.height?.takeIf { it > 0 }
+        val enrichedFile = if (exoDuration != null || exoWidth != null) {
+            currentFile.copy(
+                duration = exoDuration ?: currentFile.duration,
+                width = exoWidth ?: currentFile.width,
+                height = exoHeight ?: currentFile.height
+            )
+        } else currentFile
+        Timber.d("showFileInfo: exoDuration=$exoDuration, exoSize=${exoWidth}x${exoHeight}")
+        dialogHelper.showFileInfo(enrichedFile)
+    }
+
+    /**
+     * Clear control-overlay UI before entering animated-pause fullscreen.
+     * Hides the command panel (enters fullscreen) and dismisses the controls overlay if visible.
+     */
+    fun clearUiOverlayForAnimatedPause() {
+        if (viewModel.state.value.showCommandPanel) viewModel.enterFullscreenMode()
+        if (viewModel.state.value.showControls) viewModel.toggleControls()
+        activity.hideControlsHandler.removeCallbacks(activity.hideControlsRunnable)
+    }
+
+    companion object {
+        /** Format [millis] as H:MM:SS (or M:SS when < 1 hour). Returns "N/A" for null/zero. */
+        fun formatDuration(millis: Long?): String {
+            if (millis == null || millis <= 0) return "N/A"
+            val s = millis / 1000
+            val m = s / 60
+            val h = m / 60
+            return if (h > 0) "%d:%02d:%02d".format(h, m % 60, s % 60)
+            else "%d:%02d".format(m, s % 60)
         }
     }
 }

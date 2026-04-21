@@ -1,0 +1,490 @@
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════════════════════
+# build-ffmpeg-dts.sh — Custom FFmpeg build for FMS Android (DTS + extended codecs)
+#
+# Produces: fms-ffmpeg-dts.aar
+#   → Copy to app_v2/libs/ and uncomment dependencies in app_v2/build.gradle.kts
+#
+# Run on: WSL2 Ubuntu 22.04 (or native Linux x86-64, macOS 13+)
+# NDK required: r27c Linux toolchain (minimum version with 16 KB-compatible runtime libs)
+# Disk: ≥ 20 GB free. RAM: ≥ 16 GB.
+#
+# Spec: PLAN/spec_ffmpeg-custom-build-dts.md §7
+# ══════════════════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+
+# ── Configuration ─────────────────────────────────────────────────────────────
+# NDK Linux toolchain — expected at ~/android-ndk-r27c (prepared by temp/wsl2-phase1-setup.sh).
+# r27c is the first NDK to ship 16 KB-aligned libc++_shared.so — required for Android 15+.
+# r25c is accepted as fallback: its lld supports -Wl,-z,max-page-size=16384 for our own .so
+# files (libffmpegJNI.so + FFmpeg libs). Because FFmpeg JNI bridge uses c++_static, libc++_shared
+# is NOT bundled in the AAR, so r25c is sufficient for Play compliance.
+: "${ANDROID_NDK:=${HOME}/android-ndk-r27c}"
+# Auto-fallback to r25c if r27c not available (r25c lld supports all needed linker flags)
+if [[ ! -d "$ANDROID_NDK" ]] && [[ -d "${HOME}/android-ndk-r25c" ]]; then
+    ANDROID_NDK="${HOME}/android-ndk-r25c"
+    echo "[INFO] NDK r27c not found; falling back to r25c at $ANDROID_NDK"
+fi
+: "${API_LEVEL:=26}"                                # minSdk for standard/vr flavors
+: "${WORK_DIR:=$(pwd)/ffmpeg-android-build}"
+: "${OUT_DIR:=$(pwd)/app_v2/libs}"                  # where to place the final AAR
+
+MEDIA3_TAG="1.2.1"
+FFMPEG_REPO="https://github.com/FFmpeg/FFmpeg.git"
+MEDIA3_REPO="https://github.com/androidx/media.git"
+
+# ABIs to build. Quest 3 needs arm64-v8a; legacy flavor needs armeabi-v7a too.
+# arm64-v8a only: minSdk=26 (Android 8+), all relevant devices are 64-bit.
+# armeabi-v7a removed — it produces Thumb2-incompatible objects with our configure flags
+# and is not needed for Play Store (Google requires 64-bit since Aug 2019).
+ABIS=("arm64-v8a")
+
+# ── Dependency check ──────────────────────────────────────────────────────────
+check_deps() {
+    local missing=()
+    for cmd in git python3 make gcc; do
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
+    done
+    # nasm: only needed for x86 SIMD; ARM cross-compile works without it.
+    # pkg-config: not needed when linking only internal FFmpeg libs.
+    # zip: replaced by python3 -m zipfile in package_aar().
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "ERROR: Missing tools: ${missing[*]}"
+        echo "  Ubuntu: sudo apt-get install -y ${missing[*]}"
+        exit 1
+    fi
+    if [[ ! -d "$ANDROID_NDK" ]]; then
+        echo "ERROR: NDK not found at $ANDROID_NDK"
+        echo "  Run temp/wsl2-phase1-setup.sh to download the Linux NDK automatically."
+        exit 1
+    fi
+    echo "[OK] All dependencies found."
+    echo "[OK] NDK: $ANDROID_NDK"
+}
+
+# ── Clone / update sources ────────────────────────────────────────────────────
+clone_sources() {
+    mkdir -p "$WORK_DIR" && cd "$WORK_DIR"
+
+    if [[ ! -d media ]]; then
+        echo "[CLONE] media3 @ $MEDIA3_TAG .."
+        git clone "$MEDIA3_REPO" --branch "$MEDIA3_TAG" --depth 1 media
+    else
+        echo "[SKIP] media3 already cloned."
+    fi
+
+    # Read required FFmpeg commit pinned by this Media3 version.
+    # In media3 1.2.1 the extension is in libraries/decoder_ffmpeg.
+    local readme="$WORK_DIR/media/libraries/decoder_ffmpeg/README.md"
+    FFMPEG_COMMIT=$(grep -oP '(?<=commit )[0-9a-f]{40}' "$readme" | head -1 || true)
+    if [[ -z "$FFMPEG_COMMIT" ]]; then
+        echo "WARN: Could not auto-detect FFmpeg commit from README."
+        echo "      media3 1.2.1 targets FFmpeg release/6.0 — using that branch."
+        FFMPEG_COMMIT="release/6.0"
+    fi
+    echo "[INFO] FFmpeg commit: $FFMPEG_COMMIT"
+
+    if [[ ! -d ffmpeg ]] || [[ ! -f ffmpeg/configure ]]; then
+        rm -rf ffmpeg
+        # Determine branch to clone. Pinned sha commits are unreliable via shallow HTTPS;
+        # fall back to the release branch media3 1.2.1 documents (release/6.0).
+        local clone_ref="$FFMPEG_COMMIT"
+        if [[ -z "$clone_ref" ]] || [[ "${#clone_ref}" -eq 40 ]]; then
+            clone_ref="release/6.0"
+            echo "[INFO] Cloning FFmpeg branch release/6.0 (media3 1.2.1 requirement)"
+        else
+            echo "[INFO] Cloning FFmpeg @ $clone_ref"
+        fi
+        local cloned=false
+        for attempt in 1 2 3; do
+            rm -rf ffmpeg
+            git clone "$FFMPEG_REPO" --branch "$clone_ref" --depth 1 ffmpeg && cloned=true && break \
+                || echo "[WARN] Clone attempt $attempt failed, retrying.."
+            sleep 5
+        done
+        if [[ "$cloned" != "true" ]]; then
+            echo "ERROR: FFmpeg clone failed after 3 attempts."
+            exit 1
+        fi
+        echo "[OK] FFmpeg cloned."
+    else
+        echo "[SKIP] FFmpeg already cloned."
+    fi
+}
+
+# ── Configure + build FFmpeg for one ABI ─────────────────────────────────────
+build_ffmpeg_abi() {
+    local abi="$1"
+    local prefix="$WORK_DIR/ffmpeg-out/$abi"
+    mkdir -p "$prefix"
+
+    # Map ABI to NDK triple and configure flags
+    local host_triple arch extra_flags=""
+    case "$abi" in
+        arm64-v8a)
+            host_triple="aarch64-linux-android"
+            arch="aarch64"
+            ;;
+        armeabi-v7a)
+            host_triple="armv7a-linux-androideabi"
+            arch="arm"
+            extra_flags="--cpu=armv7-a --enable-neon"
+            ;;
+        *)
+            echo "ERROR: Unsupported ABI: $abi"
+            exit 1
+            ;;
+    esac
+
+    local toolchain="$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64"
+    local cross_prefix="${toolchain}/bin/${host_triple}${API_LEVEL}-"
+    # nm, ar, ranlib and strip are provided by LLVM tools — not prefixed like clang/ld
+    local llvm_nm="${toolchain}/bin/llvm-nm"
+    local llvm_ar="${toolchain}/bin/llvm-ar"
+    local llvm_ranlib="${toolchain}/bin/llvm-ranlib"
+    local llvm_strip="${toolchain}/bin/llvm-strip"
+
+    echo ""
+    echo "════════════════════════════════════════"
+    echo " FFmpeg configure: $abi"
+    echo "════════════════════════════════════════"
+
+    cd "$WORK_DIR/ffmpeg"
+    ./configure \
+        --cross-prefix="${cross_prefix}" \
+        --sysroot="${toolchain}/sysroot" \
+        --target-os=android \
+        --arch="$arch" \
+        --enable-cross-compile \
+        --prefix="$prefix" \
+        --nm="${llvm_nm}" \
+        --ar="${llvm_ar}" \
+        --ranlib="${llvm_ranlib}" \
+        --strip="${llvm_strip}" \
+        --disable-everything \
+        --disable-programs \
+        --disable-doc \
+        --disable-avdevice \
+        --disable-swscale \
+        --disable-postproc \
+        --disable-network \
+        --disable-vulkan \
+        \
+        --enable-avcodec \
+        --enable-avformat \
+        --enable-avutil \
+        --enable-swresample \
+        \
+        --enable-small \
+        \
+        --enable-decoder=vorbis \
+        --enable-decoder=opus \
+        --enable-decoder=flac \
+        --enable-decoder=alac \
+        --enable-decoder=pcm_mulaw \
+        --enable-decoder=pcm_alaw \
+        --enable-decoder=pcm_s16le \
+        --enable-decoder=pcm_s24le \
+        \
+        --enable-decoder=dca \
+        --enable-parser=dca \
+        \
+        --enable-decoder=truehd \
+        --enable-decoder=eac3 \
+        --enable-decoder=ac3 \
+        --enable-parser=ac3 \
+        \
+        --enable-decoder=mp3 \
+        --enable-decoder=aac \
+        \
+        --enable-decoder=ape \
+        --enable-demuxer=ape \
+        \
+        --enable-decoder=wmav1 \
+        --enable-decoder=wmav2 \
+        --enable-demuxer=asf \
+        \
+        --enable-decoder=wavpack \
+        --enable-demuxer=wv \
+        \
+        --enable-decoder=tta \
+        --enable-demuxer=tta \
+        \
+        --enable-decoder=dsd_lsbf \
+        --enable-decoder=dsd_msbf \
+        --enable-decoder=dsd_lsbf_planar \
+        --enable-decoder=dsd_msbf_planar \
+        --enable-demuxer=dsf \
+        --enable-demuxer=iff \
+        \
+        --enable-decoder=mpc7 \
+        --enable-decoder=mpc8 \
+        --enable-demuxer=mpc \
+        --enable-demuxer=mpc8 \
+        \
+        --enable-demuxer=matroska \
+        --enable-demuxer=mov \
+        --enable-demuxer=ogg \
+        --enable-demuxer=flac \
+        --enable-demuxer=wav \
+        --enable-demuxer=aiff \
+        --enable-demuxer=mp3 \
+        --enable-demuxer=aac \
+        \
+        --enable-parser=vorbis \
+        --enable-parser=opus \
+        --enable-parser=flac \
+        --enable-parser=mpeg4video \
+        --enable-parser=h264 \
+        --enable-parser=hevc \
+        --enable-parser=aac \
+        --enable-parser=mp3 \
+        \
+        --enable-protocol=file \
+        \
+        --disable-x86asm \
+        --extra-cflags="-O2 -fPIC -DANDROID -ffunction-sections -fdata-sections" \
+        --extra-ldflags="-lm -Wl,-z,max-page-size=16384" \
+        $extra_flags
+        # --disable-x86asm: nasm/yasm not required for ARM cross-compile.
+        # -Wl,-z,max-page-size=16384: align ELF LOAD segments to 16 KB boundaries.
+        # Required for Android 15+ (Google Play enforcement since Nov 1 2025).
+        # Without this flag, Play Console rejects the APK with "LOAD segments not
+        # aligned at 16 KB boundaries" even when useLegacyPackaging=false is set.
+
+    echo "[BUILD] make -j$(nproc) for $abi .."
+    make -j"$(nproc)"
+    make install
+    echo "[OK] FFmpeg $abi done → $prefix"
+    cd "$WORK_DIR"
+}
+
+# ── Build JNI bridge via CMake ─────────────────────────────────────────────────
+# media3's CMakeLists.txt expects:
+#   <jni_dir>/ffmpeg/               ← FFmpeg headers (include_directories)
+#   <jni_dir>/ffmpeg/android-libs/<abi>/*.a  ← pre-built static libs
+#
+# We symlink our FFmpeg source tree and copy pre-built .a files there, then
+# invoke CMake directly — skipping build_ffmpeg.sh (which would re-run configure
+# without --disable-vulkan and fail on NDK r25c).
+# The 16 KB page-size flag is injected via CMAKE_SHARED_LINKER_FLAGS.
+build_jni_bridge() {
+    local abi="$1"
+    local ffmpeg_src="$WORK_DIR/ffmpeg"
+    local ffmpeg_out="$WORK_DIR/ffmpeg-out/$abi"
+    local jni_dir="$WORK_DIR/media/libraries/decoder_ffmpeg/src/main/jni"
+    local ffmpeg_jni_link="$jni_dir/ffmpeg"
+    local android_libs="$ffmpeg_jni_link/android-libs/$abi"
+    local build_dir="$WORK_DIR/jni-build/$abi"
+
+    echo ""
+    echo "════════════════════════════════════════"
+    echo " JNI bridge (CMake): $abi"
+    echo "════════════════════════════════════════"
+
+    # 1. Create symlink so CMakeLists.txt can find headers at jni/ffmpeg/
+    if [[ ! -L "$ffmpeg_jni_link" ]] && [[ ! -d "$ffmpeg_jni_link" ]]; then
+        ln -s "$ffmpeg_src" "$ffmpeg_jni_link"
+        echo "[OK] Symlinked ffmpeg source → $ffmpeg_jni_link"
+    fi
+
+    # 2. Copy pre-built static libs to the location CMakeLists.txt expects
+    mkdir -p "$android_libs"
+    if [[ ! -f "$ffmpeg_out/lib/libavcodec.a" ]]; then
+        echo "ERROR: Pre-built FFmpeg libs not found at $ffmpeg_out/lib/"
+        echo "       Run build_ffmpeg_abi first."
+        exit 1
+    fi
+    cp "$ffmpeg_out/lib/libavcodec.a" \
+       "$ffmpeg_out/lib/libavutil.a" \
+       "$ffmpeg_out/lib/libswresample.a" \
+       "$android_libs/"
+    echo "[OK] Copied .a libs → $android_libs"
+
+    # 3. Build libffmpegJNI.so via CMake with NDK toolchain
+    #    -Wl,-z,max-page-size=16384 ensures 16 KB LOAD alignment (Play Store requirement)
+    rm -rf "$build_dir" && mkdir -p "$build_dir"
+    cmake -S "$jni_dir" \
+        -B "$build_dir" \
+        -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
+        -DANDROID_ABI="$abi" \
+        -DANDROID_PLATFORM="android-${API_LEVEL}" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
+        -DCMAKE_C_COMPILER="$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" \
+        -DCMAKE_CXX_COMPILER="$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" \
+        2>&1
+
+    cmake --build "$build_dir" -j"$(nproc)" 2>&1
+
+    # 4. Verify output
+    local so_file
+    so_file=$(find "$build_dir" -name "libffmpegJNI.so" | head -1)
+    if [[ -z "$so_file" ]]; then
+        echo "ERROR: libffmpegJNI.so not produced by CMake build"
+        exit 1
+    fi
+    echo "[OK] JNI bridge $abi done → $so_file"
+}
+
+# ── Package AAR ───────────────────────────────────────────────────────────────
+package_aar() {
+    echo ""
+    echo "════════════════════════════════════════"
+    echo " Packaging AAR"
+    echo "════════════════════════════════════════"
+
+    local staging="$WORK_DIR/aar-staging"
+    rm -rf "$staging" && mkdir -p "$staging/jni"
+
+    # Grab classes.jar + AndroidManifest.xml from the prebuilt media3-decoder-ffmpeg AAR.
+    # We need the Java bytecode (FfmpegAudioRenderer etc.) but replace native libs with ours.
+    # Search order:
+    #   1. Linux Gradle cache (~/.gradle/caches)
+    #   2. Windows Gradle cache (/mnt/c/Users/.gradle/caches)
+    #   3. Direct download from Google Maven Central
+    local prebuilt_aar
+    prebuilt_aar=$(find "${HOME}/.gradle/caches" -name "media3-decoder-ffmpeg-1.2.1.aar" 2>/dev/null | head -1 || true)
+    if [[ -z "$prebuilt_aar" ]]; then
+        prebuilt_aar=$(find /mnt/c/Users -name "media3-decoder-ffmpeg-1.2.1.aar" -path "*media3*" 2>/dev/null | head -1 || true)
+    fi
+    if [[ -z "$prebuilt_aar" ]]; then
+        local maven_aar="${WORK_DIR}/media3-decoder-ffmpeg-1.2.1.aar"
+        if [[ ! -f "$maven_aar" ]]; then
+            echo "[INFO] media3-decoder-ffmpeg-1.2.1.aar not in Gradle cache — downloading from Maven Central .."
+            curl -L --progress-bar \
+                -o "$maven_aar" \
+                "https://dl.google.com/android/maven2/androidx/media3/media3-decoder-ffmpeg/1.2.1/media3-decoder-ffmpeg-1.2.1.aar"
+            echo "[OK] Downloaded media3-decoder-ffmpeg-1.2.1.aar"
+        else
+            echo "[SKIP] media3-decoder-ffmpeg-1.2.1.aar already downloaded at $maven_aar"
+        fi
+        prebuilt_aar="$maven_aar"
+    fi
+
+    echo "[INFO] Extracting classes.jar + AndroidManifest.xml from: $prebuilt_aar .."
+    PREBUILT_AAR="$prebuilt_aar" STAGING_DIR="$staging" python3 - <<'PYEOF'
+import os
+import sys
+import zipfile
+
+aar_path = os.environ.get('PREBUILT_AAR')
+staging_dir = os.environ.get('STAGING_DIR')
+if not aar_path or not staging_dir:
+    print('ERROR: PREBUILT_AAR or STAGING_DIR env vars not set')
+    sys.exit(1)
+
+with zipfile.ZipFile(aar_path) as zf:
+    for name in ('classes.jar', 'AndroidManifest.xml'):
+        try:
+            zf.extract(name, staging_dir)
+        except KeyError:
+            print(f'ERROR: {name} missing in {aar_path}')
+            sys.exit(1)
+
+print(f'[OK] Extracted classes.jar + AndroidManifest.xml from {aar_path}')
+PYEOF
+
+    # Copy native libs from all built ABIs
+    for abi in "${ABIS[@]}"; do
+        # libffmpegJNI.so is produced by CMake in jni-build/<abi>/
+        local jni_so
+        jni_so=$(find "$WORK_DIR/jni-build/$abi" -name "libffmpegJNI.so" 2>/dev/null | head -1)
+
+        if [[ -n "$jni_so" ]]; then
+            mkdir -p "$staging/jni/$abi"
+            cp "$jni_so" "$staging/jni/$abi/"
+            echo "[OK] Packed $abi: libffmpegJNI.so"
+        else
+            echo "WARN: libffmpegJNI.so not found for $abi in $WORK_DIR/jni-build/$abi"
+            echo "      Did build_jni_bridge (CMake) succeed? Check logs above."
+        fi
+    done
+
+    # Assemble the AAR (it's a ZIP file — use python3 to avoid needing the 'zip' package)
+    mkdir -p "$OUT_DIR"
+    local aar_path="$OUT_DIR/fms-ffmpeg-dts.aar"
+    export STAGING_DIR="$staging"
+    export AAR_PATH="$aar_path"
+    python3 - <<'PYEOF'
+import zipfile, os, sys
+staging = os.environ.get('STAGING_DIR', '')
+aar_path = os.environ.get('AAR_PATH', '')
+if not staging or not aar_path:
+    print('ERROR: STAGING_DIR or AAR_PATH env vars not set')
+    sys.exit(1)
+with zipfile.ZipFile(aar_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+    for root, dirs, files in os.walk(staging):
+        for f in files:
+            abs_path = os.path.join(root, f)
+            arc_name = os.path.relpath(abs_path, staging)
+            zf.write(abs_path, arc_name)
+print(f'[OK] AAR written: {aar_path} ({os.path.getsize(aar_path)//1024} KB)')
+PYEOF
+
+    echo ""
+    echo "══════════════════════════════════════════════════════════════"
+    echo " SUCCESS: $aar_path"
+    echo ""
+    echo " Next steps (Phase 4):"
+    echo "   1. In app_v2/build.gradle.kts, uncomment the four"
+    echo "      *Implementation(files(\"libs/fms-ffmpeg-dts.aar\")) lines."
+    echo "   2. Rebuild: ./gradlew.bat assembleStandardDebug"
+    echo "   3. Verify DTS track plays on Quest 3 (DTS-only MKV)."
+    echo "══════════════════════════════════════════════════════════════"
+}
+
+# ── Verify DTS export ─────────────────────────────────────────────────────────
+verify_dca_export() {
+    echo ""
+    echo "[VERIFY] Checking libavcodec exports dca decoder .."
+    local lib
+    lib=$(find "$WORK_DIR/ffmpeg-out" -name "libavcodec.so" | head -1)
+    if [[ -n "$lib" ]]; then
+        if nm -D "$lib" 2>/dev/null | grep -q "ff_dca_decoder\|dca_decode_frame"; then
+            echo "[OK] libavcodec.so contains DTS (dca) decoder."
+        else
+            echo "WARN: DTS decoder symbol not found in libavcodec.so."
+            echo "      Check configure output for 'dca' in enabled decoders."
+        fi
+    else
+        echo "WARN: libavcodec.so not found; skipping symbol check."
+    fi
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+    echo "═══════════════════════════════════════════════════════════"
+    echo " FMS custom FFmpeg build (DTS + extended codecs)"
+    echo " NDK:   $ANDROID_NDK"
+    echo " API:   $API_LEVEL"
+    echo " Work:  $WORK_DIR"
+    echo " Out:   $OUT_DIR"
+    echo "═══════════════════════════════════════════════════════════"
+
+    check_deps
+    clone_sources
+
+    for abi in "${ABIS[@]}"; do
+        # Skip if pre-built .a files already exist from a previous run
+        if [[ -f "$WORK_DIR/ffmpeg-out/$abi/lib/libavcodec.a" ]]; then
+            echo "[SKIP] FFmpeg $abi .a files already present, skipping build_ffmpeg_abi."
+        else
+            build_ffmpeg_abi "$abi"
+        fi
+    done
+
+    verify_dca_export
+
+    for abi in "${ABIS[@]}"; do
+        build_jni_bridge "$abi"
+    done
+
+    package_aar
+
+    echo ""
+    echo "[DONE] Build complete."
+}
+
+main "$@"

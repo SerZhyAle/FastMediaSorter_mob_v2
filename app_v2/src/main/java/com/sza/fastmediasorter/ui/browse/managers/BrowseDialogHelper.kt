@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.DatePickerDialog
+import android.content.res.ColorStateList
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -45,10 +46,34 @@ class BrowseDialogHelper(
     private val activity: AppCompatActivity,
     private val callbacks: DialogCallbacks
 ) {
+    companion object {
+        // Keep dialog order explicit so enum declaration order stays free for persistence concerns.
+        internal val DIALOG_SORT_ORDER = listOf(
+            SortMode.RANDOM,
+            SortMode.NAME_ASC,
+            SortMode.NAME_DESC,
+            SortMode.DATE_ASC,
+            SortMode.DATE_DESC,
+            SortMode.DATE_TAKEN_ASC,
+            SortMode.DATE_TAKEN_DESC,
+            SortMode.SIZE_ASC,
+            SortMode.SIZE_DESC,
+            SortMode.MANUAL,
+            SortMode.DURATION_ASC,
+            SortMode.DURATION_DESC,
+            SortMode.TYPE_ASC,
+            SortMode.TYPE_DESC,
+            SortMode.ARTIST_ASC,
+            SortMode.ARTIST_DESC,
+            SortMode.TITLE_ASC,
+            SortMode.TITLE_DESC
+        )
+    }
     
     interface DialogCallbacks {
         fun onFilterApplied(filter: FileFilter?)
         fun onSortModeSelected(sortMode: SortMode)
+        fun onRandomReshuffle()
         fun onRenameConfirmed(oldName: String, newName: String)
         fun onRenameMultipleConfirmed(files: List<Pair<String, String>>)
         fun onDirectoryRenameConfirmed(oldPath: String, newName: String)
@@ -73,17 +98,17 @@ class BrowseDialogHelper(
     fun cleanup() {
         // Dismiss any open dialogs if needed
     }
-    
+
     fun showFilterDialog(currentFilter: FileFilter?, allowedMediaTypes: Set<MediaType>? = null) {
         val dialogBinding = DialogFilterBinding.inflate(LayoutInflater.from(activity))
-        
+
         // Pre-fill current filter values
         dialogBinding.etFilterName.setText(currentFilter?.nameContains ?: "")
-        
+
         // Media type checkboxes - only show types allowed by resource AND supported by flavor
         val allowed = allowedMediaTypes ?: MediaType.entries.toSet()
         val allTypesSelected = currentFilter?.mediaTypes == null
-        
+
         // Configure each checkbox: hide if not allowed by resource OR not supported by flavor
         dialogBinding.cbFilterImage.apply {
             val vis = if (MediaType.IMAGE in allowed && BuildConfig.SUPPORT_IMAGES) android.view.View.VISIBLE else android.view.View.GONE
@@ -127,32 +152,32 @@ class BrowseDialogHelper(
             visibility = vis
             isChecked = MediaType.EPUB in allowed && BuildConfig.ENABLE_EPUB && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.EPUB) == true)
         }
-        
+
         // Date pickers
         var minDate = currentFilter?.minDate
         var maxDate = currentFilter?.maxDate
-        
+
         if (minDate != null) {
             dialogBinding.etMinDate.setText(formatDate(minDate))
         }
         if (maxDate != null) {
             dialogBinding.etMaxDate.setText(formatDate(maxDate))
         }
-        
+
         dialogBinding.etMinDate.setOnClickListener {
             showDatePicker(minDate) { selectedDate ->
                 minDate = selectedDate
                 dialogBinding.etMinDate.setText(formatDate(selectedDate))
             }
         }
-        
+
         dialogBinding.etMaxDate.setOnClickListener {
             showDatePicker(maxDate) { selectedDate ->
                 maxDate = selectedDate
                 dialogBinding.etMaxDate.setText(formatDate(selectedDate))
             }
         }
-        
+
         // Size filters
         currentFilter?.minSizeMb?.let {
             dialogBinding.etMinSize.setText(activity.getString(R.string.string_format, it.toString()))
@@ -160,26 +185,26 @@ class BrowseDialogHelper(
         currentFilter?.maxSizeMb?.let {
             dialogBinding.etMaxSize.setText(activity.getString(R.string.string_format, it.toString()))
         }
-        
+
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.filter)
             .setView(dialogBinding.root)
             .create()
-        
+
         dialogBinding.btnClearFilter.setOnClickListener {
             callbacks.onFilterApplied(null)
             dialog.dismiss()
         }
-        
+
         dialogBinding.btnCancelFilter.setOnClickListener {
             dialog.dismiss()
         }
-        
+
         dialogBinding.btnApplyFilter.setOnClickListener {
             val nameFilter = dialogBinding.etFilterName.text?.toString()?.trim()
             val minSizeText = dialogBinding.etMinSize.text?.toString()?.trim()
             val maxSizeText = dialogBinding.etMaxSize.text?.toString()?.trim()
-            
+
             // Collect selected media types (only from visible checkboxes)
             val selectedTypes = mutableSetOf<MediaType>()
             if (dialogBinding.cbFilterImage.isChecked && dialogBinding.cbFilterImage.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.IMAGE)
@@ -189,10 +214,10 @@ class BrowseDialogHelper(
             if (dialogBinding.cbFilterText.isChecked && dialogBinding.cbFilterText.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.TEXT)
             if (dialogBinding.cbFilterPdf.isChecked && dialogBinding.cbFilterPdf.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.PDF)
             if (dialogBinding.cbFilterEpub.isChecked && dialogBinding.cbFilterEpub.visibility == android.view.View.VISIBLE) selectedTypes.add(MediaType.EPUB)
-            
+
             // If all allowed types selected, set mediaTypes to null (no filter)
             val allAllowedSelected = selectedTypes == allowed
-            
+
             val filter = FileFilter(
                 nameContains = nameFilter?.ifBlank { null },
                 minDate = minDate,
@@ -201,11 +226,11 @@ class BrowseDialogHelper(
                 maxSizeMb = maxSizeText?.toFloatOrNull(),
                 mediaTypes = if (allAllowedSelected) null else selectedTypes.ifEmpty { null }
             )
-            
+
             callbacks.onFilterApplied(if (filter.isEmpty()) null else filter)
             dialog.dismiss()
         }
-        
+
         dialog.show()
     }
     
@@ -234,9 +259,8 @@ class BrowseDialogHelper(
     }
     
     fun showSortDialog(currentSortMode: SortMode) {
-        val sortModes = SortMode.values().filter { 
-            it != SortMode.DATE_TAKEN_ASC && it != SortMode.DATE_TAKEN_DESC 
-        }
+        // Keep dialog order independent from enum declaration to avoid changing persisted sort semantics.
+        val sortModes = DIALOG_SORT_ORDER
         
         val dialogBinding = com.sza.fastmediasorter.databinding.DialogSortBinding.inflate(LayoutInflater.from(activity))
         val dialog = MaterialAlertDialogBuilder(activity)
@@ -256,6 +280,8 @@ class BrowseDialogHelper(
                 val mode = sortModes[position]
                 val button = holder.itemView as com.google.android.material.button.MaterialButton
                 button.text = getSortModeName(mode)
+                // RecyclerView reuses buttons, so clear icons for every non-RANDOM row explicitly.
+                button.setIconResource(BrowseSortMenuManager.getSortModeIconRes(mode) ?: 0)
                 
                 // Highlight selected mode
                 if (mode == currentSortMode) {
@@ -263,14 +289,20 @@ class BrowseDialogHelper(
                     val colorOnPrimaryContainer = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnPrimaryContainer)
                     button.setBackgroundColor(colorPrimaryContainer)
                     button.setTextColor(colorOnPrimaryContainer)
+                    button.iconTint = ColorStateList.valueOf(colorOnPrimaryContainer)
                 } else {
                     val colorOnSurface = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnSurface)
                     button.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                     button.setTextColor(colorOnSurface)
+                    button.iconTint = ColorStateList.valueOf(colorOnSurface)
                 }
                 
                 button.setOnClickListener {
-                    callbacks.onSortModeSelected(mode)
+                    if (mode == SortMode.RANDOM) {
+                        callbacks.onRandomReshuffle()
+                    } else {
+                        callbacks.onSortModeSelected(mode)
+                    }
                     dialog.dismiss()
                 }
             }

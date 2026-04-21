@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
 import timber.log.Timber
+import kotlin.random.Random
 
 /**
  * Manager for file navigation and slideshow functionality in PlayerActivity.
@@ -165,6 +166,31 @@ class PlayerNavigationManager(
     fun navigateNextFromButton() {
         Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: UI Manager NEXT button clicked")
         navigateNext()
+        activity.scheduleHideControls()
+    }
+
+    /**
+     * Navigate to a random file from the current library profile.
+     */
+    fun navigateRandomFromButton() {
+        val currentState = viewModel.state.value
+        val files = currentState.files
+        if (files.size <= 1) {
+            Timber.d("navigateRandomFromButton: skipped because files.size=${files.size}")
+            return
+        }
+
+        val currentIndex = currentState.currentIndex.coerceIn(files.indices)
+        // Wrapped offset keeps all non-current files equally likely without allocating candidates.
+        val randomOffset = Random.nextInt(files.size - 1) + 1
+        val randomIndex = (currentIndex + randomOffset) % files.size
+        Timber.tag("TOUCH_ZONE_DEBUG").w("RANDOM triggered by: UI Manager RANDOM button clicked -> $currentIndex to $randomIndex")
+        viewModel.jumpToIndex(randomIndex)
+
+        if (currentState.currentFile?.type == MediaType.AUDIO) {
+            activity.advanceAudioBackgroundPhoto()
+            activity.updateAudioSlideshowCurrentSongLabel()
+        }
         activity.scheduleHideControls()
     }
 

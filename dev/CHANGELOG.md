@@ -2982,3 +2982,195 @@ Format: | datetime | file | target | description |
 | 2026-04-20 02:21:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity.attemptResumePlayback` | Block only PLAYER-type resume on VR flavor (not ALL resume); browser resume stays functional; clears stale resume state |
 | 2026-04-20 02:21:12 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.dispatchKeyEvent` | Add KEYCODE_BUTTON_B as exit fallback; make KEYCODE_BACK always exit immersive (not only when overlay visible) |
 | 2026-04-20 02:21:19 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.dispatchKeyEvent` | Add KEYCODE_BUTTON_B as exit fallback; make KEYCODE_BACK always exit immersive (not only when overlay visible) |
+| 2026-04-20 02:45:23 | `PLAN/spec_vr-mvp-day1.md` | `spec_vr-mvp-day1` | Add MVP Day 1 spec: build VR flavor, deploy on Quest 3, validate panel mode + immersive 3D rendering |
+| 2026-04-20 02:50:53 | `PLAN/spec_vr-3d-rendering-research.md` | `VR Immersive Controls Spec` | Added sections 11-12: Void vs Passthrough environment modes, full Quest controller mapping (OpenXR XrActionSet), implementation priorities |
+| 2026-04-20 14:32:59 | `PLAN/spec_vr-mvp-day1.md` | `VrPlayerActivity/OpenXrNative` | VR Day 1 spec: verified build success, manifest, and native libs for Quest 3 validation |
+| 2026-04-20 16:43:32 | `PLAN/spec_ffmpeg-custom-build-dts.md` | `Section 16` | Added extended codec scope: APE/WMA/WavPack/TTA/DSD/ATRAC3, Maven av1/vpx artifacts, player improvements (loudness, chapters, seek thumb, HDR tonemapping, ASS subs) |
+| 2026-04-20 16:54:00 | `PLAN/spec_ffmpeg-custom-build-dts.md` | `Section 16.1` | Removed patent-encumbered codecs: WMA Pro, WMA Lossless (MS IP), ATRAC3 (Sony IP), RealAudio (RealNetworks IP) |
+| 2026-04-20 17:23:45 | `PLAN/spec_ffmpeg-custom-build-dts.md` | `Section 14` | Resolved Q2 (build env confirmed), deferred Q3 (player improvements), expanded Q1 with DTS patent licensing details: Xperi contact, pricing info, VR-only vs store distribution risk |
+| 2026-04-20 17:28:47 | `PLAN/spec_ffmpeg-custom-build-dts.md` | `Sections 9,14.3,ADR-002,16.4` | Revised DTS legal analysis: VLC precedent (500M installs, no Xperi action), EU/RU SW patents not recognized; DTS now approved for all audio flavors incl standard; updated flavor scope table and ADR-002 |
+| 2026-04-20 17:39:02 | `PLAN/spec_ffmpeg-custom-build-dts.md` | `Sections 8,9,14.3,15,16.4,Phase4` | Added vr-unlicensed flavor (ADB sideload fallback); two-tier VR strategy (vr=Meta Store attempt, vr-unlicensed=sideload); Malta/EU developer jurisdiction note; ADR-004; updated all matrices |
+| 2026-04-20 17:58:54 | `app_v2/build.gradle.kts` | `productFlavors / dependencies` | Added vrUnlicensed flavor (ADB sideload, always DTS); ENABLE_DTS_DECODER flag per flavor; sourceSets to share src/vr/ with vrUnlicensed; AV1+VPX Maven deps; local AAR placeholder (commented) |
+| 2026-04-20 17:58:54 | `app_v2/src/main/java/.../player/helpers/PlayerSetupHelper.kt` | `createPlayer` | Gate EXTENSION_RENDERER_MODE_PREFER on BuildConfig.ENABLE_DTS_DECODER; added BuildConfig import |
+| 2026-04-20 17:58:54 | `scripts/builders/build-ffmpeg-dts.sh` | `(new file)` | WSL2 FFmpeg build script: DTS + APE/WMA/WavPack/TTA/DSD/Musepack + JNI bridge + AAR packaging |
+| 2026-04-20 17:58:54 | `PLAN/spec_ffmpeg-custom-build-dts.md` | `Status / Phase 4 / §12` | Status updated to In Progress; Phase 4 items marked done; §12 CI item marked done |
+| 2026-04-20 18:35:21 | `temp/fix_ndk_symlinks.py` | `(new file)` | Fix NDK r25c symlinks broken by Python zipfile extraction (reads external_attr, recreates real symlinks) |
+| 2026-04-20 18:35:21 | `temp/run_build_ffmpeg.sh` | `(new file)` | WSL2 Phase 2-3: runs media3 build_ffmpeg.sh with DTS+extended decoders for all ABIs |
+| 2026-04-20 18:35:21 | `scripts/builders/build-ffmpeg-dts.sh` | `check_deps/build_jni_bridge` | Fixed: NDK path=Linux NDK in ~/; nasm/pkg-config not needed for ARM; zip replaced by python3; JNI script path updated to libraries/decoder_ffmpeg/src/main/jni/ |
+| 2026-04-20 18:49:37 | `temp/build_aar.py` | `(new file)` | Windows Python script: compile media3 decoder_ffmpeg Java sources + package AAR with libffmpegJNI.so (arm64+armeabi-v7a); output app_v2/libs/fms-ffmpeg-dts.aar (4917 KB) |
+| 2026-04-20 18:49:37 | `app_v2/build.gradle.kts` | `dependencies` | Enable fms-ffmpeg-dts.aar for standard/legacy/vr/vrUnlicensed flavors; comment out media3-decoder-av1/vpx (source-only, not on Maven) |
+| 2026-04-20 21:13:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Add missing init for touchZoneSetupManager and audioMetadataManager (lateinit crash fix) |
+| 2026-04-20 21:13:41 | `scripts/builders/build-ffmpeg-dts.sh` | `build-ffmpeg-dts.sh` | Fix Python heredoc env var export (STAGING_DIR/AAR_PATH); fix typo Fallingeting |
+| 2026-04-20 21:36:41 | `app_v2/src/vr/AndroidManifest.xml` | `AndroidManifest(vr)` | Fix empty screen on Quest 3: change MainActivity category from VR to 2D — VR category forced immersive/exclusive mode, 2D category shows correct flat panel |
+| 2026-04-20 22:20:28 | `PLAN/spec_browse-file-drag-reorder.md` | `spec` | Add specification for browse file drag-to-reorder in MANUAL sort mode |
+| 2026-04-20 22:20:31 | `PLAN/spec_player-audio-metadata-info.md` | `spec` | Add specification for audio metadata info fix (duration + album + sample rate) |
+| 2026-04-20 22:20:42 | `PLAN/spec_player-speed-range.md` | `spec` | Add specification for extending playback speed range to 3.0x |
+| 2026-04-20 22:20:43 | `PLAN/spec_player-volume-control.md` | `spec` | Add specification for volume control improvements (50%/MAX buttons, MUTE highlight) |
+| 2026-04-20 22:20:43 | `PLAN/spec_player-random-nav-button.md` | `spec` | Add specification for random file navigation button in player command bar |
+| 2026-04-20 22:25:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Promote single overflow bar-capable command to command bar, hide overflow button |
+| 2026-04-20 22:27:09 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt` | `DetailedMediaInfo` | Add audioAlbum and sampleRate fields; extract METADATA_KEY_ALBUM and METADATA_KEY_SAMPLERATE in extractVideoAudioInfo |
+| 2026-04-20 22:27:10 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/SafUriExtractor.kt` | `SafUriExtractor` | Add audioTitle, audioArtist, audioAlbum, sampleRate extraction in extractVideoAudioInfo; include in returned DetailedMediaInfo |
+| 2026-04-20 22:27:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileInfoDialog.kt` | `FileInfoDialog` | displayAudioInfo: always show tvAudioDuration with placeholder instead of hiding; updateDetailedInfo: add album and sampleRate display |
+| 2026-04-20 22:27:10 | `app_v2/src/main/res/layout/dialog_file_info.xml` | `dialog_file_info` | Add tvAudioAlbum and tvAudioSampleRate TextViews to audio metadata section |
+| 2026-04-20 22:27:10 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add audio_album_label, audio_sample_rate_label, loading_placeholder string resources |
+| 2026-04-20 22:35:16 | `app_v2/src/main/res/layout/item_resource.xml` | `item_resource` | Added ivDragHandle (48x48dp, gone by default) for drag-to-reorder |
+| 2026-04-20 22:35:16 | `app_v2/src/main/res/layout/item_resource_grid.xml` | `item_resource_grid` | Added ivDragHandle (40x40dp, gone by default) for drag-to-reorder in grid mode |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ResourceDao.kt` | `ResourceDao` | Added updateAllDisplayOrders() transaction for batch display order persistence |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResourceRepository.kt` | `ResourceRepository` | Added updateResourcesDisplayOrder() interface method for drag reorder |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `ResourceRepositoryImpl` | Implemented updateResourcesDisplayOrder() — maps list index to displayOrder and calls DAO |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceOrderManager.kt` | `ResourceOrderManager` | Added saveResourceOrder() for batch reorder persistence after drag gesture |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `ResourceAdapter` | Added DragStartListener interface, _items shadow list, moveItem(), getDragOrderedList(), drag handle binding in both ViewHolders |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Added saveResourceOrder() — persists drag order via orderManager and sets MANUAL sort mode |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceItemTouchCallback.kt` | `ResourceItemTouchCallback` | New file: ItemTouchHelper.Callback for drag-to-reorder (list+grid, handle-only drag, ADR-2 live/final split) |
+| 2026-04-20 22:35:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Wired ResourceItemTouchCallback + ItemTouchHelper + DragStartListener in setupViews() |
+| 2026-04-20 22:35:16 | `app_v2/src/main/res/values/strings.xml` | `strings` | Added drag_handle_description string (EN) |
+| 2026-04-20 22:35:16 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Added drag_handle_description string (RU) |
+| 2026-04-20 22:35:16 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Added drag_handle_description string (UK) |
+| 2026-04-20 22:36:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity.observeData` | Call updateDragHandleVisibility when sortMode changes in state collector |
+| 2026-04-20 22:36:22 | `docs/FEATURES.md` | `FEATURES` | Add drag-to-reorder manual sort feature to EN/RU/UK docs |
+| 2026-04-20 22:42:04 | `app_v2/src/main/res/layout-land/dialog_file_info.xml` | `dialog_file_info(layout-land)` | Add landscape audio album and sample rate views for file info dialog |
+| 2026-04-20 22:42:08 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add RU audio album, sample rate, and loading placeholder strings for file info dialog |
+| 2026-04-20 22:42:11 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add UK audio album, sample rate, and loading placeholder strings for file info dialog |
+| 2026-04-20 22:45:43 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlannerTest.kt` | `CommandPanelLayoutPlannerTest` | Fix single-overflow promotion test to exercise real spill-to-overflow scenario |
+| 2026-04-20 22:50:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Add random navigation button wiring and profile-based visibility |
+| 2026-04-20 22:50:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationManager.kt` | `PlayerNavigationManager` | Add random file navigation from player command bar |
+| 2026-04-20 22:50:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Add jumpToIndex helper for non-sequential player navigation |
+| 2026-04-20 22:50:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Handle random navigation command panel callback |
+| 2026-04-20 22:50:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt` | `PlayerUiStateCoordinator` | Disable random player navigation button for single-file lists |
+| 2026-04-20 22:50:48 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add random navigation button to portrait player command bar |
+| 2026-04-20 22:50:48 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified` | Add random navigation button to landscape player command bar |
+| 2026-04-20 22:50:48 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add random file accessibility string |
+| 2026-04-20 22:50:48 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add random file accessibility string |
+| 2026-04-20 22:50:48 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add random file accessibility string |
+| 2026-04-20 22:50:48 | `app_v2/src/main/res/drawable/ic_random_nav.xml` | `ic_random_nav` | Add dice icon for random file navigation |
+| 2026-04-20 22:50:48 | `docs/FEATURES.md` | `FEATURES` | Document random player navigation for audio and photo libraries |
+| 2026-04-20 22:50:48 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Document random player navigation for audio and photo libraries |
+| 2026-04-20 22:50:48 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Document random player navigation for audio and photo libraries |
+| 2026-04-20 22:52:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Add random navigation button to player command panel and show it only for audio/photo library profiles |
+| 2026-04-20 22:52:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationManager.kt` | `PlayerNavigationManager` | Add random file navigation that jumps to a non-current file from the active player list |
+| 2026-04-20 22:52:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Add jumpToIndex() helper for random player navigation while preserving resume state sync |
+| 2026-04-20 22:52:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Wire random command-panel button clicks to PlayerNavigationManager |
+| 2026-04-20 22:52:18 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add btnRandomCmd to portrait player command panel |
+| 2026-04-20 22:52:18 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified(layout-land)` | Add btnRandomCmd to landscape player command panel |
+| 2026-04-20 22:52:19 | `app_v2/src/main/res/drawable/ic_random_nav.xml` | `ic_random_nav` | Add random navigation icon drawable for the player command panel |
+| 2026-04-20 22:52:19 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add random_file_description string for the player random navigation button |
+| 2026-04-20 22:52:27 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add RU random_file_description string for the player random navigation button |
+| 2026-04-20 22:52:27 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add UK random_file_description string for the player random navigation button |
+| 2026-04-20 22:52:28 | `docs/FEATURES.md` | `FEATURES` | Document random file jump button in player for audio and photo libraries |
+| 2026-04-20 22:52:28 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Document random file jump button in player for audio and photo libraries (RU) |
+| 2026-04-20 22:52:28 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Document random file jump button in player for audio and photo libraries (UK) |
+| 2026-04-20 22:55:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `PlaybackControlDialogFragment` | Extend speed range from 2.0x to 3.0x (add 2.5x, 3.0x steps) |
+| 2026-04-20 23:03:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `PlaybackControlDialogFragment` | Add 50% and MAX volume presets with mute state sync and accessibility |
+| 2026-04-20 23:03:23 | `app_v2/src/main/res/layout/dialog_playback_control.xml` | `dialog_playback_control` | Add volume preset buttons and emphasize mute action in portrait dialog |
+| 2026-04-20 23:03:23 | `app_v2/src/main/res/layout-land/dialog_playback_control.xml` | `dialog_playback_control` | Add volume preset buttons and emphasize mute action in landscape dialog |
+| 2026-04-20 23:03:23 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add volume preset and mute state accessibility strings |
+| 2026-04-20 23:03:23 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add volume preset and mute state accessibility strings |
+| 2026-04-20 23:03:23 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add volume preset and mute state accessibility strings |
+| 2026-04-20 23:03:23 | `app_v2/src/main/res/color/btn_mute_toggle_state.xml` | `btn_mute_toggle_state` | Add selected-state tint for mute button emphasis |
+| 2026-04-20 23:04:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Reorder sort dialog options: RANDOM first, MANUAL after SIZE, TYPE below DURATION |
+| 2026-04-20 23:06:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Expose explicit sort dialog order for tests and restore DATE_TAKEN modes |
+| 2026-04-20 23:06:54 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelperTest.kt` | `BrowseDialogHelperTest` | Add unit tests for sort dialog order completeness and priority positions |
+| 2026-04-20 23:09:39 | `app_v2/src/main/res/drawable/ic_sort_random.xml` | `ic_sort_random` | Add dice icon drawable for RANDOM sort mode |
+| 2026-04-20 23:09:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortMenuManager.kt` | `BrowseSortMenuManager` | Centralize RANDOM sort icon mapping |
+| 2026-04-20 23:09:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Show RANDOM sort mode with dice icon in sort dialog |
+| 2026-04-20 23:10:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | Render RANDOM sort icon on active browse sort button |
+| 2026-04-20 23:10:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity.observeData` | Refresh active sort button icon when sort mode changes |
+| 2026-04-20 23:12:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Add dedicated RANDOM reshuffle callback from sort dialog |
+| 2026-04-20 23:12:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogCallbacksImpl.kt` | `BrowseDialogCallbacksImpl` | Delegate RANDOM reshuffle callback to BrowseViewModel |
+| 2026-04-20 23:12:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | Wire RANDOM reshuffle callback in browse dialog initializer |
+| 2026-04-20 23:12:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt` | `BrowseSortFilterManager` | Add seed-aware RANDOM reshuffle handling with non-repeat fallback |
+| 2026-04-20 23:12:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/filelist/BrowseFileListManager.kt` | `BrowseFileListManager` | Make RANDOM sorting deterministic when a seed is provided |
+| 2026-04-20 23:12:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Expose reshuffleRandom action for repeated RANDOM selections |
+| 2026-04-20 23:12:51 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/filelist/BrowseFileListManagerTest.kt` | `BrowseFileListManagerTest` | Add unit test for seed-based RANDOM browse sorting |
+| 2026-04-20 23:37:50 | `scripts/builders/build-ffmpeg-dts.sh` | `build-ffmpeg-dts.sh` | Fix 16 KB page alignment: NDK r25c -> r27c, add -Wl,-z,max-page-size=16384 to FFmpeg ldflags and JNI bridge APP_LDFLAGS |
+| 2026-04-20 23:37:50 | `app_v2/build.gradle.kts` | `dependencies` | Update fms-ffmpeg-dts.aar comment: note NDK r27c + 16 KB flag requirement |
+| 2026-04-20 23:41:48 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `SortMode` | Reorder sort menu: RANDOM to top, MANUAL after SIZE, TYPE below DURATION |
+| 2026-04-20 23:43:01 | `app_v2/src/main/res/drawable/ic_sort_random.xml` | `ic_sort_random` | Redesign: filled dice body with 3 diagonal pip cutouts (evenOdd), replaces thin outline style |
+| 2026-04-20 23:43:01 | `app_v2/src/main/res/drawable/ic_random_nav.xml` | `ic_random_nav` | Redesign: filled dice body with 3 diagonal pip cutouts (evenOdd), replaces scanning-target shape |
+| 2026-04-21 00:08:59 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Pin apiVersion to XR_MAKE_VERSION(1,0,34): Meta Quest runtime 1.1.x does not expose xrGetGraphicsRequirementsOpenGLESKHR when apiVersion>=1.1.0 (result=-7), causing XR session init failure |
+| 2026-04-21 00:24:20 | `scripts/builders/build-ffmpeg-dts.sh` | `build-ffmpeg-dts.sh` | Replace unzip dependency with Python AAR extraction fallback and update header to r27c for 16 KB rebuilds |
+| 2026-04-21 00:24:30 | `PLAN/spec_player-print-button.md` | `spec_player-print-button` | Create spec: Print button in player command panel (portrait+landscape, PDF/TEXT/IMAGE/GIF, local+remote) |
+| 2026-04-21 00:25:17 | `PLAN/spec_translate-button-badge-restore.md` | `spec` | Add spec X.14: restore language badge icon on translation buttons (PDF/TXT/EPUB/Image) |
+| 2026-04-21 00:28:20 | `app_v2/build.gradle.kts` | `dependencies/flavors` | Temporarily remove stale non-16KB fms-ffmpeg-dts.aar from standard/legacy/vr and keep it only in vrUnlicensed until rebuilt with 16 KB alignment |
+| 2026-04-21 00:28:33 | `dev/TASK_VR_3D_IMMERSIVE_INVESTIGATION_2026-04-21.md` | `TASK_VR_3D_IMMERSIVE_INVESTIGATION_2026-04-21` | Log investigation doc update for VR 3D immersive issue research |
+| 2026-04-21 00:28:35 | `PLAN/spec_vr-3d-image-immersive-handoff.md` | `spec_vr-3d-image-immersive-handoff` | Log VR 3D immersive handoff spec update |
+| 2026-04-21 00:28:37 | `temp/vr_3d_immersive_failure_research_2026-04-21.md` | `vr_3d_immersive_failure_research_2026-04-21` | Log temporary VR 3D immersive failure research artifact for traceability |
+| 2026-04-21 00:36:32 | `PLAN/spec_ffmpeg-dts-16kb-rebuild.md` | `spec` | Add specification for COMPLIANCE.16KB permanent FFmpeg DTS 16 KB rebuild and re-enable workflow |
+| 2026-04-21 00:39:30 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrLaunchRoute.kt` | `VrLaunchRoute` | Add VR 3D image immersive routing with explicit fallback errors |
+| 2026-04-21 00:39:32 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelper.kt` | `VrRouteDecisionHelper` | Decide VR 3D image immersive routing and explicit fallback errors |
+| 2026-04-21 00:39:34 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Handle VR 3D image immersive routing explicit fallback errors |
+| 2026-04-21 00:39:36 | `app_v2/src/test/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `VrRouteDecisionHelperTest` | Add tests for VR 3D image immersive routing and explicit fallback errors |
+| 2026-04-21 00:39:38 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add strings for VR 3D image immersive routing fallback errors |
+| 2026-04-21 00:39:40 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add RU strings for VR 3D image immersive routing fallback errors |
+| 2026-04-21 00:39:43 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add UK strings for VR 3D image immersive routing fallback errors |
+| 2026-04-21 00:39:47 | `docs/FEATURES.md` | `FEATURES` | Document VR 3D image immersive routing and explicit fallback errors |
+| 2026-04-21 00:39:50 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Document VR 3D image immersive routing and explicit fallback errors |
+| 2026-04-21 00:40:07 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Document VR 3D image immersive routing and explicit fallback errors |
+| 2026-04-21 00:41:14 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Fix missing R import for VR immersive fallback string resources |
+| 2026-04-21 00:43:14 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `VrRouteDecisionHelperTest` | Fix MediaFile test fixture for VR route decision helper compile |
+| 2026-04-21 00:45:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LanguageBadgeDrawable.kt` | `LanguageBadgeDrawable` | Default forcedColor changed to Color.WHITE — ensures badge text is visible on dark player background |
+| 2026-04-21 00:45:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `TextViewerManager` | Fix translation button badge: clear imageTintList before setImageDrawable; replace imageTintList with alpha for active/inactive state |
+| 2026-04-21 00:45:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Fix translation button badge: replace imageTintList solid-color with alpha in toggleTranslation and forceTranslate |
+| 2026-04-21 00:45:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | Fix translation button badge: add alpha state sync in updateTranslateButtonIcon alongside existing imageTintList=null |
+| 2026-04-21 00:45:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationButtonManager.kt` | `TranslationButtonManager` | Set alpha=0.55f on translation buttons after icon update so inactive state is visible before first toggle |
+| 2026-04-21 00:45:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Change PRINT command barCapable=true: now appears on command bar when space permits, otherwise spills to overflow |
+| 2026-04-21 00:45:34 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd ImageButton to portrait adaptive command bar (after btnSaveFrameCmd) |
+| 2026-04-21 00:45:34 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd ImageButton to landscape command bar (after btnSaveFrameCmd) |
+| 2026-04-21 00:45:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `PlayerBindingSafeViews` | Register val btnPrintCmd for safe view access |
+| 2026-04-21 00:45:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Wire btnPrintCmd: click listener, getOverflowableButtons, barViewForCommand, landscape visibility |
+| 2026-04-21 00:45:34 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Fix pre-existing build error: add updateResourcesDisplayOrder stub to FakeResourceRepository |
+| 2026-04-21 00:45:34 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `VrRouteDecisionHelperTest` | Move from src/test/ to src/testVr/ - fix pre-existing compilation error (vr source set not in standard flavor) |
+| 2026-04-21 00:45:34 | `docs/FEATURES.md` | `FEATURES` | Add Print bullet in PDF Viewer section: portrait/landscape, PDF/TEXT/IMAGE, remote file caching |
+| 2026-04-21 00:45:34 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Print bullet in PDF Viewer section (RU) |
+| 2026-04-21 00:45:34 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Print bullet in PDF Viewer section (UK) |
+| 2026-04-21 00:45:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Change PRINT barCapable to true: bar-first, overflow on space shortage |
+| 2026-04-21 00:45:49 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd ImageButton to portrait adaptive command bar |
+| 2026-04-21 00:45:49 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified_land` | Add btnPrintCmd ImageButton to landscape command bar |
+| 2026-04-21 00:45:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `PlayerBindingSafeViews` | Register val btnPrintCmd for safe view access |
+| 2026-04-21 00:45:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Wire btnPrintCmd: click, getOverflowableButtons, barViewForCommand, landscape visibility |
+| 2026-04-21 00:45:49 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Fix pre-existing: add updateResourcesDisplayOrder stub to FakeResourceRepository |
+| 2026-04-21 00:45:49 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `VrRouteDecisionHelperTest` | Fix pre-existing: move to testVr source set (not compiled for standard flavor) |
+| 2026-04-21 00:45:49 | `docs/FEATURES.md` | `FEATURES` | Add Print bullet in PDF Viewer section: portrait+landscape, PDF/TEXT/IMAGE, remote caching |
+| 2026-04-21 00:45:49 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Print bullet in PDF Viewer section (RU) |
+| 2026-04-21 00:45:49 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Print bullet in PDF Viewer section (UK) |
+| 2026-04-21 00:45:57 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd portrait bar |
+| 2026-04-21 00:45:57 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd landscape bar |
+| 2026-04-21 00:45:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `PlayerBindingSafeViews` | Register btnPrintCmd |
+| 2026-04-21 00:45:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Wire btnPrintCmd: click, overflow list, barView, landscape visibility |
+| 2026-04-21 00:45:57 | `docs/FEATURES.md` | `FEATURES` | Add Print feature bullet (EN) |
+| 2026-04-21 00:45:57 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Print feature bullet (RU) |
+| 2026-04-21 00:45:57 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Print feature bullet (UK) |
+| 2026-04-21 01:21:01 | `app_v2/libs/fms-ffmpeg-dts.aar` | `app_v2` | Rebuilt fms-ffmpeg-dts.aar with NDK r25c + -Wl,-z,max-page-size=16384. All LOAD segments now Align=0x4000 (16 KB). arm64-v8a only. libffmpegJNI.so verified in standard debug APK. DTS restored in standard/legacy/vr/vrUnlicensed flavors. |
+| 2026-04-21 01:21:05 | `app_v2/build.gradle.kts` | `app_v2` | Restored ENABLE_DTS_DECODER=true for standard/legacy/vr flavors. Added standardImplementation/legacyImplementation/vrImplementation for fms-ffmpeg-dts.aar. Removed temporary 16 KB compliance fallback comments. |
+| 2026-04-21 01:43:38 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `createSessionAndSwapchains` | xrGetGraphicsRequirementsOpenGLESKHR lookup failure treated as non-fatal (Meta Quest HorizonOS v69+ workaround) — was crashing XR session init with result=-7 |
+| 2026-04-21 01:43:43 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `stereoMode observer` | Fixed race: AUTO/UNKNOWN stereoMode no longer directly resolves to MONO in renderer — defers to resolvePlaybackRoute so filename-detected VR stereo is not overridden |
+| 2026-04-21 01:50:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `fallbackToFlatCinemaMode` | XR session failure now falls back to flat 2D panel (keeps playback, shows toast) instead of stopping and closing the activity — allows user to access settings to fix stereo format |
+| 2026-04-21 01:50:44 | `app_v2/src/main/res/values/strings.xml` | `vr_xr_fallback_flat_mode` | Add EN string for flat cinema mode fallback toast |
+| 2026-04-21 01:50:44 | `app_v2/src/main/res/values-ru/strings.xml` | `vr_xr_fallback_flat_mode` | Add RU string for flat cinema mode fallback toast |
+| 2026-04-21 01:50:44 | `app_v2/src/main/res/values-uk/strings.xml` | `vr_xr_fallback_flat_mode` | Add UK string for flat cinema mode fallback toast |
+| 2026-04-21 02:06:30 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `createSessionAndSwapchains` | Add 3-step fallback for xrGetGraphicsRequirementsOpenGLESKHR: instance-procaddr -> XR_NULL_HANDLE -> dlsym(libopenxr_loader.so). Fixes xrCreateSession -50 on Meta Quest HorizonOS v69+ |
+| 2026-04-21 02:13:53 | `app_v2/build.gradle.kts` | `vr cmake arguments` | Add -DFMS_BUILD_REVISION=2 to force new CMake config hash (avoids stale .tmp lock from aborted builds) |
+| 2026-04-21 02:13:56 | `app_v2/build.gradle.kts` | `vr cmake arguments` | Add -DFMS_BUILD_REVISION=2 to force new CMake config hash (avoids stale .tmp lock from aborted builds) |
+| 2026-04-21 02:20:23 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `enumerateAndCreateInstance` | Bump apiVersion 1.0.34→1.1.0: loader spec 1.1 skips -50 requirements check for apiVersion>=1.1.0 |
+| 2026-04-21 02:23:05 | `app_v2/build.gradle.kts` | `vr cmake arguments` | Increment FMS_BUILD_REVISION=2→3 (force new CMake hash dir, avoid stale .tmp lock) |
+| 2026-04-21 02:23:05 | `scripts/builders/build-vr-debug.ps1` | `build-vr-debug` | Add pre-build cleanup: Remove-Item all *.tmp in cxx/Debug before Gradle to prevent stale lock errors |
+| 2026-04-21 02:43:20 | `PLAN/spec_vr-panel-window-size.md` | `spec_vr-panel-window-size` | New spec: VR panel default large landscape window + size persistence for all flavors |
+| 2026-04-21 02:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/XrDeviceDetector.kt` | `XrDeviceDetector` | New: runtime VR/XR headset detector (headtracking feature + FEATURE_VR_MODE_HIGH_PERFORMANCE + manufacturer fallback), main source set, all flavors |
+| 2026-04-21 02:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrPanelSizePreference.kt` | `VrPanelSizePreference` | New: SharedPreferences-backed VR panel size persistence (DEFAULT 1920x1080, MIN 800x400) |
+| 2026-04-21 02:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Apply VR panel window size (1920x1080 landscape) before super.onCreate; persist size on onConfigurationChanged |
+| 2026-04-21 02:49:01 | `app_v2/src/vr/AndroidManifest.xml` | `MainActivity <layout>` | Add <layout defaultWidth=1920dp defaultHeight=1080dp> as first-launch fallback for Quest panel mode |
+| 2026-04-21 02:49:01 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/VrPanelSizePreferenceTest.kt` | `VrPanelSizePreferenceTest` | New: unit tests for save/load/hasUserSize/MIN guard |
+| 2026-04-21 02:49:01 | `app_v2/src/test/java/com/sza/fastmediasorter/core/xr/XrDeviceDetectorTest.kt` | `XrDeviceDetectorTest` | New: unit tests for headset detection via features |
+| 2026-04-21 02:49:53 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Fix OpenXR GLES requirements lookup: use correct xrGetOpenGLESGraphicsRequirementsKHR symbol instead of swapped-name lookup |
+| 2026-04-21 02:49:54 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Reset xrInitializationRequested after flat fallback so stereo mode changes can retry XR init |
+| 2026-04-21 02:49:54 | `app_v2/src/vr/AndroidManifest.xml` | `AndroidManifest(vr)` | Correct OpenXR GLES requirements function name in Quest-specific runtime comments |
+| 2026-04-21 03:03:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Fix VR window resize: remove fixed window.attributes.width/height (was locking HorizonOS panel resize), keep only requestedOrientation=LANDSCAPE |
+| 2026-04-21 03:03:37 | `app_v2/src/main/AndroidManifest.xml` | `MainActivity <layout>` | Add <layout defaultWidth=1920dp defaultHeight=1080dp> for all flavors on Quest, add screenLayout to configChanges |
+| 2026-04-21 03:12:56 | `scripts/utils/search-log.ps1` | `search-log` | Add auto-detection and native support for all 3 log formats: LOGCAT (standard), JSON (.logcat AS export), TIMBER (device export). No conversion step needed. |
+| 2026-04-21 03:12:56 | `scripts/utils/convert-log.ps1` | `convert-log` | New: standalone log format converter — normalizes JSON .logcat and Timber device exports to standard logcat text for archival or grep. |
+| 2026-04-21 03:12:56 | `.github/prompts/log-reader.prompt.md` | `log-reader skill` | Expand skill: add Format Detection section with full spec of all 3 formats (LOGCAT/JSON/TIMBER), format-specific analysis notes, convert-log.ps1 usage, updated auto-summary procedure. |
+| 2026-04-21 03:13:00 | `scripts/utils/search-log.ps1` | `search-log` | Add auto-detection and native support for all 3 log formats: LOGCAT, JSON (.logcat AS export), TIMBER (device export) |
+| 2026-04-21 03:13:03 | `scripts/utils/convert-log.ps1` | `convert-log` | New script: standalone log format converter — normalizes JSON .logcat and Timber device exports to standard logcat text |
+| 2026-04-21 03:13:03 | `.github/prompts/log-reader.prompt.md` | `log-reader skill` | Expand skill with Format Detection section (LOGCAT/JSON/TIMBER specs), format-specific notes, convert-log usage |
+| 2026-04-21 03:13:09 | `scripts/utils/convert-log.ps1` | `convert-log` | New: standalone log format converter for JSON .logcat and Timber device exports |
+| 2026-04-21 03:13:09 | `.github/prompts/log-reader.prompt.md` | `log-reader skill` | Expand skill: Format Detection section for all 3 log types, format-specific analysis notes, convert-log usage |

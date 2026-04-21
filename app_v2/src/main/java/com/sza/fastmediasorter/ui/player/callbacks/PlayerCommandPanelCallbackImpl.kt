@@ -24,6 +24,10 @@ class PlayerCommandPanelCallbackImpl(
         activity.navigationManager.navigatePreviousFromButton()
     }
 
+    override fun onRandomClicked() {
+        activity.navigationManager.navigateRandomFromButton()
+    }
+
     override fun onNextClicked() {
         activity.navigationManager.navigateNextFromButton()
     }

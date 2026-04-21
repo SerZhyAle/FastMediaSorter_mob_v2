@@ -721,11 +721,9 @@ class PdfViewerManager(
             }
         }
         
-// Update command panel button tint
-        binding.btnTranslatePdfCmd.imageTintList = if (translationEnabled) 
-            android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) 
-        else 
-            android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
+        // Use alpha instead of imageTintList: tinting with a solid colour destroys
+        // the LanguageBadgeDrawable text, making the badge appear as a solid block.
+        binding.btnTranslatePdfCmd.alpha = if (translationEnabled) 1.0f else 0.55f
     }
 
     /**
@@ -736,9 +734,8 @@ class PdfViewerManager(
         translationEnabled = true
         translateCurrentPage()
         
-        // Update command panel button tint to red (active)
-        binding.btnTranslatePdfCmd.imageTintList = 
-            android.content.res.ColorStateList.valueOf(0xFFF44336.toInt())
+        // Update command panel button alpha to indicate active translation
+        binding.btnTranslatePdfCmd.alpha = 1.0f
     }
     
     /**

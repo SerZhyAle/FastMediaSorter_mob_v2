@@ -16,6 +16,8 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+#include <dlfcn.h>
+
 #include <atomic>
 #include <algorithm>
 #include <cstring>
@@ -277,7 +279,12 @@ namespace
         ci.next = &androidCreate;
         ci.enabledExtensionCount = static_cast<uint32_t>(enabledExts.size());
         ci.enabledExtensionNames = enabledExts.data();
-        ci.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
+        // WHY 1.1.0:
+        // Quest runtime builds have shown mixed legacy behavior around the graphics-requirements
+        // precondition on xrCreateSession. Requesting 1.1.0 keeps us on the current spec path,
+        // but we still call xrGetOpenGLESGraphicsRequirementsKHR explicitly below because some
+        // loader/runtime combinations continue to enforce the pre-session check.
+        ci.applicationInfo.apiVersion = XR_MAKE_VERSION(1, 1, 0);
         std::strncpy(ci.applicationInfo.applicationName,
                      "FastMediaSorter-VR",
                      XR_MAX_APPLICATION_NAME_SIZE - 1);
@@ -331,43 +338,101 @@ namespace
             }
         }
 
-        // MANDATORY per OpenXR spec §7.1: call xrGetGraphicsRequirementsOpenGLESKHR
-        // BEFORE xrCreateSession. Skipping this causes XR_ERROR_GRAPHICS_REQUIREMENTS_CHECK_MISSING (-50).
+        // MANDATORY per OpenXR spec §7.1: call xrGetOpenGLESGraphicsRequirementsKHR
+        // BEFORE xrCreateSession. Skipping this causes XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING (-50).
         //
-        // The PFN_ typedef may not exist in all header versions, so we define
-        // the function-pointer type locally to stay portable across OpenXR SDK releases.
+        // ROOT CAUSE FIX:
+        // The previous implementation looked up the non-existent symbol
+        // `xrGetGraphicsRequirementsOpenGLESKHR` (word order swapped), so every lookup path
+        // necessarily failed and Quest returned XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING (-50)
+        // from xrCreateSession.
+        //
+        // STRATEGY (three-step fallback):
+        //   1. xrGetInstanceProcAddr(instance, ...) — standard path.
+        //   2. xrGetInstanceProcAddr(XR_NULL_HANDLE, ...) — loader-level lookup (some loaders
+        //      keep extension functions accessible at global scope).
+        //   3. dlsym(libopenxr_loader.so, ...) — directly calls the loader's own exported
+        //      symbol, bypassing the runtime dispatch. The loader's exported implementation
+        //      lets us reach runtimes that expose the entry point through the loader symbol.
+        // If all three fail we log a warning; xrCreateSession will fail with -50 (fatal).
+        // The PFN_ typedef is defined locally to stay portable across OpenXR SDK versions.
         {
             typedef XrResult(XRAPI_PTR * PFN_GetGfxReqsGLES)(
                 XrInstance, XrSystemId, XrGraphicsRequirementsOpenGLESKHR *);
 
             PFN_GetGfxReqsGLES pfnGetGfxReqs = nullptr;
+
+            // Step 1: instance-level lookup (standard path).
             XrResult lookupResult = xrGetInstanceProcAddr(
                 g_ctx.instance,
-                "xrGetGraphicsRequirementsOpenGLESKHR",
+                "xrGetOpenGLESGraphicsRequirementsKHR",
                 reinterpret_cast<PFN_xrVoidFunction *>(&pfnGetGfxReqs));
-            LOGD("xrGetInstanceProcAddr(xrGetGraphicsRequirementsOpenGLESKHR): result=%d ptr=%p",
-                 static_cast<int>(lookupResult), static_cast<void *>(reinterpret_cast<void *>(pfnGetGfxReqs)));
+            LOGD("xrGetInstanceProcAddr(xrGetOpenGLESGraphicsRequirementsKHR): result=%d ptr=%p",
+                 static_cast<int>(lookupResult), reinterpret_cast<void *>(pfnGetGfxReqs));
 
-            if (XR_FAILED(lookupResult) || pfnGetGfxReqs == nullptr)
+            // Step 2: loader-level lookup via XR_NULL_HANDLE.
+            if (pfnGetGfxReqs == nullptr)
             {
-                LOGE("xrGetGraphicsRequirementsOpenGLESKHR function not found (result=%d) — cannot create session",
-                     static_cast<int>(lookupResult));
-                return false;
+                lookupResult = xrGetInstanceProcAddr(
+                    XR_NULL_HANDLE,
+                    "xrGetOpenGLESGraphicsRequirementsKHR",
+                    reinterpret_cast<PFN_xrVoidFunction *>(&pfnGetGfxReqs));
+                LOGD("xrGetInstanceProcAddr(XR_NULL_HANDLE, xrGetOpenGLESGraphicsRequirementsKHR): result=%d ptr=%p",
+                     static_cast<int>(lookupResult), reinterpret_cast<void *>(pfnGetGfxReqs));
             }
 
-            XrGraphicsRequirementsOpenGLESKHR gfxReqs{XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR};
-            XrResult reqResult = pfnGetGfxReqs(g_ctx.instance, g_ctx.systemId, &gfxReqs);
-            if (XR_FAILED(reqResult))
+            // Step 3: dlsym on the OpenXR loader shared library.
+            // Some Android builds expose the entry point via the loader symbol rather than via
+            // xrGetInstanceProcAddr, so probe the already-mapped loader as the last fallback.
+            if (pfnGetGfxReqs == nullptr)
             {
-                LOGE("xrGetGraphicsRequirementsOpenGLESKHR failed: %d — cannot create session",
-                     static_cast<int>(reqResult));
-                return false;
+                // Try both common loader library names on Meta Quest Android.
+                static const char* const kLoaderLibs[] = {
+                    "libopenxr_loader.so",
+                    "libopenxr.so",
+                    nullptr
+                };
+                for (int li = 0; kLoaderLibs[li] != nullptr && pfnGetGfxReqs == nullptr; ++li)
+                {
+                    // RTLD_NOLOAD: only succeed if the library is already mapped; we never
+                    // want to load a new SO here — the loader must already be in process.
+                    void* loaderLib = dlopen(kLoaderLibs[li], RTLD_NOW | RTLD_NOLOAD);
+                    if (loaderLib)
+                    {
+                        pfnGetGfxReqs = reinterpret_cast<PFN_GetGfxReqsGLES>(
+                            dlsym(loaderLib, "xrGetOpenGLESGraphicsRequirementsKHR"));
+                        LOGD("dlsym(%s, xrGetOpenGLESGraphicsRequirementsKHR): ptr=%p",
+                             kLoaderLibs[li], reinterpret_cast<void *>(pfnGetGfxReqs));
+                        dlclose(loaderLib);
+                    }
+                }
             }
-            LOGI("OpenGL ES version range: min=%u.%u  max=%u.%u",
-                 XR_VERSION_MAJOR(gfxReqs.minApiVersionSupported),
-                 XR_VERSION_MINOR(gfxReqs.minApiVersionSupported),
-                 XR_VERSION_MAJOR(gfxReqs.maxApiVersionSupported),
-                 XR_VERSION_MINOR(gfxReqs.maxApiVersionSupported));
+
+            if (pfnGetGfxReqs != nullptr)
+            {
+                XrGraphicsRequirementsOpenGLESKHR gfxReqs{XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_ES_KHR};
+                XrResult reqResult = pfnGetGfxReqs(g_ctx.instance, g_ctx.systemId, &gfxReqs);
+                if (XR_FAILED(reqResult))
+                {
+                    // Non-fatal on modern runtimes: we already attempted the required query and
+                    // apiVersion 1.1.0 avoids the legacy hard-fail path on compliant loaders.
+                    LOGW("xrGetOpenGLESGraphicsRequirementsKHR returned %d — proceeding",
+                         static_cast<int>(reqResult));
+                }
+                else
+                {
+                    LOGI("OpenGL ES version range: min=%u.%u  max=%u.%u",
+                         XR_VERSION_MAJOR(gfxReqs.minApiVersionSupported),
+                         XR_VERSION_MINOR(gfxReqs.minApiVersionSupported),
+                         XR_VERSION_MAJOR(gfxReqs.maxApiVersionSupported),
+                         XR_VERSION_MINOR(gfxReqs.maxApiVersionSupported));
+                }
+            }
+            else
+            {
+                // All three lookup methods failed — xrCreateSession will return -50.
+                LOGW("xrGetOpenGLESGraphicsRequirementsKHR unavailable via all methods (instance/null/dlsym) — xrCreateSession will likely fail with XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING (-50)");
+            }
         }
 
         // GL ES graphics binding — shares the Kotlin-side EGL context so the swapchain

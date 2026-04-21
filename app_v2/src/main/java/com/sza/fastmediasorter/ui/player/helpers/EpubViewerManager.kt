@@ -2026,9 +2026,12 @@ class EpubViewerManager(
                 )
                 
                 withContext(Dispatchers.Main) {
-                    // Clear any tint before setting custom drawable
+                    // Clear any tint before setting custom drawable — tinting with a solid
+                    // colour destroys the LanguageBadgeDrawable text (badge → solid block).
                     binding.btnTranslateEpubCmd.imageTintList = null
                     binding.btnTranslateEpubCmd.setImageDrawable(languageBadge)
+                    // Keep alpha consistent with current translation state
+                    binding.btnTranslateEpubCmd.alpha = if (translationEnabled) 1.0f else 0.55f
                     Timber.d("EPUB: Translate button icon updated successfully: $sourceLang -> $targetLang")
                     Timber.d("EPUB: Button drawable is now: ${binding.btnTranslateEpubCmd.drawable}")
                     Timber.d("EPUB: Button imageTintList is now: ${binding.btnTranslateEpubCmd.imageTintList}")

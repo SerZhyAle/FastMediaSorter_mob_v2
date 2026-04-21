@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
@@ -112,6 +114,7 @@ class BrowseManagerInitializer(
                 }
             }
             override fun onSortModeSelected(sortMode: SortMode) = viewModel.setSortMode(sortMode)
+            override fun onRandomReshuffle() = viewModel.reshuffleRandom()
             override fun onRenameConfirmed(oldName: String, newName: String) {}
             override fun onRenameMultipleConfirmed(files: List<Pair<String, String>>) {}
             override fun onDirectoryRenameConfirmed(oldPath: String, newName: String) = viewModel.renameDirectory(oldPath, newName)
@@ -416,6 +419,8 @@ class BrowseManagerInitializer(
             isLoadingProvider = { viewModel.loading.value }
         )
 
+        setupDragToReorder()
+
         lifecycleHelper = BrowseLifecycleHelper(
             activity = activity,
             recyclerView = binding.rvMediaFiles,
@@ -460,8 +465,7 @@ class BrowseManagerInitializer(
             scrollButtonManager = scrollButtonManager
         )
 
-        val sortButtonText = sortMenuManager.getSortModeShortName(viewModel.state.value.sortMode)
-        binding.btnSort.text = sortButtonText
+        updateSortButton(viewModel.state.value.sortMode)
         binding.btnSort.setOnClickListener {
             UserActionLogger.logButtonClick("SortButton", "BrowseActivity")
             sortMenuManager.showSortPopupMenu(binding.btnSort)
@@ -529,6 +533,48 @@ class BrowseManagerInitializer(
         })
         
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
+    }
+
+    private fun setupDragToReorder() {
+        val callback = com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback(
+            adapter = mediaFileAdapter,
+            onDragComplete = { orderedPaths -> viewModel.saveManualOrder(orderedPaths) }
+        )
+        val touchHelper = androidx.recyclerview.widget.ItemTouchHelper(callback)
+        touchHelper.attachToRecyclerView(binding.rvMediaFiles)
+
+        mediaFileAdapter.setDragStartListener(object : com.sza.fastmediasorter.ui.browse.MediaFileAdapter.DragStartListener {
+            override fun onStartDrag(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder) {
+                touchHelper.startDrag(viewHolder)
+            }
+        })
+
+        // Show/hide handles whenever sort mode changes
+        updateDragHandleVisibility(viewModel.state.value.sortMode)
+    }
+
+    fun updateSortButton(sortMode: SortMode) {
+        val tintColor = binding.btnSort.currentTextColor
+        val sortIconRes = BrowseSortMenuManager.getSortModeIconRes(sortMode) ?: 0
+
+        binding.btnSort.text = sortMenuManager.getSortModeShortName(sortMode)
+        // Keep btnSort as a compact TextView so both browse layouts retain their current sizing.
+        binding.btnSort.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            sortIconRes,
+            0,
+            R.drawable.ic_arrow_drop_down,
+            0
+        )
+        binding.btnSort.compoundDrawablePadding = if (sortIconRes != 0) {
+            activity.resources.getDimensionPixelSize(R.dimen.layout_spacing_normal)
+        } else {
+            0
+        }
+        TextViewCompat.setCompoundDrawableTintList(binding.btnSort, ColorStateList.valueOf(tintColor))
+    }
+
+    fun updateDragHandleVisibility(sortMode: SortMode) {
+        mediaFileAdapter.showDragHandles(sortMode == SortMode.MANUAL)
     }
 
     private fun performSelectAllWithToast() {
