@@ -6,6 +6,20 @@
 
 ---
 
+## Completed (Waves 1–3)
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/addresource/AddResourceActivity.kt` | 2 074 | 405 | −1 669 | `AddResourceConnectionManager`, `AddResourceScanManager`, `AddResourceFormManager` |
+| `ui/addresource/AddResourceViewModel.kt` | 1 827 | 554 | −1 273 | `AddResourceSmbCoordinator`, `AddResourceSftpFtpCoordinator`, `AddResourceSftpKeyCoordinator`, `AddResourceVirtualCoordinator`, `AddResourceNetworkScanCoordinator`, `AddResourceBridge`, `AddResourceFinalizer` |
+| `ui/settings/fragments/GeneralSettingsFragment.kt` | 2 358 | 209 | −2 149 | `GeneralSettings{Sections,Reset,Log,Permissions,ImportExport,Credential,Cache,Backup,Observers,ViewSetup,Prefetch}Helper` |
+| `ui/player/ImageLoadingManager.kt` | 2 241 | 1 305 | −936 | `AudioInfoDisplayHelper`, `ImagePreloadHelper`, `AudioCoverArtLoader` (still ≥ 700 — see Wave 4) |
+| `ui/browse/MediaFileAdapter.kt` | partial | 1 095 | — | `AdapterThumbnailLoader`, `AdapterFileInfoFormatter`, `AdapterDragController`, `InlinePlaybackAnimator`, `MediaFileDiffCallback` (still ≥ 700 — see Wave 4) |
+
+`PlayerViewModel.kt` has already absorbed 3 coordinators (`PlayerStereoModeCoordinator`, `PlayerDeleteUndoCoordinator`, `PlayerPrefetchOffloadCoordinator`), but remains at 1 321 LOC — see Wave 4.
+
+---
+
 ## Current sizes (files ≥ 700 LOC)
 
 | # | File | LOC | Target | Weight | Score |
@@ -103,3 +117,27 @@
 | 41 | `NetworkFileModelLoader.kt` | 719 | 1 438 |
 | 42 | `SftpOperationStrategy.kt` | 711 | 1 422 |
 | 43 | `FtpOperationActionStrategy.kt` | 707 | 1 414 |
+
+---
+
+## Wave 4 — in progress
+
+**Target:** `ui/player/PlayerViewModel.kt` (1 321 LOC → ≤ 700).
+
+Already delegated to coordinators:
+
+- Stereo / 3D detection → `PlayerStereoModeCoordinator`
+- Delete + undo → `PlayerDeleteUndoCoordinator`
+- Prefetch + offload → `PlayerPrefetchOffloadCoordinator`
+
+Remaining extractions (in planned order, biggest chunks first):
+
+| Step | Target block | Approx. LOC | Destination |
+| ---: | --- | ---: | --- |
+| 4.1 | `loadMediaFiles` + `loadSettings` + `reloadFiles` | ~360 | `PlayerMediaFilesLoader` |
+| 4.2 | `nextFile`, `previousFile`, `jumpToIndex`, `getLookaheadTargets`, `getAdjacentFiles`, `getNextAudioFile`, `cancelLoading` | ~250 | `PlayerNavigationCoordinator` |
+| 4.3 | File-list mutations: `onFileMoved`, `removeMovedFile`, `removeDeletedFile`, `removeFileFromList`, `refreshCurrentFileInfo` | ~150 | `PlayerFileListMutator` |
+| 4.4 | Slideshow + controls/panel/fullscreen toggles | ~130 | `PlayerSlideshowPanelCoordinator` |
+| 4.5 | Resume state + last-viewed debounce | ~75 | `PlayerResumeCoordinator` |
+
+Projected result: `PlayerViewModel.kt` ≈ 350 LOC (thin orchestration + state definition + delegating one-liners).
