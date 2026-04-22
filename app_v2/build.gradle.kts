@@ -10,6 +10,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// android.newDsl=false is intentionally set in gradle.properties (kapt compat — see builtInKotlin=false note).
+// Remove @Suppress once kapt → KSP migration is complete.
+@Suppress("DEPRECATION")
 android {
     val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
@@ -38,8 +41,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260421031
-        versionName = "2.60.4210.314"
+        versionCode = 260422141
+        versionName = "2.60.4221.410"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -80,6 +83,11 @@ android {
     // Product Flavors: Different app versions for different use cases
     flavorDimensions += listOf("version")
     
+    // Opt-in x86/x86_64 ABIs for emulator debugging (e.g. Android 8.1 / API 27 AVD is x86-only).
+    // Enable with: .\gradlew.bat assembleStandardDebug -PincludeX86
+    // Real-device and release builds stay arm64-only (APK size + Play distribution unchanged).
+    val includeX86Abis = project.hasProperty("includeX86")
+
     productFlavors {
         // Per-flavor CMake target filtering: only vr builds the native OpenXR bridge.
         // Non-vr flavors skip CMake entirely by declaring no build targets.
@@ -95,6 +103,9 @@ android {
                 // arm64-v8a, x86, x86_64), inflating the APK 3-4x. x86/x86_64 are emulator-only.
                 abiFilters.clear()
                 abiFilters += listOf("arm64-v8a")
+                if (includeX86Abis) {
+                    abiFilters += listOf("x86", "x86_64")
+                }
             }
         }
 
@@ -119,7 +130,7 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
-            // AAR rebuilt with NDK r25c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
+            // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             // 16 KB compatible — safe for Google Play.
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
         }
@@ -196,7 +207,7 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
-            // AAR rebuilt with NDK r25c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
+            // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
         }
 
@@ -241,7 +252,7 @@ android {
             // VR flavor routes all player launches to VrPlayerActivity (OpenXR host)
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
-            // AAR rebuilt with NDK r25c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
+            // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
         }
 
@@ -292,8 +303,8 @@ android {
     // AGP does not inherit flavor source sets automatically, so we add src/vr/ dirs explicitly.
     sourceSets {
         getByName("vrUnlicensed") {
-            java.srcDirs("src/vr/java")
-            res.srcDirs("src/vr/res")
+            java.srcDir("src/vr/java")
+            res.srcDir("src/vr/res")
             manifest.srcFile("src/vr/AndroidManifest.xml")
         }
     }

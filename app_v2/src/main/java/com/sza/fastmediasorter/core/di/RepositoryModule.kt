@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
 import com.sza.fastmediasorter.data.repository.SettingsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
+import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import dagger.Binds
 import dagger.Module
@@ -87,4 +89,10 @@ abstract class RepositoryModule {
     abstract fun bindWearableDataLayerRepository(
         impl: WearableDataLayerRepositoryImpl
     ): WearableDataLayerRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStreamingCacheRepository(
+        impl: StreamingCacheRepositoryImpl
+    ): StreamingCacheRepository
 }

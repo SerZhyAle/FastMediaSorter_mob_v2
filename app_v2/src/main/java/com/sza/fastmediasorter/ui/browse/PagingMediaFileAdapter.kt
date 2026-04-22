@@ -11,7 +11,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
+
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -797,15 +797,6 @@ class PagingMediaFileAdapter(
     }
 }
 
-private class MediaFileDiffCallback : DiffUtil.ItemCallback<MediaFile>() {
-    override fun areItemsTheSame(oldItem: MediaFile, newItem: MediaFile): Boolean {
-        return oldItem.path == newItem.path
-    }
-
-    override fun areContentsTheSame(oldItem: MediaFile, newItem: MediaFile): Boolean {
-        return oldItem == newItem
-    }
-}
 
 
 

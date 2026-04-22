@@ -25,10 +25,12 @@ import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
+import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -515,20 +517,32 @@ class BrowseManagerInitializer(
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
             override fun onResourceOpsClicked(anchor: android.view.View) {
                 val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
-                resourceOpsMenuManager.showMenu(
-                    anchor = anchor,
-                    viewModel = viewModel,
-                    isScheduleEnabled = isScheduleEnabled,
-                    onAutomateSource = if (isScheduleEnabled) {
-                        {
-                            val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
-                            activity.startActivity(Intent(activity, SettingsActivity::class.java).apply {
-                                putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
-                            })
-                        }
-                    } else null,
-                    onAddToDestinations = { viewModel.addCurrentResourceAsDestination() }
-                )
+                // Destinations-full check runs async — resolve it before opening the popup so the
+                // menu item visibility is correct on first render (the popup itself is not suspendable).
+                lifecycleScope.launch {
+                    val isDestinationsFull = try {
+                        getDestinationsUseCase.isDestinationsFull()
+                    } catch (e: Exception) {
+                        Timber.w(e, "onResourceOpsClicked: failed to resolve isDestinationsFull — defaulting to false")
+                        false
+                    }
+                    resourceOpsMenuManager.showMenu(
+                        anchor = anchor,
+                        viewModel = viewModel,
+                        isScheduleEnabled = isScheduleEnabled,
+                        onAutomateSource = if (isScheduleEnabled) {
+                            {
+                                val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
+                                activity.startActivity(Intent(activity, SettingsActivity::class.java).apply {
+                                    putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
+                                })
+                            }
+                        } else null,
+                        onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
+                        onArchive = { showArchiveDestinationPicker() },
+                        isDestinationsFull = isDestinationsFull
+                    )
+                }
             }
         })
         
@@ -643,6 +657,56 @@ class BrowseManagerInitializer(
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
             fileOperationsManager.showMoveDialog(selectedPaths.toList(), state.mediaFiles, resource, settings)
+        }
+    }
+
+    /**
+     * Archive menu entry: pick a destination folder via the Copy/Move picker in ARCHIVE mode,
+     * then hand the chosen path to [BrowseArchiveDialogManager.showArchiveConfigurationDialog]
+     * which prompts for the archive name and runs the operation.
+     *
+     * Destination picker excludes the current source resource (same semantics as Copy/Move);
+     * the toolbar btnArchive already covers archiving into the current folder.
+     */
+    private fun showArchiveDestinationPicker() {
+        val state = viewModel.state.value
+        val resource = state.resource ?: run {
+            Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val selectedPaths = state.selectedFiles.toList()
+        if (selectedPaths.isEmpty()) {
+            Toast.makeText(activity, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val sourceFiles = selectedPaths.map { File(it) }
+        lifecycleScope.launch {
+            val settings = viewModel.getSettings()
+            val dialog = FileOperationDestinationDialog(
+                context = activity,
+                operationType = FileOperationType.ARCHIVE,
+                sourceFiles = sourceFiles,
+                sourceFolderName = resource.name,
+                currentResourceId = resource.id,
+                currentBrowsePath = state.currentPath,
+                sourceCredentialsId = resource.credentialsId,
+                fileOperationUseCase = fileOperationUseCase,
+                getDestinationsUseCase = getDestinationsUseCase,
+                overwriteFiles = false,
+                showDetailedErrors = settings.showDetailedErrors,
+                onDestinationSelected = { destination ->
+                    // ARCHIVE mode: dialog captures destination and dismisses; hand off to the
+                    // existing archive-configuration dialog (name prompt + progress/result flow).
+                    archiveDialogManager.showArchiveConfigurationDialog(
+                        currentDir = destination.path,
+                        selectedFiles = state.selectedFiles,
+                        mediaFiles = state.mediaFiles
+                    )
+                },
+                onComplete = { /* no-op: ARCHIVE mode does not run an operation here */ }
+            )
+            dialog.show()
         }
     }
 

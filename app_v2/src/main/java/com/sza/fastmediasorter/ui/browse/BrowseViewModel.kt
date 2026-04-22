@@ -412,6 +412,24 @@ class BrowseViewModel @Inject constructor(
         resourceId = resourceId
     )
 
+    // --- Shutdown / network-key helper (delegated to BrowseShutdownCoordinator) ---
+    private val shutdownCoordinator = com.sza.fastmediasorter.ui.browse.managers.BrowseShutdownCoordinator(
+        stateFlow = state,
+        ioDispatcher = ioDispatcher,
+        browseStateDataStore = browseStateDataStore,
+        unifiedCache = unifiedCache,
+        cleanupTrash = { resource -> refreshManager.cleanupTrashOnBackground(resource, maxAgeMs = 0L) }
+    )
+
+    // --- Manual-order ordering (delegated to BrowseManualOrderCoordinator) ---
+    private val manualOrderCoordinator = com.sza.fastmediasorter.ui.browse.managers.BrowseManualOrderCoordinator(
+        manualOrderPrefs = manualOrderPrefs,
+        resourceId = resourceId,
+        stateFlow = state,
+        updateState = { update -> updateState(update) },
+        fallbackSort = { files, mode, force -> sortFilterManager.sortFiles(files, mode, force) }
+    )
+
     // --- Lifecycle setup (delegated to BrowseLifecycleSetupManager) ---
     private val lifecycleSetupManager = com.sza.fastmediasorter.ui.browse.managers.BrowseLifecycleSetupManager(
         browseStateDataStore = browseStateDataStore,
@@ -465,25 +483,8 @@ class BrowseViewModel @Inject constructor(
     /** True if scheduled operations are enabled in user settings (runtime flag). */
     val scheduledOperationsEnabled: Boolean get() = lifecycleSetupManager.scheduledOperationsEnabled
 
-    fun cancelBackgroundThumbnailLoading() {
-        buildNetworkResourceKey()?.let {
-            ConnectionThrottleManager.cancelAllForResource(it)
-            Timber.d("BrowseViewModel: cancelled background thumbnail loading for $it")
-        }
-    }
+    fun cancelBackgroundThumbnailLoading() = shutdownCoordinator.cancelBackgroundThumbnailLoading()
 
-    private fun buildNetworkResourceKey(): String? {
-        val r = state.value.resource
-        if (r == null || r.type == ResourceType.LOCAL) return null
-        return when (r.type) {
-            ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> {
-                val uri = java.net.URI(r.path)
-                "${uri.scheme}://${uri.host}:${uri.port.takeIf { it != -1 } ?: 445}"
-            }
-            ResourceType.CLOUD -> "cloud://${r.cloudProvider}/${r.cloudFolderId}"
-            else -> null
-        }
-    }
     /** Toggle inline playback — delegates to BrowseInlineAudioManager. */
     fun inlinePlayToggle(file: MediaFile) = audioManager.inlinePlayToggle(file)
 
@@ -492,7 +493,7 @@ class BrowseViewModel @Inject constructor(
 
     override fun onCleared() {
         Timber.d("BrowseViewModel.onCleared: START - resourceId=$resourceId, fileCount=${state.value.mediaFiles.size}")
-        
+
         loadFilesJob?.cancel()
         loadResourceJob?.cancel()
         reloadFilesJob?.cancel()
@@ -501,25 +502,11 @@ class BrowseViewModel @Inject constructor(
         shouldStopScan.set(true) // Graceful stop flag for any in-flight scanner
 
         fileObserverManager.stop()
-        
-        val resource = state.value.resource
-        buildNetworkResourceKey()?.let {
-            ConnectionThrottleManager.cancelAllForResource(it)
-            Timber.d("BrowseViewModel.onCleared: cancelled ops for $it")
-        }
-        viewModelScope.launch(ioDispatcher) { browseStateDataStore.saveFilter(state.value.filter) }
+        shutdownCoordinator.onShutdown(viewModelScope)
         inlineStop() // Release MediaPlayer
-        
         navigationManager.clearDirectoryCache()
-        
-        if (resource != null) {
-            kotlinx.coroutines.CoroutineScope(ioDispatcher + kotlinx.coroutines.NonCancellable).launch {
-                runCatching { refreshManager.cleanupTrashOnBackground(resource, maxAgeMs = 0L) }
-                    .onFailure { Timber.w(it, "onCleared: trash cleanup failed") }
-                runCatching { unifiedCache.clearAll() }
-                    .onFailure { Timber.w(it, "onCleared: cache cleanup failed") }
-            }
-        }
+        shutdownCoordinator.launchPostShutdownCleanup()
+
         super.onCleared()
         Timber.d("BrowseViewModel.onCleared: COMPLETE")
     }
@@ -643,41 +630,17 @@ class BrowseViewModel @Inject constructor(
     fun setFilter(filter: FileFilter?) = sortFilterManager.setFilter(filter)
     fun applyFilter() = sortFilterManager.applyFilter()
     internal fun applyFilterToList(files: List<com.sza.fastmediasorter.domain.model.MediaFile>, filter: com.sza.fastmediasorter.domain.model.FileFilter): List<MediaFile> = sortFilterManager.applyFilterToList(files, filter)
-    private fun sortFiles(files: List<com.sza.fastmediasorter.domain.model.MediaFile>, mode: com.sza.fastmediasorter.domain.model.SortMode, forceSort: Boolean = false): List<MediaFile> {
-        if (mode == com.sza.fastmediasorter.domain.model.SortMode.MANUAL) {
-            val savedOrder = manualOrderPrefs.loadOrder(resourceId, currentDirPath())
-            if (savedOrder != null) return applyManualOrder(files, savedOrder)
-        }
-        return sortFilterManager.sortFiles(files, mode, forceSort)
-    }
-
-    private fun currentDirPath(): String =
-        state.value.currentPath ?: state.value.resource?.path ?: ""
-
-    private fun applyManualOrder(
+    private fun sortFiles(
         files: List<MediaFile>,
-        orderedPaths: List<String>
-    ): List<MediaFile> {
-        val pathIndex = orderedPaths.withIndex().associate { (i, p) -> p to i }
-        val dirs = files.filter { it.isDirectory }.sortedBy { it.name.lowercase() }
-        val regular = files.filter { !it.isDirectory }
-            .sortedBy { pathIndex[it.path] ?: Int.MAX_VALUE }
-        return dirs + regular
-    }
+        mode: SortMode,
+        forceSort: Boolean = false
+    ): List<MediaFile> = manualOrderCoordinator.sortFiles(files, mode, forceSort)
 
     /**
      * Persists drag-reordered file paths and updates the visible list immediately.
      * Called from BrowseManagerInitializer after drag ends (clearView).
      */
-    fun saveManualOrder(orderedPaths: List<String>) {
-        val dirPath = currentDirPath()
-        manualOrderPrefs.saveOrder(resourceId, dirPath, orderedPaths)
-        Timber.d("BrowseViewModel.saveManualOrder: saved ${orderedPaths.size} paths for $dirPath")
-        if (state.value.sortMode == com.sza.fastmediasorter.domain.model.SortMode.MANUAL) {
-            val reordered = applyManualOrder(state.value.mediaFiles, orderedPaths)
-            updateState { it.copy(mediaFiles = reordered) }
-        }
-    }
+    fun saveManualOrder(orderedPaths: List<String>) = manualOrderCoordinator.saveManualOrder(orderedPaths)
 
     fun saveLastViewedFile(filePath: String) = resourceStateManager.saveLastViewedFile(filePath)
     

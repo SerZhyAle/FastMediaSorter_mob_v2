@@ -5,15 +5,13 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityDropboxFolderPickerBinding
+import com.sza.fastmediasorter.databinding.ItemDropboxFolderBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -24,7 +22,7 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
     }
 
     private val viewModel: DropboxFolderPickerViewModel by viewModels()
-    private lateinit var folderAdapter: DropboxFolderAdapter
+    private lateinit var folderAdapter: CloudFolderAdapter
 
     override fun getViewBinding(): ActivityDropboxFolderPickerBinding {
         return ActivityDropboxFolderPickerBinding.inflate(layoutInflater)
@@ -52,19 +50,14 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
             }
         })
 
-        folderAdapter = DropboxFolderAdapter(
-            onFolderSelect = { folder ->
-                viewModel.selectFolder(folder)
+        folderAdapter = CloudFolderAdapter(
+            inflate = { inflater, parent, attach ->
+                CloudFolderItemBinding.Dropbox(ItemDropboxFolderBinding.inflate(inflater, parent, attach))
             },
-            onFolderNavigate = { folder ->
-                viewModel.navigateIntoFolder(folder)
-            },
-            onNavigateBack = {
-                viewModel.navigateBack()
-            },
-            isRootLevel = {
-                viewModel.state.value.currentPath.size == 1
-            }
+            onFolderSelect = { folder -> viewModel.selectFolder(folder) },
+            onFolderNavigate = { folder -> viewModel.navigateIntoFolder(folder) },
+            onNavigateBack = { viewModel.navigateBack() },
+            isRootLevel = { viewModel.state.value.currentPath.size == 1 }
         )
 
         binding.rvFolders.adapter = folderAdapter
@@ -97,49 +90,38 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
     }
 
     override fun observeData() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    folderAdapter.submitList(state.folders)
-                    
-                    binding.progressBar.isVisible = state.isLoading && !binding.swipeRefresh.isRefreshing
-                    binding.swipeRefresh.isRefreshing = state.isLoading && binding.swipeRefresh.isRefreshing
-                    
-                    binding.tvEmptyState.isVisible = state.folders.isEmpty() && !state.isLoading
-                    binding.rvFolders.isVisible = state.folders.isNotEmpty()
-                    
-                    // Update toolbar title with current path
-                    val pathString = state.currentPath.joinToString(" / ") { it.name }
-                    binding.toolbar.title = pathString
-                    
-                    // Update checkboxes
-                    binding.cbAddAsDestination.isChecked = state.addAsDestination
-                    binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
-                }
-            }
+        collectOnLifecycle(viewModel.state) { state ->
+            folderAdapter.submitList(state.folders)
+
+            binding.progressBar.isVisible = state.isLoading && !binding.swipeRefresh.isRefreshing
+            binding.swipeRefresh.isRefreshing = state.isLoading && binding.swipeRefresh.isRefreshing
+
+            binding.tvEmptyState.isVisible = state.folders.isEmpty() && !state.isLoading
+            binding.rvFolders.isVisible = state.folders.isNotEmpty()
+
+            val pathString = state.currentPath.joinToString(" / ") { it.name }
+            binding.toolbar.title = pathString
+
+            binding.cbAddAsDestination.isChecked = state.addAsDestination
+            binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is DropboxFolderPickerEvent.ShowError -> {
-                            Toast.makeText(this@DropboxFolderPickerActivity, event.message, Toast.LENGTH_SHORT).show()
-                        }
-                        is DropboxFolderPickerEvent.FolderSelected -> {
-                            Toast.makeText(this@DropboxFolderPickerActivity, 
-                                getString(R.string.resource_added), 
-                                Toast.LENGTH_SHORT).show()
-                            
-                            // Navigate to main activity
-                            val intent = Intent(this@DropboxFolderPickerActivity, 
-                                com.sza.fastmediasorter.ui.main.MainActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                            }
-                            startActivity(intent)
-                            finish()
-                        }
+        collectOnLifecycle(viewModel.events) { event ->
+            when (event) {
+                is DropboxFolderPickerEvent.ShowError -> {
+                    Toast.makeText(this@DropboxFolderPickerActivity, event.message, Toast.LENGTH_SHORT).show()
+                }
+                is DropboxFolderPickerEvent.FolderSelected -> {
+                    Toast.makeText(this@DropboxFolderPickerActivity,
+                        getString(R.string.resource_added),
+                        Toast.LENGTH_SHORT).show()
+
+                    val intent = Intent(this@DropboxFolderPickerActivity,
+                        com.sza.fastmediasorter.ui.main.MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     }
+                    startActivity(intent)
+                    finish()
                 }
             }
         }

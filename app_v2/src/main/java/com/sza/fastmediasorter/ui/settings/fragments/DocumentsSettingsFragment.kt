@@ -7,9 +7,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsDocumentsBinding
@@ -116,28 +114,24 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.settings.collect { settings ->
-                    withSettingsUpdate {
-                        val isAllFilesEnabled = settings.allFiles
+        collectOnLifecycle(viewModel.settings) { settings ->
+            withSettingsUpdate {
+                val isAllFilesEnabled = settings.allFiles
 
-                        setSwitchChecked(binding.switchSupportText, isAllFilesEnabled || settings.supportText)
-                        binding.switchSupportText.isEnabled = !isAllFilesEnabled
+                setSwitchChecked(binding.switchSupportText, isAllFilesEnabled || settings.supportText)
+                binding.switchSupportText.isEnabled = !isAllFilesEnabled
 
-                        setSwitchChecked(binding.switchSupportPdf, isAllFilesEnabled || settings.supportPdf)
-                        binding.switchSupportPdf.isEnabled = !isAllFilesEnabled
+                setSwitchChecked(binding.switchSupportPdf, isAllFilesEnabled || settings.supportPdf)
+                binding.switchSupportPdf.isEnabled = !isAllFilesEnabled
 
-                        setSwitchChecked(binding.switchSupportEpub, isAllFilesEnabled || settings.supportEpub)
-                        binding.switchSupportEpub.isEnabled = !isAllFilesEnabled
+                setSwitchChecked(binding.switchSupportEpub, isAllFilesEnabled || settings.supportEpub)
+                binding.switchSupportEpub.isEnabled = !isAllFilesEnabled
 
-                        setSwitchChecked(binding.switchShowTextLineNumbers, settings.showTextLineNumbers)
-                        setSwitchChecked(binding.switchShowPdfThumbnails, settings.showPdfThumbnails)
+                setSwitchChecked(binding.switchShowTextLineNumbers, settings.showTextLineNumbers)
+                setSwitchChecked(binding.switchShowPdfThumbnails, settings.showPdfThumbnails)
 
-                        binding.layoutShowTextLineNumbers.isVisible = settings.supportText
-                        binding.layoutShowPdfThumbnails.isVisible = settings.supportPdf
-                    }
-                }
+                binding.layoutShowTextLineNumbers.isVisible = settings.supportText
+                binding.layoutShowPdfThumbnails.isVisible = settings.supportPdf
             }
         }
     }

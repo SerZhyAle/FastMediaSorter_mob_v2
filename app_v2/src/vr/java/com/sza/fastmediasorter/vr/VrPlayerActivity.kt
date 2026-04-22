@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.vr
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -941,6 +942,13 @@ class VrPlayerActivity : PlayerActivity() {
         private const val VR_SEEK_SECONDS = 15
         private const val VR_FALLBACK_ERROR_DELAY_MS = 350L
 
+        /**
+         * Intent extra carrying the Meta Quest shell launch token.
+         * Populated by HorizonOS when the app is opened from the Library; must be
+         * forwarded from MainActivity's intent so VrPlayerActivity sees it too.
+         */
+        const val EXTRA_VR_SHELL_LAUNCH_ID = "com.oculus.vrshell.launch_id"
+
         /** Cached XR runtime probe — avoids repeated loadLibrary calls. */
         private val xrAvailable: Boolean by lazy {
             try {
@@ -951,5 +959,17 @@ class VrPlayerActivity : PlayerActivity() {
                 false
             }
         }
+
+        /**
+         * Called by the Meta OpenXR runtime via JNI reflection during xrCreateSession.
+         * Returning a non-empty launch token lets the runtime register the client with
+         * a valid `clientLaunchId` and transition the session to FOCUSED, which is the
+         * state required for true immersive VR (exclusive headset takeover, no shell
+         * overlay). Empty string on ADB launches keeps the current VISIBLE behaviour.
+         */
+        @JvmStatic
+        @Suppress("unused")
+        fun getLaunchId(activity: Activity): String =
+            activity.intent?.getStringExtra(EXTRA_VR_SHELL_LAUNCH_ID) ?: ""
     }
 }

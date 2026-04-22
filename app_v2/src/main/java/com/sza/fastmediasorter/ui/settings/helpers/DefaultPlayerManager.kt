@@ -50,11 +50,13 @@ object DefaultPlayerManager {
 
     /**
      * Phase 7: Returns only the ACTION_SEND alias suffixes that are valid for this flavor.
+     * StandaloneTextSender is included unconditionally — plain text is tiny and universally useful.
      */
     private fun sendAliasesForFlavor(): List<String> = buildList {
         if (BuildConfig.SUPPORT_AUDIO)  add(".StandaloneAudioSender")
         if (BuildConfig.SUPPORT_VIDEO)  add(".StandaloneVideoSender")
         if (BuildConfig.SUPPORT_IMAGES) add(".StandaloneImageSender")
+        add(".StandaloneTextSender")
     }
 
     /**

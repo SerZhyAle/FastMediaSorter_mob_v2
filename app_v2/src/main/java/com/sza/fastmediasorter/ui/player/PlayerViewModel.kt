@@ -8,7 +8,12 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
+import com.sza.fastmediasorter.domain.model.OffloadOffer
+import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
+import com.sza.fastmediasorter.domain.model.PrefetchPlan
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
 import com.sza.fastmediasorter.domain.model.ResumeState
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -25,12 +30,23 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
+import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase
+import com.sza.fastmediasorter.ui.player.helpers.PrefetchPolicyManager
+import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgress
+import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgressTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +71,10 @@ class PlayerViewModel @Inject constructor(
     private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
     private val cachedFileListRepository: CachedFileListRepository,
     private val clearResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase,
-    private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase
+    private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
+    private val prefetchPolicyManager: PrefetchPolicyManager,
+    private val streamOffloadUseCase: StreamOffloadUseCase,
+    private val streamingCacheRepository: StreamingCacheRepository
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -134,138 +153,34 @@ class PlayerViewModel @Inject constructor(
     // ── Stereo / 3D video state ──────────────────────────────────────────────
     // Separate flow from PlayerState because the effective stereo mode needs to react
     // immediately to auto-detection, dialog overrides, and remembered VR format settings.
-    private val _stereoMode = MutableStateFlow(StereoMode.AUTO)
-    val stereoMode: StateFlow<StereoMode> = _stereoMode.asStateFlow()
+    private val stereoCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerStereoModeCoordinator(
+        stereoFormatOverrideDao = stereoFormatOverrideDao,
+        scope = viewModelScope,
+        getCurrentFilePath = { state.value.currentFile?.path }
+    )
 
-    private val _detectedStereoMode = MutableStateFlow(StereoMode.UNKNOWN)
-    val detectedStereoMode: StateFlow<StereoMode> = _detectedStereoMode.asStateFlow()
+    val stereoMode: StateFlow<StereoMode> = stereoCoordinator.stereoMode
+    val detectedStereoMode: StateFlow<StereoMode> = stereoCoordinator.detectedStereoMode
 
-    @Volatile
-    private var hasManualStereoSelection = false
-
-    @Volatile
-    private var ignoreForcedFormatForCurrentFile = false
-
-    /** Cached VR family-specific overrides from settings — read synchronously on image display. */
-    @Volatile
-    var vrForcedPlatFormatCached: StereoMode? = null
-        private set
-
-    @Volatile
-    var vrForcedSphericalFormatCached: StereoMode? = null
-        private set
-
-    @Volatile
-    var vrRememberFileFormatEnabledCached: Boolean = true
-        private set
-
-    @Volatile
-    private var currentStereoOverridePath: String? = null
-
-    @Volatile
-    private var currentStereoOverrideMode: StereoMode? = null
-
-    /**
-     * Set the stereo display mode for the current video.
-     * [StereoMode.AUTO] returns to detected mode for the current file and intentionally
-     * ignores any remembered forced format until the next file is loaded.
-     */
-    fun setStereoMode(mode: StereoMode) {
-        hasManualStereoSelection = mode != StereoMode.AUTO
-        ignoreForcedFormatForCurrentFile = mode == StereoMode.AUTO
-
-        val resolvedMode = if (mode == StereoMode.AUTO) {
-            resolveAutoStereoMode()
-        } else {
-            mode
+    private val deleteUndoCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerDeleteUndoCoordinator(
+        fileOperationUseCase = fileOperationUseCase,
+        settingsRepository = settingsRepository,
+        getMediaFilesUseCase = getMediaFilesUseCase,
+        scope = viewModelScope,
+        stateFlow = state,
+        updateState = { update -> updateState(update) },
+        sendEvent = { event -> sendEvent(event) },
+        parentCallbacks = object : com.sza.fastmediasorter.ui.player.helpers.PlayerDeleteUndoCoordinator.ParentCallbacks {
+            override fun saveResumeState() = this@PlayerViewModel.saveResumeState()
+            override fun reloadFiles() = this@PlayerViewModel.reloadFiles()
         }
+    )
 
-        if (_stereoMode.value == resolvedMode) return
-        Timber.d("PlayerViewModel: stereoMode → $resolvedMode (requested=$mode)")
-        _stereoMode.value = resolvedMode
-    }
-
-    /**
-     * Set the stereo mode auto-detected from video metadata/dimensions.
-     * Always updates the detected-mode cache so the dialog can return to AUTO immediately.
-     * Only applies to the effective mode when the user has not picked a manual override.
-     */
-    fun setAutoDetectedStereoMode(mode: StereoMode) {
-        if (mode == StereoMode.UNKNOWN || mode == StereoMode.AUTO) return  // no useful info
-        _detectedStereoMode.value = mode
-
-        if (hasManualStereoSelection) return
-
-        val resolvedMode = if (ignoreForcedFormatForCurrentFile) {
-            mode
-        } else {
-            resolveForcedStereoMode(mode)
-        }
-
-        if (_stereoMode.value == resolvedMode) return
-        Timber.d("PlayerViewModel: auto-detected stereoMode → $resolvedMode (detected=$mode)")
-        _stereoMode.value = resolvedMode
-    }
-
-    /**
-     * Reset stereo mode when navigating to a new file so auto-detection starts fresh,
-     * while remembered forced format may still seed the initial effective mode.
-     */
-    fun resetStereoModeForNewFile(filePath: String? = state.value.currentFile?.path) {
-        hasManualStereoSelection = false
-        ignoreForcedFormatForCurrentFile = false
-        _detectedStereoMode.value = StereoMode.UNKNOWN
-        currentStereoOverridePath = filePath
-        currentStereoOverrideMode = null
-        _stereoMode.value = resolveForcedStereoMode(StereoMode.AUTO)
-
-        // Load per-file remembered override asynchronously. The initial value falls back
-        // to global forced format so playback can start immediately even on slow storage.
-        if (!vrRememberFileFormatEnabledCached || filePath.isNullOrBlank()) return
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val rememberedMode = stereoFormatOverrideDao.getEntry(filePath)?.let { entry ->
-                StereoMode.fromKey(entry.stereoModeKey)
-            }?.takeUnless { it == StereoMode.UNKNOWN || it == StereoMode.AUTO }
-
-            withContext(Dispatchers.Main) {
-                if (currentStereoOverridePath != filePath) return@withContext
-                currentStereoOverrideMode = rememberedMode
-
-                if (!hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
-                    val resolvedMode = resolveForcedStereoMode(_detectedStereoMode.value)
-                    if (_stereoMode.value != resolvedMode) {
-                        Timber.d("PlayerViewModel: remembered per-file stereoMode -> $resolvedMode (path=$filePath)")
-                        _stereoMode.value = resolvedMode
-                    }
-                }
-            }
-        }
-    }
-
-    fun rememberStereoModeIfEnabled(mode: StereoMode) {
-        if (!vrRememberFileFormatEnabledCached) return
-
-        val filePath = state.value.currentFile?.path ?: return
-        currentStereoOverridePath = filePath
-
-        viewModelScope.launch(Dispatchers.IO) {
-            if (mode == StereoMode.AUTO) {
-                currentStereoOverrideMode = null
-                stereoFormatOverrideDao.deleteEntry(filePath)
-                return@launch
-            }
-
-            currentStereoOverrideMode = mode
-            stereoFormatOverrideDao.upsert(
-                StereoFormatOverrideEntity(
-                    filePath = filePath,
-                    stereoModeKey = mode.name,
-                    updatedAt = System.currentTimeMillis(),
-                )
-            )
-        }
-    }
+    fun setStereoMode(mode: StereoMode) = stereoCoordinator.setStereoMode(mode)
+    fun setAutoDetectedStereoMode(mode: StereoMode) = stereoCoordinator.setAutoDetectedStereoMode(mode)
+    fun resetStereoModeForNewFile(filePath: String? = state.value.currentFile?.path) =
+        stereoCoordinator.resetStereoModeForNewFile(filePath)
+    fun rememberStereoModeIfEnabled(mode: StereoMode) = stereoCoordinator.rememberStereoModeIfEnabled(mode)
 
     fun showMessage(message: String) {
         sendEvent(PlayerEvent.ShowMessage(message))
@@ -278,6 +193,37 @@ class PlayerViewModel @Inject constructor(
     fun showVrInstallCta(mode: StereoMode) {
         sendEvent(PlayerEvent.ShowVrInstallCta(mode))
     }
+
+    // ── Adaptive pre-cache & stream-offload — delegated to PlayerPrefetchOffloadCoordinator.
+    // See spec: PLAN/spec_adaptive-playback-strategy.md §5.5-§5.6.
+    private val prefetchOffloadCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchOffloadCoordinator(
+        scope = viewModelScope,
+        settingsRepository = settingsRepository,
+        streamOffloadUseCase = streamOffloadUseCase,
+        streamingCacheRepository = streamingCacheRepository,
+        stateFlow = state,
+        updateState = { update -> updateState(update) }
+    )
+
+    val prefetchCacheMultiplier: StateFlow<PrefetchCacheMultiplier> = prefetchOffloadCoordinator.prefetchCacheMultiplier
+    val prefetchPlan: StateFlow<PrefetchPlan?> = prefetchOffloadCoordinator.prefetchPlan
+    val prefetchProgress: StateFlow<PrefetchProgress> = prefetchOffloadCoordinator.prefetchProgress
+    val offloadOffer: SharedFlow<OffloadOffer> = prefetchOffloadCoordinator.offloadOffer
+    val offloadProgress: StateFlow<StreamOffloadUseCase.OffloadProgress?> = prefetchOffloadCoordinator.offloadProgress
+    val cleanupPrompt: SharedFlow<CleanupPromptRequest> = prefetchOffloadCoordinator.cleanupPrompt
+
+    fun updatePrefetchPlan(plan: PrefetchPlan) = prefetchOffloadCoordinator.updatePrefetchPlan(plan)
+    fun bindPrefetchTracker(tracker: PrefetchProgressTracker) = prefetchOffloadCoordinator.bindPrefetchTracker(tracker)
+    fun unbindPrefetchTracker() = prefetchOffloadCoordinator.unbindPrefetchTracker()
+    fun emitOffloadOffer(offer: OffloadOffer) = prefetchOffloadCoordinator.emitOffloadOffer(offer)
+    fun acceptOffload(offer: OffloadOffer) = prefetchOffloadCoordinator.acceptOffload(offer)
+    fun declineOffload(offer: OffloadOffer) = prefetchOffloadCoordinator.declineOffload(offer)
+    fun cancelOffload() = prefetchOffloadCoordinator.cancelOffload()
+    fun switchToLocalFile(entry: com.sza.fastmediasorter.data.local.db.StreamingCacheEntry) =
+        prefetchOffloadCoordinator.switchToLocalFile(entry)
+    fun requestCleanupIfNeeded() = prefetchOffloadCoordinator.requestCleanupIfNeeded()
+    fun deleteLocalCopy(entry: com.sza.fastmediasorter.data.local.db.StreamingCacheEntry) =
+        prefetchOffloadCoordinator.deleteLocalCopy(entry)
 
     init {
         loadSettings()
@@ -313,19 +259,11 @@ class PlayerViewModel @Inject constructor(
                     val resource = state.value.resource
 
                     // Cache family-specific forced settings for synchronous reads in image stereo detection.
-                    val forcedPlatFormat = VrForcedFormatResolver.mapPlatSetting(settings.vrForcedPlatFormat)
-                    val forcedSphericalFormat = VrForcedFormatResolver.mapSphericalSetting(settings.vrForcedSphericalFormat)
-                    val forcedFormatChanged =
-                        vrForcedPlatFormatCached != forcedPlatFormat ||
-                            vrForcedSphericalFormatCached != forcedSphericalFormat
-                    vrForcedPlatFormatCached = forcedPlatFormat
-                    vrForcedSphericalFormatCached = forcedSphericalFormat
-                    val rememberFormatChanged = vrRememberFileFormatEnabledCached != settings.vrRememberFileFormat
-                    vrRememberFileFormatEnabledCached = settings.vrRememberFileFormat
-
-                    if ((rememberFormatChanged || forcedFormatChanged) && !hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
-                        _stereoMode.value = resolveForcedStereoMode(_detectedStereoMode.value)
-                    }
+                    stereoCoordinator.applySettings(
+                        forcedPlatFormat = VrForcedFormatResolver.mapPlatSetting(settings.vrForcedPlatFormat),
+                        forcedSphericalFormat = VrForcedFormatResolver.mapSphericalSetting(settings.vrForcedSphericalFormat),
+                        rememberFileFormat = settings.vrRememberFileFormat
+                    )
                     
                     // Determine showCommandPanel:
                     // Priority: runtime session value → initial load via same logic as loadMediaFiles()
@@ -1078,368 +1016,18 @@ class PlayerViewModel @Inject constructor(
      * Delete the current file and navigate to next/previous file.
      * @return true if file deleted successfully and navigation occurred, false if deletion failed, null if no files remain (should finish activity)
      */
-    fun deleteCurrentFile(): Boolean? {
-        val currentFile = state.value.currentFile
-        val resource = state.value.resource
-        
-        if (currentFile == null) {
-            sendEvent(PlayerEvent.ShowError("No file to delete"))
-            return false
-        }
-        
-        if (resource == null) {
-            sendEvent(PlayerEvent.ShowError("Resource not loaded"))
-            return false
-        }
-        
-        viewModelScope.launch {
-            try {
-                // Deleting file
-                
-                // Check if path is a network resource
-                val isNetwork = currentFile.path.let { 
-                    it.startsWith("smb://") || 
-                    it.startsWith("sftp://") || 
-                    it.startsWith("ftp://") || 
-                    it.startsWith("cloud://") 
-                }
-                
-                // Wrap path in File object for FileOperationUseCase
-                val file = if (isNetwork) {
-                    // Network file - wrap with original path
-                    object : java.io.File(currentFile.path) {
-                        override fun getAbsolutePath(): String = currentFile.path
-                        override fun getPath(): String = currentFile.path
-                    }
-                } else {
-                    // Local file
-                    java.io.File(currentFile.path)
-                }
-                
-                // Use FileOperationUseCase for both local and network files
-                // Network files must use hard delete (softDelete = false) as trash is not supported
-                val deleteOperation = FileOperation.Delete(files = listOf(file), softDelete = !isNetwork)
-                
-                when (val result = fileOperationUseCase.execute(deleteOperation)) {
-                    is FileOperationResult.Success,
-                    is FileOperationResult.PartialSuccess -> {
-                        // Notify that file was deleted
-                        sendEvent(PlayerEvent.FileModified(currentFile.path))
-                        
-                        // Save undo operation if enabled in settings AND it was a soft delete (local file)
-                        val settings = settingsRepository.getSettings().first()
-                        if (settings.enableUndo && !isNetwork) {
-                            // Extract trash paths from result for undo restoration
-                            val trashPaths = when (result) {
-                                is FileOperationResult.Success -> result.copiedFilePaths
-                                is FileOperationResult.PartialSuccess -> emptyList() // Partial failures cannot be undone reliably
-                                is FileOperationResult.Failure -> emptyList()
-                                is FileOperationResult.AuthenticationRequired -> emptyList()
-                                is FileOperationResult.PermissionRequired -> emptyList()
-                            }
-                            
-                            val undoOp = UndoOperation(
-                                type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
-                                sourceFiles = listOf(currentFile.path),
-                                destinationFolder = null,
-                                copiedFiles = trashPaths.takeIf { it.isNotEmpty() },
-                                oldNames = null
-                            )
-                            saveUndoOperation(undoOp)
-                            
-                            // Send event to show Snackbar with Undo button
-                            sendEvent(PlayerEvent.ShowUndoSnackbar(undoOp))
-                        }
-                        
-                        // Remove deleted file from the list
-                        val updatedFiles = state.value.files.toMutableList()
-                        val deletedIndex = state.value.currentIndex
-                        updatedFiles.removeAt(deletedIndex)
-                        
-                        // Update cache to reflect deletion
-                        MediaFilesCacheManager.removeFile(resource.id, currentFile.path)
-                        
-                        if (updatedFiles.isEmpty()) {
-                            // No files left, close activity
-                            sendEvent(PlayerEvent.FinishActivity)
-                        } else {
-                            // Check if we deleted the last file
-                            if (deletedIndex >= updatedFiles.size) {
-                                // We deleted the last file. Loop back to first file.
-                                val newIndex = 0
-                                updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
-                                saveResumeState()
-                                Timber.d("File deleted (was last), looping to first file. New list size: ${updatedFiles.size}")
-                            } else {
-                                // Navigate to next file (which is now at the same index)
-                                val newIndex = deletedIndex
-                                updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
-                                saveResumeState()
-                                Timber.d("File deleted successfully, new list size: ${updatedFiles.size}")
-                            }
-                        }
-                    }
-                    is FileOperationResult.Failure -> {
-                        sendEvent(PlayerEvent.ShowError(result.error))
-                        Timber.e("Delete failed: ${result.error}")
-                    }
-                    is FileOperationResult.AuthenticationRequired -> {
-                        sendEvent(PlayerEvent.CloudAuthRequired(result.provider, result.message))
-                        Timber.w("Delete requires cloud authentication: ${result.provider}")
-                    }
-                    is FileOperationResult.PermissionRequired -> {
-                        // This is handled by FileOperationsHandler/PlayerActivity
-                        Timber.d("Delete requires permission (handled by Activity)")
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error deleting file: ${currentFile.path}")
-                sendEvent(PlayerEvent.ShowError("Error deleting file: ${e.message}"))
-            }
-        }
-        
-        return null // Async operation, result via events
-    }
-    
-    /**
-     * Reload files after rename operation to update current file path
-     */
-    fun reloadAfterRename() {
-        viewModelScope.launch {
-            try {
-                val resource = state.value.resource ?: return@launch
-                
-                // Reload files from resource
-                val files = getMediaFilesUseCase(
-                    resource = resource,
-                    sortMode = resource.sortMode,
-                    sizeFilter = null
-                ).first()
-                
-                // Find renamed file by name (may have changed)
-                // Try to locate file at same index
-                val currentIndex = state.value.currentIndex
-                val newIndex = if (currentIndex < files.size) {
-                    currentIndex
-                } else {
-                    0
-                }
-                
-                updateState { 
-                    it.copy(
-                        files = files,
-                        currentIndex = newIndex
-                    )
-                }
-                
-                Timber.d("Files reloaded after rename, total: ${files.size}")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to reload files after rename")
-                sendEvent(PlayerEvent.ShowError("Failed to reload files: ${e.message}"))
-            }
-        }
-    }
-    
-    /**
-     * Save undo operation with timestamp
-     */
-    fun saveUndoOperation(operation: UndoOperation) {
-        updateState { 
-            it.copy(
-                lastOperation = operation,
-                undoOperationTimestamp = System.currentTimeMillis()
-            ) 
-        }
-        timber.log.Timber.d("Saved undo operation: ${operation.type}, file: ${operation.sourceFiles.firstOrNull()}")
-    }
-    
-    /**
-     * Undo last delete operation
-     * Supports both local and network resources (SMB/SFTP/FTP/Cloud)
-     */
-    fun undoLastOperation() {
-        val operation = state.value.lastOperation
-        if (operation == null) {
-            sendEvent(PlayerEvent.ShowMessage("No operation to undo"))
-            return
-        }
-        
-        if (operation.type != com.sza.fastmediasorter.domain.model.FileOperationType.DELETE) {
-            sendEvent(PlayerEvent.ShowMessage("Can only undo delete operations"))
-            return
-        }
-        
-        viewModelScope.launch {
-            try {
-                // copiedFiles structure: [0] = trashDirPath, [1..n] = originalFilePaths
-                operation.copiedFiles?.let { paths ->
-                    if (paths.size < 2) {
-                        sendEvent(PlayerEvent.ShowError("Invalid undo operation data"))
-                        return@launch
-                    }
-                    
-                    val trashDirPath = paths[0]
-                    val originalPath = paths[1]
-                    
-                    // Detect resource type from path
-                    val isLocal = !originalPath.startsWith("smb://") && 
-                                  !originalPath.startsWith("sftp://") && 
-                                  !originalPath.startsWith("ftp://") && 
-                                  !originalPath.startsWith("cloud:/")
-                    
-                    val restoreSuccess = if (isLocal) {
-                        restoreLocalFile(trashDirPath, originalPath)
-                    } else {
-                        restoreNetworkFile(trashDirPath, originalPath)
-                    }
-                    
-                    if (restoreSuccess) {
-                        // Clear undo operation
-                        updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
-                        
-                        sendEvent(PlayerEvent.ShowMessage("File restored successfully"))
-                        
-                        // Reload files to include restored file
-                        reloadFiles()
-                    } else {
-                        sendEvent(PlayerEvent.ShowError("Failed to restore file"))
-                    }
-                } ?: sendEvent(PlayerEvent.ShowError("No files to restore"))
-                
-            } catch (e: Exception) {
-                timber.log.Timber.e(e, "Undo operation failed")
-                sendEvent(PlayerEvent.ShowError("Undo failed: ${e.message}"))
-            }
-        }
-    }
-    
-    /**
-     * Restore local file from trash directory
-     */
-    private suspend fun restoreLocalFile(trashDirPath: String, originalPath: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val trashDir = java.io.File(trashDirPath)
-            val originalFile = java.io.File(originalPath)
-            
-            if (!trashDir.exists() || !trashDir.isDirectory) {
-                Timber.e("Undo: Trash folder not found: $trashDirPath")
-                return@withContext false
-            }
-            
-            // Find trashed file by name
-            val trashedFile = java.io.File(trashDir, originalFile.name)
-            
-            if (!trashedFile.exists()) {
-                Timber.e("Undo: Trashed file not found: ${trashedFile.absolutePath}")
-                return@withContext false
-            }
-            
-            // Restore file by renaming back to original location
-            val restored = trashedFile.renameTo(originalFile)
-            
-            if (restored) {
-                // Remove trash directory if empty
-                if (trashDir.listFiles()?.isEmpty() == true) {
-                    trashDir.delete()
-                    Timber.d("Undo: Cleaned up empty trash directory")
-                }
-                Timber.i("Undo: Successfully restored local file: $originalPath")
-            } else {
-                Timber.e("Undo: Failed to rename trashed file back to original location")
-            }
-            
-            return@withContext restored
-        } catch (e: Exception) {
-            Timber.e(e, "Undo: Exception restoring local file")
-            return@withContext false
-        }
-    }
-    
-    /**
-     * Restore network file from trash directory (SMB/S/FTP)
-     * Uses FileOperationUseCase.execute(Move) to move file from .trash back to original location
-     */
-    private suspend fun restoreNetworkFile(trashDirPath: String, originalPath: String): Boolean {
-        try {
-            val originalFile = java.io.File(originalPath)
-            val fileName = originalFile.name
-            val trashFilePath = "$trashDirPath/$fileName"
-            
-            Timber.d("Undo: Restoring network file from $trashFilePath to $originalPath")
-            
-            val parentDir = originalFile.parentFile ?: throw java.io.IOException("Cannot restore to root directory")
-            
-            // Use FileOperationUseCase to move file from trash back to original location
-            val moveOperation = FileOperation.Move(
-                sources = listOf(java.io.File(trashFilePath)),
-                destination = parentDir,
-                overwrite = true // Overwrite in case original path still exists
-            )
-            
-            return when (val result = fileOperationUseCase.execute(moveOperation)) {
-                is FileOperationResult.Success -> {
-                    Timber.i("Undo: Successfully restored network file: $originalPath")
-                    true
-                }
-                is FileOperationResult.PartialSuccess -> {
-                    Timber.w("Undo: Partial success restoring file (might be OK)")
-                    true
-                }
-                is FileOperationResult.Failure -> {
-                    Timber.e("Undo: Failed to restore network file: ${result.error}")
-                    false
-                }
-                is FileOperationResult.AuthenticationRequired -> {
-                    Timber.w("Undo: Cloud authentication required: ${result.provider}")
-                    false
-                }
-                is FileOperationResult.PermissionRequired -> {
-                    Timber.w("Undo: Permission required (unexpected)")
-                    false
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Undo: Exception restoring network file")
-            return false
-        }
-    }
-    
-    /**
-     * Clear expired undo operation (5 minutes)
-     */
-    fun clearExpiredUndoOperation() {
-        val currentState = state.value
-        val timestamp = currentState.undoOperationTimestamp
-        
-        if (timestamp != null && currentState.lastOperation != null) {
-            val elapsed = System.currentTimeMillis() - timestamp
-            val expiryTime = 5 * 60 * 1000L // 5 minutes
-            
-            if (elapsed > expiryTime) {
-                updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
-                timber.log.Timber.d("Expired undo operation cleared")
-            }
-        }
-    }
+    fun deleteCurrentFile(): Boolean? = deleteUndoCoordinator.deleteCurrentFile()
+
+    fun reloadAfterRename() = deleteUndoCoordinator.reloadAfterRename()
+
+    fun saveUndoOperation(operation: UndoOperation) = deleteUndoCoordinator.saveUndoOperation(operation)
+
+    fun undoLastOperation() = deleteUndoCoordinator.undoLastOperation()
+
+    fun clearExpiredUndoOperation() = deleteUndoCoordinator.clearExpiredUndoOperation()
 
     suspend fun getSettings() = settingsRepository.getSettings().first()
 
-    private fun resolveAutoStereoMode(): StereoMode {
-        val detected = _detectedStereoMode.value
-        if (detected == StereoMode.UNKNOWN) return StereoMode.AUTO
-        return if (ignoreForcedFormatForCurrentFile) detected else resolveForcedStereoMode(detected)
-    }
-
-    private fun resolveForcedStereoMode(detected: StereoMode): StereoMode {
-        val perFileOverride = if (vrRememberFileFormatEnabledCached) currentStereoOverrideMode else null
-        return VrForcedFormatResolver.resolve(
-            detected = detected,
-            perFileOverride = perFileOverride,
-            forcedPlat = vrForcedPlatFormatCached,
-            forcedSpherical = vrForcedSphericalFormatCached,
-        )
-    }
-    
     /**
      * Get adjacent files for preloading (previous + next).
      * Only returns IMAGE and GIF files for preloading.

@@ -61,6 +61,9 @@
     <string name="copy_failed">Ошибка копирования: %1$s</string>
     <string name="no_destinations_available">Ресурсы-получатели не настроены</string>
 
+    <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
+    <string name="archiving_n_files_from_folder">Архивирование %1$d файлов из %2$s</string>
+
     <!-- Move Dialog -->
     <string name="moving_files">Перемещение файлов</string>
     <string name="moving_n_files_from_folder">Перемещение %1$d файлов из %2$s</string>
@@ -1079,6 +1082,54 @@
     <string name="network_sync_settings">Настройки синхронизации сети</string>
     <string name="network_parallelism_title">Параллелизм сети</string>
     <string name="network_parallelism_summary">Число параллельных потоков для сетевых операций (SMB, FTP, SFTP)</string>
+
+    <!-- Streaming / Pre-cache settings -->
+    <string name="pref_prefetch_cache_title">Размер предварительного кэша видео</string>
+    <string name="pref_prefetch_cache_helper">Меньше: минимальная буферизация · индикатор и предложение сохранения скрыты</string>
+    <string name="pref_prefetch_cache_less">Меньше (0.5×)</string>
+    <string name="pref_prefetch_cache_auto">Авто</string>
+    <string name="pref_prefetch_cache_more">Больше (2×)</string>
+    <string name="pref_streaming_cleanup_title">Очистка кэша стриминга</string>
+    <string name="pref_streaming_cleanup_ask">Спрашивать каждый раз</string>
+    <string name="pref_streaming_cleanup_auto_delete">Удалять автоматически</string>
+    <string name="pref_streaming_cleanup_auto_keep">Оставлять автоматически</string>
+    <string name="pref_streaming_ttl_title">Срок хранения кэша стриминга</string>
+    <string name="pref_streaming_ttl_off">Выкл.</string>
+    <string name="pref_streaming_ttl_1d">1 день</string>
+    <string name="pref_streaming_ttl_3d">3 дня</string>
+    <string name="pref_streaming_ttl_7d">7 дней</string>
+    <string name="pref_streaming_ttl_30d">30 дней</string>
+    <string name="pref_streaming_clear_now">Очистить кэш стриминга</string>
+    <string name="pref_streaming_clear_confirm_format">Итого: %1$s\n\n%2$s</string>
+    <string name="streaming_cache_empty">Кэш стриминга пуст.</string>
+
+    <!-- Prefetch overlay pill -->
+    <string name="prefetch_overlay_format">%1$dс / %2$dс · %3$s</string>
+    <string name="prefetch_overlay_local_copy_format">Локальная копия · %1$s</string>
+    <string name="prefetch_margin_hint">Скорость на грани — возможны паузы</string>
+    <string name="prefetch_a11y_format">Предкэш: %1$dс из %2$dс, %3$s</string>
+
+    <!-- Offload offer dialog -->
+    <string name="offload_dialog_title">Сохранить локальную копию?</string>
+    <string name="offload_insufficient_storage">Недостаточно свободного места на устройстве.</string>
+    <string name="offload_action_download">Сохранить локальную копию</string>
+    <string name="offload_action_try_anyway">Попробовать всё равно</string>
+    <string name="offload_action_cancel">Отмена</string>
+    <string name="offload_row_file_size">Размер: %1$s</string>
+    <string name="offload_row_speed">Скорость: %1$s / Требуется: %2$s</string>
+    <string name="offload_row_eta">Оценка времени: %1$s</string>
+    <string name="offload_row_free_space">Свободно: %1$s (%2$s)</string>
+    <string name="offload_row_destination">Назначение: %1$s</string>
+    <string name="offload_enough">достаточно</string>
+    <string name="offload_not_enough">недостаточно</string>
+
+    <!-- Streaming cache cleanup prompt -->
+    <string name="cleanup_prompt_title">Локальная копия готова</string>
+    <string name="cleanup_prompt_body_format">Удалить локальную копию\n%1$s (%2$s)?</string>
+    <string name="cleanup_keep">Оставить</string>
+    <string name="cleanup_delete">Удалить</string>
+    <string name="cleanup_dont_ask">Больше не спрашивать</string>
+
     <string name="enable_background_sync">Включить фоновую синхронизацию</string>
     <string name="background_sync_description">Автоматически проверять сетевые ресурсы на изменения файлов в фоновом режиме</string>
     <string name="thumbnail_preload_title">Предзагрузка миниатюр</string>
@@ -1643,6 +1694,7 @@
     <string name="dialog_integration_test_chipAudio_text">Аудио</string>
     <string name="dialog_integration_test_chipCache_text">Кэш</string>
     <string name="dialog_integration_test_chipCloudProviders_text">Облачные провайдеры</string>
+    <string name="dialog_integration_test_chipThreeDVr_text">3DVR прогон</string>
     <string name="dialog_integration_test_chipFailedOnly_text">Только ошибки</string>
     <string name="dialog_integration_test_chipFavorites_text">Избранное</string>
     <string name="dialog_integration_test_chipGif_text">GIF</string>

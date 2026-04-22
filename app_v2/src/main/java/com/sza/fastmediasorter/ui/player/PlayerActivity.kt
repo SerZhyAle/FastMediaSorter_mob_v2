@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -34,7 +35,6 @@ import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import com.sza.fastmediasorter.BuildConfig
@@ -153,6 +153,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var saveVideoFrameManager: com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
     internal lateinit var touchZoneSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
     internal lateinit var audioMetadataManager: com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
+    internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
 
     internal val googleSignInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -182,8 +183,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal val hideControlsHandler = Handler(Looper.getMainLooper())
     internal val loadingIndicatorHandler = Handler(Looper.getMainLooper())
 
-    // Track preload jobs to cancel on destroy (managed by lifecycleManager); keyed by file path for smart cancellation
-    internal val preloadJobs = mutableMapOf<String, Job>()
     private lateinit var gestureDetector: GestureDetector
     internal val touchZoneDetector = TouchZoneDetector()
     internal var useTouchZones = true // Use touch zones for images, gestures for video
@@ -695,6 +694,14 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 isPlaying?.let { putExtra("resumeIsPlaying", it) }
                 if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
                 if (shuffleOnStart) putExtra("shuffleOnStart", true)
+                // Forward the Meta Quest shell launch token so VrPlayerActivity can
+                // return it from getLaunchId() and let the XR session reach FOCUSED.
+                // Absent on ADB launches; only set when MainActivity was opened from
+                // the HorizonOS Library.
+                (context as? Activity)?.intent
+                    ?.getStringExtra("com.oculus.vrshell.launch_id")
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { putExtra("com.oculus.vrshell.launch_id", it) }
             }
         }
     }

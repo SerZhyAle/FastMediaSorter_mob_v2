@@ -10,10 +10,8 @@ import androidx.core.view.accessibility.AccessibilityViewCommand
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -21,7 +19,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.NetworkHost
 import com.sza.fastmediasorter.databinding.DialogNetworkDiscoveryBinding
 import com.sza.fastmediasorter.databinding.ItemNetworkHostBinding
-import kotlinx.coroutines.launch
+
 
 class NetworkDiscoveryDialog : DialogFragment() {
 
@@ -75,33 +73,28 @@ class NetworkDiscoveryDialog : DialogFragment() {
     }
 
     private fun observeData() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    // Update progress and status text.
-                    binding.progressBar.isVisible = state.isScanning
-                    binding.tvStatus.text = if (state.isScanning) {
-                        getString(R.string.msg_scanning_subnet)
-                    } else if (state.foundNetworkHosts.isEmpty()) {
-                        getString(R.string.msg_scan_complete)
-                    } else {
-                        getString(R.string.msg_scan_complete)
-                    }
-
-                    // Stop button label switches based on scanning state — null-safe for landscape
-                    binding.btnStopScan?.text = if (state.isScanning) {
-                        getString(R.string.stop)
-                    } else {
-                        getString(R.string.msg_scan_again)
-                    }
-
-                    // Hosts list.
-                    adapter.submitList(state.foundNetworkHosts)
-                    binding.tvEmpty.isVisible =
-                        !state.isScanning && state.foundNetworkHosts.isEmpty()
-                    binding.rvHosts.isVisible = state.foundNetworkHosts.isNotEmpty()
-                }
+        collectOnLifecycle(viewModel.state) { state ->
+            // Update progress and status text.
+            binding.progressBar.isVisible = state.isScanning
+            binding.tvStatus.text = if (state.isScanning) {
+                getString(R.string.msg_scanning_subnet)
+            } else if (state.foundNetworkHosts.isEmpty()) {
+                getString(R.string.msg_scan_complete)
+            } else {
+                getString(R.string.msg_scan_complete)
             }
+
+            // Stop button label switches based on scanning state — null-safe for landscape
+            binding.btnStopScan?.text = if (state.isScanning) {
+                getString(R.string.stop)
+            } else {
+                getString(R.string.msg_scan_again)
+            }
+
+            // Hosts list.
+            adapter.submitList(state.foundNetworkHosts)
+            binding.tvEmpty.isVisible = !state.isScanning && state.foundNetworkHosts.isEmpty()
+            binding.rvHosts.isVisible = state.foundNetworkHosts.isNotEmpty()
         }
     }
 

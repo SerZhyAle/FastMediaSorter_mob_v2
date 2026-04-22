@@ -64,8 +64,14 @@ class IntegrationTestDialog : DialogFragment() {
             binding.chipNetworkUtils,
             binding.chipCache,
             binding.chipScanning,
-            binding.chipCloudProviders
+            binding.chipCloudProviders,
+            binding.chipThreeDVr
         )
+
+        // 3DVR sweep is only meaningful on the VR flavor — keep the chip hidden elsewhere
+        // so users don't get confused by a button that always reports an empty manifest.
+        binding.chipThreeDVr.visibility =
+            if (BuildConfig.SUPPORT_VR_PLAYER) View.VISIBLE else View.GONE
         
         // Setup chip click listeners
         binding.chipAll.setOnClickListener { runTestGroup(TestGroup.ALL) }
@@ -85,7 +91,8 @@ class IntegrationTestDialog : DialogFragment() {
         binding.chipCache.setOnClickListener { runTestGroup(TestGroup.CACHE) }
         binding.chipScanning.setOnClickListener { runTestGroup(TestGroup.SCANNING) }
         binding.chipCloudProviders.setOnClickListener { runTestGroup(TestGroup.CLOUD_PROVIDERS) }
-        
+        binding.chipThreeDVr.setOnClickListener { runTestGroup(TestGroup.THREE_D_VR) }
+
         binding.btnClose.setOnClickListener {
             dismiss()
         }

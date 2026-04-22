@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import androidx.media3.common.Player
@@ -39,25 +38,10 @@ class NowPlayingManager(
     private val audioServiceController: AudioServiceController
 ) {
 
-    // Safe initialization: Handle Android 8 (API 26) where nested binding may be null
-    // Try nested binding first (API 28+), fall back to manual binding from root view (Android 8)
+    // View Binding always returns a non-null binding for <include> tags; try/catch guards against
+    // unexpected inflation failures on any API level.
     private val miniBar: ViewMiniNowPlayingBinding? = try {
-        val nestedBinding = activityBinding.miniNowPlayingBar
-        if (nestedBinding != null) {
-            Timber.d("NowPlayingManager: Using nested binding from ActivityPlayerUnifiedBinding")
-            nestedBinding
-        } else {
-            // Android 8 fallback: manually get the included layout root and bind it
-            Timber.d("NowPlayingManager: Nested binding is null, trying manual findViewById fallback for Android 8")
-            val miniNowPlayingView = activityBinding.root.findViewById<ViewGroup>(R.id.miniNowPlayingBar)
-            miniNowPlayingView?.let {
-                Timber.d("NowPlayingManager: Found miniNowPlayingBar view, creating binding manually")
-                ViewMiniNowPlayingBinding.bind(it)
-            } ?: run {
-                Timber.w("NowPlayingManager: Could not find miniNowPlayingBar view in activity hierarchy")
-                null
-            }
-        }
+        activityBinding.miniNowPlayingBar
     } catch (e: Exception) {
         Timber.w(e, "NowPlayingManager: Failed to initialize miniBar binding during exception")
         null

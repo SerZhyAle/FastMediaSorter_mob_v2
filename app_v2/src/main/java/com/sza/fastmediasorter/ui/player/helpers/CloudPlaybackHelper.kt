@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.core.util.PathUtils
@@ -39,15 +38,11 @@ internal fun VideoPlayerManager.playCloudVideo(path: String, playWhenReady: Bool
     )
     val dataSourceFactory = CloudDataSourceFactory(clients)
 
-    val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(
-            VideoPlayerManager.CLOUD_MIN_BUFFER_MS,
-            VideoPlayerManager.CLOUD_MAX_BUFFER_MS,
-            VideoPlayerManager.CLOUD_BUFFER_FOR_PLAYBACK_MS,
-            VideoPlayerManager.CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-        )
-        .setPrioritizeTimeOverSizeThresholds(true)
-        .build()
+    val loadControl = PrefetchLoadControlFactory.build(
+        plan = activePrefetchPlan,
+        useCloudDefaults = true,
+        tag = "cloud"
+    )
 
     val audioAttributes = AudioAttributes.Builder()
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)

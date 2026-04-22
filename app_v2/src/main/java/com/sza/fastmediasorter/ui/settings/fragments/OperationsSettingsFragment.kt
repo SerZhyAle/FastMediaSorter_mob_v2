@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.ui.settings.ScheduledOperationsAdapter
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -397,12 +398,8 @@ class OperationsSettingsFragment : Fragment() {
                 .show()
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                scheduledViewModel.operations.collect { ops ->
-                    scheduledAdapter.submitList(ops)
-                }
-            }
+        collectOnLifecycle(scheduledViewModel.operations) { ops ->
+            scheduledAdapter.submitList(ops)
         }
     }
 

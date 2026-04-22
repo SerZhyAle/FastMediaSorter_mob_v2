@@ -11,9 +11,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
@@ -304,9 +302,7 @@ class PlaybackSettingsFragment : Fragment() {
     }
     
     private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.settings.collect { settings ->
+        collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
                     // Sort mode
                     binding.spinnerSortMode.setText(getSortModeName(settings.defaultSortMode), false)
@@ -384,11 +380,9 @@ class PlaybackSettingsFragment : Fragment() {
                     }
 
                     isUpdatingFromSettings = false
-                }
-            }
         }
     }
-    
+
     private fun setupExpandableSections() {
         // Restore saved states or default to collapsed
         val savedStates = getSavedSectionStates()

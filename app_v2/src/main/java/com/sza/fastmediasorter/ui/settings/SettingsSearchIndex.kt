@@ -312,6 +312,38 @@ object SettingsSearchRegistry {
             viewId = R.id.btnAddDestination
         ),
         SettingsSearchIndex(
+            key = "general.prefetch_cache",
+            title = "Video pre-cache size",
+            keywords = listOf("pre-cache", "prefetch", "buffer", "streaming", "video cache"),
+            sectionId = "general",
+            destination = SettingsSearchDestination.GENERAL,
+            viewId = R.id.actvPrefetchCache
+        ),
+        SettingsSearchIndex(
+            key = "general.streaming_cleanup",
+            title = "Streaming cache cleanup",
+            keywords = listOf("cleanup", "streaming", "cache", "delete after", "keep"),
+            sectionId = "general",
+            destination = SettingsSearchDestination.GENERAL,
+            viewId = R.id.actvStreamingCleanup
+        ),
+        SettingsSearchIndex(
+            key = "general.streaming_ttl",
+            title = "Streaming cache TTL",
+            keywords = listOf("ttl", "expiry", "days", "streaming cache", "expire"),
+            sectionId = "general",
+            destination = SettingsSearchDestination.GENERAL,
+            viewId = R.id.actvStreamingTtl
+        ),
+        SettingsSearchIndex(
+            key = "general.clear_streaming_cache",
+            title = "Clear streaming cache",
+            keywords = listOf("clear", "streaming", "cache", "delete cached"),
+            sectionId = "general",
+            destination = SettingsSearchDestination.GENERAL,
+            viewId = R.id.btnClearStreamingCache
+        ),
+        SettingsSearchIndex(
             key = "general.backup_google_drive",
             title = "Backup to Google Drive",
             keywords = listOf("backup", "google drive", "cloud backup", "save"),

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Effect
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -31,15 +30,11 @@ import timber.log.Timber
 internal fun VideoPlayerManager.createPlayer(playerView: PlayerView): ExoPlayer {
     releasePlayer()
 
-    val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(
-            VideoPlayerManager.MIN_BUFFER_MS,
-            VideoPlayerManager.MAX_BUFFER_MS,
-            VideoPlayerManager.BUFFER_FOR_PLAYBACK_MS,
-            VideoPlayerManager.BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-        )
-        .setPrioritizeTimeOverSizeThresholds(true)
-        .build()
+    val loadControl = PrefetchLoadControlFactory.build(
+        plan = activePrefetchPlan,
+        useCloudDefaults = false,
+        tag = "createPlayer"
+    )
 
     val audioAttributes = AudioAttributes.Builder()
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)

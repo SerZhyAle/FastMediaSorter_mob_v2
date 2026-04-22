@@ -43,13 +43,6 @@ data class PathItem(
     val name: String
 )
 
-data class CloudFolderItem(
-    val id: String,
-    val name: String,
-    val mimeType: String?,
-    val isSelected: Boolean = false
-)
-
 sealed class GoogleDriveFolderPickerEvent {
     data class ShowError(val message: String) : GoogleDriveFolderPickerEvent()
     data object FolderSelected : GoogleDriveFolderPickerEvent()

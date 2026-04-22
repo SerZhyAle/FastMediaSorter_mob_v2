@@ -334,6 +334,34 @@ class WorkManagerScheduler @Inject constructor(
         }
     }
 
+    /**
+     * Enqueue a one-shot streaming-cache GC pass on app start.
+     * Safe to call on every launch — WorkManager dedupes by unique name.
+     *
+     * @param ttlDays TTL in days for the eviction pass; `0` disables TTL eviction
+     *   but still runs the verify-and-prune step.
+     */
+    fun scheduleStreamingCacheGc(ttlDays: Int = StreamingCacheStartupGcWorker.DEFAULT_TTL_DAYS) {
+        try {
+            val inputData = Data.Builder()
+                .putInt(StreamingCacheStartupGcWorker.KEY_TTL_DAYS, ttlDays)
+                .build()
+            val request = OneTimeWorkRequestBuilder<StreamingCacheStartupGcWorker>()
+                .setInputData(inputData)
+                .setInitialDelay(30, TimeUnit.SECONDS)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                StreamingCacheStartupGcWorker.WORK_NAME,
+                ExistingWorkPolicy.KEEP,
+                request
+            )
+            Timber.i("WorkManagerScheduler: streaming-cache GC enqueued (ttlDays=$ttlDays)")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: failed to enqueue streaming-cache GC")
+        }
+    }
+
     fun schedulePendingRevocation() {
         try {
             val constraints = Constraints.Builder()

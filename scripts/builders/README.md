@@ -39,10 +39,12 @@ Optimized builds with ProGuard (requires keystore):
 ## VR (OpenXR)
 
 ```powershell
-.\scripts\builders\build-vr-debug.ps1           # VR debug (Quest / Android XR)
-.\scripts\builders\build-vr-release.ps1         # VR release APK (Meta Horizon Store)
-.\scripts\builders\build-vr-aab.ps1             # VR release AAB + APK (Google Play / Android XR)
-.\scripts\builders\build-vr-device.ps1          # VR debug + ADB install (Quest via USB)
+.\scripts\builders\build-vr-debug.ps1                    # VR debug (Quest / Android XR)    | .\a.ps1 vrd
+.\scripts\builders\build-vr-release.ps1                  # VR release APK (Meta Horizon Store) | .\a.ps1 vr
+.\scripts\builders\build-vr-aab.ps1                      # VR release AAB + APK (Google Play / Android XR)
+.\scripts\builders\build-vr-device.ps1                   # VR debug + ADB install + auto-launch (smoke tests only — no FOCUSED)
+.\scripts\builders\install-vr-debug-to-device.ps1        # Install VR debug APK, NO launch   | .\a.ps1 ivrd
+.\scripts\builders\install-vr-release-to-device.ps1      # Install VR release APK, NO launch | .\a.ps1 ivr
 ```
 
 ## Wear OS

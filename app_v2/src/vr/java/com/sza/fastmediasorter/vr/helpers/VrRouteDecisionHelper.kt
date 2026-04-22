@@ -37,6 +37,10 @@ internal class VrRouteDecisionHelper {
             )
         }
 
+        // Quest panel mode is monoscopic — it shows the same pixels to both eyes, so flat SBS/OU
+        // cannot produce a stereo effect there. Any stereoscopic OR spherical content therefore
+        // has to enter immersive XR to actually expose per-eye pixels. Only plain 2D falls back
+        // to the panel player.
         val requestsImmersive = effectiveStereoMode.isSpherical() || effectiveStereoMode.isStereoscopic()
         if (!requestsImmersive) {
             return VrRouteDecision(

@@ -28,9 +28,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
@@ -842,17 +841,13 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     // ── Favorite State Observation ───────────────────────────────────────
 
     private fun observeFavoriteState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.isFavorite.collect { isFav ->
-                    binding.btnFavorite.setImageResource(
-                        if (isFav) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-                    )
-                    binding.btnFavorite.contentDescription = getString(
-                        if (isFav) R.string.cd_remove_from_favorites else R.string.cd_add_to_favorites
-                    )
-                }
-            }
+        collectOnLifecycle(viewModel.isFavorite) { isFav ->
+            binding.btnFavorite.setImageResource(
+                if (isFav) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+            )
+            binding.btnFavorite.contentDescription = getString(
+                if (isFav) R.string.cd_remove_from_favorites else R.string.cd_add_to_favorites
+            )
         }
     }
 
@@ -932,66 +927,58 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     // ── Media Type Routing ────────────────────────────────────────────────
 
     private fun observeViewModelState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    binding.progressBar.isVisible = state.isLoading
+        collectOnLifecycle(viewModel.state) { state ->
+            binding.progressBar.isVisible = state.isLoading
 
-                    if (state.isLoading) return@collect
+            if (state.isLoading) return@collectOnLifecycle
 
-                    state.errorMessage?.let { error ->
-                        Timber.w("StandalonePlayer: error state — $error")
-                        Toast.makeText(this@StandalonePlayerActivity, error, Toast.LENGTH_SHORT).show()
-                        finish()
-                        return@collect
-                    }
-
-                    val file = state.mediaFile ?: return@collect
-                    val type = state.mediaType ?: return@collect
-
-                    if (type == MediaType.BINARY_ARCHIVE || type == MediaType.BINARY_DISK ||
-                        type == MediaType.BINARY_EXECUTABLE || type == MediaType.BINARY_OTHER) {
-                        Timber.w("StandalonePlayer: unsupported binary type $type for ${file.name}")
-                        Toast.makeText(
-                            this@StandalonePlayerActivity,
-                            R.string.unsupported_format_use_external_player,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        finish()
-                        return@collect
-                    }
-
-                    if (!contentLoaded) {
-                        val onVideoReady: ((androidx.media3.ui.PlayerView) -> Unit)? =
-                            if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
-                        viewManager.show(file, type, onVideoReady)
-                        if (type == MediaType.AUDIO) {
-                            // Standalone audio uses the same PlayerView controller overlay, so wire
-                            // Control explicitly even though it does not go through the video setup path.
-                            setupPlaybackControls(binding.playerView)
-                        }
-                        contentLoaded = true
-                        // EpubViewerManager unconditionally shows btnTranslateEpubCmd; enforce orientation guard.
-                        if (type == MediaType.EPUB) updateEpubTranslatorVisibility()
-                    }
-                    updateRenameButtonVisibility()
-                }
+            state.errorMessage?.let { error ->
+                Timber.w("StandalonePlayer: error state — $error")
+                Toast.makeText(this@StandalonePlayerActivity, error, Toast.LENGTH_SHORT).show()
+                finish()
+                return@collectOnLifecycle
             }
+
+            val file = state.mediaFile ?: return@collectOnLifecycle
+            val type = state.mediaType ?: return@collectOnLifecycle
+
+            if (type == MediaType.BINARY_ARCHIVE || type == MediaType.BINARY_DISK ||
+                type == MediaType.BINARY_EXECUTABLE || type == MediaType.BINARY_OTHER) {
+                Timber.w("StandalonePlayer: unsupported binary type $type for ${file.name}")
+                Toast.makeText(
+                    this@StandalonePlayerActivity,
+                    R.string.unsupported_format_use_external_player,
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+                return@collectOnLifecycle
+            }
+
+            if (!contentLoaded) {
+                val onVideoReady: ((androidx.media3.ui.PlayerView) -> Unit)? =
+                    if (type == MediaType.VIDEO) ({ pv -> setupVideoControls(pv) }) else null
+                viewManager.show(file, type, onVideoReady)
+                if (type == MediaType.AUDIO) {
+                    // Standalone audio uses the same PlayerView controller overlay, so wire
+                    // Control explicitly even though it does not go through the video setup path.
+                    setupPlaybackControls(binding.playerView)
+                }
+                contentLoaded = true
+                // EpubViewerManager unconditionally shows btnTranslateEpubCmd; enforce orientation guard.
+                if (type == MediaType.EPUB) updateEpubTranslatorVisibility()
+            }
+            updateRenameButtonVisibility()
         }
     }
 
     private fun observeViewModelEvents() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is StandalonePlayerViewModel.StandalonePlayerEvent.ShowError -> {
-                            Toast.makeText(this@StandalonePlayerActivity, event.message, Toast.LENGTH_SHORT).show()
-                        }
-                        is StandalonePlayerViewModel.StandalonePlayerEvent.FinishActivity -> {
-                            finish()
-                        }
-                    }
+        collectOnLifecycle(viewModel.events) { event ->
+            when (event) {
+                is StandalonePlayerViewModel.StandalonePlayerEvent.ShowError -> {
+                    Toast.makeText(this@StandalonePlayerActivity, event.message, Toast.LENGTH_SHORT).show()
+                }
+                is StandalonePlayerViewModel.StandalonePlayerEvent.FinishActivity -> {
+                    finish()
                 }
             }
         }
@@ -1012,24 +999,16 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     /** Keeps [cachedTranslationEnabled] in sync with the settings repository. */
     private fun observeTranslationSettings() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.getSettings().collect { settings ->
-                    cachedTranslationEnabled = settings.enableTranslation
-                    // Re-evaluate EPUB button whenever settings change
-                    updateEpubTranslatorVisibility()
-                }
-            }
+        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            cachedTranslationEnabled = settings.enableTranslation
+            // Re-evaluate EPUB button whenever settings change
+            updateEpubTranslatorVisibility()
         }
     }
 
     private fun observePipSettings() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.getSettings().collect { settings ->
-                    pipManager?.setupPipButton(settings.enablePictureInPicture)
-                }
-            }
+        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            pipManager?.setupPipButton(settings.enablePictureInPicture)
         }
     }
 

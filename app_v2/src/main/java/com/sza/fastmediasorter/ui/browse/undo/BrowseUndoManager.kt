@@ -57,6 +57,8 @@ class BrowseUndoManager(
             FileOperationType.MOVE -> "moved"
             FileOperationType.DELETE -> "deleted"
             FileOperationType.RENAME -> "renamed"
+            // ARCHIVE is a destination-picker-only type — never persisted as an undo op.
+            FileOperationType.ARCHIVE -> return
         }
         callbacks.showUndoToast(operationType)
     }
@@ -78,6 +80,8 @@ class BrowseUndoManager(
                 FileOperationType.MOVE -> undoMoveOperation(operation)
                 FileOperationType.DELETE -> undoDeleteOperation(operation)
                 FileOperationType.RENAME -> undoRenameOperation(operation)
+                // ARCHIVE is a destination-picker-only type — never reaches the undo path.
+                FileOperationType.ARCHIVE -> return false
             }
             
             // Clear undo operation after successful execution

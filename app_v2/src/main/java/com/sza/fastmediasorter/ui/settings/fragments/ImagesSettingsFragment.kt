@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsImagesBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -202,9 +201,7 @@ class ImagesSettingsFragment : Fragment() {
     }
 
     private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.settings.collect { settings ->
+        collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
                     
                     binding.switchSupportImages.isChecked = settings.supportImages
@@ -240,8 +237,6 @@ class ImagesSettingsFragment : Fragment() {
                     }
                     
                     isUpdatingFromSettings = false
-                }
-            }
         }
     }
 

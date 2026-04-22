@@ -427,11 +427,16 @@ PYEOF
     echo "══════════════════════════════════════════════════════════════"
     echo " SUCCESS: $aar_path"
     echo ""
-    echo " Next steps (Phase 4):"
-    echo "   1. In app_v2/build.gradle.kts, uncomment the four"
-    echo "      *Implementation(files(\"libs/fms-ffmpeg-dts.aar\")) lines."
-    echo "   2. Rebuild: ./gradlew.bat assembleStandardDebug"
-    echo "   3. Verify DTS track plays on Quest 3 (DTS-only MKV)."
+    echo " Next steps (Phase 4) — after 16 KB alignment check passes:"
+    echo "   1. Copy rebuilt AAR to app_v2/libs/ (already done if OUT_DIR is the project)."
+    echo "   2. Confirm app_v2/build.gradle.kts already has:"
+    echo "        standardImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
+    echo "        legacyImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
+    echo "        vrImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
+    echo "        vrUnlicensedImplementation(files(\"libs/fms-ffmpeg-dts.aar\"))"
+    echo "   3. Rebuild: ./gradlew.bat assembleStandardDebug"
+    echo "   4. Inspect APK: python -m zipfile -l <apk> | grep ffmpeg"
+    echo "   5. Verify DTS track plays on Quest 3 (DTS-only MKV)."
     echo "══════════════════════════════════════════════════════════════"
 }
 
@@ -451,6 +456,85 @@ verify_dca_export() {
     else
         echo "WARN: libavcodec.so not found; skipping symbol check."
     fi
+}
+
+# ── Verify 16 KB page-size alignment ─────────────────────────────────────────
+# Google Play rejects APK/AAB artifacts targeting Android 15+ when any native lib
+# has ELF LOAD segments aligned below 16 KB (Align=0x1000 / 4 KB).
+# This function extracts the just-packaged AAR, runs readelf -l on the arm64
+# libffmpegJNI.so, and fails the build if any LOAD segment has Align < 0x4000.
+verify_16kb_alignment() {
+    local aar_path="$OUT_DIR/fms-ffmpeg-dts.aar"
+    local verify_dir="$WORK_DIR/aar-verify-16kb"
+
+    echo ""
+    echo "════════════════════════════════════════"
+    echo " 16 KB alignment check (readelf -l)"
+    echo "════════════════════════════════════════"
+
+    if ! command -v readelf &>/dev/null; then
+        echo "WARN: readelf not found — skipping 16 KB alignment check."
+        echo "      Install binutils: sudo apt-get install -y binutils"
+        echo "      Run manually after build:"
+        echo "        python3 -m zipfile -e $aar_path /tmp/aar-verify"
+        echo "        readelf -l /tmp/aar-verify/jni/arm64-v8a/libffmpegJNI.so | grep LOAD"
+        return 0
+    fi
+
+    if [[ ! -f "$aar_path" ]]; then
+        echo "ERROR: AAR not found at $aar_path — cannot verify alignment."
+        exit 1
+    fi
+
+    rm -rf "$verify_dir" && mkdir -p "$verify_dir"
+
+    # Extract only .so files from the AAR (which is a ZIP)
+    AAR_PATH="$aar_path" VERIFY_DIR="$verify_dir" python3 - <<'PYEOF'
+import zipfile, os
+aar_path = os.environ['AAR_PATH']
+verify_dir = os.environ['VERIFY_DIR']
+with zipfile.ZipFile(aar_path) as z:
+    for name in z.namelist():
+        if name.endswith('.so') and 'arm64' in name:
+            z.extract(name, verify_dir)
+PYEOF
+
+    local so_path="$verify_dir/jni/arm64-v8a/libffmpegJNI.so"
+    if [[ ! -f "$so_path" ]]; then
+        echo "WARN: libffmpegJNI.so not found in extracted AAR — skipping 16 KB check."
+        rm -rf "$verify_dir"
+        return 0
+    fi
+
+    local elf_output
+    elf_output=$(readelf -l "$so_path" 2>&1)
+    local load_lines
+    load_lines=$(echo "$elf_output" | grep -E "^\s+LOAD\s+" || true)
+
+    echo "LOAD segments in libffmpegJNI.so (arm64-v8a):"
+    echo "$load_lines"
+    echo ""
+
+    # Fail if any LOAD segment has Align=0x1000 (4 KB — Play non-compliant)
+    if echo "$load_lines" | grep -qE "\s0x1000\s*$"; then
+        echo "FAIL: libffmpegJNI.so has 4 KB LOAD alignment (Align=0x1000)."
+        echo "      AAR is NOT 16 KB compliant — Google Play will reject APKs containing it."
+        echo ""
+        echo "Fix: verify -Wl,-z,max-page-size=16384 appears in CMAKE_SHARED_LINKER_FLAGS"
+        echo "     and NDK r27c (or r25c) lld is being used for the JNI bridge link step."
+        rm -rf "$verify_dir"
+        exit 1
+    fi
+
+    # Confirm 16 KB alignment present
+    if echo "$load_lines" | grep -qE "\s0x4000\s*$"; then
+        echo "[OK] libffmpegJNI.so — LOAD segments aligned at 16 KB (Align=0x4000). Play-safe. ✓"
+    else
+        echo "WARN: Could not confirm 0x4000 alignment from readelf output."
+        echo "      Check the LOAD lines above manually before shipping."
+    fi
+
+    rm -rf "$verify_dir"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -482,6 +566,7 @@ main() {
     done
 
     package_aar
+    verify_16kb_alignment
 
     echo ""
     echo "[DONE] Build complete."

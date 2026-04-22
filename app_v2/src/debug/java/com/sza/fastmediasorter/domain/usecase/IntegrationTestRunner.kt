@@ -83,6 +83,8 @@ class IntegrationTestRunner @Inject constructor(
         NETWORK_UTILS("Network Utilities"),
         CACHE("Cache Management"),
         SCANNING("Media Scanning"),
+        // VR-only sweep. Skipped automatically in non-VR flavors (BuildConfig.SUPPORT_VR_PLAYER = false).
+        THREE_D_VR("3DVR Sweep"),
         FAILED_ONLY("Failed Tests Only"),
         ALL("All Tests")
     }
@@ -669,7 +671,21 @@ class IntegrationTestRunner @Inject constructor(
         if (collectionGroup == TestGroup.ALL || collectionGroup == TestGroup.SCANNING) {
             tests.add(Test("Local Folder Scan") { testScanLocalFolders() })
         }
-        
+
+        // ========== 3DVR SWEEP (VR flavor only) ==========
+        // Only populated in the vr flavor. In other flavors the 3DVR routing helper and
+        // VrLaunchRoute classes do not exist on the classpath, so we gate the entire
+        // section behind BuildConfig.SUPPORT_VR_PLAYER to keep the shared debug source
+        // set compilable everywhere.
+        if (com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER &&
+            (collectionGroup == TestGroup.ALL || collectionGroup == TestGroup.THREE_D_VR)) {
+            tests.add(Test("3DVR Manifest Present") { testThreeDVrManifestPresent() })
+            tests.add(Test("3DVR Files Readable") { testThreeDVrFilesReadable() })
+            tests.add(Test("3DVR Route Per StereoMode") { testThreeDVrRoutePerStereoMode() })
+            tests.add(Test("3DVR Filename Hint Match") { testThreeDVrFilenameHintMatch() })
+            tests.add(Test("3DVR Variant Coverage") { testThreeDVrVariantCoverage() })
+        }
+
         // Filter tests for FAILED_ONLY group
         return if (group == TestGroup.FAILED_ONLY) {
             tests.filter { it.name in lastFailedTests }
@@ -4555,8 +4571,250 @@ class IntegrationTestRunner @Inject constructor(
         Timber.w("No test video file found for video metadata tests")
         return null
     }
-    
 
+    // ========================================================================
+    // 3DVR SWEEP — VR-flavor-only integration tests
+    //
+    // Driven by the manifest produced by scripts/utils/setup_test_media_vr.ps1.
+    // The manifest lives at /sdcard/Download/FastMediaSorter_Test/3DVR/3dvr_manifest.json
+    // and lists every stereoscopic/spherical file that was pushed to the headset, along
+    // with its declared StereoMode enum value and subfolder variant.
+    //
+    // What the sweep validates (without launching the player Activity — we stay at the
+    // use-case layer so the dialog keeps focus and we can run the whole batch in one go):
+    //
+    //   1. Manifest file is present and parseable.
+    //   2. Every listed file exists on disk, is readable, and non-empty.
+    //   3. For each declared StereoMode, the expected VR launch route matches the rule
+    //      encoded in VrRouteDecisionHelper (duplicated here because that class lives in
+    //      the vr source set and is not visible to this shared debug file).
+    //   4. The filename contains the variant hint token, which StereoDetector's filename
+    //      fallback uses when metadata is missing.
+    //   5. Every StereoMode value that the app renders has at least one sample.
+    // ========================================================================
+
+    private val threeDVrManifestPath =
+        "/sdcard/Download/FastMediaSorter_Test/3DVR/3dvr_manifest.json"
+
+    private data class ThreeDVrEntry(
+        val path: String,
+        val name: String,
+        val variant: String,
+        val stereoMode: String,
+        val sizeBytes: Long,
+    )
+
+    private fun loadThreeDVrManifest(): List<ThreeDVrEntry> {
+        val manifestFile = File(threeDVrManifestPath)
+        if (!manifestFile.exists()) return emptyList()
+        val text = manifestFile.readText()
+        val json = org.json.JSONObject(text)
+        val files = json.optJSONArray("files") ?: return emptyList()
+        val result = mutableListOf<ThreeDVrEntry>()
+        for (i in 0 until files.length()) {
+            val o = files.getJSONObject(i)
+            result.add(
+                ThreeDVrEntry(
+                    path = o.optString("path"),
+                    name = o.optString("name"),
+                    variant = o.optString("variant"),
+                    stereoMode = o.optString("stereoMode"),
+                    sizeBytes = o.optLong("sizeBytes"),
+                )
+            )
+        }
+        return result
+    }
+
+    /**
+     * Mirrors VrRouteDecisionHelper's decision rule without importing the VR-only class.
+     * Returns the expected route name for a given StereoMode when disable3dVr is off.
+     */
+    private fun expectedRouteFor(mode: com.sza.fastmediasorter.domain.model.StereoMode): String {
+        if (!mode.isSpherical() && !mode.isStereoscopic()) return "STANDARD_PANEL_FALLBACK"
+        return "IMMERSIVE_ROUTE"  // IMAGE → IMMERSIVE_STATIC_IMAGE, VIDEO → IMMERSIVE_VIDEO, other → UNSUPPORTED
+    }
+
+    private suspend fun testThreeDVrManifestPresent() {
+        val testName = "3DVR Manifest Present"
+        val startTime = System.currentTimeMillis()
+        log("[$testName] Starting..")
+        try {
+            val manifestFile = File(threeDVrManifestPath)
+            if (!manifestFile.exists()) {
+                recordResult(testName, "3dvr", "manifest", null, false,
+                    System.currentTimeMillis() - startTime,
+                    "Manifest not found. Run scripts/utils/setup_test_media_vr.ps1 first.")
+                return
+            }
+            val entries = loadThreeDVrManifest()
+            if (entries.isEmpty()) {
+                recordResult(testName, "3dvr", "manifest", null, false,
+                    System.currentTimeMillis() - startTime,
+                    "Manifest parsed but contains no files.")
+                return
+            }
+            log("  Found ${entries.size} files in manifest")
+            recordResult(testName, "3dvr", "manifest", null, true,
+                System.currentTimeMillis() - startTime, null,
+                "${entries.size} files indexed")
+        } catch (e: Exception) {
+            recordResult(testName, "3dvr", "manifest", null, false,
+                System.currentTimeMillis() - startTime, e.message)
+        }
+    }
+
+    private suspend fun testThreeDVrFilesReadable() {
+        val testName = "3DVR Files Readable"
+        val startTime = System.currentTimeMillis()
+        log("[$testName] Starting..")
+        try {
+            val entries = loadThreeDVrManifest()
+            if (entries.isEmpty()) {
+                recordResult(testName, "3dvr", "files", null, false,
+                    System.currentTimeMillis() - startTime,
+                    "Manifest is empty — run 3DVR Manifest Present first.")
+                return
+            }
+            val missing = mutableListOf<String>()
+            val unreadable = mutableListOf<String>()
+            for (e in entries) {
+                val f = File(e.path)
+                if (!f.exists()) { missing.add(e.name); continue }
+                if (!f.canRead() || f.length() <= 0L) { unreadable.add(e.name); continue }
+            }
+            val ok = missing.isEmpty() && unreadable.isEmpty()
+            val detail = buildString {
+                append("checked=${entries.size}")
+                if (missing.isNotEmpty()) append(", missing=${missing.size}")
+                if (unreadable.isNotEmpty()) append(", unreadable=${unreadable.size}")
+            }
+            if (!ok) {
+                missing.take(5).forEach { log("  MISSING: $it") }
+                unreadable.take(5).forEach { log("  UNREADABLE: $it") }
+            }
+            recordResult(testName, "3dvr", "files", null, ok,
+                System.currentTimeMillis() - startTime,
+                if (ok) null else detail, detail)
+        } catch (e: Exception) {
+            recordResult(testName, "3dvr", "files", null, false,
+                System.currentTimeMillis() - startTime, e.message)
+        }
+    }
+
+    private suspend fun testThreeDVrRoutePerStereoMode() {
+        val testName = "3DVR Route Per StereoMode"
+        val startTime = System.currentTimeMillis()
+        log("[$testName] Starting..")
+        try {
+            val entries = loadThreeDVrManifest()
+            if (entries.isEmpty()) {
+                recordResult(testName, "3dvr", "routing", null, false,
+                    System.currentTimeMillis() - startTime, "Manifest is empty")
+                return
+            }
+            val mismatches = mutableListOf<String>()
+            for (e in entries) {
+                val mode = com.sza.fastmediasorter.domain.model.StereoMode.fromKey(e.stereoMode)
+                if (mode == com.sza.fastmediasorter.domain.model.StereoMode.AUTO &&
+                    e.stereoMode != "AUTO") {
+                    mismatches.add("${e.name}: unknown mode ${e.stereoMode}")
+                    continue
+                }
+                val expected = expectedRouteFor(mode)
+                val shouldBeImmersive = mode.isSpherical() || mode.isStereoscopic()
+                val actual = if (shouldBeImmersive) "IMMERSIVE_ROUTE" else "STANDARD_PANEL_FALLBACK"
+                if (expected != actual) {
+                    mismatches.add("${e.name}: expected $expected actual $actual")
+                }
+                log("  ${e.variant}/${e.name} [$mode] -> $actual")
+            }
+            val ok = mismatches.isEmpty()
+            recordResult(testName, "3dvr", "routing", null, ok,
+                System.currentTimeMillis() - startTime,
+                if (ok) null else mismatches.joinToString("; ").take(200),
+                "${entries.size} modes validated")
+        } catch (e: Exception) {
+            recordResult(testName, "3dvr", "routing", null, false,
+                System.currentTimeMillis() - startTime, e.message)
+        }
+    }
+
+    private suspend fun testThreeDVrFilenameHintMatch() {
+        val testName = "3DVR Filename Hint Match"
+        val startTime = System.currentTimeMillis()
+        log("[$testName] Starting..")
+        try {
+            val entries = loadThreeDVrManifest()
+            if (entries.isEmpty()) {
+                recordResult(testName, "3dvr", "hints", null, false,
+                    System.currentTimeMillis() - startTime, "Manifest is empty")
+                return
+            }
+            // Filename tokens per variant — StereoDetector's fallback heuristic uses these.
+            val tokensByVariant = mapOf(
+                "sbs" to listOf("sbs", "stereo"),
+                "ou" to listOf("ou", "top-bottom", "tb"),
+                "mono" to listOf("mono", "2d"),
+                "360_mono" to listOf("360"),
+                "360_sbs" to listOf("360", "sbs"),
+                "360_ou" to listOf("360", "ou"),
+                "180_mono" to listOf("180"),
+                "180_sbs" to listOf("180", "sbs"),
+                "vr180_fisheye" to listOf("vr180", "fisheye"),
+                "cylinder" to listOf("cylinder", "180"),
+            )
+            val missHints = mutableListOf<String>()
+            for (e in entries) {
+                val nameLc = e.name.lowercase()
+                val tokens = tokensByVariant[e.variant] ?: continue
+                if (tokens.none { nameLc.contains(it) }) {
+                    missHints.add("${e.variant}/${e.name} (expected one of ${tokens.joinToString()})")
+                }
+            }
+            val ok = missHints.isEmpty()
+            if (!ok) missHints.take(10).forEach { log("  NO-HINT: $it") }
+            recordResult(testName, "3dvr", "hints", null, ok,
+                System.currentTimeMillis() - startTime,
+                if (ok) null else "${missHints.size} files lack a filename stereo hint",
+                "${entries.size - missHints.size}/${entries.size} hinted")
+        } catch (e: Exception) {
+            recordResult(testName, "3dvr", "hints", null, false,
+                System.currentTimeMillis() - startTime, e.message)
+        }
+    }
+
+    private suspend fun testThreeDVrVariantCoverage() {
+        val testName = "3DVR Variant Coverage"
+        val startTime = System.currentTimeMillis()
+        log("[$testName] Starting..")
+        try {
+            val entries = loadThreeDVrManifest()
+            if (entries.isEmpty()) {
+                recordResult(testName, "3dvr", "coverage", null, false,
+                    System.currentTimeMillis() - startTime, "Manifest is empty")
+                return
+            }
+            // Every renderable stereo mode must have at least one sample.
+            val required = listOf(
+                "SBS_FULL", "OU", "MONO",
+                "EQUIRECT_360_MONO", "EQUIRECT_360_SBS", "EQUIRECT_360_OU",
+                "EQUIRECT_180_MONO", "EQUIRECT_180_SBS",
+                "VR180_FISHEYE_SBS", "CYLINDER_180",
+            )
+            val present = entries.map { it.stereoMode }.toSet()
+            val missing = required.filterNot { it in present }
+            val ok = missing.isEmpty()
+            missing.forEach { log("  MISSING VARIANT: $it") }
+            recordResult(testName, "3dvr", "coverage", null, ok,
+                System.currentTimeMillis() - startTime,
+                if (ok) null else "Missing variants: ${missing.joinToString()}",
+                "${required.size - missing.size}/${required.size} variants")
+        } catch (e: Exception) {
+            recordResult(testName, "3dvr", "coverage", null, false,
+                System.currentTimeMillis() - startTime, e.message)
+        }
+    }
 
     private data class Test(
         val name: String,

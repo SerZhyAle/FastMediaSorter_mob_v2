@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
+import com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
@@ -62,6 +63,12 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         initAudioAndMediaServices()
         initUiCoordinators()
         initSetupManagers()
+        initPrefetchManager()
+    }
+
+    private fun initPrefetchManager() {
+        activity.playerPrefetchManager = PlayerPrefetchManager(activity)
+        activity.playerPrefetchManager.setup()
     }
 
     private fun initBackgroundMedia() {
@@ -325,7 +332,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             lifecycleScope = activity.lifecycleScope,
             loadingIndicatorHandler = activity.loadingIndicatorHandler,
             showLoadingIndicatorRunnable = activity.showLoadingIndicatorRunnable,
-            preloadJobs = activity.preloadJobs,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerImageLoadingCallbackImpl(
                 activity = activity,
                 viewModel = activity.viewModel

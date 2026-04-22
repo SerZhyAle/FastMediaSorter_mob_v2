@@ -73,6 +73,9 @@
     <string name="copy_failed">Copy failed: %1$s</string>
     <string name="no_destinations_available">No destination resources configured</string>
 
+    <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
+    <string name="archiving_n_files_from_folder">Archiving %1$d files from %2$s</string>
+
     <!-- Move Dialog -->
     <string name="moving_files">Moving Files</string>
     <string name="moving_n_files_from_folder">Moving %1$d files from %2$s</string>
@@ -1302,6 +1305,54 @@
     <string name="network_sync_settings">Network Sync Settings</string>
     <string name="network_parallelism_title">Network Parallelism</string>
     <string name="network_parallelism_summary">Number of parallel threads for network operations (SMB, FTP, SFTP)</string>
+
+    <!-- Streaming / Pre-cache settings -->
+    <string name="pref_prefetch_cache_title">Video pre-cache size</string>
+    <string name="pref_prefetch_cache_helper">Less: minimal buffering · progress indicator and save-offer hidden</string>
+    <string name="pref_prefetch_cache_less">Less (0.5×)</string>
+    <string name="pref_prefetch_cache_auto">Auto</string>
+    <string name="pref_prefetch_cache_more">More (2×)</string>
+    <string name="pref_streaming_cleanup_title">Streaming cache cleanup</string>
+    <string name="pref_streaming_cleanup_ask">Ask each time</string>
+    <string name="pref_streaming_cleanup_auto_delete">Auto-delete</string>
+    <string name="pref_streaming_cleanup_auto_keep">Auto-keep</string>
+    <string name="pref_streaming_ttl_title">Streaming cache TTL</string>
+    <string name="pref_streaming_ttl_off">Off</string>
+    <string name="pref_streaming_ttl_1d">1 day</string>
+    <string name="pref_streaming_ttl_3d">3 days</string>
+    <string name="pref_streaming_ttl_7d">7 days</string>
+    <string name="pref_streaming_ttl_30d">30 days</string>
+    <string name="pref_streaming_clear_now">Clear streaming cache</string>
+    <string name="pref_streaming_clear_confirm_format">Total: %1$s\n\n%2$s</string>
+    <string name="streaming_cache_empty">Streaming cache is empty.</string>
+
+    <!-- Prefetch overlay pill -->
+    <string name="prefetch_overlay_format">%1$ds / %2$ds · %3$s</string>
+    <string name="prefetch_overlay_local_copy_format">Local copy · %1$s</string>
+    <string name="prefetch_margin_hint">Speed marginal — may stall</string>
+    <string name="prefetch_a11y_format">Pre-cache: %1$ds of %2$ds from %3$s</string>
+
+    <!-- Offload offer dialog -->
+    <string name="offload_dialog_title">Save to local copy?</string>
+    <string name="offload_insufficient_storage">Not enough free space on device.</string>
+    <string name="offload_action_download">Save local copy</string>
+    <string name="offload_action_try_anyway">Try anyway</string>
+    <string name="offload_action_cancel">Cancel</string>
+    <string name="offload_row_file_size">File size: %1$s</string>
+    <string name="offload_row_speed">Speed: %1$s / Required: %2$s</string>
+    <string name="offload_row_eta">ETA: %1$s</string>
+    <string name="offload_row_free_space">Free space: %1$s (%2$s)</string>
+    <string name="offload_row_destination">Destination: %1$s</string>
+    <string name="offload_enough">enough</string>
+    <string name="offload_not_enough">not enough</string>
+
+    <!-- Streaming cache cleanup prompt -->
+    <string name="cleanup_prompt_title">Local copy ready</string>
+    <string name="cleanup_prompt_body_format">Delete the local copy of\n%1$s (%2$s)?</string>
+    <string name="cleanup_keep">Keep</string>
+    <string name="cleanup_delete">Delete</string>
+    <string name="cleanup_dont_ask">Don\'t ask again</string>
+
     <string name="enable_background_sync">Enable background sync</string>
     <string name="background_sync_description">Automatically check network resources for file changes in the background</string>
     <string name="thumbnail_preload_title">Preload thumbnails</string>
@@ -1820,6 +1871,13 @@
     <string name="send_email">Send email</string>
     <string name="no_email_client">No email client found</string>
 
+    <!-- Share Receiver (ReceiveShareActivity) -->
+    <string name="receive_share_preparing">Preparing shared content..</string>
+    <string name="receive_share_source_name">Shared</string>
+    <string name="receive_share_no_content">No content received to import</string>
+    <string name="receive_share_cache_failed">Failed to prepare shared file: %1$s</string>
+    <string name="receive_share_copied_to_folder">Saved to selected folder</string>
+    <string name="receive_share_copy_to_folder_failed">Failed to save: %1$s</string>
 
     <!-- Auto-generated from layout files -->
     <string name="activity_browse_rvMediaFiles_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
@@ -1947,6 +2005,7 @@
     <string name="dialog_integration_test_chipAudio_text">Audio</string>
     <string name="dialog_integration_test_chipCache_text">Cache</string>
     <string name="dialog_integration_test_chipCloudProviders_text">Cloud Providers</string>
+    <string name="dialog_integration_test_chipThreeDVr_text">3DVR Sweep</string>
     <string name="dialog_integration_test_chipFailedOnly_text">Failed Only</string>
     <string name="dialog_integration_test_chipFavorites_text">Favorites</string>
     <string name="dialog_integration_test_chipGif_text">GIF</string>

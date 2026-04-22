@@ -203,6 +203,8 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 workManagerScheduler.scheduleOrphanCleanup()
                 // Retry any OAuth token revocations that failed during sign-out (B5-T3)
                 workManagerScheduler.schedulePendingRevocation()
+                // Streaming-offload cache GC (spec §5.7). TTL pulled from settings; 0 = off.
+                workManagerScheduler.scheduleStreamingCacheGc(settings.streamingCacheTtlDays)
                 // Reschedule all enabled scheduled file operations (survived force-stop / app update)
                 if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS && settings.enableScheduledOperations) {
                     workManagerScheduler.rescheduleAll()

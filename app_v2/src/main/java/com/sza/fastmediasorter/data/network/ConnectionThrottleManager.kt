@@ -156,6 +156,12 @@ object ConnectionThrottleManager {
     }
 
     /**
+     * Last measured speed for [resourceKey], or `null` if no speed test has been run.
+     * Used by the adaptive pre-cache formula (spec §5.4) when composing a [com.sza.fastmediasorter.domain.model.PrefetchPlan].
+     */
+    fun getLastSpeedMbps(resourceKey: String): Double? = speedMbpsCache[resourceKey]
+
+    /**
      * Return the [SmbjClientTier] appropriate for [resourceKey] based on the last speed test.
      * If no measurement exists, returns [SmbjClientTier.SLOW] (conservative / max patience).
      */

@@ -98,12 +98,20 @@ class FileOperationDestinationDialog(
                     sourceFiles.size,
                     sourceFolderName
                 )
+                FileOperationType.ARCHIVE -> context.getString(
+                    R.string.archiving_n_files_from_folder,
+                    sourceFiles.size,
+                    sourceFolderName
+                )
                 else -> "" // DELETE and RENAME not used in this dialog
             }
-            
+
             btnCancel.setOnClickListenerDebounced { dismiss() }
-            
-            // "Select folder" button — always visible; dismiss dialog and delegate to Activity
+
+            // ARCHIVE mode uses only registered destinations for folder selection —
+            // SAF external folder picking is out of scope here.
+            btnSelectFolder.visibility = if (operationType == FileOperationType.ARCHIVE) View.GONE else View.VISIBLE
+            // "Select folder" button — dismiss dialog and delegate to Activity
             btnSelectFolder.setOnClickListenerDebounced {
                 Timber.tag(TAG).d("Select folder button clicked")
                 onSelectFolderClicked?.invoke(operationType, sourceFiles, sourceCredentialsId)
@@ -234,6 +242,13 @@ class FileOperationDestinationDialog(
 
         // Notify caller of selected destination before executing the operation.
         onDestinationSelected?.invoke(destination)
+
+        // ARCHIVE mode: dialog only captures the destination; the caller performs the archive.
+        if (operationType == FileOperationType.ARCHIVE) {
+            Timber.d("performOperation: ARCHIVE mode — destination captured, dismissing without running operation")
+            dismiss()
+            return
+        }
 
         binding.progressBar.visibility = View.VISIBLE
         binding.layoutDestinations.isEnabled = false

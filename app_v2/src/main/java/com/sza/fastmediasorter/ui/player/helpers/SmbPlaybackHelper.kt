@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.net.Uri
 import androidx.media3.datasource.DataSource
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.common.AudioAttributes
@@ -73,15 +72,11 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
 
     val dataSourceFactory = SmbDataSourceFactory(smbClient, connectionInfo)
 
-    val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(
-            VideoPlayerManager.MIN_BUFFER_MS,
-            VideoPlayerManager.MAX_BUFFER_MS,
-            VideoPlayerManager.BUFFER_FOR_PLAYBACK_MS,
-            VideoPlayerManager.BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-        )
-        .setPrioritizeTimeOverSizeThresholds(true)
-        .build()
+    val loadControl = PrefetchLoadControlFactory.build(
+        plan = activePrefetchPlan,
+        useCloudDefaults = false,
+        tag = "smb"
+    )
 
     val audioAttributes = AudioAttributes.Builder()
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)

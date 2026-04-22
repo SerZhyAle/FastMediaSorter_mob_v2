@@ -245,6 +245,16 @@
             android:supportsPictureInPicture="true"
             android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
+        <!-- Share Receiver: handles ACTION_SEND intents from the system Share sheet.
+             Enabled/disabled dynamically via DefaultPlayerManager.applyShareReceiverState().
+             Translucent theme ensures only the Copy-to dialog is visible (no blank window). -->
+        <activity
+            android:name=".ui.share.ReceiveShareActivity"
+            android:exported="false"
+            android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 
         <!-- Audio alias: mp3, flac, aac, ogg, m4a, wma, opus, amr, etc. -->
@@ -356,7 +366,7 @@
             android:name=".StandaloneAudioSender"
             android:enabled="false"
             android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
+            android:targetActivity=".ui.share.ReceiveShareActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -379,7 +389,7 @@
             android:name=".StandaloneVideoSender"
             android:enabled="false"
             android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
+            android:targetActivity=".ui.share.ReceiveShareActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -402,7 +412,7 @@
             android:name=".StandaloneImageSender"
             android:enabled="false"
             android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
+            android:targetActivity=".ui.share.ReceiveShareActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -414,6 +424,21 @@
                 <data android:mimeType="image/bmp" />
                 <data android:mimeType="image/avif" />
                 <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Text/Link share receiver: handles plain-text from Instagram, browsers, etc.
+             Creates a .txt file in temp cache, then shows the Copy-to dialog. -->
+        <activity-alias
+            android:name=".StandaloneTextSender"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".ui.share.ReceiveShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/*" />
             </intent-filter>
         </activity-alias>
 

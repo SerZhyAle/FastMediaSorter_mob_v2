@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
-import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.core.util.PathUtils
@@ -57,15 +56,11 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
         credentials.password
     )
 
-    val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(
-            VideoPlayerManager.MIN_BUFFER_MS,
-            VideoPlayerManager.MAX_BUFFER_MS,
-            2500,   // FTP: lower initial buffer (latency spikes on open are common)
-            5000    // FTP: lower rebuffer threshold
-        )
-        .setPrioritizeTimeOverSizeThresholds(true)
-        .build()
+    val loadControl = PrefetchLoadControlFactory.build(
+        plan = activePrefetchPlan,
+        useCloudDefaults = false,
+        tag = "ftp"
+    )
 
     val audioAttributes = AudioAttributes.Builder()
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)

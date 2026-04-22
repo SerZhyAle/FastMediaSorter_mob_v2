@@ -6,26 +6,16 @@ Write-Host "Features: Full standard + OpenXR VR rendering" -ForegroundColor Yell
 
 # Generate version
 $now = Get-Date
-$year = $now.Year
-$month = $now.Month
-$day = $now.Day
-$hour = $now.Hour
-$minute = $now.Minute
+$yy = $now.ToString("yy")
+$MM = $now.ToString("MM")
+$dd = $now.ToString("dd")
+$HH = $now.ToString("HH")
+$mm = $now.ToString("mm")
 
-$firstYearDigit = [int]($year.ToString()[0].ToString())
-$lastYearDigit = [int]($year.ToString()[-1].ToString())
-$firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-$dayStr = $day.ToString("00")
-$firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-$minuteStr = $minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-# YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+# versionCode: YYMMDDHHm (9 digits, first digit of minutes — avoids Int32 overflow)
+$versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
+# versionName: Y.YM.MDDH.Hmm  e.g. 2.60.4220.247
+$versionName = "$($yy[0]).$($yy[1])$($MM[0]).$($MM[1])$dd$($HH[0]).$($HH[1])$mm"
 
 Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
 
@@ -37,10 +27,11 @@ $gradlew = "$projectRoot\gradlew.bat"
 # These are left behind when a previous build is aborted; new builds cannot hash them.
 $cxxDebugDir = Join-Path $projectRoot "app_v2\build\intermediates\cxx\Debug"
 if (Test-Path $cxxDebugDir) {
-    Get-ChildItem -Path $cxxDebugDir -Recurse -Filter "*.tmp" | ForEach-Object {
-        Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
-        if (-not (Test-Path $_.FullName)) {
-            Write-Host "  Cleaned stale lock: $($_.Name)" -ForegroundColor DarkGray
+    $tmpFiles = @(Get-ChildItem -Path $cxxDebugDir -Recurse -Filter "*.tmp" -ErrorAction SilentlyContinue)
+    foreach ($f in $tmpFiles) {
+        Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue
+        if (-not (Test-Path $f.FullName)) {
+            Write-Host "  Cleaned stale lock: $($f.Name)" -ForegroundColor DarkGray
         }
     }
 }

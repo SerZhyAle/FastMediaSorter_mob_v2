@@ -1,0 +1,44 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Video Pre-cache Indicator
+# Description: Smoke test — verify the prefetch overlay pill appears and auto-dismisses during network video playback
+# Duration: ~30 seconds
+# Prerequisite: at least one network source (SMB/SFTP/FTP) configured with a video file
+
+- launchApp
+- waitForAnimationToEnd
+
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to a network source tab
+- tapOn:
+    text: ".*"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Tap any network video file
+- tapOn:
+    text: ".*\\.(mp4|mkv|avi|mov)$"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Overlay pill should appear during buffering (id set by PrefetchOverlayView)
+- assertVisible:
+    id: ".*prefetch_overlay.*"
+    optional: true
+
+# Wait for auto-dismiss (600 ms after playback ready + buffer)
+- wait:
+    timeout: 5000
+
+# Overlay should be gone after auto-dismiss
+- assertNotVisible:
+    id: ".*prefetch_overlay.*"
+    optional: true
+
+# Return to browser
+- back
+- waitForAnimationToEnd

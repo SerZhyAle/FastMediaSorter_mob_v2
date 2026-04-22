@@ -19,9 +19,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -288,8 +287,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val bounds = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             windowManager.currentWindowMetrics.bounds
         } else {
-            @Suppress("DEPRECATION")
             val sz = android.graphics.Point()
+            @Suppress("DEPRECATION")
             windowManager.defaultDisplay.getRealSize(sz)
             android.graphics.Rect(0, 0, sz.x, sz.y)
         }
@@ -487,245 +486,221 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun observeData() {
         
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    resourceAdapter.submitList(state.resources)
-                    resourceAdapter.setSelectedResource(state.selectedResource?.id)
-                    resourceAdapter.setViewMode(state.isResourceGridMode)
-                    
-                    // Update layout manager based on mode and screen size
-                    updateLayoutManagerForScreenSize()
-                    
-                    // Update toggle button icon
-                    if (state.isResourceGridMode) {
-                        binding.btnToggleView.setIconResource(R.drawable.ic_view_list)
-                    } else {
-                        binding.btnToggleView.setIconResource(R.drawable.ic_view_grid)
-                    }
-                    
-                    // Toggle button visibility logic:
-                    // - Show when grid mode is active (to allow returning to list view)
-                    // - OR when > 10 resources (to allow switching to grid view)
-                    // - OR always in landscape (grid vs compact-icon modes look meaningfully different)
-                    val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-                    binding.btnToggleView.isVisible = state.isResourceGridMode || state.resources.size > 10 || isLandscape
-                    
-                    // Enable Play button if any resources exist (auto-selects last used or first)
-                    binding.btnStartPlayer.isEnabled = state.resources.isNotEmpty()
-                    
-                    // Use state.resources.size instead of adapter.itemCount 
-                    // because submitList() updates itemCount asynchronously
-                    val isEmpty = state.resources.isEmpty()
-                    
-                    // Update visibility based on state
-                    val hasError = viewModel.error.value != null
-                    binding.errorStateView.isVisible = hasError && isEmpty
-                    binding.emptyStateView.isVisible = !hasError && isEmpty
-                    binding.rvResources.isVisible = !isEmpty
-                    
-                    updateFilterWarning(state)
-                    
-                    // Sync TabLayout selection with ViewModel state
-                    // Skip FAVORITES tab - it's action-only (opens Browse), not a filter
-                    if (state.activeResourceTab != ResourceTab.FAVORITES) {
-                        val tabPosition = getTabIndexForResourceTab(state.activeResourceTab)
-                        if (binding.tabResourceTypes.selectedTabPosition != tabPosition) {
-                            binding.tabResourceTypes.selectTab(binding.tabResourceTypes.getTabAt(tabPosition))
-                        }
-                    }
+        collectOnLifecycle(viewModel.state) { state ->
+            resourceAdapter.submitList(state.resources)
+            resourceAdapter.setSelectedResource(state.selectedResource?.id)
+            resourceAdapter.setViewMode(state.isResourceGridMode)
+
+            // Update layout manager based on mode and screen size
+            updateLayoutManagerForScreenSize()
+
+            // Update toggle button icon
+            if (state.isResourceGridMode) {
+                binding.btnToggleView.setIconResource(R.drawable.ic_view_list)
+            } else {
+                binding.btnToggleView.setIconResource(R.drawable.ic_view_grid)
+            }
+
+            // Toggle button visibility logic:
+            // - Show when grid mode is active (to allow returning to list view)
+            // - OR when > 10 resources (to allow switching to grid view)
+            // - OR always in landscape (grid vs compact-icon modes look meaningfully different)
+            val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            binding.btnToggleView.isVisible = state.isResourceGridMode || state.resources.size > 10 || isLandscape
+
+            // Enable Play button if any resources exist (auto-selects last used or first)
+            binding.btnStartPlayer.isEnabled = state.resources.isNotEmpty()
+
+            // Use state.resources.size instead of adapter.itemCount
+            // because submitList() updates itemCount asynchronously
+            val isEmpty = state.resources.isEmpty()
+
+            // Update visibility based on state
+            val hasError = viewModel.error.value != null
+            binding.errorStateView.isVisible = hasError && isEmpty
+            binding.emptyStateView.isVisible = !hasError && isEmpty
+            binding.rvResources.isVisible = !isEmpty
+
+            updateFilterWarning(state)
+
+            // Sync TabLayout selection with ViewModel state
+            // Skip FAVORITES tab - it's action-only (opens Browse), not a filter
+            if (state.activeResourceTab != ResourceTab.FAVORITES) {
+                val tabPosition = getTabIndexForResourceTab(state.activeResourceTab)
+                if (binding.tabResourceTypes.selectedTabPosition != tabPosition) {
+                    binding.tabResourceTypes.selectTab(binding.tabResourceTypes.getTabAt(tabPosition))
                 }
             }
         }
-        
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.loading.collect { isLoading ->
-                    binding.progressBar.isVisible = isLoading
-                }
-            }
+
+        collectOnLifecycle(viewModel.loading) { isLoading ->
+            binding.progressBar.isVisible = isLoading
         }
-        
+
         // Handle navigation progress (connection test during resource open)
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    binding.navigationProgressLayout.isVisible = state.isNavigating
-                    if (state.isNavigating && state.navigationMessage != null) {
-                        binding.tvNavigationMessage.text = state.navigationMessage
-                    }
-                }
+        collectOnLifecycle(viewModel.state) { state ->
+            binding.navigationProgressLayout.isVisible = state.isNavigating
+            if (state.isNavigating && state.navigationMessage != null) {
+                binding.tvNavigationMessage.text = state.navigationMessage
+            }
+        }
+
+        collectOnLifecycle(viewModel.error) { errorMessage ->
+            // Show error state if error occurred and no resources loaded
+            val hasError = errorMessage != null
+            val isEmpty = viewModel.state.value.resources.isEmpty()
+
+            binding.errorStateView.isVisible = hasError && isEmpty
+            binding.emptyStateView.isVisible = !hasError && isEmpty
+            binding.rvResources.isVisible = !isEmpty
+
+            if (hasError && isEmpty) {
+                binding.tvErrorMessage.text = errorMessage
             }
         }
         
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.error.collect { errorMessage ->
-                    // Show error state if error occurred and no resources loaded
-                    val hasError = errorMessage != null
-                    val isEmpty = viewModel.state.value.resources.isEmpty()
-                    
-                    binding.errorStateView.isVisible = hasError && isEmpty
-                    binding.emptyStateView.isVisible = !hasError && isEmpty
-                    binding.rvResources.isVisible = !isEmpty
-                    
-                    if (hasError && isEmpty) {
-                        binding.tvErrorMessage.text = errorMessage
-                    }
+        collectOnLifecycle(viewModel.events) { event ->
+            when (event) {
+                is MainEvent.ShowError -> {
+                    showError(event.message, event.details)
                 }
-            }
-        }
-        
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is MainEvent.ShowError -> {
-                            showError(event.message, event.details)
-                        }
-                        is MainEvent.ShowInfo -> {
-                            showInfo(event.message, event.details)
-                        }
-                        is MainEvent.ShowMessage -> {
-                            Toast.makeText(this@MainActivity, event.message, Toast.LENGTH_SHORT).show()
-                        }
-                        is MainEvent.ShowResourceMessage -> {
-                            val message = getString(event.resId, *event.args)
-                            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
-                        }
-                        is MainEvent.RequestPassword -> {
-                            passwordManager.checkResourcePassword(
-                                resource = event.resource,
-                                forSlideshow = event.forSlideshow,
-                                onPasswordValidated = { resourceId, forSlideshow ->
-                                    viewModel.proceedAfterPasswordCheck(resourceId, forSlideshow)
-                                }
-                            )
-                        }
-                        is MainEvent.NavigateToBrowse -> {
-                            startActivity(BrowseActivity.createIntent(
-                                this@MainActivity, 
-                                event.resourceId, 
-                                event.skipAvailabilityCheck
-                            ))
-                            @Suppress("DEPRECATION")
-                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                        }
-                        is MainEvent.NavigateToFavorites -> {
-                            startActivity(BrowseActivity.createIntent(
-                                this@MainActivity,
-                                -100L, // FAVORITES_RESOURCE_ID
-                                true // skipAvailabilityCheck
-                            ))
-                            @Suppress("DEPRECATION")
-                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                        }
-                        is MainEvent.NavigateToPlayerSlideshow -> {
-                            val intent = PlayerActivity.createIntent(
-                                this@MainActivity,
-                                event.resourceId,
-                                initialIndex = 0,
-                                skipAvailabilityCheck = true
-                            ).apply {
-                                putExtra("slideshow_mode", true)
-                            }
-                            startActivity(intent)
-                            @Suppress("DEPRECATION")
-                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                        }
-                        is MainEvent.NavigateToPlayerRandomMusic -> {
-                            val intent = PlayerActivity.createIntent(
-                                this@MainActivity,
-                                event.resourceId,
-                                initialIndex = 0,
-                                skipAvailabilityCheck = true,
-                                isPlaying = true,
-                                shuffleOnStart = true
-                            )
-                            startActivity(intent)
-                            @Suppress("DEPRECATION")
-                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                        }
-                        is MainEvent.NavigateToEditResource -> {
-                            // Check if resource has PIN protection before editing
-                            val resource = viewModel.state.value.resources.find { it.id == event.resourceId }
-                            if (resource != null && !resource.accessPin.isNullOrBlank()) {
-                                passwordManager.checkResourcePinForEdit(resource)
-                            } else {
-                                startActivity(ResourceEditorActivity.createEditIntent(this@MainActivity, event.resourceId))
-                            }
-                        }
-                        is MainEvent.NavigateToAddResource -> {
-                            startActivity(
-                                AddResourceActivity.createIntent(
-                                    this@MainActivity,
-                                    preselectedTab = event.preselectedTab
-                                )
-                            )
-                        }
-                        is MainEvent.NavigateToAddResourceCopy -> {
-                            val resource = viewModel.state.value.resources.find { it.id == event.copyResourceId }
-                            if (resource != null && !resource.accessPin.isNullOrBlank()) {
-                                passwordManager.checkResourcePin(resource) {
-                                    startActivity(
-                                        ResourceEditorActivity.createCopyIntent(
-                                            this@MainActivity,
-                                            resourceId = event.copyResourceId
-                                        )
-                                    )
-                                }
-                            } else {
-                                startActivity(
-                                    ResourceEditorActivity.createCopyIntent(
-                                        this@MainActivity,
-                                        resourceId = event.copyResourceId
-                                    )
-                                )
-                            }
-                        }
-                        MainEvent.NavigateToSettings -> {
-                            startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
-                        }
-                        is MainEvent.ScanProgress -> {
-                            binding.scanProgressLayout.visibility = View.VISIBLE
-                            binding.tvScanDetail.text = getString(R.string.files_scanned_count, event.scannedCount)
-                            event.currentFile?.let { fileName ->
-                                binding.tvScanProgress.text = getString(R.string.scanning_progress, fileName)
-                            }
-                        }
-                        MainEvent.ScanComplete -> {
-                            binding.scanProgressLayout.visibility = View.GONE
-                        }
-                        MainEvent.ConfirmRescanWithVirtualResources -> {
-                            if (isFinishing || isDestroyed) return@collect
-                            android.app.AlertDialog.Builder(this@MainActivity)
-                                .setTitle(R.string.rescan_all_virtual_warning_title)
-                                .setMessage(R.string.rescan_all_virtual_warning_message)
-                                .setPositiveButton(android.R.string.ok) { _, _ ->
-                                    viewModel.forceRescanAllResources()
-                                }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
-                        }
-                    }
+                is MainEvent.ShowInfo -> {
+                    showInfo(event.message, event.details)
                 }
-            }
-        }
-        lifecycleScope.launch {
-            // Observe settings to show/hide Favorites button
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.getSettings().collect { settings ->
-                    binding.btnFavorites.visibility = if (settings.enableFavorites) {
-                        View.VISIBLE
+                is MainEvent.ShowMessage -> {
+                    Toast.makeText(this@MainActivity, event.message, Toast.LENGTH_SHORT).show()
+                }
+                is MainEvent.ShowResourceMessage -> {
+                    val message = getString(event.resId, *event.args)
+                    Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                }
+                is MainEvent.RequestPassword -> {
+                    passwordManager.checkResourcePassword(
+                        resource = event.resource,
+                        forSlideshow = event.forSlideshow,
+                        onPasswordValidated = { resourceId, forSlideshow ->
+                            viewModel.proceedAfterPasswordCheck(resourceId, forSlideshow)
+                        }
+                    )
+                }
+                is MainEvent.NavigateToBrowse -> {
+                    startActivity(BrowseActivity.createIntent(
+                        this@MainActivity,
+                        event.resourceId,
+                        event.skipAvailabilityCheck
+                    ))
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+                is MainEvent.NavigateToFavorites -> {
+                    startActivity(BrowseActivity.createIntent(
+                        this@MainActivity,
+                        -100L, // FAVORITES_RESOURCE_ID
+                        true // skipAvailabilityCheck
+                    ))
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+                is MainEvent.NavigateToPlayerSlideshow -> {
+                    val intent = PlayerActivity.createIntent(
+                        this@MainActivity,
+                        event.resourceId,
+                        initialIndex = 0,
+                        skipAvailabilityCheck = true
+                    ).apply {
+                        putExtra("slideshow_mode", true)
+                    }
+                    startActivity(intent)
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+                is MainEvent.NavigateToPlayerRandomMusic -> {
+                    val intent = PlayerActivity.createIntent(
+                        this@MainActivity,
+                        event.resourceId,
+                        initialIndex = 0,
+                        skipAvailabilityCheck = true,
+                        isPlaying = true,
+                        shuffleOnStart = true
+                    )
+                    startActivity(intent)
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+                is MainEvent.NavigateToEditResource -> {
+                    // Check if resource has PIN protection before editing
+                    val resource = viewModel.state.value.resources.find { it.id == event.resourceId }
+                    if (resource != null && !resource.accessPin.isNullOrBlank()) {
+                        passwordManager.checkResourcePinForEdit(resource)
                     } else {
-                        View.GONE
+                        startActivity(ResourceEditorActivity.createEditIntent(this@MainActivity, event.resourceId))
                     }
-                    resourceAdapter.setUseCompactElements(settings.useCompactElements)
-                    compactElementsEnabled = settings.useCompactElements
-                    applyCompactToolbar(settings.useCompactElements)
-                    refreshGridSpacing()
+                }
+                is MainEvent.NavigateToAddResource -> {
+                    startActivity(
+                        AddResourceActivity.createIntent(
+                            this@MainActivity,
+                            preselectedTab = event.preselectedTab
+                        )
+                    )
+                }
+                is MainEvent.NavigateToAddResourceCopy -> {
+                    val resource = viewModel.state.value.resources.find { it.id == event.copyResourceId }
+                    if (resource != null && !resource.accessPin.isNullOrBlank()) {
+                        passwordManager.checkResourcePin(resource) {
+                            startActivity(
+                                ResourceEditorActivity.createCopyIntent(
+                                    this@MainActivity,
+                                    resourceId = event.copyResourceId
+                                )
+                            )
+                        }
+                    } else {
+                        startActivity(
+                            ResourceEditorActivity.createCopyIntent(
+                                this@MainActivity,
+                                resourceId = event.copyResourceId
+                            )
+                        )
+                    }
+                }
+                MainEvent.NavigateToSettings -> {
+                    startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                }
+                is MainEvent.ScanProgress -> {
+                    binding.scanProgressLayout.visibility = View.VISIBLE
+                    binding.tvScanDetail.text = getString(R.string.files_scanned_count, event.scannedCount)
+                    event.currentFile?.let { fileName ->
+                        binding.tvScanProgress.text = getString(R.string.scanning_progress, fileName)
+                    }
+                }
+                MainEvent.ScanComplete -> {
+                    binding.scanProgressLayout.visibility = View.GONE
+                }
+                MainEvent.ConfirmRescanWithVirtualResources -> {
+                    if (isFinishing || isDestroyed) return@collectOnLifecycle
+                    android.app.AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.rescan_all_virtual_warning_title)
+                        .setMessage(R.string.rescan_all_virtual_warning_message)
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                            viewModel.forceRescanAllResources()
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show()
                 }
             }
+        }
+        // Observe settings to show/hide Favorites button
+        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            binding.btnFavorites.visibility = if (settings.enableFavorites) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+            resourceAdapter.setUseCompactElements(settings.useCompactElements)
+            compactElementsEnabled = settings.useCompactElements
+            applyCompactToolbar(settings.useCompactElements)
+            refreshGridSpacing()
         }
     }
     

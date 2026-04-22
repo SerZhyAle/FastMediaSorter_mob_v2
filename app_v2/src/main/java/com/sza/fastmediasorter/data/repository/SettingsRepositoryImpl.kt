@@ -190,6 +190,14 @@ class SettingsRepositoryImpl @Inject constructor(
         // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
         private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
 
+        // Adaptive pre-cache strategy (spec §5)
+        private val KEY_PREFETCH_CACHE_MULTIPLIER = stringPreferencesKey("prefetch_cache_multiplier")
+        private val KEY_STREAMING_CACHE_CLEANUP_MODE = stringPreferencesKey("streaming_cache_cleanup_mode")
+        private val KEY_STREAMING_CACHE_TTL_DAYS = intPreferencesKey("streaming_cache_ttl_days")
+
+        /** Allowed values for [KEY_STREAMING_CACHE_TTL_DAYS]; `0` means "off". */
+        private val STREAMING_CACHE_TTL_VALID = setOf(0, 1, 3, 7, 30)
+
         private val VR_FORCED_PLAT_VALUES = setOf("AUTO", "SBS", "OU", "MONO")
         private val VR_FORCED_SPHERICAL_VALUES = setOf(
             "AUTO",
@@ -402,7 +410,16 @@ class SettingsRepositoryImpl @Inject constructor(
 
                     // Default true: resumes playback on fresh installs and on update from old versions
                     // (absent key → null → default true, matching the user's existing behaviour)
-                    resumeOnNextLaunch = preferences[KEY_RESUME_ON_NEXT_LAUNCH] ?: true
+                    resumeOnNextLaunch = preferences[KEY_RESUME_ON_NEXT_LAUNCH] ?: true,
+
+                    // Adaptive pre-cache strategy (spec §5)
+                    prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
+                        .fromName(preferences[KEY_PREFETCH_CACHE_MULTIPLIER]),
+                    streamingCacheCleanupMode = com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
+                        .fromName(preferences[KEY_STREAMING_CACHE_CLEANUP_MODE]),
+                    streamingCacheTtlDays = preferences[KEY_STREAMING_CACHE_TTL_DAYS]
+                        ?.takeIf { it in STREAMING_CACHE_TTL_VALID }
+                        ?: 7
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -614,6 +631,12 @@ class SettingsRepositoryImpl @Inject constructor(
 
             // Resume on next launch
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
+
+            // Adaptive pre-cache strategy (spec §5)
+            preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
+            preferences[KEY_STREAMING_CACHE_CLEANUP_MODE] = settings.streamingCacheCleanupMode.name
+            preferences[KEY_STREAMING_CACHE_TTL_DAYS] = settings.streamingCacheTtlDays
+                .takeIf { it in STREAMING_CACHE_TTL_VALID } ?: 7
         }
     }
 

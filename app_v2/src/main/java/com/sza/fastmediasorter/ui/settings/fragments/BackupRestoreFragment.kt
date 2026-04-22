@@ -11,10 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
@@ -28,7 +26,6 @@ import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.FavoritesExportUiState
 import com.sza.fastmediasorter.ui.settings.FavoritesImportUiState
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
@@ -115,26 +112,12 @@ class BackupRestoreFragment : Fragment() {
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    handleState(state)
-                }
-            }
-        }
+        collectOnLifecycle(viewModel.uiState) { state -> handleState(state) }
     }
 
     private fun observeFavoritesState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.exportFavState.collect { handleExportFavState(it) }
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.importFavState.collect { handleImportFavState(it) }
-            }
-        }
+        collectOnLifecycle(viewModel.exportFavState) { handleExportFavState(it) }
+        collectOnLifecycle(viewModel.importFavState) { handleImportFavState(it) }
     }
 
     private fun handleExportFavState(state: FavoritesExportUiState) {

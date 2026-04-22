@@ -10,10 +10,8 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -21,7 +19,6 @@ import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.player.helpers.QueueTrackAdapter
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -137,14 +134,10 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
     // ── State observation ─────────────────────────────────────────────────────
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    Timber.d("NowPlayingBottomSheetFragment: state updated isPlaying=${state.isPlaying}")
-                    updateNowPlayingPanel(state)
-                    updateQueuePanel(state)
-                }
-            }
+        collectOnLifecycle(viewModel.state) { state ->
+            Timber.d("NowPlayingBottomSheetFragment: state updated isPlaying=${state.isPlaying}")
+            updateNowPlayingPanel(state)
+            updateQueuePanel(state)
         }
     }
 

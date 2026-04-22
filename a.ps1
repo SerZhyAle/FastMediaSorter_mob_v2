@@ -6,17 +6,21 @@
     Quick alias launcher for common project scripts
 .PARAMETER Command
     Script command to execute:
-    r   - Build AAB Release
-    dc  - Build Debug Clean
-    d   - Build Debug
-    db  - Build Debug (without zip)
-    cd  - Clean + Debug + Zip
-    cdb - Clean + Debug (without zip)
-    cls - Clean Gradle caches
-    c   - Commit & Push
-    ch  - Check Typo/Lint
-    s   - Setup Test Media
-    bp  - Build and Push All
+    r    - Build AAB Release
+    vr   - Build VR Release APK
+    vrd  - Build VR Debug APK
+    ivr  - Install VR Release APK on device (no launch — use Quest Library)
+    ivrd - Install VR Debug APK on device (no launch — use Quest Library)
+    dc   - Build Debug Clean
+    d    - Build Debug
+    db   - Build Debug (without zip)
+    cd   - Clean + Debug + Zip
+    cdb  - Clean + Debug (without zip)
+    cls  - Clean Gradle caches
+    c    - Commit & Push
+    ch   - Check Typo/Lint
+    s    - Setup Test Media
+    bp   - Build and Push All
 .EXAMPLE
     .\a.ps1 d
     .\a d
@@ -34,9 +38,11 @@ $ProjectRoot = $PSScriptRoot
 
 # Script mapping
 $scripts = @{
-    'r'   = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @() }
-    'vr'  = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @() }
-    'vrd' = @{ Path = 'scripts\builders\build-vr-debug.ps1'; Args = @() }
+    'r'    = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @() }
+    'vr'   = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @() }
+    'vrd'  = @{ Path = 'scripts\builders\build-vr-debug.ps1'; Args = @() }
+    'ivr'  = @{ Path = 'scripts\builders\install-vr-release-to-device.ps1'; Args = @() }
+    'ivrd' = @{ Path = 'scripts\builders\install-vr-debug-to-device.ps1'; Args = @() }
     'dc'  = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
     'd'   = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @() }
     'db'  = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @('-SkipZip') }
@@ -55,20 +61,22 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "❌ Unknown command: $Command" -ForegroundColor Red
     Write-Host ""
     Write-Host "Available commands:" -ForegroundColor Yellow
-    Write-Host "  r   - Build AAB Release" -ForegroundColor Cyan
-    Write-Host "  vr  - Build VR Release" -ForegroundColor Cyan
-    Write-Host "  vrd - Build VR Debug" -ForegroundColor Cyan
-    Write-Host "  dc  - Build Debug Clean" -ForegroundColor Cyan
-    Write-Host "  d   - Build Debug" -ForegroundColor Cyan
-    Write-Host "  db  - Build Debug without zip" -ForegroundColor Cyan
-    Write-Host "  cd  - Clean + Debug + zip" -ForegroundColor Cyan
-    Write-Host "  cdb - Clean + Debug without zip" -ForegroundColor Cyan
-    Write-Host "  cls - Clean Gradle caches" -ForegroundColor Cyan
-    Write-Host "  c   - Commit & Push" -ForegroundColor Cyan
-    Write-Host "  ch  - Check Typo/Lint" -ForegroundColor Cyan
-    Write-Host "  s   - Setup Test Media" -ForegroundColor Cyan
-    Write-Host "  b   - Build and Push All (same as bp)" -ForegroundColor Cyan
-    Write-Host "  bp  - Build and Push All" -ForegroundColor Cyan
+    Write-Host "  r    - Build AAB Release" -ForegroundColor Cyan
+    Write-Host "  vr   - Build VR Release APK" -ForegroundColor Cyan
+    Write-Host "  vrd  - Build VR Debug APK" -ForegroundColor Cyan
+    Write-Host "  ivr  - Install VR Release APK on device (NO launch — use Quest Library)" -ForegroundColor Cyan
+    Write-Host "  ivrd - Install VR Debug APK on device (NO launch — use Quest Library)" -ForegroundColor Cyan
+    Write-Host "  dc   - Build Debug Clean" -ForegroundColor Cyan
+    Write-Host "  d    - Build Debug" -ForegroundColor Cyan
+    Write-Host "  db   - Build Debug without zip" -ForegroundColor Cyan
+    Write-Host "  cd   - Clean + Debug + zip" -ForegroundColor Cyan
+    Write-Host "  cdb  - Clean + Debug without zip" -ForegroundColor Cyan
+    Write-Host "  cls  - Clean Gradle caches" -ForegroundColor Cyan
+    Write-Host "  c    - Commit & Push" -ForegroundColor Cyan
+    Write-Host "  ch   - Check Typo/Lint" -ForegroundColor Cyan
+    Write-Host "  s    - Setup Test Media" -ForegroundColor Cyan
+    Write-Host "  b    - Build and Push All (same as bp)" -ForegroundColor Cyan
+    Write-Host "  bp   - Build and Push All" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray
     Write-Host "Example: .\a.ps1 d" -ForegroundColor Gray

@@ -192,6 +192,21 @@ class VideoPlayerManager(
     // Connection throttling — resource key of the currently streaming server
     internal var activeResourceKey: String? = null
 
+    // Adaptive pre-cache plan for the currently-loading session. Set by PlayerActivity
+    // from PlayerViewModel.prefetchPlan before createPlayer/play*Video. When null, the
+    // playback helpers fall back to legacy per-protocol buffer constants.
+    // See PLAN/spec_adaptive-playback-strategy.md §5.5.
+    internal var activePrefetchPlan: com.sza.fastmediasorter.domain.model.PrefetchPlan? = null
+
+    /**
+     * Set the plan used for the next [createPlayer] / play*Video invocation. Idempotent;
+     * does not touch the currently-running player (swap requires a fresh LoadControl, and
+     * Media3 ties LoadControl to the player instance).
+     */
+    fun setPrefetchPlan(plan: com.sza.fastmediasorter.domain.model.PrefetchPlan?) {
+        activePrefetchPlan = plan
+    }
+
     internal val managerScope = CoroutineScope(Dispatchers.Main + Job())
 
     /**

@@ -13,9 +13,8 @@ import androidx.activity.viewModels
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -138,12 +137,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     override fun observeData() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.settings.collect { settings ->
-                    applyCompactToolbar(settings.useCompactElements)
-                }
-            }
+        collectOnLifecycle(viewModel.settings) { settings ->
+            applyCompactToolbar(settings.useCompactElements)
         }
     }
 

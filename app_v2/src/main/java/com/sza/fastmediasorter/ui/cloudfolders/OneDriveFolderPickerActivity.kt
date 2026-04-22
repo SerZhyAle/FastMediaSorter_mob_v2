@@ -5,15 +5,13 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityOnedriveFolderPickerBinding
+import com.sza.fastmediasorter.databinding.ItemOnedriveFolderBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -24,7 +22,7 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
     }
 
     private val viewModel: OneDriveFolderPickerViewModel by viewModels()
-    private lateinit var folderAdapter: OneDriveFolderAdapter
+    private lateinit var folderAdapter: CloudFolderAdapter
 
     override fun getViewBinding(): ActivityOnedriveFolderPickerBinding {
         return ActivityOnedriveFolderPickerBinding.inflate(layoutInflater)
@@ -51,19 +49,14 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
             }
         })
 
-        folderAdapter = OneDriveFolderAdapter(
-            onFolderSelect = { folder ->
-                viewModel.selectFolder(folder)
+        folderAdapter = CloudFolderAdapter(
+            inflate = { inflater, parent, attach ->
+                CloudFolderItemBinding.OneDrive(ItemOnedriveFolderBinding.inflate(inflater, parent, attach))
             },
-            onFolderNavigate = { folder ->
-                viewModel.navigateIntoFolder(folder)
-            },
-            onNavigateBack = {
-                viewModel.navigateBack()
-            },
-            isRootLevel = {
-                viewModel.state.value.currentPath.size == 1
-            }
+            onFolderSelect = { folder -> viewModel.selectFolder(folder) },
+            onFolderNavigate = { folder -> viewModel.navigateIntoFolder(folder) },
+            onNavigateBack = { viewModel.navigateBack() },
+            isRootLevel = { viewModel.state.value.currentPath.size == 1 }
         )
 
         binding.rvFolders.adapter = folderAdapter
@@ -95,46 +88,38 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
     }
 
     override fun observeData() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    folderAdapter.submitList(state.folders)
-                    
-                    binding.progressBar.isVisible = state.isLoading && !binding.swipeRefresh.isRefreshing
-                    binding.swipeRefresh.isRefreshing = state.isLoading && binding.swipeRefresh.isRefreshing
-                    
-                    binding.tvEmptyState.isVisible = state.folders.isEmpty() && !state.isLoading
-                    binding.rvFolders.isVisible = state.folders.isNotEmpty()
-                    
-                    val pathString = state.currentPath.joinToString(" / ") { it.name }
-                    binding.toolbar.title = pathString
-                    
-                    binding.cbAddAsDestination.isChecked = state.addAsDestination
-                    binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
-                }
-            }
+        collectOnLifecycle(viewModel.state) { state ->
+            folderAdapter.submitList(state.folders)
+
+            binding.progressBar.isVisible = state.isLoading && !binding.swipeRefresh.isRefreshing
+            binding.swipeRefresh.isRefreshing = state.isLoading && binding.swipeRefresh.isRefreshing
+
+            binding.tvEmptyState.isVisible = state.folders.isEmpty() && !state.isLoading
+            binding.rvFolders.isVisible = state.folders.isNotEmpty()
+
+            val pathString = state.currentPath.joinToString(" / ") { it.name }
+            binding.toolbar.title = pathString
+
+            binding.cbAddAsDestination.isChecked = state.addAsDestination
+            binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is OneDriveFolderPickerEvent.ShowError -> {
-                            Toast.makeText(this@OneDriveFolderPickerActivity, event.message, Toast.LENGTH_SHORT).show()
-                        }
-                        is OneDriveFolderPickerEvent.FolderSelected -> {
-                            Toast.makeText(this@OneDriveFolderPickerActivity, 
-                                getString(R.string.resource_added), 
-                                Toast.LENGTH_SHORT).show()
-                            
-                            val intent = Intent(this@OneDriveFolderPickerActivity, 
-                                com.sza.fastmediasorter.ui.main.MainActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                            }
-                            startActivity(intent)
-                            finish()
-                        }
+        collectOnLifecycle(viewModel.events) { event ->
+            when (event) {
+                is OneDriveFolderPickerEvent.ShowError -> {
+                    Toast.makeText(this@OneDriveFolderPickerActivity, event.message, Toast.LENGTH_SHORT).show()
+                }
+                is OneDriveFolderPickerEvent.FolderSelected -> {
+                    Toast.makeText(this@OneDriveFolderPickerActivity,
+                        getString(R.string.resource_added),
+                        Toast.LENGTH_SHORT).show()
+
+                    val intent = Intent(this@OneDriveFolderPickerActivity,
+                        com.sza.fastmediasorter.ui.main.MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     }
+                    startActivity(intent)
+                    finish()
                 }
             }
         }

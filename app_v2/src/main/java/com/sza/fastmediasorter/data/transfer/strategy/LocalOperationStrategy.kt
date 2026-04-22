@@ -304,15 +304,8 @@ class LocalOperationStrategy(
         }
     }
     
-    override suspend fun exists(path: String): Result<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            val file = File(path)
-            Result.success(file.exists())
-        } catch (e: Exception) {
-            Timber.e(e, "LocalOperationStrategy: Exists check failed - $path")
-            Result.failure(e)
-        }
-    }
+    override suspend fun exists(path: String): Result<Boolean> =
+        safeIo("LocalOperationStrategy.exists($path)") { File(path).exists() }
     
     override suspend fun createDirectory(path: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
@@ -332,18 +325,8 @@ class LocalOperationStrategy(
         }
     }
 
-    override suspend fun writeFile(path: String, content: String): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val file = File(path)
-                file.writeText(content)
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Timber.e(e, "Local writeFile failed for $path")
-                Result.failure(e)
-            }
-        }
-    }
+    override suspend fun writeFile(path: String, content: String): Result<Unit> =
+        safeIo("LocalOperationStrategy.writeFile($path)") { File(path).writeText(content) }
 
     override suspend fun readFile(path: String): Result<String> = withContext(Dispatchers.IO) {
         try {
@@ -521,15 +504,8 @@ class LocalOperationStrategy(
         }
     }
     
-    override suspend fun isDirectory(path: String): Result<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            val file = File(path)
-            Result.success(file.exists() && file.isDirectory)
-        } catch (e: Exception) {
-            Timber.e(e, "LocalOperationStrategy: isDirectory check failed - $path")
-            Result.failure(e)
-        }
-    }
+    override suspend fun isDirectory(path: String): Result<Boolean> =
+        safeIo("LocalOperationStrategy.isDirectory($path)") { File(path).let { it.exists() && it.isDirectory } }
     
     override suspend fun getDirectoryInfo(path: String): Result<com.sza.fastmediasorter.data.transfer.DirectoryInfo> = withContext(Dispatchers.IO) {
         try {

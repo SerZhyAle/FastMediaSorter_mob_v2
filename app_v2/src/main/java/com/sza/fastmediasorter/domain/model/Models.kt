@@ -236,7 +236,10 @@ enum class FileOperationType {
     COPY,
     MOVE,
     RENAME,
-    DELETE
+    DELETE,
+    // Destination-picker-only mode: the dialog captures the picked folder and hands it back
+    // to the caller via onDestinationSelected, without running any copy/move operation.
+    ARCHIVE
 }
 
 /**

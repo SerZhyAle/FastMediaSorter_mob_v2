@@ -161,7 +161,12 @@ data class AppSettings(
     val disable3dVr: Boolean = false,
 
     // Playback resume on next launch: if true, app reopens last played file on cold start
-    val resumeOnNextLaunch: Boolean = true
+    val resumeOnNextLaunch: Boolean = true,
+
+    // Adaptive pre-cache strategy (spec §5)
+    val prefetchCacheMultiplier: PrefetchCacheMultiplier = PrefetchCacheMultiplier.AUTO,
+    val streamingCacheCleanupMode: StreamingCacheCleanupMode = StreamingCacheCleanupMode.ASK,
+    val streamingCacheTtlDays: Int = 7          // 0 = off, 1, 3, 7, 30
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

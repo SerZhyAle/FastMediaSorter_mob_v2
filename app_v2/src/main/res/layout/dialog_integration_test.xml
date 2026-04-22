@@ -203,6 +203,17 @@
                 android:text="@string/dialog_integration_test_chipCloudProviders_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
+            <!-- VR-only sweep over stereoscopic/spherical test media. Visibility toggled in code
+                 based on BuildConfig.SUPPORT_VR_PLAYER so the chip disappears in non-VR flavors. -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipThreeDVr"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dialog_integration_test_chipThreeDVr_text"
+                android:visibility="gone"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
         </LinearLayout>
     </HorizontalScrollView>
 

@@ -19,9 +19,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         StereoFormatOverrideEntity::class,
         PendingRevocationEntity::class,
         ScheduledOperationEntity::class,
-        DuplicateHashCacheEntity::class
+        DuplicateHashCacheEntity::class,
+        StreamingCacheEntry::class
     ],
-    version = 23,
+    version = 24,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -37,6 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun stereoFormatOverrideDao(): StereoFormatOverrideDao
     abstract fun scheduledOperationDao(): ScheduledOperationDao
     abstract fun duplicateHashCacheDao(): DuplicateHashCacheDao
+    abstract fun streamingCacheDao(): StreamingCacheDao
 
     companion object {
         /**
@@ -593,6 +595,35 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `idx_sfo_updated_at` " +
                     "ON `stereo_format_overrides` (`updatedAt`)"
+                )
+            }
+        }
+
+        /**
+         * v24 — adds `streaming_cache_entries` table used when streaming is NOT_VIABLE
+         * and the user chooses to offload the file locally before playing.
+         * See PLAN/spec_adaptive-playback-strategy.md §5.7.
+         */
+        val MIGRATION_23_24 = object : Migration(23, 24) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `streaming_cache_entries` (
+                        `resourceHash` TEXT NOT NULL,
+                        `localPath` TEXT NOT NULL,
+                        `originalUri` TEXT NOT NULL,
+                        `resourceKey` TEXT NOT NULL,
+                        `sizeBytes` INTEGER NOT NULL,
+                        `downloadedAt` INTEGER NOT NULL,
+                        `lastPlayedAt` INTEGER NOT NULL,
+                        `sourceProtocol` TEXT NOT NULL,
+                        PRIMARY KEY(`resourceHash`)
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `idx_stream_cache_last_played_at` " +
+                    "ON `streaming_cache_entries` (`lastPlayedAt`)"
                 )
             }
         }

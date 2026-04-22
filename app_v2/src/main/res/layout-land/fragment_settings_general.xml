@@ -298,6 +298,29 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <!-- Video Pre-cache -->
+                    <TextView android:id="@+id/tvPrefetchCacheLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_prefetch_cache_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+
+                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_prefetch_cache_title" app:helperText="@string/pref_prefetch_cache_helper">
+                        <AutoCompleteTextView android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Streaming Cache Cleanup -->
+                    <TextView android:id="@+id/tvStreamingCleanupLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_cleanup_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+
+                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_cleanup_title">
+                        <AutoCompleteTextView android:id="@+id/actvStreamingCleanup" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Streaming Cache TTL -->
+                    <TextView android:id="@+id/tvStreamingTtlLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_ttl_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+
+                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_ttl_title">
+                        <AutoCompleteTextView android:id="@+id/actvStreamingTtl" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnClearStreamingCache" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_clear_now" />
+
                     <!-- Network Sync Container -->
                     <LinearLayout android:id="@+id/containerSync" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/margin_tiny">
 

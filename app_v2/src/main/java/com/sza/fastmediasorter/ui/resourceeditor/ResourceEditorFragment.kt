@@ -16,9 +16,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import android.widget.LinearLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -39,7 +37,6 @@ import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.widget.ResourceLaunchWidgetProvider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -498,22 +495,18 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun observeUiState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collectLatest { state ->
-                    renderFieldSchema(state.fieldSchema, state.formData.type)
-                    renderFormData(state.formData)
-                    renderFieldStates(state.fieldStates)
-                    renderConnectionResult(state.connectionResult)
-                    renderLoadingStates(state.isTestingConnection, state.isSaving)
-                    renderSaveButton(state)
-                    renderEditActions(state)
-                    renderContextWarnings(state)
-                    renderNameCollision(state)
-                    renderCredentialChoice(state)
-                    renderStatistics(state.statistics)
-                }
-            }
+        collectOnLifecycle(viewModel.uiState) { state ->
+            renderFieldSchema(state.fieldSchema, state.formData.type)
+            renderFormData(state.formData)
+            renderFieldStates(state.fieldStates)
+            renderConnectionResult(state.connectionResult)
+            renderLoadingStates(state.isTestingConnection, state.isSaving)
+            renderSaveButton(state)
+            renderEditActions(state)
+            renderContextWarnings(state)
+            renderNameCollision(state)
+            renderCredentialChoice(state)
+            renderStatistics(state.statistics)
         }
     }
 
@@ -963,28 +956,24 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun observeEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collectLatest { event ->
-                    when (event) {
-                        is ResourceEditorUiEvent.ShowError -> {
-                            val message = event.messageResId?.let { getString(it) }
-                                ?: event.message
-                                ?: getString(R.string.error_unknown)
-                            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
-                        }
-                        is ResourceEditorUiEvent.ShowInfo -> {
-                            val message = event.messageResId?.let { getString(it) }
-                                ?: event.message
-                                ?: getString(R.string.error_unknown)
-                            Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
-                        }
-                        is ResourceEditorUiEvent.Saved -> {
-                            Snackbar.make(binding.root, getString(R.string.resource_saved), Snackbar.LENGTH_SHORT).show()
-                            requireActivity().setResult(android.app.Activity.RESULT_OK)
-                            requireActivity().finish()
-                        }
-                    }
+        collectOnLifecycle(viewModel.events) { event ->
+            when (event) {
+                is ResourceEditorUiEvent.ShowError -> {
+                    val message = event.messageResId?.let { getString(it) }
+                        ?: event.message
+                        ?: getString(R.string.error_unknown)
+                    Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+                }
+                is ResourceEditorUiEvent.ShowInfo -> {
+                    val message = event.messageResId?.let { getString(it) }
+                        ?: event.message
+                        ?: getString(R.string.error_unknown)
+                    Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+                }
+                is ResourceEditorUiEvent.Saved -> {
+                    Snackbar.make(binding.root, getString(R.string.resource_saved), Snackbar.LENGTH_SHORT).show()
+                    requireActivity().setResult(android.app.Activity.RESULT_OK)
+                    requireActivity().finish()
                 }
             }
         }

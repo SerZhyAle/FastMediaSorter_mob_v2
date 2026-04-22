@@ -8,9 +8,8 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -155,53 +154,45 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     override fun observeData() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    val previousMediaFiles = viewModel.lastEmittedMediaFiles
-                    val sortChanged = state.sortMode != lastSubmittedSortMode
-                    val shouldSubmit = if (previousMediaFiles == null) true
-                    else if (sortChanged) true
-                    else state.mediaFiles !== previousMediaFiles
+        collectOnLifecycle(viewModel.state) { state ->
+            val previousMediaFiles = viewModel.lastEmittedMediaFiles
+            val sortChanged = state.sortMode != lastSubmittedSortMode
+            val shouldSubmit = if (previousMediaFiles == null) true
+            else if (sortChanged) true
+            else state.mediaFiles !== previousMediaFiles
 
-                    if (shouldSubmit) {
-                        viewModel.markListAsSubmitted(state.mediaFiles)
-                        lastSubmittedSortMode = state.sortMode
-                        initializer.mediaFileAdapter.setSkipInitialThumbnailLoad(true)
-                        initializer.mediaFileAdapter.submitList(state.mediaFiles) {
-                            initializer.listSubmitManager.onListSubmitted(state)
-                        }
-                    }
-                    // Update drag handle visibility whenever sort mode changes
-                    if (sortChanged) {
-                        initializer.updateDragHandleVisibility(state.sortMode)
-                        initializer.updateSortButton(state.sortMode)
-                    }
-
-                    initializer.mediaFileAdapter.setSelectedPaths(state.selectedFiles)
-                    state.resource?.let { resource ->
-                        initializer.mediaFileAdapter.setAudioOnlyMode(resource.isAudioOnly())
-                        initializer.mediaFileAdapter.setCredentialsId(resource.credentialsId)
-                        initializer.mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
-                        lifecycleScope.launch {
-                            val hasDestinations = getDestinationsUseCase.getDestinationsExcluding(resource.id).isNotEmpty()
-                            initializer.mediaFileAdapter.setResourcePermissions(
-                                hasDestinations = hasDestinations,
-                                isWritable = resource.isWritable && !resource.isReadOnly
-                            )
-                        }
-                    }
-                    initializer.stateUiUpdater.onStateChanged(state)
+            if (shouldSubmit) {
+                viewModel.markListAsSubmitted(state.mediaFiles)
+                lastSubmittedSortMode = state.sortMode
+                initializer.mediaFileAdapter.setSkipInitialThumbnailLoad(true)
+                initializer.mediaFileAdapter.submitList(state.mediaFiles) {
+                    initializer.listSubmitManager.onListSubmitted(state)
                 }
             }
+            // Update drag handle visibility whenever sort mode changes
+            if (sortChanged) {
+                initializer.updateDragHandleVisibility(state.sortMode)
+                initializer.updateSortButton(state.sortMode)
+            }
+
+            initializer.mediaFileAdapter.setSelectedPaths(state.selectedFiles)
+            state.resource?.let { resource ->
+                initializer.mediaFileAdapter.setAudioOnlyMode(resource.isAudioOnly())
+                initializer.mediaFileAdapter.setCredentialsId(resource.credentialsId)
+                initializer.mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
+                lifecycleScope.launch {
+                    val hasDestinations = getDestinationsUseCase.getDestinationsExcluding(resource.id).isNotEmpty()
+                    initializer.mediaFileAdapter.setResourcePermissions(
+                        hasDestinations = hasDestinations,
+                        isWritable = resource.isWritable && !resource.isReadOnly
+                    )
+                }
+            }
+            initializer.stateUiUpdater.onStateChanged(state)
         }
         initializer.observerManager.startAll()
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    initializer.eventHandler.handleEvent(event)
-                }
-            }
+        collectOnLifecycle(viewModel.events) { event ->
+            initializer.eventHandler.handleEvent(event)
         }
     }
 

@@ -54,6 +54,8 @@ class UndoOperationManager(
                 // Let's check if we have renamed_n_files
                 context.getString(R.string.renamed_n_files, count)
             }
+            // ARCHIVE is a destination-picker-only type and never produces an undo record.
+            com.sza.fastmediasorter.domain.model.FileOperationType.ARCHIVE -> ""
         }
     }
 

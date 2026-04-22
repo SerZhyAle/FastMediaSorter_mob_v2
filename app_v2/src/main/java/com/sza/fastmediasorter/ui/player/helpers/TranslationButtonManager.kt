@@ -4,10 +4,9 @@ import android.content.Context
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
@@ -127,44 +126,39 @@ class TranslationButtonManager(
         }
         
         Timber.d("TranslationButtonManager: setupTranslationButtonIcons() CALLED")
-        lifecycleOwner.lifecycleScope.launch {
-            Timber.d("TranslationButtonManager: Coroutine launched, waiting for STARTED state")
-            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                Timber.d("TranslationButtonManager: Lifecycle STARTED, collecting settings")
-                settingsRepository.getSettings().collect { settings ->
-                    val sourceLang = settings.translationSourceLanguage
-                    val targetLang = settings.translationTargetLanguage
-                    Timber.d("TranslationButtonManager: Setting badges - source=$sourceLang, target=$targetLang")
-                    
-                    // Update PDF button (in command panel)
-                    val pdfDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
-                    safeViews.btnTranslatePdfCmd.setImageDrawable(pdfDrawable)
-                    safeViews.btnTranslatePdfCmd.imageTintList = null // Remove tint to show custom drawable
-                    safeViews.btnTranslatePdfCmd.alpha = 0.55f // Inactive by default; PdfViewerManager sets 1.0f when active
-                    Timber.d("TranslationButtonManager: PDF button drawable set")
-                    
-                    // Update EPUB button (in command panel)
-                    val epubDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
-                    safeViews.btnTranslateEpubCmd.setImageDrawable(epubDrawable)
-                    safeViews.btnTranslateEpubCmd.imageTintList = null // Remove tint to show custom drawable
-                    safeViews.btnTranslateEpubCmd.alpha = 0.55f // Inactive by default; EpubViewerManager sets 1.0f when active
-                    Timber.d("TranslationButtonManager: EPUB button drawable set")
-                    
-                    // Update Image/GIF button (in command panel)
-                    val imageDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
-                    safeViews.btnTranslateImageCmd.setImageDrawable(imageDrawable)
-                    safeViews.btnTranslateImageCmd.imageTintList = null // Remove tint to show custom drawable
-                    safeViews.btnTranslateImageCmd.alpha = 0.55f // Inactive by default
-                    Timber.d("TranslationButtonManager: IMAGE button drawable set - drawable=$imageDrawable, tint removed")
-                    
-                    // Update deprecated overlay Image button
-                    safeViews.btnTranslateImage.setImageDrawable(imageDrawable)
-                    safeViews.btnTranslateImage.imageTintList = null // Remove tint to show custom drawable
-                    
-                    // Update Text button (via callback to TextViewerManager)
-                    callback.updateTextViewerTranslationButtonIcon(sourceLang, targetLang)
-                }
-            }
+        lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            Timber.d("TranslationButtonManager: Lifecycle STARTED, collecting settings")
+            val sourceLang = settings.translationSourceLanguage
+            val targetLang = settings.translationTargetLanguage
+            Timber.d("TranslationButtonManager: Setting badges - source=$sourceLang, target=$targetLang")
+
+            // Update PDF button (in command panel)
+            val pdfDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
+            safeViews.btnTranslatePdfCmd.setImageDrawable(pdfDrawable)
+            safeViews.btnTranslatePdfCmd.imageTintList = null // Remove tint to show custom drawable
+            safeViews.btnTranslatePdfCmd.alpha = 0.55f // Inactive by default; PdfViewerManager sets 1.0f when active
+            Timber.d("TranslationButtonManager: PDF button drawable set")
+
+            // Update EPUB button (in command panel)
+            val epubDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
+            safeViews.btnTranslateEpubCmd.setImageDrawable(epubDrawable)
+            safeViews.btnTranslateEpubCmd.imageTintList = null // Remove tint to show custom drawable
+            safeViews.btnTranslateEpubCmd.alpha = 0.55f // Inactive by default; EpubViewerManager sets 1.0f when active
+            Timber.d("TranslationButtonManager: EPUB button drawable set")
+
+            // Update Image/GIF button (in command panel)
+            val imageDrawable = LanguageBadgeDrawable(context, sourceLang, targetLang, android.graphics.Color.WHITE)
+            safeViews.btnTranslateImageCmd.setImageDrawable(imageDrawable)
+            safeViews.btnTranslateImageCmd.imageTintList = null // Remove tint to show custom drawable
+            safeViews.btnTranslateImageCmd.alpha = 0.55f // Inactive by default
+            Timber.d("TranslationButtonManager: IMAGE button drawable set - drawable=$imageDrawable, tint removed")
+
+            // Update deprecated overlay Image button
+            safeViews.btnTranslateImage.setImageDrawable(imageDrawable)
+            safeViews.btnTranslateImage.imageTintList = null // Remove tint to show custom drawable
+
+            // Update Text button (via callback to TextViewerManager)
+            callback.updateTextViewerTranslationButtonIcon(sourceLang, targetLang)
         }
     }
 

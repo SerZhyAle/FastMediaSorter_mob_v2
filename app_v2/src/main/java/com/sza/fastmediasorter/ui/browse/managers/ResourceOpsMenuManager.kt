@@ -20,6 +20,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
@@ -35,7 +36,9 @@ class ResourceOpsMenuManager @Inject constructor(
         viewModel: BrowseViewModel,
         isScheduleEnabled: Boolean = false,
         onAutomateSource: (() -> Unit)? = null,
-        onAddToDestinations: (() -> Unit)? = null
+        onAddToDestinations: (() -> Unit)? = null,
+        onArchive: (() -> Unit)? = null,
+        isDestinationsFull: Boolean = false
     ) {
         val popup = PopupMenu(context, anchor)
         popup.inflate(R.menu.menu_resource_ops)
@@ -49,6 +52,15 @@ class ResourceOpsMenuManager @Inject constructor(
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible = canCreateFolder
 
+        // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
+        // grayed out when no files are selected so users see the action but learn it needs a selection.
+        val hasSelection = viewModel.state.value.selectedFiles.isNotEmpty()
+        val isLocalResource = resource?.type == ResourceType.LOCAL
+        popup.menu.findItem(R.id.action_archive)?.apply {
+            isVisible = isLocalResource && onArchive != null
+            isEnabled = hasSelection
+        }
+
         popup.menu.findItem(R.id.action_automate_resource)?.isVisible =
             isScheduleEnabled && onAutomateSource != null
 
@@ -56,9 +68,10 @@ class ResourceOpsMenuManager @Inject constructor(
         // 1. Resource is not read-only
         // 2. Resource is not yet a destination
         // 3. Resource is not a virtual/predefined resource (no target folder)
+        // 4. Recipients limit not reached (see GetDestinationsUseCase.isDestinationsFull)
         popup.menu.findItem(R.id.action_add_to_receivers)?.isVisible =
-            resource != null && !resource.isReadOnly && !resource.isDestination && 
-            !VirtualPathUtils.isVirtualPath(resource.path)
+            resource != null && !resource.isReadOnly && !resource.isDestination &&
+            !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -81,6 +94,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_delete_by_size -> {
                     showDeleteBySizeDialog(viewModel)
+                    true
+                }
+                R.id.action_archive -> {
+                    onArchive?.invoke()
                     true
                 }
                 R.id.action_create_folder -> {

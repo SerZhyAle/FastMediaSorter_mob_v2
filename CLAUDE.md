@@ -58,6 +58,10 @@ Before making changes, read these files in order based on task type:
 .\gradlew.bat assembleLegacyDebug
 .\gradlew.bat :wear:assembleDebug
 
+# VR install (no launch — required for true immersive; see docs/DEV_OPS.md §Quest Debugging)
+.\scripts\builders\install-vr-debug-to-device.ps1           # install debug   | .\a.ps1 ivrd
+.\scripts\builders\install-vr-release-to-device.ps1         # install release | .\a.ps1 ivr
+
 # Release
 .\gradlew.bat assembleStandardRelease
 .\scripts\builders\build-standard-release.ps1

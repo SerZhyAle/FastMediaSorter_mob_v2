@@ -147,6 +147,8 @@ class BrowseErrorDisplayManager(
             FileOperationType.RENAME -> {
                 activity.getString(R.string.renamed_n_files, count)
             }
+            // ARCHIVE is a destination-picker-only operation type (no undo snackbar).
+            FileOperationType.ARCHIVE -> return
         }
 
         Snackbar.make(rootView, description, Snackbar.LENGTH_LONG)

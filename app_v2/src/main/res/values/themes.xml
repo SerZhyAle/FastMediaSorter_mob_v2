@@ -46,6 +46,14 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <!-- Used by ReceiveShareActivity: renders only the dialog, not the activity window itself -->
+    <style name="Theme.FastMediaSorter.Transparent" parent="Theme.FastMediaSorter">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+    </style>
+
     <!-- Text Appearance for helper text: 2sp smaller than normal (14sp) -->
     <style name="TextAppearance.FastMediaSorter.HelperText" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textSize">14sp</item>

@@ -1,13 +1,9 @@
-package com.sza.fastmediasorter.ui.player
+﻿package com.sza.fastmediasorter.ui.player
 
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Handler
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Player
-import android.view.View
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -22,38 +18,27 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.core.util.MemoryTier
-import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.cloud.CloudProvider
-import com.sza.fastmediasorter.data.cloud.CloudPathParser
+import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
+import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
-import com.sza.fastmediasorter.data.repository.AudioMetadataSaveData
-import com.sza.fastmediasorter.data.repository.CachedAudioData
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
 import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
-import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer
-import com.sza.fastmediasorter.ui.player.render.PrefetchQueue
-import com.sza.fastmediasorter.ui.player.render.PrefetchQueueConfig
-import com.sza.fastmediasorter.ui.player.render.PriorityPrefetchQueue
-import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
-import com.sza.fastmediasorter.ui.player.render.RenderModeHint
-import com.sza.fastmediasorter.ui.player.render.RenderPriority
-import com.sza.fastmediasorter.ui.player.render.RenderTarget
-import com.sza.fastmediasorter.ui.player.render.StaticImageRenderer
-import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
+import com.sza.fastmediasorter.ui.player.helpers.AudioInfoDisplayHelper
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
+import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer
+import com.sza.fastmediasorter.ui.player.render.StaticImageRenderer
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -76,7 +61,6 @@ class ImageLoadingManager(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val loadingIndicatorHandler: Handler,
     private val showLoadingIndicatorRunnable: Runnable,
-    private val preloadJobs: MutableMap<String, Job>,
     private val callback: ImageLoadingCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
@@ -118,9 +102,6 @@ class ImageLoadingManager(
     private var isInImageDisplayMode: Boolean = false
     private val animatedImageController = AnimatedImageController()
 
-    /** Injected after construction; controls empty-state animations for audio files. */
-    private var audioEmptyStateController: AudioEmptyStateController? = null
-
     /**
      * Called when the user performs a pinch-zoom gesture on the current image or GIF.
      * Injected from outside after construction; wires to FilenameOverlayAutoHideManager.
@@ -134,54 +115,59 @@ class ImageLoadingManager(
      */
     private var isPhotoViewImageLoaded = false
 
-    /** Tracks the active cover-art loading coroutine so stale jobs can be cancelled on track change. */
-    private var coverArtJob: Job? = null
-
-    /**
-     * Path of the audio file whose cover art is currently displayed in audioCoverArtView.
-     * Used to skip redundant reloads on seek (ExoPlayer re-fires STATE_READY after every seek).
-     */
-    private var coverArtDisplayedForPath: String? = null
-
-    // Cached size/duration for single-line info assembly in updateAudioFormatInfo()
-    private var audioFileSizeStr: String = ""
-    private var audioDurationStr: String = ""
-
-    fun setAudioEmptyStateController(controller: AudioEmptyStateController) {
-        audioEmptyStateController = controller
-    }
     private var dynamicBackgroundProcessor: DynamicBackgroundProcessor? = null
     private var isDynamicBackgroundEnabled: Boolean = false
     private val staticImageRenderer: StaticImageRenderer = DualSurfaceStaticImageRenderer(
         surfaceA = binding.photoView,
         surfaceB = binding.photoViewSurfaceB
     )
-    private val prefetchQueue: PriorityPrefetchQueue = PriorityPrefetchQueue(
-        isCongested = { getResourceKey()?.let { ConnectionThrottleManager.isCongested(it) } ?: false }
-    ).apply {
-        updateConfig(PrefetchQueueConfig(maxDepth = 6, throttleMs = 0L))
+
+    private val imagePreloadHelper: ImagePreloadHelper by lazy {
+        ImagePreloadHelper(
+            binding = binding,
+            lifecycleScope = lifecycleScope,
+            memoryTier = memoryTier,
+            callback = object : ImagePreloadHelper.Callback {
+                override fun getAdjacentFiles() = callback.getAdjacentFiles()
+                override fun getCurrentResource() = callback.getCurrentResource()
+            }
+        )
     }
 
-    /**
-     * Build resource key for ConnectionThrottleManager from current resource.
-     */
-    private fun getResourceKey(): String? {
-        val resource = callback.getCurrentResource() ?: return null
-        return when {
-            resource.path.startsWith("smb://") -> resource.path.substringBefore("/", resource.path)
-            resource.path.startsWith("ftp://") -> "ftp://" + resource.path.substringAfter("://").substringBefore("/")
-            resource.path.startsWith("sftp://") -> "sftp://" + resource.path.substringAfter("://").substringBefore("/")
-            else -> resource.path
-        }
+    private val audioInfoHelper: AudioInfoDisplayHelper by lazy {
+        AudioInfoDisplayHelper(
+            binding = binding,
+            lifecycleScope = lifecycleScope,
+            callback = object : AudioInfoDisplayHelper.Callback {
+                override fun getString(resId: Int) = callback.getString(resId)
+                override fun getExoPlayer() = callback.getExoPlayer()
+            }
+        )
     }
 
-    /**
-     * Update prefetch queue slideshow bias.
-     * When slideshow is active, forward targets get higher priority.
-     */
+    private val audioCoverArtLoader: AudioCoverArtLoader by lazy {
+        AudioCoverArtLoader(
+            binding = binding,
+            lifecycleScope = lifecycleScope,
+            settingsRepository = settingsRepository,
+            searchAudioCoverUseCase = searchAudioCoverUseCase,
+            audioMetadataCacheRepository = audioMetadataCacheRepository,
+            okHttpClient = okHttpClient,
+            memoryTier = memoryTier,
+            callback = object : AudioCoverArtLoader.Callback {
+                override fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) =
+                    callback.onAudioMetadataLoaded(metadata)
+            }
+        )
+    }
+
+    fun setAudioEmptyStateController(controller: AudioEmptyStateController) {
+        audioCoverArtLoader.setAudioEmptyStateController(controller)
+    }
+
+    /** Delegates slideshow bias to the preload helper's prefetch queue. */
     fun setSlideshowBias(enabled: Boolean) {
-        prefetchQueue.slideshowBias = enabled
-        Timber.d("ImageLoadingManager: Slideshow bias set to $enabled")
+        imagePreloadHelper.setSlideshowBias(enabled)
     }
 
     /**
@@ -296,10 +282,8 @@ class ImageLoadingManager(
             Timber.w(e, "ImageLoadingManager: Error clearing Glide requests")
         }
         
-        // Cancel all preload jobs
-        preloadJobs.values.forEach { it.cancel() }
-        preloadJobs.clear()
-        prefetchQueue.clear()
+        // Cancel all preload jobs and clear prefetch queue
+        imagePreloadHelper.cleanup()
         animatedImageController.release()
         currentIsAnimatedContent = false
         callback.setAnimatedBadgeVisible(false)
@@ -427,13 +411,8 @@ class ImageLoadingManager(
         
         // Smart cancellation: only cancel jobs for files no longer adjacent to the new position
         val nextAdjacentPaths = callback.getAdjacentFiles().map { it.path }.toSet()
-        val cancelledCount: Int
-        synchronized(preloadJobs) {
-            val stale = preloadJobs.keys.filter { it !in nextAdjacentPaths }
-            stale.forEach { path -> preloadJobs.remove(path)?.cancel() }
-            cancelledCount = stale.size
-        }
-        Timber.d("ImageLoadingManager.displayImage: Cancelled $cancelledCount stale preload job(s), kept ${preloadJobs.size} still-useful")
+        val cancelledCount = imagePreloadHelper.cancelStaleJobsForPaths(nextAdjacentPaths)
+        Timber.d("ImageLoadingManager.displayImage: Cancelled $cancelledCount stale preload job(s), kept ${imagePreloadHelper.preloadJobCount} still-useful")
         
         // Ensure any pending loading indicator from previous request is cancelled immediately
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
@@ -458,7 +437,7 @@ class ImageLoadingManager(
         
         // Hide audio-related views (including any active empty-state animation)
         Timber.d("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")
-        audioEmptyStateController?.hide()
+        audioCoverArtLoader.hideEmptyState()
         binding.audioCoverArtView.isVisible = false
         safeViews.audioTouchZonesOverlay.isVisible = false
         binding.audioInfoOverlay.isVisible = false
@@ -1226,925 +1205,13 @@ class ImageLoadingManager(
         }
     }
 
-    /**
-     * Preload adjacent images (previous + next) in background for faster navigation.
-     * Only preloads IMAGE and GIF files.
-     * Supports circular navigation.
-     * Priority order: NEXT (index 0) > PREVIOUS (index 1) > LOOKAHEAD (others).
-     */
-    fun preloadNextImageIfNeeded() {
-        val adjacentFiles = callback.getAdjacentFiles()
-        if (adjacentFiles.isEmpty()) {
-            Timber.d("ImageLoadingManager: Preload skipped - no adjacent files")
-            return
-        }
-        
-        val resource = callback.getCurrentResource() ?: run {
-            Timber.d("ImageLoadingManager: Preload skipped - no current resource")
-            return
-        }
-        prefetchQueue.clear()
-        val enqueued = prefetchQueue.offerAll(
-            adjacentFiles.mapIndexed { index, file ->
-                // Priority assignment: NEXT(0), PREVIOUS(1), LOOKAHEAD(2+)
-                val priority = when (index) {
-                    0 -> RenderPriority.NEXT
-                    1 -> RenderPriority.PREVIOUS
-                    else -> RenderPriority.LOOKAHEAD
-                }
-                RenderTarget(
-                    mediaFile = file,
-                    path = file.path,
-                    priority = priority,
-                    modeHint = RenderModeHint.KEEP_CURRENT
-                )
-            }
-        )
+    fun preloadNextImageIfNeeded() = imagePreloadHelper.preloadNextImageIfNeeded()
 
-        Timber.d("ImageLoadingManager: Starting preload for $enqueued/${adjacentFiles.size} adjacent files (queue=${prefetchQueue.size()})")
+    fun showAudioFileInfo(file: MediaFile?) = audioInfoHelper.showAudioFileInfo(file)
 
-        while (true) {
-            val target = prefetchQueue.pollNext() ?: break
-            preloadAdjacentTarget(target, resource)
-        }
-        Timber.d("ImageLoadingManager: Preload initiated via queue-shim")
-        
-        // Log memory stats every 10 preloads to track accumulation patterns
-        preloadCounter++
-        if (preloadCounter >= 10) {
-            logMemoryStats("AFTER preload (every 10)")
-            preloadCounter = 0
-        }
-    }
+    fun updateAudioFormatInfo() = audioInfoHelper.updateAudioFormatInfo()
 
-    private fun preloadAdjacentTarget(
-        target: RenderTarget,
-        resource: com.sza.fastmediasorter.domain.model.MediaResource
-    ) {
-        val file = target.mediaFile
-        Timber.d("ImageLoadingManager: Preloading ${file.name} (${file.type}) via queue-shim")
-
-        val job = lifecycleScope.launch {
-            val actualResourceType = when {
-                file.path.startsWith("cloud://") -> ResourceType.CLOUD
-                file.path.startsWith("smb://") -> ResourceType.SMB
-                file.path.startsWith("sftp://") -> ResourceType.SFTP
-                file.path.startsWith("ftp://") -> ResourceType.FTP
-                else -> resource.type
-            }
-
-            if (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || actualResourceType == ResourceType.FTP) {
-                preloadNetworkFile(file, resource)
-            } else if (actualResourceType == ResourceType.CLOUD) {
-                preloadCloudFile(file)
-            } else {
-                preloadLocalFile(file)
-            }
-        }
-
-        job.invokeOnCompletion {
-            synchronized(preloadJobs) {
-                preloadJobs.remove(file.path)
-            }
-        }
-
-        synchronized(preloadJobs) {
-            preloadJobs[file.path] = job
-        }
-    }
-
-    private suspend fun preloadNetworkFile(
-        file: MediaFile,
-        resource: com.sza.fastmediasorter.domain.model.MediaResource
-    ) {
-        val networkData = NetworkFileData(
-            path = file.path,
-            credentialsId = resource.credentialsId,
-            loadFullImage = true,
-            size = file.size,
-            createdDate = file.createdDate
-        )
-        val cacheKey = networkData.getCacheKey()
-
-        val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
-        try {
-            withContext(Dispatchers.IO) {
-                val request = Glide.with(binding.root.context.applicationContext)
-                    .downloadOnly()
-                    .load(networkData)
-                    .signature(ObjectKey(cacheKey))
-                    .diskCacheStrategy(DiskCacheStrategy.DATA)
-                    .override(preloadMaxDimension, preloadMaxDimension)
-
-                if (memoryTier == MemoryTier.LOW) {
-                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
-                }
-
-                request.submit().get()
-            }
-            Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
-        } catch (e: Exception) {
-            Timber.d("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
-        }
-    }
-
-    private suspend fun preloadCloudFile(file: MediaFile) {
-        val provider = when {
-            file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-            file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-            file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
-            else -> CloudProvider.GOOGLE_DRIVE
-        }
-        val fileId = when (provider) {
-            CloudProvider.DROPBOX -> {
-                val afterScheme = file.path.substringAfter("cloud://dropbox")
-                val cleanPath = afterScheme.trimStart('/')
-                "/$cleanPath"
-            }
-            else -> file.path.substringAfterLast('/')
-        }
-        val cloudData = CloudThumbnailData(
-            thumbnailUrl = file.thumbnailUrl ?: "",
-            fileId = fileId,
-            loadFullImage = true,
-            cloudProvider = provider
-        )
-        val cacheKey = "${file.path}_${file.size}"
-
-        val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
-        try {
-            withContext(Dispatchers.IO) {
-                val request = Glide.with(binding.root.context.applicationContext)
-                    .downloadOnly()
-                    .load(cloudData)
-                    .signature(ObjectKey(cacheKey))
-                    .diskCacheStrategy(DiskCacheStrategy.DATA)
-                    .override(preloadMaxDimension, preloadMaxDimension)
-
-                if (memoryTier == MemoryTier.LOW) {
-                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
-                }
-
-                request.submit().get()
-            }
-            Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
-        } catch (e: Exception) {
-            Timber.d("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
-        }
-    }
-
-    private suspend fun preloadLocalFile(file: MediaFile) {
-        val cacheKey = "${file.path}_${file.size}"
-        val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
-        try {
-            withContext(Dispatchers.IO) {
-                val loadSource: Any = if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
-                    Uri.parse(file.contentUri)
-                } else {
-                    File(file.path)
-                }
-                val request = Glide.with(binding.root.context.applicationContext)
-                    .downloadOnly()
-                    .load(loadSource)
-                    .signature(ObjectKey(cacheKey))
-                    .diskCacheStrategy(DiskCacheStrategy.DATA)
-                    .override(preloadMaxDimension, preloadMaxDimension)
-
-                if (memoryTier == MemoryTier.LOW) {
-                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
-                }
-
-                request.submit().get()
-            }
-            Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
-        } catch (e: Exception) {
-            Timber.d("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
-        }
-    }
-    
-    /**
-     * Show audio file info overlay.
-     * Top line (audioMetadata): Artist – Album – Title  (or filename without ext if no metadata)
-     * Bottom line (audioFileInfo): Size • Format • Duration  (assembled on one line)
-     * Full filename with extension is displayed via tvFileNameOverlay (top-left corner).
-     */
-    fun showAudioFileInfo(file: MediaFile?) {
-        if (file == null) return
-
-        binding.audioInfoOverlay.isVisible = true
-
-        // audioFileName view is never used now — full filename is in top-left tvFileNameOverlay
-        safeViews.audioFileName.visibility = View.GONE
-
-        // Build Artist – Album – Title line.
-        // If ID3 tags are absent, try to infer artist from the parent directory name
-        // (common pattern in Russian music collections: "YYYY-Artist-Album/track.mp3").
-        val effectiveArtist = file.artist?.takeIf { it.isNotBlank() }
-            ?: parseArtistFromPath(file.path)
-        val effectiveTitle = file.title?.takeIf { it.isNotBlank() }
-        val metadataParts = listOfNotNull(
-            effectiveArtist,
-            file.album?.takeIf { it.isNotBlank() },
-            effectiveTitle
-        )
-        val metadataLine = if (metadataParts.isNotEmpty()) {
-            metadataParts.joinToString(" \u2013 ")   // en-dash separator
-        } else {
-            // No embedded metadata — show "DirName / filename" as fallback
-            val fileNameNoExt = file.name.substringBeforeLast('.')
-            val dirName = file.path.substringBeforeLast('/').substringAfterLast('/')
-            if (dirName.isNotBlank() && dirName != fileNameNoExt) {
-                "$dirName / $fileNameNoExt"
-            } else {
-                fileNameNoExt
-            }
-        }
-        safeViews.audioMetadata.text = metadataLine
-        safeViews.audioMetadata.visibility = View.VISIBLE
-
-        // Reset cached parts and build info line asynchronously
-        audioFileSizeStr = ""
-        audioDurationStr = ""
-        safeViews.audioFileInfo.text = ""
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val fileSize = file.size
-                audioFileSizeStr = if (fileSize > 0) {
-                    com.sza.fastmediasorter.core.util.formatFileSize(fileSize)
-                } else ""
-
-                audioDurationStr = file.duration?.let {
-                    if (it > 0) formatDuration(it) else ""
-                } ?: ""
-
-                withContext(Dispatchers.Main) {
-                    safeViews.audioFileInfo.text = buildAudioInfoLine(null)
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to get audio file info")
-                withContext(Dispatchers.Main) {
-                    safeViews.audioFileInfo.text = callback.getString(R.string.file_info_unavailable)
-                }
-            }
-        }
-    }
-
-    private fun buildAudioInfoLine(format: String?): String = buildList {
-        if (audioFileSizeStr.isNotEmpty()) add(audioFileSizeStr)
-        if (!format.isNullOrEmpty()) add(format)
-        if (audioDurationStr.isNotEmpty()) add(audioDurationStr)
-    }.joinToString(" \u2022 ")
-
-    /**
-     * Infers an artist name from the parent directory of the file path.
-     * Handles common music folder patterns:
-     *   "YYYY-Artist-Album" → "Artist"
-     *   "Artist - Album"   → "Artist"
-     *   "Artist"           → "Artist"
-     * Returns null when no meaningful artist can be determined.
-     */
-    private fun parseArtistFromPath(path: String): String? {
-        val withoutScheme = path.substringAfter("://").ifEmpty { path }
-        val parts = withoutScheme.split('/')
-        val dirName = parts.dropLast(1).lastOrNull()?.takeIf { it.isNotBlank() } ?: return null
-
-        // Strip leading year (e.g. "2017-" or "2017 ")
-        val withoutYear = dirName.replace(Regex("^\\d{4}[-\\s]"), "").trim()
-
-        // Try "Artist - Album" (with spaces around hyphen)
-        if (withoutYear.contains(" - ")) {
-            return withoutYear.substringBefore(" - ").trim().takeIf { it.isNotBlank() }
-        }
-
-        // Try "Artist-Album" (hyphen, no surrounding spaces)
-        if (withoutYear.contains("-")) {
-            val candidate = withoutYear.substringBefore("-").trim()
-            if (candidate.isNotBlank() && !candidate.all { it.isDigit() }) {
-                return candidate
-            }
-        }
-
-        // Single-segment directory without pattern — not reliable enough to use as artist
-        return null
-    }
-
-    private fun formatDuration(millis: Long?): String {
-        if (millis == null || millis <= 0) return "N/A"
-        val seconds = millis / 1000
-        val minutes = seconds / 60
-        val hours = minutes / 60
-        return if (hours > 0) {
-            "%d:%02d:%02d".format(hours, minutes % 60, seconds % 60)
-        } else {
-            "%d:%02d".format(minutes, seconds % 60)
-        }
-    }
-    
-    /**
-     * Update audio format info from ExoPlayer tracks
-     */
-    fun updateAudioFormatInfo() {
-        val formatInfo = callback.getExoPlayer()?.currentTracks?.groups?.firstOrNull { group ->
-            group.type == androidx.media3.common.C.TRACK_TYPE_AUDIO
-        }?.let { audioGroup ->
-            val format = audioGroup.getTrackFormat(0)
-            buildString {
-                format.sampleMimeType?.let { 
-                    append(it.substringAfter("audio/").uppercase())
-                }
-                format.sampleRate.let { 
-                    if (isNotEmpty()) append(" • ")
-                    append("${it / 1000} kHz")
-                }
-                format.channelCount.let {
-                    if (isNotEmpty()) append(" • ")
-                    append(when (it) {
-                        1 -> "Mono"
-                        2 -> "Stereo"
-                        else -> "$it channels"
-                    })
-                }
-                format.bitrate.let {
-                    if (it > 0) {
-                        if (isNotEmpty()) append(" • ")
-                        append("${it / 1000} kbps")
-                    }
-                }
-            }
-        }
-        
-        if (!formatInfo.isNullOrEmpty()) {
-            safeViews.audioFileInfo.text = buildAudioInfoLine(formatInfo)
-        }
-    }
-    
-    /**
-     * Load audio cover art with fallback to iTunes Search API
-     * Called when ExoPlayer is ready for audio files
-     */
-    fun loadAudioCoverArt(file: MediaFile) {
-        // Skip reload if cover art for this exact file is already visible (e.g. seek re-triggers STATE_READY).
-        if (file.path == coverArtDisplayedForPath && binding.audioCoverArtView.isVisible) {
-            Timber.d("loadAudioCoverArt: cover already displayed for ${file.name}, seek re-trigger skipped")
-            return
-        }
-        coverArtDisplayedForPath = null
-
-        // Cancel any pending cover-art coroutine from a previous track to avoid stale callbacks.
-        coverArtJob?.cancel()
-        coverArtJob = null
-
-        val callId = System.currentTimeMillis()
-        val caller = Thread.currentThread().stackTrace.getOrNull(3)?.let {
-            "${it.className}.${it.methodName}():${it.lineNumber}"
-        } ?: "Unknown"
-        
-        Timber.d("╔════════════════════════════════════════════════════════════════")
-        Timber.d("║ loadAudioCoverArt() CALLED [ID=$callId]")
-        Timber.d("╚════════════════════════════════════════════════════════════════")
-        Timber.d("loadAudioCoverArt[$callId]: file=${file.name}")
-        Timber.d("loadAudioCoverArt[$callId]: caller=$caller")
-        Timber.d("loadAudioCoverArt[$callId]: audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
-        
-        val isNetworkFile = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
-        val isCloudFile = file.path.startsWith("cloud://")
-        
-        // For network/cloud files, check if ExoPlayer has embedded artwork first
-        // ExoPlayer can extract artwork from network streams, but MediaMetadataRetriever cannot
-        // Cloud files also cannot be opened by MediaMetadataRetriever (cloud:// scheme unsupported)
-        if (isNetworkFile || isCloudFile) {
-            // Show empty-state animation immediately as a placeholder — hide it later if artwork is found.
-            lifecycleScope.launch {
-                val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
-                Timber.d("loadAudioCoverArt[$callId]: showing empty-state immediately (network/cloud file), mode=$mode")
-                audioEmptyStateController?.show(mode)
-            }
-            // Delay to let ExoPlayer load metadata and artwork
-            coverArtJob = lifecycleScope.launch {
-                delay(1500) // Wait for ExoPlayer to extract artwork
-                
-                // Check if ExoPlayer's PlayerView is showing artwork
-                val player = binding.playerView.player
-                val hasExoPlayerArtwork = player?.mediaMetadata?.artworkData != null ||
-                        player?.mediaMetadata?.artworkUri != null
-
-                // Extract ID3/Vorbis metadata from ExoPlayer for accurate online search
-                val exoArtist = player?.mediaMetadata?.artist?.toString()?.trim()?.takeIf { it.isNotBlank() }
-                val exoTitle  = player?.mediaMetadata?.title?.toString()?.trim()?.takeIf { it.isNotBlank() }
-                Timber.d("Network file artwork check: hasExoPlayerArtwork=$hasExoPlayerArtwork, exoArtist='$exoArtist', exoTitle='$exoTitle'")
-                
-                if (hasExoPlayerArtwork) {
-                    // PlayerView.artworkDisplayMode is set to OFF (we manage artwork ourselves).
-                    // Decode ExoPlayer's artworkData and display it in our audioCoverArtView.
-                    val artworkData = player?.mediaMetadata?.artworkData
-                    val bitmap = if (artworkData != null) {
-                        withContext(Dispatchers.IO) {
-                            try {
-                                android.graphics.BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to decode ExoPlayer artworkData")
-                                null
-                            }
-                        }
-                    } else null
-
-                    if (bitmap != null) {
-                        Timber.d("ExoPlayer embedded artwork decoded (${artworkData?.size} bytes), displaying in audioCoverArtView")
-                        audioEmptyStateController?.hide()
-                        binding.audioCoverArtView.setImageBitmap(bitmap)
-                        binding.audioCoverArtView.isVisible = true
-                        coverArtDisplayedForPath = file.path
-                        pushArtworkToNotification(bitmap)
-                    } else {
-                        // artworkData missing or decode failed — treat as no artwork
-                        val settings = settingsRepository.getSettings().first()
-                        if (!settings.searchAudioCoversOnline) {
-                            Timber.d("Network file: artwork decode failed, online search disabled — showing empty state")
-                            withContext(Dispatchers.Main) {
-                                audioEmptyStateController?.show(settings.audioEmptyStateMode)
-                                    ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
-                            }
-                        } else {
-                            Timber.w("ExoPlayer reports artwork but decode failed, searching online")
-                            searchOnlineAndDisplayCover(file, exoArtist, exoTitle)
-                        }
-                    }
-                } else {
-                    // ExoPlayer has no embedded artwork
-                    val settings = settingsRepository.getSettings().first()
-                    if (!settings.searchAudioCoversOnline) {
-                        Timber.d("Network file: no artwork, online search disabled — showing empty state")
-                        withContext(Dispatchers.Main) {
-                            audioEmptyStateController?.show(settings.audioEmptyStateMode)
-                                ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
-                        }
-                    } else {
-                        Timber.d("ExoPlayer has no artwork, searching online for ${file.name} (exoArtist='$exoArtist', exoTitle='$exoTitle')")
-                        searchOnlineAndDisplayCover(file, exoArtist, exoTitle)
-                    }
-                }
-            }
-            return
-        }
-        
-        // For local files, use MediaMetadataRetriever.
-        // Show empty-state animation immediately as a placeholder — hide it later if artwork is found.
-        lifecycleScope.launch {
-            val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
-            Timber.d("loadAudioCoverArt[$callId]: showing empty-state immediately (local file), mode=$mode")
-            audioEmptyStateController?.show(mode)
-        }
-        Timber.d("loadAudioCoverArt: Starting cover art search for ${file.name}")
-        
-        coverArtJob = lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // Try to extract embedded cover art AND ID3 artist/title using MediaMetadataRetriever.
-                // Artist + Title tags are used as the primary cover search query (higher accuracy
-                // than filename guessing, e.g. "test_audio_flac.flac" vs "The Beatles – I'm So Tired").
-                Timber.d("Extracting embedded cover art and ID3 tags for ${file.name}")
-                data class LocalEmbeddedInfo(val bitmap: android.graphics.Bitmap?, val artist: String?, val title: String?)
-                val embeddedInfo = withContext(Dispatchers.IO) {
-                    val retriever = android.media.MediaMetadataRetriever()
-                    try {
-                        if (file.path.startsWith("content://")) {
-                            retriever.setDataSource(binding.root.context, Uri.parse(file.path))
-                        } else {
-                            retriever.setDataSource(file.path)
-                        }
-                        
-                        // Extract embedded picture and ID3 metadata in one pass
-                        val embeddedPicture = retriever.embeddedPicture
-                        val id3Artist = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST)
-                            ?.trim()?.takeIf { it.isNotBlank() }
-                        val id3Title = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE)
-                            ?.trim()?.takeIf { it.isNotBlank() }
-                        
-                        // Debug: check if file has any metadata
-                        val hasAudio = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO)
-                        val mimeType = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
-                        Timber.d("MediaMetadataRetriever: hasAudio=$hasAudio, mimeType=$mimeType, embeddedPicture=${embeddedPicture?.size} bytes, artist='$id3Artist', title='$id3Title'")
-                        
-                        val bitmap = if (embeddedPicture != null) {
-                            Timber.d("Found embedded cover art, decoding bitmap (${embeddedPicture.size} bytes)")
-                            android.graphics.BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.size)
-                        } else {
-                            Timber.d("No embedded cover art found")
-                            null
-                        }
-                        LocalEmbeddedInfo(bitmap, id3Artist, id3Title)
-                    } catch (e: IllegalArgumentException) {
-                        // Expected for deleted/inaccessible files or content:// URIs that can't be opened
-                        Timber.d("Cover art: file not accessible (${file.path}): ${e.message}")
-                        LocalEmbeddedInfo(null, null, null)
-                    } catch (e: Exception) {
-                        Timber.w(e, "Failed to extract embedded cover art")
-                        LocalEmbeddedInfo(null, null, null)
-                    } finally {
-                        retriever.release()
-                    }
-                }
-                val coverBitmap = embeddedInfo.bitmap
-                val id3Artist = embeddedInfo.artist
-                val id3Title = embeddedInfo.title
-                
-                withContext(Dispatchers.Main) {
-                    if (coverBitmap != null) {
-                        // Show embedded cover
-                        Timber.d("loadAudioCoverArt[$callId]: ✅ EMBEDDED cover found, displaying")
-                        Timber.d("loadAudioCoverArt[$callId]: BEFORE setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
-                        audioEmptyStateController?.hide()
-                        binding.audioCoverArtView.setImageBitmap(coverBitmap)
-                        binding.audioCoverArtView.isVisible = true
-                        coverArtDisplayedForPath = file.path
-                        pushArtworkToNotification(coverBitmap)
-                        Timber.d("loadAudioCoverArt[$callId]: AFTER setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
-                    } else {
-                        // No embedded cover, check if online search is enabled
-                        val settings = settingsRepository.getSettings().first()
-                        if (!settings.searchAudioCoversOnline) {
-                            Timber.d("loadAudioCoverArt[$callId]: No embedded cover, online search disabled - showing empty state")
-                            audioEmptyStateController?.show(settings.audioEmptyStateMode)
-                                ?: run {
-                                    binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
-                                    binding.audioCoverArtView.isVisible = true
-                                }
-                            return@withContext
-                        }
-
-                        // ШАГ 2.5: Проверяем локальный кэш
-                        val cached = withContext(Dispatchers.IO) {
-                            audioMetadataCacheRepository.readMetadata(file.name)
-                        }
-                        if (cached != null) {
-                            Timber.d("loadAudioCoverArt[$callId]: ✅ LOCAL CACHE hit for ${file.name}")
-                            if (cached.coverFile != null) {
-                                audioEmptyStateController?.hide()
-                                Glide.with(binding.audioCoverArtView.context)
-                                    .load(cached.coverFile)
-                                    .error(R.drawable.ic_music_note)
-                                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
-                                    .into(binding.audioCoverArtView)
-                                binding.audioCoverArtView.isVisible = true
-                                coverArtDisplayedForPath = file.path
-                                callback.onAudioMetadataLoaded(
-                                    com.sza.fastmediasorter.domain.model.AudioMetadata(
-                                        trackName   = cached.trackName,
-                                        artistName  = cached.artistName,
-                                        albumName   = cached.albumName,
-                                        releaseYear = cached.releaseYear,
-                                        coverArtUrl = cached.coverArtUrl
-                                    )
-                                )
-                                return@withContext
-                            }
-                            if (cached.coverArtUrl != null) {
-                                audioEmptyStateController?.hide()
-                                binding.audioCoverArtView.isVisible = true
-                                Glide.with(binding.audioCoverArtView.context)
-                                    .load(cached.coverArtUrl)
-                                    .error(R.drawable.ic_music_note)
-                                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
-                                    .into(binding.audioCoverArtView)
-                                coverArtDisplayedForPath = file.path
-                                return@withContext
-                            }
-                        }
-
-                        // Online search enabled, try it
-                        Timber.d("loadAudioCoverArt[$callId]: ❌ NO embedded cover, searching online (id3Artist='$id3Artist', id3Title='$id3Title')")
-                        
-                        val metadata = withContext(Dispatchers.IO) {
-                            Timber.d("loadAudioCoverArt[$callId]: Calling searchAudioCoverUseCase")
-                            searchAudioCoverUseCase(file.name, file.path, id3Artist, id3Title)
-                        }
-                        
-                        val coverUrl = metadata?.coverArtUrl
-                        if (coverUrl != null) {
-                            // Save metadata for display
-                            callback.onAudioMetadataLoaded(metadata)
-
-                            // Сохраняем в локальный кэш (если включено)
-                            lifecycleScope.launch(Dispatchers.IO) {
-                                try {
-                                    val shouldSave = settingsRepository.getSettings().first().saveAudioMetadataLocally
-                                    if (!shouldSave) return@launch
-                                    val ext = if (coverUrl.contains(".png", ignoreCase = true)) "png" else "jpg"
-                                    val imageBytes = downloadImageBytes(coverUrl)
-                                    audioMetadataCacheRepository.saveMetadata(
-                                        file.name,
-                                        AudioMetadataSaveData(
-                                            trackName      = metadata.trackName,
-                                            artistName     = metadata.artistName,
-                                            albumName      = metadata.albumName,
-                                            releaseYear    = metadata.releaseYear,
-                                            coverArtUrl    = coverUrl,
-                                            coverExtension = if (imageBytes != null) ext else null
-                                        )
-                                    )
-                                    if (imageBytes != null) {
-                                        audioMetadataCacheRepository.saveCover(file.name, imageBytes, ext)
-                                    }
-                                } catch (e: Exception) {
-                                    Timber.d(e, "AudioMetadataCache: save failed for %s", file.name)
-                                }
-                            }
-
-                            Timber.d("loadAudioCoverArt[$callId]: ✅ ONLINE cover found: $coverUrl")
-                            Timber.d("loadAudioCoverArt[$callId]: BEFORE Glide.load - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
-                            // Hide any running animation before showing cover
-                            audioEmptyStateController?.hide()
-                            // Show view now, load without placeholder to prevent flicker
-                            binding.audioCoverArtView.isVisible = true
-                            Timber.d("loadAudioCoverArt[$callId]: AFTER isVisible=true - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
-                            
-                            val capturedMode = settings.audioEmptyStateMode
-                            val request = Glide.with(binding.audioCoverArtView.context)
-                                .load(coverUrl)
-                                .error(R.drawable.ic_music_note)
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            
-                            // Apply memory-aware optimizations for LOW tier devices
-                            if (memoryTier == MemoryTier.LOW) {
-                                request
-                                    .format(DecodeFormat.PREFER_RGB_565)
-                                    .dontAnimate()
-                                    .override(512, 512) // Limit audio cover size for LOW memory
-                            }
-                            
-                            request
-                                .listener(object : RequestListener<Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        Timber.w(e, "Cover art load failed, showing empty state")
-                                        val controller = audioEmptyStateController
-                                        if (controller != null) {
-                                            controller.show(capturedMode)
-                                            return true
-                                        }
-                                        return false // fallback: let Glide show error drawable
-                                    }
-                                    
-                                    override fun onResourceReady(
-                                        resource: Drawable,
-                                        model: Any,
-                                        target: Target<Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        Timber.d("Cover art loaded successfully from $dataSource")
-                                        coverArtDisplayedForPath = file.path
-                                        return false // Let Glide handle displaying
-                                    }
-                                })
-                                .into(binding.audioCoverArtView)
-                        } else {
-                            Timber.d("No cover art found online, showing empty state for ${file.name}")
-                            audioEmptyStateController?.show(settingsRepository.getSettings().first().audioEmptyStateMode)
-                                ?: run {
-                                    binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
-                                    binding.audioCoverArtView.isVisible = true
-                                }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load audio cover art for ${file.name}")
-                withContext(Dispatchers.Main) {
-                    val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
-                    audioEmptyStateController?.show(mode)
-                        ?: run {
-                            binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
-                            binding.audioCoverArtView.isVisible = true
-                        }
-                }
-            }
-        }
-    }
-    
-    /**
-     * Search for cover art online and display it.
-     * @param id3Artist Artist tag from the file's internal metadata (ID3/Vorbis/ExoPlayer); used as primary search query
-     * @param id3Title  Title tag from the file's internal metadata; used as primary search query
-     */
-    private fun searchOnlineAndDisplayCover(file: MediaFile, id3Artist: String? = null, id3Title: String? = null) {
-        val callId = System.currentTimeMillis()
-        Timber.w("searchOnlineAndDisplayCover[$callId]: START for ${file.name}")
-        
-        lifecycleScope.launch(Dispatchers.IO) {
-            val mode = try {
-                settingsRepository.getSettings().first().audioEmptyStateMode
-            } catch (_: Exception) {
-                AudioEmptyStateController.MODE_NONE
-            }
-            try {
-                // ШАГ 2.5: Проверяем локальный кэш (сетевые файлы тоже кэшируем по имени)
-                val cached = audioMetadataCacheRepository.readMetadata(file.name)
-                if (cached != null) {
-                    Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ LOCAL CACHE hit for ${file.name}")
-                    withContext(Dispatchers.Main) {
-                        if (cached.coverFile != null) {
-                            audioEmptyStateController?.hide()
-                            Glide.with(binding.audioCoverArtView.context)
-                                .load(cached.coverFile)
-                                .error(R.drawable.ic_music_note)
-                                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
-                                .into(binding.audioCoverArtView)
-                            binding.audioCoverArtView.isVisible = true
-                            coverArtDisplayedForPath = file.path
-                            callback.onAudioMetadataLoaded(
-                                com.sza.fastmediasorter.domain.model.AudioMetadata(
-                                    trackName   = cached.trackName,
-                                    artistName  = cached.artistName,
-                                    albumName   = cached.albumName,
-                                    releaseYear = cached.releaseYear,
-                                    coverArtUrl = cached.coverArtUrl
-                                )
-                            )
-                            return@withContext
-                        }
-                        if (cached.coverArtUrl != null) {
-                            audioEmptyStateController?.hide()
-                            binding.audioCoverArtView.isVisible = true
-                            Glide.with(binding.audioCoverArtView.context)
-                                .load(cached.coverArtUrl)
-                                .error(R.drawable.ic_music_note)
-                                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
-                                .into(binding.audioCoverArtView)
-                            coverArtDisplayedForPath = file.path
-                            return@withContext
-                        }
-                    }
-                    return@launch
-                }
-
-                val metadata = searchAudioCoverUseCase(file.name, file.path, id3Artist, id3Title)
-                val coverUrl = metadata?.coverArtUrl
-
-                withContext(Dispatchers.Main) {
-                    if (coverUrl != null) {
-                        // Save metadata for display
-                        callback.onAudioMetadataLoaded(metadata)
-
-                        // Сохраняем в локальный кэш (если включено)
-                        lifecycleScope.launch(Dispatchers.IO) {
-                            try {
-                                val shouldSave = settingsRepository.getSettings().first().saveAudioMetadataLocally
-                                if (!shouldSave) return@launch
-                                val ext = if (coverUrl.contains(".png", ignoreCase = true)) "png" else "jpg"
-                                val imageBytes = downloadImageBytes(coverUrl)
-                                audioMetadataCacheRepository.saveMetadata(
-                                    file.name,
-                                    AudioMetadataSaveData(
-                                        trackName      = metadata.trackName,
-                                        artistName     = metadata.artistName,
-                                        albumName      = metadata.albumName,
-                                        releaseYear    = metadata.releaseYear,
-                                        coverArtUrl    = coverUrl,
-                                        coverExtension = if (imageBytes != null) ext else null
-                                    )
-                                )
-                                if (imageBytes != null) {
-                                    audioMetadataCacheRepository.saveCover(file.name, imageBytes, ext)
-                                }
-                            } catch (e: Exception) {
-                                Timber.d(e, "AudioMetadataCache: save failed for %s", file.name)
-                            }
-                        }
-
-                        Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ Found URL: $coverUrl")
-                        Timber.w("searchOnlineAndDisplayCover[$callId]: BEFORE Glide.load - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
-                        // Hide any running animation before showing cover
-                        audioEmptyStateController?.hide()
-                        binding.audioCoverArtView.isVisible = true
-                        // Load without placeholder to avoid flicker
-                        val request = Glide.with(binding.audioCoverArtView.context)
-                            .load(coverUrl)
-                            .error(R.drawable.ic_music_note)
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        
-                        // Apply memory-aware optimizations for LOW tier devices
-                        if (memoryTier == MemoryTier.LOW) {
-                            request
-                                .format(DecodeFormat.PREFER_RGB_565)
-                                .dontAnimate()
-                                .override(512, 512) // Limit audio cover size for LOW memory
-                        }
-                        
-                        request
-                            .listener(object : RequestListener<Drawable> {
-                                override fun onLoadFailed(
-                                    e: GlideException?,
-                                    model: Any?,
-                                    target: Target<Drawable>,
-                                    isFirstResource: Boolean
-                                ): Boolean {
-                                    Timber.w(e, "searchOnlineAndDisplayCover[$callId]: ❌ Glide load FAILED")
-                                    val controller = audioEmptyStateController
-                                    if (controller != null) {
-                                        controller.show(mode)
-                                        return true
-                                    }
-                                    binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
-                                    return true
-                                }
-                                
-                                override fun onResourceReady(
-                                    resource: Drawable,
-                                    model: Any,
-                                    target: Target<Drawable>?,
-                                    dataSource: DataSource,
-                                    isFirstResource: Boolean
-                                ): Boolean {
-                                    Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ Glide loaded from $dataSource")
-                                    coverArtDisplayedForPath = file.path
-                                    (resource as? BitmapDrawable)?.bitmap?.let { pushArtworkToNotification(it) }
-                                    return false
-                                }
-                            })
-                            .into(binding.audioCoverArtView)
-                    } else {
-                        Timber.w("searchOnlineAndDisplayCover[$callId]: ❌ NO cover found, showing empty state")
-                        audioEmptyStateController?.show(mode)
-                            ?: run {
-                                binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
-                            }
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "searchOnlineAndDisplayCover[$callId]: ❌ EXCEPTION")
-                withContext(Dispatchers.Main) {
-                    audioEmptyStateController?.show(mode)
-                        ?: run {
-                            binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
-                        }
-                }
-            }
-        }
-    }
-
-    /**
-     * Pushes resolved cover art to the system media notification by updating the current
-     * MediaItem's artworkData via [Player.replaceMediaItem].
-     *
-     * No-op when the player is a local ExoPlayer (background service not active) —
-     * checked via [Player.COMMAND_CHANGE_MEDIA_ITEMS] availability.
-     * Bitmap is scaled to max 512×512 and JPEG-compressed (85 %) before embedding
-     * to keep the MediaSession IPC payload small. The scaled copy is recycled immediately.
-     * The original [bitmap] is not recycled — caller manages its lifecycle.
-     */
-    private fun pushArtworkToNotification(bitmap: Bitmap) {
-        val player = binding.playerView.player ?: return
-        if (!player.isCommandAvailable(Player.COMMAND_CHANGE_MEDIA_ITEMS)) return
-        val currentIndex = player.currentMediaItemIndex
-        val currentItem = player.currentMediaItem ?: return
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val maxSide = 512
-                val w = bitmap.width; val h = bitmap.height
-                val scaled = if (w > maxSide || h > maxSide) {
-                    val scale = maxSide.toFloat() / maxOf(w, h)
-                    Bitmap.createScaledBitmap(bitmap, (w * scale).toInt(), (h * scale).toInt(), true)
-                } else bitmap
-                val bytes = java.io.ByteArrayOutputStream().also { stream ->
-                    scaled.compress(Bitmap.CompressFormat.JPEG, 85, stream)
-                }.toByteArray()
-                if (scaled !== bitmap) scaled.recycle()
-                val updatedItem = currentItem.buildUpon()
-                    .setMediaMetadata(
-                        currentItem.mediaMetadata.buildUpon()
-                            .setArtworkData(bytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-                            .build()
-                    )
-                    .build()
-                withContext(Dispatchers.Main) {
-                    if (player.currentMediaItemIndex == currentIndex) {
-                        player.replaceMediaItem(currentIndex, updatedItem)
-                        Timber.d("pushArtworkToNotification: pushed ${bytes.size}b at index=$currentIndex")
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.w(e, "pushArtworkToNotification: failed")
-            }
-        }
-    }
-
-    private suspend fun downloadImageBytes(url: String): ByteArray? = withContext(Dispatchers.IO) {
-        try {
-            val request = okhttp3.Request.Builder().url(url).build()
-            okHttpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return@withContext null
-                response.body?.bytes()
-            }
-        } catch (e: Exception) {
-            Timber.d(e, "downloadImageBytes: failed for %s", url)
-            null
-        }
-    }
+    fun loadAudioCoverArt(file: MediaFile) = audioCoverArtLoader.loadAudioCoverArt(file)
 
     fun updateButtonVisibility() {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -2197,7 +1264,7 @@ class ImageLoadingManager(
             val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
             
             // Preload jobs count
-            val activePreloadJobs = synchronized(preloadJobs) { preloadJobs.size }
+            val activePreloadJobs = imagePreloadHelper.preloadJobCount
             
             // Single comprehensive log line for easier filtering
             Timber.i(
@@ -2233,9 +1300,5 @@ class ImageLoadingManager(
         // Global counter for cache clears across all instances
         // System.gc() is called every 100 clears to aggressively reclaim memory
         private var cacheClears = 0
-        
-        // Counter for preload operations to periodically log memory stats
-        // Logs memory state every 10 preloads to track accumulation patterns
-        private var preloadCounter = 0
     }
 }

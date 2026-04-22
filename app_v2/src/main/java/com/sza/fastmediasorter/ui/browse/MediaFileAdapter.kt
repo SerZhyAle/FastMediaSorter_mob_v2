@@ -13,7 +13,7 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.DiffUtil
+
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -79,43 +79,39 @@ class MediaFileAdapter(
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
     private var isAudioOnlyMode: Boolean = false
 
+    private val thumbnailLoader = AdapterThumbnailLoader(
+        getIsScrolling = { isScrolling },
+        getDisableThumbnails = { disableThumbnails },
+        getRefreshVersion = { refreshVersion },
+        getCredentialsId = { credentialsId },
+        getShowVideoThumbnails = getShowVideoThumbnails,
+        getShowPdfThumbnails = getShowPdfThumbnails,
+        getBinaryGenerator = { binaryThumbnailGenerator }
+    )
+
     // ── Drag-to-reorder (MANUAL sort mode) ───────────────────────────────────
-    interface DragStartListener {
-        fun onStartDrag(viewHolder: RecyclerView.ViewHolder)
-    }
+    private val dragController = AdapterDragController()
 
-    private var dragStartListener: DragStartListener? = null
-    private var showDragHandles: Boolean = false
-    // Shadow copy maintained during drag to track visual order without mutating currentList
-    private val dragOrderedList = mutableListOf<com.sza.fastmediasorter.domain.model.MediaFile>()
+    // Public type alias so call sites keep using MediaFileAdapter.DragStartListener
+    interface DragStartListener : AdapterDragController.DragStartListener
 
-    fun setDragStartListener(listener: DragStartListener?) {
-        dragStartListener = listener
+    fun setDragStartListener(listener: AdapterDragController.DragStartListener?) {
+        dragController.listener = listener
     }
 
     fun showDragHandles(show: Boolean) {
-        if (showDragHandles == show) return
-        showDragHandles = show
-        if (show) {
-            dragOrderedList.clear()
-            dragOrderedList.addAll(currentList)
+        if (dragController.setShowHandles(show, currentList)) {
+            notifyItemRangeChanged(0, itemCount)
         }
-        notifyItemRangeChanged(0, itemCount)
     }
 
     /** Called by ItemTouchHelper.onMove — reorders the shadow list and notifies RecyclerView. */
     fun moveItem(from: Int, to: Int) {
-        if (from < 0 || to < 0 || from >= dragOrderedList.size || to >= dragOrderedList.size) return
-        if (from < to) {
-            for (i in from until to) dragOrderedList.add(i + 1, dragOrderedList.removeAt(i))
-        } else {
-            for (i in from downTo to + 1) dragOrderedList.add(i - 1, dragOrderedList.removeAt(i))
-        }
-        notifyItemMoved(from, to)
+        if (dragController.moveItem(from, to)) notifyItemMoved(from, to)
     }
 
     /** Returns file paths in current drag-visual order (call from clearView). */
-    fun getOrderedPaths(): List<String> = dragOrderedList.map { it.path }.toList()
+    fun getOrderedPaths(): List<String> = dragController.getOrderedPaths()
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -313,70 +309,11 @@ class MediaFileAdapter(
         private const val VIEW_TYPE_GRID = 1
         private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
         private const val PAYLOAD_PLAYBACK_STATE = "playback_state"
-        private const val PAYLOAD_AUDIO_METADATA = "audio_metadata"
-        private const val CACHED_THUMBNAIL_SIZE = 300 // Fixed size for cache stability across List/Grid modes
+        private const val PAYLOAD_AUDIO_METADATA = MediaFileDiffCallback.PAYLOAD_AUDIO_METADATA
         private const val AUDIO_ONLY_THUMBNAIL_DP = 48
-        
-        // PDF thumbnail size limits for network resources when "Large PDF Thumbnails" is ENABLED (bytes)
-        private const val SMB_PDF_LARGE_MAX_SIZE = 50 * 1024 * 1024L // 50 MB for SMB
-        private const val NETWORK_PDF_LARGE_MAX_SIZE = 10 * 1024 * 1024L // 10 MB for SFTP/FTP/Cloud
-        
-        // PDF thumbnail size limits when "Large PDF Thumbnails" is DISABLED (normal behavior)
-        private const val SMB_PDF_NORMAL_MAX_SIZE = 3 * 1024 * 1024L // 3 MB for SMB
-        private const val NETWORK_PDF_NORMAL_MAX_SIZE = 1 * 1024 * 1024L // 1 MB for SFTP/FTP/Cloud
-        
-        // EPUB cover size limits for network resources (same as PDF)
-        private const val SMB_EPUB_MAX_SIZE = 50 * 1024 * 1024L // 50 MB for SMB
-        private const val NETWORK_EPUB_MAX_SIZE = 10 * 1024 * 1024L // 10 MB for SFTP/FTP/Cloud
+    }
 
-        /**
-         * Check if GlideException is caused by video decoder failure.
-         */
-        private fun isVideoDecoderException(e: GlideException?): Boolean {
-            if (e == null) return false
-            
-            var current: Throwable? = e
-            var depth = 0
-            while (current != null && depth < 10) {
-                val msg = current.message?.lowercase() ?: ""
-                val className = current.javaClass.simpleName.lowercase()
-                
-                if (className.contains("videodecoder") ||
-                    className.contains("videodecoderexception") ||
-                    msg.contains("mediametadataretriever") ||
-                    msg.contains("failed to retrieve a frame")) {
-                    return true
-                }
-                
-                current = current.cause
-                depth++
-            }
-            return false
-        }
-            }
-        
-        /**
-         * Apply placeholder style (background color + reduced size for list)
-         */
-        @Suppress("UNUSED_PARAMETER")
-        private fun applyPlaceholderStyle(imageView: android.widget.ImageView, type: MediaType, _isListMode: Boolean = false) {
-            val context = imageView.context
-            val colorRes = when (type) {
-                MediaType.VIDEO -> R.color.thumbnail_video_bg
-                MediaType.AUDIO -> R.color.thumbnail_audio_bg
-                MediaType.TEXT, MediaType.PDF, MediaType.EPUB -> R.color.thumbnail_doc_bg
-                else -> R.color.thumbnail_image_bg
-            }
-            imageView.setBackgroundColor(ContextCompat.getColor(context, colorRes))
-        }
-        
-        private fun resetThumbnailStyle(imageView: android.widget.ImageView) {
-            imageView.background = null
-            // Reset scaleType to CENTER_CROP for proper thumbnail display (may have been CENTER_INSIDE for folder icons)
-            imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-        }
 
-    
     fun setGridMode(enabled: Boolean, iconSize: Int = 96) {
         if (isGridMode != enabled || thumbnailSize != iconSize) {
             val modeChanged = isGridMode != enabled
@@ -531,10 +468,7 @@ class MediaFileAdapter(
     ) {
         super.onCurrentListChanged(previousList, currentList)
         // Keep drag shadow in sync when a new list is submitted (e.g. after reload)
-        if (showDragHandles) {
-            dragOrderedList.clear()
-            dragOrderedList.addAll(currentList)
-        }
+        dragController.syncWithCurrentList(currentList)
     }
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
@@ -556,8 +490,7 @@ class MediaFileAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         
         private var lastLoadedKey: String? = null
-        private var noteAnimator: android.animation.ObjectAnimator? = null
-        private var downloadAnimator: android.animation.ObjectAnimator? = null
+        private val playbackAnimator = InlinePlaybackAnimator(binding.btnPlayInline)
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
             if (!file.isDirectory) {
@@ -649,7 +582,7 @@ class MediaFileAdapter(
 
             binding.ivDragHandle.setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                    dragStartListener?.onStartDrag(this)
+                    dragController.listener?.onStartDrag(this)
                 }
                 false
             }
@@ -688,7 +621,7 @@ class MediaFileAdapter(
             if (!isAudioOnlyMode) return
 
             // Use detail line (filename + size + duration) for the info row, not artist/title which is already in tvFileName
-            val baseInfo = buildAudioDetailLine(file)
+            val baseInfo = AdapterFileInfoFormatter.buildAudioDetailLine(file)
             if (isDownloading) {
                 val progress = state.downloadProgressPercent.coerceIn(0, 100)
                 binding.tvFileInfo.text = if (progress > 0) "$baseInfo • Cache $progress%" else "$baseInfo • Cache..."
@@ -702,23 +635,23 @@ class MediaFileAdapter(
             when {
                 isDownloading -> {
                     binding.btnPlayInline.setImageResource(android.R.drawable.stat_sys_download)
-                    stopNoteAnimation()
-                    startDownloadAnimation()
+                    playbackAnimator.stopNote()
+                    playbackAnimator.startDownload()
                 }
                 !isThisItem -> {
                     binding.btnPlayInline.setImageResource(R.drawable.ic_play_inline_outline)
-                    stopNoteAnimation()
-                    stopDownloadAnimation()
+                    playbackAnimator.stopNote()
+                    playbackAnimator.stopDownload()
                 }
                 state.status == PlaybackStatus.PLAYING -> {
                     binding.btnPlayInline.setImageResource(R.drawable.ic_music_note)
-                    stopDownloadAnimation()
-                    startNoteAnimation()
+                    playbackAnimator.stopDownload()
+                    playbackAnimator.startNote()
                 }
                 state.status == PlaybackStatus.PAUSED -> {
                     binding.btnPlayInline.setImageResource(R.drawable.ic_pause)
-                    stopNoteAnimation()
-                    stopDownloadAnimation()
+                    playbackAnimator.stopNote()
+                    playbackAnimator.stopDownload()
                 }
             }
         }
@@ -730,59 +663,15 @@ class MediaFileAdapter(
         fun updateAudioMetadataText(file: MediaFile) {
             val audioOnlyFile = isAudioOnlyMode && !file.isDirectory
             if (audioOnlyFile) {
-                binding.tvFileName.text = buildAudioDisplayName(file)
-                binding.tvFileInfo.text = buildAudioDetailLine(file)
+                binding.tvFileName.text = AdapterFileInfoFormatter.buildAudioDisplayName(file)
+                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(file)
             } else {
                 // Non audio-only mode: filename stays, but info line may include duration
-                binding.tvFileInfo.text = buildFileInfo(file)
+                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
             }
         }
 
-        private fun startNoteAnimation() {
-            if (noteAnimator?.isRunning == true) return
-            noteAnimator = android.animation.ObjectAnimator.ofFloat(
-                binding.btnPlayInline, "rotation", 0f, 360f
-            ).apply {
-                duration = 1200
-                repeatCount = android.animation.ObjectAnimator.INFINITE
-                interpolator = android.view.animation.LinearInterpolator()
-                start()
-            }
-        }
-
-        private fun stopNoteAnimation() {
-            noteAnimator?.cancel()
-            noteAnimator = null
-            binding.btnPlayInline.rotation = 0f
-        }
-
-        private fun startDownloadAnimation() {
-            if (downloadAnimator?.isRunning == true) return
-            downloadAnimator = android.animation.ObjectAnimator.ofFloat(
-                binding.btnPlayInline,
-                "alpha",
-                1f,
-                0.35f,
-                1f
-            ).apply {
-                duration = 900
-                repeatCount = android.animation.ObjectAnimator.INFINITE
-                interpolator = android.view.animation.LinearInterpolator()
-                start()
-            }
-        }
-
-        private fun stopDownloadAnimation() {
-            downloadAnimator?.cancel()
-            downloadAnimator = null
-            binding.btnPlayInline.alpha = 1f
-        }
-
-        fun stopPlaybackAnimations() {
-            stopNoteAnimation()
-            stopDownloadAnimation()
-            binding.btnPlayInline.rotation = 0f
-        }
+        fun stopPlaybackAnimations() = playbackAnimator.stopAll()
 
         private fun applyInlineHighlight(active: Boolean) {
             binding.root.foreground = if (active) {
@@ -793,30 +682,21 @@ class MediaFileAdapter(
         }
 
         fun loadThumbnailOnly(file: MediaFile) {
-            // Partial update: only reload thumbnail (called via payload)
-            // In audio-only mode, ivThumbnail is GONE — skip entirely (no bitmap work needed)
+            // In audio-only mode, ivThumbnail is GONE — skip entirely
             if (isAudioOnlyMode && !file.isDirectory) return
 
-            // Check if we need to reload based on the key (includes refreshVersion)
-            // Note: credentialsId removed from key - it's session-specific and shouldn't affect cache
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
-            
+
             Timber.v("=== CACHE_KEY_DEBUG: loadThumbnailOnly called ===")
-            Timber.v("  File: ${file.name}")
-            Timber.v("  New Key: ${newKey.take(120)}")
-            Timber.v("  Last Key: ${lastLoadedKey?.take(120)}")
-            Timber.v("  refreshVersion: $refreshVersion")
-            
-            // Only skip reload if the key is exactly the same (meaning thumbnail already loaded for this version)
+            Timber.v("  File: ${file.name} | NewKey: ${newKey.take(80)} | LastKey: ${lastLoadedKey?.take(80)}")
+
             if (lastLoadedKey == newKey) {
-                Timber.v("  Result: SKIPPED - key matches (thumbnail already loaded)")
+                Timber.v("  Result: SKIPPED - key matches")
                 return
             }
-            
-            Timber.v("  Result: LOADING - key mismatch (will call loadThumbnail)")
-            loadThumbnail(file)
-            // Update key so AUDIO/TEXT/Binary fast-paths (which return early without setting the key)
-            // don't re-trigger on the next LOAD_THUMBNAILS payload after the same recycle.
+            Timber.v("  Result: LOADING")
+            thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, isListMode = true)
+            // Always update key so AUDIO/TEXT/Binary fast-paths don't re-trigger
             lastLoadedKey = newKey
         }
 
@@ -894,11 +774,11 @@ class MediaFileAdapter(
                 // For network audio files, check AudioMetadataLoader cache for enriched data.
                 val displayFile = resolveAudioMetadata(file)
                 if (audioOnlyFile) {
-                    tvFileName.text = buildAudioDisplayName(displayFile)
-                    tvFileInfo.text = buildAudioDetailLine(displayFile)
+                    tvFileName.text = AdapterFileInfoFormatter.buildAudioDisplayName(displayFile)
+                    tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(displayFile)
                 } else {
                     tvFileName.text = file.name
-                    tvFileInfo.text = buildFileInfo(file)
+                    tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
                 }
 
                 // Load thumbnail or folder icon
@@ -945,827 +825,20 @@ class MediaFileAdapter(
                 } else {
                     btnPlayInline.isVisible = false
                     btnPlayInline.isEnabled = true
-                    tvFileInfo.text = buildFileInfo(file)
+                    tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
                     applyInlineHighlight(false)
                 }
 
                 // Drag handle: visible only in MANUAL sort mode (set via showDragHandles)
-                ivDragHandle.isVisible = this@MediaFileAdapter.showDragHandles && !isFolder
+                ivDragHandle.isVisible = dragController.showHandles && !isFolder
             }
         }
 
         private fun loadThumbnail(file: MediaFile) {
-            // Skip thumbnail loading during fast scroll
-            if (isScrolling) {
-                Timber.v("loadThumbnail: SKIPPED during scroll for ${file.name}")
-                return
-            }
-            
-            // AUDIO: show extension bitmap only (no metadata/cover art/internet in Browse).
-            // Cover art is loaded exclusively in the Player (ImageLoadingManager.loadAudioCoverArt).
-            if (file.type == MediaType.AUDIO) {
-                val extension = file.name.substringAfterLast('.', "").uppercase()
-                binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
-                applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                Timber.v("loadThumbnail: AUDIO extension bitmap for ${file.name} ($extension)")
-                return
-            }
-
-            // TEXT: show extension bitmap (no network/disk loading needed)
-            if (file.type == MediaType.TEXT) {
-                val extension = file.name.substringAfterLast('.', "").uppercase()
-                binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
-                applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                return
-            }
-            
-            // Task 6: Binary files - generate custom thumbnail
-            if (file.type.isBinaryFile()) {
-                val extension = file.name.substringAfterLast('.', "").ifEmpty { "BIN" }
-                binaryThumbnailGenerator?.let { generator ->
-                    val thumbnailSize = (this@MediaFileAdapter.thumbnailSize * binding.root.resources.displayMetrics.density).toInt()
-                    val thumbnail = generator.generateThumbnail(extension, file.type, thumbnailSize)
-                    binding.ivThumbnail.setImageBitmap(thumbnail)
-                    resetThumbnailStyle(binding.ivThumbnail)
-                    Timber.v("Binary file thumbnail generated for ${file.name}")
-                } ?: run {
-                    val ext = extension.uppercase()
-                    binding.ivThumbnail.setImageBitmap(createExtensionBitmap(ext))
-                    applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                }
-                return
-            }
-            
-            // Don't load thumbnails for directories - they use folder icon
-            if (file.isDirectory) {
-                Timber.v("loadThumbnail: SKIPPED for directory ${file.name}")
-                return
-            }
-            
-            Timber.v("loadThumbnail: START file=${file.name}")
-            val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
-            if (lastLoadedKey == newKey) {
-                return
-            }
-            lastLoadedKey = newKey
-
-            val imageView = binding.ivThumbnail
-            val context = imageView.context
-            val generatedPlaceholder = createPlaceholderDrawable(file)
-            
-            // Reset scaleType to CENTER_CROP (may have been CENTER_INSIDE for folder icons due to view recycling)
-            imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-            
-            // If thumbnails disabled, show only extension-based icons (no Glide loading)
-            if (this@MediaFileAdapter.disableThumbnails) {
-                Timber.v("THUMBNAIL_DEBUG: Skipping thumbnail load for ${file.name} - disableThumbnails=true")
-                when (file.type) {
-                    MediaType.IMAGE -> {
-                        showGeneratedPlaceholder(imageView, file)
-                    }
-                    MediaType.VIDEO -> {
-                        showGeneratedPlaceholder(imageView, file)
-                    }
-                    MediaType.AUDIO -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                        applyPlaceholderStyle(imageView, file.type, true)
-                    }
-                    MediaType.GIF -> {
-                        showGeneratedPlaceholder(imageView, file)
-                    }
-                    MediaType.TEXT -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                        applyPlaceholderStyle(imageView, file.type, true)
-                    }
-                    MediaType.PDF -> {
-                        showGeneratedPlaceholder(imageView, file)
-                    }
-                    MediaType.EPUB -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                        applyPlaceholderStyle(imageView, file.type, true)
-                    }
-                    MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                    MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(binaryThumbnailGenerator?.generateThumbnail(extension, file.type))
-                        applyPlaceholderStyle(imageView, file.type, true)
-                    }
-                }
-                return
-            }
-            
-            // Check if this is a cloud path (cloud://)
-            val isCloudPath = file.path.startsWith("cloud://")
-            // Check if this is a network path (SMB/SFTP/FTP)
-            val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
-
-            // Check if file exists before loading thumbnail
-            if (!isNetworkPath && !isCloudPath) {
-                val fileExists = if (file.path.startsWith("content://")) {
-                    // For SAF URIs, check using DocumentFile
-                    try {
-                        val uri = Uri.parse(file.path)
-                        val docFile = androidx.documentfile.provider.DocumentFile.fromSingleUri(context, uri)
-                        docFile?.exists() == true
-                    } catch (e: Exception) {
-                        Timber.w(e, "Failed to check SAF URI existence: ${file.path}")
-                        false
-                    }
-                } else {
-                    // For regular file paths
-                    File(file.path).exists()
-                }
-                
-                if (!fileExists) {
-                    Timber.w("File no longer exists: ${file.path}")
-                    // Show error placeholder for deleted files
-                    when (file.type) {
-                        MediaType.IMAGE, MediaType.GIF -> {
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                        MediaType.VIDEO -> {
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                        MediaType.AUDIO -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                            applyPlaceholderStyle(imageView, file.type, true)
-                        }
-                        MediaType.TEXT -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                            applyPlaceholderStyle(imageView, file.type, true)
-                        }
-                        MediaType.PDF -> {
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                        MediaType.EPUB -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                            applyPlaceholderStyle(imageView, file.type, true)
-                        }
-                        MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                        MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(binaryThumbnailGenerator?.generateThumbnail(extension, file.type))
-                            applyPlaceholderStyle(imageView, file.type, true)
-                        }
-                    }
-                    return
-                }
-            }
-            
-            // Don't apply placeholder style initially - only for fallbacks
-            // This keeps normal 64dp size for successful thumbnail loads
-            
-            when (file.type) {
-                MediaType.TEXT -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    imageView.setImageBitmap(createExtensionBitmap(extension))
-                    applyPlaceholderStyle(imageView, file.type, true)
-                }
-                MediaType.EPUB -> {
-                    // Load EPUB cover using Glide (EpubCoverDecoder registered in GlideAppModule)
-                    if (!isCloudPath && !isNetworkPath) {
-                        // Local EPUB - Glide will use EpubCoverDecoder automatically for .epub files
-                        val epubFile = File(file.path)
-                        if (epubFile.exists()) {
-                            Glide.with(context)
-                                .asBitmap()
-                                .load(epubFile)
-                                .signature(ObjectKey("${file.path}_${file.size}"))
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .into(imageView)
-                        } else {
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                    } else if (isNetworkPath) {
-                        // Network EPUB (SMB/SFTP/FTP) - check size limits (same as PDF logic)
-                        val isSmbPath = file.path.startsWith("smb://")
-                        val maxSize = if (isSmbPath) SMB_EPUB_MAX_SIZE else NETWORK_EPUB_MAX_SIZE
-                        
-                        if (file.size > maxSize) {
-                            // File too large - show placeholder without downloading
-                            showGeneratedPlaceholder(imageView, file)
-                        } else {
-                            // Check if thumbnail loading previously failed for this file
-                            if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.v("Skipping EPUB cover load for ${file.name} (cached as failed)")
-                                showGeneratedPlaceholder(imageView, file)
-                            } else {
-                                // File size OK - use NetworkEpubCoverLoader
-                                val networkData = NetworkFileData(
-                                    path = file.path,
-                                    size = file.size,
-                                    credentialsId = credentialsId
-                                )
-                                val cacheKey = ObjectKey("${file.path}_${file.size}")
-                                Glide.with(context)
-                                    .asBitmap()
-                                    .load(networkData)
-                                    .signature(cacheKey)
-                                    .listener(object : RequestListener<Bitmap> {
-                                        override fun onLoadFailed(
-                                            e: GlideException?,
-                                            model: Any?,
-                                            target: Target<Bitmap>,
-                                            isFirstResource: Boolean
-                                        ): Boolean {
-                                            if (e != null) {
-                                                Timber.w("EPUB cover load failed: ${file.name}, ${e.message}")
-                                                NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
-                                            }
-                                            return false
-                                        }
-
-                                        override fun onResourceReady(
-                                            resource: Bitmap,
-                                            model: Any,
-                                            target: Target<Bitmap>?,
-                                            dataSource: DataSource,
-                                            isFirstResource: Boolean
-                                        ): Boolean {
-                                            resetThumbnailStyle(imageView)
-                                            return false
-                                        }
-                                    })
-                                    .placeholder(generatedPlaceholder)
-                                    .error(generatedPlaceholder)
-                                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                    .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                    .into(imageView)
-                            }
-                        }
-                    } else {
-                        // Cloud EPUB - check size limit (same as PDF)
-                        if (file.size > NETWORK_EPUB_MAX_SIZE) {
-                            showGeneratedPlaceholder(imageView, file)
-                        } else {
-                            // Cloud EPUB implementation would go here
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                    }
-                }
-                MediaType.PDF -> {
-                    // PDF thumbnails are always shown when PDF support is enabled
-                    // getShowPdfThumbnails() controls size limits (Large PDF Thumbnails setting)
-                    val largePdfThumbnails = getShowPdfThumbnails()
-                    Timber.v("PDF_THUMB_DEBUG: Loading PDF thumbnail for ${file.name}, largePdfMode=$largePdfThumbnails, isNetwork=$isNetworkPath, isCloud=$isCloudPath, size=${file.size}")
-                    
-                    // Load PDF thumbnail using Glide (PdfPageDecoder registered in GlideAppModule)
-                    if (!isCloudPath && !isNetworkPath) {
-                        // Local PDF - Glide will use PdfPageDecoder automatically for .pdf files
-                        val pdfFile = File(file.path)
-                        if (pdfFile.exists()) {
-                            Glide.with(context)
-                                .asBitmap()
-                                .load(pdfFile)
-                                .signature(ObjectKey("${file.path}_${file.size}"))
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .into(imageView)
-                        } else {
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                    } else if (isNetworkPath) {
-                        // Network PDF (SMB/SFTP/FTP) - check size limits based on setting
-                        val isSmbPath = file.path.startsWith("smb://")
-                        val maxSize = if (largePdfThumbnails) {
-                            // "Large PDF Thumbnails" enabled - use large limits
-                            if (isSmbPath) SMB_PDF_LARGE_MAX_SIZE else NETWORK_PDF_LARGE_MAX_SIZE
-                        } else {
-                            // "Large PDF Thumbnails" disabled - use normal limits
-                            if (isSmbPath) SMB_PDF_NORMAL_MAX_SIZE else NETWORK_PDF_NORMAL_MAX_SIZE
-                        }
-                        Timber.v("PDF_THUMB_DEBUG: Network PDF ${file.name}, size=${file.size}, maxSize=$maxSize, isSMB=$isSmbPath, largePdfMode=$largePdfThumbnails")
-                        
-                        if (file.size > maxSize) {
-                            // File too large - show placeholder icon without downloading
-                            Timber.v("PDF_THUMB_DEBUG: PDF too large, showing placeholder for ${file.name}")
-                            showGeneratedPlaceholder(imageView, file)
-                        } else {
-                            // Check if thumbnail loading previously failed for this file
-                            if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.v("Skipping PDF thumbnail load for ${file.name} (cached as failed)")
-                                showGeneratedPlaceholder(imageView, file)
-                            } else {
-                                // File size OK - use NetworkPdfThumbnailLoader
-                                Timber.v("PDF_THUMB_DEBUG: Loading network PDF thumbnail via Glide for ${file.name}")
-                                Glide.with(context)
-                                    .asBitmap()
-                                    .load(NetworkFileData(
-                                        path = file.path,
-                                        credentialsId = credentialsId,
-                                        loadFullImage = false,
-                                        size = file.size,
-                                        createdDate = file.createdDate
-                                    ))
-                                    .apply(
-                                        RequestOptions().set(
-                                            com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
-                                            largePdfThumbnails
-                                        )
-                                    )
-                                    .listener(object : RequestListener<Bitmap> {
-                                        override fun onLoadFailed(
-                                            e: GlideException?,
-                                            model: Any?,
-                                            target: Target<Bitmap>,
-                                            isFirstResource: Boolean
-                                        ): Boolean {
-                                            if (e != null) {
-                                                Timber.w("PDF thumbnail load failed: ${file.name}, ${e.message}")
-                                                NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
-                                            }
-                                            return false
-                                        }
-
-                                        override fun onResourceReady(
-                                            resource: Bitmap,
-                                            model: Any,
-                                            target: Target<Bitmap>?,
-                                            dataSource: DataSource,
-                                            isFirstResource: Boolean
-                                        ): Boolean {
-                                            resetThumbnailStyle(imageView)
-                                            return false
-                                        }
-                                    })
-                                    .placeholder(generatedPlaceholder)
-                                    .error(generatedPlaceholder)
-                                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
-                                    .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                    .into(imageView)
-                            }
-                        }
-                    } else {
-                        // Cloud PDF - check size limit based on setting
-                        val maxSize = if (largePdfThumbnails) {
-                            NETWORK_PDF_LARGE_MAX_SIZE
-                        } else {
-                            NETWORK_PDF_NORMAL_MAX_SIZE
-                        }
-                        
-                        if (file.size > maxSize) {
-                            showGeneratedPlaceholder(imageView, file)
-                        } else {
-                            // Cloud PDF implementation would go here
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                    }
-                }
-                MediaType.IMAGE, MediaType.GIF -> {
-                    // Pre-flight: HEIC/HEIF requires API 28+; AVIF requires API 31+.
-                    val fileExt = file.name.substringAfterLast('.', "").lowercase()
-                    if (!HeifSupportUtils.isSupported(fileExt)) {
-                        Timber.w("loadThumbnail: ${fileExt.uppercase()} not supported on this device — showing placeholder for ${file.name}")
-                        showGeneratedPlaceholder(imageView, file)
-                        return
-                    }
-                    when {
-                        isCloudPath -> {
-                            // Load cloud thumbnail using CloudThumbnailData for authenticated access
-                            // Detect provider from URL scheme authority (cloud://dropbox/, cloud://googledrive/, etc.)
-                            val provider = when {
-                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
-                                else -> CloudProvider.GOOGLE_DRIVE
-                            }
-                            // Extract file ID from cloud path
-                            val fileId = when (provider) {
-                                CloudProvider.DROPBOX -> {
-                                    // Dropbox needs full path starting with /
-                                    val dropboxPath = file.path.substringAfter("cloud://dropbox")
-                                    if (dropboxPath.startsWith("/")) dropboxPath else "/$dropboxPath"
-                                }
-                                else -> {
-                                    // Google Drive and OneDrive use file ID (last segment)
-                                    file.path.substringAfterLast("/")
-                                }
-                            }
-                            Glide.with(context)
-                                .load(CloudThumbnailData(
-                                    thumbnailUrl = file.thumbnailUrl ?: "",
-                                    fileId = fileId,
-                                    loadFullImage = false, // Load thumbnail for browse list
-                                    cloudProvider = provider
-                                ))
-                                .priority(Priority.HIGH)  // High priority for images
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded, not source stream
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        isNetworkPath -> {
-                            // Check if thumbnail loading previously failed for this file
-                            if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.v("Skipping thumbnail load for ${file.name} (cached as failed)")
-                                showGeneratedPlaceholder(imageView, file)
-                                return
-                            }
-                            
-                            // Load network image using NetworkFileData (implements Key interface for cache)
-                            Glide.with(context)
-                                .load(NetworkFileData(
-                                    path = file.path,
-                                    credentialsId = credentialsId,
-                                    loadFullImage = false,
-                                    size = file.size,
-                                    createdDate = file.createdDate
-                                ))
-                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<android.graphics.drawable.Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        if (e != null) {
-                                            Timber.w("Network image load failed: ${file.name}, ${e.message}")
-                                            NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
-                                        }
-                                        applyPlaceholderStyle(imageView, file.type, true)
-                                        return false
-                                    }
-
-                                    override fun onResourceReady(
-                                        resource: android.graphics.drawable.Drawable,
-                                        model: Any,
-                                        target: Target<android.graphics.drawable.Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        Timber.v("CACHE_HIT_DEBUG: Network image loaded from ${dataSource.name} for ${file.name}")
-                                        resetThumbnailStyle(imageView)
-                                        return false
-                                    }
-                                })
-                                .priority(Priority.HIGH)  // High priority for images
-                                .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        else -> {
-                            // Load image/GIF thumbnail using Glide for local files
-                            val data: Any = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
-                                Uri.parse(file.contentUri)
-                            } else {
-                                File(file.path)
-                            }
-                            Glide.with(context)
-                                .load(data)
-                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<android.graphics.drawable.Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        if (e != null) {
-                                            Timber.w("Local image load failed: ${file.name}, ${e.message}")
-                                        }
-                                        applyPlaceholderStyle(imageView, file.type, true)
-                                        return false
-                                    }
-
-                                    override fun onResourceReady(
-                                        resource: android.graphics.drawable.Drawable,
-                                        model: Any,
-                                        target: Target<android.graphics.drawable.Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        Timber.v("CACHE_HIT_DEBUG: Local image loaded from ${dataSource.name} for ${file.name}")
-                                        resetThumbnailStyle(imageView)
-                                        return false
-                                    }
-                                })
-                                .signature(ObjectKey("${file.path}_${file.size}")) // Stable cache key (path + size)
-                                .priority(Priority.HIGH)  // High priority for images
-                                .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded (critical for GIF persistence)
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                    }
-                }
-                MediaType.VIDEO -> {
-                    when {
-                        isCloudPath -> {
-                            // Load cloud video thumbnail using CloudThumbnailData for authenticated access
-                            // Detect provider from URL scheme authority
-                            val provider = when {
-                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
-                                else -> CloudProvider.GOOGLE_DRIVE
-                            }
-                            // Extract file ID from cloud path
-                            val fileId = when (provider) {
-                                CloudProvider.DROPBOX -> {
-                                    // Dropbox needs full path starting with /
-                                    val dropboxPath = file.path.substringAfter("cloud://dropbox")
-                                    if (dropboxPath.startsWith("/")) dropboxPath else "/$dropboxPath"
-                                }
-                                else -> {
-                                    // Google Drive and OneDrive use file ID (last segment)
-                                    file.path.substringAfterLast("/")
-                                }
-                            }
-                            Glide.with(context)
-                                .load(CloudThumbnailData(
-                                    thumbnailUrl = file.thumbnailUrl ?: "",
-                                    fileId = fileId,
-                                    loadFullImage = false, // Load thumbnail for browse list
-                                    cloudProvider = provider
-                                ))
-                                .priority(Priority.NORMAL)  // Normal priority for videos
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded, not source stream
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        isNetworkPath -> {
-                            // Check if video thumbnails are enabled
-                            if (!getShowVideoThumbnails()) {
-                                showGeneratedPlaceholder(imageView, file)
-                                return
-                            }
-                            
-                            // Load network video thumbnail using NetworkFileData
-                            // Use listener to catch decoder failures and cache them
-                            Glide.with(context)
-                                .load(NetworkFileData(
-                                    path = file.path,
-                                    credentialsId = credentialsId,
-                                    loadFullImage = false,
-                                    size = file.size,
-                                    createdDate = file.createdDate
-                                ))
-                                .priority(Priority.NORMAL)  // Normal priority for videos
-                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<android.graphics.drawable.Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        // Check if this is a video decoder failure
-                                        if (isVideoDecoderException(e)) {
-                                            NetworkFileDataFetcher.markVideoAsFailed(file.path)
-                                            Timber.v("Thumbnail load failed: ${file.name} (decoder error, cached)")
-                                        } else if (e != null) {
-                                            Timber.w("Thumbnail load failed: ${file.name}, ${e.message}")
-                                        }
-                                        applyPlaceholderStyle(imageView, file.type, true)
-                                        return false // Let Glide show error placeholder
-                                    }
-
-                                    override fun onResourceReady(
-                                        resource: android.graphics.drawable.Drawable,
-                                        model: Any,
-                                        target: Target<android.graphics.drawable.Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        Timber.v("CACHE_HIT_DEBUG: Video loaded from ${dataSource.name} for ${file.name}")
-                                        resetThumbnailStyle(imageView)
-                                        return false
-                                    }
-                                })
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        else -> {
-                            // Check if video thumbnails are enabled
-                            if (!getShowVideoThumbnails()) {
-                                showGeneratedPlaceholder(imageView, file)
-                                return
-                            }
-                            
-                            // Load video first frame using Glide for local files
-                            val data: Any = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
-                                Uri.parse(file.contentUri)
-                            } else {
-                                File(file.path)
-                            }
-                            Glide.with(context)
-                                .load(data)
-                                .signature(ObjectKey("${file.path}_${file.size}")) // Stable cache key (path + size)
-                                .priority(Priority.NORMAL)  // Normal priority for videos
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache decoded bitmap — fixes re-load on every open
-                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<android.graphics.drawable.Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        applyPlaceholderStyle(imageView, file.type, true)
-                                        return false
-                                    }
-
-                                    override fun onResourceReady(
-                                        resource: android.graphics.drawable.Drawable,
-                                        model: Any,
-                                        target: Target<android.graphics.drawable.Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        Timber.v("CACHE_HIT_DEBUG: Local video loaded from ${dataSource.name} for ${file.name}")
-                                        resetThumbnailStyle(imageView)
-                                        return false
-                                    }
-                                })
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                    }
-                }
-                MediaType.AUDIO -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    val bitmap = createExtensionBitmap(extension)
-                    imageView.setImageBitmap(bitmap)
-                    applyPlaceholderStyle(imageView, file.type, true)
-                }
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    imageView.setImageBitmap(binaryThumbnailGenerator?.generateThumbnail(extension, file.type))
-                    applyPlaceholderStyle(imageView, file.type, true)
-                }
-            }
-        }
-        
-        private fun createExtensionBitmap(extension: String): Bitmap {
-            return ExtensionThumbnailGenerator.generate(extension, 200)
+            thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, isListMode = true)
+                ?.let { lastLoadedKey = it }
         }
 
-        private fun getPlaceholderExtension(file: MediaFile): String {
-            val extension = file.name.substringAfterLast('.', "").uppercase()
-            if (extension.isNotBlank()) return extension
-            return when (file.type) {
-                MediaType.IMAGE, MediaType.GIF -> "IMG"
-                MediaType.VIDEO -> "VID"
-                MediaType.PDF -> "PDF"
-                MediaType.EPUB -> "EPUB"
-                MediaType.AUDIO -> "AUD"
-                MediaType.TEXT -> "TXT"
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
-            }
-        }
-
-        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
-            return createExtensionBitmap(getPlaceholderExtension(file))
-        }
-
-        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
-            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
-        }
-
-        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
-            imageView.setImageBitmap(createPlaceholderBitmap(file))
-            applyPlaceholderStyle(imageView, file.type, true)
-        }
-        
-        /** "Artist - Title" for top line in audio-only mode. Falls back to filename if no metadata. */
-        private fun buildAudioDisplayName(file: MediaFile): String {
-            val result = when {
-                !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
-                !file.artist.isNullOrBlank() -> file.artist
-                !file.title.isNullOrBlank() -> file.title
-                else -> file.name
-            }
-            // Guard against invisible characters from malformed ID3 tags (BOM, NUL, etc.)
-            val trimmed = result.trim()
-            if (trimmed.isEmpty() || trimmed.all { it.code < 32 || it == '\u00A0' || it == '\uFEFF' }) {
-                Timber.w(
-                    "buildAudioDisplayName: invisible result for '${file.name}' | " +
-                    "artist.codes=${file.artist?.map { it.code }?.take(8)} | " +
-                    "title.codes=${file.title?.map { it.code }?.take(8)}"
-                )
-                return file.name
-            }
-            return result
-        }
-
-        /** "size • date • duration" for bottom line in audio-only mode. */
-        private fun buildAudioDetailLine(file: MediaFile): String {
-            val size = if (file.size > 0) formatFileSize(file.size) else null
-            val date = if (file.createdDate > 0) DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate)).toString() else null
-            val duration = formatDuration(file.duration)
-            return listOfNotNull(size, date, duration).joinToString(" • ")
-        }
-
-        private fun buildFileInfo(file: MediaFile): String {
-            // Handle folders
-            if (file.isDirectory) {
-                val count = file.childCount ?: 0
-                return when {
-                    count == 0 -> "Empty folder"
-                    count == 1 -> "1 item"
-                    else -> "$count items"
-                }
-            }
-
-            val legacyInfo = buildLegacyFileInfo(file)
-
-            when (file.type) {
-                MediaType.AUDIO -> {
-                    val hasMetadata = !file.artist.isNullOrBlank() || !file.title.isNullOrBlank()
-                    val duration = formatDuration(file.duration)
-                    return if (hasMetadata) {
-                        val audioTitle = when {
-                            !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
-                            !file.artist.isNullOrBlank() -> file.artist
-                            else -> file.title ?: file.name
-                        }
-                        if (duration != null) "$audioTitle • $duration" else audioTitle
-                    } else {
-                        // No metadata: show size + date (+ duration if known)
-                        if (duration != null) "$legacyInfo • $duration" else legacyInfo
-                    }
-                }
-
-                MediaType.VIDEO -> {
-                    val resolution = if (file.width != null && file.height != null) {
-                        "${file.width}x${file.height}"
-                    } else {
-                        null
-                    }
-                    val duration = formatDuration(file.duration)
-                    val parts = listOfNotNull(resolution, duration)
-                    return if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
-                }
-
-                MediaType.IMAGE, MediaType.GIF -> {
-                    val resolution = if (file.width != null && file.height != null) {
-                        "${file.width}x${file.height}"
-                    } else {
-                        null
-                    }
-                    val dateTaken = file.exifDateTime?.let { DateFormat.format("yy-MM-dd HH:mm", Date(it)).toString() }
-                    val parts = listOfNotNull(resolution, dateTaken)
-                    return if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
-                }
-
-                else -> return legacyInfo
-            }
-        }
-
-        private fun buildLegacyFileInfo(file: MediaFile): String {
-            
-            // Hide invalid FTP metadata (size=0 or date=1970-01-01)
-            val size = if (file.size > 0) formatFileSize(file.size) else "—"
-            val date = if (file.createdDate > 0) {
-                DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate))
-            } else {
-                "—"
-            }
-            return "$size • $date"
-        }
-
-        private fun formatDuration(durationMs: Long?): String? = formatMediaDuration(durationMs)
-        
-        private fun formatFileSize(size: Long): String {
-            return com.sza.fastmediasorter.core.util.formatFileSize(size)
-        }
     }
     
     // Grid ViewHolder for grid mode
@@ -1902,19 +975,10 @@ class MediaFileAdapter(
         }
 
         fun loadThumbnailOnly(file: MediaFile) {
-            // Partial update: only reload thumbnail (called via payload)
-            // Check if we need to reload based on the key (includes refreshVersion)
-            // Note: credentialsId removed from key - it's session-specific and shouldn't affect cache
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
-            
-            // Only skip reload if the key is exactly the same (meaning thumbnail already loaded for this version)
-            if (lastLoadedKey == newKey) {
-                return
-            }
-            
-            loadThumbnail(file)
-            // Update key so AUDIO/TEXT/Binary fast-paths (which return early without setting the key)
-            // don't re-trigger on the next LOAD_THUMBNAILS payload after the same recycle.
+            if (lastLoadedKey == newKey) return
+            val binarySizePx = (this@MediaFileAdapter.thumbnailSize * binding.root.context.resources.displayMetrics.density).toInt()
+            thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, binarySizePx, isListMode = false)
             lastLoadedKey = newKey
         }
         
@@ -2017,596 +1081,12 @@ class MediaFileAdapter(
         }
         
         private fun loadThumbnail(file: MediaFile) {
-            // Skip thumbnail loading during fast scroll
-            if (isScrolling) {
-                Timber.v("loadThumbnail (Grid): SKIPPED during scroll for ${file.name}")
-                return
-            }
-            
-            // Skip thumbnail loading for directories (folders have static icons)
-            if (file.isDirectory) {
-                Timber.v("loadThumbnail: SKIP directory ${file.name}")
-                return
-            }
-            
-            // AUDIO: show extension bitmap only (no metadata/cover art/internet in Browse).
-            // Cover art is loaded exclusively in the Player (ImageLoadingManager.loadAudioCoverArt).
-            if (file.type == MediaType.AUDIO) {
-                val extension = file.name.substringAfterLast('.', "").uppercase()
-                binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
-                applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                Timber.v("loadThumbnail (Grid): AUDIO extension bitmap for ${file.name} ($extension)")
-                return
-            }
-
-            // TEXT: show extension bitmap (no network/disk loading needed)
-            if (file.type == MediaType.TEXT) {
-                val extension = file.name.substringAfterLast('.', "").uppercase()
-                binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
-                applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                return
-            }
-            
-            // Task 6: Binary files - generate custom thumbnail
-            if (file.type.isBinaryFile()) {
-                val extension = file.name.substringAfterLast('.', "").ifEmpty { "BIN" }
-                binaryThumbnailGenerator?.let { generator ->
-                    val thumbnailSize = (this@MediaFileAdapter.thumbnailSize * binding.root.context.resources.displayMetrics.density).toInt()
-                    val thumbnail = generator.generateThumbnail(extension, file.type, thumbnailSize)
-                    binding.ivThumbnail.setImageBitmap(thumbnail)
-                    resetThumbnailStyle(binding.ivThumbnail)
-                    Timber.v("Binary file thumbnail generated for ${file.name}")
-                } ?: run {
-                    val ext = extension.uppercase()
-                    binding.ivThumbnail.setImageBitmap(createExtensionBitmap(ext))
-                    applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                }
-                return
-            }
-            
-            Timber.v("loadThumbnail: START file=${file.name}")
-            val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
-            if (lastLoadedKey == newKey) {
-                return
-            }
-            lastLoadedKey = newKey
-
-            val imageView = binding.ivThumbnail
-            val context = imageView.context
-            val generatedPlaceholder = createPlaceholderDrawable(file)
-            
-            // Reset scaleType to CENTER_CROP (may have been CENTER_INSIDE for folder icons due to view recycling)
-            imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-            
-            // If thumbnails disabled, show only extension-based icons (no Glide loading)
-            if (this@MediaFileAdapter.disableThumbnails) {
-                when (file.type) {
-                    MediaType.IMAGE -> showGeneratedPlaceholder(imageView, file)
-                    MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
-                    MediaType.AUDIO -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                    }
-                    MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
-                    MediaType.TEXT -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                    }
-                    MediaType.PDF -> showGeneratedPlaceholder(imageView, file)
-                    MediaType.EPUB -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                    }
-                    MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                    MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(binaryThumbnailGenerator?.generateThumbnail(extension, file.type))
-                    }
-                }
-                return
-            }
-            
-            // Check if this is a cloud path (cloud://)
-            val isCloudPath = file.path.startsWith("cloud://")
-            // Check if this is a network path (SMB/SFTP/FTP)
-            val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
-
-            // For local files, check if file exists (skip for content:// URIs)
-            if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
-                val localFile = File(file.path)
-                if (!localFile.exists()) {
-                    Timber.w("File no longer exists: ${file.path}")
-                    when (file.type) {
-                        MediaType.IMAGE, MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
-                        MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
-                        MediaType.AUDIO -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.TEXT -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.PDF -> showGeneratedPlaceholder(imageView, file)
-                        MediaType.EPUB -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                        MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(binaryThumbnailGenerator?.generateThumbnail(extension, file.type))
-                        }
-                    }
-                    return
-                }
-            }
-            
-            when (file.type) {
-                MediaType.IMAGE, MediaType.GIF -> {
-                    // Pre-flight: HEIC/HEIF requires API 28+; AVIF requires API 31+.
-                    val fileExt = file.name.substringAfterLast('.', "").lowercase()
-                    if (!HeifSupportUtils.isSupported(fileExt)) {
-                        Timber.w("loadThumbnail (Grid): ${fileExt.uppercase()} not supported on this device — showing placeholder for ${file.name}")
-                        showGeneratedPlaceholder(imageView, file)
-                        return
-                    }
-                    when {
-                        isCloudPath -> {
-                            // Load cloud thumbnail using CloudThumbnailData for authenticated access
-                            val provider = when {
-                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
-                                else -> CloudProvider.GOOGLE_DRIVE
-                            }
-                            
-                            val fileId = when (provider) {
-                                CloudProvider.DROPBOX -> {
-                                    // Dropbox needs full path starting with /
-                                    val dropboxPath = file.path.substringAfter("cloud://dropbox")
-                                    if (dropboxPath.startsWith("/")) dropboxPath else "/$dropboxPath"
-                                }
-                                else -> {
-                                    file.path.substringAfterLast("/")
-                                }
-                            }
-
-                            Glide.with(context)
-                                .load(CloudThumbnailData(
-                                    thumbnailUrl = file.thumbnailUrl ?: "",
-                                    fileId = fileId,
-                                    loadFullImage = false,
-                                    cloudProvider = provider
-                                ))
-                                .priority(Priority.HIGH)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        isNetworkPath -> {
-                            // Check if thumbnail loading previously failed for this file
-                            if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.v("Skipping thumbnail load for ${file.name} (cached as failed)")
-                                showGeneratedPlaceholder(imageView, file)
-                                return
-                            }
-
-                            // Grid mode: use user-defined thumbnailSize (converts dp to px)
-                            // val sizePx = (thumbnailSize * context.resources.displayMetrics.density).toInt()
-                            Glide.with(context)
-                                .load(NetworkFileData(
-                                    path = file.path,
-                                    credentialsId = credentialsId,
-                                    loadFullImage = false,
-                                    size = file.size,
-                                    createdDate = file.createdDate
-                                ))
-                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<android.graphics.drawable.Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        if (e != null) {
-                                            Timber.w("Network image load failed (grid): ${file.name}, ${e.message}")
-                                            NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
-                                        }
-                                        return false
-                                    }
-
-                                    override fun onResourceReady(
-                                        resource: android.graphics.drawable.Drawable,
-                                        model: Any,
-                                        target: Target<android.graphics.drawable.Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        resetThumbnailStyle(imageView)
-                                        return false
-                                    }
-                                })
-                                .priority(Priority.HIGH)  // High priority for images
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache decoded only - PipedInputStream can't be re-read
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        else -> {
-                            val data: Any = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
-                                Uri.parse(file.contentUri)
-                            } else {
-                                File(file.path)
-                            }
-                            // val sizePx = (thumbnailSize * context.resources.displayMetrics.density).toInt()
-                            Glide.with(context)
-                                .load(data)
-                                .signature(ObjectKey("${file.path}_${file.size}")) // Stable cache key (path + size)
-                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<android.graphics.drawable.Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        if (e != null) {
-                                            Timber.w("Local image load failed (grid): ${file.name}, ${e.message}")
-                                        }
-                                        return false
-                                    }
-
-                                    override fun onResourceReady(
-                                        resource: android.graphics.drawable.Drawable,
-                                        model: Any,
-                                        target: Target<android.graphics.drawable.Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        resetThumbnailStyle(imageView)
-                                        return false
-                                    }
-                                })
-                                .priority(Priority.HIGH)  // High priority for images
-                                .diskCacheStrategy(DiskCacheStrategy.DATA)
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                    }
-                }
-                MediaType.VIDEO -> {
-                    when {
-                        isCloudPath -> {
-                            // Load cloud video thumbnail using CloudThumbnailData
-                            val provider = when {
-                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
-                                else -> CloudProvider.GOOGLE_DRIVE
-                            }
-                            
-                            val fileId = when (provider) {
-                                CloudProvider.DROPBOX -> {
-                                    val dropboxPath = file.path.substringAfter("cloud://dropbox")
-                                    if (dropboxPath.startsWith("/")) dropboxPath else "/$dropboxPath"
-                                }
-                                else -> {
-                                    file.path.substringAfterLast("/")
-                                }
-                            }
-
-                            Glide.with(context)
-                                .load(CloudThumbnailData(
-                                    thumbnailUrl = file.thumbnailUrl ?: "",
-                                    fileId = fileId,
-                                    loadFullImage = false,
-                                    cloudProvider = provider
-                                ))
-                                .priority(Priority.NORMAL)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        isNetworkPath -> {
-                            // Load network video thumbnail with error listener
-                            // val sizePx = (thumbnailSize * context.resources.displayMetrics.density).toInt()
-                            Glide.with(context)
-                                .load(NetworkFileData(
-                                    path = file.path,
-                                    credentialsId = credentialsId,
-                                    loadFullImage = false,
-                                    size = file.size,
-                                    createdDate = file.createdDate
-                                ))
-                                .priority(Priority.NORMAL)  // Normal priority for videos
-                                .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                                    override fun onLoadFailed(
-                                        e: GlideException?,
-                                        model: Any?,
-                                        target: Target<android.graphics.drawable.Drawable>,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        // Check if this is a video decoder failure
-                                        if (isVideoDecoderException(e)) {
-                                            NetworkFileDataFetcher.markVideoAsFailed(file.path)
-                                            Timber.v("Thumbnail load failed: ${file.name} (decoder error, cached)")
-                                        } else if (e != null) {
-                                            Timber.w("Thumbnail load failed: ${file.name}, ${e.message}")
-                                        }
-                                        return false // Let Glide show error placeholder
-                                    }
-
-                                    override fun onResourceReady(
-                                        resource: android.graphics.drawable.Drawable,
-                                        model: Any,
-                                        target: Target<android.graphics.drawable.Drawable>?,
-                                        dataSource: DataSource,
-                                        isFirstResource: Boolean
-                                    ): Boolean {
-                                        com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        resetThumbnailStyle(imageView)
-                                        return false
-                                    }
-                                })
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                        else -> {
-                            val data: Any = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
-                                Uri.parse(file.contentUri)
-                            } else {
-                                File(file.path)
-                            }
-                            // val sizePx = (thumbnailSize * context.resources.displayMetrics.density).toInt()
-                            Glide.with(context)
-                                .load(data)
-                                .signature(ObjectKey("${file.path}_${file.size}")) // Stable cache key (path + size)
-                                .priority(Priority.NORMAL)  // Normal priority for videos
-                                .diskCacheStrategy(DiskCacheStrategy.DATA)
-                                .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
-                                .centerCrop()
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .into(imageView)
-                        }
-                    }
-                }
-                MediaType.AUDIO -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    val bitmap = createExtensionBitmap(extension)
-                    imageView.setImageBitmap(bitmap)
-                }
-                MediaType.TEXT -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    imageView.setImageBitmap(createExtensionBitmap(extension))
-                }
-                MediaType.EPUB -> {
-                    // Load EPUB cover using Glide (EpubCoverDecoder registered in GlideAppModule)
-                    if (!isCloudPath && !isNetworkPath) {
-                        // Local EPUB - Glide will use EpubCoverDecoder automatically for .epub files
-                        val epubFile = File(file.path)
-                        if (epubFile.exists()) {
-                            Glide.with(context)
-                                .asBitmap()
-                                .load(epubFile)
-                                .signature(ObjectKey("${file.path}_${file.size}"))
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .into(imageView)
-                        } else {
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                    } else if (isNetworkPath) {
-                        // Network EPUB (SMB/SFTP/FTP) - check size limits (same as PDF logic)
-                        val isSmbPath = file.path.startsWith("smb://")
-                        val maxSize = if (isSmbPath) SMB_EPUB_MAX_SIZE else NETWORK_EPUB_MAX_SIZE
-                        
-                        if (file.size > maxSize) {
-                            // File too large - show placeholder without downloading
-                            showGeneratedPlaceholder(imageView, file)
-                        } else {
-                            // File size OK - use NetworkEpubCoverLoader
-                            val networkData = NetworkFileData(
-                                path = file.path,
-                                size = file.size,
-                                credentialsId = credentialsId
-                            )
-                            val cacheKey = ObjectKey("${file.path}_${file.size}")
-                            Glide.with(context)
-                                .asBitmap()
-                                .load(networkData)
-                                .signature(cacheKey)
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .into(imageView)
-                        }
-                    } else {
-                        // Cloud EPUB - check size limit (same as PDF)
-                        if (file.size > NETWORK_EPUB_MAX_SIZE) {
-                            showGeneratedPlaceholder(imageView, file)
-                        } else {
-                            // Cloud EPUB implementation would go here
-                            showGeneratedPlaceholder(imageView, file)
-                        }
-                    }
-                }
-                MediaType.PDF -> {
-                    // PDF thumbnails are always shown when PDF support is enabled
-                    // getShowPdfThumbnails() controls size limits (Large PDF Thumbnails setting)
-                    val largePdfThumbnails = getShowPdfThumbnails()
-                    
-                    // Load PDF thumbnail using Glide (PdfPageDecoder registered in GlideAppModule)
-                    if (!isCloudPath && !isNetworkPath) {
-                        // Local PDF - Glide will use PdfPageDecoder automatically for .pdf files
-                        val pdfFile = File(file.path)
-                        if (pdfFile.exists()) {
-                            Glide.with(context)
-                                .asBitmap()
-                                .load(pdfFile)
-                                .signature(ObjectKey("${file.path}_${file.size}"))
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .into(imageView)
-                        } else {
-                            imageView.setImageBitmap(createExtensionBitmap("PDF"))
-                        }
-                    } else if (isNetworkPath) {
-                        // Network PDF (SMB/SFTP/FTP) - check size limits based on setting
-                        val isSmbPath = file.path.startsWith("smb://")
-                        val maxSize = if (largePdfThumbnails) {
-                            // "Large PDF Thumbnails" enabled - use large limits
-                            if (isSmbPath) SMB_PDF_LARGE_MAX_SIZE else NETWORK_PDF_LARGE_MAX_SIZE
-                        } else {
-                            // "Large PDF Thumbnails" disabled - use normal limits
-                            if (isSmbPath) SMB_PDF_NORMAL_MAX_SIZE else NETWORK_PDF_NORMAL_MAX_SIZE
-                        }
-                        
-                        if (file.size > maxSize) {
-                            // File too large - show PDF icon without downloading
-                            imageView.setImageBitmap(createExtensionBitmap("PDF"))
-                        } else {
-                            // File size OK - use NetworkPdfThumbnailLoader
-                            Glide.with(context)
-                                .asBitmap()
-                                .load(NetworkFileData(
-                                    path = file.path,
-                                    credentialsId = credentialsId,
-                                    loadFullImage = false,
-                                    size = file.size,
-                                    createdDate = file.createdDate
-                                ))
-                                .apply(
-                                    RequestOptions().set(
-                                        com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
-                                        largePdfThumbnails
-                                    )
-                                )
-                                .placeholder(generatedPlaceholder)
-                                .error(generatedPlaceholder)
-                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
-                                .dontAnimate() // avoid placeholder flash on disk-cache hit
-                                .into(imageView)
-                        }
-                    } else {
-                        // Cloud PDF - check size limit based on setting
-                        val maxSize = if (largePdfThumbnails) {
-                            NETWORK_PDF_LARGE_MAX_SIZE
-                        } else {
-                            NETWORK_PDF_NORMAL_MAX_SIZE
-                        }
-                        
-                        if (file.size > maxSize) {
-                            imageView.setImageBitmap(createExtensionBitmap("PDF"))
-                        } else {
-                            // Cloud PDF implementation would go here
-                            imageView.setImageBitmap(createExtensionBitmap("PDF"))
-                        }
-                    }
-                }
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    imageView.setImageBitmap(binaryThumbnailGenerator?.generateThumbnail(extension, file.type))
-                }
-            }
-        }
-        
-        private fun createExtensionBitmap(extension: String): Bitmap {
-            return ExtensionThumbnailGenerator.generate(extension, 200)
-        }
-
-        private fun getPlaceholderExtension(file: MediaFile): String {
-            val extension = file.name.substringAfterLast('.', "").uppercase()
-            if (extension.isNotBlank()) return extension
-            return when (file.type) {
-                MediaType.IMAGE, MediaType.GIF -> "IMG"
-                MediaType.VIDEO -> "VID"
-                MediaType.PDF -> "PDF"
-                MediaType.EPUB -> "EPUB"
-                MediaType.AUDIO -> "AUD"
-                MediaType.TEXT -> "TXT"
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
-            }
-        }
-
-        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
-            return createExtensionBitmap(getPlaceholderExtension(file))
-        }
-
-        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
-            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
-        }
-
-        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
-            imageView.setImageBitmap(createPlaceholderBitmap(file))
+            val binarySizePx = (this@MediaFileAdapter.thumbnailSize * binding.root.context.resources.displayMetrics.density).toInt()
+            thumbnailLoader.load(binding.ivThumbnail, file, lastLoadedKey, binarySizePx, isListMode = false)
+                ?.let { lastLoadedKey = it }
         }
     }
 
-    private class MediaFileDiffCallback : DiffUtil.ItemCallback<MediaFile>() {
-        override fun areItemsTheSame(oldItem: MediaFile, newItem: MediaFile): Boolean {
-            return oldItem.path == newItem.path
-        }
-
-        override fun areContentsTheSame(oldItem: MediaFile, newItem: MediaFile): Boolean {
-            return oldItem == newItem
-        }
-        
-        override fun getChangePayload(oldItem: MediaFile, newItem: MediaFile): Any? {
-            // If only isFavorite changed, return FAVORITE_CHANGED payload for partial update
-            if (oldItem.isFavorite != newItem.isFavorite) {
-                // isFavorite changed - check if everything else is the same
-                if (oldItem.copy(isFavorite = newItem.isFavorite) == newItem) {
-                    return "FAVORITE_CHANGED"
-                }
-            }
-            // If only audio metadata changed (artist/album/title/duration), partial text update
-            if (oldItem.type == MediaType.AUDIO &&
-                (oldItem.artist != newItem.artist || oldItem.album != newItem.album ||
-                    oldItem.title != newItem.title || oldItem.duration != newItem.duration)
-            ) {
-                if (oldItem.copy(
-                        artist = newItem.artist,
-                        album = newItem.album,
-                        title = newItem.title,
-                        duration = newItem.duration
-                    ) == newItem
-                ) {
-                    return PAYLOAD_AUDIO_METADATA
-                }
-            }
-            return null // Full rebind needed for other changes
-        }
-    }
 }
 
 

@@ -8,14 +8,11 @@ import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsOtherBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import kotlinx.coroutines.launch
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 
 class OtherMediaSettingsFragment : Fragment() {
 
@@ -407,45 +404,41 @@ class OtherMediaSettingsFragment : Fragment() {
     }
 
     private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.settings.collect { settings ->
-                    isUpdatingFromSettings = true
-                    
-                    binding.switchEnableTranslation.isChecked = settings.enableTranslation
-                    updateTranslationVisibility(settings.enableTranslation)
-                    
-                    binding.spinnerTranslationSourceLanguage.setSelection(getLanguagePosition(settings.translationSourceLanguage, isSource = true))
-                    binding.spinnerTranslationTargetLanguage.setSelection(getLanguagePosition(settings.translationTargetLanguage, isSource = false))
-                    
-                    binding.switchTranslationLensStyle.isChecked = settings.translationLensStyle
-                    binding.switchEnableGoogleLens.isChecked = settings.enableGoogleLens
-                    binding.switchEnableOcr.isChecked = settings.enableOcr
-                    updateOcrVisibility(settings.enableOcr)
-                    
-                    // OCR Font Settings
-                    val fontSizePosition = when (settings.ocrDefaultFontSize) {
-                        "AUTO" -> 0
-                        "MINIMUM" -> 1
-                        "SMALL" -> 2
-                        "MEDIUM" -> 3
-                        "LARGE" -> 4
-                        "HUGE" -> 5
-                        else -> 0
-                    }
-                    binding.spinnerOcrFontSize?.setSelection(fontSizePosition)
-                    
-                    val fontFamilyPosition = when (settings.ocrDefaultFontFamily) {
-                        "DEFAULT" -> 0
-                        "SERIF" -> 1
-                        "MONOSPACE" -> 2
-                        else -> 0 // Default to DEFAULT 
-                    }
-                    binding.spinnerOcrFontFamily?.setSelection(fontFamilyPosition)
-                    
-                    isUpdatingFromSettings = false
-                }
+        collectOnLifecycle(viewModel.settings) { settings ->
+            isUpdatingFromSettings = true
+
+            binding.switchEnableTranslation.isChecked = settings.enableTranslation
+            updateTranslationVisibility(settings.enableTranslation)
+
+            binding.spinnerTranslationSourceLanguage.setSelection(getLanguagePosition(settings.translationSourceLanguage, isSource = true))
+            binding.spinnerTranslationTargetLanguage.setSelection(getLanguagePosition(settings.translationTargetLanguage, isSource = false))
+
+            binding.switchTranslationLensStyle.isChecked = settings.translationLensStyle
+            binding.switchEnableGoogleLens.isChecked = settings.enableGoogleLens
+            binding.switchEnableOcr.isChecked = settings.enableOcr
+            updateOcrVisibility(settings.enableOcr)
+
+            // OCR Font Settings
+            val fontSizePosition = when (settings.ocrDefaultFontSize) {
+                "AUTO" -> 0
+                "MINIMUM" -> 1
+                "SMALL" -> 2
+                "MEDIUM" -> 3
+                "LARGE" -> 4
+                "HUGE" -> 5
+                else -> 0
             }
+            binding.spinnerOcrFontSize?.setSelection(fontSizePosition)
+
+            val fontFamilyPosition = when (settings.ocrDefaultFontFamily) {
+                "DEFAULT" -> 0
+                "SERIF" -> 1
+                "MONOSPACE" -> 2
+                else -> 0 // Default to DEFAULT
+            }
+            binding.spinnerOcrFontFamily?.setSelection(fontFamilyPosition)
+
+            isUpdatingFromSettings = false
         }
     }
 

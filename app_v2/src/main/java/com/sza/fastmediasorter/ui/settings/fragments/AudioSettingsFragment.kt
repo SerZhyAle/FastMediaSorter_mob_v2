@@ -15,9 +15,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
@@ -228,9 +227,7 @@ class AudioSettingsFragment : Fragment() {
     }
 
     private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.settings.collect { settings ->
+        collectOnLifecycle(viewModel.settings) { settings ->
                     isUpdatingFromSettings = true
                     
                     val isAllFilesEnabled = settings.allFiles
@@ -314,8 +311,6 @@ class AudioSettingsFragment : Fragment() {
                     }
 
                     isUpdatingFromSettings = false
-                }
-            }
         }
     }
 
