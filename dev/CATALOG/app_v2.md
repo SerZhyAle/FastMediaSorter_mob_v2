@@ -1,6 +1,6 @@
 # Catalogue: app_v2
 
-_Generated: 2026-04-23 22:27 · 761 classes_
+_Generated: 2026-04-23 22:41 · 761 classes_
 
 Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — edit JSONL, then re-render.
 
@@ -53,17 +53,17 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/core/util/DestinationColors.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/DestinationColors.kt) | `DestinationColors` | core | 42 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/DeviceCapabilityProbe.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/DeviceCapabilityProbe.kt) | `DeviceCapabilityProbe` | core | 82 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/DocumentMetadataExtractor.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/DocumentMetadataExtractor.kt) | `DocumentMetadataExtractor` | core | 98 | 2026-04-23 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/util/FileOperationErrorFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/FileOperationErrorFormatter.kt) | `FileOperationErrorFormatter` | core | 220 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/util/FileOperationErrorFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/FileOperationErrorFormatter.kt) | `FileOperationErrorFormatter` | core | 220 | 2026-02-09 | tested | Format file-operation exceptions into user-friendly localized messages, stripping technical noise. |
 | [com/sza/fastmediasorter/core/util/FileSize.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/FileSize.kt) | `FileSize` | core | 28 | 2026-02-13 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/GifFrameCounter.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/GifFrameCounter.kt) | `GifFrameCounter` | core | 128 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/util/HeifSupportUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/HeifSupportUtils.kt) | `HeifSupportUtils` | core | 42 | 2026-03-28 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/util/HeifSupportUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/HeifSupportUtils.kt) | `HeifSupportUtils` | core | 42 | 2026-03-28 | tested | Query native HEIF/HEIC (API 28+) and AVIF (API 31+) decode support to gate format-specific UI. |
 | [com/sza/fastmediasorter/core/util/InputStreamExt.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/InputStreamExt.kt) | `InputStreamExt` | core | 81 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/LocaleHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/LocaleHelper.kt) | `LocaleHelper` | core | 228 | 2026-04-13 | tested | App language selection with restart, supporting Android 13+ per-app LocaleManager + legacy SharedPreferences fallback. |
-| [com/sza/fastmediasorter/core/util/MediaFormatUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaFormatUtils.kt) | `MediaFormatUtils` | core | 26 | 2026-02-19 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt) | `DetailedMediaInfo` | core | 412 | 2026-04-21 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/util/MediaFormatUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaFormatUtils.kt) | `MediaFormatUtils` | core | 26 | 2026-02-19 | tested | Format a duration in milliseconds to MM:SS or H:MM:SS for media playback UI. |
+| [com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt) | `DetailedMediaInfo` | core | 412 | 2026-04-21 | tested | Extract image/video/audio metadata (dimensions, duration, codec) via MediaMetadataRetriever + ExifInterface. |
 | [com/sza/fastmediasorter/core/util/MemoryTier.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MemoryTier.kt) | `MemoryTier` | core | 75 | 2026-03-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/NetworkFileDownloader.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/NetworkFileDownloader.kt) | `NetworkFileDownloader` | core | 303 | 2026-04-11 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/util/PathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PathUtils.kt) | `PathUtils` | core | 73 | 2026-04-02 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/util/PathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PathUtils.kt) | `PathUtils` | core | 73 | 2026-04-02 | tested | Safe path handling: encode special chars (#/?/%) so Uri.parse does not treat them as fragment/query/encoding. |
 | [com/sza/fastmediasorter/core/util/PdfInfoParser.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PdfInfoParser.kt) | `PdfInfoParser` | core | 385 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/PermissionHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt) | `PermissionHelper` | core | 323 | 2026-03-24 | tested | Runtime permission checks for storage, MANAGE_MEDIA, all-files-access, and internet across API levels. |
 | [com/sza/fastmediasorter/core/util/SafUriExtractor.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/SafUriExtractor.kt) | `SafUriExtractor` | core | 302 | 2026-04-23 | unknown | _—_ |
@@ -74,7 +74,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/cloud/CloudAuthStateMachine.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudAuthStateMachine.kt) | `CloudAuthStateMachine` | data | 180 | 2026-02-28 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt) | `CloudFileOperationHandler` | data | 998 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/CloudFileOperationPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationPathUtils.kt) | `CloudFileOperationPathUtils` | data | 81 | 2026-04-23 | new | Path normalization, scheme to ResourceType, SFTP/FTP remote-path stripping, MIME guessing for cloud file operations. |
-| [com/sza/fastmediasorter/data/cloud/CloudMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudMediaScanner.kt) | `CloudMediaScanner` | data | 393 | 2026-04-02 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/cloud/CloudMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudMediaScanner.kt) | `CloudMediaScanner` | data | 393 | 2026-04-02 | tested | MediaScanner implementation for cloud resources: enumerates files via the active CloudStorageClient. |
 | [com/sza/fastmediasorter/data/cloud/CloudPathParser.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudPathParser.kt) | `CloudPathParser` | data | 111 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/CloudStorageClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudStorageClient.kt) | `CloudProvider` | data | 284 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/CloudToCloudTransferHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudToCloudTransferHelper.kt) | `CloudToCloudTransferHelper` | data | 179 | 2026-04-23 | new | Same-provider native + cross-provider temp-file copy/move/delete between cloud accounts. |
@@ -99,7 +99,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt) | `OneDriveRestClient` | data | 897 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/OneDriveRestClientUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClientUtils.kt) | `OneDriveRestClientUtils` | data | 101 | 2026-04-23 | new | MSAL account JSON serialize/deserialize, cloud://onedrive/ reference normalization, Graph DriveItem to CloudFile mapping. |
 | [com/sza/fastmediasorter/data/cloud/UnifiedCloudAuthManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/UnifiedCloudAuthManager.kt) | `UnifiedCloudAuthManager` | data | 160 | 2026-03-19 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/common/MediaTypeUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/common/MediaTypeUtils.kt) | `MediaTypeUtils` | data | 128 | 2026-03-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/common/MediaTypeUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/common/MediaTypeUtils.kt) | `MediaTypeUtils` | data | 128 | 2026-03-09 | tested | Resolve MediaType (IMAGE/VIDEO/AUDIO/PDF/EPUB/TEXT/BINARY) from file extension and MIME hints. |
 | [com/sza/fastmediasorter/data/glide/EpubCoverDecoder.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/glide/EpubCoverDecoder.kt) | `EpubCoverDecoder` | data | 91 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/glide/NetworkEpubCoverLoader.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/glide/NetworkEpubCoverLoader.kt) | `NetworkEpubCoverLoader` | data | 376 | 2026-02-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/glide/NetworkPdfThumbnailLoader.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/glide/NetworkPdfThumbnailLoader.kt) | `NetworkPdfThumbnailLoader` | data | 524 | 2026-02-16 | unknown | _—_ |
@@ -138,17 +138,17 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/local/db/StreamingCacheEntry.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/StreamingCacheEntry.kt) | `StreamingCacheEntry` | data | 50 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/db/ThumbnailCacheDao.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ThumbnailCacheDao.kt) | `ThumbnailCacheDao` | data | 88 | 2026-02-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/db/ThumbnailCacheEntity.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ThumbnailCacheEntity.kt) | `ThumbnailCacheEntity` | data | 49 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/local/LocalMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt) | `LocalMediaScanner` | data | 786 | 2026-03-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/local/LocalMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt) | `LocalMediaScanner` | data | 786 | 2026-03-22 | tested | MediaScanner implementation for local SAF/MediaStore resources, enumerating files on device storage. |
 | [com/sza/fastmediasorter/data/local/preferences/BrowseManualOrderPrefs.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/preferences/BrowseManualOrderPrefs.kt) | `BrowseManualOrderPrefs` | data | 52 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/preferences/BrowseStateDataStore.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/preferences/BrowseStateDataStore.kt) | `BrowseStateDataStore` | data | 115 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/preferences/SettingsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/preferences/SettingsManager.kt) | `AppSettings` | data | 291 | 2026-02-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/model/TrashMetadata.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/model/TrashMetadata.kt) | `TrashMetadata` | data | 60 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/network/BaseConnectionPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/BaseConnectionPool.kt) | `BaseConnectionPool` | data | 273 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/network/BaseConnectionPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/BaseConnectionPool.kt) | `BaseConnectionPool` | data | 273 | 2026-02-09 | tested | Generic connection pool with Mutex/ConcurrentHashMap, idle cleanup (45s), validation, degradation tracking, full reset on critical errors. |
 | [com/sza/fastmediasorter/data/network/ConnectionThrottleManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/ConnectionThrottleManager.kt) | `ConnectionThrottleManager` | data | 536 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/datasource/FtpDataSource.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/FtpDataSource.kt) | `FtpDataSource` | data | 249 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt) | `SftpDataSource` | data | 221 | 2026-04-13 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt) | `SmbDataSource` | data | 689 | 2026-04-23 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/network/exceptions/NetworkErrorClassifier.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorClassifier.kt) | `NetworkErrorClassifier` | data | 174 | 2026-04-16 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/network/exceptions/NetworkErrorClassifier.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorClassifier.kt) | `NetworkErrorClassifier` | data | 174 | 2026-04-16 | tested | Classify raw exceptions into typed NetworkException subclasses (timeout/auth/host/refused/protocol). |
 | [com/sza/fastmediasorter/data/network/exceptions/NetworkErrorMessageMapper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorMessageMapper.kt) | `NetworkErrorMessageMapper` | data | 68 | 2026-03-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/exceptions/NetworkExceptions.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkExceptions.kt) | `NetworkException` | data | 54 | 2026-02-25 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/exceptions/RetryPolicy.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/RetryPolicy.kt) | `RetryPolicy` | data | 90 | 2026-02-25 | unknown | _—_ |
@@ -162,17 +162,17 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/network/glide/SafeByteBuffer.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/SafeByteBuffer.kt) | `SafeByteBuffer` | data | 11 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/glide/SafeByteBufferBitmapDecoder.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/SafeByteBufferBitmapDecoder.kt) | `SafeByteBufferBitmapDecoder` | data | 120 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/glide/SafeByteBufferEncoder.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/SafeByteBufferEncoder.kt) | `SafeByteBufferEncoder` | data | 22 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt) | `SmbDirectoryScanner` | data | 531 | 2026-03-14 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt) | `SmbDirectoryScanner` | data | 531 | 2026-03-14 | tested | SMB directory scanning with parallel execution, pagination (offset/limit), progress callbacks, and coroutine cancellation. |
 | [com/sza/fastmediasorter/data/network/model/SmbModels.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/model/SmbModels.kt) | `SmbConnectionInfo` | data | 44 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/network/pool/BaseConnectionPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/pool/BaseConnectionPool.kt) | `BaseConnectionPool` | data | 206 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/network/pool/BaseConnectionPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/pool/BaseConnectionPool.kt) | `BaseConnectionPool` | data | 206 | 2026-02-09 | tested | Generic typed-key/typed-connection pool with max concurrency + idle timeout + per-protocol logging tag. |
 | [com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt) | `SftpFileOperationHandler` | data | 411 | 2026-02-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/SmbClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbClient.kt) | `SmbClient` | data | 955 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/SmbClientErrorFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbClientErrorFormatter.kt) | `SmbClientErrorFormatter` | data | 135 | 2026-04-23 | new | Multi-line user-friendly SMB error messages, diagnostic blob builder, race-tolerant ensureSmbDirectoryExists. |
 | [com/sza/fastmediasorter/data/network/SmbConnectionManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt) | `SmbResetCallback` | data | 1001 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/network/SmbErrorClassifier.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbErrorClassifier.kt) | `SmbErrorClassifier` | data | 120 | 2026-04-23 | new | SMB exception classification: retriable vs non-retriable, transport/broken-pipe detection, user-friendly messages, fast TCP pre-check. |
 | [com/sza/fastmediasorter/data/network/SmbFileOperationHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbFileOperationHandler.kt) | `SmbFileOperationHandler` | data | 680 | 2026-02-25 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/network/SmbFileOperations.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbFileOperations.kt) | `SmbFileOperations` | data | 617 | 2026-04-16 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/network/SmbMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt) | `SmbMediaScanner` | data | 747 | 2026-04-12 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/network/SmbFileOperations.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbFileOperations.kt) | `SmbFileOperations` | data | 617 | 2026-04-16 | tested | SMB file CRUD (upload/download/delete/rename/move), directory ops, metadata queries, and stream operations through the connection pool. |
+| [com/sza/fastmediasorter/data/network/SmbMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt) | `SmbMediaScanner` | data | 747 | 2026-04-12 | tested | MediaScanner implementation for SMB shares, scanning remote files via SmbClient. |
 | [com/sza/fastmediasorter/data/network/SmbShareDiscoveryHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbShareDiscoveryHelper.kt) | `SmbShareDiscoveryHelper` | data | 239 | 2026-04-23 | new | SMBJ workaround for share enumeration: trial-connect curated names; performTestConnection driving the share/path summary UI. |
 | [com/sza/fastmediasorter/data/observer/MediaFileObserver.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/observer/MediaFileObserver.kt) | `MediaFileObserver` | data | 59 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/observer/MediaStoreObserver.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/observer/MediaStoreObserver.kt) | `MediaStoreObserver` | data | 73 | 2026-02-09 | unknown | _—_ |
@@ -180,13 +180,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt) | `FtpClient` | data | 906 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/remote/ftp/FtpDirectoryScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpDirectoryScanner.kt) | `FtpDirectoryScanner` | data | 125 | 2026-04-23 | new | FTP directory traversal (single-level/recursive/recursive-paged) with shared passive-to-active mode fallback. |
 | [com/sza/fastmediasorter/data/remote/ftp/FtpExoPlayerPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpExoPlayerPool.kt) | `FtpExoPlayerPool` | data | 161 | 2026-04-23 | new | FTP ExoPlayer connection management: per-DataSource client + semaphore-capped concurrency + idle pool sweep. |
-| [com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt) | `FtpMediaScanner` | data | 566 | 2026-04-02 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt) | `FtpMediaScanner` | data | 566 | 2026-04-02 | tested | MediaScanner implementation for FTP servers, scanning remote files via FtpClient. |
 | [com/sza/fastmediasorter/data/remote/ftp/FtpStandaloneOperations.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpStandaloneOperations.kt) | `FtpStandaloneOperations` | data | 435 | 2026-04-23 | new | Stateless FTP test/upload/delete/rename/createDirectory/exists/readFileBytes/downloadFile/openInputStream over fresh per-call clients. |
 | [com/sza/fastmediasorter/data/remote/ITunesApiService.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ITunesApiService.kt) | `ITunesApiService` | data | 55 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt) | `SftpFileAttributes` | data | 628 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt) | `SftpConnectionPool` | data | 488 | 2026-04-23 | new | SFTP session + channel pool: suspending withConnection, BLOCKING ExoPlayer get/release, openInputStream with hot session recreation. |
 | [com/sza/fastmediasorter/data/remote/sftp/SftpConnectionTester.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionTester.kt) | `SftpConnectionTester` | data | 154 | 2026-04-23 | new | Stateless SFTP password + private-key connect tests and recursive mkdir -p over a JSch ChannelSftp. |
-| [com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt) | `SftpMediaScanner` | data | 487 | 2026-04-02 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt) | `SftpMediaScanner` | data | 487 | 2026-04-02 | tested | MediaScanner implementation for SFTP servers, scanning remote files via SftpClient. |
 | [com/sza/fastmediasorter/data/repository/AudioMetadataCacheRepository.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AudioMetadataCacheRepository.kt) | `AudioMetadataCacheRepository` | data | 150 | 2026-03-24 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/repository/CachedFileListRepository.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/repository/CachedFileListRepository.kt) | `CachedFileListRepository` | data | 147 | 2026-04-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/repository/DuplicateHashRepositoryImpl.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/repository/DuplicateHashRepositoryImpl.kt) | `DuplicateHashRepositoryImpl` | data | 71 | 2026-04-01 | unknown | _—_ |
@@ -226,7 +226,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt) | `LocalOperationStrategy` | data | 536 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt) | `SftpOperationStrategy` | data | 712 | 2026-02-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt) | `SmbOperationStrategy` | data | 823 | 2026-02-19 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/transfer/strategy/StrategyUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/StrategyUtils.kt) | `StrategyUtils` | data | 22 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/transfer/strategy/StrategyUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/StrategyUtils.kt) | `StrategyUtils` | data | 22 | 2026-04-22 | tested | safeIo helper: wraps a simple IO block in withContext(IO) + try/catch with tagged exception logging. |
 | [com/sza/fastmediasorter/data/transfer/TempFileNamingStrategy.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/TempFileNamingStrategy.kt) | `TempFileNamingStrategy` | data | 113 | 2026-02-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/transfer/TransferStrategy.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/TransferStrategy.kt) | `TransferStrategy` | data | 115 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/transfer/UnifiedFileOperationHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/UnifiedFileOperationHandler.kt) | `UnifiedFileOperationHandler` | data | 539 | 2026-04-02 | unknown | _—_ |
@@ -365,7 +365,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/domain/usecase/ScheduleNetworkSyncUseCase.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ScheduleNetworkSyncUseCase.kt) | `ScheduleNetworkSyncUseCase` | domain | 69 | 2026-03-24 | unknown | _—_ |
 | [com/sza/fastmediasorter/domain/usecase/SearchAudioCoverUseCase.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchAudioCoverUseCase.kt) | `SearchAudioCoverUseCase` | domain | 284 | 2026-04-11 | unknown | _—_ |
 | [com/sza/fastmediasorter/domain/usecase/SearchLyricsUseCase.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchLyricsUseCase.kt) | `SearchLyricsUseCase` | domain | 805 | 2026-04-11 | unknown | _—_ |
-| [com/sza/fastmediasorter/domain/usecase/SearchQueryUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchQueryUtils.kt) | `SearchQueryUtils` | domain | 78 | 2026-03-14 | unknown | _—_ |
+| [com/sza/fastmediasorter/domain/usecase/SearchQueryUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchQueryUtils.kt) | `SearchQueryUtils` | domain | 78 | 2026-03-14 | tested | Prepare audio-filename search queries (strip placeholders) shared by SearchAudioCoverUseCase and SearchLyricsUseCase. |
 | [com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCase.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCase.kt) | `SendResult` | domain | 87 | 2026-04-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt) | `SmbOperationsUseCase` | domain | 739 | 2026-04-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/domain/usecase/StreamOffloadUseCase.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/StreamOffloadUseCase.kt) | `StreamOffloadUseCase` | domain | 243 | 2026-04-22 | unknown | _—_ |
@@ -388,19 +388,19 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/addresource/AddResourceFinalizer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFinalizer.kt) | `AddResourceFinalizer` | ui | 199 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt) | `AddResourceFormManager` | ui | 413 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt) | `AddResourceHelper` | ui | 243 | 2026-04-19 | tested | Pre-fills the AddResource form from existing resource data and wires shared input listeners. |
-| [com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt) | `AddResourceNetworkScanCoordinator` | ui | 94 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt) | `AddResourceNetworkScanCoordinator` | ui | 94 | 2026-04-22 | tested | AddResource: ARP/NetBIOS host discovery + SMB share listing with 1s cancellation responsiveness. |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceScanManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceScanManager.kt) | `AddResourceScanManager` | ui | 277 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt) | `AddResourceSftpFtpCoordinator` | ui | 287 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt) | `AddResourceSftpKeyCoordinator` | ui | 174 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt) | `AddResourceSmbCoordinator` | ui | 317 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt) | `AddResourceSftpFtpCoordinator` | ui | 287 | 2026-04-22 | tested | AddResource: SFTP (password) and FTP test/add flows; SSH-key SFTP lives in AddResourceSftpKeyCoordinator. |
+| [com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt) | `AddResourceSftpKeyCoordinator` | ui | 174 | 2026-04-22 | tested | AddResource: SFTP SSH-private-key + passphrase flows kept separate from password SFTP for cleaner credential handling. |
+| [com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt) | `AddResourceSmbCoordinator` | ui | 317 | 2026-04-22 | tested | AddResource: SMB connection test, share listing, bulk add from scan, and manual single-share add. |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt) | `AddResourceState` | ui | 555 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt) | `AddResourceVirtualCoordinator` | ui | 292 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt) | `AddResourceVirtualCoordinator` | ui | 292 | 2026-04-22 | tested | AddResource: virtual resources (Recent / All Music / etc.), local-folder SAF picker, and MediaStore scan. |
 | [com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt) | `NetworkDiscoveryDialog` | ui | 167 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/ResourceToAddAdapter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/ResourceToAddAdapter.kt) | `ResourceToAddAdapter` | ui | 186 | 2026-03-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/widgets/IpAddressEditText.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/widgets/IpAddressEditText.kt) | `IpAddressEditText` | ui | 168 | 2026-04-13 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/widgets/NetworkPathEditText.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/widgets/NetworkPathEditText.kt) | `NetworkPathEditText` | ui | 195 | 2026-04-13 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/AdapterDragController.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterDragController.kt) | `AdapterDragController` | ui | 57 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/browse/AdapterFileInfoFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterFileInfoFormatter.kt) | `AdapterFileInfoFormatter` | ui | 99 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/browse/AdapterFileInfoFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterFileInfoFormatter.kt) | `AdapterFileInfoFormatter` | ui | 99 | 2026-04-22 | tested | Format file size + modified date + extra info strings for browse list/grid items. |
 | [com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt) | `AdapterThumbnailLoader` | ui | 622 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/BrowseActivity.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt) | `BrowseActivity` | ui | 297 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/BrowseEvent.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseEvent.kt) | `BrowseEvent` | ui | 43 | 2026-04-10 | unknown | _—_ |
@@ -436,7 +436,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseListSubmitManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseListSubmitManager.kt) | `BrowseListSubmitManager` | ui | 188 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt) | `BrowseLoadingAuxManager` | ui | 290 | 2026-04-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt) | `BrowseManagerInitializer` | ui | 796 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/browse/managers/BrowseManualOrderCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManualOrderCoordinator.kt) | `BrowseManualOrderCoordinator` | ui | 64 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/browse/managers/BrowseManualOrderCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManualOrderCoordinator.kt) | `BrowseManualOrderCoordinator` | ui | 64 | 2026-04-22 | tested | MANUAL-sort-mode ordering: applies saved order, interleaves directories alphabetically, persists drag reorders. |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseMediaStoreObserver.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseMediaStoreObserver.kt) | `BrowseMediaStoreObserver` | ui | 56 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseNavigationManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseNavigationManager.kt) | `DirectoryCacheEntry` | ui | 472 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt) | `BrowseObserverManager` | ui | 200 | 2026-04-22 | unknown | _—_ |
@@ -447,7 +447,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseScrollButtonManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseScrollButtonManager.kt) | `BrowseScrollButtonManager` | ui | 100 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseScrollThumbnailListener.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseScrollThumbnailListener.kt) | `BrowseScrollThumbnailListener` | ui | 50 | 2026-04-11 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseSelectionManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSelectionManager.kt) | `BrowseSelectionManager` | ui | 37 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/browse/managers/BrowseShutdownCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShutdownCoordinator.kt) | `BrowseShutdownCoordinator` | ui | 85 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/browse/managers/BrowseShutdownCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShutdownCoordinator.kt) | `BrowseShutdownCoordinator` | ui | 85 | 2026-04-22 | tested | BrowseViewModel onCleared: cancels in-flight network ops, persists filter, runs best-effort trash + cache cleanup. |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseSmallControlsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSmallControlsManager.kt) | `BrowseSmallControlsManager` | ui | 160 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt) | `BrowseSortFilterManager` | ui | 332 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseSortMenuManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortMenuManager.kt) | `BrowseSortMenuManager` | ui | 120 | 2026-04-21 | unknown | _—_ |
@@ -474,7 +474,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerActivity.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerActivity.kt) | `OneDriveFolderPickerActivity` | ui | 134 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerViewModel.kt) | `OneDriveFolderPickerState` | ui | 194 | 2026-03-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/common/BreadcrumbView.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/BreadcrumbView.kt) | `BreadcrumbView` | ui | 148 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/common/DialogUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/DialogUtils.kt) | `DialogUtils` | ui | 104 | 2026-04-02 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/common/DialogUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/DialogUtils.kt) | `DialogUtils` | ui | 104 | 2026-04-02 | tested | Common dialog construction helpers (confirmation, input, choice) shared across activities. |
 | [com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt) | `ErrorDialogHelper` | ui | 64 | 2026-02-09 | tested | Displays simple toast-style or detailed copyable error dialogs across the app. |
 | [com/sza/fastmediasorter/ui/common/FocusManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/FocusManager.kt) | `FocusManager` | ui | 272 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/common/IpAddressInputFilter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/IpAddressInputFilter.kt) | `IpAddressInputFilter` | ui | 55 | 2026-02-09 | unknown | _—_ |
@@ -503,7 +503,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/duplicates/DuplicatesActivity.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesActivity.kt) | `DuplicatesActivity` | ui | 45 | 2026-04-12 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/duplicates/DuplicatesFragment.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesFragment.kt) | `DuplicatesFragment` | ui | 239 | 2026-04-12 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/duplicates/DuplicatesViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesViewModel.kt) | `DuplicatesState` | ui | 288 | 2026-04-02 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/image/ImageDisplayUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/image/ImageDisplayUtils.kt) | `ImageDisplayUtils` | ui | 90 | 2026-02-10 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/image/ImageDisplayUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/image/ImageDisplayUtils.kt) | `ImageDisplayUtils` | ui | 90 | 2026-02-10 | tested | Determine ImageView scale type from orientation match + fullscreen/slideshow + crop setting + image and device dimensions. |
 | [com/sza/fastmediasorter/ui/main/FilterResourceDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/FilterResourceDialog.kt) | `FilterResourceDialog` | ui | 235 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/main/helpers/KeyboardNavigationHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/KeyboardNavigationHandler.kt) | `KeyboardNavigationHandler` | ui | 281 | 2026-03-08 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/main/helpers/MainLayoutChromeManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainLayoutChromeManager.kt) | `MainLayoutChromeManager` | ui | 132 | 2026-04-23 | new | Owns orientation-aware toolbar labels, width-aware RecyclerView layout, compact toolbar sizing, grid spacing. |
@@ -512,10 +512,10 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/main/helpers/MainStoragePermissionsHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainStoragePermissionsHelper.kt) | `MainStoragePermissionsHelper` | ui | 90 | 2026-04-23 | new | Once-per-session storage permission gate with R+ MANAGE_ALL_FILES intent and runtime fallback. |
 | [com/sza/fastmediasorter/ui/main/helpers/ResourceFilterManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceFilterManager.kt) | `ResourceFilterManager` | ui | 135 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/main/helpers/ResourceItemTouchCallback.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceItemTouchCallback.kt) | `ResourceItemTouchCallback` | ui | 87 | 2026-04-21 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt) | `ResourceNavigationCoordinator` | ui | 196 | 2026-03-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt) | `ResourceNavigationCoordinator` | ui | 196 | 2026-03-09 | tested | Resource navigation: connection test, availability update, PIN protection check before opening Browse/Player. |
 | [com/sza/fastmediasorter/ui/main/helpers/ResourceOrderManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceOrderManager.kt) | `ResourceOrderManager` | ui | 138 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/main/helpers/ResourcePasswordManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourcePasswordManager.kt) | `ResourcePasswordManager` | ui | 136 | 2026-03-04 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt) | `ResourceScanCoordinator` | ui | 295 | 2026-03-14 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt) | `ResourceScanCoordinator` | ui | 295 | 2026-03-14 | tested | Comprehensive resource scan: clears pools, tests availability + write access + counts files for every resource. |
 | [com/sza/fastmediasorter/ui/main/MainActivity.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt) | `MainActivity` | ui | 888 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/main/MainViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt) | `ResourceTab` | ui | 621 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/main/ResourceAdapter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt) | `DragStartListener` | ui | 734 | 2026-04-21 | unknown | _—_ |
@@ -535,7 +535,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/contracts/PlaybackPreferencesFacade.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/contracts/PlaybackPreferencesFacade.kt) | `PlaybackPreferencesFacade` | ui | 17 | 2026-04-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/contracts/StereoDetectionFacade.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/contracts/StereoDetectionFacade.kt) | `StereoDetectionFacade` | ui | 44 | 2026-04-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/DynamicBackgroundProcessor.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/DynamicBackgroundProcessor.kt) | `DynamicBackgroundProcessor` | ui | 253 | 2026-04-16 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/entry/PlayerEntryCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/entry/PlayerEntryCoordinator.kt) | `PlayerEntryCoordinator` | ui | 64 | 2026-04-19 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/entry/PlayerEntryCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/entry/PlayerEntryCoordinator.kt) | `PlayerEntryCoordinator` | ui | 64 | 2026-04-19 | tested | Routes player entry by flavor + device class + stereo mode + media type (VR install CTA in standard, VrPlayerActivity in vr flavor). |
 | [com/sza/fastmediasorter/ui/player/ExifPhotoSphereReader.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ExifPhotoSphereReader.kt) | `PhotoSphereMetadataReader` | ui | 107 | 2026-04-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt) | `FileOperationsHandler` | ui | 534 | 2026-04-11 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/AnimatedImageController.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AnimatedImageController.kt) | `AnimatedImageController` | ui | 104 | 2026-02-15 | unknown | _—_ |
@@ -571,7 +571,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/LanguageBadgeDrawable.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LanguageBadgeDrawable.kt) | `LanguageBadgeDrawable` | ui | 119 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt) | `LocalPlaybackHelper` | ui | 211 | 2026-04-19 | tested | VideoPlayerManager extensions: local-file MIME detection and MediaItem construction for content:// + file:// playback. |
 | [com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt) | `LyricsManager` | ui | 208 | 2026-04-15 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt) | `MediaDisplayCoordinator` | ui | 56 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt) | `MediaDisplayCoordinator` | ui | 56 | 2026-02-09 | tested | Coordinates the per-media-type display path inside PlayerActivity (image/video/audio/pdf/epub routing + first-render bookkeeping). |
 | [com/sza/fastmediasorter/ui/player/helpers/NetworkFileManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NetworkFileManager.kt) | `NetworkFileManager` | ui | 357 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt) | `NowPlayingManager` | ui | 202 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PdfBitmapCache.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfBitmapCache.kt) | `PdfBitmapCache` | ui | 73 | 2026-02-15 | unknown | _—_ |
@@ -589,7 +589,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt) | `PlayerBindingSafeViews` | ui | 367 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerCompactElementsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCompactElementsManager.kt) | `PlayerCompactElementsManager` | ui | 35 | 2026-04-12 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerControlsSetupManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerControlsSetupManager.kt) | `PlayerControlsSetupManager` | ui | 555 | 2026-04-16 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt) | `PlayerDeleteUndoCoordinator` | ui | 331 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt) | `PlayerDeleteUndoCoordinator` | ui | 331 | 2026-04-22 | tested | PlayerViewModel destructive-op flow: soft-delete to .trash for local + hard-delete for network with 5-minute undo TTL. |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerDialogAndUiStateManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDialogAndUiStateManager.kt) | `PlayerDialogAndUiStateManager` | ui | 560 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt) | `PlayerEventHandler` | ui | 227 | 2026-04-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerGestureManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerGestureManager.kt) | `PlayerGestureCallback` | ui | 130 | 2026-02-28 | unknown | _—_ |
@@ -600,16 +600,16 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt) | `PlayerMediaFilesLoader` | ui | 403 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt) | `PlayerMediaLoaderManager` | ui | 968 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerMediaViewVisibilityHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaViewVisibilityHelper.kt) | `PlayerMediaViewVisibilityHelper` | ui | 65 | 2026-04-23 | new | Per-viewer overlay-group hide methods + path-scheme to ResourceType resolution. |
-| [com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt) | `PlayerNavigationCoordinator` | ui | 293 | 2026-04-23 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt) | `PlayerNavigationCoordinator` | ui | 293 | 2026-04-23 | tested | Navigation between files + adjacent/lookahead computation for prefetch + debounced lastViewedFile persistence. |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationManager.kt) | `PlayerNavigationManager` | ui | 383 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchManager.kt) | `PlayerPrefetchManager` | ui | 219 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt) | `PlayerPrefetchOffloadCoordinator` | ui | 200 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt) | `PlayerPrefetchOffloadCoordinator` | ui | 200 | 2026-04-22 | tested | Adaptive pre-cache + stream-offload orchestration: exposes flows, runs offload job lifecycle, prompts on cleanup. |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerSettingsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSettingsManager.kt) | `PlayerSettingsManager` | ui | 140 | 2026-04-17 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt) | `PlayerSetupHelper` | ui | 184 | 2026-04-23 | tested | VideoPlayerManager extensions for ExoPlayer instance creation and video-effect pipeline setup. |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt) | `PlayerShareManager` | ui | 142 | 2026-03-28 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt) | `PlayerStereoModeCoordinator` | ui | 206 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt) | `PlayerStereoModeCoordinator` | ui | 206 | 2026-04-22 | tested | Stereo-mode resolution pipeline: combines auto-detection, per-file override, and global VR forced-format settings. |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerTouchZoneSetupManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerTouchZoneSetupManager.kt) | `PlayerTouchZoneSetupManager` | ui | 84 | 2026-04-21 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt) | `PlayerUiStateCoordinator` | ui | 326 | 2026-04-21 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt) | `PlayerUiStateCoordinator` | ui | 326 | 2026-04-21 | tested | Centralizes PlayerActivity updateUI(state) rendering to keep the activity slim. |
 | [com/sza/fastmediasorter/ui/player/helpers/PrefetchLoadControlFactory.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PrefetchLoadControlFactory.kt) | `PrefetchLoadControlFactory` | ui | 58 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PrefetchPolicyManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PrefetchPolicyManager.kt) | `PrefetchPolicyManager` | ui | 114 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PrefetchProgressTracker.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PrefetchProgressTracker.kt) | `PrefetchProgress` | ui | 215 | 2026-04-22 | unknown | _—_ |
@@ -662,13 +662,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt) | `PlayerObserverManager` | ui | 94 | 2026-04-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt) | `PlayerViewerFactory` | ui | 154 | 2026-04-11 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/PlayerViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt) | `PlayerViewModel` | ui | 692 | 2026-04-23 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/render/DualSurfaceStaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/DualSurfaceStaticImageRenderer.kt) | `DualSurfaceStaticImageRenderer` | ui | 421 | 2026-04-19 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/render/DualSurfaceStaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/DualSurfaceStaticImageRenderer.kt) | `DualSurfaceStaticImageRenderer` | ui | 421 | 2026-04-19 | tested | Dual-PhotoView image renderer: instant swap on navigation by preloading the next image into the inactive surface. |
 | [com/sza/fastmediasorter/ui/player/render/LegacyPrefetchQueue.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/LegacyPrefetchQueue.kt) | `LegacyPrefetchQueue` | ui | 41 | 2026-02-15 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/render/NoOpStaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/NoOpStaticImageRenderer.kt) | `NoOpStaticImageRenderer` | ui | 30 | 2026-04-19 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/render/NoOpStaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/NoOpStaticImageRenderer.kt) | `NoOpStaticImageRenderer` | ui | 30 | 2026-04-19 | tested | No-op renderer used when static-image rendering is bypassed (e.g. video/audio playback active). |
 | [com/sza/fastmediasorter/ui/player/render/PrefetchQueue.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/PrefetchQueue.kt) | `PrefetchQueueConfig` | ui | 16 | 2026-02-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/render/PriorityPrefetchQueue.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/PriorityPrefetchQueue.kt) | `PriorityPrefetchQueue` | ui | 138 | 2026-02-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/render/RenderTarget.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/RenderTarget.kt) | `RenderPriority` | ui | 24 | 2026-02-15 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/render/StaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/StaticImageRenderer.kt) | `RendererMode` | ui | 38 | 2026-04-19 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/render/StaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/StaticImageRenderer.kt) | `RendererMode` | ui | 38 | 2026-04-19 | tested | Renderer interface: contract for static image surfaces with show/preload/swap operations. |
 | [com/sza/fastmediasorter/ui/player/render/StereoImageCropTransformation.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/StereoImageCropTransformation.kt) | `StereoImageCropTransformation` | ui | 64 | 2026-04-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/render/TransitionPolicy.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/TransitionPolicy.kt) | `TransitionType` | ui | 18 | 2026-02-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/SlideshowController.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/SlideshowController.kt) | `SlideshowController` | ui | 290 | 2026-03-14 | unknown | _—_ |
@@ -735,29 +735,29 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt) | `WelcomeViewModel` | ui | 109 | 2026-03-20 | unknown | _—_ |
 | [com/sza/fastmediasorter/util/BinaryFileThumbnailGenerator.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/BinaryFileThumbnailGenerator.kt) | `BinaryFileThumbnailGenerator` | utils | 127 | 2026-02-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/util/BinaryFileTypeDetector.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/BinaryFileTypeDetector.kt) | `BinaryFileTypeDetector` | utils | 78 | 2026-03-30 | unknown | _—_ |
-| [com/sza/fastmediasorter/util/ConnectionErrorFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/ConnectionErrorFormatter.kt) | `ConnectionErrorFormatter` | utils | 245 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/util/ConnectionErrorFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/ConnectionErrorFormatter.kt) | `ConnectionErrorFormatter` | utils | 245 | 2026-02-09 | tested | Format connection errors with localized messages and connection details (host:port + protocol context). |
 | [com/sza/fastmediasorter/util/ExtensionThumbnailGenerator.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/ExtensionThumbnailGenerator.kt) | `ExtensionThumbnailGenerator` | utils | 50 | 2026-02-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/util/FragmentExt.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/FragmentExt.kt) | `FragmentExt` | utils | 29 | 2026-04-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/util/gif/AnimatedGifEncoder.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/gif/AnimatedGifEncoder.kt) | `AnimatedGifEncoder` | utils | 403 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/util/KeyboardShortcutHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/KeyboardShortcutHandler.kt) | `KeyboardShortcutHandler` | utils | 108 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/util/ThumbnailColorMapper.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/ThumbnailColorMapper.kt) | `ThumbnailColorMapper` | utils | 98 | 2026-03-14 | unknown | _—_ |
 | [com/sza/fastmediasorter/util/ToastThrottler.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/ToastThrottler.kt) | `ToastThrottler` | utils | 75 | 2026-03-12 | unknown | _—_ |
-| [com/sza/fastmediasorter/util/VirtualPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/VirtualPathUtils.kt) | `VirtualPathUtils` | utils | 32 | 2026-03-30 | unknown | _—_ |
+| [com/sza/fastmediasorter/util/VirtualPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/VirtualPathUtils.kt) | `VirtualPathUtils` | utils | 32 | 2026-03-30 | tested | Detect and parse virtual resource paths (recent://, all-music://, etc.). |
 | [com/sza/fastmediasorter/utils/CharsetDetector.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/CharsetDetector.kt) | `CharsetDetector` | utils | 162 | 2026-02-15 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/ClickUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/ClickUtils.kt) | `ClickUtils` | utils | 45 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/utils/ClickUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/ClickUtils.kt) | `ClickUtils` | utils | 45 | 2026-02-09 | tested | Click debounce helpers: ignore subsequent clicks within a configurable delay (default 500ms) to prevent double-tap. |
 | [com/sza/fastmediasorter/utils/FileExtensions.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/FileExtensions.kt) | `FileExtensions` | utils | 30 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/FtpPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/FtpPathUtils.kt) | `FtpPathUtils` | utils | 127 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/utils/FtpPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/FtpPathUtils.kt) | `FtpPathUtils` | utils | 127 | 2026-02-09 | tested | Parse FTP URIs into host/port/credentials/remote-path and rebuild canonical ftp:// URLs. |
 | [com/sza/fastmediasorter/utils/GlideCacheStats.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/GlideCacheStats.kt) | `GlideCacheStats` | utils | 104 | 2026-03-08 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/LifecycleExtensions.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/LifecycleExtensions.kt) | `LifecycleExtensions` | utils | 44 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/MediaStoreNotifier.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/MediaStoreNotifier.kt) | `MediaStoreNotifier` | utils | 74 | 2026-04-02 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/NetworkUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/NetworkUtils.kt) | `NetworkUtils` | utils | 53 | 2026-02-13 | unknown | _—_ |
+| [com/sza/fastmediasorter/utils/NetworkUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/NetworkUtils.kt) | `NetworkUtils` | utils | 53 | 2026-02-13 | tested | Network-state queries (connectivity, metered, transport) for gating downloads and prefetch. |
 | [com/sza/fastmediasorter/utils/PdfExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfExportHelper.kt) | `PdfExportHelper` | utils | 142 | 2026-04-11 | tested | Renders a PDF page or full document to image files for sharing/export. |
 | [com/sza/fastmediasorter/utils/PdfHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfHelper.kt) | `PdfHelper` | utils | 63 | 2026-02-09 | tested | Loads PDF page thumbnails into ImageView with per-target job cancellation for recycled views. |
 | [com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt) | `PdfThumbnailHelper` | utils | 69 | 2026-02-09 | tested | Generates a single PDF page bitmap at the requested width/height via PdfRenderer. |
 | [com/sza/fastmediasorter/utils/PermissionChecker.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PermissionChecker.kt) | `PermissionChecker` | utils | 40 | 2026-02-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/SafHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SafHelper.kt) | `SafHelper` | utils | 224 | 2026-02-09 | tested | Storage Access Framework helpers: consistent content:// URI handling for delete and other ops. |
-| [com/sza/fastmediasorter/utils/SftpPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SftpPathUtils.kt) | `SftpPathUtils` | utils | 120 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/SmbPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SmbPathUtils.kt) | `SmbPathUtils` | utils | 194 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/utils/SftpPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SftpPathUtils.kt) | `SftpPathUtils` | utils | 120 | 2026-02-09 | tested | Parse SFTP URIs into host/port/credentials/remote-path and rebuild canonical sftp:// URLs. |
+| [com/sza/fastmediasorter/utils/SmbPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SmbPathUtils.kt) | `SmbPathUtils` | utils | 194 | 2026-02-09 | tested | Parse SMB UNC and smb:// URIs into share/host/credentials/remote-path and rebuild canonical smb:// URLs. |
 | [com/sza/fastmediasorter/utils/SyntaxHighlighter.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SyntaxHighlighter.kt) | `SyntaxHighlighter` | utils | 231 | 2026-02-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/UserActionLogger.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/UserActionLogger.kt) | `UserActionLogger` | utils | 224 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/ViewExtensions.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/ViewExtensions.kt) | `ViewExtensions` | utils | 38 | 2026-02-09 | unknown | _—_ |
@@ -1335,13 +1335,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `FileOperationErrorFormatter` — [com/sza/fastmediasorter/core/util/FileOperationErrorFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/FileOperationErrorFormatter.kt)
 
-**Layer:** core · **LOC:** 220 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 220 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Format file-operation exceptions into user-friendly localized messages, stripping technical noise.
 
 **Functions:**
 
@@ -1383,13 +1383,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `HeifSupportUtils` — [com/sza/fastmediasorter/core/util/HeifSupportUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/HeifSupportUtils.kt)
 
-**Layer:** core · **LOC:** 42 · **Last:** 2026-03-28 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 42 · **Last:** 2026-03-28 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** tests
 
-**Role:** _(unfilled)_
+**Role:** Query native HEIF/HEIC (API 28+) and AVIF (API 31+) decode support to gate format-specific UI.
 
 **Functions:**
 
@@ -1437,13 +1437,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `MediaFormatUtils` — [com/sza/fastmediasorter/core/util/MediaFormatUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaFormatUtils.kt)
 
-**Layer:** core · **LOC:** 26 · **Last:** 2026-02-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 26 · **Last:** 2026-02-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** tests
 
-**Role:** _(unfilled)_
+**Role:** Format a duration in milliseconds to MM:SS or H:MM:SS for media playback UI.
 
 **Functions:**
 
@@ -1451,13 +1451,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `DetailedMediaInfo` — [com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt)
 
-**Layer:** core · **LOC:** 412 · **Last:** 2026-04-21 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 412 · **Last:** 2026-04-21 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** network, disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Extract image/video/audio metadata (dimensions, duration, codec) via MediaMetadataRetriever + ExifInterface.
 
 **Functions:**
 
@@ -1499,13 +1499,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PathUtils` — [com/sza/fastmediasorter/core/util/PathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PathUtils.kt)
 
-**Layer:** core · **LOC:** 73 · **Last:** 2026-04-02 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 73 · **Last:** 2026-04-02 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Safe path handling: encode special chars (#/?/%) so Uri.parse does not treat them as fragment/query/encoding.
 
 **Functions:**
 
@@ -1731,13 +1731,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `CloudMediaScanner` — [com/sza/fastmediasorter/data/cloud/CloudMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudMediaScanner.kt)
 
-**Layer:** data · **LOC:** 393 · **Last:** 2026-04-02 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 393 · **Last:** 2026-04-02 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** ApplicationContext, Context, GoogleDriveRestClient, DropboxClient, OneDriveRestClient, ResourceRepository  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** MediaScanner implementation for cloud resources: enumerates files via the active CloudStorageClient.
 
 **Functions:**
 
@@ -2343,13 +2343,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `MediaTypeUtils` — [com/sza/fastmediasorter/data/common/MediaTypeUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/common/MediaTypeUtils.kt)
 
-**Layer:** data · **LOC:** 128 · **Last:** 2026-03-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 128 · **Last:** 2026-03-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** tests
 
-**Role:** _(unfilled)_
+**Role:** Resolve MediaType (IMAGE/VIDEO/AUDIO/PDF/EPUB/TEXT/BINARY) from file extension and MIME hints.
 
 **Functions:**
 
@@ -3035,13 +3035,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `LocalMediaScanner` — [com/sza/fastmediasorter/data/local/LocalMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt)
 
-**Layer:** data · **LOC:** 786 · **Last:** 2026-03-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 786 · **Last:** 2026-03-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** ApplicationContext, Context, MediaStoreRepository  
 **Side effects:** disk  
 **Flags:** coroutines · timber · tests
 
-**Role:** _(unfilled)_
+**Role:** MediaScanner implementation for local SAF/MediaStore resources, enumerating files on device storage.
 
 **Functions:**
 
@@ -3155,13 +3155,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BaseConnectionPool` — [com/sza/fastmediasorter/data/network/BaseConnectionPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/BaseConnectionPool.kt)
 
-**Layer:** data · **LOC:** 273 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 273 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Generic connection pool with Mutex/ConcurrentHashMap, idle cleanup (45s), validation, degradation tracking, full reset on critical errors.
 
 **Functions:**
 
@@ -3282,13 +3282,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `NetworkErrorClassifier` — [com/sza/fastmediasorter/data/network/exceptions/NetworkErrorClassifier.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorClassifier.kt)
 
-**Layer:** data · **LOC:** 174 · **Last:** 2026-04-16 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 174 · **Last:** 2026-04-16 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber · tests
 
-**Role:** _(unfilled)_
+**Role:** Classify raw exceptions into typed NetworkException subclasses (timeout/auth/host/refused/protocol).
 
 **Functions:**
 
@@ -3558,13 +3558,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SmbDirectoryScanner` — [com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt)
 
-**Layer:** data · **LOC:** 531 · **Last:** 2026-03-14 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 531 · **Last:** 2026-03-14 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** network  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** SMB directory scanning with parallel execution, pagination (offset/limit), progress callbacks, and coroutine cancellation.
 
 **Functions:**
 
@@ -3588,13 +3588,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BaseConnectionPool` — [com/sza/fastmediasorter/data/network/pool/BaseConnectionPool.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/pool/BaseConnectionPool.kt)
 
-**Layer:** data · **LOC:** 206 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 206 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Generic typed-key/typed-connection pool with max concurrency + idle timeout + per-protocol logging tag.
 
 **Functions:**
 
@@ -3778,13 +3778,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SmbFileOperations` — [com/sza/fastmediasorter/data/network/SmbFileOperations.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbFileOperations.kt)
 
-**Layer:** data · **LOC:** 617 · **Last:** 2026-04-16 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 617 · **Last:** 2026-04-16 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** SmbConnectionManager  
 **Side effects:** network  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** SMB file CRUD (upload/download/delete/rename/move), directory ops, metadata queries, and stream operations through the connection pool.
 
 **Functions:**
 
@@ -3806,13 +3806,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SmbMediaScanner` — [com/sza/fastmediasorter/data/network/SmbMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt)
 
-**Layer:** data · **LOC:** 747 · **Last:** 2026-04-12 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 747 · **Last:** 2026-04-12 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** SmbClient, NetworkCredentialsRepository  
 **Side effects:** network  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** MediaScanner implementation for SMB shares, scanning remote files via SmbClient.
 
 **Functions:**
 
@@ -3977,13 +3977,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `FtpMediaScanner` — [com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt)
 
-**Layer:** data · **LOC:** 566 · **Last:** 2026-04-02 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 566 · **Last:** 2026-04-02 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** FtpClient, NetworkCredentialsRepository  
 **Side effects:** —  
 **Flags:** coroutines · timber · tests
 
-**Role:** _(unfilled)_
+**Role:** MediaScanner implementation for FTP servers, scanning remote files via FtpClient.
 
 **Functions:**
 
@@ -4147,13 +4147,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SftpMediaScanner` — [com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt)
 
-**Layer:** data · **LOC:** 487 · **Last:** 2026-04-02 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 487 · **Last:** 2026-04-02 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** SftpClient, NetworkCredentialsRepository  
 **Side effects:** network, disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** MediaScanner implementation for SFTP servers, scanning remote files via SftpClient.
 
 **Functions:**
 
@@ -5025,13 +5025,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `StrategyUtils` — [com/sza/fastmediasorter/data/transfer/strategy/StrategyUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/StrategyUtils.kt)
 
-**Layer:** data · **LOC:** 22 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 22 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** safeIo helper: wraps a simple IO block in withContext(IO) + try/catch with tagged exception logging.
 
 **Functions:**
 
@@ -7390,13 +7390,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SearchQueryUtils` — [com/sza/fastmediasorter/domain/usecase/SearchQueryUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchQueryUtils.kt)
 
-**Layer:** domain · **LOC:** 78 · **Last:** 2026-03-14 · **Status:** unknown · **NoFlavors:** —
+**Layer:** domain · **LOC:** 78 · **Last:** 2026-03-14 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Prepare audio-filename search queries (strip placeholders) shared by SearchAudioCoverUseCase and SearchLyricsUseCase.
 
 **Functions:**
 
@@ -7845,13 +7845,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AddResourceNetworkScanCoordinator` — [com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt)
 
-**Layer:** ui · **LOC:** 94 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 94 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** AddResource: ARP/NetBIOS host discovery + SMB share listing with 1s cancellation responsiveness.
 
 **Functions:**
 
@@ -7885,13 +7885,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AddResourceSftpFtpCoordinator` — [com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt)
 
-**Layer:** ui · **LOC:** 287 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 287 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** AddResource: SFTP (password) and FTP test/add flows; SSH-key SFTP lives in AddResourceSftpKeyCoordinator.
 
 **Functions:**
 
@@ -7902,13 +7902,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AddResourceSftpKeyCoordinator` — [com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt)
 
-**Layer:** ui · **LOC:** 174 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 174 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** AddResource: SFTP SSH-private-key + passphrase flows kept separate from password SFTP for cleaner credential handling.
 
 **Functions:**
 
@@ -7917,13 +7917,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AddResourceSmbCoordinator` — [com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt)
 
-**Layer:** ui · **LOC:** 317 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 317 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** AddResource: SMB connection test, share listing, bulk add from scan, and manual single-share add.
 
 **Functions:**
 
@@ -7986,13 +7986,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AddResourceVirtualCoordinator` — [com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt)
 
-**Layer:** ui · **LOC:** 292 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 292 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** AddResource: virtual resources (Recent / All Music / etc.), local-folder SAF picker, and MediaStore scan.
 
 **Functions:**
 
@@ -8115,13 +8115,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AdapterFileInfoFormatter` — [com/sza/fastmediasorter/ui/browse/AdapterFileInfoFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterFileInfoFormatter.kt)
 
-**Layer:** ui · **LOC:** 99 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 99 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Format file size + modified date + extra info strings for browse list/grid items.
 
 **Functions:**
 
@@ -9081,13 +9081,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BrowseManualOrderCoordinator` — [com/sza/fastmediasorter/ui/browse/managers/BrowseManualOrderCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManualOrderCoordinator.kt)
 
-**Layer:** ui · **LOC:** 64 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 64 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** MANUAL-sort-mode ordering: applies saved order, interleaves directories alphabetically, persists drag reorders.
 
 **Functions:**
 
@@ -9303,13 +9303,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BrowseShutdownCoordinator` — [com/sza/fastmediasorter/ui/browse/managers/BrowseShutdownCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShutdownCoordinator.kt)
 
-**Layer:** ui · **LOC:** 85 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 85 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** BrowseViewModel onCleared: cancels in-flight network ops, persists filter, runs best-effort trash + cache cleanup.
 
 **Functions:**
 
@@ -9866,13 +9866,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `DialogUtils` — [com/sza/fastmediasorter/ui/common/DialogUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/DialogUtils.kt)
 
-**Layer:** ui · **LOC:** 104 · **Last:** 2026-04-02 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 104 · **Last:** 2026-04-02 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Common dialog construction helpers (confirmation, input, choice) shared across activities.
 
 **Functions:**
 
@@ -10476,13 +10476,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ImageDisplayUtils` — [com/sza/fastmediasorter/ui/image/ImageDisplayUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/image/ImageDisplayUtils.kt)
 
-**Layer:** ui · **LOC:** 90 · **Last:** 2026-02-10 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 90 · **Last:** 2026-02-10 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** tests
 
-**Role:** _(unfilled)_
+**Role:** Determine ImageView scale type from orientation match + fullscreen/slideshow + crop setting + image and device dimensions.
 
 **Functions:**
 
@@ -10653,13 +10653,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ResourceNavigationCoordinator` — [com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt)
 
-**Layer:** ui · **LOC:** 196 · **Last:** 2026-03-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 196 · **Last:** 2026-03-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Resource navigation: connection test, availability update, PIN protection check before opening Browse/Player.
 
 **Functions:**
 
@@ -10704,13 +10704,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ResourceScanCoordinator` — [com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt)
 
-**Layer:** ui · **LOC:** 295 · **Last:** 2026-03-14 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 295 · **Last:** 2026-03-14 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Comprehensive resource scan: clears pools, tests availability + write access + counts files for every resource.
 
 **Functions:**
 
@@ -11316,13 +11316,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerEntryCoordinator` — [com/sza/fastmediasorter/ui/player/entry/PlayerEntryCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/entry/PlayerEntryCoordinator.kt)
 
-**Layer:** ui · **LOC:** 64 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 64 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** tests
 
-**Role:** _(unfilled)_
+**Role:** Routes player entry by flavor + device class + stereo mode + media type (VR install CTA in standard, VrPlayerActivity in vr flavor).
 
 **Functions:**
 
@@ -12119,13 +12119,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `MediaDisplayCoordinator` — [com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt)
 
-**Layer:** ui · **LOC:** 56 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 56 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Coordinates the per-media-type display path inside PlayerActivity (image/video/audio/pdf/epub routing + first-render bookkeeping).
 
 **Functions:**
 
@@ -12525,13 +12525,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerDeleteUndoCoordinator` — [com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt)
 
-**Layer:** ui · **LOC:** 331 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 331 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** PlayerViewModel destructive-op flow: soft-delete to .trash for local + hard-delete for network with 5-minute undo TTL.
 
 **Functions:**
 
@@ -12854,13 +12854,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerNavigationCoordinator` — [com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt)
 
-**Layer:** ui · **LOC:** 293 · **Last:** 2026-04-23 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 293 · **Last:** 2026-04-23 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Navigation between files + adjacent/lookahead computation for prefetch + debounced lastViewedFile persistence.
 
 **Functions:**
 
@@ -12942,13 +12942,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerPrefetchOffloadCoordinator` — [com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt)
 
-**Layer:** ui · **LOC:** 200 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 200 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Adaptive pre-cache + stream-offload orchestration: exposes flows, runs offload job lifecycle, prompts on cleanup.
 
 **Functions:**
 
@@ -13017,13 +13017,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerStereoModeCoordinator` — [com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt)
 
-**Layer:** ui · **LOC:** 206 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 206 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Stereo-mode resolution pipeline: combines auto-detection, per-file override, and global VR forced-format settings.
 
 **Functions:**
 
@@ -13052,13 +13052,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerUiStateCoordinator` — [com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerUiStateCoordinator.kt)
 
-**Layer:** ui · **LOC:** 326 · **Last:** 2026-04-21 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 326 · **Last:** 2026-04-21 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Centralizes PlayerActivity updateUI(state) rendering to keep the activity slim.
 
 **Functions:**
 
@@ -14639,13 +14639,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `DualSurfaceStaticImageRenderer` — [com/sza/fastmediasorter/ui/player/render/DualSurfaceStaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/DualSurfaceStaticImageRenderer.kt)
 
-**Layer:** ui · **LOC:** 421 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 421 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Dual-PhotoView image renderer: instant swap on navigation by preloading the next image into the inactive surface.
 
 **Functions:**
 
@@ -14693,13 +14693,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `NoOpStaticImageRenderer` — [com/sza/fastmediasorter/ui/player/render/NoOpStaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/NoOpStaticImageRenderer.kt)
 
-**Layer:** ui · **LOC:** 30 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 30 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines
 
-**Role:** _(unfilled)_
+**Role:** No-op renderer used when static-image rendering is bypassed (e.g. video/audio playback active).
 
 **Functions:**
 
@@ -14762,13 +14762,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `RendererMode` — [com/sza/fastmediasorter/ui/player/render/StaticImageRenderer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/render/StaticImageRenderer.kt)
 
-**Layer:** ui · **LOC:** 38 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 38 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines
 
-**Role:** _(unfilled)_
+**Role:** Renderer interface: contract for static image surfaces with show/preload/swap operations.
 
 **Functions:**
 
@@ -16416,13 +16416,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ConnectionErrorFormatter` — [com/sza/fastmediasorter/util/ConnectionErrorFormatter.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/ConnectionErrorFormatter.kt)
 
-**Layer:** utils · **LOC:** 245 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 245 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Format connection errors with localized messages and connection details (host:port + protocol context).
 
 **Functions:**
 
@@ -16562,13 +16562,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `VirtualPathUtils` — [com/sza/fastmediasorter/util/VirtualPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/util/VirtualPathUtils.kt)
 
-**Layer:** utils · **LOC:** 32 · **Last:** 2026-03-30 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 32 · **Last:** 2026-03-30 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** tests
 
-**Role:** _(unfilled)_
+**Role:** Detect and parse virtual resource paths (recent://, all-music://, etc.).
 
 **Functions:**
 
@@ -16595,13 +16595,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ClickUtils` — [com/sza/fastmediasorter/utils/ClickUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/ClickUtils.kt)
 
-**Layer:** utils · **LOC:** 45 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 45 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Click debounce helpers: ignore subsequent clicks within a configurable delay (default 500ms) to prevent double-tap.
 
 **Functions:**
 
@@ -16622,13 +16622,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `FtpPathUtils` — [com/sza/fastmediasorter/utils/FtpPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/FtpPathUtils.kt)
 
-**Layer:** utils · **LOC:** 127 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 127 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Parse FTP URIs into host/port/credentials/remote-path and rebuild canonical ftp:// URLs.
 
 **Functions:**
 
@@ -16686,13 +16686,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `NetworkUtils` — [com/sza/fastmediasorter/utils/NetworkUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/NetworkUtils.kt)
 
-**Layer:** utils · **LOC:** 53 · **Last:** 2026-02-13 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 53 · **Last:** 2026-02-13 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Network-state queries (connectivity, metered, transport) for gating downloads and prefetch.
 
 **Functions:**
 
@@ -16780,13 +16780,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SftpPathUtils` — [com/sza/fastmediasorter/utils/SftpPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SftpPathUtils.kt)
 
-**Layer:** utils · **LOC:** 120 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 120 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Parse SFTP URIs into host/port/credentials/remote-path and rebuild canonical sftp:// URLs.
 
 **Functions:**
 
@@ -16796,13 +16796,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SmbPathUtils` — [com/sza/fastmediasorter/utils/SmbPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SmbPathUtils.kt)
 
-**Layer:** utils · **LOC:** 194 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 194 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** network  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Parse SMB UNC and smb:// URIs into share/host/credentials/remote-path and rebuild canonical smb:// URLs.
 
 **Functions:**
 
