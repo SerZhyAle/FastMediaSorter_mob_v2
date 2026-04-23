@@ -3444,3 +3444,4 @@ Format: | datetime | file | target | description |
 | 2026-04-23 20:35:49 | `dev/CATALOG/` | `tooling` | Add CATALOG database: PS1 scanner extracts class/function metadata into JSONL source of truth + Markdown view (755 app_v2 + 54 wear classes). Preserves manual role/status/function descriptions across re-scans. |
 | 2026-04-23 21:15:19 | `dev/CATALOG/ + CLAUDE.md + .claude/commands/catalog.md` | `tooling` | Add CATALOG CRUD scripts (set/query/remove), /catalog skill, and CLAUDE.md rules (research step 2, mandatory skill, post-change sync). |
 | 2026-04-23 21:36:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `FtpClient` | Wave 19a (partial): extracted FtpStandaloneOperations (1603 -> 1177 LOC; still over cap) |
+| 2026-04-23 21:45:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `FtpClient` | Wave 19 (full): also extracted FtpDirectoryScanner + FtpExoPlayerPool (1603 -> 905 LOC, under cap) |

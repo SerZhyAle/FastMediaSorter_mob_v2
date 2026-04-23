@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.network.glide
 import android.media.MediaDataSource
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.ftp.FtpExoPlayerPool
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.data.network.model.SmbResult
@@ -43,7 +44,7 @@ class NetworkMediaDataSource(
     private var cachedChunkData: ByteArray? = null
     
     // FTP connection pooling for thumbnail extraction (prevents reconnect on every read)
-    private var pooledFtpConnection: FtpClient.ExoPlayerFtpConnection? = null
+    private var pooledFtpConnection: FtpExoPlayerPool.ExoPlayerFtpConnection? = null
 
     override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
         if (isClosed) {
@@ -269,7 +270,7 @@ class NetworkMediaDataSource(
             credentialsRepository.getByTypeServerAndPort("FTP", server, port)
         } ?: throw IOException("No credentials found for FTP")
 
-        val connectionInfo = FtpClient.FtpConnectionInfo(
+        val connectionInfo = FtpExoPlayerPool.FtpConnectionInfo(
             host = server,
             port = port,
             username = credentials.username,

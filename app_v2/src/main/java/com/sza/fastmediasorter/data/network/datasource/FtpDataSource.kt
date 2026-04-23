@@ -6,6 +6,7 @@ import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.ftp.FtpExoPlayerPool
 import org.apache.commons.net.ftp.FTPClient
 import timber.log.Timber
 import java.io.IOException
@@ -51,7 +52,7 @@ class FtpDataSource(
             Timber.d("FtpDataSource: Opening FTP file - encoded=$encodedPath, decoded=$remotePath")
             
             // Get connection from pool (blocking call for ExoPlayer compatibility)
-            val connectionInfo = FtpClient.FtpConnectionInfo(
+            val connectionInfo = FtpExoPlayerPool.FtpConnectionInfo(
                 host = host,
                 port = port,
                 username = username,

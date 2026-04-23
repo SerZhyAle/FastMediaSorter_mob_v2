@@ -39,155 +39,18 @@ class FtpClient @Inject constructor() {
         private const val IDLE_TIMEOUT_MS = 25000L // 25 seconds idle timeout
     }
 
-    // ==================== ExoPlayer Connection Pool ====================
+    // ExoPlayer connection management lives in FtpExoPlayerPool. Type aliases keep
+    // call sites referencing the unqualified names without churn.
+    private val exoPlayerPool = FtpExoPlayerPool()
 
-    // Connection info for FTP pooling
-    data class FtpConnectionInfo(
-        val host: String,
-        val port: Int = 21,
-        val username: String,
-        val password: String
-    )
-
-    private data class ConnectionKey(
-        val host: String,
-        val port: Int,
-        val username: String
-    )
-
-    private data class PooledFtpConnection(
-        val client: FTPClient,
-        var lastUsed: Long = System.currentTimeMillis()
-    )
-
-    /**
-     * Data class for ExoPlayer pooled connection.
-     * Contains FTPClient that should NOT be disconnected by caller.
-     * Connection is managed by pool and will be reused.
-     */
-    data class ExoPlayerFtpConnection(
-        val client: FTPClient
-    )
-
-    private val connectionPool = java.util.concurrent.ConcurrentHashMap<ConnectionKey, PooledFtpConnection>()
-    private val connectionSemaphore = java.util.concurrent.Semaphore(MAX_CONCURRENT_CONNECTIONS)
-    private val poolMutex = Any()
-
-    /**
-     * Get a pooled FTP connection for ExoPlayer DataSource.
-     * This method is BLOCKING (not suspend) because ExoPlayer DataSource.open() is blocking.
-     * 
-     * IMPORTANT: Caller must NOT disconnect the client!
-     * Connection is managed by the pool and will be reused.
-     * Only the InputStream from retrieveFileStream() should be closed.
-     * 
-     * @param connectionInfo FTP connection parameters
-     * @return ExoPlayerFtpConnection with FTPClient from pool
-     * @throws IOException if connection fails
-     */
     @Throws(IOException::class)
-    fun getConnectionForExoPlayer(connectionInfo: FtpConnectionInfo): ExoPlayerFtpConnection {
-        try {
-            connectionSemaphore.acquire()
+    fun getConnectionForExoPlayer(connectionInfo: FtpExoPlayerPool.FtpConnectionInfo): FtpExoPlayerPool.ExoPlayerFtpConnection =
+        exoPlayerPool.getConnectionForExoPlayer(connectionInfo)
 
-            // IMPORTANT: For MediaDataSource each consumer must have exclusive FTPClient instance.
-            // Sharing one FTPClient across concurrent thumbnail extraction threads causes protocol
-            // reply interleaving (e.g. PASV expects 227 but receives NOOP 200).
-            Timber.d("FTP ExoPlayer: Creating dedicated connection to ${connectionInfo.host}")
+    fun releaseExoPlayerConnection(client: FTPClient?) =
+        exoPlayerPool.releaseExoPlayerConnection(client)
 
-            val client = FTPClient()
-            client.connectTimeout = CONNECT_TIMEOUT
-            client.defaultTimeout = SOCKET_TIMEOUT
-            client.setDataTimeout(SOCKET_TIMEOUT)
-            client.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-
-            client.connect(connectionInfo.host, connectionInfo.port)
-
-            val replyCode = client.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                client.disconnect()
-                throw IOException("FTP server refused connection. Reply code: $replyCode")
-            }
-
-            if (!client.login(connectionInfo.username, connectionInfo.password)) {
-                client.disconnect()
-                throw IOException("FTP authentication failed for user: ${connectionInfo.username}")
-            }
-
-            client.enterLocalPassiveMode()
-            client.setFileType(FTP.BINARY_FILE_TYPE)
-            client.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
-
-            return ExoPlayerFtpConnection(client)
-        } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
-            throw IOException("Interrupted while waiting for FTP connection", e)
-        } catch (e: IOException) {
-            connectionSemaphore.release()
-            throw e
-        } catch (e: Exception) {
-            connectionSemaphore.release()
-            Timber.e(e, "FTP ExoPlayer: Failed to get connection for ${connectionInfo.host}")
-            throw IOException("Failed to establish FTP connection: ${e.message}", e)
-        }
-    }
-
-    /**
-     * Release connection semaphore after ExoPlayer is done.
-     * Call this in DataSource.close() to return connection slot to pool.
-     * Also completes pending command if needed.
-     * 
-     * @param client The FTPClient used (for completePendingCommand)
-     */
-    fun releaseExoPlayerConnection(client: FTPClient?) {
-        try {
-            // FTP requires completePendingCommand after stream operations
-            client?.completePendingCommand()
-        } catch (e: Exception) {
-            Timber.w("FTP ExoPlayer: completePendingCommand failed (non-critical): ${e.message}")
-        }
-
-        try {
-            if (client?.isConnected == true) {
-                try {
-                    client.logout()
-                } catch (e: Exception) {
-                    Timber.w("FTP ExoPlayer: logout failed (ignored): ${e.message}")
-                }
-                client.disconnect()
-            }
-        } catch (e: Exception) {
-            Timber.w("FTP ExoPlayer: disconnect failed (ignored): ${e.message}")
-        }
-        
-        connectionSemaphore.release()
-    }
-
-    // Cleanup idle FTP connections from the pool
-    private fun cleanupIdleFtpConnections() {
-        val now = System.currentTimeMillis()
-        val keysToRemove = connectionPool.filter { (_, conn) ->
-            now - conn.lastUsed > IDLE_TIMEOUT_MS
-        }.keys
-        
-        if (keysToRemove.isNotEmpty()) {
-            synchronized(poolMutex) {
-                keysToRemove.forEach { key ->
-                    connectionPool.remove(key)?.let { pooled ->
-                        try {
-                            if (pooled.client.isConnected) {
-                                pooled.client.logout()
-                                pooled.client.disconnect()
-                            }
-                            Timber.d("FTP: Closed idle connection to ${key.host}")
-                        } catch (e: Exception) {
-                            Timber.w("FTP: Error closing idle connection: ${e.message}")
-                        }
-                    }
-                }
-            }
-        }
-    }
+    private fun cleanupIdleFtpConnections() = exoPlayerPool.cleanupIdleFtpConnections()
 
     /**
      * Connect to FTP server with password authentication
@@ -317,7 +180,7 @@ class FtpClient @Inject constructor() {
                 val results = mutableListOf<FTPFile>()
 
                 if (recursive) {
-                    val pagingState = MetadataPagingState(offset = safeOffset, limit = limit)
+                    val pagingState = FtpDirectoryScanner.MetadataPagingState(offset = safeOffset, limit = limit)
                     listFilesWithMetadataRecursivePaged(client, remotePath, results, pagingState)
                 } else {
                     val allFiles = mutableListOf<FTPFile>()
@@ -339,149 +202,14 @@ class FtpClient @Inject constructor() {
         }
     }
     
-    // List files with metadata in single directory level (non-recursive)
-    private fun listFilesWithMetadataSingleLevel(
-        client: FTPClient,
-        remotePath: String,
-        results: MutableList<FTPFile>
-    ) {
-        // Try passive mode first, fallback to active mode on timeout
-        val ftpFiles = try {
-            Timber.d("FTP listing files with metadata in passive mode: $remotePath")
-            client.listFiles(remotePath)
-        } catch (e: SocketTimeoutException) {
-            Timber.w(e, "FTP passive mode timeout, switching to active mode")
-            
-            // Switch to active mode and retry
-            client.enterLocalActiveMode()
-            Timber.d("FTP retrying listFiles in active mode: $remotePath")
-            
-            try {
-                client.listFiles(remotePath)
-            } finally {
-                // Switch back to passive for future operations
-                try { 
-                    client.enterLocalPassiveMode() 
-                    Timber.d("FTP switched back to passive mode")
-                } catch (ignored: Exception) {
-                    Timber.w(ignored, "Failed to switch back to passive mode")
-                }
-            }
-        }
-        
-        // Filter out . and .. entries, add only files (not directories)
-        ftpFiles.forEach { ftpFile ->
-            if (ftpFile.name != "." && ftpFile.name != ".." && ftpFile.isFile) {
-                results.add(ftpFile)
-            }
-        }
-    }
+    private fun listFilesWithMetadataSingleLevel(client: FTPClient, remotePath: String, results: MutableList<FTPFile>) =
+        FtpDirectoryScanner.listFilesWithMetadataSingleLevel(client, remotePath, results)
     
-    // List files with metadata recursively in all subdirectories
-    private fun listFilesWithMetadataRecursive(
-        client: FTPClient,
-        remotePath: String,
-        results: MutableList<FTPFile>
-    ) {
-        // Try passive mode first, fallback to active mode on timeout
-        val ftpFiles = try {
-            Timber.d("FTP listing files with metadata recursively in passive mode: $remotePath")
-            client.listFiles(remotePath)
-        } catch (e: SocketTimeoutException) {
-            Timber.w(e, "FTP passive mode timeout, switching to active mode")
-            
-            // Switch to active mode and retry
-            client.enterLocalActiveMode()
-            Timber.d("FTP retrying listFiles in active mode: $remotePath")
-            
-            try {
-                client.listFiles(remotePath)
-            } finally {
-                // Switch back to passive for future operations
-                try { 
-                    client.enterLocalPassiveMode() 
-                    Timber.d("FTP switched back to passive mode")
-                } catch (ignored: Exception) {
-                    Timber.w(ignored, "Failed to switch back to passive mode")
-                }
-            }
-        }
-        
-        ftpFiles.forEach { ftpFile ->
-            if (ftpFile.name != "." && ftpFile.name != "..") {
-                val subPath = if (remotePath.endsWith("/")) {
-                    remotePath + ftpFile.name
-                } else {
-                    "$remotePath/${ftpFile.name}"
-                }
-                
-                if (ftpFile.isDirectory) {
-                    // Recursively scan subdirectory
-                    listFilesWithMetadataRecursive(client, subPath, results)
-                } else if (ftpFile.isFile) {
-                    // Add file to results
-                    results.add(ftpFile)
-                }
-            }
-        }
-    }
+    private fun listFilesWithMetadataRecursive(client: FTPClient, remotePath: String, results: MutableList<FTPFile>) =
+        FtpDirectoryScanner.listFilesWithMetadataRecursive(client, remotePath, results)
 
-    private data class MetadataPagingState(
-        val offset: Int,
-        val limit: Int,
-        var skipped: Int = 0,
-        var collected: Int = 0
-    )
-
-    private fun listFilesWithMetadataRecursivePaged(
-        client: FTPClient,
-        remotePath: String,
-        results: MutableList<FTPFile>,
-        paging: MetadataPagingState
-    ) {
-        if (paging.collected >= paging.limit) return
-
-        val ftpFiles = try {
-            Timber.d("FTP listing files with metadata (paged) in passive mode: $remotePath")
-            client.listFiles(remotePath)
-        } catch (e: SocketTimeoutException) {
-            Timber.w(e, "FTP passive mode timeout (paged), switching to active mode")
-            client.enterLocalActiveMode()
-            Timber.d("FTP retrying paged listFiles in active mode: $remotePath")
-            try {
-                client.listFiles(remotePath)
-            } finally {
-                try {
-                    client.enterLocalPassiveMode()
-                    Timber.d("FTP switched back to passive mode")
-                } catch (ignored: Exception) {
-                    Timber.w(ignored, "Failed to switch back to passive mode")
-                }
-            }
-        }
-
-        ftpFiles.forEach { ftpFile ->
-            if (paging.collected >= paging.limit) return
-            if (ftpFile.name == "." || ftpFile.name == "..") return@forEach
-
-            val subPath = if (remotePath.endsWith("/")) {
-                remotePath + ftpFile.name
-            } else {
-                "$remotePath/${ftpFile.name}"
-            }
-
-            if (ftpFile.isDirectory) {
-                listFilesWithMetadataRecursivePaged(client, subPath, results, paging)
-            } else if (ftpFile.isFile) {
-                if (paging.skipped < paging.offset) {
-                    paging.skipped++
-                } else {
-                    results.add(ftpFile)
-                    paging.collected++
-                }
-            }
-        }
-    }
+    private fun listFilesWithMetadataRecursivePaged(client: FTPClient, remotePath: String, results: MutableList<FTPFile>, paging: FtpDirectoryScanner.MetadataPagingState) =
+        FtpDirectoryScanner.listFilesWithMetadataRecursivePaged(client, remotePath, results, paging)
 
     suspend fun listFiles(remotePath: String = "/"): Result<List<String>> = withContext(Dispatchers.IO) {
         synchronized(mutex) {

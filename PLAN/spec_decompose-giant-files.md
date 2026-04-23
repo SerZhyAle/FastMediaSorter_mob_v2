@@ -130,13 +130,13 @@
 
 **Still over the 1000 cap (1 386 LOC).** Auth flow (`silentSignIn`, `getAccessToken`, `handleSignInResult`, `ensureTokenFresh`, etc.) + `makeAuthenticatedRequest` 401-retry recursion need `GoogleDriveAuthCoordinator` extraction in a follow-up wave (mirrors the OneDrive pattern).
 
-**Wave 19 result (partial — needs follow-up):**
+**Wave 19 result:**
 
 | File | Before | After | Δ | Helpers introduced |
 | ---- | ---: | ---: | ---: | --- |
-| `data/remote/ftp/FtpClient.kt` | 1 603 | 1 177 | −426 | `FtpStandaloneOperations` (stateless test/upload/delete/rename/createDirectory/exists/readFileBytes/downloadFile/openInputStream/ensureRemoteDirectoryExists — every call opens a fresh FTPClient and disconnects, so thread-safety is a non-issue); also collapsed single-line KDoc to comments |
+| `data/remote/ftp/FtpClient.kt` | 1 603 | 905 | −698 | `FtpStandaloneOperations` (stateless test/upload/delete/rename/createDirectory/exists/readFileBytes/downloadFile/openInputStream/ensureRemoteDirectoryExists), `FtpDirectoryScanner` (single-level, recursive, recursive-paged with passive→active mode fallback), `FtpExoPlayerPool` (per-DataSource client + semaphore-capped concurrency + idle pool sweep, plus the FtpConnectionInfo / ExoPlayerFtpConnection data classes); also collapsed single-line KDoc to comments |
 
-**Still over the 1000 cap (1 177 LOC).** Remaining surface: ExoPlayer connection pool (getConnectionForExoPlayer/releaseExoPlayerConnection/cleanupIdleFtpConnections) + the in-class single-FTPClient transfer/scan methods (listFiles*, readFileBytes, downloadFile, uploadFile, etc.). Needs `FtpConnectionPool` extraction in a follow-up wave (mirrors the deferred Sftp refactor).
+`FtpClient.kt` is now under the 1000-line hard cap. External call sites in `FtpDataSource` and `NetworkMediaDataSource` were updated to use `FtpExoPlayerPool.FtpConnectionInfo` / `FtpExoPlayerPool.ExoPlayerFtpConnection` instead of the old nested types.
 
 ---
 
