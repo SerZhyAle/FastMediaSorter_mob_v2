@@ -74,6 +74,14 @@
 
 `DropboxClient.kt` is now under the 1000-line hard cap.
 
+**Wave 12 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/StandalonePlayerActivity.kt` | 1 129 | 845 | −284 | `StandaloneFileOperationsHandler` (delete: file/SAF/MediaStore R+/Q-recoverable; share via FileProvider; Open-in-FMS reverse routing; SAF+MediaStore rename) |
+
+`StandalonePlayerActivity.kt` is now under the 1000-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
