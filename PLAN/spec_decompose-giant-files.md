@@ -146,6 +146,14 @@
 
 **Still over the 1000 cap (1 386 LOC).** Auth flow (`silentSignIn`, `getAccessToken`, `handleSignInResult`, `ensureTokenFresh`, etc.) + `makeAuthenticatedRequest` 401-retry recursion need `GoogleDriveAuthCoordinator` extraction in a follow-up wave (mirrors the OneDrive pattern).
 
+**Wave 21 result (partial):**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/cloud/GoogleDriveRestClient.kt` | 1 452 | 1 102 | −350 | `GoogleDriveAuthCoordinator` (owns accessToken + accountEmail + tokenTimestamp; buildSignInOptions / authenticate / silentSignIn / handleSignInResult / getAccessToken / ensureTokenFresh / makeAuthenticatedRequest with 401 silent-refresh recursion / initializeFromStored / clearAuth) |
+
+**Still over the 1000 cap (1 102 LOC).** Remaining surface is the long tail of CloudStorageClient methods (listFiles/listFolders/getFileMetadata/downloadFile/uploadFile/createFolder/deleteFile/renameFile/moveFile/copyFile/fileExists/searchFiles/findFolderByName/ensureFolderExists/getThumbnail/signOut/getFileInputStreamInternal). Each follows the same `withContext + token-guard + URL + makeAuthenticatedRequest + JSON parse` pattern — a `GoogleDriveOperations` extraction would route them through the coordinator and bring the file under the cap. Deferred.
+
 **Wave 19 result:**
 
 | File | Before | After | Δ | Helpers introduced |

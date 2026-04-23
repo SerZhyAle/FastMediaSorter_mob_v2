@@ -4,13 +4,9 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
 import android.content.Intent
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
-import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.Scope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
@@ -30,10 +26,8 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.google.android.gms.tasks.Tasks
 
 /**
  * Google Drive implementation of CloudStorageClient using REST API v3
@@ -63,31 +57,22 @@ class GoogleDriveRestClient @Inject constructor(
     
     override val provider = CloudProvider.GOOGLE_DRIVE
     
-    private var accessToken: String? = null
-    private var accountEmail: String? = null
-    private var tokenTimestamp: Long = 0L  // Track when token was obtained
+    private val auth = GoogleDriveAuthCoordinator(context, credentialsManager, httpClient, networkCredentialsRepository)
 
-    override fun isAuthenticated(): Boolean = accessToken != null
+    override fun isAuthenticated(): Boolean = auth.isAuthenticated()
 
-    /** Returns the email of the currently authenticated account, or null if not authenticated. */
-    fun getAccountEmail(): String? = accountEmail
-    
+    fun getAccountEmail(): String? = auth.accountEmail
+
     companion object {
         private const val DRIVE_API_BASE = "https://www.googleapis.com/drive/v3"
         private const val DRIVE_UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3"
-        private const val SCOPE_DRIVE = "https://www.googleapis.com/auth/drive"
-        private const val SCOPE_DRIVE_READONLY = "https://www.googleapis.com/auth/drive.readonly"
         private const val GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke"
-        
-        // MIME types
         private const val MIME_TYPE_FOLDER = "application/vnd.google-apps.folder"
-        
         private const val PAGE_SIZE = 100
-        
-        // Token management
-        private const val TOKEN_REFRESH_THRESHOLD_MS = 50 * 60 * 1000L  // 50 minutes
+        // 401-retry constants used by the streaming-input path; auth coordinator owns the same
+        // values for its own retry loop.
         private const val TOKEN_MAX_RETRY_ATTEMPTS = 3
-        private const val TOKEN_RETRY_DELAY_MS = 2000L  // 2 seconds between retries
+        private const val TOKEN_RETRY_DELAY_MS = 2000L
     }
 
     /**
@@ -128,13 +113,13 @@ class GoogleDriveRestClient @Inject constructor(
      */
     suspend fun tryRestoreForAccount(email: String): Boolean {
         // Already authenticated with the correct account
-        if (isAuthenticated() && accountEmail == email) return true
+        if (isAuthenticated() && auth.accountEmail == email) return true
 
         // Try per-account stored credentials
         val perAccountStored = credentialsManager.loadStoredCredentials(email)
         if (perAccountStored != null) {
             if (initialize(perAccountStored)) {
-                Timber.d("Google Drive client restored for account: $email (current: $accountEmail)")
+                Timber.d("Google Drive client restored for account: $email (current: ${auth.accountEmail})")
                 return true
             }
         }
@@ -143,18 +128,7 @@ class GoogleDriveRestClient @Inject constructor(
         return tryRestoreFromStorage()
     }
 
-    /**
-     * Get Google Sign-In options
-     * Uses Web Client ID from Google Cloud Console for ID token
-     */
-    fun getSignInOptions(): GoogleSignInOptions {
-        return GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestIdToken(context.getString(R.string.google_web_client_id))
-            .requestScopes(Scope(SCOPE_DRIVE))
-            .requestScopes(Scope(SCOPE_DRIVE_READONLY))
-            .build()
-    }
+    fun getSignInOptions(): GoogleSignInOptions = auth.buildSignInOptions(R.string.google_web_client_id)
     
     // Get sign-in intent for launching from Activity
     fun getSignInIntent(): Intent {
@@ -163,242 +137,25 @@ class GoogleDriveRestClient @Inject constructor(
         return client.signInIntent
     }
     
-    /**
-     * Start Google Sign-In authentication flow
-     * Must be called from Activity context
-     * 
-     * @throws com.google.android.gms.auth.UserRecoverableAuthException if user consent is required
-     */
-    override suspend fun authenticate(): AuthResult {
-        return withContext(Dispatchers.Main) {
-            try {
-                // Try silent sign-in first
-                val silentResult = silentSignIn()
-                if (silentResult is AuthResult.Success) {
-                    return@withContext silentResult
-                }
-                
-                // Fallback to existing logic if silent sign-in fails
-                val account = GoogleSignIn.getLastSignedInAccount(context)
-                
-                if (account != null) {
-                    // Try to get OAuth token with current scopes
-                    // GoogleAuthUtil will automatically request additional permissions if needed
-                    val token = getAccessToken(account)
-                    if (token != null) {
-                        accessToken = token
-                        tokenTimestamp = System.currentTimeMillis()
-                        accountEmail = account.email
-                        return@withContext AuthResult.Success(
-                            accountName = accountEmail ?: "Unknown",
-                            credentialsJson = credentialsManager.serializeAccount(account)
-                        )
-                    }
-                }
-                
-                // Need interactive authentication - must be initiated from Activity via AddResourceActivity
-                AuthResult.Error("Re-authentication required. Please re-add this Google Drive resource.")
-            } catch (e: com.google.android.gms.auth.UserRecoverableAuthException) {
-                // Re-throw UserRecoverableAuthException so caller can handle interactive auth
-                Timber.e(e, "Google Drive authentication failed")
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "Google Drive authentication failed")
-                AuthResult.Error("Authentication failed: ${e.message}")
-            }
-        }
-    }
+    override suspend fun authenticate(): AuthResult = auth.authenticate(R.string.google_web_client_id)
 
-    // Attempt silent sign-in to refresh credentials
-    private suspend fun silentSignIn(): AuthResult {
-        return withContext(Dispatchers.IO) {
-            try {
-                val signInOptions = getSignInOptions()
-                val client = GoogleSignIn.getClient(context, signInOptions)
-                
-                // silentSignIn returns Task<GoogleSignInAccount>
-                val task = client.silentSignIn()
-                
-                // Wait for task to complete synchronously
-                val account = com.google.android.gms.tasks.Tasks.await(task)
-                
-                if (account != null) {
-                    val token = getAccessToken(account, forceRefresh = true)
-                    if (token != null) {
-                        accessToken = token
-                        tokenTimestamp = System.currentTimeMillis()
-                        accountEmail = account.email
-                        Timber.i("Silent sign-in successful")
-                        return@withContext AuthResult.Success(
-                            accountName = accountEmail ?: "Unknown",
-                            credentialsJson = credentialsManager.serializeAccount(account)
-                        )
-                    }
-                }
-                AuthResult.Error("Silent sign-in failed: No account or token")
-            } catch (e: Exception) {
-                Timber.w("Silent sign-in failed: ${e.message}")
-                AuthResult.Error("Silent sign-in failed: ${e.message}")
-            }
-        }
-    }
+    private suspend fun silentSignIn(): AuthResult = auth.silentSignIn(R.string.google_web_client_id)
+
+    suspend fun handleSignInResult(account: GoogleSignInAccount?): AuthResult =
+        auth.handleSignInResult(account)
+
+    private suspend fun getAccessToken(account: GoogleSignInAccount, forceRefresh: Boolean = false): String? =
+        auth.getAccessToken(account, forceRefresh)
+
+    private suspend fun ensureTokenFresh() = auth.ensureTokenFresh(R.string.google_web_client_id)
     
-    // Handle sign-in result from Activity
-    suspend fun handleSignInResult(account: GoogleSignInAccount?): AuthResult {
-        return if (account != null) {
-            val token = getAccessToken(account)
-            if (token != null) {
-                accessToken = token
-                tokenTimestamp = System.currentTimeMillis()
-                accountEmail = account.email
-                val credentials = credentialsManager.serializeAccount(account)
-                // Save to encrypted storage for automatic restoration (both legacy and per-account key)
-                credentialsManager.saveCredentials(credentials, account.email)
-                
-                // Make sure this account is registered in NetworkCredentialsEntity for multi-account picker
-                account.email?.let { email ->
-                    val existing = networkCredentialsRepository.getByTypeAndAccountId(CloudProvider.GOOGLE_DRIVE.name, email)
-                    if (existing == null) {
-                        val entity = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(
-                            credentialId = UUID.randomUUID().toString(),
-                            type = CloudProvider.GOOGLE_DRIVE.name,
-                            server = "",
-                            port = 0,
-                            username = email,
-                            plaintextPassword = "", // Drive uses its own credentialsManager for the actual token, so leave empty
-                            accountId = email
-                        )
-                        networkCredentialsRepository.insert(entity)
-                        Timber.d("Registered Google Drive account in database: $email")
-                    }
-                }
-                
-                AuthResult.Success(
-                    accountName = accountEmail ?: "Unknown",
-                    credentialsJson = credentials
-                )
-            } else {
-                AuthResult.Error("Failed to get access token")
-            }
-        } else {
-            AuthResult.Error("Sign-in failed or cancelled")
-        }
-    }
-    
-    /**
-     * Get OAuth access token from signed-in account
-     * Uses GoogleAuthUtil to get a proper access token for Drive API
-     * ID token cannot be used directly with Drive REST API
-     * 
-     * @param account The Google Sign-In account
-     * @param forceRefresh If true, clears cached token before requesting new one
-     */
-    private suspend fun getAccessToken(account: GoogleSignInAccount, forceRefresh: Boolean = false): String? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val scope = "oauth2:$SCOPE_DRIVE $SCOPE_DRIVE_READONLY"
-                Timber.d("Requesting access token with scope: $scope (forceRefresh=$forceRefresh)")
-                
-                // Clear any cached token if forceRefresh or if we already have a token
-                // This is important when scope changes (e.g., from drive.file to drive)
-                if (forceRefresh || accessToken != null) {
-                    try {
-                        val currentToken = accessToken
-                        if (currentToken != null) {
-                            Timber.d("Clearing cached token")
-                            GoogleAuthUtil.clearToken(context, currentToken)
-                        }
-                    } catch (e: Exception) {
-                        Timber.d("No cached token to clear or clearToken failed: ${e.message}")
-                    }
-                }
-                
-                // GoogleAuthUtil returns proper OAuth2 access token for Drive API
-                val token = GoogleAuthUtil.getToken(context, account.account!!, scope)
-                Timber.i("Successfully obtained access token")
-                token
-            } catch (e: com.google.android.gms.auth.UserRecoverableAuthException) {
-                // Re-throw UserRecoverableAuthException so caller can handle interactive auth
-                Timber.e(e, "Failed to get access token: ${e.javaClass.simpleName} - ${e.message}")
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to get access token: ${e.javaClass.simpleName} - ${e.message}")
-                null
-            }
-        }
-    }
-    
-    // Check if current token should be refreshed based on age
-    private fun shouldRefreshToken(): Boolean {
-        if (tokenTimestamp == 0L) return false
-        val age = System.currentTimeMillis() - tokenTimestamp
-        return age > TOKEN_REFRESH_THRESHOLD_MS
-    }
-    
-    // Proactively refresh token if it's old to prevent expiration during operation
-    private suspend fun ensureTokenFresh() {
-        if (shouldRefreshToken()) {
-            Timber.d("Token is old (>50 min), proactively refreshing...")
-            silentSignIn()
-        }
-    }
-    
-    // Check if account has required Drive permissions
-    private fun hasRequiredPermissions(account: GoogleSignInAccount): Boolean {
-        val grantedScopes = account.grantedScopes
-        val requiredScope = Scope(SCOPE_DRIVE)
-        return grantedScopes.contains(requiredScope)
-    }
-    
-    override suspend fun initialize(credentialsJson: String): Boolean {
-        return try {
-            // First, try silent sign-in which should restore the session
-            val silentResult = silentSignIn()
-            if (silentResult is AuthResult.Success) {
-                Timber.d("Initialized Google Drive via silent sign-in")
-                return true
-            }
-            
-            // Fallback: check if there's a signed-in account
-            val account = withContext(Dispatchers.Main) {
-                GoogleSignIn.getLastSignedInAccount(context)
-            }
-            
-            if (account != null) {
-                val email = credentialsManager.deserializeAccount(credentialsJson)
-                if (account.email == email) {
-                    // Get fresh token
-                    val token = getAccessToken(account)
-                    if (token != null) {
-                        accessToken = token
-                        tokenTimestamp = System.currentTimeMillis()
-                        accountEmail = account.email
-                        // Save to encrypted storage for future automatic restoration (per-account key too)
-                        credentialsManager.saveCredentials(credentialsJson, account.email)
-                        Timber.d("Initialized Google Drive for account: $email")
-                        true
-                    } else {
-                        Timber.w("Failed to get access token for account: $email")
-                        false
-                    }
-                } else {
-                    Timber.w("Stored account ($email) doesn't match current account (${account.email})")
-                    false
-                }
-            } else {
-                Timber.w("No account signed in, cannot initialize")
-                false
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to initialize Google Drive client")
-            false
-        }
-    }
+    override suspend fun initialize(credentialsJson: String): Boolean =
+        auth.initializeFromStored(credentialsJson, R.string.google_web_client_id)
     
     override suspend fun testConnection(): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val url = URL("$DRIVE_API_BASE/about?fields=user")
                 val response = makeAuthenticatedRequest(url, "GET", token)
@@ -424,7 +181,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Proactively refresh token if old
                 ensureTokenFresh()
                 
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val query = if (folderId != null) {
                     "'$folderId' in parents and trashed = false"
@@ -470,7 +227,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun listFolders(parentFolderId: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val parentQuery = if (parentFolderId != null) {
                     "'$parentFolderId' in parents"
@@ -514,7 +271,7 @@ class GoogleDriveRestClient @Inject constructor(
                     fileId
                 }
 
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val fields = URLEncoder.encode("id, name, mimeType, size, modifiedTime, thumbnailLink, webViewLink, parents", "UTF-8")
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId?fields=$fields")
@@ -549,7 +306,7 @@ class GoogleDriveRestClient @Inject constructor(
     private suspend fun resolveFileIdFromName(fileName: String, parentFolderId: String?): CloudResult<String> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
@@ -660,7 +417,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated - token missing. Please re-authenticate.")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated - token missing. Please re-authenticate.")
                 
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
@@ -731,7 +488,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated - token missing. Please re-authenticate.")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated - token missing. Please re-authenticate.")
                 
                 val resolvedParentId = resolveFolderId(parentFolderId)
                 
@@ -809,7 +566,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val resolvedParentId = resolveFolderId(parentFolderId)
                 
@@ -846,7 +603,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun deleteFile(fileId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
@@ -872,7 +629,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun renameFile(fileId: String, newName: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val requestBody = JSONObject().apply {
                     put("name", newName)
@@ -909,7 +666,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun moveFile(fileId: String, newParentId: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 // Get current parents
                 val metadataResult = getFileMetadata(fileId)
@@ -956,7 +713,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val requestBody = JSONObject().apply {
                     put("parents", JSONArray().put(newParentId))
@@ -987,7 +744,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun fileExists(fileName: String, parentId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 // Escape backslash and single quote per Drive API query language spec
                 val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
@@ -1017,7 +774,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun searchFiles(query: String, mimeType: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val searchQuery = buildString {
                     append("name contains '$query' and trashed = false")
@@ -1059,7 +816,7 @@ class GoogleDriveRestClient @Inject constructor(
     suspend fun findFolderByName(folderName: String, parentFolderId: String? = null): CloudResult<CloudFile?> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
@@ -1146,7 +903,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun getThumbnail(fileId: String, size: Int): CloudResult<InputStream> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
                 // Get thumbnail link from metadata
                 val metadataResult = getFileMetadata(fileId)
@@ -1192,7 +949,7 @@ class GoogleDriveRestClient @Inject constructor(
     
     override suspend fun signOut(): CloudResult<Boolean> {
         // Capture token before clearing — revoke call happens off-Main
-        val tokenToRevoke = accessToken
+        val tokenToRevoke = auth.captureToken()
 
         // Local sign-out on Main thread; capture any failure to return early
         var signOutError: CloudResult.Error? = null
@@ -1200,8 +957,7 @@ class GoogleDriveRestClient @Inject constructor(
             try {
                 val signInClient = GoogleSignIn.getClient(context, getSignInOptions())
                 signInClient.signOut()
-                accessToken = null
-                accountEmail = null
+                auth.clearAuth()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign out")
                 signOutError = CloudResult.Error("Sign-out failed: ${e.message}", e)
@@ -1329,54 +1085,14 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
     
-    // Make authenticated HTTP request to Drive API with auto-retry on 401
     private suspend fun makeAuthenticatedRequest(
         url: URL,
         method: String,
         token: String,
         body: String? = null,
         retryCount: Int = 0
-    ): GoogleDriveHttpClient.ApiResponse {
-        // First attempt
-        val response = httpClient.makeAuthenticatedRequest(url, method, token, body)
-        
-        // Handle 401 Unauthorized - Token expired
-        if (response.httpCode == 401 && retryCount < TOKEN_MAX_RETRY_ATTEMPTS) {
-            Timber.w("Received 401 Unauthorized (attempt ${retryCount + 1}/$TOKEN_MAX_RETRY_ATTEMPTS). Attempting silent sign-in and retry...")
-            
-            // Delay before retry to avoid hammering server
-            if (retryCount > 0) {
-                delay(TOKEN_RETRY_DELAY_MS)
-            }
-            
-            val authResult = silentSignIn()
-            if (authResult is AuthResult.Success) {
-                val newToken = accessToken
-                if (newToken != null) {
-                    Timber.i("Silent sign-in successful. Retrying request (attempt ${retryCount + 2})...")
-                    return makeAuthenticatedRequest(url, method, newToken, body, retryCount + 1)
-                }
-            }
-            
-            // If not last retry, try again
-            if (retryCount < TOKEN_MAX_RETRY_ATTEMPTS - 1) {
-                Timber.w("Silent sign-in failed, but will retry again...")
-                delay(TOKEN_RETRY_DELAY_MS)
-                return makeAuthenticatedRequest(url, method, token, body, retryCount + 1)
-            }
-            
-            Timber.e("All retry attempts exhausted ($TOKEN_MAX_RETRY_ATTEMPTS attempts). Returning 401 with detailed error.")
-            // Return more informative error for UI
-            return GoogleDriveHttpClient.ApiResponse(
-                isSuccess = false,
-                httpCode = 401,
-                data = null,
-                errorMessage = "Authentication expired after $TOKEN_MAX_RETRY_ATTEMPTS retry attempts. Token invalid or revoked. Please re-authenticate in Settings → Edit Resource."
-            )
-        }
-        
-        return response
-    }
+    ): GoogleDriveHttpClient.ApiResponse =
+        auth.makeAuthenticatedRequest(url, method, token, R.string.google_web_client_id, body, retryCount)
     
     private fun parseItems(items: JSONArray, parentPath: String): List<CloudFile> =
         GoogleDriveRestClientUtils.parseItems(items, parentPath)

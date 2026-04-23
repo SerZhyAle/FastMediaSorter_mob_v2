@@ -1,6 +1,6 @@
 # Catalogue: app_v2
 
-_Generated: 2026-04-23 22:07 · 759 classes_
+_Generated: 2026-04-23 22:27 · 761 classes_
 
 Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — edit JSONL, then re-render.
 
@@ -9,7 +9,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | Layer | Files | Total LOC |
 |-------|------:|----------:|
 | core | 46 | 7065 |
-| data | 160 | 40093 |
+| data | 162 | 40146 |
 | di | 9 | 903 |
 | domain | 135 | 17253 |
 | other | 1 | 493 |
@@ -86,15 +86,17 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/cloud/glide/CloudThumbnailModelLoader.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/glide/CloudThumbnailModelLoader.kt) | `CloudThumbnailEntryPoint` | data | 406 | 2026-03-08 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/glide/GoogleDriveThumbnailData.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/glide/GoogleDriveThumbnailData.kt) | `GoogleDriveThumbnailData` | data | 40 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/glide/GoogleDriveThumbnailModelLoader.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/glide/GoogleDriveThumbnailModelLoader.kt) | `GoogleDriveThumbnailModelLoader` | data | 249 | 2026-03-08 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt) | `GoogleDriveAuthCoordinator` | data | 315 | — | new | Owns Google Sign-In state (accessToken + accountEmail + tokenTimestamp), silent + interactive sign-in via GoogleAuthUtil, proactive refresh, and Drive HTTP requests with 401 silent-refresh retry. |
 | [com/sza/fastmediasorter/data/cloud/GoogleDriveAuthPlugin.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthPlugin.kt) | `GoogleDriveAuthPlugin` | data | 164 | 2026-03-20 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt) | `GoogleDriveRestClient` | data | 1387 | 2026-04-23 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt) | `GoogleDriveRestClient` | data | 1103 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/GoogleDriveRestClientUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClientUtils.kt) | `GoogleDriveRestClientUtils` | data | 57 | 2026-04-23 | new | Drive files.list JSON to CloudFile mapping with RFC 3339 modifiedTime parsing and thumbnail extraction. |
 | [com/sza/fastmediasorter/data/cloud/helpers/GoogleDriveCredentialsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/helpers/GoogleDriveCredentialsManager.kt) | `GoogleDriveCredentialsManager` | data | 143 | 2026-03-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/helpers/GoogleDriveHttpClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/helpers/GoogleDriveHttpClient.kt) | `GoogleDriveHttpClient` | data | 199 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/InteractiveCloudAuthenticator.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/InteractiveCloudAuthenticator.kt) | `InteractiveCloudAuthenticator` | data | 50 | 2026-03-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/NetworkCredentialsResolver.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/NetworkCredentialsResolver.kt) | `NetworkCredentialsResolver` | data | 292 | 2026-03-01 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/cloud/OneDriveAuthCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveAuthCoordinator.kt) | `OneDriveAuthCoordinator` | data | 475 | 2026-04-23 | new | Owns MSAL state (msalApp + accessToken + accountEmail + tokenTimestamp), interactive/silent sign-in with declined-scope recovery, proactive token refresh, and Graph HTTP requests with 401 silent-refresh retry. |
 | [com/sza/fastmediasorter/data/cloud/OneDriveAuthPlugin.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveAuthPlugin.kt) | `OneDriveAuthPlugin` | data | 83 | 2026-03-02 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt) | `OneDriveRestClient` | data | 1350 | 2026-04-23 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt) | `OneDriveRestClient` | data | 897 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/OneDriveRestClientUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClientUtils.kt) | `OneDriveRestClientUtils` | data | 101 | 2026-04-23 | new | MSAL account JSON serialize/deserialize, cloud://onedrive/ reference normalization, Graph DriveItem to CloudFile mapping. |
 | [com/sza/fastmediasorter/data/cloud/UnifiedCloudAuthManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/UnifiedCloudAuthManager.kt) | `UnifiedCloudAuthManager` | data | 160 | 2026-03-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/common/MediaTypeUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/common/MediaTypeUtils.kt) | `MediaTypeUtils` | data | 128 | 2026-03-09 | unknown | _—_ |
@@ -2011,6 +2013,31 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 - `getDataClass` — _(unfilled)_
 - `getDataSource` — _(unfilled)_
 
+### `GoogleDriveAuthCoordinator` — [com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt)
+
+**Layer:** data · **LOC:** 315 · **Last:** — · **Status:** new · **NoFlavors:** —
+
+**Injected:** —  
+**Side effects:** —  
+**Flags:** coroutines · timber
+
+**Role:** Owns Google Sign-In state (accessToken + accountEmail + tokenTimestamp), silent + interactive sign-in via GoogleAuthUtil, proactive refresh, and Drive HTTP requests with 401 silent-refresh retry.
+
+**Functions:**
+
+- `isAuthenticated` — _(unfilled)_
+- `captureToken` — _(unfilled)_
+- `clearAuth` — _(unfilled)_
+- `buildSignInOptions` — _(unfilled)_
+- `authenticate` — _(unfilled)_
+- `silentSignIn` — _(unfilled)_
+- `handleSignInResult` — _(unfilled)_
+- `getAccessToken` — _(unfilled)_
+- `shouldRefreshToken` — _(unfilled)_
+- `ensureTokenFresh` — _(unfilled)_
+- `initializeFromStored` — _(unfilled)_
+- `makeAuthenticatedRequest` — _(unfilled)_
+
 ### `GoogleDriveAuthPlugin` — [com/sza/fastmediasorter/data/cloud/GoogleDriveAuthPlugin.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthPlugin.kt)
 
 **Layer:** data · **LOC:** 164 · **Last:** 2026-03-20 · **Status:** unknown · **NoFlavors:** —
@@ -2032,7 +2059,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GoogleDriveRestClient` — [com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt)
 
-**Layer:** data · **LOC:** 1387 · **Last:** 2026-04-23 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 1103 · **Last:** 2026-04-23 · **Status:** unknown · **NoFlavors:** —
 
 **Injected:** ApplicationContext, Context, GoogleDriveCredentialsManager, GoogleDriveHttpClient, PendingRevocationDao, NetworkCredentialsRepository  
 **Side effects:** network, disk  
@@ -2052,9 +2079,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 - `silentSignIn` — _(unfilled)_
 - `handleSignInResult` — _(unfilled)_
 - `getAccessToken` — _(unfilled)_
-- `shouldRefreshToken` — _(unfilled)_
 - `ensureTokenFresh` — _(unfilled)_
-- `hasRequiredPermissions` — _(unfilled)_
 - `initialize` — _(unfilled)_
 - `testConnection` — _(unfilled)_
 - `listFiles` — _(unfilled)_
@@ -2173,36 +2198,24 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 - `pickBestValidCandidate` — _(unfilled)_
 - `isCredentialUsable` — _(unfilled)_
 
-### `OneDriveAuthPlugin` — [com/sza/fastmediasorter/data/cloud/OneDriveAuthPlugin.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveAuthPlugin.kt)
+### `OneDriveAuthCoordinator` — [com/sza/fastmediasorter/data/cloud/OneDriveAuthCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveAuthCoordinator.kt)
 
-**Layer:** data · **LOC:** 83 · **Last:** 2026-03-02 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 475 · **Last:** 2026-04-23 · **Status:** new · **NoFlavors:** —
 
-**Injected:** OneDriveRestClient  
-**Side effects:** —  
-**Flags:** coroutines · timber
-
-**Role:** _(unfilled)_
-
-**Functions:**
-
-- `startInteractiveSignIn` — _(unfilled)_
-- `consumeImmediateResult` — _(unfilled)_
-- `processIntentResult` — _(unfilled)_
-- `handleResume` — _(unfilled)_
-
-### `OneDriveRestClient` — [com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt)
-
-**Layer:** data · **LOC:** 1350 · **Last:** 2026-04-23 · **Status:** unknown · **NoFlavors:** —
-
-**Injected:** ApplicationContext, Context, PendingRevocationDao, NetworkCredentialsRepository, CoroutineScope  
+**Injected:** —  
 **Side effects:** network, disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Owns MSAL state (msalApp + accessToken + accountEmail + tokenTimestamp), interactive/silent sign-in with declined-scope recovery, proactive token refresh, and Graph HTTP requests with 401 silent-refresh retry.
 
 **Functions:**
 
 - `isAuthenticated` — _(unfilled)_
+- `clearAuth` — _(unfilled)_
+- `captureToken` — _(unfilled)_
+- `signOutLocal` — _(unfilled)_
+- `onSignOut` — _(unfilled)_
+- `onError` — _(unfilled)_
 - `initializeMsal` — _(unfilled)_
 - `onCreated` — _(unfilled)_
 - `onError` — _(unfilled)_
@@ -2223,9 +2236,47 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 - `onSuccess` — _(unfilled)_
 - `onError` — _(unfilled)_
 - `handleAuthenticationResult` — _(unfilled)_
+- `initializeFromStored` — _(unfilled)_
+- `shouldRefreshToken` — _(unfilled)_
+- `ensureTokenFresh` — _(unfilled)_
+- `makeAuthenticatedRequest` — _(unfilled)_
+
+### `OneDriveAuthPlugin` — [com/sza/fastmediasorter/data/cloud/OneDriveAuthPlugin.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveAuthPlugin.kt)
+
+**Layer:** data · **LOC:** 83 · **Last:** 2026-03-02 · **Status:** unknown · **NoFlavors:** —
+
+**Injected:** OneDriveRestClient  
+**Side effects:** —  
+**Flags:** coroutines · timber
+
+**Role:** _(unfilled)_
+
+**Functions:**
+
+- `startInteractiveSignIn` — _(unfilled)_
+- `consumeImmediateResult` — _(unfilled)_
+- `processIntentResult` — _(unfilled)_
+- `handleResume` — _(unfilled)_
+
+### `OneDriveRestClient` — [com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt)
+
+**Layer:** data · **LOC:** 897 · **Last:** 2026-04-23 · **Status:** unknown · **NoFlavors:** —
+
+**Injected:** ApplicationContext, Context, PendingRevocationDao, NetworkCredentialsRepository, CoroutineScope  
+**Side effects:** network  
+**Flags:** coroutines · timber
+
+**Role:** _(unfilled)_
+
+**Functions:**
+
+- `isAuthenticated` — _(unfilled)_
+- `initializeMsal` — _(unfilled)_
+- `authenticate` — _(unfilled)_
+- `signIn` — _(unfilled)_
+- `handleAuthenticationResult` — _(unfilled)_
 - `serializeAccount` — _(unfilled)_
 - `deserializeAccount` — _(unfilled)_
-- `shouldRefreshToken` — _(unfilled)_
 - `ensureTokenFresh` — _(unfilled)_
 - `initialize` — _(unfilled)_
 - `testConnection` — _(unfilled)_
@@ -2250,8 +2301,6 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 - `getThumbnail` — _(unfilled)_
 - `getFileInputStream` — _(unfilled)_
 - `signOut` — _(unfilled)_
-- `onSignOut` — _(unfilled)_
-- `onError` — _(unfilled)_
 - `makeAuthenticatedRequest` — _(unfilled)_
 - `parseItems` — _(unfilled)_
 - `parseItem` — _(unfilled)_

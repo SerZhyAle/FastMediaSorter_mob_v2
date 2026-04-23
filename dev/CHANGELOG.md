@@ -3447,3 +3447,5 @@ Format: | datetime | file | target | description |
 | 2026-04-23 21:45:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `FtpClient` | Wave 19 (full): also extracted FtpDirectoryScanner + FtpExoPlayerPool (1603 -> 905 LOC, under cap) |
 | 2026-04-23 21:51:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `SftpClient` | Wave 20: extracted SftpConnectionPool (1155 -> 627 LOC, well under cap) |
 | 2026-04-23 22:08:58 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Wave 16 (full): extracted OneDriveAuthCoordinator (1349 -> 896 LOC, under cap) |
+| 2026-04-23 22:11:20 | `PLAN/spec_standalone-vs-inapp-player-parity.md` | `spec` | Pivot spec to full unification: one player pipeline for portrait/landscape/standalone; delete 8 Standalone* classes; standalone becomes thin URI-resolving adapter |
+| 2026-04-23 22:27:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Wave 21 (partial): extracted GoogleDriveAuthCoordinator (1452 -> 1102 LOC; still over cap) |
