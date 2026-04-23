@@ -169,9 +169,7 @@ class SftpClient @Inject constructor() {
         }
     }
     
-    /**
-     * Get or create a channel from the session's channel pool
-     */
+    // Get or create a channel from the session's channel pool
     private suspend fun getOrCreateChannel(pooled: PooledConnection, info: SftpConnectionInfo): Pair<ChannelSftp, Mutex> {
         return pooled.sessionMutex.withLock {
             // Find an available connected channel
@@ -200,9 +198,7 @@ class SftpClient @Inject constructor() {
         }
     }
     
-    /**
-     * Remove a failed channel from the pool
-     */
+    // Remove a failed channel from the pool
     @Suppress("UNUSED_PARAMETER")
     private suspend fun removeChannel(pooled: PooledConnection, channel: ChannelSftp, mutex: Mutex) {
         pooled.sessionMutex.withLock {
@@ -539,9 +535,7 @@ class SftpClient @Inject constructor() {
         }
     }
     
-    /**
-     * List files in single directory level (non-recursive)
-     */
+    // List files in single directory level (non-recursive)
     private fun listFilesSingleLevel(
         channel: ChannelSftp,
         remotePath: String,
@@ -566,9 +560,7 @@ class SftpClient @Inject constructor() {
         }
     }
     
-    /**
-     * List files recursively in all subdirectories
-     */
+    // List files recursively in all subdirectories
     private fun listFilesRecursive(
         channel: ChannelSftp,
         remotePath: String,
@@ -596,9 +588,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Read file bytes from SFTP server
-     */
+    // Read file bytes from SFTP server
     suspend fun readFileBytes(
         connectionInfo: SftpConnectionInfo,
         remotePath: String,
@@ -769,9 +759,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Download file from SFTP server to OutputStream
-     */
+    // Download file from SFTP server to OutputStream
     suspend fun downloadFile(
         connectionInfo: SftpConnectionInfo,
         remotePath: String,
@@ -840,9 +828,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Upload file to SFTP server from byte array
-     */
+    // Upload file to SFTP server from byte array
     suspend fun uploadFile(
         connectionInfo: SftpConnectionInfo,
         remotePath: String,
@@ -865,9 +851,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Upload file to SFTP server from InputStream
-     */
+    // Upload file to SFTP server from InputStream
     suspend fun uploadFile(
         connectionInfo: SftpConnectionInfo,
         remotePath: String,
@@ -897,9 +881,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Get file attributes
-     */
+    // Get file attributes
     suspend fun stat(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
@@ -919,9 +901,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Check if path exists
-     */
+    // Check if path exists
     suspend fun exists(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
@@ -943,9 +923,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Create directory
-     */
+    // Create directory
     suspend fun mkdir(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
@@ -959,9 +937,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Delete file
-     */
+    // Delete file
     suspend fun deleteFile(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
@@ -975,9 +951,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Delete directory recursively
-     */
+    // Delete directory recursively
     suspend fun deleteDirectory(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
@@ -1009,9 +983,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Rename/move file or directory
-     */
+    // Rename/move file or directory
     suspend fun rename(
         connectionInfo: SftpConnectionInfo,
         oldPath: String,
@@ -1026,9 +998,7 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Rename file (convenience method)
-     */
+    // Rename file (convenience method)
     suspend fun renameFile(
         connectionInfo: SftpConnectionInfo,
         oldPath: String,
@@ -1047,9 +1017,7 @@ class SftpClient @Inject constructor() {
     suspend fun createDirectory(connectionInfo: SftpConnectionInfo, remotePath: String) = mkdir(connectionInfo, remotePath)
     suspend fun getFileAttributes(connectionInfo: SftpConnectionInfo, remotePath: String) = stat(connectionInfo, remotePath)
 
-    /**
-     * Disconnect all sessions (e.g. on app shutdown)
-     */
+    // Disconnect all sessions (e.g. on app shutdown)
     suspend fun disconnectAll() {
         poolMutex.lock()
         try {
@@ -1072,141 +1040,19 @@ class SftpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Test connection to SFTP server (stateless)
-     */
-    suspend fun testConnection(
-        host: String,
-        port: Int = 22,
-        username: String,
-        password: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        var testSession: Session? = null
-        var testChannel: ChannelSftp? = null
-        try {
-            val testJsch = JSch()
-            testSession = testJsch.getSession(username, host, port)
-            testSession.setPassword(password)
-            
-            testSession.userInfo = object : com.jcraft.jsch.UserInfo {
-                override fun getPassphrase(): String? = null
-                override fun getPassword(): String = password
-                override fun promptPassword(message: String?): Boolean = true
-                override fun promptPassphrase(message: String?): Boolean = false
-                override fun promptYesNo(message: String?): Boolean = true
-                override fun showMessage(message: String?) {}
-            }
-            
-            val config = java.util.Properties()
-            config["StrictHostKeyChecking"] = "no"
-            config["PreferredAuthentications"] = "keyboard-interactive,password"
-            testSession.setConfig(config)
-            
-            testSession.timeout = CONNECTION_TIMEOUT
-            testSession.connect(CONNECTION_TIMEOUT)
-            
-            testChannel = testSession.openChannel("sftp") as ChannelSftp
-            testChannel.connect(CONNECTION_TIMEOUT)
-            
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        } finally {
-            try {
-                testChannel?.disconnect()
-                testSession?.disconnect()
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
-    }
+    suspend fun testConnection(host: String, port: Int = 22, username: String, password: String): Result<Unit> =
+        SftpConnectionTester.testConnection(host, port, username, password)
 
-    /**
-     * Test connection with private key (stateless)
-     */
     suspend fun testConnectionWithPrivateKey(
         host: String,
         port: Int = 22,
         username: String,
         privateKey: String,
         passphrase: String? = null
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        var testSession: Session? = null
-        var testChannel: ChannelSftp? = null
-        try {
-            val testJsch = JSch()
-            if (passphrase != null) {
-                testJsch.addIdentity("test_key", privateKey.toByteArray(), null, passphrase.toByteArray())
-            } else {
-                testJsch.addIdentity("test_key", privateKey.toByteArray(), null, null)
-            }
-            
-            testSession = testJsch.getSession(username, host, port)
-            
-            if (passphrase != null) {
-                testSession.userInfo = object : com.jcraft.jsch.UserInfo {
-                    override fun getPassphrase(): String = passphrase
-                    override fun getPassword(): String? = null
-                    override fun promptPassword(message: String?): Boolean = false
-                    override fun promptPassphrase(message: String?): Boolean = true
-                    override fun promptYesNo(message: String?): Boolean = true
-                    override fun showMessage(message: String?) {}
-                }
-            }
-            
-            val config = java.util.Properties()
-            config["StrictHostKeyChecking"] = "no"
-            config["PreferredAuthentications"] = "publickey"
-            testSession.setConfig(config)
-            
-            testSession.timeout = CONNECTION_TIMEOUT
-            testSession.connect(CONNECTION_TIMEOUT)
-            
-            testChannel = testSession.openChannel("sftp") as ChannelSftp
-            testChannel.connect(CONNECTION_TIMEOUT)
-            
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        } finally {
-            try {
-                testChannel?.disconnect()
-                testSession?.disconnect()
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
-    }
-    
-    /**
-     * Ensure directory exists, create if missing (recursive)
-     */
-    private fun ensureDirectoryExists(channel: ChannelSftp, remotePath: String) {
-        try {
-            // Try to change to directory - if exists, this succeeds
-            channel.cd(remotePath)
-            return
-        } catch (e: Exception) {
-            // Directory doesn't exist - create parent first
-            val parent = remotePath.substringBeforeLast('/', "")
-            if (parent.isNotEmpty()) {
-                ensureDirectoryExists(channel, parent)
-            }
-            
-            // Create this directory
-            try {
-                channel.mkdir(remotePath)
-                Timber.d("Created SFTP directory: $remotePath")
-            } catch (mkdirEx: Exception) {
-                // Directory might exist now (race condition) - check
-                try {
-                    channel.cd(remotePath)
-                } catch (cdEx: Exception) {
-                    throw mkdirEx // Re-throw original mkdir exception
-                }
-            }
-        }
-    }
+    ): Result<Unit> = SftpConnectionTester.testConnectionWithPrivateKey(host, port, username, privateKey, passphrase)
+
+    private fun ensureDirectoryExists(channel: ChannelSftp, remotePath: String) =
+        SftpConnectionTester.ensureDirectoryExists(channel, remotePath)
 
     /**
      * Open InputStream for reading file from SFTP.
@@ -1304,8 +1150,6 @@ class SftpClient @Inject constructor() {
         }
     }
     
-    /**
-     * Create directory on SFTP server
-     */
+    // Create directory on SFTP server
 
 }

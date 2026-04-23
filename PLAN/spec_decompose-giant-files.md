@@ -98,6 +98,14 @@
 
 `SmbClient.kt` is now under the 1000-line hard cap.
 
+**Wave 15 result (partial — needs follow-up):**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/remote/sftp/SftpClient.kt` | 1 311 | 1 155 | −156 | `SftpConnectionTester` (stateless password + private-key connect tests, recursive `mkdir -p`); also collapsed single-line KDoc to comments |
+
+**Still over the 1000 cap (1 155 LOC).** Channel-pool methods (`getOrCreateConnection`, `getOrCreateChannel`, `removeChannel`, `invalidateConnection`, `cleanupIdleConnections`, `getConnectionForExoPlayer`, `releaseExoPlayerConnection`) share deep state (connectionPool, semaphore, exoPlayerPoolLock, PooledConnection, ConnectionKey) and need a dedicated `SftpConnectionPool` extraction in a follow-up wave.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
