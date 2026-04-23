@@ -80,6 +80,7 @@ class PlayerMediaLoaderManager(
     private val cloudClients: Map<String, CloudStorageClient> = emptyMap()
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+    private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
     private var servicePlaybackPlayer: Player? = null
     private var audioPrefetchJob: Job? = null
     private var audioPrefetchPath: String? = null
@@ -843,45 +844,16 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    // Private helper methods
+    // Private helper methods (view visibility extracted to PlayerMediaViewVisibilityHelper)
 
-    /**
-     * Hide image-related views.
-     * @param keepAudioCover If true, don't hide audioCoverArtView (for audio files to prevent flicker)
-     */
-    private fun hideImageViews(keepAudioCover: Boolean = false) {
-        binding.imageView.isVisible = false
-        binding.photoView.isVisible = false
-        if (!keepAudioCover) {
-            binding.audioCoverArtView.isVisible = false
-        }
-        safeViews.btnTranslateImage.isVisible = false
-    }
+    private fun hideImageViews(keepAudioCover: Boolean = false) =
+        viewVisibility.hideImageViews(keepAudioCover)
 
-    private fun hideTextViewerControls() {
-        safeViews.textViewerContainer.isVisible = false
-        binding.btnCopyTextCmd.isVisible = false
-        binding.btnEditTextCmd.isVisible = false
-        binding.btnTranslateTextCmd.isVisible = false
-        binding.btnSearchTextCmd.isVisible = false
-    }
+    private fun hideTextViewerControls() = viewVisibility.hideTextViewerControls()
 
-    private fun hidePdfViewerControls() {
-        safeViews.pdfControlsLayout.isVisible = false
-        binding.btnGoogleLensPdfCmd.isVisible = false
-        binding.btnOcrPdfCmd.isVisible = false
-        binding.btnTranslatePdfCmd.isVisible = false
-        binding.btnSearchPdfCmd.isVisible = false
-    }
+    private fun hidePdfViewerControls() = viewVisibility.hidePdfViewerControls()
 
-    private fun hideEpubViewerControls() {
-        binding.epubWebView.isVisible = false
-        safeViews.epubControlsLayout.isVisible = false
-        binding.btnExitEpubFullscreen.isVisible = false
-        binding.btnSearchEpubCmd.isVisible = false
-        binding.btnTranslateEpubCmd.isVisible = false
-        binding.btnOcrEpubCmd.isVisible = false
-    }
+    private fun hideEpubViewerControls() = viewVisibility.hideEpubViewerControls()
 
     private fun configurePlayerViewForMediaType(isAudioFile: Boolean, currentFile: MediaFile?) {
         val exoContentFrame = binding.playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)
@@ -933,15 +905,8 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    private fun determineResourceType(path: String, defaultType: ResourceType?): ResourceType {
-        return when {
-            path.startsWith("cloud://") -> ResourceType.CLOUD
-            path.startsWith("smb://") -> ResourceType.SMB
-            path.startsWith("sftp://") -> ResourceType.SFTP
-            path.startsWith("ftp://") -> ResourceType.FTP
-            else -> defaultType ?: ResourceType.LOCAL
-        }
-    }
+    private fun determineResourceType(path: String, defaultType: ResourceType?): ResourceType =
+        viewVisibility.determineResourceType(path, defaultType)
 
     private fun playVideoWithResourceType(
         path: String,

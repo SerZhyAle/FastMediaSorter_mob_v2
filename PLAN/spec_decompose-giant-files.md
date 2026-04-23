@@ -42,6 +42,14 @@
 
 `ResourceEditorFragment.kt` is now under the 1000-line hard cap.
 
+**Wave 8 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/helpers/PlayerMediaLoaderManager.kt` | 1 002 | 967 | −35 | `PlayerMediaViewVisibilityHelper` (per-viewer hide methods + path-scheme → ResourceType) |
+
+`PlayerMediaLoaderManager.kt` is now under the 1000-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
