@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.ui.player.CommandPanelController
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import timber.log.Timber
-import androidx.core.net.toUri
 
 /**
  * Implementation of CommandPanelController.CommandPanelCallback extracted from PlayerActivity.
@@ -249,8 +248,7 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onPrintClicked() {
         val currentFile = viewModel.state.value.currentFile ?: return
-            val uri = currentFile.path.toUri()
-        activity.printManager.printCurrentFile(uri, currentFile.type, currentFile.name)
+        activity.printManager.printCurrentFile(currentFile)
     }
 
     override fun onSaveFrameClicked() {
@@ -261,5 +259,10 @@ class PlayerCommandPanelCallbackImpl(
         // PlayerActivity decides the correct capture backend: TextureView on phone/tablet,
         // OpenXR swapchain in VrPlayerActivity.
         activity.saveCurrentFrame()
+    }
+
+    override fun on3dVrToggleClicked() {
+        // Delegate to the VR-specific override in VrPlayerActivity; base PlayerActivity no-ops.
+        activity.handle3dVrToggleClicked()
     }
 }

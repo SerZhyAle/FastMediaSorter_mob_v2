@@ -39,6 +39,7 @@ class PlayerBindingSafeViews(
     val btnOverflowMenu: ImageButton get() = required(binding.btnOverflowMenu, R.id.btnOverflowMenu)
     val btnEditCmd: ImageButton get() = required(binding.btnEditCmd, R.id.btnEditCmd)
     val btnSaveFrameCmd: ImageButton get() = required(R.id.btnSaveFrameCmd)
+    val btn3dVrCmd: ImageButton get() = required(R.id.btn3dVrCmd)
     val btnPrintCmd: ImageButton get() = required(R.id.btnPrintCmd)
     val btnUndoCmd: ImageButton get() = required(binding.btnUndoCmd, R.id.btnUndoCmd)
     val btnLyricsCmd: ImageButton get() = required(binding.btnLyricsCmd, R.id.btnLyricsCmd)

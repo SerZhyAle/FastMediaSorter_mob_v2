@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Technical Requirements & Stack Reference
 
-**Last Updated**: March 19, 2026
+**Last Updated**: April 22, 2026
 **Purpose**: Single source of truth for the full technical stack, library inventory, platform constraints, minimum and recommended requirements.
 
 ---
@@ -10,17 +10,17 @@
 | Parameter            | Value                          | Notes                                           |
 |:---------------------|:-------------------------------|:------------------------------------------------|
 | Platform             | Android Native                 | Kotlin + Java                                   |
-| Kotlin version       | 1.9.24                         | Pinned in `build.gradle.kts`                    |
-| Java target          | 17                             | `jvmTarget = "17"`, required by Kotlin 1.9.24   |
-| Android Gradle Plugin| 8.7.3                          | AGP, pinned in root `build.gradle.kts`          |
-| Gradle               | 8.11.1                         | Wrapper in `gradle/wrapper/`                    |
+| Kotlin version       | 2.2.10                         | Pinned in `build.gradle.kts`                    |
+| Java target          | 17                             | `jvmTarget = "17"`                              |
+| Android Gradle Plugin| 9.2.0                          | AGP, pinned in root `build.gradle.kts`          |
+| Gradle               | 9.4.1                          | Wrapper in `gradle/wrapper/` (AGP 9.x)          |
 | compileSdk           | 35                             | Android 15 (VanillaIceCream)                    |
 | targetSdk            | 35                             | Required for Play Store compliance              |
 | minSdk (standard)    | 26                             | Android 8.0 (Oreo)                              |
 | minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) — covers API 23-25    |
 | minSdk (wear)        | 28                             | Wear OS 2.0+                                    |
-| NDK version          | 25.1.8937393                   | For native libraries (Tesseract OCR)            |
-| KSP version          | 1.9.24-1.0.20                  | Used in Wear module                             |
+| NDK version          | 27.2.12479018                  | For native libraries (Tesseract OCR, VR)        |
+| KSP version          | 2.3.2                          | Aligned with Kotlin 2.2.10                      |
 
 ---
 
@@ -440,10 +440,10 @@
 
 | Decision                           | Reason                                                      |
 |:-----------------------------------|:------------------------------------------------------------|
-| Kotlin 1.9.24 (not 2.x)           | Compose Compiler 1.5.14 compatibility; K2 compiler not validated |
-| AGP 8.7.3 (not 8.8+)              | Tested and stable; 8.8+ requires Gradle 9.x                |
-| Gradle 8.11.1                      | Compatible with AGP 8.7.3 and JDK 17/21                    |
-| Hilt 2.50 (not 2.51+)             | Stable with kapt; KSP migration pending                    |
+| Kotlin 2.2.10                      | Aligned with KSP 2.3.2 + Compose plugin 2.2.10              |
+| AGP 9.2.0                          | Requires Gradle 9.x; introduces `AndroidApiLevel`           |
+| Gradle 9.4.1                       | Required by AGP 9.x; JDK 17/21                              |
+| Hilt 2.57.2                        | Current stable; via kapt (KSP migration pending)            |
 | Media3 1.2.1 (not 1.3+)           | 1.3+ requires API adjustments not yet validated             |
 | Glide 4.16.0                       | Latest stable; 5.x requires migration                      |
 | SMBJ 0.12.1                        | Last version before breaking BC changes in 0.13            |

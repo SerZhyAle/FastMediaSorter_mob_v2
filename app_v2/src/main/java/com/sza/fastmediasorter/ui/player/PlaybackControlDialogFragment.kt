@@ -643,17 +643,29 @@ class PlaybackControlDialogFragment : DialogFragment() {
         updateSpeedLabel(defaultSpeed)
     }
 
+    // For AUDIO, the "active" player depends on whether persistent-audio service is running:
+    // - service active → MediaController bound to AudioPlaybackService
+    // - service inactive (background playback off) → the Activity's ExoPlayer in VideoPlayerManager
+    // Always routing audio to audioServiceController here is a silent no-op when the service
+    // isn't connected, which caused the speed slider to appear to do nothing.
     private fun activePlayer() =
-        if (currentMediaType == MediaType.AUDIO) playerActivity().audioServiceController?.player
-        else playerActivity().videoPlayerManager.getPlayer()
+        if (currentMediaType == MediaType.AUDIO && isServiceAudioActive()) {
+            playerActivity().audioServiceController?.player
+        } else {
+            playerActivity().videoPlayerManager.getPlayer()
+        }
 
     private fun setPlaybackSpeed(speed: Float) {
-        if (currentMediaType == MediaType.AUDIO) {
+        if (currentMediaType == MediaType.AUDIO && isServiceAudioActive()) {
             activePlayer()?.setPlaybackSpeed(speed)
         } else {
             playerActivity().videoPlayerManager.setPlaybackSpeed(speed)
         }
     }
+
+    private fun isServiceAudioActive(): Boolean =
+        playerActivity().isMediaLoaderManagerInitialized
+            && playerActivity().mediaLoaderManager.isServiceAudioActive
 
 
     private fun playerActivity(): PlayerActivity = requireActivity() as PlayerActivity

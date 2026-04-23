@@ -22,7 +22,12 @@ import java.io.EOFException
 import java.io.IOException
 import java.util.EnumSet
 import java.util.Locale
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Custom DataSource for streaming video from SMB server via ExoPlayer.
@@ -40,6 +45,28 @@ class SmbDataSource(
         private const val CHUNK_LOG_BYTES = 10_000_000L // ~10 MB summaries
         private const val BYTES_IN_MEBIBYTE = 1_048_576.0
         private const val DEFAULT_BUFFER_SIZE = 64 * 1024
+
+        // Hard deadline for SmbDataSource.open(). SMBJ's transaction timeouts protect
+        // against a dead SMB server, but a TCP socket that was silently dropped by the
+        // peer (no RST) can leave the socket write blocked at the OS level for minutes
+        // until kernel retransmission gives up. Without this watchdog, ExoPlayer stays
+        // in STATE_BUFFERING forever and the player UI shows an endless spinner.
+        // 12 s is generous vs. the fast-tier transaction timeout (5 s) and tight enough
+        // to surface onPlayerError promptly so the user can retry.
+        private const val OPEN_WATCHDOG_TIMEOUT_MS = 12_000L
+
+        // Hard deadline for a single SmbDataSource.read() chunk. ExoPlayer's Loader thread
+        // blocks in file.read() until SMBJ completes the SMB2 READ round-trip; SMBJ's
+        // 90 s SO_TIMEOUT is too long for interactive playback. 15 s lets a slow NAS serve
+        // a 64 KB chunk comfortably while still surfacing a silent-drop hang promptly.
+        private const val READ_WATCHDOG_TIMEOUT_MS = 15_000L
+
+        // Daemon executor shared across SmbDataSource instances — cheap to keep alive
+        // and avoids spawning a thread per DataSource construction. Used for both open()
+        // and read() watchdog wrappers; a cached pool reuses idle threads for each read.
+        private val smbWatchdogExecutor = Executors.newCachedThreadPool { r ->
+            Thread(r, "SmbDataSource-Watchdog").apply { isDaemon = true }
+        }
 
         /**
          * Returns true if [e] is a broken-pipe or transport-level socket failure.
@@ -114,6 +141,40 @@ class SmbDataSource(
     private var internalBufferValidBytes = 0
 
     override fun open(dataSpec: DataSpec): Long {
+        // Run the blocking open logic on a worker thread and wait with a hard deadline.
+        // If the SMB server silently dropped the pooled connection's TCP socket, the
+        // openFile() call inside openInternal blocks at the OS level far longer than any
+        // SMBJ timeout. On watchdog trip we invalidate the pooled connection (closing the
+        // socket unblocks the background worker) and surface IOException so ExoPlayer
+        // exits STATE_BUFFERING instead of hanging indefinitely.
+        val future: Future<Long> = smbWatchdogExecutor.submit(Callable { openInternal(dataSpec) })
+        return try {
+            future.get(OPEN_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        } catch (te: TimeoutException) {
+            Timber.e(
+                "SmbDataSource.open: watchdog timeout after ${OPEN_WATCHDOG_TIMEOUT_MS}ms — " +
+                "invalidating ExoPlayer pooled connection for ${connectionInfo.server}"
+            )
+            try {
+                smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
+            } catch (inv: Exception) {
+                Timber.w(inv, "SmbDataSource.open: invalidateExoPlayerConnection failed")
+            }
+            future.cancel(true)
+            try { close() } catch (_: Exception) {}
+            throw IOException("SMB open watchdog timeout after ${OPEN_WATCHDOG_TIMEOUT_MS}ms", te)
+        } catch (ee: ExecutionException) {
+            val cause = ee.cause ?: ee
+            if (cause is IOException) throw cause
+            throw IOException("SMB open failed: ${cause.message}", cause)
+        } catch (ie: InterruptedException) {
+            Thread.currentThread().interrupt()
+            future.cancel(true)
+            throw IOException("SMB open interrupted", ie)
+        }
+    }
+
+    private fun openInternal(dataSpec: DataSpec): Long {
         try {
             val uri = dataSpec.uri
             this.uri = uri
@@ -267,14 +328,42 @@ class SmbDataSource(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        if (length == 0) {
-            return 0
-        }
+        // Fast-path: empty / EOF checks don't need the watchdog — they never touch SMB.
+        if (length == 0) return 0
+        if (bytesRemaining == 0L) return C.RESULT_END_OF_INPUT
 
-        if (bytesRemaining == 0L) {
-            return C.RESULT_END_OF_INPUT
+        // Wrap each chunk read in a hard deadline, symmetric to open(). SMBJ's blocking
+        // file.read() inside readInternal can stall on a silently-dropped TCP socket far
+        // longer than the configured 90 s SO_TIMEOUT permits for interactive UX. On timeout
+        // we invalidate the pooled ExoPlayer connection (closing the socket unblocks SMBJ)
+        // and throw IOException so ExoPlayer surfaces onPlayerError instead of spinning.
+        val future: Future<Int> = smbWatchdogExecutor.submit(Callable { readInternal(buffer, offset, length) })
+        return try {
+            future.get(READ_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        } catch (te: TimeoutException) {
+            Timber.e(
+                "SmbDataSource.read: watchdog timeout after ${READ_WATCHDOG_TIMEOUT_MS}ms at position=$currentPosition " +
+                "— invalidating ExoPlayer pooled connection for ${connectionInfo.server}"
+            )
+            try {
+                smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
+            } catch (inv: Exception) {
+                Timber.w(inv, "SmbDataSource.read: invalidateExoPlayerConnection failed")
+            }
+            future.cancel(true)
+            throw IOException("SMB read watchdog timeout after ${READ_WATCHDOG_TIMEOUT_MS}ms", te)
+        } catch (ee: ExecutionException) {
+            val cause = ee.cause ?: ee
+            if (cause is IOException) throw cause
+            throw IOException("SMB read failed: ${cause.message}", cause)
+        } catch (ie: InterruptedException) {
+            Thread.currentThread().interrupt()
+            future.cancel(true)
+            throw IOException("SMB read interrupted", ie)
         }
+    }
 
+    private fun readInternal(buffer: ByteArray, offset: Int, length: Int): Int {
         // Calculate how many bytes we can fulfill from request
         val maxBytesToReturn = if (bytesRemaining == C.LENGTH_UNSET.toLong()) {
             length

@@ -18,6 +18,12 @@
 
 `PlayerViewModel.kt` has already absorbed 3 coordinators (`PlayerStereoModeCoordinator`, `PlayerDeleteUndoCoordinator`, `PlayerPrefetchOffloadCoordinator`), but remains at 1 321 LOC — see Wave 4.
 
+**Wave 4 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/PlayerViewModel.kt` | 1 321 | 688 | −633 | `PlayerMediaFilesLoader` (4.1), `PlayerNavigationCoordinator` (4.2) |
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -132,12 +138,18 @@ Already delegated to coordinators:
 
 Remaining extractions (in planned order, biggest chunks first):
 
-| Step | Target block | Approx. LOC | Destination |
-| ---: | --- | ---: | --- |
-| 4.1 | `loadMediaFiles` + `loadSettings` + `reloadFiles` | ~360 | `PlayerMediaFilesLoader` |
-| 4.2 | `nextFile`, `previousFile`, `jumpToIndex`, `getLookaheadTargets`, `getAdjacentFiles`, `getNextAudioFile`, `cancelLoading` | ~250 | `PlayerNavigationCoordinator` |
-| 4.3 | File-list mutations: `onFileMoved`, `removeMovedFile`, `removeDeletedFile`, `removeFileFromList`, `refreshCurrentFileInfo` | ~150 | `PlayerFileListMutator` |
-| 4.4 | Slideshow + controls/panel/fullscreen toggles | ~130 | `PlayerSlideshowPanelCoordinator` |
-| 4.5 | Resume state + last-viewed debounce | ~75 | `PlayerResumeCoordinator` |
+| Step | Target block | Approx. LOC | Destination | Status |
+| ---: | --- | ---: | --- | --- |
+| 4.1 | `loadMediaFiles` + `loadSettings` + `reloadFiles` + `cancelLoading` + `normalizePath` + `isPlayerBrowsableFile` | ~360 | `PlayerMediaFilesLoader` | ✅ done (VM 1 321 → 966) |
+| 4.2 | `nextFile`, `previousFile`, `jumpToIndex`, `syncAudioServiceIndex`, `getLookaheadTargets`, `getAdjacentFiles`, `getNextAudioFile`, `saveLastViewedFile(Debounced)` | ~280 | `PlayerNavigationCoordinator` | ✅ done (VM 966 → 688 — **target ≤ 700 reached**) |
+| 4.3 | File-list mutations: `onFileMoved`, `removeMovedFile`, `removeDeletedFile`, `removeFileFromList`, `refreshCurrentFileInfo` | ~150 | `PlayerFileListMutator` | optional — further cleanup |
+| 4.4 | Slideshow + controls/panel/fullscreen toggles | ~130 | `PlayerSlideshowPanelCoordinator` | optional — further cleanup |
+| 4.5 | Resume state + last-viewed debounce | ~75 | `PlayerResumeCoordinator` | already covered by 4.2 |
 
-Projected result: `PlayerViewModel.kt` ≈ 350 LOC (thin orchestration + state definition + delegating one-liners).
+`PlayerViewModel.kt` is now **688 LOC**, below the 700 target. Steps 4.3–4.4 are optional polish and can be picked up later; the file is no longer on the spec's priority list after Wave 4.2.
+
+---
+
+## Wave 5 — next candidate
+
+Top remaining score after Wave 4: `MainActivity.kt` (1 330 LOC, score 6 650).

@@ -8,6 +8,7 @@ import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -81,6 +82,7 @@ class CommandPanelController(
         fun onEpubSearchAllClicked()
         fun onPrintClicked()
         fun onSaveFrameClicked()
+        fun on3dVrToggleClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -149,6 +151,12 @@ class CommandPanelController(
 
         safeViews.btnSaveFrameCmd.setOnClickListener {
             callback.onSaveFrameClicked()
+        }
+
+        if (BuildConfig.SUPPORT_VR_PLAYER) {
+            safeViews.btn3dVrCmd.setOnClickListener {
+                callback.on3dVrToggleClicked()
+            }
         }
 
         safeViews.btnPrintCmd.setOnClickListener {
@@ -350,6 +358,10 @@ class CommandPanelController(
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
             // Save Frame is a direct video-only command in the command panel.
             safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
+            // 3DVR toggle: VR flavor only, visible for video files.
+            if (BuildConfig.SUPPORT_VR_PLAYER) {
+                safeViews.btn3dVrCmd.isVisible = currentFile.type == MediaType.VIDEO
+            }
 
             // Update button contentDescription based on file type
             if (isVideo) {
@@ -794,6 +806,7 @@ class CommandPanelController(
                 R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
                 R.id.menu_print -> callback.onPrintClicked()
                 R.id.menu_save_frame -> callback.onSaveFrameClicked()
+                R.id.menu_3d_vr -> callback.on3dVrToggleClicked()
             }
             true
         }
@@ -853,34 +866,38 @@ class CommandPanelController(
      * These are hidden at the start of every portrait-branch pass and then
      * selectively shown by the planner result.
      */
-    private fun getOverflowableButtons(): List<View> = listOf(
-        safeViews.btnRenameCmd,
-        safeViews.btnLyricsCmd,
-        safeViews.btnSearchYoutubeMusicCmd,
-        safeViews.btnCastCmd,
-        safeViews.btnEditCmd,
-        safeViews.btnSaveFrameCmd,
-        safeViews.btnPrintCmd,
-        safeViews.btnUndoCmd,
-        safeViews.btnGoogleLensPdfCmd,
-        safeViews.btnOcrPdfCmd,
-        safeViews.btnTranslatePdfCmd,
-        safeViews.btnSearchPdfCmd,
-        safeViews.btnSearchTextCmd,
-        safeViews.btnEditTextCmd,
-        safeViews.btnTranslateTextCmd,
-        safeViews.btnTextSettingsCmd,
-        safeViews.btnCopyTextCmd,
-        safeViews.btnSearchEpubCmd,
-        safeViews.btnTranslateEpubCmd,
-        safeViews.btnEpubTextSettingsCmd,
-        safeViews.btnOcrEpubCmd,
-        safeViews.btnPdfTextSettingsCmd,
-        safeViews.btnTranslateImageCmd,
-        safeViews.btnImageTextSettingsCmd,
-        safeViews.btnOcrImageCmd,
-        safeViews.btnGoogleLensImageCmd
-    )
+    private fun getOverflowableButtons(): List<View> {
+        val list = mutableListOf<View>(
+            safeViews.btnRenameCmd,
+            safeViews.btnLyricsCmd,
+            safeViews.btnSearchYoutubeMusicCmd,
+            safeViews.btnCastCmd,
+            safeViews.btnEditCmd,
+            safeViews.btnSaveFrameCmd,
+            safeViews.btnPrintCmd,
+            safeViews.btnUndoCmd,
+            safeViews.btnGoogleLensPdfCmd,
+            safeViews.btnOcrPdfCmd,
+            safeViews.btnTranslatePdfCmd,
+            safeViews.btnSearchPdfCmd,
+            safeViews.btnSearchTextCmd,
+            safeViews.btnEditTextCmd,
+            safeViews.btnTranslateTextCmd,
+            safeViews.btnTextSettingsCmd,
+            safeViews.btnCopyTextCmd,
+            safeViews.btnSearchEpubCmd,
+            safeViews.btnTranslateEpubCmd,
+            safeViews.btnEpubTextSettingsCmd,
+            safeViews.btnOcrEpubCmd,
+            safeViews.btnPdfTextSettingsCmd,
+            safeViews.btnTranslateImageCmd,
+            safeViews.btnImageTextSettingsCmd,
+            safeViews.btnOcrImageCmd,
+            safeViews.btnGoogleLensImageCmd
+        )
+        if (BuildConfig.SUPPORT_VR_PLAYER) list.add(safeViews.btn3dVrCmd)
+        return list
+    }
 
     /**
      * Return the bar [View] for [cmd], or null for overflow-only commands.
@@ -913,6 +930,8 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.OCR_IMAGE -> safeViews.btnOcrImageCmd
             CommandPanelLayoutPlanner.PlayerCommand.GOOGLE_LENS_IMAGE -> safeViews.btnGoogleLensImageCmd
             CommandPanelLayoutPlanner.PlayerCommand.PRINT -> safeViews.btnPrintCmd
+            CommandPanelLayoutPlanner.PlayerCommand.VR_3D ->
+                if (BuildConfig.SUPPORT_VR_PLAYER) safeViews.btn3dVrCmd else null
             else -> null // Overflow-only commands have no bar view
         }
     }

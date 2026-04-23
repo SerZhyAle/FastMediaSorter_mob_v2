@@ -300,3 +300,14 @@
 -keepclassmembers class android.content.SharedPreferences {
     public <methods>;
 }
+
+# ===== OpenXR native bridge (VR flavor) =====
+# Native C++ looks up XrRenderCallback.onRenderEye(IIII)V by string name via
+# GetMethodID — R8 must not rename the interface or its method.
+# Also keep OpenXrNative: its `external` methods are resolved by JNI class name.
+-keep class com.sza.fastmediasorter.vr.openxr.XrRenderCallback { *; }
+-keep interface com.sza.fastmediasorter.vr.openxr.XrRenderCallback { *; }
+-keep class com.sza.fastmediasorter.vr.openxr.OpenXrNative { *; }
+-keepclassmembers class com.sza.fastmediasorter.vr.openxr.OpenXrNative {
+    native <methods>;
+}

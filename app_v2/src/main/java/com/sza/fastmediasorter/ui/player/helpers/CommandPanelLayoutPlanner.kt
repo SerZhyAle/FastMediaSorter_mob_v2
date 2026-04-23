@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -41,6 +42,9 @@ class CommandPanelLayoutPlanner {
 
         RENAME(200, R.id.menu_rename, true, R.string.rename, R.drawable.ic_rename),
         EDIT(210, R.id.menu_edit, true, R.string.edit, android.R.drawable.ic_menu_edit),
+        // VR flavor only: placed directly after EDIT so it sits next to the Control dialog button.
+        VR_3D(211, R.id.menu_3d_vr, true, R.string.vr_toggle_enter_description,
+            R.drawable.ic_vr_3d),
         UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert),
         CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast),
         // Low-priority direct video action: show on command bar when space permits,
@@ -195,6 +199,8 @@ class CommandPanelLayoutPlanner {
             if (isPdf || isText || isImage) add(PlayerCommand.PRINT)
             // Save Frame is only available for video (not audio, images, or docs)
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
+            // 3DVR toggle: VR flavor only, video files only
+            if (BuildConfig.SUPPORT_VR_PLAYER && file.type == MediaType.VIDEO) add(PlayerCommand.VR_3D)
         }.sortedBy { it.priority }
     }
 

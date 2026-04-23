@@ -868,6 +868,8 @@
     <string name="save_frame_drm_error">Защищённый контент не может быть сохранён</string>
     <string name="save_frame_no_video">Видео не воспроизводится</string>
     <string name="vr_fullscreen_already_active">В VR уже активен полноэкранный режим</string>
+    <string name="vr_toggle_enter_description">Смотреть в 3D VR</string>
+    <string name="vr_toggle_exit_description">Выйти из 3D VR</string>
     <string name="vr_save_frame_saved_to_pictures">Стереоснимок сохранён в Pictures</string>
     <string name="vr_save_frame_unavailable">Стереоснимок VR сейчас недоступен</string>
     <string name="vr_save_frame_timeout">Не удалось дождаться стереоснимка VR</string>

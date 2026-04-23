@@ -137,6 +137,9 @@ class StandaloneViewManager(
     private var videoPositionSaveJob: Job? = null
     private var lastSavedPosition: Long = -1L
     private var currentVideoFilePath: String? = null
+    // Media3 1.2.1 deferral flags — mirrors VideoPlayerManager logic.
+    private var standaloneVideoSizeKnown = false
+    private var standalonePendingEffects = false
     private var audioServiceController: AudioServiceController? = null
     private var audioFocusManager: AudioFocusManager? = null
 
@@ -306,6 +309,8 @@ class StandaloneViewManager(
     private fun playVideo(mediaFile: MediaFile, onVideoReady: ((PlayerView) -> Unit)? = null) {
         binding.playerView.isVisible = true
         binding.playerView.controllerShowTimeoutMs = 5000
+        standaloneVideoSizeKnown = false
+        standalonePendingEffects = false
         val player = ExoPlayer.Builder(activity).build()
         exoPlayer = player
         binding.playerView.player = player
@@ -331,12 +336,18 @@ class StandaloneViewManager(
     private fun applyVideoColorEffects() {
         // Standalone mode owns a separate ExoPlayer instance, so the full color chain must be
         // restored after every player recreation to keep Control dialog and gestures consistent.
-        exoPlayer?.setVideoEffects(
-            listOfNotNull(
-                videoColorProcessor.buildHueEffect(),
-                videoColorProcessor.buildBrightnessEffect()
-            )
+        val effects = listOfNotNull(
+            videoColorProcessor.buildHueEffect(),
+            videoColorProcessor.buildBrightnessEffect()
         )
+        // Media3 1.2.1 deferral: Presentation.createForWidthAndHeight crashes with -1,-1 when
+        // setVideoEffects() is called before the decoder emits the first frame.
+        if (!standaloneVideoSizeKnown && effects.isNotEmpty()) {
+            standalonePendingEffects = true
+            Timber.d("StandaloneViewManager: applyVideoColorEffects deferred — video size not yet known")
+            return
+        }
+        exoPlayer?.setVideoEffects(effects)
     }
 
     private fun brightnessProgressToAdjustment(progress: Int): Float =
@@ -480,6 +491,18 @@ class StandaloneViewManager(
             }
             showToastError(msg)
             Timber.e(error, "StandaloneViewManager: playback error — $msg")
+        }
+
+        override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+            if (videoSize.width <= 0 || videoSize.height <= 0) return
+            if (!standaloneVideoSizeKnown) {
+                standaloneVideoSizeKnown = true
+                Timber.d("StandaloneViewManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height}")
+                if (standalonePendingEffects) {
+                    standalonePendingEffects = false
+                    applyVideoColorEffects()
+                }
+            }
         }
     }
 

@@ -34,11 +34,15 @@ MEDIA3_TAG="1.2.1"
 FFMPEG_REPO="https://github.com/FFmpeg/FFmpeg.git"
 MEDIA3_REPO="https://github.com/androidx/media.git"
 
-# ABIs to build. Quest 3 needs arm64-v8a; legacy flavor needs armeabi-v7a too.
-# arm64-v8a only: minSdk=26 (Android 8+), all relevant devices are 64-bit.
-# armeabi-v7a removed — it produces Thumb2-incompatible objects with our configure flags
-# and is not needed for Play Store (Google requires 64-bit since Aug 2019).
-ABIS=("arm64-v8a")
+# ABIs to build — all four production ABIs for multi-ABI AAR distribution.
+#   arm64-v8a   — modern 64-bit ARM (primary; Quest 2/3/Pro)
+#   armeabi-v7a — older 32-bit ARM (old phones, TV boxes, car units, low-end tablets)
+#   x86_64      — Chromebooks, modern x86 emulators
+#   x86         — legacy Chromebooks / API 27 AVDs
+# AAB splits per-device ABI at Play distribution — one user receives one slice only.
+# VR/vrUnlicensed flavors force arm64-v8a at flavor level, so non-arm64 slices are stripped
+# from VR AABs automatically. See PLAN/spec_ffmpeg-dts-multi-abi.md.
+ABIS=("arm64-v8a" "armeabi-v7a" "x86" "x86_64")
 
 # ── Dependency check ──────────────────────────────────────────────────────────
 check_deps() {
@@ -131,6 +135,18 @@ build_ffmpeg_abi() {
             arch="arm"
             extra_flags="--cpu=armv7-a --enable-neon"
             ;;
+        x86)
+            # i686 configure target; NDK cross-prefix "i686-linux-android${API_LEVEL}-clang"
+            host_triple="i686-linux-android"
+            arch="i686"
+            # --disable-x86asm kept globally (see configure args); avoids nasm dependency.
+            # Audio-only FFmpeg build — SIMD loss is negligible for DTS/APE/WMA decoders.
+            ;;
+        x86_64)
+            host_triple="x86_64-linux-android"
+            arch="x86_64"
+            # Same --disable-x86asm rationale as x86.
+            ;;
         *)
             echo "ERROR: Unsupported ABI: $abi"
             exit 1
@@ -151,6 +167,13 @@ build_ffmpeg_abi() {
     echo "════════════════════════════════════════"
 
     cd "$WORK_DIR/ffmpeg"
+    # CRITICAL: clean the tree before reconfiguring for a different ABI.
+    # Without this, make -j sees stale .o files from the previous ABI and skips
+    # rebuilds, producing libavcodec.a with mixed arch objects (e.g. some arm,
+    # some aarch64). The downstream JNI bridge link then fails with
+    # "incompatible with armelf_linux_eabi" or similar on partial objects.
+    # distclean removes .o, generated .h, config files, and dependency data.
+    make distclean 2>/dev/null || true
     ./configure \
         --cross-prefix="${cross_prefix}" \
         --sysroot="${toolchain}/sysroot" \
@@ -343,11 +366,26 @@ package_aar() {
     # Search order:
     #   1. Linux Gradle cache (~/.gradle/caches)
     #   2. Windows Gradle cache (/mnt/c/Users/.gradle/caches)
-    #   3. Direct download from Google Maven Central
+    #   3. Project's own fms-ffmpeg-dts.aar (or its backup in temp/) — same classes.jar
+    #      because both share the media3-decoder-ffmpeg bytecode verbatim.
+    #   4. Direct download from Google Maven (usually 404 — media3-decoder-ffmpeg is
+    #      source-only and not published to Maven; keep the step for future compatibility).
     local prebuilt_aar
     prebuilt_aar=$(find "${HOME}/.gradle/caches" -name "media3-decoder-ffmpeg-1.2.1.aar" 2>/dev/null | head -1 || true)
     if [[ -z "$prebuilt_aar" ]]; then
         prebuilt_aar=$(find /mnt/c/Users -name "media3-decoder-ffmpeg-1.2.1.aar" -path "*media3*" 2>/dev/null | head -1 || true)
+    fi
+    # Fallback to an already-built fms-ffmpeg-dts.aar from the project tree (or backups).
+    # Both contain classes.jar extracted from media3-decoder-ffmpeg-1.2.1.aar, so bytecode matches.
+    if [[ -z "$prebuilt_aar" ]]; then
+        local project_aar="/mnt/p/ANDROID/FastMediaSorter_mob_v2/app_v2/libs/fms-ffmpeg-dts.aar"
+        [[ -f "$project_aar" ]] && prebuilt_aar="$project_aar"
+    fi
+    if [[ -z "$prebuilt_aar" ]]; then
+        # Pick the most recent backup in temp/ matching the naming convention.
+        local backup_aar
+        backup_aar=$(ls -t /mnt/p/ANDROID/FastMediaSorter_mob_v2/temp/fms-ffmpeg-dts_*.aar 2>/dev/null | head -1)
+        [[ -n "$backup_aar" ]] && prebuilt_aar="$backup_aar"
     fi
     if [[ -z "$prebuilt_aar" ]]; then
         local maven_aar="${WORK_DIR}/media3-decoder-ffmpeg-1.2.1.aar"
@@ -469,7 +507,7 @@ verify_16kb_alignment() {
 
     echo ""
     echo "════════════════════════════════════════"
-    echo " 16 KB alignment check (readelf -l)"
+    echo " 16 KB alignment check (readelf -l) — all ABIs"
     echo "════════════════════════════════════════"
 
     if ! command -v readelf &>/dev/null; then
@@ -477,7 +515,9 @@ verify_16kb_alignment() {
         echo "      Install binutils: sudo apt-get install -y binutils"
         echo "      Run manually after build:"
         echo "        python3 -m zipfile -e $aar_path /tmp/aar-verify"
-        echo "        readelf -l /tmp/aar-verify/jni/arm64-v8a/libffmpegJNI.so | grep LOAD"
+        echo "        for abi in arm64-v8a armeabi-v7a x86 x86_64; do"
+        echo "            readelf -l /tmp/aar-verify/jni/\$abi/libffmpegJNI.so | grep LOAD"
+        echo "        done"
         return 0
     fi
 
@@ -488,53 +528,57 @@ verify_16kb_alignment() {
 
     rm -rf "$verify_dir" && mkdir -p "$verify_dir"
 
-    # Extract only .so files from the AAR (which is a ZIP)
+    # Extract every .so from the AAR (which is a ZIP)
     AAR_PATH="$aar_path" VERIFY_DIR="$verify_dir" python3 - <<'PYEOF'
 import zipfile, os
-aar_path = os.environ['AAR_PATH']
-verify_dir = os.environ['VERIFY_DIR']
-with zipfile.ZipFile(aar_path) as z:
+with zipfile.ZipFile(os.environ['AAR_PATH']) as z:
     for name in z.namelist():
-        if name.endswith('.so') and 'arm64' in name:
-            z.extract(name, verify_dir)
+        if name.endswith('.so'):
+            z.extract(name, os.environ['VERIFY_DIR'])
 PYEOF
 
-    local so_path="$verify_dir/jni/arm64-v8a/libffmpegJNI.so"
-    if [[ ! -f "$so_path" ]]; then
-        echo "WARN: libffmpegJNI.so not found in extracted AAR — skipping 16 KB check."
-        rm -rf "$verify_dir"
-        return 0
-    fi
+    local fail=0
+    local checked=0
+    for abi in "${ABIS[@]}"; do
+        local so_path="$verify_dir/jni/$abi/libffmpegJNI.so"
+        if [[ ! -f "$so_path" ]]; then
+            echo "FAIL: $abi — libffmpegJNI.so missing from AAR."
+            fail=1
+            continue
+        fi
 
-    local elf_output
-    elf_output=$(readelf -l "$so_path" 2>&1)
-    local load_lines
-    load_lines=$(echo "$elf_output" | grep -E "^\s+LOAD\s+" || true)
+        # -W (wide): prevents readelf from splitting the LOAD row across two lines
+        # on ELF64 targets (arm64-v8a, x86_64), which would hide the Align field.
+        local load_lines
+        load_lines=$(readelf -lW "$so_path" 2>&1 | grep -E "^\s+LOAD\s+" || true)
 
-    echo "LOAD segments in libffmpegJNI.so (arm64-v8a):"
-    echo "$load_lines"
-    echo ""
+        if echo "$load_lines" | grep -qE "\s0x1000\s*$"; then
+            echo "FAIL: $abi — 4 KB LOAD alignment (Align=0x1000). Play will reject."
+            echo "--- LOAD segments ---"
+            echo "$load_lines"
+            echo "---------------------"
+            fail=1
+        elif echo "$load_lines" | grep -qE "\s0x4000\s*$"; then
+            echo "[OK] $abi — 16 KB aligned (Align=0x4000). Play-safe. ✓"
+            checked=$((checked + 1))
+        else
+            echo "WARN: $abi — alignment not confirmed from readelf output:"
+            echo "$load_lines"
+        fi
+    done
 
-    # Fail if any LOAD segment has Align=0x1000 (4 KB — Play non-compliant)
-    if echo "$load_lines" | grep -qE "\s0x1000\s*$"; then
-        echo "FAIL: libffmpegJNI.so has 4 KB LOAD alignment (Align=0x1000)."
-        echo "      AAR is NOT 16 KB compliant — Google Play will reject APKs containing it."
+    rm -rf "$verify_dir"
+
+    if [[ $fail -eq 1 ]]; then
         echo ""
-        echo "Fix: verify -Wl,-z,max-page-size=16384 appears in CMAKE_SHARED_LINKER_FLAGS"
-        echo "     and NDK r27c (or r25c) lld is being used for the JNI bridge link step."
-        rm -rf "$verify_dir"
+        echo "FAIL: one or more ABIs are NOT 16 KB compliant. AAR cannot ship."
+        echo "Fix: verify -Wl,-z,max-page-size=16384 in CMAKE_SHARED_LINKER_FLAGS"
+        echo "     and NDK r27c (or r25c) lld is used for every JNI bridge link step."
         exit 1
     fi
 
-    # Confirm 16 KB alignment present
-    if echo "$load_lines" | grep -qE "\s0x4000\s*$"; then
-        echo "[OK] libffmpegJNI.so — LOAD segments aligned at 16 KB (Align=0x4000). Play-safe. ✓"
-    else
-        echo "WARN: Could not confirm 0x4000 alignment from readelf output."
-        echo "      Check the LOAD lines above manually before shipping."
-    fi
-
-    rm -rf "$verify_dir"
+    echo ""
+    echo "[OK] 16 KB alignment verified for $checked/${#ABIS[@]} ABI slices."
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────

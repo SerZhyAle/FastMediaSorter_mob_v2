@@ -131,13 +131,21 @@ class SmbConnectionManager @Inject constructor(
     }
     
     // Connection pool
+    // Tracks which subsystem originally created the pooled connection.
+    // ExoPlayer must not reuse a SCANNER connection: directory-scan sessions have been
+    // observed silently dropping their TCP socket between scan completion and playback
+    // start, and SMBJ's isConnected flag cannot detect that — the subsequent openFile()
+    // then blocks indefinitely inside the socket write (see SmbDataSource.open watchdog).
+    enum class ConnectionConsumer { SCANNER, PLAYER }
+
     data class PooledConnection(
         val connection: Connection,
         val session: Session,
         val share: DiskShare,
         var lastUsed: Long = System.currentTimeMillis(),
         val usageCount: AtomicInteger = AtomicInteger(0),
-        val isPendingClose: AtomicBoolean = AtomicBoolean(false)
+        val isPendingClose: AtomicBoolean = AtomicBoolean(false),
+        val consumer: ConnectionConsumer = ConnectionConsumer.SCANNER
     )
     
     private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
@@ -974,12 +982,18 @@ class SmbConnectionManager @Inject constructor(
             domain = connectionInfo.domain
         )
         
-        // Try pooled connection first
+        // Try pooled connection first.
+        // Only reuse if the pool entry was created on the PLAYER path — scanner-sourced
+        // connections have been observed hanging on the first SMB2 CREATE for ExoPlayer
+        // (TCP socket silently dropped while idle between scan end and playback start).
         val pooled = connectionPool[key]
-        if (pooled != null && isConnectionValid(pooled)) {
+        if (pooled != null && pooled.consumer == ConnectionConsumer.PLAYER && isConnectionValid(pooled)) {
             pooled.lastUsed = System.currentTimeMillis()
             Timber.d("SmbConnectionManager: Reusing pooled connection for ExoPlayer")
             return pooled
+        }
+        if (pooled != null && pooled.consumer != ConnectionConsumer.PLAYER) {
+            Timber.d("SmbConnectionManager: Pool entry tagged ${pooled.consumer} — forcing fresh PLAYER connection")
         }
 
         // Stale or absent pool entry: close it before fresh connect.
@@ -1023,8 +1037,14 @@ class SmbConnectionManager @Inject constructor(
                 val session = connection.authenticate(authContext)
                 val share = session.connectShare(connectionInfo.shareName) as DiskShare
 
-                // Store in pool
-                val newPooled = PooledConnection(connection, session, share)
+                // Store in pool tagged as PLAYER so future getConnectionForExoPlayer calls
+                // can reuse it (and scanner code path still opens its own SCANNER entry).
+                val newPooled = PooledConnection(
+                    connection = connection,
+                    session = session,
+                    share = share,
+                    consumer = ConnectionConsumer.PLAYER
+                )
                 connectionPool[key] = newPooled
 
                 onSuccess()

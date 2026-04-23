@@ -68,10 +68,20 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView): ExoPlayer 
     // New player instance — reset pipeline state so we don't skip a legitimate setVideoEffects()
     // call on the fresh instance when re-applying previously active effects.
     effectsPipelineActive = false
+    videoSizeKnown = false
+    pendingEffectsApply = false
 
     // Reapply the full effect chain to the fresh ExoPlayer instance.
     // Without this, config changes/player recreation silently drop active video adjustments.
     applyConfiguredVideoEffects()
+
+    // Notify subscribers (VrPlayerActivity uses this to flush a pending VR surface redirect
+    // that was queued while ExoPlayer was still null — fixes the black-screen race).
+    try {
+        onPlayerCreated?.invoke(player)
+    } catch (t: Throwable) {
+        Timber.w(t, "VideoPlayerManager: onPlayerCreated callback threw")
+    }
 
     Timber.d("VideoPlayerManager: ExoPlayer created")
     return player
@@ -98,6 +108,15 @@ internal fun VideoPlayerManager.applyConfiguredVideoEffects() {
     // Guard: skip scheduling when no effects are active and none were previously installed.
     if (effects.isEmpty() && !effectsPipelineActive) {
         Timber.d("VideoPlayerManager: applyConfiguredVideoEffects — no effects, pipeline already clean, skipping")
+        return
+    }
+
+    // Media3 1.2.1 deferral: Presentation.createForWidthAndHeight crashes with -1,-1 when
+    // setVideoEffects() is called before the decoder emits the first frame. Defer until
+    // onVideoSizeChanged fires with valid dimensions.
+    if (!videoSizeKnown && effects.isNotEmpty()) {
+        pendingEffectsApply = true
+        Timber.d("VideoPlayerManager: applyConfiguredVideoEffects deferred — video size not yet known")
         return
     }
 

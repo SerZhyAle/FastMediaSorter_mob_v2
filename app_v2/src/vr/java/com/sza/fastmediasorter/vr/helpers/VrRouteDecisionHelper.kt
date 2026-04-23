@@ -28,12 +28,28 @@ internal class VrRouteDecisionHelper {
         currentFile: MediaFile,
         effectiveStereoMode: StereoMode,
         settings: AppSettings,
+        userForcedImmersive: Boolean = false,
     ): VrRouteDecision {
         if (settings.disable3dVr) {
             return VrRouteDecision(
                 route = VrLaunchRoute.STANDARD_PANEL_FALLBACK,
                 effectiveStereoMode = StereoMode.MONO,
                 logReason = "disable-3d-vr",
+            )
+        }
+
+        // When the user explicitly tapped "3DVR", bypass stereo-detection gate and force
+        // immersive route for video. disable3dVr already bailed out above, so this is safe.
+        if (userForcedImmersive && currentFile.type == MediaType.VIDEO) {
+            val forcedMode = if (effectiveStereoMode.isStereoscopic() || effectiveStereoMode.isSpherical()) {
+                effectiveStereoMode
+            } else {
+                StereoMode.SBS_FULL // default to full SBS when content is flat 2D
+            }
+            return VrRouteDecision(
+                route = VrLaunchRoute.IMMERSIVE_VIDEO,
+                effectiveStereoMode = forcedMode,
+                logReason = "user-forced-immersive",
             )
         }
 

@@ -218,10 +218,23 @@ class VideoPlayerManager(
     /** Callback invoked after each periodic position save (every 5 s). */
     var onPositionSaved: (() -> Unit)? = null
 
+    /**
+     * Invoked on the main thread after every fresh ExoPlayer instance is created.
+     * Used by VrPlayerActivity to flush a pending VR surface redirect when the XR
+     * session became ready before ExoPlayer existed.
+     */
+    var onPlayerCreated: ((ExoPlayer) -> Unit)? = null
+
     // Tracks whether a previous setVideoEffects() call installed a non-empty pipeline.
     // Skipping redundant setVideoEffects(emptyList()) calls avoids a black screen at pause
     // on some devices/emulators.
     internal var effectsPipelineActive = false
+
+    // Media3 1.2.1: setVideoEffects() crashes (errorCode=7001, Presentation.createForWidthAndHeight
+    // with -1,-1) when called before the decoder emits the first frame size. These two flags
+    // defer the pipeline installation until onVideoSizeChanged delivers valid dimensions.
+    @Volatile internal var videoSizeKnown: Boolean = false
+    @Volatile internal var pendingEffectsApply: Boolean = false
 
     // Debounce handler for applyConfiguredVideoEffects() — see PlayerSetupHelper.kt.
     // 80 ms window coalesces rapid slider drags into a single pipeline rebuild,
@@ -411,6 +424,18 @@ class VideoPlayerManager(
                 }
             }
         }
+
+        override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+            if (videoSize.width <= 0 || videoSize.height <= 0) return
+            if (!videoSizeKnown) {
+                videoSizeKnown = true
+                Timber.d("VideoPlayerManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height} — size known")
+                if (pendingEffectsApply) {
+                    pendingEffectsApply = false
+                    applyConfiguredVideoEffects()
+                }
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -516,6 +541,11 @@ class VideoPlayerManager(
         // Reset per-file stereo detection before every new video
         playerCallback.onBeforeVideoLoad(path)
         logMemoryStats("BEFORE playVideo")
+
+        // Reset effects-deferral gate for the new file — size will be reported
+        // again via onVideoSizeChanged once the decoder decodes the first frame.
+        videoSizeKnown = false
+        pendingEffectsApply = false
 
         currentFilePath = path
         lastSavedPosition = -1L

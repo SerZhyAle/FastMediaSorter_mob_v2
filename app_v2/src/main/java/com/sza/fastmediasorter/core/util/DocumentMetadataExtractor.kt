@@ -11,27 +11,38 @@ import java.io.File
 class DocumentMetadataExtractor(private val context: Context) {
     
     /**
-     * Extract PDF metadata from local file
+     * Extract PDF metadata from local file.
+     *
+     * Page count comes from the Android PdfRenderer; all /Info-dict fields come from
+     * PdfInfoParser. The two reads are independent — a failure in one does not kill the other.
      */
     fun extractPdfInfo(file: File): DetailedMediaInfo {
-        return try {
+        val pageCount: Int? = try {
             val pfd = android.os.ParcelFileDescriptor.open(file, android.os.ParcelFileDescriptor.MODE_READ_ONLY)
             val pdfRenderer = android.graphics.pdf.PdfRenderer(pfd)
-            val pageCount = pdfRenderer.pageCount
+            val count = pdfRenderer.pageCount
             pdfRenderer.close()
             pfd.close()
-            
-            // Basic file statistics only - no metadata extraction to avoid dependency issues
-            // File size and modification date are already available in MediaFile object
-            
-            DetailedMediaInfo(
-                pageCount = pageCount
-                // All metadata fields left as null - not supported without external libraries
-            )
+            count
         } catch (e: Exception) {
-            Timber.w(e, "Failed to extract PDF info: ${file.path}")
-            DetailedMediaInfo()
+            Timber.w(e, "Failed to read PDF page count: ${file.path}")
+            null
         }
+
+        val info = PdfInfoParser.parse(file)
+
+        return DetailedMediaInfo(
+            pageCount = pageCount,
+            docTitle = info.title,
+            docAuthor = info.author,
+            pdfVersion = info.version,
+            pdfCreator = info.creator,
+            pdfProducer = info.producer,
+            pdfSubject = info.subject,
+            pdfKeywords = info.keywords,
+            pdfCreationDate = info.creationDate,
+            pdfModificationDate = info.modificationDate
+        )
     }
     
     /**

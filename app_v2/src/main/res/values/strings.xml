@@ -994,6 +994,8 @@
     <string name="save_frame_drm_error">Protected content cannot be saved</string>
     <string name="save_frame_no_video">No video playing</string>
     <string name="vr_fullscreen_already_active">Already fullscreen in VR</string>
+    <string name="vr_toggle_enter_description">Watch in 3D VR</string>
+    <string name="vr_toggle_exit_description">Exit 3D VR</string>
     <string name="vr_save_frame_saved_to_pictures">Stereo snapshot saved to Pictures</string>
     <string name="vr_save_frame_unavailable">VR stereo snapshot is unavailable right now</string>
     <string name="vr_save_frame_timeout">VR stereo snapshot timed out</string>

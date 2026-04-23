@@ -147,8 +147,6 @@ class PlayerViewModel @Inject constructor(
     val resumeSlideshowEnabled: Boolean = savedStateHandle.get<Boolean>("resumeSlideshowEnabled") ?: false
     private val shuffleOnStart: Boolean = savedStateHandle.get<Boolean>("shuffleOnStart") ?: false
     
-    private var saveLastViewedFileJob: Job? = null // Debounce job for database updates
-
     // ── Stereo / 3D video state ──────────────────────────────────────────────
     // Separate flow from PlayerState because the effective stereo mode needs to react
     // immediately to auto-detection, dialog overrides, and remembered VR format settings.
@@ -224,11 +222,6 @@ class PlayerViewModel @Inject constructor(
     fun deleteLocalCopy(entry: com.sza.fastmediasorter.data.local.db.StreamingCacheEntry) =
         prefetchOffloadCoordinator.deleteLocalCopy(entry)
 
-    init {
-        loadSettings()
-        loadMediaFiles()
-    }
-    
     /**
      * Reload media files list.
      * Call when returning from background to reflect external changes.
@@ -269,16 +262,24 @@ class PlayerViewModel @Inject constructor(
 
     private fun loadMediaFiles() = mediaFilesLoader.loadMediaFiles()
 
+    // Navigation (next/prev/jump/lookahead/adjacent) extracted in Wave 4.2.
+    private val navigationCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationCoordinator(
+        scope = viewModelScope,
+        resourceRepository = resourceRepository,
+        stateFlow = state,
+        updateState = { update -> updateState(update) },
+        saveResumeState = { this.saveResumeState() }
+    )
 
+    // IMPORTANT: init must run AFTER mediaFilesLoader/navigationCoordinator are initialized —
+    // loadSettings()/loadMediaFiles() delegate into mediaFilesLoader. Moving this block above
+    // the helper property initializers causes NPE at ViewModel construction (Wave 4.1 regression).
+    init {
+        loadSettings()
+        loadMediaFiles()
+    }
 
-
-    // ════════════════════════════════════════════════════════════════════════
-    // LOOKAHEAD MODEL for prefetch
-    // ════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Lookahead file info for prefetch system.
-     */
+    /** Lookahead file info for prefetch system. */
     data class LookaheadItem(
         val file: MediaFile,
         val index: Int,
@@ -293,47 +294,8 @@ class PlayerViewModel @Inject constructor(
      * @param maxLookahead Maximum lookahead depth (default 2 means +2 and +3 indices)
      * @return List of LookaheadItem for prefetch queue
      */
-    fun getLookaheadTargets(maxLookahead: Int = 2): List<LookaheadItem> {
-        val currentState = state.value
-        val files = currentState.files
-        val currentIndex = currentState.currentIndex
-
-        if (files.size <= 1) return emptyList()
-
-        val result = mutableListOf<LookaheadItem>()
-
-        // Next file (highest priority)
-        val nextIndex = (currentIndex + 1) % files.size
-        result.add(LookaheadItem(
-            file = files[nextIndex],
-            index = nextIndex,
-            priority = com.sza.fastmediasorter.ui.player.render.RenderPriority.NEXT
-        ))
-
-        // Previous file
-        val prevIndex = if (currentIndex == 0) files.size - 1 else currentIndex - 1
-        if (prevIndex != nextIndex) { // Avoid duplicate if only 2 files
-            result.add(LookaheadItem(
-                file = files[prevIndex],
-                index = prevIndex,
-                priority = com.sza.fastmediasorter.ui.player.render.RenderPriority.PREVIOUS
-            ))
-        }
-
-        // Forward lookahead (+2, +3, etc.)
-        for (offset in 2..maxLookahead + 1) {
-            val lookaheadIndex = (currentIndex + offset) % files.size
-            // Skip if it wraps around to already included indices
-            if (lookaheadIndex == currentIndex || lookaheadIndex == nextIndex || lookaheadIndex == prevIndex) continue
-            result.add(LookaheadItem(
-                file = files[lookaheadIndex],
-                index = lookaheadIndex,
-                priority = com.sza.fastmediasorter.ui.player.render.RenderPriority.LOOKAHEAD
-            ))
-        }
-
-        return result
-    }
+    fun getLookaheadTargets(maxLookahead: Int = 2): List<LookaheadItem> =
+        navigationCoordinator.getLookaheadTargets(maxLookahead)
     
     /**
      * Get credentialsId for a resource by its ID.
@@ -356,168 +318,14 @@ class PlayerViewModel @Inject constructor(
      * the audio service is already playing the correct track; we only update the index
      * so the UI (title, cover art, next/prev buttons) reflects the current track.
      */
-    fun syncAudioServiceIndex(serviceIndex: Int) {
-        val files = state.value.files
-        if (serviceIndex < 0 || serviceIndex >= files.size) return
-        Timber.d("syncAudioServiceIndex: ${state.value.currentIndex} → $serviceIndex / ${files.size}")
-        updateState { it.copy(currentIndex = serviceIndex) }
-    }
+    fun syncAudioServiceIndex(serviceIndex: Int) = navigationCoordinator.syncAudioServiceIndex(serviceIndex)
 
-    fun jumpToIndex(index: Int) {
-        val currentState = state.value
-        if (index !in currentState.files.indices) {
-            Timber.d("jumpToIndex: ABORT invalid index=$index for size=${currentState.files.size}")
-            return
-        }
-        if (index == currentState.currentIndex) {
-            Timber.d("jumpToIndex: ABORT target index matches current index=$index")
-            return
-        }
+    fun jumpToIndex(index: Int) = navigationCoordinator.jumpToIndex(index)
 
-        Timber.d("jumpToIndex: index ${currentState.currentIndex} → $index / ${currentState.files.size}")
+    fun nextFile(skipDocuments: Boolean = false) = navigationCoordinator.nextFile(skipDocuments)
 
-        // Reuse the same side effects as prev/next so resume and browse restore stay in sync.
-        updateState { it.copy(currentIndex = index) }
-        saveResumeState()
+    fun previousFile(skipDocuments: Boolean = false) = navigationCoordinator.previousFile(skipDocuments)
 
-        val resource = currentState.resource
-        if (resource != null) {
-            val fileToSave = currentState.files[index]
-            saveLastViewedFileDebounced(fileToSave.path)
-        }
-    }
-
-    fun nextFile(skipDocuments: Boolean = false) {
-        if (BuildConfig.DEBUG) {
-            val stackTrace = Thread.currentThread().stackTrace
-            val caller = if (stackTrace.size > 3) stackTrace[3] else null
-            Timber.d("╔═══════════════════════════════════════════════════════════════╗")
-            Timber.d("║ PlayerViewModel.nextFile() CALLED                             ║")
-            Timber.d("╚═══════════════════════════════════════════════════════════════╝")
-            Timber.d("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
-            Timber.d("Thread: ${Thread.currentThread().name}")
-            Timber.d("skipDocuments: $skipDocuments")
-        }
-        
-        val currentState = state.value
-        if (currentState.files.isEmpty()) {
-            Timber.d("nextFile: ABORT: No files to navigate")
-            return
-        }
-        
-        var nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
-            Timber.d("nextFile: Looping from last (${currentState.currentIndex}) to first (0)")
-            0 // Loop to first file after last
-        } else {
-            Timber.d("nextFile: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex + 1}")
-            currentState.currentIndex + 1
-        }
-        
-        // Skip documents if requested (for slideshow auto-navigation)
-        if (skipDocuments) {
-            var attempts = 0
-            val maxAttempts = currentState.files.size
-            
-            while (attempts < maxAttempts) {
-                val file = currentState.files.getOrNull(nextIndex)
-                val isDocument = file?.type == MediaType.TEXT || 
-                                file?.type == MediaType.PDF || 
-                                file?.type == MediaType.EPUB
-                
-                if (!isDocument) {
-                    Timber.d("nextFile: Found media file at index $nextIndex")
-                    break
-                }
-                
-                Timber.d("nextFile: Skipping document at index $nextIndex")
-                nextIndex = if (nextIndex >= currentState.files.size - 1) 0 else nextIndex + 1
-                attempts++
-            }
-            
-            if (attempts >= maxAttempts) {
-                Timber.d("nextFile: All files are documents, staying on current")
-                return
-            }
-        }
-        
-        Timber.d("nextFile: index ${currentState.currentIndex} → $nextIndex / ${currentState.files.size}")
-        
-        updateState { it.copy(currentIndex = nextIndex) }
-        saveResumeState()
-        
-        // Save last viewed file for scroll restoration in Browse (debounced - 5 seconds)
-        val resource = currentState.resource
-        if (resource != null && nextIndex < currentState.files.size) {
-            val fileToSave = currentState.files[nextIndex]
-            saveLastViewedFileDebounced(fileToSave.path)
-        }
-    }
-
-    fun previousFile(skipDocuments: Boolean = false) {
-        if (BuildConfig.DEBUG) {
-            val stackTrace = Thread.currentThread().stackTrace
-            val caller = if (stackTrace.size > 3) stackTrace[3] else null
-            Timber.d("╔═══════════════════════════════════════════════════════════════╗")
-            Timber.d("║ PlayerViewModel.previousFile() CALLED                         ║")
-            Timber.d("╚═══════════════════════════════════════════════════════════════╝")
-            Timber.d("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
-            Timber.d("Thread: ${Thread.currentThread().name}")
-            Timber.d("skipDocuments: $skipDocuments")
-        }
-        
-        val currentState = state.value
-        if (currentState.files.isEmpty()) {
-            Timber.d("previousFile: ABORT: No files to navigate")
-            return
-        }
-        
-        var prevIndex = if (currentState.currentIndex <= 0) {
-            Timber.d("previousFile: Looping from first (${currentState.currentIndex}) to last (${currentState.files.size - 1})")
-            currentState.files.size - 1 // Loop to last file before first
-        } else {
-            Timber.d("previousFile: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex - 1}")
-            currentState.currentIndex - 1
-        }
-        
-        // Skip documents if requested (for slideshow auto-navigation)
-        if (skipDocuments) {
-            var attempts = 0
-            val maxAttempts = currentState.files.size
-            
-            while (attempts < maxAttempts) {
-                val file = currentState.files.getOrNull(prevIndex)
-                val isDocument = file?.type == MediaType.TEXT || 
-                                file?.type == MediaType.PDF || 
-                                file?.type == MediaType.EPUB
-                
-                if (!isDocument) {
-                    Timber.d("previousFile: Found media file at index $prevIndex")
-                    break
-                }
-                
-                Timber.d("previousFile: Skipping document at index $prevIndex")
-                prevIndex = if (prevIndex <= 0) currentState.files.size - 1 else prevIndex - 1
-                attempts++
-            }
-            
-            if (attempts >= maxAttempts) {
-                Timber.d("previousFile: All files are documents, staying on current")
-                return
-            }
-        }
-        
-        Timber.d("previousFile: index ${currentState.currentIndex} → $prevIndex / ${currentState.files.size}")
-        
-        updateState { it.copy(currentIndex = prevIndex) }
-        saveResumeState()
-        
-        // Save last viewed file for scroll restoration in Browse (debounced - 5 seconds)
-        val resource = currentState.resource
-        if (resource != null && prevIndex < currentState.files.size) {
-            val fileToSave = currentState.files[prevIndex]
-            saveLastViewedFileDebounced(fileToSave.path)
-        }
-    }
     
     fun cancelLoading() = mediaFilesLoader.cancelLoading()
 
@@ -703,94 +511,11 @@ class PlayerViewModel @Inject constructor(
      * 
      * @return List of MediaFile to preload (previous, next)
      */
-    fun getAdjacentFiles(): List<MediaFile> {
-        val currentState = state.value
-        if (currentState.files.size <= 1) return emptyList()
-        
-        val result = mutableListOf<MediaFile>()
-        
-        // Calculate previous index with circular wrap
-        val prevIndex = if (currentState.currentIndex <= 0) {
-            currentState.files.size - 1 // Loop to last
-        } else {
-            currentState.currentIndex - 1
-        }
-        val prevFile = currentState.files.getOrNull(prevIndex)
-        
-        // Calculate next index with circular wrap
-        val nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
-            0 // Loop to first
-        } else {
-            currentState.currentIndex + 1
-        }
-        val nextFile = currentState.files.getOrNull(nextIndex)
-        
-        // Add previous file if it's an image or GIF
-        if (prevFile != null && (prevFile.type == MediaType.IMAGE || prevFile.type == MediaType.GIF)) {
-            result.add(prevFile)
-        }
-        
-        // Add next file if it's an image or GIF AND it's different from previous (avoid duplicates in 2-file case)
-        if (nextFile != null && 
-            nextFile != prevFile &&
-            (nextFile.type == MediaType.IMAGE || nextFile.type == MediaType.GIF)) {
-            result.add(nextFile)
-        }
-        
-        return result
-    }
-    
-    /**
-     * Get the next audio file in the list for prefetching.
-     * Returns the next AUDIO file after current index (circular).
-     * Only useful for network sources — local audio uses ExoPlayer playlist.
-     */
-    fun getNextAudioFile(): MediaFile? {
-        val currentState = state.value
-        if (currentState.files.size <= 1) return null
+    fun getAdjacentFiles(): List<MediaFile> = navigationCoordinator.getAdjacentFiles()
 
-        val nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) 0
-            else currentState.currentIndex + 1
+    fun getNextAudioFile(): MediaFile? = navigationCoordinator.getNextAudioFile()
 
-        val nextFile = currentState.files.getOrNull(nextIndex) ?: return null
-        return if (nextFile.type == MediaType.AUDIO) nextFile else null
-    }
-
-    /**
-     * Save last viewed file path to resource for position restoration (debounced - 5 seconds)
-     */
-    private fun saveLastViewedFileDebounced(filePath: String) {
-        val resource = state.value.resource ?: return
-        
-        saveLastViewedFileJob?.cancel()
-        saveLastViewedFileJob = viewModelScope.launch {
-            delay(5000) // Debounce 5 seconds - reduces DB writes during slideshow navigation
-            try {
-                resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
-                Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to save lastViewedFile")
-            }
-        }
-    }
-    
-    /**
-     * Save last viewed file path to resource for position restoration (immediate save)
-     * Used when explicitly requested (e.g., activity pause)
-     */
-    fun saveLastViewedFile(filePath: String) {
-        val resource = state.value.resource ?: return
-        
-        saveLastViewedFileJob?.cancel() // Cancel any pending debounced save
-        viewModelScope.launch {
-            try {
-                resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
-                Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to save lastViewedFile")
-            }
-        }
-    }
+    fun saveLastViewedFile(filePath: String) = navigationCoordinator.saveLastViewedFile(filePath)
     
     /**
      * Handle file moved event (from MoveToDialog).

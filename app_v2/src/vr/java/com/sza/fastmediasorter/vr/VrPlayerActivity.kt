@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.ui.player.render.RenderTarget
 import com.sza.fastmediasorter.vr.capture.VrStereoSnapshotManager
 import com.sza.fastmediasorter.vr.helpers.VrRouteDecision
 import com.sza.fastmediasorter.vr.helpers.VrRouteDecisionHelper
+import com.sza.fastmediasorter.vr.helpers.VrToggleButtonManager
 import com.sza.fastmediasorter.vr.openxr.OpenXrSessionManager
 import com.sza.fastmediasorter.vr.openxr.XrRenderCallback
 import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
@@ -105,6 +106,23 @@ class VrPlayerActivity : PlayerActivity() {
     @Volatile
     private var standardPlayerFallbackLaunched = false
 
+    // True when the user explicitly tapped "3DVR" from panel mode — bypasses stereo-detection gate.
+    private var forceImmersiveThisLaunch = false
+    private var vrToggleButtonManager: VrToggleButtonManager? = null
+
+    // Pending VR surface redirect: captured when the XR session becomes ready before ExoPlayer
+    // is created, and flushed as soon as VideoPlayerManager reports a fresh player (see
+    // onPlayerCreated hook). Without this, early XR readiness results in a silent black screen.
+    @Volatile
+    private var pendingVrBridgeSurface: Surface? = null
+    @Volatile
+    private var pendingVrBridgeTextureId: Int = -1
+
+    // True once the VR surface has been attached to ExoPlayer — drives the toggle button state
+    // so it only flips to "Exit 3D" after immersive actually renders.
+    @Volatile
+    private var vrRenderingActive: Boolean = false
+
     /** Throttle counter for per-frame render debug logs — not persisted across sessions. */
     @Volatile
     private var dbgRenderFrameCount = 0L
@@ -155,6 +173,27 @@ class VrPlayerActivity : PlayerActivity() {
         super.onCreate(savedInstanceState)
         Timber.i("VrPlayerActivity: super.onCreate done  currentRenderingMode=%s  stereoMode=%s",
             currentRenderingMode, currentStereoMode)
+
+        forceImmersiveThisLaunch = intent.getBooleanExtra(EXTRA_FORCE_IMMERSIVE, false)
+        Timber.i("VrPlayerActivity: forceImmersiveThisLaunch=%b", forceImmersiveThisLaunch)
+
+        // Wire the 3DVR toggle button (VR flavor only — button is always in the layout but hidden in other flavors).
+        vrToggleButtonManager = VrToggleButtonManager(
+            button = safeViews.btn3dVrCmd,
+            onSwitchToPanelRequested = { switchToPanelPreservingPosition() },
+            onSwitchToImmersiveRequested = { switchToImmersivePreservingPosition() },
+        )
+        // Initial button state: "Enter 3D VR". Only flip to "Exit" once the VR pipeline
+        // is actually rendering (see flushPendingVrSurfaceIfReady).
+        vrToggleButtonManager?.updateState(false)
+
+        // Hook into ExoPlayer creation so we can flush a pending VR surface as soon as the
+        // player becomes available (fixes the black-screen race between XR session ready
+        // and async ExoPlayer creation).
+        videoPlayerManager.onPlayerCreated = { player ->
+            Timber.i("VrPlayerActivity: onPlayerCreated — attempting pending VR surface flush")
+            flushPendingVrSurfaceIfReady(player)
+        }
 
         // Per-eye render callback: called by native once per eye per frame on the GL thread.
         // bridge.updateFrame() advances the SurfaceTexture — must be called only on the left eye
@@ -455,19 +494,61 @@ class VrPlayerActivity : PlayerActivity() {
                 // Static VR images are rendered from a preloaded bitmap, so a missing ExoPlayer video
                 // surface is expected and must not be treated as a black-screen failure.
                 Timber.i("VrPlayerActivity: static-image immersive session — skipping ExoPlayer surface redirect")
+                pendingVrBridgeSurface = null
+                pendingVrBridgeTextureId = -1
+                setVrRenderingActive(true, "static-image-session-ready")
             } else if (bridgeSurface != null && exoPlayerInstance != null) {
                 exoPlayerInstance.setVideoSurface(bridgeSurface)
                 Timber.i("VrPlayerActivity: ExoPlayer video redirected to VR bridge surface (textureId=%d)",
                     textureId)
+                pendingVrBridgeSurface = null
+                pendingVrBridgeTextureId = -1
+                setVrRenderingActive(true, "surface-attached-sync")
+            } else if (bridgeSurface != null && exoPlayerInstance == null) {
+                // Race: XR session ready before ExoPlayer created. Hold surface until createPlayer fires.
+                pendingVrBridgeSurface = bridgeSurface
+                pendingVrBridgeTextureId = textureId
+                Timber.w("VrPlayerActivity: XR ready before ExoPlayer — deferring VR surface attach (textureId=%d)", textureId)
+                Log.w("VR_BOOT", "VrPlayerActivity: VR surface deferred — waiting for ExoPlayer creation (textureId=$textureId)")
             } else {
-                // This is a critical error — video will render to the hidden PlayerView and VR shows black.
-                // Possible causes: (a) exoPlayer not yet created (rare timing race on slow network sources),
-                // (b) bridge.initialize() produced a null Surface.
+                // Genuine error: bridge surface is null (bridge.initialize failed).
                 Timber.e("VrPlayerActivity: CANNOT redirect ExoPlayer to VR surface — exoPlayer=%s  bridgeSurface=%s  (VR will be BLACK!)",
                     exoPlayerInstance, bridgeSurface)
                 Log.e("VR_BOOT", "VrPlayerActivity: surface redirect FAILED — exoPlayer=$exoPlayerInstance bridgeSurface=$bridgeSurface")
             }
         }
+    }
+
+    /**
+     * Try to attach a deferred VR bridge surface to a newly-created ExoPlayer.
+     * Called from the [VideoPlayerManager.onPlayerCreated] callback. No-op if
+     * there is nothing pending or the XR session is not ready yet.
+     */
+    private fun flushPendingVrSurfaceIfReady(player: ExoPlayer) {
+        val surface = pendingVrBridgeSurface ?: return
+        val textureId = pendingVrBridgeTextureId
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            try {
+                player.setVideoSurface(surface)
+                Timber.w("VrPlayerActivity: attached DEFERRED VR surface to late-arriving ExoPlayer (textureId=%d)", textureId)
+                Log.w("VR_BOOT", "VrPlayerActivity: deferred VR surface attached (textureId=$textureId)")
+            } catch (t: Throwable) {
+                Timber.e(t, "VrPlayerActivity: failed to attach deferred VR surface")
+                return@runOnUiThread
+            }
+            pendingVrBridgeSurface = null
+            pendingVrBridgeTextureId = -1
+            setVrRenderingActive(true, "deferred-surface-attached")
+        }
+    }
+
+    /** Single entry point for toggling the "VR is actually rendering" state + UI. */
+    private fun setVrRenderingActive(active: Boolean, reason: String) {
+        if (vrRenderingActive == active) return
+        vrRenderingActive = active
+        Timber.i("VrPlayerActivity: vrRenderingActive=%b (reason=%s)", active, reason)
+        runOnUiThread { vrToggleButtonManager?.updateState(active) }
     }
 
     override fun onResume() {
@@ -505,6 +586,11 @@ class VrPlayerActivity : PlayerActivity() {
         playbackRouteJob = null
         playbackPrefs.unregisterOnSharedPreferenceChangeListener(renderingModeListener)
         detachVrPlayerListener()
+        // Clear the onPlayerCreated hook so future PlayerActivity instances
+        // don't inherit a stale VrPlayerActivity reference.
+        videoPlayerManager.onPlayerCreated = null
+        pendingVrBridgeSurface = null
+        pendingVrBridgeTextureId = -1
         stereoSnapshotManager = null
         videoSurfaceBridge = null
         stereoRenderer = null
@@ -570,9 +656,19 @@ class VrPlayerActivity : PlayerActivity() {
                     exitVrAndStopPlayback("back-button-exit")
                     return true
                 }
+                KeyEvent.KEYCODE_BUTTON_THUMBL -> {
+                    // Left thumbstick click — toggle 3DVR mode (panel ↔ immersive).
+                    Timber.i("VrPlayerActivity: thumbstick-L → 3DVR toggle")
+                    vrToggleButtonManager?.onToggleRequested()
+                    return true
+                }
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    override fun handle3dVrToggleClicked() {
+        vrToggleButtonManager?.onToggleRequested()
     }
 
     internal fun captureStereoSnapshotFromCommand(): Boolean {
@@ -672,7 +768,7 @@ class VrPlayerActivity : PlayerActivity() {
     ): VrRouteDecision {
         val settings = viewModel.getSettings()
         val effectiveMode = resolveLaunchStereoMode(currentFile, requestedStereoMode, settings.vrAutoDetectFormat)
-        val routeDecision = routeDecisionHelper.decide(currentFile, effectiveMode, settings)
+        val routeDecision = routeDecisionHelper.decide(currentFile, effectiveMode, settings, forceImmersiveThisLaunch)
         Timber.i(
             "VrPlayerActivity: route decision file=%s type=%s requested=%s effective=%s autoDetect=%b route=%s reason=%s",
             currentFile.path,
@@ -828,6 +924,11 @@ class VrPlayerActivity : PlayerActivity() {
     private fun forceStopVrPlayback(reason: String) {
         Timber.w("VrPlayerActivity: forceStopVrPlayback reason=%s", reason)
 
+        // VR is no longer rendering — drop pending surface and flip button back to "Enter 3D".
+        pendingVrBridgeSurface = null
+        pendingVrBridgeTextureId = -1
+        setVrRenderingActive(false, "force-stop:$reason")
+
         try {
             lifecycleManager.saveCurrentPlaybackPosition()
         } catch (t: Throwable) {
@@ -937,6 +1038,35 @@ class VrPlayerActivity : PlayerActivity() {
      */
     private fun isXrRuntimeAvailable(): Boolean = xrAvailable
 
+    /**
+     * Relaunch current file in panel mode (no forced immersive).
+     * [forceStopVrPlayback] saves the position to DB — PlayerActivity restores it on load.
+     */
+    private fun switchToPanelPreservingPosition() {
+        if (isFinishing || isDestroyed) return
+        Timber.i("VrPlayerActivity: switchToPanelPreservingPosition")
+        forceStopVrPlayback("toggle-to-panel")
+        startActivity(Intent(intent).apply {
+            setClass(this@VrPlayerActivity, VrPlayerActivity::class.java)
+            putExtra(EXTRA_FORCE_IMMERSIVE, false)
+        })
+        finish()
+    }
+
+    /**
+     * Relaunch current file in immersive mode (forced).
+     * [forceStopVrPlayback] saves the position to DB — VrPlayerActivity restores it on load.
+     */
+    private fun switchToImmersivePreservingPosition() {
+        if (isFinishing || isDestroyed) return
+        Timber.i("VrPlayerActivity: switchToImmersivePreservingPosition")
+        forceStopVrPlayback("toggle-to-immersive")
+        startActivity(Intent(intent).apply {
+            putExtra(EXTRA_FORCE_IMMERSIVE, true)
+        })
+        finish()
+    }
+
     companion object {
         /** Seek increment for VR controller seek commands (seconds). */
         private const val VR_SEEK_SECONDS = 15
@@ -948,6 +1078,9 @@ class VrPlayerActivity : PlayerActivity() {
          * forwarded from MainActivity's intent so VrPlayerActivity sees it too.
          */
         const val EXTRA_VR_SHELL_LAUNCH_ID = "com.oculus.vrshell.launch_id"
+
+        /** When true, bypass stereo-detection gate and force immersive XR route for video. */
+        const val EXTRA_FORCE_IMMERSIVE = "com.sza.fastmediasorter.EXTRA_FORCE_IMMERSIVE"
 
         /** Cached XR runtime probe — avoids repeated loadLibrary calls. */
         private val xrAvailable: Boolean by lazy {

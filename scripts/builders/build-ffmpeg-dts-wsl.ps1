@@ -75,10 +75,8 @@ if ($exitCode -eq 0) {
         Write-Host " SUCCESS: fms-ffmpeg-dts.aar ($sizeMb MB)"                     -ForegroundColor Green
         Write-Host ""
         Write-Host " Phase 4 — verify + re-enable in Gradle:"
-        Write-Host "   1. 16 KB alignment: already verified by the build script (readelf -l step)."
-        Write-Host "      To re-check manually (CMake output path):"
-        Write-Host "        wsl bash -c ""readelf -l ~/ffmpeg-android-build/jni-build/arm64-v8a/libffmpegJNI.so | grep LOAD"""
-        Write-Host "        → All LOAD lines must show Align=0x4000 (16 KB), NOT 0x1000 (4 KB)."
+        Write-Host "   1. 16 KB alignment: already verified by the build script (readelf -l per ABI)."
+        Write-Host "      The build fails fast if any slice is non-compliant; nothing to re-check manually."
         Write-Host "   2. app_v2\build.gradle.kts already wired (ENABLE_DTS_DECODER=true + AAR deps)."
         Write-Host "   3. .\gradlew.bat assembleStandardDebug"
         Write-Host "   4. Inspect APK: python -m zipfile -l app_v2\build\outputs\apk\standard\debug\*.apk | Select-String ffmpeg"

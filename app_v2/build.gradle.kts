@@ -41,8 +41,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260422141
-        versionName = "2.60.4221.410"
+        versionCode = 260423014
+        versionName = "2.60.4230.142"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -83,29 +83,25 @@ android {
     // Product Flavors: Different app versions for different use cases
     flavorDimensions += listOf("version")
     
-    // Opt-in x86/x86_64 ABIs for emulator debugging (e.g. Android 8.1 / API 27 AVD is x86-only).
-    // Enable with: .\gradlew.bat assembleStandardDebug -PincludeX86
-    // Real-device and release builds stay arm64-only (APK size + Play distribution unchanged).
-    val includeX86Abis = project.hasProperty("includeX86")
-
     productFlavors {
         // Per-flavor CMake target filtering: only vr builds the native OpenXR bridge.
         // Non-vr flavors skip CMake entirely by declaring no build targets.
+        // ABI selection is handled per-flavor (not per-buildType) because AGP merges
+        // flavor+buildType ndk.abiFilters via UNION, not intersection. Setting abiFilters
+        // on a buildType would leak extra slices (e.g. x86) into VR AABs. Keeping ABI
+        // configuration flavor-local gives each flavor exactly what Play delivers to users.
         fun com.android.build.api.dsl.ProductFlavor.disableNativeBuild() {
             externalNativeBuild {
                 cmake {
                     targets.clear()
                 }
             }
+            // Distribution ABIs for non-VR flavors: all four production ABIs.
+            // Covers Android 8+ phones/tablets (arm64-v8a + armeabi-v7a), Chromebooks
+            // and emulators (x86/x86_64). AAB per-device delivery keeps user download size
+            // unchanged vs single-ABI. See PLAN/spec_ffmpeg-dts-multi-abi.md.
             ndk {
-                // Restrict to arm64-v8a only: real Android 8+ devices are almost exclusively 64-bit.
-                // Without this filter, AGP packs .so libs from AAR deps for ALL ABIs (armeabi-v7a,
-                // arm64-v8a, x86, x86_64), inflating the APK 3-4x. x86/x86_64 are emulator-only.
-                abiFilters.clear()
-                abiFilters += listOf("arm64-v8a")
-                if (includeX86Abis) {
-                    abiFilters += listOf("x86", "x86_64")
-                }
+                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
             }
         }
 
@@ -224,6 +220,12 @@ android {
                 cmake {
                     // Build only the JNI bridge target; OpenXR loader ships prebuilt in the AAR.
                     targets += listOf("openxr_native")
+                    // OpenXR loader AAR ships only arm64-v8a — restrict CMake config to match,
+                    // otherwise AGP tries to build openxr_native for every ABI in the buildType
+                    // filter (armeabi-v7a/x86/x86_64 inherited from release buildType) and fails
+                    // because those OpenXR slices do not exist. ndk.abiFilters above only
+                    // governs packaging; externalNativeBuild.cmake.abiFilters governs configure.
+                    abiFilters += listOf("arm64-v8a")
                     cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
                     arguments += listOf(
                         "-DANDROID_STL=c++_shared",
@@ -274,6 +276,9 @@ android {
                 cmake {
                     // Same OpenXR native bridge as vr flavor.
                     targets += listOf("openxr_native")
+                    // Restrict CMake configure to arm64-v8a — OpenXR loader AAR ships only
+                    // arm64. Without this, AGP attempts configure for every buildType ABI.
+                    abiFilters += listOf("arm64-v8a")
                     cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
                     arguments += listOf(
                         "-DANDROID_STL=c++_shared",
@@ -374,6 +379,9 @@ android {
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
             isMinifyEnabled = false
+            // ABI selection is flavor-local (see productFlavors block) — not set here because
+            // AGP merges buildType+flavor abiFilters as UNION, not intersection, which would
+            // leak non-VR ABIs into VR debug AABs.
             if (hasCustomDebugKeystore) {
                 signingConfig = signingConfigs.getByName("debugCustom")
             }
@@ -396,6 +404,9 @@ android {
             buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
             ndk {
                 debugSymbolLevel = "FULL"
+                // ABI selection is flavor-local (see productFlavors block) — AGP merges
+                // buildType+flavor ndk.abiFilters as UNION, so a buildType-level list
+                // would leak non-VR ABIs into VR AABs. Each flavor declares its own ABIs.
             }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

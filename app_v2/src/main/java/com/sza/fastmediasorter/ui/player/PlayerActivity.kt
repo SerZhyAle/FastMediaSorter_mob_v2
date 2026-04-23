@@ -526,6 +526,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     internal open fun saveCurrentFrame() = saveVideoFrameManager.saveCurrentFrame()
 
+    /** Called when user taps the 3DVR toggle button. Overridden in VrPlayerActivity. */
+    internal open fun handle3dVrToggleClicked() = Unit
+
     internal fun handleDeleteSuccess(deletedFilePath: String) = lifecycleManager.handleDeleteSuccess(deletedFilePath)
 
     private fun handleEvent(event: PlayerViewModel.PlayerEvent) = eventHandler.handleEvent(event)

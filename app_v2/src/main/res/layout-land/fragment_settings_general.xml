@@ -289,46 +289,54 @@
 
                     </LinearLayout>
 
-                    <!-- Network Parallelism -->
-                    <TextView android:id="@+id/tvNetworkParallelismLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/network_parallelism_summary" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                    <!-- Network Parallelism & Video Pre-cache -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilNetworkParallelism" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/network_parallelism_title">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
+                            <TextView android:id="@+id/tvNetworkParallelismLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/network_parallelism_summary" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilNetworkParallelism" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/network_parallelism_title">
+                                <AutoCompleteTextView android:id="@+id/actvNetworkParallelism" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/network_parallelism_title" android:inputType="number" android:text="@string/default_network_parallelism" android:textSize="@dimen/resource_card_desc_text_size" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
 
-                        <AutoCompleteTextView android:id="@+id/actvNetworkParallelism" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/network_parallelism_title" android:inputType="number" android:text="@string/default_network_parallelism" android:textSize="@dimen/resource_card_desc_text_size" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
+                            <TextView android:id="@+id/tvPrefetchCacheLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_prefetch_cache_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_prefetch_cache_title" app:helperText="@string/pref_prefetch_cache_helper">
+                                <AutoCompleteTextView android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
 
-                    <!-- Video Pre-cache -->
-                    <TextView android:id="@+id/tvPrefetchCacheLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_prefetch_cache_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                    <!-- Streaming Cache Cleanup & TTL -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_prefetch_cache_title" app:helperText="@string/pref_prefetch_cache_helper">
-                        <AutoCompleteTextView android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
+                            <TextView android:id="@+id/tvStreamingCleanupLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_cleanup_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_cleanup_title">
+                                <AutoCompleteTextView android:id="@+id/actvStreamingCleanup" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
 
-                    <!-- Streaming Cache Cleanup -->
-                    <TextView android:id="@+id/tvStreamingCleanupLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_cleanup_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
+                            <TextView android:id="@+id/tvStreamingTtlLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_ttl_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_ttl_title">
+                                <AutoCompleteTextView android:id="@+id/actvStreamingTtl" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_cleanup_title">
-                        <AutoCompleteTextView android:id="@+id/actvStreamingCleanup" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Streaming Cache TTL -->
-                    <TextView android:id="@+id/tvStreamingTtlLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_ttl_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
-
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_ttl_title">
-                        <AutoCompleteTextView android:id="@+id/actvStreamingTtl" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton android:id="@+id/btnClearStreamingCache" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_clear_now" />
 
                     <!-- Network Sync Container -->
-                    <LinearLayout android:id="@+id/containerSync" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/margin_tiny">
+                    <LinearLayout android:id="@+id/containerSync" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <LinearLayout android:id="@+id/layoutEnableSync" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginBottom="@dimen/margin_tiny">
+                        <LinearLayout android:id="@+id/layoutEnableSync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginBottom="@dimen/margin_tiny">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableBackgroundSync" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_background_sync" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_background_sync" android:textSize="@dimen/resource_card_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_background_sync_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -336,9 +344,9 @@
                             <ImageButton android:id="@+id/iconHelpBackgroundSync" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/background_sync_description" android:tooltipText="@string/background_sync_description" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
                         </LinearLayout>
 
-                        <LinearLayout android:id="@+id/layoutSyncControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:baselineAligned="false">
+                        <LinearLayout android:id="@+id/layoutSyncControls" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="horizontal" android:gravity="center_vertical" android:baselineAligned="false">
 
-                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSyncInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/sync_interval">
+                            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSyncInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/sync_interval">
 
                                 <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/resource_card_desc_text_size" />
 

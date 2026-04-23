@@ -199,22 +199,49 @@ class SafUriExtractor(private val context: Context) {
     }
     
     /**
-     * Extract PDF metadata from content:// URI
+     * Extract PDF metadata from content:// URI.
+     *
+     * Page count via PdfRenderer, Info-dict fields via PdfInfoParser. We open the URI twice
+     * (once for PdfRenderer's ParcelFileDescriptor, once for an InputStream to the parser)
+     * because PdfRenderer consumes the descriptor exclusively.
      */
     fun extractPdfInfo(uriPath: String): DetailedMediaInfo {
-        return try {
-            val uri = android.net.Uri.parse(uriPath)
-            val pfd = context.contentResolver.openFileDescriptor(uri, "r") ?: return DetailedMediaInfo()
-            val pdfRenderer = android.graphics.pdf.PdfRenderer(pfd)
-            val pageCount = pdfRenderer.pageCount
-            pdfRenderer.close()
-            pfd.close()
-            
-            DetailedMediaInfo(pageCount = pageCount)
+        val uri = android.net.Uri.parse(uriPath)
+
+        val pageCount: Int? = try {
+            val pfd = context.contentResolver.openFileDescriptor(uri, "r")
+            if (pfd != null) {
+                val pdfRenderer = android.graphics.pdf.PdfRenderer(pfd)
+                val count = pdfRenderer.pageCount
+                pdfRenderer.close()
+                pfd.close()
+                count
+            } else null
         } catch (e: Exception) {
-            Timber.w(e, "Failed to extract PDF info from URI: $uriPath")
-            DetailedMediaInfo()
+            Timber.w(e, "Failed to read PDF page count from URI: $uriPath")
+            null
         }
+
+        val info = try {
+            context.contentResolver.openInputStream(uri)?.use { PdfInfoParser.parse(it) }
+                ?: PdfInfoParser.PdfInfo()
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to read PDF info dict from URI: $uriPath")
+            PdfInfoParser.PdfInfo()
+        }
+
+        return DetailedMediaInfo(
+            pageCount = pageCount,
+            docTitle = info.title,
+            docAuthor = info.author,
+            pdfVersion = info.version,
+            pdfCreator = info.creator,
+            pdfProducer = info.producer,
+            pdfSubject = info.subject,
+            pdfKeywords = info.keywords,
+            pdfCreationDate = info.creationDate,
+            pdfModificationDate = info.modificationDate
+        )
     }
     
     /**

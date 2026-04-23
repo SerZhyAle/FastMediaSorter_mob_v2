@@ -4,9 +4,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-    // CRITICAL: Do not change - AGP 8.7.3 tested and stable for this project
-    classpath("com.android.tools.build:gradle:9.2.0")
-        // CRITICAL: Do not change - Kotlin 1.9.24 required for project stability
+        // Pinned: AGP 9.2.0 — requires Gradle 9.x; see dev/TECH_REQUIREMENTS.md §11
+        classpath("com.android.tools.build:gradle:9.2.0")
+        // Pinned: Kotlin 2.2.10 — aligned with KSP 2.3.2 and Compose plugin 2.2.10
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.10")
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.57.2")
         classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.6")
