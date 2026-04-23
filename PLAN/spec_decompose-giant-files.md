@@ -66,6 +66,14 @@
 
 `SmbConnectionManager.kt` is now exactly at the 1000-line hard cap. Pool/lifecycle/health logic stays in the manager.
 
+**Wave 11 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/cloud/DropboxClient.kt` | 1 181 | 981 | −200 | `DropboxClientUtils` (user-friendly error messages, TLS diagnostics logging, credential JSON serialization, Metadata → CloudFile mapping, MIME guessing, retry wrapper) |
+
+`DropboxClient.kt` is now under the 1000-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)

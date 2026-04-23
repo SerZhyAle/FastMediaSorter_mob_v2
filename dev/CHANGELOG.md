@@ -3432,3 +3432,4 @@ Format: | datetime | file | target | description |
 | 2026-04-23 02:38:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | Wave 8: extracted PlayerMediaViewVisibilityHelper (1002 -> 967 LOC) |
 | 2026-04-23 02:42:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `TranslationManager` | Wave 9: extracted TranslationTextUtils (1011 -> 961 LOC) |
 | 2026-04-23 02:47:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | Wave 10: extracted SmbErrorClassifier (1099 -> 1000 LOC, at cap) |
+| 2026-04-23 02:53:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/DropboxClient.kt` | `DropboxClient` | Wave 11: extracted DropboxClientUtils (1181 -> 981 LOC) |

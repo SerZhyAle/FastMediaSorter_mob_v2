@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
-import android.os.Build
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.dropbox.core.DbxException
@@ -13,7 +12,6 @@ import java.util.concurrent.TimeUnit
 import com.dropbox.core.oauth.DbxCredential
 import com.dropbox.core.v2.DbxClientV2
 import com.dropbox.core.v2.files.CreateFolderErrorException
-import com.dropbox.core.v2.files.FileMetadata
 import com.dropbox.core.v2.files.FolderMetadata
 import com.dropbox.core.v2.files.GetMetadataErrorException
 import com.dropbox.core.v2.files.Metadata
@@ -31,10 +29,6 @@ import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -389,44 +383,14 @@ class DropboxClient @Inject constructor(
     /**
      * Serialize access token to JSON for storage
      */
-    private fun serializeAccessToken(accessToken: String): String {
-        return JSONObject().apply {
-            put("access_token", accessToken)
-            put("type", "legacy")
-        }.toString()
-    }
-    
-    /**
-     * Serialize DbxCredential to JSON for storage
-     */
-    private fun serializeCredential(credential: DbxCredential): String {
-        return JSONObject().apply {
-            put("access_token", credential.accessToken)
-            credential.refreshToken?.let { put("refresh_token", it) }
-            credential.expiresAt?.let { put("expires_at", it) }
-            put("app_key", credential.appKey)
-        }.toString()
-    }
-    
-    /**
-     * Deserialize DbxCredential from JSON
-     * Uses fallback APP_KEY constant if not present in JSON
-     */
-    private fun deserializeCredential(json: String): DbxCredential? {
-        return try {
-            val obj = JSONObject(json)
-            val accessToken = obj.getString("access_token")
-            val refreshToken = if (obj.has("refresh_token")) obj.getString("refresh_token") else null
-            val expiresAt = obj.optLong("expires_at", -1L).takeIf { it > 0 }
-            // Use stored app_key if available, otherwise fallback to constant
-            val appKey = obj.optString("app_key").takeIf { it.isNotEmpty() } ?: DROPBOX_APP_KEY
-            
-            DbxCredential(accessToken, expiresAt, refreshToken, appKey)
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to deserialize Dropbox credential")
-            null
-        }
-    }
+    private fun serializeAccessToken(accessToken: String): String =
+        DropboxClientUtils.serializeAccessToken(accessToken)
+
+    private fun serializeCredential(credential: DbxCredential): String =
+        DropboxClientUtils.serializeCredential(credential)
+
+    private fun deserializeCredential(json: String): DbxCredential? =
+        DropboxClientUtils.deserializeCredential(json, DROPBOX_APP_KEY)
 
     private suspend fun registerAccountInDatabase(email: String) {
         val existing = networkCredentialsRepository.getByTypeAndAccountId(CloudProvider.DROPBOX.name, email)
@@ -445,127 +409,14 @@ class DropboxClient @Inject constructor(
         }
     }
 
-    private fun buildUserFriendlyErrorMessage(error: Throwable): String {
-        val chain = generateSequence(error) { it.cause }
-            .mapNotNull { it.message }
-            .joinToString(" | ")
+    private fun buildUserFriendlyErrorMessage(error: Throwable): String =
+        DropboxClientUtils.buildUserFriendlyErrorMessage(error)
 
-        return when {
-            chain.contains("Trust anchor for certification path not found", ignoreCase = true) ||
-                chain.contains("SSLHandshakeException", ignoreCase = true) ||
-                chain.contains("CertPathValidatorException", ignoreCase = true) -> {
-                logTlsDiagnostics(error, "dropbox_tls_validation")
-                "TLS/SSL certificate validation failed. Device/emulator trust store cannot validate Dropbox certificate. " +
-                    "Check date/time, proxy/VPN/antivirus interception, and update CA certificates/system image."
-            }
-            chain.contains("timeout", ignoreCase = true) -> {
-                "Network timeout while connecting to Dropbox. Check internet connection and retry."
-            }
-            chain.contains("network", ignoreCase = true) || chain.contains("connection", ignoreCase = true) -> {
-                "Network connection error while contacting Dropbox. Check internet/proxy settings and retry."
-            }
-            else -> {
-                val rawMessage = error.message?.takeIf { it.isNotBlank() }
-                    ?: error.cause?.message
-                    ?: "Unknown Dropbox authentication error"
-                "Dropbox authentication failed: $rawMessage"
-            }
-        }
-    }
-
-    private fun logTlsDiagnostics(error: Throwable, stage: String) {
-        try {
-            val nowIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US).apply {
-                timeZone = TimeZone.getDefault()
-            }.format(Date())
-
-            val exceptionChain = generateSequence(error) { it.cause }
-                .joinToString(" -> ") { throwable ->
-                    val msg = throwable.message?.replace("\n", " ") ?: "<no-message>"
-                    "${throwable::class.java.simpleName}: $msg"
-                }
-
-            val isEmulator = Build.FINGERPRINT.contains("generic", ignoreCase = true) ||
-                Build.MODEL.contains("Emulator", ignoreCase = true) ||
-                Build.PRODUCT.contains("sdk", ignoreCase = true)
-
-            val httpProxyHost = System.getProperty("http.proxyHost")
-            val httpProxyPort = System.getProperty("http.proxyPort")
-            val httpsProxyHost = System.getProperty("https.proxyHost")
-            val httpsProxyPort = System.getProperty("https.proxyPort")
-
-            Timber.e(
-                "DROPBOX_TLS_DIAG stage=%s now=%s tz=%s sdk=%s device=%s/%s model=%s emulator=%s httpProxy=%s:%s httpsProxy=%s:%s exceptions=%s",
-                stage,
-                nowIso,
-                TimeZone.getDefault().id,
-                Build.VERSION.SDK_INT,
-                Build.MANUFACTURER,
-                Build.BRAND,
-                Build.MODEL,
-                isEmulator,
-                httpProxyHost ?: "<none>",
-                httpProxyPort ?: "<none>",
-                httpsProxyHost ?: "<none>",
-                httpsProxyPort ?: "<none>",
-                exceptionChain
-            )
-        } catch (diagnosticError: Exception) {
-            Timber.e(diagnosticError, "DROPBOX_TLS_DIAG failed")
-        }
-    }
+    private fun logTlsDiagnostics(error: Throwable, stage: String) =
+        DropboxClientUtils.logTlsDiagnostics(error, stage)
     
-    /**
-     * Retry wrapper for Dropbox API calls
-     * Handles transient errors (401, network timeouts) with multiple retry attempts
-     */
-    private suspend fun <T> withRetry(
-        operation: String,
-        block: suspend () -> T
-    ): T {
-        var lastException: Exception? = null
-        
-        repeat(RETRY_MAX_ATTEMPTS) { attempt ->
-            try {
-                return block()
-            } catch (e: DbxException) {
-                lastException = e
-                val isRetryable = e.message?.contains("401") == true || 
-                                  e.message?.contains("unauthorized", ignoreCase = true) == true ||
-                                  e.message?.contains("expired", ignoreCase = true) == true ||
-                                  e.message?.contains("timeout", ignoreCase = true) == true ||
-                                  e.message?.contains("network", ignoreCase = true) == true
-                
-                if (isRetryable && attempt < RETRY_MAX_ATTEMPTS - 1) {
-                    Timber.w(e, "$operation failed (attempt ${attempt + 1}/$RETRY_MAX_ATTEMPTS): ${e.message}. Retrying...")
-                    delay(RETRY_DELAY_MS)
-                } else if (attempt < RETRY_MAX_ATTEMPTS - 1) {
-                    // Non-retryable error, throw immediately
-                    throw e
-                } else {
-                    // Last attempt failed
-                    Timber.e(e, "$operation failed after $RETRY_MAX_ATTEMPTS attempts")
-                    throw e
-                }
-            } catch (e: Exception) {
-                // Non-DbxException errors - check if network related
-                lastException = e
-                val isNetworkError = e.message?.contains("timeout", ignoreCase = true) == true ||
-                                     e.message?.contains("network", ignoreCase = true) == true ||
-                                     e.message?.contains("connection", ignoreCase = true) == true
-                
-                if (isNetworkError && attempt < RETRY_MAX_ATTEMPTS - 1) {
-                    Timber.w(e, "$operation network error (attempt ${attempt + 1}/$RETRY_MAX_ATTEMPTS). Retrying...")
-                    delay(RETRY_DELAY_MS)
-                } else {
-                    throw e
-                }
-            }
-        }
-        
-        // Should never reach here, but just in case
-        throw lastException ?: Exception("$operation failed after $RETRY_MAX_ATTEMPTS attempts")
-    }
+    private suspend fun <T> withRetry(operation: String, block: suspend () -> T): T =
+        DropboxClientUtils.withRetry(operation, RETRY_MAX_ATTEMPTS, RETRY_DELAY_MS, block)
     
     override suspend fun initialize(credentialsJson: String): Boolean {
         return try {
@@ -1094,62 +945,11 @@ class DropboxClient @Inject constructor(
     /**
      * Convert Dropbox Metadata to CloudFile
      */
-    private fun metadataToCloudFile(metadata: Metadata, parentPath: String): CloudFile {
-        return when (metadata) {
-            is FileMetadata -> {
-                CloudFile(
-                    id = metadata.pathDisplay ?: metadata.pathLower ?: "",
-                    name = metadata.name,
-                    path = parentPath,
-                    isFolder = false,
-                    size = metadata.size,
-                    modifiedDate = metadata.serverModified?.time ?: 0L,
-                    mimeType = guessMimeType(metadata.name),
-                    thumbnailUrl = null, // Thumbnails fetched separately
-                    webViewUrl = null
-                )
-            }
-            is FolderMetadata -> {
-                CloudFile(
-                    id = metadata.pathDisplay ?: metadata.pathLower ?: "",
-                    name = metadata.name,
-                    path = parentPath,
-                    isFolder = true,
-                    size = 0,
-                    modifiedDate = 0,
-                    mimeType = null,
-                    thumbnailUrl = null,
-                    webViewUrl = null
-                )
-            }
-            else -> {
-                CloudFile(
-                    id = metadata.pathDisplay ?: metadata.pathLower ?: "",
-                    name = metadata.name,
-                    path = parentPath,
-                    isFolder = false,
-                    size = 0,
-                    modifiedDate = 0,
-                    mimeType = null,
-                    thumbnailUrl = null,
-                    webViewUrl = null
-                )
-            }
-        }
-    }
-    
-    /**
-     * Guess MIME type from file extension
-     */
-    private fun guessMimeType(fileName: String): String? {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        return when {
-            MediaExtensions.isImage(extension) -> "image/$extension"
-            MediaExtensions.isVideo(extension) -> "video/$extension"
-            MediaExtensions.isAudio(extension) -> "audio/$extension"
-            else -> null
-        }
-    }
+    private fun metadataToCloudFile(metadata: Metadata, parentPath: String): CloudFile =
+        DropboxClientUtils.metadataToCloudFile(metadata, parentPath)
+
+    private fun guessMimeType(fileName: String): String? =
+        DropboxClientUtils.guessMimeType(fileName)
 
     override suspend fun fileExists(fileName: String, parentId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
