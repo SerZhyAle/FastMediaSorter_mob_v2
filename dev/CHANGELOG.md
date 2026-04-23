@@ -3439,3 +3439,4 @@ Format: | datetime | file | target | description |
 | 2026-04-23 17:50:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbClient.kt` | `SmbClient` | Wave 14: extracted SmbClientErrorFormatter + SmbShareDiscoveryHelper (1291 -> 954 LOC) |
 | 2026-04-23 17:54:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `SftpClient` | Wave 15a (partial): extracted SftpConnectionTester (1311 -> 1189 LOC; still over cap, channel-pool refactor deferred) |
 | 2026-04-23 18:01:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Wave 16a (partial): extracted OneDriveRestClientUtils (1433 -> 1349 LOC; still over cap, MSAL/HTTP refactor deferred) |
+| 2026-04-23 18:25:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager` | Wave 17a (partial): extracted ImageLoadingDiagnostics (1304 -> 1239 LOC; still over cap) |

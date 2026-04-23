@@ -19,6 +19,7 @@ The standalone entrypoint (`StandalonePlayerActivity`, launched via `ACTION_VIEW
 4. Extract shared coordinators so that stereo detection, delete/undo and playback-control UI are implemented once and consumed by both activities.
 5. Retire `StandalonePlaybackControlDialogFragment` in favour of the unified dialog driven by a host-capability contract.
 6. Keep both entrypoints below the 1000-LOC rule after refactor; standalone activity must shrink, not grow.
+7. Elevate the standalone experience to match the premium "Entertainment" feel of the in-app player, ensuring micro-animations, haptic feedback on destructive actions, and smooth tactile UI transitions are universally applied.
 
 Non-goals for this spec:
 - Building a playlist from `ACTION_SEND_MULTIPLE` (owned by III.12).
@@ -331,14 +332,20 @@ Add a single smoke flow `maestro/smoke/standalone_player_parity.yaml`:
 
 ---
 
-## 10. Accessibility
+## 10. Accessibility & Premium UX (Entertainment)
 
-The refactor does not introduce new UI surfaces — it ports existing tabs and buttons from the in-app dialog (already content-described) into the standalone entry path. Action items:
+The refactor does not introduce new UI layout surfaces — it unifies existing ones. As such, the **UI AMBIGUITY GATE** is cleared: the standalone player will perfectly mirror the in-app player's layout, overflow rules, and icon placement, leaving no implicit design decisions.
+
+**Premium UX & Entertainment enhancements:**
+- **Haptic Feedback:** Wire system haptics (e.g., `HapticFeedbackConstants.CONFIRM` / `REJECT` or custom vibration patterns) to destructive actions like Delete, and subtle haptics to the Undo action. The standalone viewer must feel tactile, premium, and safe.
+- **Micro-animations:** Ensure the shared `PlaybackControlDialogFragment` tab switches, speed sliders, and volume preset selections use standard modern view micro-animations (e.g., crossfade on tab switch, scale-bounce on preset tap). The interface should feel dynamic and alive, not static.
+- **Undo Snackbar Animation:** The undo snackbar must slide in smoothly from the bottom with an easing curve, matching modern Material Design 3 guidelines, rather than abruptly popping up.
+
+**Accessibility Action items:**
 - Ensure the added volume-preset buttons in the standalone-rendered dialog reuse existing `contentDescription` strings (already translated EN/RU/UK).
 - Verify Stereo/3D tab radio buttons carry the same `contentDescription`/label pattern as in-app — no colour-only affordances; selection uses radio dot + label.
 - Delete-undo snackbar: ensure action button is TalkBack-reachable and announced on appearance; reuse the in-app snackbar helper.
 - All touch targets already meet 48dp via the dialog layout.
-- No colour-only indicators introduced.
 
 ---
 
@@ -411,6 +418,8 @@ Mandatory step checklist:
 - [ ] `docs/FEATURES.md` + `docs/FEATURES_RU.md` + `docs/FEATURES_UK.md` updated (user-facing parity).
 - [ ] Room DB migration — N/A (resume-state table already exists).
 - [ ] `.\scripts\add_to_dev_log.ps1` run for every modified file.
+- [ ] Added inline comments explaining WHY for the new capability interfaces, per STRICT CODING RULES.
+- [ ] Confirmed haptic feedback and micro-animations are wired in the unified dialog.
 
 ---
 

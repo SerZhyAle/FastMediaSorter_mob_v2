@@ -114,6 +114,14 @@
 
 **Still over the 1000 cap (1 349 LOC).** Major remaining surface: MSAL auth flow (`signInInternal`, `acquireTokenSilently`, `handleAuthenticationResult`) and `makeAuthenticatedRequest` with 401 silent-refresh recursion — all share deep state (msalApp, accessToken, tokenTimestamp). Needs a dedicated `OneDriveAuthCoordinator` + `OneDriveHttpClient` extraction in a follow-up wave.
 
+**Wave 17 result (partial — needs follow-up):**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/ImageLoadingManager.kt` | 1 304 | 1 239 | −65 | `ImageLoadingDiagnostics` (non-critical Glide network-image error classification + heap/native/preload-job memory snapshot logger); also collapsed single-line KDoc to comments |
+
+**Still over the 1000 cap (1 239 LOC).** Major remaining surface: `loadCloudImage`/`loadNetworkImage`/`loadLocalImage` (~340 LOC combined) and `createGlideListener`/`createGifGlideListener` (~170 LOC) — all share deep state (animatedImageController, callback, loading-indicator handler, currentTargetView, currentCropSetting, dynamicBackgroundProcessor, etc.). Needs `ImageLoadingPipeline` extraction in a follow-up wave (extract Glide listener factory behind a callback interface, then route Cloud/Network/Local builders through it).
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
