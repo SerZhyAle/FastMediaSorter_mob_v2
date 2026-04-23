@@ -130,6 +130,14 @@
 
 **Still over the 1000 cap (1 386 LOC).** Auth flow (`silentSignIn`, `getAccessToken`, `handleSignInResult`, `ensureTokenFresh`, etc.) + `makeAuthenticatedRequest` 401-retry recursion need `GoogleDriveAuthCoordinator` extraction in a follow-up wave (mirrors the OneDrive pattern).
 
+**Wave 19 result (partial — needs follow-up):**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/remote/ftp/FtpClient.kt` | 1 603 | 1 177 | −426 | `FtpStandaloneOperations` (stateless test/upload/delete/rename/createDirectory/exists/readFileBytes/downloadFile/openInputStream/ensureRemoteDirectoryExists — every call opens a fresh FTPClient and disconnects, so thread-safety is a non-issue); also collapsed single-line KDoc to comments |
+
+**Still over the 1000 cap (1 177 LOC).** Remaining surface: ExoPlayer connection pool (getConnectionForExoPlayer/releaseExoPlayerConnection/cleanupIdleFtpConnections) + the in-class single-FTPClient transfer/scan methods (listFiles*, readFileBytes, downloadFile, uploadFile, etc.). Needs `FtpConnectionPool` extraction in a follow-up wave (mirrors the deferred Sftp refactor).
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)

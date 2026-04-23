@@ -1,0 +1,195 @@
+# Scans a module's Kotlin sources and produces/updates a JSONL catalogue.
+# Manual fields (role, status, noFlavors, function descriptions) are preserved on re-run.
+#
+# Usage:
+#   pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2
+#   pwsh -File dev/CATALOG/scripts/scan.ps1 -Module wear
+
+param(
+    [Parameter(Mandatory=$true)]
+    [string]$Module,
+    [string]$Root,
+    [string]$OutFile
+)
+
+$ErrorActionPreference = "Stop"
+
+if (-not $Root) {
+    $Root = Resolve-Path (Join-Path $PSScriptRoot "..\..\..")
+}
+$Root = (Resolve-Path $Root).Path
+
+if (-not $OutFile) {
+    $OutFile = Join-Path $Root "dev\CATALOG\$Module.jsonl"
+}
+
+$srcRoot = Join-Path $Root "$Module\src\main\java"
+if (-not (Test-Path $srcRoot)) {
+    throw "Source root not found: $srcRoot"
+}
+
+function Get-Layer([string]$relPath) {
+    if ($relPath -match '(^|/)(ui)/')      { return 'ui' }
+    if ($relPath -match '(^|/)(domain)/')  { return 'domain' }
+    if ($relPath -match '(^|/)(data)/')    { return 'data' }
+    if ($relPath -match '(^|/)(di)/')      { return 'di' }
+    if ($relPath -match '(^|/)(core)/')    { return 'core' }
+    if ($relPath -match '(^|/)(utils?)/')  { return 'utils' }
+    if ($relPath -match '(^|/)(worker)/')  { return 'worker' }
+    if ($relPath -match '(^|/)(widget)/')  { return 'widget' }
+    if ($relPath -match '(^|/)(service)/') { return 'service' }
+    if ($relPath -match '(^|/)(vr)/')      { return 'vr' }
+    return 'other'
+}
+
+function Get-PrimaryName([string]$content, [string]$fileName) {
+    $m = [regex]::Match($content, '(?m)^\s*(?:(?:abstract|open|sealed|data|inner|internal|private|public|final|annotation)\s+)*(?:class|object|interface|enum\s+class)\s+([A-Z][A-Za-z0-9_]*)')
+    if ($m.Success) { return $m.Groups[1].Value }
+    return [System.IO.Path]::GetFileNameWithoutExtension($fileName)
+}
+
+function Get-Functions([string]$content) {
+    $result = @()
+    $pattern = '(?m)^\s*(?:(?:override|private|protected|internal|public|suspend|inline|operator|abstract|open|final|tailrec|infix)\s+)*fun\s+(?:<[^>]+>\s+)?(?:[A-Za-z_][A-Za-z0-9_.<>,\s?]*\.)?([A-Za-z_][A-Za-z0-9_]*)\s*(\([^\)]*\))(\s*:\s*[^\{=\n]+)?'
+    foreach ($m in [regex]::Matches($content, $pattern)) {
+        $sig = ($m.Value -replace '\s+', ' ').Trim()
+        $result += [ordered]@{
+            name = $m.Groups[1].Value
+            signature = $sig
+            description = ''
+        }
+    }
+    return ,$result
+}
+
+function Get-Injected([string]$content) {
+    $injected = @()
+    $m = [regex]::Match($content, '(?ms)@Inject\s+constructor\s*\(([^)]*)\)')
+    if (-not $m.Success) { return ,$injected }
+    $params = $m.Groups[1].Value
+    foreach ($pm in [regex]::Matches($params, '(?:@\w+\s+)*(?:private\s+|internal\s+|val\s+|var\s+)*\w+\s*:\s*([A-Z][A-Za-z0-9_]*)')) {
+        $t = $pm.Groups[1].Value
+        if ($t -and ($injected -notcontains $t)) { $injected += $t }
+    }
+    return ,$injected
+}
+
+function Get-SideEffects([string]$content) {
+    $se = @()
+    if ($content -match 'androidx\.room|\bRoomDatabase\b|@Dao\b|@Entity\b') { $se += 'db' }
+    if ($content -match '\bretrofit2\b|\bOkHttpClient\b|\bHttpURLConnection\b|\bSocket\b|\bSmbClient\b|\bSftpClient\b') { $se += 'network' }
+    if ($content -match '\bFile\s*\(|\bFileInputStream\b|\bFileOutputStream\b|\bFiles\.|\bContentResolver\b') { $se += 'disk' }
+    if ($content -match '\bSharedPreferences\b|\bDataStore\b|\bPreferenceManager\b') { $se += 'prefs' }
+    return ,$se
+}
+
+function Test-UserFeedback([string]$content) {
+    return [bool]($content -match '\bToast\.makeText\b|\bSnackbar\.make\b|\bAlertDialog\b|\bMaterialAlertDialogBuilder\b|\bNotificationCompat\b|\bshowMessage\b')
+}
+
+function Test-Coroutines([string]$content) {
+    return [bool]($content -match '\bsuspend\b|\blaunch\s*[\({]|\bFlow\s*<|\bflow\s*\{|\bCoroutineScope\b|\bwithContext\s*\(')
+}
+
+function Test-Timber([string]$content) {
+    return [bool]($content -match '\bTimber\.')
+}
+
+function Get-LastTouched([string]$fullPath, [string]$root) {
+    try {
+        Push-Location $root
+        $d = git log -1 --format=%ad --date=short -- $fullPath 2>$null
+        return ($d | Out-String).Trim()
+    } catch { return '' }
+    finally { Pop-Location }
+}
+
+function Test-HasTests([string]$fullPath) {
+    $base = [System.IO.Path]::GetFileNameWithoutExtension($fullPath)
+    foreach ($scope in @('test', 'androidTest')) {
+        $candidate = $fullPath -replace 'src\\main\\', "src\$scope\"
+        $candidateTest = ($candidate -replace '\.kt$', 'Test.kt')
+        if (Test-Path $candidateTest) { return $true }
+    }
+    return $false
+}
+
+$existing = @{}
+if (Test-Path $OutFile) {
+    foreach ($line in (Get-Content -Path $OutFile -Encoding UTF8)) {
+        if (-not $line) { continue }
+        try {
+            $obj = $line | ConvertFrom-Json -AsHashtable
+            $key = "$($obj.path)::$($obj.class)"
+            $existing[$key] = $obj
+        } catch {}
+    }
+}
+
+$ktFiles = Get-ChildItem -Path $srcRoot -Recurse -Filter '*.kt' -File
+$records = New-Object System.Collections.ArrayList
+
+foreach ($file in $ktFiles) {
+    $content = Get-Content -Path $file.FullName -Raw -Encoding UTF8
+    if (-not $content) { continue }
+    $loc = ([regex]::Matches($content, "`n")).Count + 1
+
+    $rel = $file.FullName.Substring($srcRoot.Length + 1) -replace '\\', '/'
+    $layer = Get-Layer $rel
+    $className = Get-PrimaryName $content $file.Name
+    $funcs = Get-Functions $content
+    $injected = Get-Injected $content
+    $sideEffects = Get-SideEffects $content
+    $record = [ordered]@{
+        path = $rel
+        class = $className
+        layer = $layer
+        loc = $loc
+        lastTouched = Get-LastTouched $file.FullName $Root
+        noFlavors = @()
+        injected = $injected
+        hasTests = Test-HasTests $file.FullName
+        coroutines = Test-Coroutines $content
+        usesTimber = Test-Timber $content
+        sideEffects = $sideEffects
+        userFeedback = Test-UserFeedback $content
+        status = 'unknown'
+        role = ''
+        functions = $funcs
+    }
+
+    $key = "$rel::$className"
+    if ($existing.ContainsKey($key)) {
+        $old = $existing[$key]
+        if ($old.noFlavors) { $record.noFlavors = $old.noFlavors }
+        if ($old.status)    { $record.status    = $old.status }
+        if ($old.role)      { $record.role      = $old.role }
+        $oldDescs = @{}
+        if ($old.functions) {
+            foreach ($of in $old.functions) {
+                if ($of.description) { $oldDescs[$of.name] = $of.description }
+            }
+        }
+        for ($i = 0; $i -lt $record.functions.Count; $i++) {
+            $fn = $record.functions[$i].name
+            if ($oldDescs.ContainsKey($fn)) {
+                $record.functions[$i].description = $oldDescs[$fn]
+            }
+        }
+    }
+
+    [void]$records.Add($record)
+}
+
+$sorted = $records | Sort-Object -Property @{Expression={$_.layer}}, @{Expression={$_.path}}
+
+$lines = New-Object System.Collections.ArrayList
+foreach ($r in $sorted) {
+    [void]$lines.Add(($r | ConvertTo-Json -Depth 10 -Compress))
+}
+
+$outDir = Split-Path $OutFile -Parent
+if (-not (Test-Path $outDir)) { New-Item -Path $outDir -ItemType Directory -Force | Out-Null }
+$lines | Set-Content -Path $OutFile -Encoding UTF8
+
+Write-Host "Scanned module '$Module': $($records.Count) files -> $OutFile"

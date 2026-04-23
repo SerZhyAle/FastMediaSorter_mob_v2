@@ -41,9 +41,7 @@ class FtpClient @Inject constructor() {
 
     // ==================== ExoPlayer Connection Pool ====================
 
-    /**
-     * Connection info for FTP pooling
-     */
+    // Connection info for FTP pooling
     data class FtpConnectionInfo(
         val host: String,
         val port: Int = 21,
@@ -165,9 +163,7 @@ class FtpClient @Inject constructor() {
         connectionSemaphore.release()
     }
 
-    /**
-     * Cleanup idle FTP connections from the pool
-     */
+    // Cleanup idle FTP connections from the pool
     private fun cleanupIdleFtpConnections() {
         val now = System.currentTimeMillis()
         val keysToRemove = connectionPool.filter { (_, conn) ->
@@ -343,9 +339,7 @@ class FtpClient @Inject constructor() {
         }
     }
     
-    /**
-     * List files with metadata in single directory level (non-recursive)
-     */
+    // List files with metadata in single directory level (non-recursive)
     private fun listFilesWithMetadataSingleLevel(
         client: FTPClient,
         remotePath: String,
@@ -383,9 +377,7 @@ class FtpClient @Inject constructor() {
         }
     }
     
-    /**
-     * List files with metadata recursively in all subdirectories
-     */
+    // List files with metadata recursively in all subdirectories
     private fun listFilesWithMetadataRecursive(
         client: FTPClient,
         remotePath: String,
@@ -552,58 +544,8 @@ class FtpClient @Inject constructor() {
      * @param password Password for authentication
      * @return Result with true on success or exception on failure
      */
-    suspend fun testConnection(
-        host: String,
-        port: Int = 21,
-        username: String,
-        password: String
-    ): Result<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            val testClient = FTPClient()
-            
-            // Set connection and socket timeout to 30/60 seconds for unreliable networks
-            testClient.connectTimeout = CONNECT_TIMEOUT
-            testClient.defaultTimeout = SOCKET_TIMEOUT
-            testClient.setDataTimeout(SOCKET_TIMEOUT)
-            testClient.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-            
-            testClient.connect(host, port)
-            
-            val replyCode = testClient.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                testClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP server refused connection. Reply code: $replyCode")
-                )
-            }
-            
-            if (!testClient.login(username, password)) {
-                testClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP authentication failed for user: $username")
-                )
-            }
-            
-            // Enable passive mode
-            testClient.enterLocalPassiveMode()
-            testClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
-            
-            // Test listing root directory
-            testClient.listFiles("/")
-            
-            testClient.logout()
-            testClient.disconnect()
-            
-            Timber.d("FTP test connection successful: $host:$port")
-            Result.success(true)
-        } catch (e: IOException) {
-            Timber.e(e, "FTP test connection failed: $host:$port")
-            Result.failure(e)
-        } catch (e: Exception) {
-            Timber.e(e, "FTP test connection error: $host:$port")
-            Result.failure(e)
-        }
-    }
+    suspend fun testConnection(host: String, port: Int = 21, username: String, password: String): Result<Boolean> =
+        FtpStandaloneOperations.testConnection(host, port, username, password)
 
     /**
      * Read file bytes from FTP server (useful for thumbnails and image loading)
@@ -1158,9 +1100,7 @@ class FtpClient @Inject constructor() {
         }
     }
 
-    /**
-     * Check if currently connected
-     */
+    // Check if currently connected
     fun isConnected(): Boolean {
         return ftpClient?.isConnected == true
     }
@@ -1186,229 +1126,28 @@ class FtpClient @Inject constructor() {
         password: String,
         remotePath: String,
         inputStream: InputStream,
-        @Suppress("UNUSED_PARAMETER") fileSize: Long = 0L,
-        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        val tempClient = FTPClient()
-        try {
-            // Set connection and socket timeout
-            tempClient.connectTimeout = CONNECT_TIMEOUT
-            tempClient.defaultTimeout = SOCKET_TIMEOUT
-            tempClient.setDataTimeout(SOCKET_TIMEOUT)
-            tempClient.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-            
-            tempClient.connect(host, port)
-            
-            val replyCode = tempClient.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP server refused connection. Reply code: $replyCode")
-                )
-            }
-            
-            if (!tempClient.login(username, password)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP authentication failed for user: $username")
-                )
-            }
-            
-            // Enable passive mode and binary transfer
-            tempClient.enterLocalPassiveMode()
-            tempClient.setFileType(FTP.BINARY_FILE_TYPE)
-            tempClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
-            
-            // Create parent directories if needed
-            val parentDir = remotePath.substringBeforeLast('/', "")
-            if (parentDir.isNotEmpty()) {
-                ensureRemoteDirectoryExists(tempClient, parentDir)
-            }
-            
-            Timber.d("FTP temp connection: uploading $remotePath")
-            
-            val success = tempClient.storeFile(remotePath, inputStream)
-            
-            if (success) {
-                Timber.i("FTP temp connection upload success: $remotePath")
-                Result.success(Unit)
-            } else {
-                val message = "FTP storeFile returned false: $remotePath"
-                Timber.e(message)
-                Result.failure(IOException(message))
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "FTP temp connection upload failed: $remotePath")
-            Result.failure(e)
-        } finally {
-            try {
-                if (tempClient.isConnected) {
-                    tempClient.soTimeout = 1000
-                    try {
-                        tempClient.logout()
-                    } catch (e: Exception) {
-                        Timber.d(e, "FTP temp logout error (ignored)")
-                    }
-                    tempClient.disconnect()
-                }
-            } catch (e: Exception) {
-                Timber.w(e, "FTP temp disconnect error (ignored)")
-            }
-        }
-    }
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
+    ): Result<Unit> = FtpStandaloneOperations.uploadFile(
+        host, port, username, password, remotePath, inputStream, fileSize, progressCallback
+    )
 
-    /**
-     * Delete file using a temporary FTP connection
-     */
     suspend fun deleteFileWithNewConnection(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        remotePath: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        executeWithNewConnection(host, port, username, password) { client ->
-            Timber.d("FTP temp connection: deleting $remotePath")
-            val success = client.deleteFile(remotePath)
-            if (success) {
-                Timber.i("FTP temp connection delete success: $remotePath")
-                Result.success(Unit)
-            } else {
-                Result.failure(IOException("FTP delete failed: ${client.replyString}"))
-            }
-        }
-    }
+        host: String, port: Int, username: String, password: String, remotePath: String
+    ): Result<Unit> = FtpStandaloneOperations.deleteFile(host, port, username, password, remotePath)
 
-    /**
-     * Rename file using a temporary FTP connection
-     */
     suspend fun renameFileWithNewConnection(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        oldPath: String,
-        newName: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        executeWithNewConnection(host, port, username, password) { client ->
-            val directory = oldPath.substringBeforeLast('/', "")
-            val newPath = when {
-                directory.isNotEmpty() -> "$directory/$newName"
-                oldPath.startsWith("/") -> "/$newName"
-                else -> newName
-            }
-            
-            Timber.d("FTP temp connection: renaming $oldPath → $newPath")
-            val success = client.rename(oldPath, newPath)
-            if (success) {
-                Timber.i("FTP temp connection rename success: $newPath")
-                Result.success(Unit)
-            } else {
-                Result.failure(IOException("FTP rename failed: ${client.replyString}"))
-            }
-        }
-    }
+        host: String, port: Int, username: String, password: String, oldPath: String, newName: String
+    ): Result<Unit> = FtpStandaloneOperations.renameFile(host, port, username, password, oldPath, newName)
 
-    /**
-     * Create directory using a temporary FTP connection
-     */
     suspend fun createDirectoryWithNewConnection(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        remotePath: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        executeWithNewConnection(host, port, username, password) { client ->
-            Timber.d("FTP temp connection: creating directory $remotePath")
-            val success = client.makeDirectory(remotePath)
-            if (success) {
-                Timber.i("FTP temp connection create directory success: $remotePath")
-                Result.success(Unit)
-            } else {
-                Result.failure(IOException("FTP create directory failed: ${client.replyString}"))
-            }
-        }
-    }
+        host: String, port: Int, username: String, password: String, remotePath: String
+    ): Result<Unit> = FtpStandaloneOperations.createDirectory(host, port, username, password, remotePath)
 
-    /**
-     * Check if file exists using a temporary FTP connection
-     */
     suspend fun existsWithNewConnection(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        remotePath: String
-    ): Result<Boolean> = withContext(Dispatchers.IO) {
-        executeWithNewConnection(host, port, username, password) { client ->
-            try {
-                val files = client.listFiles(remotePath)
-                Result.success(files != null && files.isNotEmpty())
-            } catch (e: Exception) {
-                Timber.w(e, "FTP exists check failed for $remotePath")
-                Result.success(false)
-            }
-        }
-    }
+        host: String, port: Int, username: String, password: String, remotePath: String
+    ): Result<Boolean> = FtpStandaloneOperations.exists(host, port, username, password, remotePath)
 
-    /**
-     * Helper to execute a block with a new FTP connection
-     */
-    private suspend fun <T> executeWithNewConnection(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        block: (FTPClient) -> Result<T>
-    ): Result<T> = withContext(Dispatchers.IO) {
-        val tempClient = FTPClient()
-        try {
-            tempClient.connectTimeout = CONNECT_TIMEOUT
-            tempClient.defaultTimeout = SOCKET_TIMEOUT
-            tempClient.setDataTimeout(SOCKET_TIMEOUT)
-            tempClient.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-            
-            tempClient.connect(host, port)
-            
-            val replyCode = tempClient.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP server refused connection. Reply code: $replyCode")
-                )
-            }
-            
-            if (!tempClient.login(username, password)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP authentication failed for user: $username")
-                )
-            }
-            
-            tempClient.enterLocalPassiveMode()
-            tempClient.setFileType(FTP.BINARY_FILE_TYPE)
-            tempClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
-            
-            block(tempClient)
-        } catch (e: Exception) {
-            Timber.e(e, "FTP temp connection operation failed")
-            Result.failure(e)
-        } finally {
-            try {
-                if (tempClient.isConnected) {
-                    tempClient.soTimeout = 1000
-                    try { tempClient.logout() } catch (ignored: Exception) {}
-                    tempClient.disconnect()
-                }
-            } catch (ignored: Exception) {}
-        }
-    }
-
-    /**
-     * Read file bytes using a new connection (thread-safe, robust).
-     * Handles credentials and connection lifecycle internally.
-     */
     suspend fun readFileBytesWithNewConnection(
         host: String,
         port: Int,
@@ -1416,62 +1155,10 @@ class FtpClient @Inject constructor() {
         password: String,
         remotePath: String,
         maxBytes: Long = Long.MAX_VALUE
-    ): Result<ByteArray> = withContext(Dispatchers.IO) {
-        executeWithNewConnection(host, port, username, password) { client ->
-            // Try passive mode first (already set)
-            try {
-                val bytes = client.retrieveFileStream(remotePath)?.use { inputStream ->
-                    if (maxBytes < Long.MAX_VALUE) {
-                        val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                        val allBytes = inputStream.readBytes()
-                        if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
-                    } else {
-                        inputStream.readBytes()
-                    }
-                }
-                
-                if (bytes != null) {
-                    if (!client.completePendingCommand()) {
-                        throw IOException("FTP command failed after retrieving file")
-                    }
-                    Result.success(bytes)
-                } else {
-                    // Try active mode if stream failed to open
-                    throw SocketTimeoutException("Failed to open stream (force retry)")
-                }
-            } catch (e: SocketTimeoutException) {
-                Timber.w(e, "FTP passive mode timeout/error, switching to active mode")
-                
-                // Retry in active mode
-                client.enterLocalActiveMode()
-                try {
-                    val bytes = client.retrieveFileStream(remotePath)?.use { inputStream ->
-                        if (maxBytes < Long.MAX_VALUE) {
-                            val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                            val allBytes = inputStream.readBytes()
-                            if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
-                        } else {
-                            inputStream.readBytes()
-                        }
-                    } ?: return@executeWithNewConnection Result.failure(IOException("Failed to open file stream (active mode): $remotePath"))
-                    
-                    if (!client.completePendingCommand()) {
-                        return@executeWithNewConnection Result.failure(IOException("FTP command failed (active mode)"))
-                    }
-                    
-                    Result.success(bytes)
-                } catch (e2: Exception) {
-                    Result.failure(e2)
-                }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
+    ): Result<ByteArray> = FtpStandaloneOperations.readFileBytes(
+        host, port, username, password, remotePath, maxBytes
+    )
 
-    /**
-     * Download file with temporary connection (helper for backward compatibility)
-     */
     suspend fun downloadFileWithNewConnection(
         host: String,
         port: Int,
@@ -1479,125 +1166,13 @@ class FtpClient @Inject constructor() {
         password: String,
         remotePath: String,
         outputStream: OutputStream,
-        @Suppress("UNUSED_PARAMETER") fileSize: Long = 0L,
-        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
-    ): Result<Unit> {
-        return executeWithNewConnection(host, port, username, password) { tempClient ->
-            try {
-                val success = tempClient.retrieveFile(remotePath, outputStream)
-                if (!success) {
-                    Result.failure(IOException("FTP download failed: ${tempClient.replyString}"))
-                } else {
-                    Result.success(Unit)
-                }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
+    ): Result<Unit> = FtpStandaloneOperations.downloadFile(
+        host, port, username, password, remotePath, outputStream, fileSize, progressCallback
+    )
 
-    /**
-     * Open InputStream for reading file from FTP.
-     * Creates a NEW connection for the stream to ensure thread safety.
-     * Caller is responsible for closing the stream.
-     */
     suspend fun openInputStream(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        remotePath: String
-    ): Result<InputStream> = withContext(Dispatchers.IO) {
-        val tempClient = FTPClient()
-        try {
-            tempClient.connectTimeout = CONNECT_TIMEOUT
-            tempClient.defaultTimeout = SOCKET_TIMEOUT
-            tempClient.setDataTimeout(SOCKET_TIMEOUT)
-            tempClient.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-            
-            tempClient.connect(host, port)
-            
-            val replyCode = tempClient.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP server refused connection. Reply code: $replyCode")
-                )
-            }
-            
-            if (!tempClient.login(username, password)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP authentication failed for user: $username")
-                )
-            }
-            
-            tempClient.enterLocalPassiveMode()
-            tempClient.setFileType(FTP.BINARY_FILE_TYPE)
-            tempClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
-            
-            val stream = tempClient.retrieveFileStream(remotePath)
-            if (stream == null) {
-                tempClient.disconnect()
-                return@withContext Result.failure(IOException("Failed to open FTP stream: $remotePath"))
-            }
-            
-            // Return wrapper that closes connection
-            val wrapper = object : java.io.FilterInputStream(stream) {
-                override fun close() {
-                    try {
-                        super.close()
-                        if (!tempClient.completePendingCommand()) {
-                            Timber.w("FTP completePendingCommand failed after stream close")
-                        }
-                    } catch (e: Exception) {
-                        Timber.w(e, "Error closing FTP stream")
-                    } finally {
-                        try {
-                            if (tempClient.isConnected) {
-                                tempClient.logout()
-                                tempClient.disconnect()
-                            }
-                        } catch (e: Exception) {
-                            Timber.w("Error disconnecting FTP client")
-                        }
-                    }
-                }
-            }
-            
-            Result.success(wrapper)
-        } catch (e: Exception) {
-            try {
-                if (tempClient.isConnected) tempClient.disconnect()
-            } catch (ignored: Exception) {}
-            Timber.e(e, "FTP openInputStream failed: $remotePath")
-            Result.failure(e)
-        }
-    }
-    
-    /**
-     * Ensure remote directory exists, creating it recursively if needed.
-     * @param client The FTP client to use
-     * @param remotePath The remote directory path to create
-     */
-    private fun ensureRemoteDirectoryExists(client: FTPClient, remotePath: String) {
-        if (remotePath.isEmpty()) return
-        
-        val parts = remotePath.trim('/').split('/')
-        var currentPath = ""
-        
-        for (part in parts) {
-            currentPath = if (currentPath.isEmpty()) part else "$currentPath/$part"
-            try {
-                // Try to create directory, ignore if exists
-                val created = client.makeDirectory(currentPath)
-                if (created) {
-                    Timber.d("FTP: Created directory: $currentPath")
-                }
-            } catch (e: Exception) {
-                // Ignore errors (directory might already exist)
-                Timber.d("FTP: Directory exists or error: $currentPath")
-            }
-        }
-    }
+        host: String, port: Int, username: String, password: String, remotePath: String
+    ): Result<InputStream> = FtpStandaloneOperations.openInputStream(host, port, username, password, remotePath)
 }
