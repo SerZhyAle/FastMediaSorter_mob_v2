@@ -156,9 +156,7 @@ class GoogleDriveRestClient @Inject constructor(
             .build()
     }
     
-    /**
-     * Get sign-in intent for launching from Activity
-     */
+    // Get sign-in intent for launching from Activity
     fun getSignInIntent(): Intent {
         val signInOptions = getSignInOptions()
         val client = GoogleSignIn.getClient(context, signInOptions)
@@ -211,9 +209,7 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
 
-    /**
-     * Attempt silent sign-in to refresh credentials
-     */
+    // Attempt silent sign-in to refresh credentials
     private suspend fun silentSignIn(): AuthResult {
         return withContext(Dispatchers.IO) {
             try {
@@ -247,9 +243,7 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
     
-    /**
-     * Handle sign-in result from Activity
-     */
+    // Handle sign-in result from Activity
     suspend fun handleSignInResult(account: GoogleSignInAccount?): AuthResult {
         return if (account != null) {
             val token = getAccessToken(account)
@@ -334,18 +328,14 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
     
-    /**
-     * Check if current token should be refreshed based on age
-     */
+    // Check if current token should be refreshed based on age
     private fun shouldRefreshToken(): Boolean {
         if (tokenTimestamp == 0L) return false
         val age = System.currentTimeMillis() - tokenTimestamp
         return age > TOKEN_REFRESH_THRESHOLD_MS
     }
     
-    /**
-     * Proactively refresh token if it's old to prevent expiration during operation
-     */
+    // Proactively refresh token if it's old to prevent expiration during operation
     private suspend fun ensureTokenFresh() {
         if (shouldRefreshToken()) {
             Timber.d("Token is old (>50 min), proactively refreshing...")
@@ -353,9 +343,7 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
     
-    /**
-     * Check if account has required Drive permissions
-     */
+    // Check if account has required Drive permissions
     private fun hasRequiredPermissions(account: GoogleSignInAccount): Boolean {
         val grantedScopes = account.grantedScopes
         val requiredScope = Scope(SCOPE_DRIVE)
@@ -718,9 +706,7 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
     
-    /**
-     * Helper to resolve folder name to ID if needed.
-     */
+    // Helper to resolve folder name to ID if needed.
     private suspend fun resolveFolderId(idOrName: String?): String? {
         // Handle null or empty string as root folder (no parent)
         if (idOrName.isNullOrEmpty()) return null
@@ -1199,9 +1185,7 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
     
-    /**
-     * Download file as InputStream (for thumbnails)
-     */
+    // Download file as InputStream (for thumbnails)
     private suspend fun downloadFileAsStream(fileId: String, token: String): CloudResult<InputStream> {
         return httpClient.downloadFileAsStream(fileId, DRIVE_API_BASE, token)
     }
@@ -1282,9 +1266,7 @@ class GoogleDriveRestClient @Inject constructor(
         return getFileInputStreamInternal(fileId, position, length, retryCount = 0)
     }
     
-    /**
-     * Internal implementation with retry support
-     */
+    // Internal implementation with retry support
     private suspend fun getFileInputStreamInternal(
         fileId: String,
         position: Long,
@@ -1347,9 +1329,7 @@ class GoogleDriveRestClient @Inject constructor(
         }
     }
     
-    /**
-     * Make authenticated HTTP request to Drive API with auto-retry on 401
-     */
+    // Make authenticated HTTP request to Drive API with auto-retry on 401
     private suspend fun makeAuthenticatedRequest(
         url: URL,
         method: String,
@@ -1398,55 +1378,9 @@ class GoogleDriveRestClient @Inject constructor(
         return response
     }
     
-    /**
-     * Parse JSON array of File objects
-     */
-    private fun parseItems(items: JSONArray, parentPath: String): List<CloudFile> {
-        val cloudFiles = mutableListOf<CloudFile>()
-        for (i in 0 until items.length()) {
-            val item = items.getJSONObject(i)
-            cloudFiles.add(parseItem(item, parentPath))
-        }
-        return cloudFiles
-    }
-    
-    /**
-     * Parse single File JSON to CloudFile
-     */
-    private fun parseItem(item: JSONObject, parentPath: String): CloudFile {
-        val id = item.getString("id")
-        val name = item.getString("name")
-        val mimeType: String? = item.optString("mimeType").takeIf { it.isNotEmpty() }
-        val isFolder = mimeType == MIME_TYPE_FOLDER
-        val size = item.optLong("size", 0L)
-        val modifiedTime = item.optString("modifiedTime", "")
-        
-        // Parse RFC 3339 date to timestamp
-        val modifiedDate = try {
-            if (modifiedTime.isNotEmpty()) {
-                // Simple RFC 3339 parsing (assumes format: 2024-11-17T12:00:00.000Z)
-                val instant = java.time.Instant.parse(modifiedTime)
-                instant.toEpochMilli()
-            } else {
-                0L
-            }
-        } catch (e: Exception) {
-            0L
-        }
-        
-        val thumbnailUrl: String? = item.optString("thumbnailLink").takeIf { it.isNotEmpty() }
-        val webViewUrl: String? = item.optString("webViewLink").takeIf { it.isNotEmpty() }
-        
-        return CloudFile(
-            id = id,
-            name = name,
-            path = "$parentPath/$name",
-            isFolder = isFolder,
-            size = size,
-            modifiedDate = modifiedDate,
-            mimeType = mimeType,
-            thumbnailUrl = thumbnailUrl,
-            webViewUrl = webViewUrl
-        )
-    }
+    private fun parseItems(items: JSONArray, parentPath: String): List<CloudFile> =
+        GoogleDriveRestClientUtils.parseItems(items, parentPath)
+
+    private fun parseItem(item: JSONObject, parentPath: String): CloudFile =
+        GoogleDriveRestClientUtils.parseItem(item, parentPath)
 }

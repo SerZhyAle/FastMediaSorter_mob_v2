@@ -122,6 +122,14 @@
 
 **Still over the 1000 cap (1 239 LOC).** Major remaining surface: `loadCloudImage`/`loadNetworkImage`/`loadLocalImage` (~340 LOC combined) and `createGlideListener`/`createGifGlideListener` (~170 LOC) — all share deep state (animatedImageController, callback, loading-indicator handler, currentTargetView, currentCropSetting, dynamicBackgroundProcessor, etc.). Needs `ImageLoadingPipeline` extraction in a follow-up wave (extract Glide listener factory behind a callback interface, then route Cloud/Network/Local builders through it).
 
+**Wave 18 result (partial — needs follow-up):**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/cloud/GoogleDriveRestClient.kt` | 1 452 | 1 386 | −66 | `GoogleDriveRestClientUtils` (Drive `files.list` JSON → CloudFile mapping with RFC 3339 modifiedTime parsing); also collapsed single-line KDoc to comments |
+
+**Still over the 1000 cap (1 386 LOC).** Auth flow (`silentSignIn`, `getAccessToken`, `handleSignInResult`, `ensureTokenFresh`, etc.) + `makeAuthenticatedRequest` 401-retry recursion need `GoogleDriveAuthCoordinator` extraction in a follow-up wave (mirrors the OneDrive pattern).
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
