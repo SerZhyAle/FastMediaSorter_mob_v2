@@ -1,6 +1,6 @@
 # Catalogue: app_v2
 
-_Generated: 2026-04-23 21:57 · 759 classes_
+_Generated: 2026-04-23 22:03 · 759 classes_
 
 Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — edit JSONL, then re-render.
 
@@ -33,11 +33,11 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/core/cast/LocalCastProxyServer.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/cast/LocalCastProxyServer.kt) | `LocalCastProxyServer` | core | 150 | 2026-03-28 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/constants/AppConstants.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/constants/AppConstants.kt) | `AppConstants` | core | 26 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/debug/DebugToolsBridge.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/debug/DebugToolsBridge.kt) | `DebugToolsBridge` | core | 41 | 2026-02-14 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/debug/StrictModeHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/debug/StrictModeHelper.kt) | `StrictModeHelper` | core | 101 | 2026-02-15 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/debug/StrictModeHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/debug/StrictModeHelper.kt) | `StrictModeHelper` | core | 101 | 2026-02-15 | tested | Temporarily disables StrictMode penalties for known-safe early-init operations (SharedPreferences in attachBaseContext, etc.). |
 | [com/sza/fastmediasorter/core/init/AppStartupInitializer.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt) | `AppStartupInitializer` | core | 351 | 2026-03-14 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/logging/CorrelationContext.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/CorrelationContext.kt) | `CorrelationContext` | core | 93 | 2026-02-25 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/logging/LogExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LogExportHelper.kt) | `LogExportHelper` | core | 127 | 2026-04-02 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/logging/LoggingHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt) | `LoggingHelper` | core | 369 | 2026-04-13 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/logging/LogExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LogExportHelper.kt) | `LogExportHelper` | core | 127 | 2026-04-02 | tested | Packages app logs into a zip and exports/saves them via FileProvider for debugging. |
+| [com/sza/fastmediasorter/core/logging/LoggingHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt) | `LoggingHelper` | core | 369 | 2026-04-13 | tested | Initializes Timber with console + file logging trees and exposes the rolling log files. |
 | [com/sza/fastmediasorter/core/logging/StructuredLogger.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/StructuredLogger.kt) | `StructuredLogger` | core | 83 | 2026-02-25 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/metrics/KpiAlertChecker.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/metrics/KpiAlertChecker.kt) | `KpiAlertChecker` | core | 202 | 2026-02-25 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/metrics/MetricsExporter.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/metrics/MetricsExporter.kt) | `MetricsExporter` | core | 205 | 2026-02-25 | unknown | _—_ |
@@ -48,7 +48,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/core/security/SecretMasker.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/security/SecretMasker.kt) | `SecretMasker` | core | 61 | 2026-02-25 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt) | `AudioMetadataLoader` | core | 575 | 2026-03-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/CachedMediaMetadataExtractor.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/CachedMediaMetadataExtractor.kt) | `CachedMediaMetadataExtractor` | core | 194 | 2026-03-03 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/util/CacheStatusHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt) | `CacheStatusHelper` | core | 57 | 2026-04-13 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/util/CacheStatusHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt) | `CacheStatusHelper` | core | 57 | 2026-04-13 | tested | Logs Glide disk-cache file count and size at app startup to diagnose cache persistence issues. |
 | [com/sza/fastmediasorter/core/util/ColorPalette.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/ColorPalette.kt) | `ColorPalette` | core | 124 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/DestinationColors.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/DestinationColors.kt) | `DestinationColors` | core | 42 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/DeviceCapabilityProbe.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/DeviceCapabilityProbe.kt) | `DeviceCapabilityProbe` | core | 82 | 2026-04-22 | unknown | _—_ |
@@ -58,19 +58,19 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/core/util/GifFrameCounter.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/GifFrameCounter.kt) | `GifFrameCounter` | core | 128 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/HeifSupportUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/HeifSupportUtils.kt) | `HeifSupportUtils` | core | 42 | 2026-03-28 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/InputStreamExt.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/InputStreamExt.kt) | `InputStreamExt` | core | 81 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/util/LocaleHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/LocaleHelper.kt) | `LocaleHelper` | core | 228 | 2026-04-13 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/util/LocaleHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/LocaleHelper.kt) | `LocaleHelper` | core | 228 | 2026-04-13 | tested | App language selection with restart, supporting Android 13+ per-app LocaleManager + legacy SharedPreferences fallback. |
 | [com/sza/fastmediasorter/core/util/MediaFormatUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaFormatUtils.kt) | `MediaFormatUtils` | core | 26 | 2026-02-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt) | `DetailedMediaInfo` | core | 412 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/MemoryTier.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/MemoryTier.kt) | `MemoryTier` | core | 75 | 2026-03-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/NetworkFileDownloader.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/NetworkFileDownloader.kt) | `NetworkFileDownloader` | core | 303 | 2026-04-11 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/PathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PathUtils.kt) | `PathUtils` | core | 73 | 2026-04-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/PdfInfoParser.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PdfInfoParser.kt) | `PdfInfoParser` | core | 385 | 2026-04-23 | unknown | _—_ |
-| [com/sza/fastmediasorter/core/util/PermissionHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt) | `PermissionHelper` | core | 323 | 2026-03-24 | unknown | _—_ |
+| [com/sza/fastmediasorter/core/util/PermissionHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt) | `PermissionHelper` | core | 323 | 2026-03-24 | tested | Runtime permission checks for storage, MANAGE_MEDIA, all-files-access, and internet across API levels. |
 | [com/sza/fastmediasorter/core/util/SafUriExtractor.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/SafUriExtractor.kt) | `SafUriExtractor` | core | 302 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/util/UriPathResolver.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/UriPathResolver.kt) | `UriPathResolver` | core | 96 | 2026-04-13 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/xr/VrPanelSizePreference.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/xr/VrPanelSizePreference.kt) | `VrPanelSizePreference` | core | 61 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/core/xr/XrDeviceDetector.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/xr/XrDeviceDetector.kt) | `XrDeviceDetector` | core | 34 | 2026-04-21 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/cloud/CloudAuthenticationHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudAuthenticationHelper.kt) | `CloudAuthenticationHelper` | data | 125 | 2026-02-28 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/cloud/CloudAuthenticationHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudAuthenticationHelper.kt) | `CloudAuthenticationHelper` | data | 125 | 2026-02-28 | tested | Provides authenticated cloud clients with auto-restoration and silent re-auth retry; delegates state to CloudAuthStateMachine. |
 | [com/sza/fastmediasorter/data/cloud/CloudAuthStateMachine.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudAuthStateMachine.kt) | `CloudAuthStateMachine` | data | 180 | 2026-02-28 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt) | `CloudFileOperationHandler` | data | 998 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/cloud/CloudFileOperationPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationPathUtils.kt) | `CloudFileOperationPathUtils` | data | 81 | 2026-04-23 | new | Path normalization, scheme to ResourceType, SFTP/FTP remote-path stripping, MIME guessing for cloud file operations. |
@@ -111,7 +111,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/data/local/db/CachedFileListDao.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/CachedFileListDao.kt) | `CachedFileListDao` | data | 36 | 2026-02-25 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/db/CachedFileListEntity.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/CachedFileListEntity.kt) | `CachedFileListEntity` | data | 77 | 2026-02-25 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/db/Converters.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/Converters.kt) | `Converters` | data | 35 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/data/local/db/CryptoHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/CryptoHelper.kt) | `CryptoHelper` | data | 118 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/data/local/db/CryptoHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/CryptoHelper.kt) | `CryptoHelper` | data | 118 | 2026-02-09 | tested | AES-256-GCM encrypt/decrypt of sensitive data using hardware-backed Android Keystore. |
 | [com/sza/fastmediasorter/data/local/db/DuplicateHashCacheDao.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/DuplicateHashCacheDao.kt) | `DuplicateHashCacheDao` | data | 36 | 2026-04-01 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/db/DuplicateHashCacheEntity.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/DuplicateHashCacheEntity.kt) | `DuplicateHashCacheEntity` | data | 25 | 2026-04-01 | unknown | _—_ |
 | [com/sza/fastmediasorter/data/local/db/EncryptedStringConverter.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/EncryptedStringConverter.kt) | `EncryptedString` | data | 9 | 2026-02-09 | unknown | _—_ |
@@ -385,7 +385,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt) | `AddResourceConnectionManager` | ui | 410 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceFinalizer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFinalizer.kt) | `AddResourceFinalizer` | ui | 199 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt) | `AddResourceFormManager` | ui | 413 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt) | `AddResourceHelper` | ui | 243 | 2026-04-19 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt) | `AddResourceHelper` | ui | 243 | 2026-04-19 | tested | Pre-fills the AddResource form from existing resource data and wires shared input listeners. |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt) | `AddResourceNetworkScanCoordinator` | ui | 94 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceScanManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceScanManager.kt) | `AddResourceScanManager` | ui | 277 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt) | `AddResourceSftpFtpCoordinator` | ui | 287 | 2026-04-22 | unknown | _—_ |
@@ -413,13 +413,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveDialogManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveDialogManager.kt) | `BrowseArchiveDialogManager` | ui | 194 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveManager.kt) | `BrowseArchiveManager` | ui | 308 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseBinaryFileHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseBinaryFileHandler.kt) | `BrowseBinaryFileHandler` | ui | 128 | 2026-04-10 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt) | `BrowseButtonSetupHelper` | ui | 209 | 2026-04-10 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt) | `BrowseButtonSetupHelper` | ui | 209 | 2026-04-10 | tested | Wires button click listeners and scroll-FAB handlers for BrowseActivity. |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseCloudAuthManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCloudAuthManager.kt) | `BrowseCloudAuthManager` | ui | 193 | 2026-03-24 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt) | `BrowseDeleteManager` | ui | 301 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseDialogCallbacksImpl.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogCallbacksImpl.kt) | `BrowseDialogCallbacksImpl` | ui | 118 | 2026-04-21 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt) | `BrowseDialogHelper` | ui | 734 | 2026-04-21 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt) | `BrowseDialogHelper` | ui | 734 | 2026-04-21 | tested | All filter/sort/rename/copy/move/delete dialogs for BrowseActivity. |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseDirectoryOpsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDirectoryOpsManager.kt) | `BrowseDirectoryOpsManager` | ui | 82 | 2026-04-10 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/browse/managers/BrowseEdgeToEdgeHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEdgeToEdgeHelper.kt) | `BrowseEdgeToEdgeHelper` | ui | 72 | 2026-04-10 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/browse/managers/BrowseEdgeToEdgeHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEdgeToEdgeHelper.kt) | `BrowseEdgeToEdgeHelper` | ui | 72 | 2026-04-10 | tested | Applies edge-to-edge window insets to the Browse layout (top bar below status bar, bottom bar above nav bar). |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt) | `BrowseErrorDisplayManager` | ui | 162 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt) | `BrowseEventHandler` | ui | 246 | 2026-04-20 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseFileListMutationManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileListMutationManager.kt) | `BrowseFileListMutationManager` | ui | 172 | 2026-04-10 | unknown | _—_ |
@@ -429,7 +429,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseFolderPickerHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFolderPickerHandler.kt) | `BrowseFolderPickerHandler` | ui | 176 | 2026-04-11 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseInlineAudioManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseInlineAudioManager.kt) | `BrowseInlineAudioManager` | ui | 345 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseLauncherManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLauncherManager.kt) | `BrowseLauncherCallbacks` | ui | 71 | 2026-04-11 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleHelper.kt) | `BrowseLifecycleHelper` | ui | 108 | 2026-04-10 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleHelper.kt) | `BrowseLifecycleHelper` | ui | 108 | 2026-04-10 | tested | BrowseActivity onResume scroll restore + Android 11+ storage-permission dialog for local resources. |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleSetupManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleSetupManager.kt) | `BrowseLifecycleSetupManager` | ui | 165 | 2026-04-12 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseListSubmitManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseListSubmitManager.kt) | `BrowseListSubmitManager` | ui | 188 | 2026-04-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt) | `BrowseLoadingAuxManager` | ui | 290 | 2026-04-18 | unknown | _—_ |
@@ -473,7 +473,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerViewModel.kt) | `OneDriveFolderPickerState` | ui | 194 | 2026-03-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/common/BreadcrumbView.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/BreadcrumbView.kt) | `BreadcrumbView` | ui | 148 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/common/DialogUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/DialogUtils.kt) | `DialogUtils` | ui | 104 | 2026-04-02 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt) | `ErrorDialogHelper` | ui | 64 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt) | `ErrorDialogHelper` | ui | 64 | 2026-02-09 | tested | Displays simple toast-style or detailed copyable error dialogs across the app. |
 | [com/sza/fastmediasorter/ui/common/FocusManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/FocusManager.kt) | `FocusManager` | ui | 272 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/common/IpAddressInputFilter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/IpAddressInputFilter.kt) | `IpAddressInputFilter` | ui | 55 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/common/MediaGroupPalette.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MediaGroupPalette.kt) | `MediaGroupPalette` | ui | 41 | 2026-02-16 | unknown | _—_ |
@@ -487,7 +487,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt) | `FileOperationDestinationDialog` | ui | 607 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/dialog/FileOperationProgressDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationProgressDialog.kt) | `FileOperationProgressDialog` | ui | 178 | 2026-03-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/dialog/GifEditorDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/GifEditorDialog.kt) | `GifEditorDialog` | ui | 364 | 2026-02-15 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/dialog/helpers/GifEditorHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/GifEditorHelper.kt) | `GifEditorHelper` | ui | 153 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/dialog/helpers/GifEditorHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/GifEditorHelper.kt) | `GifEditorHelper` | ui | 153 | 2026-02-09 | tested | GIF editor support: downloads remote GIF to a temp file, manages cleanup, surfaces user messages. |
 | [com/sza/fastmediasorter/ui/dialog/ImageEditDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ImageEditDialog.kt) | `ImageEditDialog` | ui | 298 | 2026-02-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/dialog/MaterialProgressDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/MaterialProgressDialog.kt) | `MaterialProgressDialog` | ui | 153 | 2026-03-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/dialog/PlayerSettingsDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/PlayerSettingsDialog.kt) | `PlayerSettingsDialog` | ui | 195 | 2026-04-17 | unknown | _—_ |
@@ -541,14 +541,14 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/AudioBreathingBarsView.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioBreathingBarsView.kt) | `AudioBreathingBarsView` | ui | 225 | 2026-03-08 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/AudioEmptyStateController.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioEmptyStateController.kt) | `AudioEmptyStateController` | ui | 337 | 2026-03-14 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/AudioFocusManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioFocusManager.kt) | `AudioFocusManager` | ui | 100 | 2026-04-10 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/AudioInfoDisplayHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioInfoDisplayHelper.kt) | `AudioInfoDisplayHelper` | ui | 135 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/AudioInfoDisplayHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioInfoDisplayHelper.kt) | `AudioInfoDisplayHelper` | ui | 135 | 2026-04-22 | tested | Shows the audio-file info overlay (artist/title/format) and refreshes ExoPlayer-derived format info. |
 | [com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt) | `AudioServiceController` | ui | 243 | 2026-04-16 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/AudioSlideshowPhotoModeManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioSlideshowPhotoModeManager.kt) | `AudioSlideshowPhotoModeManager` | ui | 394 | 2026-02-28 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/AudioWaveParticleView.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioWaveParticleView.kt) | `AudioWaveParticleView` | ui | 385 | 2026-04-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/BackgroundMusicManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BackgroundMusicManager.kt) | `BackgroundMusicManager` | ui | 556 | 2026-04-11 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/BaseDocumentViewerManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BaseDocumentViewerManager.kt) | `BaseDocumentViewerManager` | ui | 135 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt) | `CastMediaManager` | ui | 345 | 2026-03-28 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt) | `CloudPlaybackHelper` | ui | 71 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt) | `CloudPlaybackHelper` | ui | 71 | 2026-04-22 | tested | VideoPlayerManager extension: cloud (Drive/OneDrive/Dropbox) HTTP-streamed playback with cloud-tuned buffers. |
 | [com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt) | `CommandPanelLayoutPlanner` | ui | 284 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/DestinationButtonsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DestinationButtonsManager.kt) | `DestinationButtonsManager` | ui | 397 | 2026-03-14 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt) | `DocumentPrintManager` | ui | 300 | 2026-04-23 | unknown | _—_ |
@@ -562,12 +562,12 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/ExoPlayerControlsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ExoPlayerControlsManager.kt) | `ExoPlayerControlsManager` | ui | 136 | 2026-04-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/FileCopyProgressDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FileCopyProgressDialog.kt) | `FileCopyProgressDialog` | ui | 63 | 2026-03-10 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/FilenameOverlayAutoHideManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FilenameOverlayAutoHideManager.kt) | `FilenameOverlayAutoHideManager` | ui | 247 | 2026-04-17 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt) | `FtpPlaybackHelper` | ui | 103 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt) | `FtpPlaybackHelper` | ui | 103 | 2026-04-22 | tested | VideoPlayerManager extension: FTP-streamed playback with low initial-rebuffer thresholds for FTP latency. |
 | [com/sza/fastmediasorter/ui/player/helpers/GoogleLensButtonsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/GoogleLensButtonsManager.kt) | `GoogleLensButtonsManager` | ui | 93 | 2026-02-13 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/GoogleLensTranslationHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/GoogleLensTranslationHelper.kt) | `GoogleLensTranslationHelper` | ui | 167 | 2026-02-17 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/GoogleLensTranslationHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/GoogleLensTranslationHelper.kt) | `GoogleLensTranslationHelper` | ui | 167 | 2026-02-17 | tested | Google Lens style translation overlay drawing translated text blocks over original positions on images and PDFs. |
 | [com/sza/fastmediasorter/ui/player/helpers/ImageOcrManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageOcrManager.kt) | `ImageOcrManager` | ui | 177 | 2026-02-17 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/LanguageBadgeDrawable.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LanguageBadgeDrawable.kt) | `LanguageBadgeDrawable` | ui | 119 | 2026-04-21 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt) | `LocalPlaybackHelper` | ui | 211 | 2026-04-19 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt) | `LocalPlaybackHelper` | ui | 211 | 2026-04-19 | tested | VideoPlayerManager extensions: local-file MIME detection and MediaItem construction for content:// + file:// playback. |
 | [com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt) | `LyricsManager` | ui | 208 | 2026-04-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/MediaDisplayCoordinator.kt) | `MediaDisplayCoordinator` | ui | 56 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/NetworkFileManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NetworkFileManager.kt) | `NetworkFileManager` | ui | 357 | 2026-04-10 | unknown | _—_ |
@@ -581,8 +581,8 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/PdfTtsDelegate.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfTtsDelegate.kt) | `PdfTtsDelegate` | ui | 88 | 2026-04-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt) | `PdfViewerManager` | ui | 1641 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt) | `PictureInPictureManager` | ui | 238 | 2026-04-11 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt) | `PlaybackHealthHelper` | ui | 212 | 2026-04-19 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt) | `PlaybackPositionHelper` | ui | 113 | 2026-04-19 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt) | `PlaybackHealthHelper` | ui | 212 | 2026-04-19 | tested | Detects stuck-position 'white noise' on FLAC/AC3/EAC3/WavPack and falls back to Android MediaPlayer. |
+| [com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt) | `PlaybackPositionHelper` | ui | 113 | 2026-04-19 | tested | VideoPlayerManager extensions for playback-position auto-save and seek. |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerAudioMetadataManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerAudioMetadataManager.kt) | `PlayerAudioMetadataManager` | ui | 109 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt) | `PlayerBindingSafeViews` | ui | 367 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerCompactElementsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCompactElementsManager.kt) | `PlayerCompactElementsManager` | ui | 35 | 2026-04-12 | unknown | _—_ |
@@ -603,7 +603,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchManager.kt) | `PlayerPrefetchManager` | ui | 219 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrefetchOffloadCoordinator.kt) | `PlayerPrefetchOffloadCoordinator` | ui | 200 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerSettingsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSettingsManager.kt) | `PlayerSettingsManager` | ui | 140 | 2026-04-17 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt) | `PlayerSetupHelper` | ui | 184 | 2026-04-23 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt) | `PlayerSetupHelper` | ui | 184 | 2026-04-23 | tested | VideoPlayerManager extensions for ExoPlayer instance creation and video-effect pipeline setup. |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt) | `PlayerShareManager` | ui | 142 | 2026-03-28 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt) | `PlayerStereoModeCoordinator` | ui | 206 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/PlayerTouchZoneSetupManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerTouchZoneSetupManager.kt) | `PlayerTouchZoneSetupManager` | ui | 84 | 2026-04-21 | unknown | _—_ |
@@ -614,9 +614,9 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/QueueTrackAdapter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/QueueTrackAdapter.kt) | `QueueTrackAdapter` | ui | 71 | 2026-03-30 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt) | `SaveVideoFrameManager` | ui | 277 | 2026-04-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/SearchControlsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SearchControlsManager.kt) | `SearchControlsManager` | ui | 247 | 2026-03-10 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt) | `SftpPlaybackHelper` | ui | 106 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt) | `SftpPlaybackHelper` | ui | 106 | 2026-04-22 | tested | VideoPlayerManager extension: SFTP-streamed playback through the SftpDataSource. |
 | [com/sza/fastmediasorter/ui/player/helpers/SleepTimerManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SleepTimerManager.kt) | `SleepTimerManager` | ui | 225 | 2026-03-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt) | `SmbPlaybackHelper` | ui | 119 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt) | `SmbPlaybackHelper` | ui | 119 | 2026-04-22 | tested | VideoPlayerManager extension: SMB-streamed playback through the SmbDataSource. |
 | [com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt) | `StandaloneFileOperationsHandler` | ui | 374 | 2026-04-23 | new | Intent-driven file operations for StandalonePlayerActivity: delete (file/SAF/MediaStore R+/Q-recoverable), share, Open-in-FMS, rename. |
 | [com/sza/fastmediasorter/ui/player/helpers/StandaloneFullscreenManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFullscreenManager.kt) | `StandaloneFullscreenManager` | ui | 51 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/StandalonePlayerLifecycleManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandalonePlayerLifecycleManager.kt) | `StandalonePlayerLifecycleManager` | ui | 37 | 2026-04-10 | unknown | _—_ |
@@ -624,7 +624,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/StandaloneVideoControlsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneVideoControlsManager.kt) | `StandaloneVideoControlsManager` | ui | 38 | 2026-04-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/StandaloneVideoTouchDelegate.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneVideoTouchDelegate.kt) | `StandaloneVideoTouchDelegate` | ui | 230 | 2026-04-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt) | `StandaloneViewManager` | ui | 613 | 2026-04-23 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt) | `StreamingCacheCleanupHelper` | ui | 55 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt) | `StreamingCacheCleanupHelper` | ui | 55 | 2026-04-22 | tested | Post-playback Keep/Delete/Don't-ask-again dialog for offloaded streaming cache files. |
 | [com/sza/fastmediasorter/ui/player/helpers/StreamOffloadOfferDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StreamOffloadOfferDialog.kt) | `StreamOffloadOfferDialog` | ui | 122 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/SystemBarsManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SystemBarsManager.kt) | `SystemBarsManager` | ui | 202 | 2026-04-21 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/helpers/TesseractManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractManager.kt) | `TesseractManager` | ui | 344 | 2026-02-17 | unknown | _—_ |
@@ -643,7 +643,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/helpers/WindowMetricsCompat.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/WindowMetricsCompat.kt) | `WindowMetricsCompat` | ui | 70 | 2026-02-12 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/ImageLoadingDiagnostics.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingDiagnostics.kt) | `ImageLoadingDiagnostics` | ui | 89 | 2026-04-23 | new | Classify Glide network-image failures as non-critical and log heap/native-heap/preload-job memory snapshots. |
 | [com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt) | `ImageLoadingManager` | ui | 1240 | 2026-04-23 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt) | `ImagePreloadHelper` | ui | 222 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt) | `ImagePreloadHelper` | ui | 222 | 2026-04-22 | tested | Preloads adjacent images for the player with slideshow bias + cancellation of stale jobs. |
 | [com/sza/fastmediasorter/ui/player/MediaButtonRestartReceiver.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/MediaButtonRestartReceiver.kt) | `MediaButtonRestartReceiver` | ui | 62 | 2026-03-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/MediaNotificationManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/MediaNotificationManager.kt) | `MediaNotificationManager` | ui | 73 | 2026-02-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/model/MediaItemWithMeta.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/model/MediaItemWithMeta.kt) | `MediaItemWithMeta` | ui | 16 | 2026-03-30 | unknown | _—_ |
@@ -654,8 +654,8 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt) | `PlaybackControlDialogFragment` | ui | 685 | 2026-04-23 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/PlaybackControlPreferences.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlPreferences.kt) | `PlaybackControlPreferences` | ui | 15 | 2026-04-19 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/PlayerActivity.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt) | `PlayerActivity` | ui | 712 | 2026-04-23 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt) | `PlayerDialogHelper` | ui | 649 | 2026-04-20 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/player/PlayerGestureHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerGestureHelper.kt) | `PlayerGestureHelper` | ui | 247 | 2026-02-17 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt) | `PlayerDialogHelper` | ui | 649 | 2026-04-20 | tested | All PlayerActivity dialogs: copy/move/rename, file info, image edit, settings, and error/network/cloud-auth flows. |
+| [com/sza/fastmediasorter/ui/player/PlayerGestureHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerGestureHelper.kt) | `PlayerGestureHelper` | ui | 247 | 2026-02-17 | tested | Touch-zone detection, swipe/double-tap/long-press recognition, and first-run hint overlay for PlayerActivity. |
 | [com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt) | `PlayerManagerInitializer` | ui | 761 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt) | `PlayerObserverManager` | ui | 94 | 2026-04-18 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt) | `PlayerViewerFactory` | ui | 154 | 2026-04-11 | unknown | _—_ |
@@ -705,19 +705,19 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt) | `VideoSettingsFragment` | ui | 317 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/settings/fragments/WearSyncSettingsFragment.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/WearSyncSettingsFragment.kt) | `WearSyncSettingsFragment` | ui | 99 | 2026-04-15 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/settings/helpers/BeamAnimationDialog.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/BeamAnimationDialog.kt) | `BeamAnimationDialog` | ui | 175 | 2026-04-14 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt) | `DefaultPlayerHelper` | ui | 350 | 2026-04-15 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt) | `DefaultPlayerHelper` | ui | 350 | 2026-04-15 | tested | 'Set as default player' flow: enables activity-aliases and triggers the OS Open-with chooser per media type. |
 | [com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerManager.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerManager.kt) | `DefaultPlayerManager` | ui | 120 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt) | `GeneralSettingsBackupHelper` | ui | 140 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt) | `GeneralSettingsCacheHelper` | ui | 222 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt) | `GeneralSettingsCredentialHelper` | ui | 172 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt) | `GeneralSettingsImportExportHelper` | ui | 136 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt) | `GeneralSettingsLogHelper` | ui | 142 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt) | `GeneralSettingsObserversHelper` | ui | 164 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt) | `GeneralSettingsPermissionsHelper` | ui | 133 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPrefetchHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPrefetchHelper.kt) | `GeneralSettingsPrefetchHelper` | ui | 167 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt) | `GeneralSettingsResetHelper` | ui | 103 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt) | `GeneralSettingsSectionsHelper` | ui | 94 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt) | `GeneralSettingsViewSetupHelper` | ui | 393 | 2026-04-22 | unknown | _—_ |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt) | `GeneralSettingsBackupHelper` | ui | 140 | 2026-04-22 | tested | Settings: Wear-companion button, backup/restore controls, and backup-account info display. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt) | `GeneralSettingsCacheHelper` | ui | 222 | 2026-04-22 | tested | Settings: optimal cache-size suggestion, restart dialog, manual size update, auto-calc, clear-now. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt) | `GeneralSettingsCredentialHelper` | ui | 172 | 2026-04-22 | tested | Settings: import test/external network credentials from a chosen URI. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt) | `GeneralSettingsImportExportHelper` | ui | 136 | 2026-04-22 | tested | Settings: export/import app preferences with confirmation dialogs and URI handling. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt) | `GeneralSettingsLogHelper` | ui | 142 | 2026-04-22 | tested | Settings: version-info display and Share/Save/View log buttons. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt) | `GeneralSettingsObserversHelper` | ui | 164 | 2026-04-22 | tested | Settings: collects flows, observes manual-network-sync state, and dismisses sync-progress dialogs. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt) | `GeneralSettingsPermissionsHelper` | ui | 133 | 2026-04-22 | tested | Settings: keeps the local-files permission button label/state in sync with current permission grants. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPrefetchHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPrefetchHelper.kt) | `GeneralSettingsPrefetchHelper` | ui | 167 | 2026-04-22 | tested | Settings: video pre-cache, streaming cache cleanup, TTL dropdowns, and Clear-now with cached-entries preview. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt) | `GeneralSettingsResetHelper` | ui | 103 | 2026-04-22 | tested | Settings: remember-file-list help, reset-all + reset-section confirmations, and SMB connection reset. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt) | `GeneralSettingsSectionsHelper` | ui | 94 | 2026-04-22 | tested | Settings: collapsible section header setup with persistent expanded/collapsed state. |
+| [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt) | `GeneralSettingsViewSetupHelper` | ui | 393 | 2026-04-22 | tested | Settings: initial form-field wiring (dropdowns, sliders, switches) for the General settings fragment. |
 | [com/sza/fastmediasorter/ui/settings/MediaCategoryPagerAdapter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/MediaCategoryPagerAdapter.kt) | `MediaCategoryPagerAdapter` | ui | 52 | 2026-03-27 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/settings/ScheduledOperationsAdapter.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/ScheduledOperationsAdapter.kt) | `ScheduledOperationsAdapter` | ui | 118 | 2026-04-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/ui/settings/ScheduledOperationsViewModel.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/ScheduledOperationsViewModel.kt) | `ScheduledOperationsViewModel` | ui | 81 | 2026-03-27 | unknown | _—_ |
@@ -749,11 +749,11 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/utils/LifecycleExtensions.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/LifecycleExtensions.kt) | `LifecycleExtensions` | utils | 44 | 2026-04-22 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/MediaStoreNotifier.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/MediaStoreNotifier.kt) | `MediaStoreNotifier` | utils | 74 | 2026-04-02 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/NetworkUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/NetworkUtils.kt) | `NetworkUtils` | utils | 53 | 2026-02-13 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/PdfExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfExportHelper.kt) | `PdfExportHelper` | utils | 142 | 2026-04-11 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/PdfHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfHelper.kt) | `PdfHelper` | utils | 63 | 2026-02-09 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt) | `PdfThumbnailHelper` | utils | 69 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/utils/PdfExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfExportHelper.kt) | `PdfExportHelper` | utils | 142 | 2026-04-11 | tested | Renders a PDF page or full document to image files for sharing/export. |
+| [com/sza/fastmediasorter/utils/PdfHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfHelper.kt) | `PdfHelper` | utils | 63 | 2026-02-09 | tested | Loads PDF page thumbnails into ImageView with per-target job cancellation for recycled views. |
+| [com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt) | `PdfThumbnailHelper` | utils | 69 | 2026-02-09 | tested | Generates a single PDF page bitmap at the requested width/height via PdfRenderer. |
 | [com/sza/fastmediasorter/utils/PermissionChecker.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PermissionChecker.kt) | `PermissionChecker` | utils | 40 | 2026-02-16 | unknown | _—_ |
-| [com/sza/fastmediasorter/utils/SafHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SafHelper.kt) | `SafHelper` | utils | 224 | 2026-02-09 | unknown | _—_ |
+| [com/sza/fastmediasorter/utils/SafHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SafHelper.kt) | `SafHelper` | utils | 224 | 2026-02-09 | tested | Storage Access Framework helpers: consistent content:// URI handling for delete and other ops. |
 | [com/sza/fastmediasorter/utils/SftpPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SftpPathUtils.kt) | `SftpPathUtils` | utils | 120 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/SmbPathUtils.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SmbPathUtils.kt) | `SmbPathUtils` | utils | 194 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/utils/SyntaxHighlighter.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SyntaxHighlighter.kt) | `SyntaxHighlighter` | utils | 231 | 2026-02-15 | unknown | _—_ |
@@ -779,7 +779,7 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 | [com/sza/fastmediasorter/worker/ScheduledOperationsBootReceiver.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/ScheduledOperationsBootReceiver.kt) | `ScheduledOperationsBootReceiver` | worker | 37 | 2026-04-13 | unknown | _—_ |
 | [com/sza/fastmediasorter/worker/ScheduledOperationsWorker.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/ScheduledOperationsWorker.kt) | `ScheduledOperationsWorker` | worker | 114 | 2026-04-13 | unknown | _—_ |
 | [com/sza/fastmediasorter/worker/StreamingCacheStartupGcWorker.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/StreamingCacheStartupGcWorker.kt) | `StreamingCacheStartupGcWorker` | worker | 79 | 2026-04-22 | unknown | _—_ |
-| [com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt) | `ThumbnailExtractorHelper` | worker | 139 | 2026-03-28 | unknown | _—_ |
+| [com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt) | `ThumbnailExtractorHelper` | worker | 139 | 2026-03-28 | tested | Background extraction of video/PDF thumbnails for network files via UnifiedFileCache + MediaMetadataRetriever/PdfRenderer. |
 | [com/sza/fastmediasorter/worker/ThumbnailPreloadWorker.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/ThumbnailPreloadWorker.kt) | `ThumbnailPreloadWorker` | worker | 144 | 2026-03-28 | unknown | _—_ |
 | [com/sza/fastmediasorter/worker/TrashCleanupWorker.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/TrashCleanupWorker.kt) | `TrashCleanupWorker` | worker | 64 | 2026-02-09 | unknown | _—_ |
 | [com/sza/fastmediasorter/worker/WorkManagerScheduler.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/WorkManagerScheduler.kt) | `WorkManagerScheduler` | worker | 391 | 2026-04-22 | unknown | _—_ |
@@ -953,13 +953,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `StrictModeHelper` — [com/sza/fastmediasorter/core/debug/StrictModeHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/debug/StrictModeHelper.kt)
 
-**Layer:** core · **LOC:** 101 · **Last:** 2026-02-15 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 101 · **Last:** 2026-02-15 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** prefs  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Temporarily disables StrictMode penalties for known-safe early-init operations (SharedPreferences in attachBaseContext, etc.).
 
 **Functions:**
 
@@ -1009,13 +1009,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `LogExportHelper` — [com/sza/fastmediasorter/core/logging/LogExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LogExportHelper.kt)
 
-**Layer:** core · **LOC:** 127 · **Last:** 2026-04-02 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 127 · **Last:** 2026-04-02 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Packages app logs into a zip and exports/saves them via FileProvider for debugging.
 
 **Functions:**
 
@@ -1025,13 +1025,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `LoggingHelper` — [com/sza/fastmediasorter/core/logging/LoggingHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt)
 
-**Layer:** core · **LOC:** 369 · **Last:** 2026-04-13 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 369 · **Last:** 2026-04-13 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Initializes Timber with console + file logging trees and exposes the rolling log files.
 
 **Functions:**
 
@@ -1259,13 +1259,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `CacheStatusHelper` — [com/sza/fastmediasorter/core/util/CacheStatusHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt)
 
-**Layer:** core · **LOC:** 57 · **Last:** 2026-04-13 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 57 · **Last:** 2026-04-13 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Logs Glide disk-cache file count and size at app startup to diagnose cache persistence issues.
 
 **Functions:**
 
@@ -1412,13 +1412,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `LocaleHelper` — [com/sza/fastmediasorter/core/util/LocaleHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/LocaleHelper.kt)
 
-**Layer:** core · **LOC:** 228 · **Last:** 2026-04-13 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 228 · **Last:** 2026-04-13 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** prefs  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** App language selection with restart, supporting Android 13+ per-app LocaleManager + legacy SharedPreferences fallback.
 
 **Functions:**
 
@@ -1549,13 +1549,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PermissionHelper` — [com/sza/fastmediasorter/core/util/PermissionHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt)
 
-**Layer:** core · **LOC:** 323 · **Last:** 2026-03-24 · **Status:** unknown · **NoFlavors:** —
+**Layer:** core · **LOC:** 323 · **Last:** 2026-03-24 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Runtime permission checks for storage, MANAGE_MEDIA, all-files-access, and internet across API levels.
 
 **Functions:**
 
@@ -1642,13 +1642,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `CloudAuthenticationHelper` — [com/sza/fastmediasorter/data/cloud/CloudAuthenticationHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudAuthenticationHelper.kt)
 
-**Layer:** data · **LOC:** 125 · **Last:** 2026-02-28 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 125 · **Last:** 2026-02-28 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** GoogleDriveRestClient, DropboxClient, OneDriveRestClient, CloudAuthStateMachine  
 **Side effects:** —  
 **Flags:** coroutines · tests
 
-**Role:** _(unfilled)_
+**Role:** Provides authenticated cloud clients with auto-restoration and silent re-auth retry; delegates state to CloudAuthStateMachine.
 
 **Functions:**
 
@@ -2585,13 +2585,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `CryptoHelper` — [com/sza/fastmediasorter/data/local/db/CryptoHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/CryptoHelper.kt)
 
-**Layer:** data · **LOC:** 118 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** data · **LOC:** 118 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** AES-256-GCM encrypt/decrypt of sensitive data using hardware-backed Android Keystore.
 
 **Functions:**
 
@@ -7782,13 +7782,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AddResourceHelper` — [com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt)
 
-**Layer:** ui · **LOC:** 243 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 243 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Pre-fills the AddResource form from existing resource data and wires shared input listeners.
 
 **Functions:**
 
@@ -8451,13 +8451,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BrowseButtonSetupHelper` — [com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt)
 
-**Layer:** ui · **LOC:** 209 · **Last:** 2026-04-10 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 209 · **Last:** 2026-04-10 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Wires button click listeners and scroll-FAB handlers for BrowseActivity.
 
 **Functions:**
 
@@ -8555,13 +8555,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BrowseDialogHelper` — [com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt)
 
-**Layer:** ui · **LOC:** 734 · **Last:** 2026-04-21 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 734 · **Last:** 2026-04-21 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** user-feedback · tests
 
-**Role:** _(unfilled)_
+**Role:** All filter/sort/rename/copy/move/delete dialogs for BrowseActivity.
 
 **Functions:**
 
@@ -8635,13 +8635,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BrowseEdgeToEdgeHelper` — [com/sza/fastmediasorter/ui/browse/managers/BrowseEdgeToEdgeHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEdgeToEdgeHelper.kt)
 
-**Layer:** ui · **LOC:** 72 · **Last:** 2026-04-10 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 72 · **Last:** 2026-04-10 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Applies edge-to-edge window insets to the Browse layout (top bar below status bar, bottom bar above nav bar).
 
 **Functions:**
 
@@ -8856,13 +8856,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `BrowseLifecycleHelper` — [com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleHelper.kt)
 
-**Layer:** ui · **LOC:** 108 · **Last:** 2026-04-10 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 108 · **Last:** 2026-04-10 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** BrowseActivity onResume scroll restore + Android 11+ storage-permission dialog for local resources.
 
 **Functions:**
 
@@ -9832,13 +9832,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ErrorDialogHelper` — [com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt)
 
-**Layer:** ui · **LOC:** 64 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 64 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Displays simple toast-style or detailed copyable error dialogs across the app.
 
 **Functions:**
 
@@ -10129,13 +10129,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GifEditorHelper` — [com/sza/fastmediasorter/ui/dialog/helpers/GifEditorHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/GifEditorHelper.kt)
 
-**Layer:** ui · **LOC:** 153 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 153 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** GIF editor support: downloads remote GIF to a temp file, manages cleanup, surfaces user messages.
 
 **Functions:**
 
@@ -11460,13 +11460,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `AudioInfoDisplayHelper` — [com/sza/fastmediasorter/ui/player/helpers/AudioInfoDisplayHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioInfoDisplayHelper.kt)
 
-**Layer:** ui · **LOC:** 135 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 135 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Shows the audio-file info overlay (artist/title/format) and refreshes ExoPlayer-derived format info.
 
 **Functions:**
 
@@ -11630,13 +11630,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `CloudPlaybackHelper` — [com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt)
 
-**Layer:** ui · **LOC:** 71 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 71 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** VideoPlayerManager extension: cloud (Drive/OneDrive/Dropbox) HTTP-streamed playback with cloud-tuned buffers.
 
 **Functions:**
 
@@ -11950,13 +11950,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `FtpPlaybackHelper` — [com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt)
 
-**Layer:** ui · **LOC:** 103 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 103 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** VideoPlayerManager extension: FTP-streamed playback with low initial-rebuffer thresholds for FTP latency.
 
 **Functions:**
 
@@ -11978,13 +11978,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GoogleLensTranslationHelper` — [com/sza/fastmediasorter/ui/player/helpers/GoogleLensTranslationHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/GoogleLensTranslationHelper.kt)
 
-**Layer:** ui · **LOC:** 167 · **Last:** 2026-02-17 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 167 · **Last:** 2026-02-17 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Google Lens style translation overlay drawing translated text blocks over original positions on images and PDFs.
 
 **Functions:**
 
@@ -12034,13 +12034,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `LocalPlaybackHelper` — [com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt)
 
-**Layer:** ui · **LOC:** 211 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 211 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** VideoPlayerManager extensions: local-file MIME detection and MediaItem construction for content:// + file:// playback.
 
 **Functions:**
 
@@ -12361,13 +12361,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlaybackHealthHelper` — [com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt)
 
-**Layer:** ui · **LOC:** 212 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 212 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Detects stuck-position 'white noise' on FLAC/AC3/EAC3/WavPack and falls back to Android MediaPlayer.
 
 **Functions:**
 
@@ -12379,13 +12379,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlaybackPositionHelper` — [com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt)
 
-**Layer:** ui · **LOC:** 113 · **Last:** 2026-04-19 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 113 · **Last:** 2026-04-19 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** VideoPlayerManager extensions for playback-position auto-save and seek.
 
 **Functions:**
 
@@ -12934,13 +12934,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerSetupHelper` — [com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt)
 
-**Layer:** ui · **LOC:** 184 · **Last:** 2026-04-23 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 184 · **Last:** 2026-04-23 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** VideoPlayerManager extensions for ExoPlayer instance creation and video-effect pipeline setup.
 
 **Functions:**
 
@@ -13175,13 +13175,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SftpPlaybackHelper` — [com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt)
 
-**Layer:** ui · **LOC:** 106 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 106 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** network  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** VideoPlayerManager extension: SFTP-streamed playback through the SftpDataSource.
 
 **Functions:**
 
@@ -13214,13 +13214,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SmbPlaybackHelper` — [com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt)
 
-**Layer:** ui · **LOC:** 119 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 119 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** network  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** VideoPlayerManager extension: SMB-streamed playback through the SmbDataSource.
 
 **Functions:**
 
@@ -13440,13 +13440,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `StreamingCacheCleanupHelper` — [com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt)
 
-**Layer:** ui · **LOC:** 55 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 55 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Post-playback Keep/Delete/Don't-ask-again dialog for offloaded streaming cache files.
 
 **Functions:**
 
@@ -13993,13 +13993,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ImagePreloadHelper` — [com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt)
 
-**Layer:** ui · **LOC:** 222 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 222 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Preloads adjacent images for the player with slideshow bias + cancellation of stale jobs.
 
 **Functions:**
 
@@ -14325,13 +14325,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerDialogHelper` — [com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt)
 
-**Layer:** ui · **LOC:** 649 · **Last:** 2026-04-20 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 649 · **Last:** 2026-04-20 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** network, disk, prefs  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** All PlayerActivity dialogs: copy/move/rename, file info, image edit, settings, and error/network/cloud-auth flows.
 
 **Functions:**
 
@@ -14374,13 +14374,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PlayerGestureHelper` — [com/sza/fastmediasorter/ui/player/PlayerGestureHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerGestureHelper.kt)
 
-**Layer:** ui · **LOC:** 247 · **Last:** 2026-02-17 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 247 · **Last:** 2026-02-17 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Touch-zone detection, swipe/double-tap/long-press recognition, and first-run hint overlay for PlayerActivity.
 
 **Functions:**
 
@@ -15761,13 +15761,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `DefaultPlayerHelper` — [com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt)
 
-**Layer:** ui · **LOC:** 350 · **Last:** 2026-04-15 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 350 · **Last:** 2026-04-15 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** 'Set as default player' flow: enables activity-aliases and triggers the OS Open-with chooser per media type.
 
 **Functions:**
 
@@ -15808,13 +15808,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsBackupHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt)
 
-**Layer:** ui · **LOC:** 140 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 140 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: Wear-companion button, backup/restore controls, and backup-account info display.
 
 **Functions:**
 
@@ -15830,13 +15830,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsCacheHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt)
 
-**Layer:** ui · **LOC:** 222 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 222 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: optimal cache-size suggestion, restart dialog, manual size update, auto-calc, clear-now.
 
 **Functions:**
 
@@ -15853,13 +15853,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsCredentialHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt)
 
-**Layer:** ui · **LOC:** 172 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 172 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: import test/external network credentials from a chosen URI.
 
 **Functions:**
 
@@ -15868,13 +15868,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsImportExportHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt)
 
-**Layer:** ui · **LOC:** 136 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 136 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: export/import app preferences with confirmation dialogs and URI handling.
 
 **Functions:**
 
@@ -15888,13 +15888,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsLogHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt)
 
-**Layer:** ui · **LOC:** 142 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 142 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: version-info display and Share/Save/View log buttons.
 
 **Functions:**
 
@@ -15910,13 +15910,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsObserversHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt)
 
-**Layer:** ui · **LOC:** 164 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 164 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: collects flows, observes manual-network-sync state, and dismisses sync-progress dialogs.
 
 **Functions:**
 
@@ -15928,13 +15928,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsPermissionsHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt)
 
-**Layer:** ui · **LOC:** 133 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 133 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: keeps the local-files permission button label/state in sync with current permission grants.
 
 **Functions:**
 
@@ -15946,13 +15946,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsPrefetchHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPrefetchHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPrefetchHelper.kt)
 
-**Layer:** ui · **LOC:** 167 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 167 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: video pre-cache, streaming cache cleanup, TTL dropdowns, and Clear-now with cached-entries preview.
 
 **Functions:**
 
@@ -15970,13 +15970,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsResetHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt)
 
-**Layer:** ui · **LOC:** 103 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 103 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: remember-file-list help, reset-all + reset-section confirmations, and SMB connection reset.
 
 **Functions:**
 
@@ -15989,13 +15989,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsSectionsHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt)
 
-**Layer:** ui · **LOC:** 94 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 94 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** —
 
-**Role:** _(unfilled)_
+**Role:** Settings: collapsible section header setup with persistent expanded/collapsed state.
 
 **Functions:**
 
@@ -16007,13 +16007,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `GeneralSettingsViewSetupHelper` — [com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt)
 
-**Layer:** ui · **LOC:** 393 · **Last:** 2026-04-22 · **Status:** unknown · **NoFlavors:** —
+**Layer:** ui · **LOC:** 393 · **Last:** 2026-04-22 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** user-feedback · timber
 
-**Role:** _(unfilled)_
+**Role:** Settings: initial form-field wiring (dropdowns, sliders, switches) for the General settings fragment.
 
 **Functions:**
 
@@ -16651,13 +16651,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PdfExportHelper` — [com/sza/fastmediasorter/utils/PdfExportHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfExportHelper.kt)
 
-**Layer:** utils · **LOC:** 142 · **Last:** 2026-04-11 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 142 · **Last:** 2026-04-11 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Renders a PDF page or full document to image files for sharing/export.
 
 **Functions:**
 
@@ -16668,13 +16668,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PdfHelper` — [com/sza/fastmediasorter/utils/PdfHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfHelper.kt)
 
-**Layer:** utils · **LOC:** 63 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 63 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines
 
-**Role:** _(unfilled)_
+**Role:** Loads PDF page thumbnails into ImageView with per-target job cancellation for recycled views.
 
 **Functions:**
 
@@ -16682,13 +16682,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `PdfThumbnailHelper` — [com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/PdfThumbnailHelper.kt)
 
-**Layer:** utils · **LOC:** 69 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 69 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** —  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Generates a single PDF page bitmap at the requested width/height via PdfRenderer.
 
 **Functions:**
 
@@ -16711,13 +16711,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `SafHelper` — [com/sza/fastmediasorter/utils/SafHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/utils/SafHelper.kt)
 
-**Layer:** utils · **LOC:** 224 · **Last:** 2026-02-09 · **Status:** unknown · **NoFlavors:** —
+**Layer:** utils · **LOC:** 224 · **Last:** 2026-02-09 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** —  
 **Side effects:** disk  
 **Flags:** timber
 
-**Role:** _(unfilled)_
+**Role:** Storage Access Framework helpers: consistent content:// URI handling for delete and other ops.
 
 **Functions:**
 
@@ -17161,13 +17161,13 @@ Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — e
 
 ### `ThumbnailExtractorHelper` — [com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt](app_v2/src/main/java/com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt)
 
-**Layer:** worker · **LOC:** 139 · **Last:** 2026-03-28 · **Status:** unknown · **NoFlavors:** —
+**Layer:** worker · **LOC:** 139 · **Last:** 2026-03-28 · **Status:** tested · **NoFlavors:** —
 
 **Injected:** Context, SmbClient, SftpClient, FtpClient, NetworkCredentialsRepository, UnifiedFileCache  
 **Side effects:** network, disk  
 **Flags:** coroutines · timber
 
-**Role:** _(unfilled)_
+**Role:** Background extraction of video/PDF thumbnails for network files via UnifiedFileCache + MediaMetadataRetriever/PdfRenderer.
 
 **Functions:**
 
