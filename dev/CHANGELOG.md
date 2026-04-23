@@ -3428,3 +3428,4 @@ Format: | datetime | file | target | description |
 | 2026-04-23 02:13:01 | `index-ru.html` | `index-ru.html` | Add What is New card to RU landing page |
 | 2026-04-23 02:13:02 | `index-uk.html` | `index-uk.html` | Add What is New card to UK landing page |
 | 2026-04-23 02:29:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Wave 5: extracted MainResumePlaybackHelper, MainResourceTabsManager, MainStoragePermissionsHelper, MainLayoutChromeManager (1330 -> 887 LOC, under 1000 cap) |
+| 2026-04-23 02:35:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `ResourceEditorFragment` | Wave 7: extracted ResourceEditorOutcomeRenderer (1057 -> 978 LOC, under 1000 cap) |

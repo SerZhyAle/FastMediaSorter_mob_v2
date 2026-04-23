@@ -58,6 +58,7 @@ class ResourceEditorFragment : Fragment() {
     private val uiPrefs by lazy {
         requireContext().getSharedPreferences(PREFS_RESOURCE_EDITOR_UI, Context.MODE_PRIVATE)
     }
+    private lateinit var outcomeRenderer: ResourceEditorOutcomeRenderer
     private val mediaPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -93,6 +94,13 @@ class ResourceEditorFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        outcomeRenderer = ResourceEditorOutcomeRenderer(
+            context = requireContext(),
+            binding = binding,
+            getMode = { mode },
+            getCurrentResourceType = { viewModel.uiState.value.formData.type }
+        )
 
         reorderScanningAboveMediaTypes()
         setupToolbar()
@@ -896,64 +904,17 @@ class ResourceEditorFragment : Fragment() {
             .show()
     }
 
-    private fun getErrorMessage(errorCode: ResourceErrorCode): String {
-        return when (errorCode) {
-            ResourceErrorCode.EMPTY -> getString(R.string.error_field_required)
-            ResourceErrorCode.INVALID -> getString(R.string.error_invalid_path)
-            ResourceErrorCode.TOO_SHORT -> getString(R.string.error_invalid_username)
-            ResourceErrorCode.TOO_LONG -> getString(R.string.error_invalid_username)
-            ResourceErrorCode.OUT_OF_RANGE -> getString(R.string.error_invalid_port)
-            ResourceErrorCode.UNSUPPORTED -> getString(R.string.error_unknown)
-            ResourceErrorCode.UNREACHABLE -> getString(R.string.error_connection_failed)
-            ResourceErrorCode.ACCESS_DENIED -> getString(R.string.error_connection_failed)
-            ResourceErrorCode.TIMEOUT -> getString(R.string.error_connection_failed)
-            ResourceErrorCode.CONFLICT -> getString(R.string.error_save_failed)
-            ResourceErrorCode.UNKNOWN -> getString(R.string.error_unknown)
-        }
-    }
+    private fun getErrorMessage(errorCode: ResourceErrorCode): String =
+        outcomeRenderer.getErrorMessage(errorCode)
 
-    private fun renderConnectionResult(result: ResourceConnectionTestResult?) {
-        result ?: return
+    private fun renderConnectionResult(result: ResourceConnectionTestResult?) =
+        outcomeRenderer.renderConnectionResult(result)
 
-        binding.groupConnectionResult.isVisible = true
-        binding.tvConnectionStatus.text = when (result.status) {
-            // Show live stats (subfolder/file count) from diagnosticMessage when available
-            ResourceConnectionStatus.SUCCESS -> result.diagnosticMessage ?: getString(R.string.connection_success)
-            ResourceConnectionStatus.FAILED -> getString(
-                R.string.connection_test_failed_detail,
-                result.diagnosticMessage ?: getString(R.string.error_unknown)
-            )
-            ResourceConnectionStatus.PARTIAL -> result.diagnosticMessage ?: getString(R.string.connection_success)
-            ResourceConnectionStatus.NOT_SUPPORTED -> getString(R.string.connection_test_not_supported)
-        }
+    private fun renderLoadingStates(isTestingConnection: Boolean, isSaving: Boolean) =
+        outcomeRenderer.renderLoadingStates(isTestingConnection, isSaving)
 
-        val statusColor = when (result.status) {
-            ResourceConnectionStatus.SUCCESS -> requireContext().getColor(R.color.success_green)
-            ResourceConnectionStatus.FAILED -> requireContext().getColor(R.color.error_red)
-            ResourceConnectionStatus.PARTIAL -> requireContext().getColor(R.color.warning_color)
-            ResourceConnectionStatus.NOT_SUPPORTED -> requireContext().getColor(R.color.text_color_secondary)
-        }
-        binding.tvConnectionStatus.setTextColor(statusColor)
-        binding.btnRetry.isVisible = result.status == ResourceConnectionStatus.FAILED
-    }
-
-    private fun renderLoadingStates(isTestingConnection: Boolean, isSaving: Boolean) {
-        binding.progressConnection.isVisible = isTestingConnection
-        binding.btnTestConnection.isEnabled = !isTestingConnection && !isSaving
-        // Note: btnSave.isEnabled is controlled exclusively by renderSaveButton(state.canSave),
-        // which already includes !isSaving && !isTestingConnection in the canSave formula.
-        binding.progressSave.isVisible = isSaving
-    }
-
-    private fun renderSaveButton(state: ResourceEditorUiState) {
-        val buttonText = when (mode) {
-            ResourceEditorMode.CREATE -> getString(R.string.btn_add_resource)
-            ResourceEditorMode.EDIT -> getString(R.string.btn_save_changes)
-            ResourceEditorMode.COPY -> getString(R.string.btn_save_copy)
-        }
-        binding.btnSave.text = buttonText
-        binding.btnSave.isEnabled = state.canSave
-    }
+    private fun renderSaveButton(state: ResourceEditorUiState) =
+        outcomeRenderer.renderSaveButton(state.canSave)
 
     private fun observeEvents() {
         collectOnLifecycle(viewModel.events) { event ->
@@ -979,48 +940,8 @@ class ResourceEditorFragment : Fragment() {
         }
     }
 
-    private fun renderStatistics(statistics: ResourceStatistics?) {
-        val show = statistics != null && mode == ResourceEditorMode.EDIT
-        binding.cardStatistics.isVisible = show
-        binding.headerStatistics.isVisible = show
-        binding.groupStatistics.isVisible = show
-
-        if (!show) return
-
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
-
-        val fileCountText = getString(R.string.label_file_count, statistics.fileCount)
-        val subfolderCountText = getString(R.string.label_subfolder_count, statistics.subfolderCount)
-        binding.tvStatFileCount.text = "$fileCountText    $subfolderCountText"
-        binding.tvStatSubfolderCount.isVisible = false
-        binding.tvStatCreatedDate.text = getString(
-            R.string.label_created_date,
-            statistics.createdDate?.let { dateFormat.format(java.util.Date(it)) } ?: getString(R.string.label_never)
-        )
-        binding.tvStatLastBrowseDate.text = getString(
-            R.string.label_last_browse_date,
-            statistics.lastBrowseDate?.let { dateFormat.format(java.util.Date(it)) } ?: getString(R.string.label_never)
-        )
-
-        val isNetwork = viewModel.uiState.value.formData.type != ResourceType.LOCAL
-        binding.tvStatLastSyncDate.isVisible = isNetwork
-        if (isNetwork) {
-            binding.tvStatLastSyncDate.text = getString(
-                R.string.label_last_sync_date,
-                statistics.lastSyncDate?.let { dateFormat.format(java.util.Date(it)) } ?: getString(R.string.label_never)
-            )
-        }
-
-        binding.tvStatReadSpeed.isVisible = statistics.readSpeedMbps != null
-        if (statistics.readSpeedMbps != null) {
-            binding.tvStatReadSpeed.text = getString(R.string.label_read_speed, statistics.readSpeedMbps)
-        }
-
-        binding.tvStatWriteSpeed.isVisible = statistics.writeSpeedMbps != null
-        if (statistics.writeSpeedMbps != null) {
-            binding.tvStatWriteSpeed.text = getString(R.string.label_write_speed, statistics.writeSpeedMbps)
-        }
-    }
+    private fun renderStatistics(statistics: ResourceStatistics?) =
+        outcomeRenderer.renderStatistics(statistics)
 
     override fun onDestroyView() {
         super.onDestroyView()

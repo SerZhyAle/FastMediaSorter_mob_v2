@@ -34,6 +34,14 @@
 
 `MainActivity.kt` is now under the 1000-line hard cap. The 700-line stretch target is not yet hit; remaining content is the still-cohesive setupViews/observeData wiring plus error/info dialogs and intent action dispatch. Further reduction (e.g., extracting an `onCreate` intent-action router) is optional polish.
 
+**Wave 7 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/resourceeditor/ResourceEditorFragment.kt` | 1 057 | 978 | −79 | `ResourceEditorOutcomeRenderer` (statistics, connection-result, save button, error message, loading) |
+
+`ResourceEditorFragment.kt` is now under the 1000-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -160,6 +168,32 @@ Remaining extractions (in planned order, biggest chunks first):
 
 ---
 
-## Wave 6 — next candidate
+## Wave 6 — deferred (giant document viewers)
 
-Top remaining score after Wave 5: `EpubViewerManager.kt` (2 191 LOC, score 6 573). Plan: split into `EpubChapterRenderer`, `EpubFontStyleHelper`, `EpubBookmarkHelper`, etc., aiming for ≤ 1000 LOC first pass.
+Top remaining score after Wave 5 was `EpubViewerManager.kt` (2 191 LOC, score 6 573). Inspection showed the rendering, gesture, translation, and search systems are deeply intertwined — splitting it requires a careful multi-step plan (`EpubChapterRenderer`, `EpubTranslationOverlayHelper`, `EpubSearchAndTocPresenter`, `EpubGestureRouter`, `EpubReaderSettingsHelper`) and extensive E2E verification. Same applies to `TextViewerManager.kt` (1 823) and `PdfViewerManager.kt` (1 640).
+
+To keep the loop productive, the dynamic loop now picks the next file by **(LOC − 700) × weight, smallest delta first**, attacking the easier wins under 1500 LOC before circling back to the giant document viewers in dedicated future waves.
+
+## Loop status
+
+Already brought under the 1000 LOC hard cap (waves 4, 5, 7):
+
+- `ui/player/PlayerViewModel.kt` (688)
+- `ui/main/MainActivity.kt` (887)
+- `ui/resourceeditor/ResourceEditorFragment.kt` (978)
+
+Next dynamic-loop candidates (sub-1500 LOC, easy quick wins toward the 1000 cap):
+
+| File | LOC | Margin |
+| --- | ---: | ---: |
+| `ui/player/StandalonePlayerActivity.kt` | 1 129 | 130 |
+| `ui/player/ImageLoadingManager.kt` | 1 304 | 305 |
+| `ui/main/MediaFileAdapter.kt` | 1 095 | 96 |
+| `data/network/SmbConnectionManager.kt` | 1 079 | 80 |
+| `data/cloud/CloudFileOperationHandler.kt` | 1 222 | 223 |
+| `data/cloud/DropboxClient.kt` | 1 181 | 182 |
+| `ui/player/helpers/TranslationManager.kt` | 1 011 | 12 |
+| `ui/player/helpers/PlayerMediaLoaderManager.kt` | 1 002 | 3 |
+| `ui/player/CommandPanelController.kt` | 986 | within cap |
+
+The loop continues from the smallest-margin file each iteration.
