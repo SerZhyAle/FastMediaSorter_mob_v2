@@ -58,6 +58,14 @@
 
 `TranslationManager.kt` is now under the 1000-line hard cap.
 
+**Wave 10 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/network/SmbConnectionManager.kt` | 1 099 | 1 000 | −99 | `SmbErrorClassifier` (retriable/non-retriable bucketing, transport/broken-pipe detection, user-facing message mapping, fast TCP pre-check) |
+
+`SmbConnectionManager.kt` is now exactly at the 1000-line hard cap. Pool/lifecycle/health logic stays in the manager.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
