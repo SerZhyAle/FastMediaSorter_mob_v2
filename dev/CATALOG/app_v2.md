@@ -1,6 +1,6 @@
 # Catalogue: app_v2
 
-_Generated: 2026-04-23 22:03 · 759 classes_
+_Generated: 2026-04-23 22:07 · 759 classes_
 
 Source of truth: [app_v2.jsonl](app_v2.jsonl). This file is auto-generated — edit JSONL, then re-render.
 

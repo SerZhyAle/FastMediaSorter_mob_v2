@@ -122,6 +122,14 @@
 
 **Still over the 1000 cap (1 349 LOC).** Major remaining surface: MSAL auth flow (`signInInternal`, `acquireTokenSilently`, `handleAuthenticationResult`) and `makeAuthenticatedRequest` with 401 silent-refresh recursion — all share deep state (msalApp, accessToken, tokenTimestamp). Needs a dedicated `OneDriveAuthCoordinator` + `OneDriveHttpClient` extraction in a follow-up wave.
 
+**Wave 16 follow-up (full, after partial 16a):**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/cloud/OneDriveRestClient.kt` | 1 349 | 896 | −453 | `OneDriveAuthCoordinator` (owns msalApp + accessToken + accountEmail + tokenTimestamp; initializeMsal / authenticate / signIn / signInInternal / acquireTokenSilently with MsalDeclinedScopeException recovery / handleAuthenticationResult / ensureTokenFresh / makeAuthenticatedRequest with 401 silent-refresh recursion / signOutLocal / initializeFromStored) |
+
+`OneDriveRestClient.kt` is now under the 1000-line hard cap. Client retains every CloudStorageClient surface and Graph endpoint shaping; auth state and HTTP plumbing live in the coordinator.
+
 **Wave 17 result (partial — needs follow-up):**
 
 | File | Before | After | Δ | Helpers introduced |
