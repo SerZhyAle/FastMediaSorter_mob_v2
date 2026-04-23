@@ -685,28 +685,7 @@ class TranslationManager(
      * @param text Raw OCR text
      * @return Cleaned text with only meaningful content
      */
-    private fun cleanOcrText(text: String): String {
-        return text
-            // Remove box-drawing characters (U+2500-U+257F)
-            .replace(Regex("[\u2500-\u257F]"), "")
-            // Remove block elements (U+2580-U+259F)
-            .replace(Regex("[\u2580-\u259F]"), "")
-            // Remove geometric shapes (U+25A0-U+25FF)
-            .replace(Regex("[\u25A0-\u25FF]"), "")
-            // Remove miscellaneous symbols (arrows, etc.) (U+2190-U+21FF)
-            .replace(Regex("[\u2190-\u21FF]"), "")
-            // Remove mathematical operators (U+2200-U+22FF)
-            .replace(Regex("[\u2200-\u22FF]"), "")
-            // Remove miscellaneous technical symbols (U+2300-U+23FF)
-            .replace(Regex("[\u2300-\u23FF]"), "")
-            // Remove control characters except newlines and tabs
-            .replace(Regex("[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]"), "")
-            // Remove excessive whitespace (multiple spaces → single space)
-            .replace(Regex(" {2,}"), " ")
-            // Remove empty lines (multiple newlines → max 2)
-            .replace(Regex("\n{3,}"), "\n\n")
-            .trim()
-    }
+    private fun cleanOcrText(text: String): String = TranslationTextUtils.cleanOcrText(text)
     
     /**
      * Recognize text from Bitmap using OCR.
@@ -964,37 +943,8 @@ class TranslationManager(
         }
     }
     
-    /**
-     * Get human-readable language name from ML Kit language code
-     */
-    private fun getLanguageName(langCode: String): String {
-        return when (langCode) {
-            TranslateLanguage.ENGLISH -> "English"
-            TranslateLanguage.CHINESE -> "Chinese"
-            TranslateLanguage.SPANISH -> "Spanish"
-            TranslateLanguage.HINDI -> "Hindi"
-            TranslateLanguage.ARABIC -> "Arabic"
-            TranslateLanguage.BENGALI -> "Bengali"
-            TranslateLanguage.PORTUGUESE -> "Portuguese"
-            TranslateLanguage.RUSSIAN -> "Russian"
-            TranslateLanguage.JAPANESE -> "Japanese"
-            TranslateLanguage.TURKISH -> "Turkish"
-            TranslateLanguage.KOREAN -> "Korean"
-            TranslateLanguage.FRENCH -> "French"
-            TranslateLanguage.GERMAN -> "German"
-            TranslateLanguage.VIETNAMESE -> "Vietnamese"
-            TranslateLanguage.ITALIAN -> "Italian"
-            TranslateLanguage.POLISH -> "Polish"
-            TranslateLanguage.UKRAINIAN -> "Ukrainian"
-            TranslateLanguage.THAI -> "Thai"
-            TranslateLanguage.PERSIAN -> "Persian"
-            TranslateLanguage.DUTCH -> "Dutch"
-            TranslateLanguage.GREEK -> "Greek"
-            TranslateLanguage.INDONESIAN -> "Indonesian"
-            TranslateLanguage.MALTESE -> "Maltese"
-            else -> "target language"
-        }
-    }
+    private fun getLanguageName(langCode: String): String =
+        TranslationTextUtils.getLanguageName(langCode)
     
     /**
      * Release resources

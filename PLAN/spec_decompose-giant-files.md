@@ -50,6 +50,14 @@
 
 `PlayerMediaLoaderManager.kt` is now under the 1000-line hard cap.
 
+**Wave 9 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/helpers/TranslationManager.kt` | 1 011 | 961 | −50 | `TranslationTextUtils` (OCR text cleanup + ML Kit language-code labelling) |
+
+`TranslationManager.kt` is now under the 1000-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
