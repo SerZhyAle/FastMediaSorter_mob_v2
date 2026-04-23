@@ -3434,3 +3434,5 @@ Format: | datetime | file | target | description |
 | 2026-04-23 02:47:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | Wave 10: extracted SmbErrorClassifier (1099 -> 1000 LOC, at cap) |
 | 2026-04-23 02:53:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/DropboxClient.kt` | `DropboxClient` | Wave 11: extracted DropboxClientUtils (1181 -> 981 LOC) |
 | 2026-04-23 17:36:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wave 12: extracted StandaloneFileOperationsHandler (1129 -> 845 LOC) |
+| 2026-04-23 17:39:48 | `PLAN/spec_standalone-vs-inapp-player-parity.md` | `spec` | Add parity spec III.15 comparing standalone vs in-app player; documents every code-level divergence and unification path via PlayerHostCapabilities + SharedDeleteUndoCoordinator |
+| 2026-04-23 17:42:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt` | `CloudFileOperationHandler` | Wave 13: extracted CloudFileOperationPathUtils + CloudToCloudTransferHelper (1222 -> 997 LOC) |

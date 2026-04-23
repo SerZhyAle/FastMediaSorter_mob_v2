@@ -60,6 +60,9 @@ class CloudFileOperationHandler @Inject constructor(
     private val cloudAuthHelper: CloudAuthenticationHelper
 ) : BaseFileOperationHandler(context) {
 
+    private val pathUtils = CloudFileOperationPathUtils(cloudPathParser)
+    private val cloudToCloud = CloudToCloudTransferHelper(context, cloudPathParser, cloudAuthHelper)
+
     private val cloudStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
         CloudOperationStrategy(context, googleDriveClient, dropboxClient, oneDriveClient),
         enableAtomic = true
@@ -89,67 +92,15 @@ class CloudFileOperationHandler @Inject constructor(
         return listOf(cloudStrategy, smbStrategy, sftpStrategy, ftpStrategy, localStrategy)
     }
 
-    // ========== Helper Methods ==========
+    // Helper methods delegated to CloudFileOperationPathUtils
+    private fun getResourceType(path: String): ResourceType = pathUtils.getResourceType(path)
+    private fun isNetworkPath(path: String): Boolean = pathUtils.isNetworkPath(path)
+    private fun normalizeNetworkPath(path: String): String = pathUtils.normalizeNetworkPath(path)
+    private fun extractSftpRemotePath(path: String, credentials: NetworkCredentialsResolver.NetworkCredentials): String =
+        pathUtils.extractSftpRemotePath(path, credentials)
+    private fun extractFtpRemotePath(path: String, credentials: NetworkCredentialsResolver.NetworkCredentials): String =
+        pathUtils.extractFtpRemotePath(path, credentials)
 
-    /**
-     * Determine resource type from path
-     */
-    private fun getResourceType(path: String): ResourceType {
-        val normalized = normalizeNetworkPath(path)
-        return when {
-            cloudPathParser.isCloudPath(normalized) -> ResourceType.CLOUD
-            normalized.startsWith("smb://") -> ResourceType.SMB
-            normalized.startsWith("sftp://") -> ResourceType.SFTP
-            normalized.startsWith("ftp://") -> ResourceType.FTP
-            else -> ResourceType.LOCAL
-        }
-    }
-
-    /**
-     * Check if path is network resource (SMB/SFTP/FTP)
-     */
-    private fun isNetworkPath(path: String): Boolean {
-        val normalized = normalizeNetworkPath(path)
-        return normalized.startsWith("smb://") || normalized.startsWith("sftp://") || normalized.startsWith("ftp://")
-    }
-
-    private fun normalizeNetworkPath(path: String): String {
-        var normalized = if (path.startsWith("/")) path.substring(1) else path
-        
-        return when {
-            normalized.startsWith("cloud:/") && !normalized.startsWith("cloud://") -> normalized.replaceFirst("cloud:/", "cloud://")
-            normalized.startsWith("smb:/") && !normalized.startsWith("smb://") -> normalized.replaceFirst("smb:/", "smb://")
-            normalized.startsWith("sftp:/") && !normalized.startsWith("sftp://") -> normalized.replaceFirst("sftp:/", "sftp://")
-            normalized.startsWith("ftp:/") && !normalized.startsWith("ftp://") -> normalized.replaceFirst("ftp:/", "ftp://")
-            else -> normalized
-        }
-    }
-
-    private fun extractSftpRemotePath(path: String, credentials: NetworkCredentialsResolver.NetworkCredentials): String {
-        val normalized = normalizeNetworkPath(path)
-        val withPortPrefix = "sftp://${credentials.server}:${credentials.port}"
-        val withoutPortPrefix = "sftp://${credentials.server}"
-
-        return when {
-            normalized.startsWith(withPortPrefix) -> normalized.removePrefix(withPortPrefix)
-            normalized.startsWith(withoutPortPrefix) -> normalized.removePrefix(withoutPortPrefix)
-            else -> normalized.substringAfter("sftp://")
-        }
-    }
-
-    private fun extractFtpRemotePath(path: String, credentials: NetworkCredentialsResolver.NetworkCredentials): String {
-        val normalized = normalizeNetworkPath(path)
-        val withPortPrefix = "ftp://${credentials.server}:${credentials.port}"
-        val withoutPortPrefix = "ftp://${credentials.server}"
-
-        return when {
-            normalized.startsWith(withPortPrefix) -> normalized.removePrefix(withPortPrefix)
-            normalized.startsWith(withoutPortPrefix) -> normalized.removePrefix(withoutPortPrefix)
-            else -> normalized.substringAfter("ftp://")
-        }
-    }
-
-    // ========== Core Operations ==========
 
     override suspend fun executeCopy(
         operation: FileOperation.Copy,
@@ -1021,178 +972,17 @@ class CloudFileOperationHandler @Inject constructor(
         }
     }
 
-    /**
-     * Delete file from cloud storage
-     */
-    private suspend fun deleteFromCloud(cloudPath: String): Boolean {
-        Timber.d("deleteFromCloud: $cloudPath")
-        
-        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
-        if (pathInfo == null) {
-            Timber.e("deleteFromCloud: Failed to parse cloud path: $cloudPath")
-            return false
-        }
+    private suspend fun deleteFromCloud(cloudPath: String): Boolean =
+        cloudToCloud.deleteFromCloud(cloudPath)
 
-        val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-            client.deleteFile(pathInfo.fileId)
-        }
+    private suspend fun copyCloudToCloud(sourcePath: String, destPath: String): String? =
+        cloudToCloud.copyCloudToCloud(sourcePath, destPath)
 
-        return when (result) {
-            is CloudResult.Success -> {
-                Timber.i("deleteFromCloud: SUCCESS")
-                true
-            }
-            is CloudResult.Error -> {
-                Timber.e("deleteFromCloud: FAILED - ${result.message}")
-                false
-            }
-            null -> {
-                Timber.e("deleteFromCloud: Re-authentication failed or cancelled")
-                false
-            }
-        }
-    }
-
-    /**
-     * Copy file between cloud folders (same or different providers)
-     */
-    private suspend fun copyCloudToCloud(sourcePath: String, destPath: String): String? {
-        Timber.d("copyCloudToCloud: $sourcePath → $destPath")
-        
-        val sourceInfo = cloudPathParser.parseCloudPath(sourcePath)
-        val destInfo = cloudPathParser.parseCloudPath(destPath)
-        
-        if (sourceInfo == null || destInfo == null) {
-            Timber.e("copyCloudToCloud: Failed to parse paths")
-            return null
-        }
-        
-        // If same provider, use native copy
-        if (sourceInfo.provider == destInfo.provider) {
-            val fileName = sourcePath.substringAfterLast('/')
-            val result = cloudAuthHelper.executeWithAutoReauth(sourceInfo.provider) { client ->
-                client.copyFile(sourceInfo.fileId, destInfo.folderId ?: "root", fileName)
-            }
-            
-            return when (result) {
-                is CloudResult.Success -> {
-                    Timber.i("copyCloudToCloud: SUCCESS - native copy")
-                    "cloud://${destInfo.provider}/${result.data.path}"
-                }
-                is CloudResult.Error -> {
-                    Timber.e("copyCloudToCloud: Native copy FAILED - ${result.message}")
-                    null
-                }
-                null -> {
-                    Timber.e("copyCloudToCloud: Re-authentication failed or cancelled")
-                    null
-                }
-            }
-        }
-        
-        // Cross-provider: download to temp file, then upload
-        Timber.d("copyCloudToCloud: Cross-provider copy via temp file")
-        val sourceClient = cloudAuthHelper.getCloudClient(sourceInfo.provider) ?: return null
-        val destClient = cloudAuthHelper.getCloudClient(destInfo.provider) ?: return null
-        
-        val tempFile = File.createTempFile("cloud_copy_", ".tmp", context.cacheDir)
-        
-        return try {
-            val outputStream = tempFile.outputStream()
-            val downloadResult = sourceClient.downloadFile(sourceInfo.fileId, outputStream, null)
-            outputStream.close()
-            
-            when (downloadResult) {
-                is CloudResult.Success -> {
-                    Timber.d("copyCloudToCloud: Downloaded ${tempFile.length()} bytes from source to temp")
-                    
-                    val fileName = sourcePath.substringAfterLast('/')
-                    val mimeType = getMimeType(fileName)
-                    val inputStream = FileInputStream(tempFile)
-                    val uploadResult = destClient.uploadFile(inputStream, fileName, mimeType, destInfo.folderId, null)
-                    inputStream.close()
-
-                    when (uploadResult) {
-                        is CloudResult.Success -> {
-                            Timber.i("copyCloudToCloud: SUCCESS - ${tempFile.length()} bytes copied between providers")
-                            "cloud://${destInfo.provider}/${uploadResult.data.path}"
-                        }
-                        is CloudResult.Error -> {
-                            Timber.e("copyCloudToCloud: Upload FAILED - ${uploadResult.message}")
-                            null
-                        }
-                    }
-                }
-                is CloudResult.Error -> {
-                    Timber.e("copyCloudToCloud: Download FAILED - ${downloadResult.message}")
-                    null
-                }
-            }
-        } finally {
-            tempFile.delete()
-        }
-    }
-
-    /**
-     * Move file between cloud folders using native move API
-     */
-    private suspend fun moveCloudToCloud(sourcePath: String, destPath: String): String? {
-        Timber.d("moveCloudToCloud: $sourcePath → $destPath")
-        
-        val sourceInfo = cloudPathParser.parseCloudPath(sourcePath)
-        val destInfo = cloudPathParser.parseCloudPath(destPath)
-        
-        if (sourceInfo == null || destInfo == null) {
-            Timber.e("moveCloudToCloud: Failed to parse paths")
-            return null
-        }
-        
-        // Only same provider supports native move
-        if (sourceInfo.provider != destInfo.provider) {
-            Timber.w("moveCloudToCloud: Cross-provider move not supported, fallback to copy+delete")
-            val copied = copyCloudToCloud(sourcePath, destPath)
-            return if (copied != null && deleteFromCloud(sourcePath)) {
-                copied
-            } else {
-                null
-            }
-        }
-        
-        val result = cloudAuthHelper.executeWithAutoReauth(sourceInfo.provider) { client ->
-            client.moveFile(sourceInfo.fileId, destInfo.folderId ?: "root")
-        }
-
-        return when (result) {
-            is CloudResult.Success -> {
-                Timber.i("moveCloudToCloud: SUCCESS - native move")
-                "cloud://${destInfo.provider}/${result.data.path}"
-            }
-            is CloudResult.Error -> {
-                Timber.w("moveCloudToCloud: Native move failed (${result.message}), fallback to copy+delete")
-                val copied = copyCloudToCloud(sourcePath, destPath)
-                if (copied != null && deleteFromCloud(sourcePath)) {
-                    Timber.i("moveCloudToCloud: SUCCESS - fallback copy+delete")
-                    copied
-                } else {
-                    Timber.e("moveCloudToCloud: FAILED - fallback copy+delete unsuccessful")
-                    null
-                }
-            }
-            null -> {
-                Timber.e("moveCloudToCloud: Re-authentication failed or cancelled")
-                null
-            }
-        }
-    }
-
-
-
-    /**
-     * Check if operation failed due to authentication and return appropriate result
-     * This helps UI to prompt re-authentication
-     */
-    internal suspend fun checkAuthenticationRequired(provider: CloudProvider): FileOperationResult? {
-        return when (cloudAuthHelper.getCloudClientResult(provider)) {
+    private suspend fun moveCloudToCloud(sourcePath: String, destPath: String): String? =
+        cloudToCloud.moveCloudToCloud(sourcePath, destPath)
+    /** Returns AuthenticationRequired result when [provider] needs re-auth; null otherwise. */
+    internal suspend fun checkAuthenticationRequired(provider: CloudProvider): FileOperationResult? =
+        when (cloudAuthHelper.getCloudClientResult(provider)) {
             is CloudAuthenticationHelper.CloudClientResult.AuthRequired -> {
                 val providerName = provider.name.lowercase().replaceFirstChar { it.uppercase() }
                 FileOperationResult.AuthenticationRequired(
@@ -1202,21 +992,6 @@ class CloudFileOperationHandler @Inject constructor(
             }
             else -> null
         }
-    }
 
-    private fun getMimeType(fileName: String): String {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        return when (extension) {
-            "jpg", "jpeg" -> "image/jpeg"
-            "png" -> "image/png"
-            "gif" -> "image/gif"
-            "webp" -> "image/webp"
-            "mp4" -> "video/mp4"
-            "webm" -> "video/webm"
-            "mkv" -> "video/x-matroska"
-            "mp3" -> "audio/mpeg"
-            "wav" -> "audio/wav"
-            else -> "application/octet-stream"
-        }
-    }
+    private fun getMimeType(fileName: String): String = CloudFileOperationPathUtils.getMimeType(fileName)
 }

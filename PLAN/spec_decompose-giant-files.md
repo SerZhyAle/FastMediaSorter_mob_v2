@@ -82,6 +82,14 @@
 
 `StandalonePlayerActivity.kt` is now under the 1000-line hard cap.
 
+**Wave 13 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/cloud/CloudFileOperationHandler.kt` | 1 222 | 997 | −225 | `CloudFileOperationPathUtils` (path normalization, scheme→ResourceType, SFTP/FTP remote-path stripping, MIME guessing) + `CloudToCloudTransferHelper` (delete, native + cross-provider copy via temp file, native move with copy+delete fallback) |
+
+`CloudFileOperationHandler.kt` is now under the 1000-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
