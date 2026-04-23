@@ -8,6 +8,7 @@ Essential reading for end-users to install, configure, and use the application.
 
 | Document | Description | Last Updated |
 |---|---|---|
+| [What's New](WHATS_NEW.md) | Release notes for v2.60.422.246 — new features and fixes since 2.60.4150.019. | 2026-04-23 |
 | [User Guide / README](README.md) | Main entry point, project overview, and feature summary. | 2026-03-09 |
 | [Quick Start Guide](QUICK_START.md) | Get up and running in minutes. | 2026-02-02 |
 | [How-To Guides](HOW_TO.md) | Detailed step-by-step instructions for specific tasks. | 2026-02-03 |
@@ -20,8 +21,8 @@ Essential reading for end-users to install, configure, and use the application.
 
 ### 🌍 Multi-language Support
 Most guides are available in Russian and Ukrainian:
-- **Russian**: [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md), [Limitations](LIMITATIONS_RU.md), [Features](FEATURES_RU.md)
-- **Ukrainian**: [README](README_UK.md), [Quick Start](QUICK_START_UK.md), [How-To](HOW_TO_UK.md), [FAQ](FAQ_UK.md), [Troubleshooting](TROUBLESHOOTING_UK.md), [Limitations](LIMITATIONS_UK.md), [Features](FEATURES_UK.md)
+- **Russian**: [What's New](WHATS_NEW_RU.md), [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md), [Limitations](LIMITATIONS_RU.md), [Features](FEATURES_RU.md)
+- **Ukrainian**: [What's New](WHATS_NEW_UK.md), [README](README_UK.md), [Quick Start](QUICK_START_UK.md), [How-To](HOW_TO_UK.md), [FAQ](FAQ_UK.md), [Troubleshooting](TROUBLESHOOTING_UK.md), [Limitations](LIMITATIONS_UK.md), [Features](FEATURES_UK.md)
 
 ---
 
