@@ -386,31 +386,11 @@ class OneDriveRestClient @Inject constructor(
     /**
      * Serialize account info for storage
      */
-    private fun serializeAccount(account: IAccount): String {
-        return JSONObject().apply {
-            put("username", account.username)
-            put("id", account.id)
-            put("authority", account.authority)
-        }.toString()
-    }
-    
-    /**
-     * Deserialize account info
-     */
-    private fun deserializeAccount(json: String): String {
-        return try {
-            val obj = JSONObject(json)
-            if (obj.has("username")) {
-                obj.getString("username")
-            } else {
-                // Fallback for legacy or malformed JSON
-                ""
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to deserialize account")
-            ""
-        }
-    }
+    private fun serializeAccount(account: IAccount): String =
+        OneDriveRestClientUtils.serializeAccount(account)
+
+    private fun deserializeAccount(json: String): String =
+        OneDriveRestClientUtils.deserializeAccount(json)
     
     /**
      * Check if current token should be refreshed based on age
@@ -552,13 +532,8 @@ class OneDriveRestClient @Inject constructor(
         return idOrName
     }
 
-    private fun normalizeCloudItemReference(fileId: String): String {
-        return if (fileId.startsWith("cloud://onedrive/")) {
-            fileId.substringAfter("cloud://onedrive/")
-        } else {
-            fileId
-        }
-    }
+    private fun normalizeCloudItemReference(fileId: String): String =
+        OneDriveRestClientUtils.normalizeCloudItemReference(fileId)
 
     private suspend fun buildItemUrlFromReference(fileRef: String): URL {
         val actualRef = normalizeCloudItemReference(fileRef)
@@ -1362,72 +1337,13 @@ class OneDriveRestClient @Inject constructor(
         }
     }
     
-    /**
-     * Parse JSON array of DriveItem objects
-     */
-    private fun parseItems(items: JSONArray, parentPath: String): List<CloudFile> {
-        val cloudFiles = mutableListOf<CloudFile>()
-        for (i in 0 until items.length()) {
-            val item = items.getJSONObject(i)
-            cloudFiles.add(parseItem(item, parentPath))
-        }
-        return cloudFiles
-    }
-    
-    /**
-     * Parse single DriveItem JSON to CloudFile
-     */
-    private fun parseItem(item: JSONObject, parentPath: String): CloudFile {
-        val id = item.getString("id")
-        val name = item.getString("name")
-        val isFolder = item.has("folder")
-        val size = item.optLong("size", 0L)
-        val modifiedTime = item.optString("lastModifiedDateTime", "")
-        val mimeType: String? = item.optString("mimeType").takeIf { it.isNotEmpty() }
-        
-        // Parse ISO 8601 date to timestamp
-        val modifiedDate = try {
-            if (modifiedTime.isNotEmpty()) {
-                // Simple ISO 8601 parsing (assumes format: 2024-11-17T12:00:00Z)
-                val instant = java.time.Instant.parse(modifiedTime)
-                instant.toEpochMilli()
-            } else {
-                0L
-            }
-        } catch (e: Exception) {
-            0L
-        }
-        
-        // When using $expand=thumbnails, OneDrive returns 'thumbnails' as an array directly
-        // Structure: item.thumbnails[0].large.url
-        val thumbnailUrl = item.optJSONArray("thumbnails")
-            ?.optJSONObject(0)
-            ?.optJSONObject("large")
-            ?.optString("url")
-            ?.takeIf { it.isNotEmpty() }
-        
-        val webViewUrl: String? = item.optString("webUrl").takeIf { it.isNotEmpty() }
-        
-        return CloudFile(
-            id = id,
-            name = name,
-            path = parentPath,
-            isFolder = isFolder,
-            size = size,
-            modifiedDate = modifiedDate,
-            mimeType = mimeType,
-            thumbnailUrl = thumbnailUrl,
-            webViewUrl = webViewUrl
-        )
-    }
-    
-    /**
-     * API response wrapper
-     */
-    @Keep
-    private data class ApiResponse(
-        val isSuccess: Boolean,
-        val data: String?,
-        val errorMessage: String?
-    )
+    private fun parseItems(items: JSONArray, parentPath: String): List<CloudFile> =
+        OneDriveRestClientUtils.parseItems(items, parentPath)
+
+    private fun parseItem(item: JSONObject, parentPath: String): CloudFile =
+        OneDriveRestClientUtils.parseItem(item, parentPath)
 }
+
+// ApiResponse moved to OneDriveRestClientUtils.ApiResponse — top-level alias so the rest of
+// OneDriveRestClient keeps using the unqualified name without churn.
+private typealias ApiResponse = OneDriveRestClientUtils.ApiResponse

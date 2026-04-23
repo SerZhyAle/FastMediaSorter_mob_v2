@@ -106,6 +106,14 @@
 
 **Still over the 1000 cap (1 155 LOC).** Channel-pool methods (`getOrCreateConnection`, `getOrCreateChannel`, `removeChannel`, `invalidateConnection`, `cleanupIdleConnections`, `getConnectionForExoPlayer`, `releaseExoPlayerConnection`) share deep state (connectionPool, semaphore, exoPlayerPoolLock, PooledConnection, ConnectionKey) and need a dedicated `SftpConnectionPool` extraction in a follow-up wave.
 
+**Wave 16 result (partial — needs follow-up):**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/cloud/OneDriveRestClient.kt` | 1 433 | 1 349 | −84 | `OneDriveRestClientUtils` (MSAL account JSON serialize/deserialize, `cloud://onedrive/` reference normalization, Graph DriveItem JSON → CloudFile mapping, ApiResponse envelope) |
+
+**Still over the 1000 cap (1 349 LOC).** Major remaining surface: MSAL auth flow (`signInInternal`, `acquireTokenSilently`, `handleAuthenticationResult`) and `makeAuthenticatedRequest` with 401 silent-refresh recursion — all share deep state (msalApp, accessToken, tokenTimestamp). Needs a dedicated `OneDriveAuthCoordinator` + `OneDriveHttpClient` extraction in a follow-up wave.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
