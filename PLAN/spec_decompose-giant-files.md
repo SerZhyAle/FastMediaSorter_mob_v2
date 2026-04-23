@@ -1,8 +1,10 @@
 # IV.1 — Decompose Giant Files
 
-**Target:** every `.kt` file ≤ 700 LOC. **Importance weights:** Activity/Fragment = 5, ViewModel = 4, Manager/Helper/Handler/Adapter = 3, Data Client/Repository/UseCase/Strategy = 2. **Score** = LOC × weight.
+**Target:** every `.kt` file ≤ 700 LOC (hard cap: ≤ 1000 per CLAUDE.md). **Importance weights:** Activity/Fragment = 5, ViewModel = 4, Manager/Helper/Handler/Adapter = 3, Data Client/Repository/UseCase/Strategy = 2. **Score** = LOC × weight.
 
-**Last measured:** 2026-04-22
+**Last measured:** 2026-04-23
+
+**Loop status:** running automated decomposition loop — pick the largest file by score, extract helpers until it is ≤ 1000 LOC, build standard debug, fix compile errors, commit, then advance to the next file.
 
 ---
 
@@ -23,6 +25,14 @@
 | File | Before | After | Δ | Helpers introduced |
 | ---- | ---: | ---: | ---: | --- |
 | `ui/player/PlayerViewModel.kt` | 1 321 | 688 | −633 | `PlayerMediaFilesLoader` (4.1), `PlayerNavigationCoordinator` (4.2) |
+
+**Wave 5 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/main/MainActivity.kt` | 1 330 | 887 | −443 | `MainResumePlaybackHelper`, `MainResourceTabsManager`, `MainStoragePermissionsHelper`, `MainLayoutChromeManager` |
+
+`MainActivity.kt` is now under the 1000-line hard cap. The 700-line stretch target is not yet hit; remaining content is the still-cohesive setupViews/observeData wiring plus error/info dialogs and intent action dispatch. Further reduction (e.g., extracting an `onCreate` intent-action router) is optional polish.
 
 ---
 
@@ -150,6 +160,6 @@ Remaining extractions (in planned order, biggest chunks first):
 
 ---
 
-## Wave 5 — next candidate
+## Wave 6 — next candidate
 
-Top remaining score after Wave 4: `MainActivity.kt` (1 330 LOC, score 6 650).
+Top remaining score after Wave 5: `EpubViewerManager.kt` (2 191 LOC, score 6 573). Plan: split into `EpubChapterRenderer`, `EpubFontStyleHelper`, `EpubBookmarkHelper`, etc., aiming for ≤ 1000 LOC first pass.

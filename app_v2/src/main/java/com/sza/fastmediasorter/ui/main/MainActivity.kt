@@ -3,10 +3,8 @@ package com.sza.fastmediasorter.ui.main
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -22,10 +20,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -41,18 +35,17 @@ import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
-import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
+import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
+import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
+import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
+import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
-import com.sza.fastmediasorter.core.util.PermissionHelper
-import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -69,10 +62,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var resourceAdapter: ResourceAdapter
     private lateinit var keyboardNavigationHandler: KeyboardNavigationHandler
     private lateinit var passwordManager: ResourcePasswordManager
-
-    private var permissionCheckDoneThisSession = false
-    private var gridSpacingDecoration: RecyclerView.ItemDecoration? = null
-    private var compactElementsEnabled = false
+    private lateinit var resumeHelper: MainResumePlaybackHelper
+    private lateinit var permissionsHelper: MainStoragePermissionsHelper
+    private lateinit var tabsManager: MainResourceTabsManager
+    private lateinit var layoutChrome: MainLayoutChromeManager
 
     private val storagePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -159,9 +152,29 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // MainActivity continues loading as the back-stack root; do NOT finish().
         }
 
+        // Initialize helpers (binding is already available — set by BaseActivity.onCreate)
+        resumeHelper = MainResumePlaybackHelper(
+            activity = this,
+            binding = binding,
+            settingsRepository = settingsRepository,
+            resourceRepository = resourceRepository,
+            getResumeStateUseCase = getResumeStateUseCase,
+            clearResumeStateUseCase = clearResumeStateUseCase
+        )
+        permissionsHelper = MainStoragePermissionsHelper(
+            activity = this,
+            storagePermissionLauncher = storagePermissionLauncher,
+            settingsPermissionLauncher = settingsPermissionLauncher
+        )
+        layoutChrome = MainLayoutChromeManager(
+            activity = this,
+            binding = binding,
+            isResourceGridMode = { viewModel.state.value.isResourceGridMode }
+        )
+
         // Resume playback logic — only for standard launcher start with killed process
-        if (shouldAttemptResume()) {
-            attemptResumePlayback()
+        if (resumeHelper.shouldAttemptResume(intent)) {
+            resumeHelper.attemptResumePlayback()
         }
 
         // Check for widget actions
@@ -271,7 +284,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.refreshResources()
         }
 
-        checkLocalPermissionsOnStartup()
+        // permissionsHelper may not yet be initialized if onResume fires before super.onCreate completes
+        if (::permissionsHelper.isInitialized) {
+            permissionsHelper.checkLocalPermissionsOnStartup()
+        }
     }
 
     override fun onPause() {
@@ -441,7 +457,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupResourceTypeTabs()
         
         // Set initial button labels based on current orientation
-        updateToolbarButtonLabels(resources.configuration)
+        layoutChrome.updateToolbarButtonLabels(resources.configuration)
         
         // Load resources after UI is ready (deferred from onCreate via BaseActivity)
         viewModel.refreshResources()
@@ -492,7 +508,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             resourceAdapter.setViewMode(state.isResourceGridMode)
 
             // Update layout manager based on mode and screen size
-            updateLayoutManagerForScreenSize()
+            layoutChrome.updateLayoutManagerForScreenSize()
 
             // Update toggle button icon
             if (state.isResourceGridMode) {
@@ -698,9 +714,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 View.GONE
             }
             resourceAdapter.setUseCompactElements(settings.useCompactElements)
-            compactElementsEnabled = settings.useCompactElements
-            applyCompactToolbar(settings.useCompactElements)
-            refreshGridSpacing()
+            layoutChrome.applyCompactToolbar(settings.useCompactElements)
+            layoutChrome.refreshGridSpacing()
         }
     }
     
@@ -731,134 +746,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
     
-    /**
-     * Handle configuration changes (screen rotation).
-     * Recalculates grid layout based on new screen dimensions.
-     */
+    /** Recalculates grid layout, toolbar labels and tabs after screen rotation. */
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
-        updateToolbarButtonLabels(newConfig)
-        updateLayoutManagerForScreenSize()
-        
+        layoutChrome.updateToolbarButtonLabels(newConfig)
+        layoutChrome.updateLayoutManagerForScreenSize()
+
         // Recreate tabs to apply new inline/stacked label configuration
         binding.tabResourceTypes.removeAllTabs()
-        createTabs()
-    }
-    
-    /**
-     * Show or hide text labels on toolbar buttons depending on orientation.
-     * In landscape: show icon + text. In portrait: show icon only.
-     */
-    private fun updateToolbarButtonLabels(config: Configuration) {
-        val isLandscape = config.orientation == Configuration.ORIENTATION_LANDSCAPE
-        Timber.d("updateToolbarButtonLabels: isLandscape=$isLandscape")
-        
-        if (isLandscape) {
-            binding.btnExit.text = getString(R.string.exit)
-            binding.btnAddResource.text = getString(R.string.add)
-            binding.btnFilter.text = getString(R.string.search)
-            binding.btnRefresh.text = getString(R.string.refresh)
-            binding.btnSettings.text = getString(R.string.settings)
-            binding.btnToggleView.text = getString(R.string.toggle_view)
-            binding.btnFavorites.text = getString(R.string.favorites)
-            binding.btnStartPlayer.text = getString(R.string.slideshow)
-        } else {
-            binding.btnExit.text = null
-            binding.btnAddResource.text = null
-            binding.btnFilter.text = null
-            binding.btnRefresh.text = null
-            binding.btnSettings.text = null
-            binding.btnToggleView.text = null
-            binding.btnFavorites.text = null
-            binding.btnStartPlayer.text = null
-        }
-    }
-    
-    /**
-     * Updates RecyclerView layout manager based on current screen width.
-     * Called on initial setup and after screen rotation.
-     */
-    private fun updateLayoutManagerForScreenSize() {
-        val state = viewModel.state.value
-        val screenWidthDp = resources.configuration.screenWidthDp
-        val isWideScreen = screenWidthDp >= 600
-        
-        Timber.d("updateLayoutManagerForScreenSize: screenWidthDp=$screenWidthDp, isWideScreen=$isWideScreen, isGridMode=${state.isResourceGridMode}")
-        
-        if (state.isResourceGridMode) {
-            // Compact Grid Mode - use resource-based column counts
-            val spanCount = if (isWideScreen) {
-                resources.getInteger(R.integer.grid_column_count_landscape)
-            } else {
-                resources.getInteger(R.integer.grid_column_count)
-            }
-            val currentLayoutManager = binding.rvResources.layoutManager
-            if (currentLayoutManager !is GridLayoutManager || currentLayoutManager.spanCount != spanCount) {
-                binding.rvResources.layoutManager = GridLayoutManager(this, spanCount)
-            }
-        } else {
-            // Detailed List/Grid Mode
-            if (isWideScreen) {
-                // Wide screen (tablet or rotated phone): columns from resource
-                val columnCount = resources.getInteger(R.integer.resource_grid_column_count)
-                val currentLayoutManager = binding.rvResources.layoutManager
-                if (currentLayoutManager !is GridLayoutManager || currentLayoutManager.spanCount != columnCount) {
-                    binding.rvResources.layoutManager = GridLayoutManager(this, columnCount)
-                }
-            } else {
-                // Phone portrait: List
-                if (binding.rvResources.layoutManager !is LinearLayoutManager ||
-                    binding.rvResources.layoutManager is GridLayoutManager) {
-                    binding.rvResources.layoutManager = LinearLayoutManager(this)
-                }
-            }
-        }
-        refreshGridSpacing()
-    }
-
-    /**
-     * Resize the control buttons bar to match compact mode.
-     * In compact mode: zero vertical padding + reduced button height.
-     * In normal mode: restore dimen-based values.
-     */
-    private fun applyCompactToolbar(compact: Boolean) {
-        val barPad = if (compact) 0 else resources.getDimensionPixelSize(R.dimen.control_bar_padding)
-        val btnH = resources.getDimensionPixelSize(
-            if (compact) R.dimen.control_button_size_compact else R.dimen.control_button_size
-        )
-        binding.layoutControlButtons.setPadding(0, barPad, 0, barPad)
-        for (i in 0 until binding.layoutControlButtons.childCount) {
-            val child = binding.layoutControlButtons.getChildAt(i)
-            val lp = child.layoutParams
-            if (lp.height > 0) {
-                lp.height = btnH
-                child.layoutParams = lp
-            }
-        }
-        binding.layoutControlButtons.requestLayout()
-    }
-
-    /**
-     * Apply or remove inter-item spacing decoration for the resource grid.
-     * Normal: 4dp per side; compact: 2dp per side. No decoration in list mode.
-     */
-    private fun refreshGridSpacing() {
-        gridSpacingDecoration?.let { binding.rvResources.removeItemDecoration(it) }
-        gridSpacingDecoration = null
-        if (binding.rvResources.layoutManager is GridLayoutManager) {
-            val spacingPx = ((if (compactElementsEnabled) 2 else 4) * resources.displayMetrics.density).toInt()
-            val dec = object : RecyclerView.ItemDecoration() {
-                override fun getItemOffsets(
-                    outRect: android.graphics.Rect,
-                    view: android.view.View,
-                    parent: RecyclerView,
-                    state: RecyclerView.State
-                ) {
-                    outRect.set(spacingPx, spacingPx, spacingPx, spacingPx)
-                }
-            }
-            gridSpacingDecoration = dec
-            binding.rvResources.addItemDecoration(dec)
-        }
+        tabsManager.createTabs()
     }
 
     /**
@@ -930,134 +825,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
     
-    /**
-     * Creates and adds tabs to the TabLayout.
-     * This method is called during initial setup and after configuration changes (rotation).
-     */
-    private fun createTabs() {
-        // Create and add base tabs (ALL, Local, SMB, S/FTP, Cloud)
-        // Cloud tab is hidden in lite flavor (SUPPORT_CLOUD = false)
-        val allTab = binding.tabResourceTypes.newTab().apply {
-            setText(R.string.tab_all_resources)
-            setIcon(R.drawable.ic_view_list)
-        }
-        binding.tabResourceTypes.addTab(allTab)
-        
-        val localTab = binding.tabResourceTypes.newTab().apply {
-            setText(R.string.tab_local_resources)
-            setIcon(R.drawable.ic_resource_local)
-        }
-        binding.tabResourceTypes.addTab(localTab)
-        
-        val smbTab = binding.tabResourceTypes.newTab().apply {
-            setText(R.string.tab_smb_resources)
-            setIcon(R.drawable.ic_resource_smb)
-        }
-        binding.tabResourceTypes.addTab(smbTab)
-        
-        val ftpTab = binding.tabResourceTypes.newTab().apply {
-            setText(R.string.tab_ftp_sftp_resources)
-            setIcon(R.drawable.ic_resource_ftp)
-        }
-        binding.tabResourceTypes.addTab(ftpTab)
-        
-        // Only add Cloud tab if SUPPORT_CLOUD is true (standard, photos, legacy flavors)
-        if (com.sza.fastmediasorter.BuildConfig.SUPPORT_CLOUD) {
-            val cloudTab = binding.tabResourceTypes.newTab().apply {
-                setText(R.string.tab_cloud_resources)
-                setIcon(R.drawable.ic_resource_cloud)
-            }
-            binding.tabResourceTypes.addTab(cloudTab)
-        }
-        
-        // Set default selection based on ViewModel state
-        val currentTab = viewModel.state.value.activeResourceTab
-        val tabIndex = getTabIndexForResourceTab(currentTab)
-        binding.tabResourceTypes.getTabAt(tabIndex)?.select()
-
-        // Adjust TabLayout mode and gravity for compact screens to avoid truncated labels
-        val screenWidthDp = resources.configuration.screenWidthDp
-        if (screenWidthDp < 480) {
-            binding.tabResourceTypes.tabMode = TabLayout.MODE_SCROLLABLE
-            binding.tabResourceTypes.tabGravity = TabLayout.GRAVITY_START
-        } else {
-            binding.tabResourceTypes.tabMode = TabLayout.MODE_FIXED
-            binding.tabResourceTypes.tabGravity = TabLayout.GRAVITY_FILL
-        }
-    }
-    
     private fun setupResourceTypeTabs() {
-        // Create tabs
-        createTabs()
-        
-        // Setup tab selection listener (called once during initial setup)
-        binding.tabResourceTypes.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                val resourceTab = getResourceTabForIndex(tab?.position ?: 0)
-                viewModel.setActiveTab(resourceTab)
-            }
-            
-            override fun onTabUnselected(tab: TabLayout.Tab?) {
-                // No action needed
-            }
-            
-            override fun onTabReselected(tab: TabLayout.Tab?) {
-                // Reopen Browse when Favorites tab tapped again
-                val favoritesTabIndex = if (com.sza.fastmediasorter.BuildConfig.SUPPORT_CLOUD) 5 else 4
-                if (tab?.position == favoritesTabIndex) {
-                    viewModel.openFavorites()
-                    binding.tabResourceTypes.post {
-                        // Restore previous tab
-                        val previousTab = viewModel.state.value.previousTab ?: ResourceTab.ALL
-                        val selectedTabIndex = getTabIndexForResourceTab(previousTab)
-                        val selectedTab = binding.tabResourceTypes.getTabAt(selectedTabIndex)
-                        if (selectedTab != null && !selectedTab.isSelected) {
-                            selectedTab.select()
-                        }
-                    }
-                }
-            }
-        })
+        tabsManager = MainResourceTabsManager(
+            tabLayout = binding.tabResourceTypes,
+            configuration = resources.configuration,
+            onTabSelected = { tab -> viewModel.setActiveTab(tab) },
+            onFavoritesReselected = { viewModel.openFavorites() },
+            getActiveTab = { viewModel.state.value.activeResourceTab },
+            getPreviousTab = { viewModel.state.value.previousTab }
+        )
+        tabsManager.createTabs()
+        tabsManager.setupListener()
     }
-    
-    /**
-     * Get tab index for ResourceTab, accounting for hidden Cloud tab in lite flavor.
-     */
-    private fun getTabIndexForResourceTab(tab: ResourceTab): Int {
-        return when (tab) {
-            ResourceTab.ALL -> 0
-            ResourceTab.LOCAL -> 1
-            ResourceTab.SMB -> 2
-            ResourceTab.FTP_SFTP -> 3
-            ResourceTab.CLOUD -> if (com.sza.fastmediasorter.BuildConfig.SUPPORT_CLOUD) 4 else 3
-            ResourceTab.FAVORITES -> 0 // Should not happen, default to ALL
-        }
-    }
-    
-    /**
-     * Get ResourceTab for tab index, accounting for hidden Cloud tab in lite flavor.
-     */
-    private fun getResourceTabForIndex(index: Int): ResourceTab {
-        return if (com.sza.fastmediasorter.BuildConfig.SUPPORT_CLOUD) {
-            when (index) {
-                0 -> ResourceTab.ALL
-                1 -> ResourceTab.LOCAL
-                2 -> ResourceTab.SMB
-                3 -> ResourceTab.FTP_SFTP
-                4 -> ResourceTab.CLOUD
-                else -> ResourceTab.ALL
-            }
-        } else {
-            // Lite flavor: no Cloud tab
-            when (index) {
-                0 -> ResourceTab.ALL
-                1 -> ResourceTab.LOCAL
-                2 -> ResourceTab.SMB
-                3 -> ResourceTab.FTP_SFTP
-                else -> ResourceTab.ALL
-            }
-        }
-    }
+
+    private fun getTabIndexForResourceTab(tab: ResourceTab): Int =
+        tabsManager.getTabIndexForResourceTab(tab)
 
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         // Forward mouse wheel scroll events to the resource list.
@@ -1073,229 +855,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
         return super.onGenericMotionEvent(event)
-    }
-
-    private fun hasFullLocalPermissions(): Boolean {
-        return PermissionHelper.checkStoragePermissions(this)
-    }
-
-    private fun wasStoragePermissionRequested(): Boolean =
-        getSharedPreferences(PREFS_NAME_APP, MODE_PRIVATE)
-            .getBoolean(KEY_STORAGE_PERMISSION_REQUESTED, false)
-
-    private fun markStoragePermissionRequested() {
-        getSharedPreferences(PREFS_NAME_APP, MODE_PRIVATE)
-            .edit()
-            .putBoolean(KEY_STORAGE_PERMISSION_REQUESTED, true)
-            .apply()
-    }
-
-    private fun checkLocalPermissionsOnStartup() {
-        if (permissionCheckDoneThisSession) return
-        permissionCheckDoneThisSession = true
-
-        if (hasFullLocalPermissions()) return
-
-        if (!wasStoragePermissionRequested()) {
-            markStoragePermissionRequested()
-        }
-        showStoragePermissionRequestDialog()
-    }
-
-    private fun showStoragePermissionRequestDialog() {
-        if (isFinishing || isDestroyed) return
-        val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getString(R.string.permission_storage_rationale_r)
-        } else {
-            getString(R.string.permission_storage_rationale)
-        }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.permissions_required_title)
-            .setMessage(message)
-            .setPositiveButton(R.string.grant_permissions) { _, _ -> launchStoragePermissionFlow() }
-            .setNegativeButton(R.string.continue_anyway, null)
-            .setCancelable(true)
-            .show()
-    }
-
-    private fun launchStoragePermissionFlow() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val intent = try {
-                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                    data = Uri.parse("package:$packageName")
-                }
-            } catch (_: Exception) {
-                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-            }
-            settingsPermissionLauncher.launch(intent)
-        } else {
-            val perms = PermissionHelper.getStoragePermissionsArray()
-            storagePermissionLauncher.launch(perms)
-        }
-    }
-
-    // === Resume Playback Logic ===
-
-    private fun shouldAttemptResume(): Boolean {
-        // Only for standard launcher icon start (ACTION_MAIN)
-        if (intent?.action != Intent.ACTION_MAIN) return false
-        // Skip if slideshow widget action
-        if (intent?.action == ACTION_START_SLIDESHOW) return false
-        // Skip DB-based resume if AudioPlaybackService is still running (process wasn't killed).
-        // The redirect to PlayerActivity is handled in onCreate() above this call.
-        if (AudioPlaybackService.isRunning) {
-            Timber.d("MainActivity: Skipping DB resume — AudioPlaybackService is running")
-            return false
-        }
-        // Skip if storage permissions are missing
-        if (!PermissionHelper.hasStoragePermission(this)) {
-            Timber.d("MainActivity: Skipping resume — no storage permissions")
-            return false
-        }
-        return true
-    }
-
-    private fun attemptResumePlayback() {
-        lifecycleScope.launch {
-            try {
-                // Gate on user preference before any UI is shown
-                val resumeEnabled = settingsRepository.getSettings().first().resumeOnNextLaunch
-                if (!resumeEnabled) {
-                    Timber.d("MainActivity: Resume on next launch disabled by user setting")
-                    return@launch
-                }
-
-                // Show loading overlay only when we will actually attempt resume
-                binding.navigationProgressLayout.isVisible = true
-                binding.tvNavigationMessage.text = getString(R.string.resume_checking)
-
-                val state = getResumeStateUseCase()
-                if (state == null) {
-                    Timber.d("MainActivity: No resume state found")
-                    dismissResumeLoading()
-                    return@launch
-                }
-
-                // TTL check
-                val elapsed = System.currentTimeMillis() - state.savedAt
-                if (elapsed > ResumeStateRepositoryImpl.RESUME_TTL_MS) {
-                    Timber.d("MainActivity: Resume state expired (${elapsed}ms > TTL)")
-                    clearResumeStateUseCase()
-                    dismissResumeLoading()
-                    Toast.makeText(this@MainActivity, R.string.resume_unavailable, Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                // Load resource to determine type
-                val resource = resourceRepository.getResourceById(state.resourceId)
-                if (resource == null) {
-                    Timber.w("MainActivity: Resume resource not found (id=${state.resourceId})")
-                    clearResumeStateUseCase()
-                    dismissResumeLoading()
-                    return@launch
-                }
-
-                // Availability check timeout: must cover a full cold SMB connection:
-                // TCP pre-check (3 s) + SMBJ negotiate/auth/tree-connect (up to 5 s) = 8 s worst case.
-                // 12 s gives a safe margin without blocking the user for too long when the
-                // server is truly unreachable.
-                val isAvailable = try {
-                    kotlinx.coroutines.withTimeout(12_000L) {
-                        checkResourceAvailability(resource, state.filePath)
-                    }
-                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                    Timber.w("MainActivity: Resume availability check timed out")
-                    false
-                }
-
-                if (!isAvailable) {
-                    Timber.d("MainActivity: Resume target unavailable")
-                    clearResumeStateUseCase()
-                    dismissResumeLoading()
-                    Toast.makeText(this@MainActivity, R.string.resume_unavailable, Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                // Determine effective isPlaying flag per resource/media type matrix
-                val effectiveIsPlaying = when {
-                    resource.type in setOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP)
-                            && state.mediaType == MediaType.VIDEO -> false
-                    resource.type == ResourceType.CLOUD
-                            && state.mediaType == MediaType.VIDEO -> false
-                    else -> state.isPlaying
-                }
-
-                // VR flavor: resuming into PlayerActivity routes to VrPlayerActivity, which
-                // immediately starts an XR/immersive session — disorienting and broken while
-                // VR resume flow is not yet stable. Skip PLAYER resume only; browser resume
-                // (2D panel mode) is safe and continues to work.
-                if (com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER
-                    && state.screenType == com.sza.fastmediasorter.domain.model.ScreenType.PLAYER) {
-                    Timber.d("MainActivity: Skipping PLAYER resume on VR flavor — XR auto-entry not supported yet")
-                    clearResumeStateUseCase()
-                    dismissResumeLoading()
-                    return@launch
-                }
-
-                // Navigate to target screen
-                dismissResumeLoading()
-
-                when (state.screenType) {
-                    com.sza.fastmediasorter.domain.model.ScreenType.PLAYER -> {
-                        val intent = PlayerActivity.createIntent(
-                            context = this@MainActivity,
-                            resourceId = state.resourceId,
-                            skipAvailabilityCheck = true,
-                            initialFilePath = state.filePath,
-                            isPlaying = effectiveIsPlaying,
-                            isSlideshowEnabled = state.isSlideshowEnabled
-                        )
-                        startActivity(intent)
-                        @Suppress("DEPRECATION")
-                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                    }
-                    com.sza.fastmediasorter.domain.model.ScreenType.BROWSER -> {
-                        val intent = BrowseActivity.createIntent(
-                            context = this@MainActivity,
-                            resourceId = state.resourceId,
-                            skipAvailabilityCheck = true,
-                            initialFolderPath = state.currentFolderPath,
-                            initialFilePath = state.filePath,
-                            isPlaying = effectiveIsPlaying
-                        )
-                        startActivity(intent)
-                        @Suppress("DEPRECATION")
-                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                    }
-                }
-                Timber.d("MainActivity: Resumed playback → ${state.screenType} for ${state.filePath}")
-            } catch (e: Exception) {
-                Timber.e(e, "MainActivity: Resume playback failed")
-                try { clearResumeStateUseCase() } catch (_: Exception) {}
-                dismissResumeLoading()
-            }
-        }
-    }
-
-    private suspend fun checkResourceAvailability(
-        resource: com.sza.fastmediasorter.domain.model.MediaResource,
-        filePath: String
-    ): Boolean {
-        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            when (resource.type) {
-                ResourceType.LOCAL -> {
-                    java.io.File(filePath).exists()
-                }
-                ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
-                    val result = resourceRepository.testConnection(resource)
-                    result.isSuccess
-                }
-            }
-        }
-    }
-
-    private fun dismissResumeLoading() {
-        binding.navigationProgressLayout.isVisible = false
     }
 
     /**
@@ -1324,7 +883,5 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
          *  Routes the user back to PlayerActivity for the currently playing audio resource. */
         const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"
         const val EXTRA_SHORTCUT_RESOURCE_ID = "shortcut_resource_id"
-        private const val PREFS_NAME_APP = "app_prefs"
-        private const val KEY_STORAGE_PERMISSION_REQUESTED = "storage_permission_requested"
     }
 }
