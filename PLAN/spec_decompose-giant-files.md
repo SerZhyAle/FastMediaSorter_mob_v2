@@ -106,6 +106,14 @@
 
 **Still over the 1000 cap (1 155 LOC).** Channel-pool methods (`getOrCreateConnection`, `getOrCreateChannel`, `removeChannel`, `invalidateConnection`, `cleanupIdleConnections`, `getConnectionForExoPlayer`, `releaseExoPlayerConnection`) share deep state (connectionPool, semaphore, exoPlayerPoolLock, PooledConnection, ConnectionKey) and need a dedicated `SftpConnectionPool` extraction in a follow-up wave.
 
+**Wave 20 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/remote/sftp/SftpClient.kt` | 1 155 | 627 | −528 | `SftpConnectionPool` (channel-pool state + getOrCreate/removeChannel/invalidate/cleanupIdle, suspending withConnection, BLOCKING ExoPlayer get/release with the dedicated TOCTOU lock, openInputStream that hot-recreates session on JSchException, plus a public `invalidate(info)` entry for client-driven retry) |
+
+`SftpClient.kt` is now well under the 1000-line hard cap.
+
 **Wave 16 result (partial — needs follow-up):**
 
 | File | Before | After | Δ | Helpers introduced |

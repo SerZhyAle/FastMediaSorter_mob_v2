@@ -3445,3 +3445,4 @@ Format: | datetime | file | target | description |
 | 2026-04-23 21:15:19 | `dev/CATALOG/ + CLAUDE.md + .claude/commands/catalog.md` | `tooling` | Add CATALOG CRUD scripts (set/query/remove), /catalog skill, and CLAUDE.md rules (research step 2, mandatory skill, post-change sync). |
 | 2026-04-23 21:36:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `FtpClient` | Wave 19a (partial): extracted FtpStandaloneOperations (1603 -> 1177 LOC; still over cap) |
 | 2026-04-23 21:45:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `FtpClient` | Wave 19 (full): also extracted FtpDirectoryScanner + FtpExoPlayerPool (1603 -> 905 LOC, under cap) |
+| 2026-04-23 21:51:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `SftpClient` | Wave 20: extracted SftpConnectionPool (1155 -> 627 LOC, well under cap) |
