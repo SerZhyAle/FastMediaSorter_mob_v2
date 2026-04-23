@@ -3436,3 +3436,4 @@ Format: | datetime | file | target | description |
 | 2026-04-23 17:36:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wave 12: extracted StandaloneFileOperationsHandler (1129 -> 845 LOC) |
 | 2026-04-23 17:39:48 | `PLAN/spec_standalone-vs-inapp-player-parity.md` | `spec` | Add parity spec III.15 comparing standalone vs in-app player; documents every code-level divergence and unification path via PlayerHostCapabilities + SharedDeleteUndoCoordinator |
 | 2026-04-23 17:42:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt` | `CloudFileOperationHandler` | Wave 13: extracted CloudFileOperationPathUtils + CloudToCloudTransferHelper (1222 -> 997 LOC) |
+| 2026-04-23 17:50:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbClient.kt` | `SmbClient` | Wave 14: extracted SmbClientErrorFormatter + SmbShareDiscoveryHelper (1291 -> 954 LOC) |

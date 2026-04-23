@@ -76,7 +76,9 @@ class SmbClient @Inject constructor(
     
     // Directory scanner helper
     private val directoryScanner = SmbDirectoryScanner(smbDispatcher)
-    
+
+    // Share discovery (SMBJ has no enumeration API — trial-connect common share names)
+    private val shareDiscovery = SmbShareDiscoveryHelper(connectionManager)
 
 
     /**
@@ -151,88 +153,8 @@ class SmbClient @Inject constructor(
         )
     }
     
-    /**
-     * Internal method that performs actual connection test (without retry logic)
-     */
-    private suspend fun performTestConnection(connectionInfo: SmbConnectionInfo, path: String = ""): SmbResult<String> {
-        return try {
-            if (connectionInfo.shareName.isEmpty()) {
-                // Test server only - list available shares
-                val sharesResult = listShares(
-                    connectionInfo.server,
-                    connectionInfo.username,
-                    connectionInfo.password,
-                    connectionInfo.domain,
-                    connectionInfo.port
-                )
-                
-                when (sharesResult) {
-                    is SmbResult.Success -> {
-                        val sharesList = sharesResult.data.joinToString("\n• ", prefix = "• ")
-                        val message = """
-                            |✓ Server accessible: ${connectionInfo.server}
-                            |
-                            |Available shares (${sharesResult.data.size}):
-                            |$sharesList
-                        """.trimMargin()
-                        SmbResult.Success(message)
-                    }
-                    is SmbResult.Error -> sharesResult
-                }
-            } else {
-                // Test specific share - provide detailed statistics
-                connectionManager.withConnection(connectionInfo) { share ->
-                    val targetPath = path.trim('/', '\\')
-                    val fullPathDisplay = if (targetPath.isEmpty()) {
-                        "${connectionInfo.server}\\${connectionInfo.shareName}"
-                    } else {
-                        "${connectionInfo.server}\\${connectionInfo.shareName}\\$targetPath"
-                    }
-
-                    // Check if path exists (if specified)
-                    var pathWarning = ""
-                    if (targetPath.isNotEmpty()) {
-                        try {
-                            // Use folderExists for directories (fileExists() only checks files, not folders in SMBJ)
-                            val pathExists = share.folderExists(targetPath) || share.fileExists(targetPath)
-                            if (!pathExists) {
-                                // Fail if specific subfolder is requested but does not exist
-                                // This prevents users from creating resources pointing to non-existent folders (typos)
-                                return@withConnection SmbResult.Error("Subfolder '$targetPath' does not exist on share '${connectionInfo.shareName}'")
-                            }
-                        } catch (e: Exception) {
-                            pathWarning = "\n⚠ Warning: Could not verify path '$targetPath' (${e.message})"
-                        }
-                    }
-
-                    // Count folders and media files in target path (or root if path doesn't exist)
-                    val scanPath = if (pathWarning.isEmpty()) targetPath else ""
-                    val files = share.list(scanPath).filter { !it.fileName.startsWith(".") }
-                    val folders = files.count { (it.fileAttributes and 0x10L) != 0L }
-                    val mediaFiles = files.filter { file ->
-                        val ext = file.fileName.substringAfterLast('.', "").lowercase()
-                        com.sza.fastmediasorter.domain.model.MediaExtensions.isImage(ext) ||
-                        com.sza.fastmediasorter.domain.model.MediaExtensions.isVideo(ext) ||
-                        com.sza.fastmediasorter.domain.model.MediaExtensions.isAudio(ext)
-                    }
-                    
-                    val message = """
-                        |✓ Resource accessible: $fullPathDisplay$pathWarning
-                        |
-                        |Statistics:
-                        |• Subfolders: $folders
-                        |• Media files: ${mediaFiles.size}
-                        |• Total items: ${files.size}
-                    """.trimMargin()
-                    
-                    SmbResult.Success(message)
-                }
-            }
-        } catch (e: Exception) {
-            // Re-throw to be caught by outer retry logic in testConnection()
-            throw e
-        }
-    }
+    private suspend fun performTestConnection(connectionInfo: SmbConnectionInfo, path: String = ""): SmbResult<String> =
+        shareDiscovery.performTestConnection(connectionInfo, path)
 
     /**
      * List files and folders in SMB directory
@@ -467,156 +389,7 @@ class SmbClient @Inject constructor(
         password: String = "",
         domain: String = "",
         port: Int = 445
-    ): SmbResult<List<String>> {
-        return try {
-            val client = connectionManager.getClient(server, port)
-            val connection = client.connect(server, port)
-            val finalDomain = domain.trim().ifEmpty { null }
-            Timber.d("SMB ListShares Auth: hasUser=${username.isNotBlank()}, hasDomain=${!finalDomain.isNullOrBlank()}, pwdLen=${password.length}")
-
-            val authContext = if (username.isEmpty()) {
-                AuthenticationContext.anonymous()
-            } else {
-                AuthenticationContext(username, password.toCharArray(), finalDomain)
-            }
-            
-            val session = connection.authenticate(authContext)
-            // Use LinkedHashSet to preserve insertion order and auto-deduplicate case-insensitive share names
-            val shares = mutableSetOf<String>()
-            
-            try {
-                // Attempt 1: Try to list shares using IPC$ administrative share
-                // This works if user has proper permissions
-                try {
-                    val ipcShare = session.connectShare("IPC$")
-                    // Try to get share list through IPC$
-                    // Note: SMBJ doesn't expose direct API for this, but connection success indicates permissions
-                    ipcShare.close()
-                    Timber.d("IPC$ connection successful - user may have admin rights")
-                    
-                    // Try to use ServerService to enumerate shares (if available in SMBJ)
-                    // This is a best-effort attempt
-                    try {
-                        // SMBJ doesn't expose RAP or SRVSVC directly, so we fall back to trial method
-                        Timber.d("Share enumeration via IPC$ not directly supported by SMBJ")
-                    } catch (e: Exception) {
-                        Timber.d("Share enumeration through IPC$ failed: ${e.message}")
-                    }
-                } catch (e: Exception) {
-                    Timber.d("IPC$ access denied or not available: ${e.message}")
-                }
-                
-                // Attempt 2: Try common and typical share names (extended list)
-                // This is the main workaround for SMBJ's lack of share enumeration API
-                val commonShareNames = listOf(
-                    // Standard Windows shares
-                    "Public", "Users", "Documents", "Downloads",
-                    "Pictures", "Photos", "Images",
-                    "Videos", "Movies", "Media",
-                    "Music", "Audio",
-                    // Common custom names
-                    "Shared", "Share", "Data", "Files", 
-                    "Transfer", "Common", "Backup",
-                    // NAS typical names
-                    "home", "public", "web", "multimedia",
-                    // Work/Personal variations
-                    "Work", "Personal", "Private", "Projects",
-                    // Archive/Storage variations
-                    "Archive", "Storage", "Repository", "Vault",
-                    // Year-based (try recent years)
-                    "2024", "2025", "Archive2024",
-                    // Department names
-                    "IT", "Finance", "HR", "Sales",
-                    // Media server names
-                    "Plex", "Media", "Library", "Content",
-                    // Additional common patterns
-                    "Temp", "Temporary", "Exchange", "FTP",
-                    "Upload", "Inbox", "Outbox", "Downloads",
-                    // User-specific patterns
-                    "Docs", "MyDocuments", "MyFiles", "MyData",
-                    // Try lowercase variations
-                    "shared", "public", "users", "documents",
-                    "photos", "videos", "music", "data"
-                )
-                
-                Timber.d("Scanning for shares using trial connection method (${commonShareNames.size} attempts)...")
-                
-                for (shareName in commonShareNames) {
-                    try {
-                        val share = session.connectShare(shareName)
-                        
-                        // Filter out administrative shares
-                        val isAdminShare = shareName.endsWith("$") || 
-                                         shareName.equals("IPC$", ignoreCase = true) ||
-                                         shareName.equals("ADMIN$", ignoreCase = true) ||
-                                         shareName.matches(Regex("[A-Za-z]\\$")) // Drive shares like C$, D$
-                        
-                        if (!isAdminShare) {
-                            // Add with case-insensitive deduplication
-                            // Check if a case-insensitive variant already exists
-                            val alreadyExists = shares.any { it.equals(shareName, ignoreCase = true) }
-                            if (!alreadyExists) {
-                                shares.add(shareName)
-                                Timber.d("Found accessible share: $shareName")
-                            } else {
-                                Timber.d("Skipping duplicate share (case variant): $shareName")
-                            }
-                        } else {
-                            Timber.d("Skipping administrative share: $shareName")
-                        }
-                        
-                        share.close()
-                    } catch (e: Exception) {
-                        // Share doesn't exist, not accessible, or hidden - skip silently
-                        // This is expected behavior for non-existent shares
-                    }
-                }
-                
-                Timber.i("Found ${shares.size} accessible shares on $server using trial method")
-                
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to enumerate shares")
-                session.close()
-                connection.close()
-                return SmbResult.Error(
-                    "Share enumeration failed. SMBJ library limitation: cannot list shares automatically. " +
-                    "Please enter share name manually. Technical details: ${e.message}", 
-                    e
-                )
-            }
-            
-            session.close()
-            connection.close()
-            
-            if (shares.isEmpty()) {
-                return SmbResult.Error(
-                    "No accessible shares found using trial method.\n\n" +
-                    "SMBJ library limitation: Cannot automatically discover all shares.\n\n" +
-                    "Tried multiple common share names, but none were accessible.\n\n" +
-                    "Your shares may have custom names. Please enter share name manually.\n\n" +
-                    "To find share names on Windows:\n" +
-                    "1. Open File Explorer on server computer\n" +
-                    "2. Right-click shared folder → Properties → Sharing tab\n" +
-                    "3. Look for 'Network Path' (e.g., \\\\ServerName\\ShareName)\n" +
-                    "4. Use the ShareName part in the app\n\n" +
-                    "Or use 'net share' command in Windows Command Prompt to list all shares.",
-                    null
-                )
-            }
-            
-            // Return found shares as sorted list with helpful message if only few found
-            val sharesList = shares.toList().sorted()
-            val result = SmbResult.Success(sharesList)
-            if (sharesList.size < 3) {
-                Timber.w("Only ${sharesList.size} share(s) found. There may be more shares with custom names.")
-            }
-            
-            result
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to connect to SMB server for share enumeration")
-            SmbResult.Error("Connection failed: ${e.message}. Please verify server address and credentials.", e)
-        }
-    }
+    ): SmbResult<List<String>> = shareDiscovery.listShares(server, username, password, domain, port)
 
     /**
      * Download file from SMB to local output stream.
@@ -946,28 +719,8 @@ class SmbClient @Inject constructor(
      * @param share The connected DiskShare
      * @param path The directory path to create (relative to share root)
      */
-    private fun ensureSmbDirectoryExists(share: DiskShare, path: String) {
-        val parts = path.replace('\\', '/').split('/').filter { it.isNotEmpty() }
-        var currentPath = ""
-        for (part in parts) {
-            currentPath = if (currentPath.isEmpty()) part else "$currentPath/$part"
-            if (!share.folderExists(currentPath)) {
-                Timber.d("ensureSmbDirectoryExists: Creating $currentPath")
-                try {
-                    share.mkdir(currentPath)
-                    Timber.d("ensureSmbDirectoryExists: Successfully created $currentPath")
-                } catch (e: Exception) {
-                    // Check if directory was created despite exception (race condition)
-                    if (!share.folderExists(currentPath)) {
-                        Timber.e(e, "ensureSmbDirectoryExists: Failed to create $currentPath")
-                        throw e
-                    } else {
-                        Timber.d("ensureSmbDirectoryExists: Directory $currentPath already exists")
-                    }
-                }
-            }
-        }
-    }
+    private fun ensureSmbDirectoryExists(share: DiskShare, path: String) =
+        SmbClientErrorFormatter.ensureSmbDirectoryExists(share, path)
 
     /**
      * Create directory on SMB share (recursively)
@@ -1052,101 +805,11 @@ class SmbClient @Inject constructor(
         }
     }
 
-    /**
-     * Get user-friendly error message based on exception type
-     */
-    private fun getUserFriendlyMessage(exception: Exception): String {
-        val message = exception.message ?: ""
-        val causeMessage = exception.cause?.message ?: ""
-        val rootCauseMessage = exception.cause?.cause?.message ?: ""
-        
-        return when {
-            // Connection reset errors
-            message.contains("Connection reset", ignoreCase = true) ||
-            causeMessage.contains("Connection reset", ignoreCase = true) ||
-            rootCauseMessage.contains("Connection reset", ignoreCase = true) ->
-                """Connection interrupted by server. This is usually temporary.
-                |
-                |Possible causes:
-                |• Server restarted or network equipment reset
-                |• Firewall dropped the connection
-                |• Too many simultaneous connections
-                |• SMB protocol version mismatch
-                |
-                |Try:
-                |• Wait a moment and try again
-                |• Check if server is accessible from other devices
-                |• Verify SMB settings on server""".trimMargin()
-            
-            // Timeout errors
-            message.contains("TimeoutException", ignoreCase = true) ||
-            message.contains("Timeout expired", ignoreCase = true) ||
-            causeMessage.contains("TimeoutException", ignoreCase = true) ||
-            causeMessage.contains("Timeout expired", ignoreCase = true) ->
-                """Connection timeout. Server not responding or network is very slow.
-                |
-                |This can happen with:
-                |• Slow network connection
-                |• Server under heavy load
-                |• Firewall blocking traffic
-                |• Wrong server address
-                |
-                |Try:
-                |• Check network connection
-                |• Verify server is online
-                |• Wait a moment and try again""".trimMargin()
-            
-            // Network errors
-            message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ->
-                """Share not found on server.
-                |
-                |Possible reasons:
-                |• Share name is incorrect or doesn't exist
-                |• Share was renamed or removed
-                |• Share is hidden (hidden$ shares need exact name)
-                |
-                |Try:
-                |• Use 'Discover SMB Resources' to see available shares
-                |• Check share name on the server
-                |• Verify share is enabled and visible""".trimMargin()
-            message.contains("STATUS_LOGON_FAILURE", ignoreCase = true) ->
-                "Authentication failed. Check username and password."
-            message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ->
-                "Access denied. Check share permissions."
-            message.contains("ConnectException", ignoreCase = true) || 
-            message.contains("NoRouteToHostException", ignoreCase = true) ->
-                "Cannot reach server. Check network connection."
-            message.contains("SocketTimeoutException", ignoreCase = true) ->
-                "Connection timeout. Server not responding."
-            message.contains("UnknownHostException", ignoreCase = true) ->
-                "Server address not found. Check server name/IP."
-            
-            else -> "Resource unavailable. Check connection settings."
-        }
-    }
+    private fun getUserFriendlyMessage(exception: Exception): String =
+        SmbClientErrorFormatter.getUserFriendlyMessage(exception)
     
-    private fun buildDiagnosticMessage(
-        exception: Exception,
-        connectionInfo: SmbConnectionInfo
-    ): String {
-        val sb = StringBuilder()
-        sb.append("=== SMB CONNECTION DIAGNOSTIC ===\n")
-        sb.append("Server: ${connectionInfo.server}:${connectionInfo.port}\n")
-        sb.append("Share: ${connectionInfo.shareName}\n")
-        sb.append("Username: ${if (connectionInfo.username.isEmpty()) "anonymous" else connectionInfo.username}\n")
-        sb.append("\nError: ${exception.javaClass.simpleName}\n")
-        sb.append("Message: ${exception.message}\n")
-        
-        sb.append("\nCommon solutions:\n")
-        sb.append("• Verify server address is correct\n")
-        sb.append("• Check network connectivity\n")
-        sb.append("• Ensure SMB port ${connectionInfo.port} is not blocked\n")
-        sb.append("• Verify username and password\n")
-        sb.append("• Check share name and permissions\n")
-        sb.append("• Ensure SMB2/SMB3 is enabled on server\n")
-        
-        return sb.toString()
-    }
+    private fun buildDiagnosticMessage(exception: Exception, connectionInfo: SmbConnectionInfo): String =
+        SmbClientErrorFormatter.buildDiagnosticMessage(exception, connectionInfo)
 
     /**
      * Check write permission by attempting to create and write a test file.

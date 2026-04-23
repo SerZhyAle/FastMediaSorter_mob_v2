@@ -90,6 +90,14 @@
 
 `CloudFileOperationHandler.kt` is now under the 1000-line hard cap.
 
+**Wave 14 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/network/SmbClient.kt` | 1 291 | 954 | −337 | `SmbClientErrorFormatter` (user-friendly error mapping, diagnostic message builder, race-tolerant ensureSmbDirectoryExists) + `SmbShareDiscoveryHelper` (trial-based listShares + performTestConnection that drives the share/path summary UI) |
+
+`SmbClient.kt` is now under the 1000-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
