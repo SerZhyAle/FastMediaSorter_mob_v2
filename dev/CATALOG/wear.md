@@ -1,6 +1,6 @@
 # Catalogue: wear
 
-_Generated: 2026-04-23 20:35 · 54 classes_
+_Generated: 2026-04-23 21:55 · 54 classes_
 
 Source of truth: [wear.jsonl](wear.jsonl). This file is auto-generated — edit JSONL, then re-render.
 
