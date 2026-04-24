@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.ui.duplicates
 
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityDuplicatesBinding
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -18,6 +21,17 @@ class DuplicatesActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityDuplicatesBinding
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_ESCAPE -> { finish(); return true }
+            KeyEvent.KEYCODE_F1 -> {
+                InputHelpDialogFragment.show(supportFragmentManager, InputSurface.DUPLICATES)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()

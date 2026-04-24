@@ -355,6 +355,11 @@ class ResourceEditorFragment : Fragment() {
         viewModel.onFieldChanged(ResourceFieldKey.MEDIA_TYPES, types)
     }
 
+    fun performSave() {
+        if (shouldCheckMediaPermissionBeforeSave()) showPermissionRequiredDialog()
+        else viewModel.onSave()
+    }
+
     private fun setupButtons() {
         binding.btnTestConnection.setOnClickListener {
             viewModel.onTestConnection()

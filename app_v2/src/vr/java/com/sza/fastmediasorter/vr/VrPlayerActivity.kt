@@ -4,10 +4,16 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.Surface
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
@@ -27,10 +33,15 @@ import com.sza.fastmediasorter.ui.player.helpers.seekBackward
 import com.sza.fastmediasorter.ui.player.render.RenderPriority
 import com.sza.fastmediasorter.ui.player.render.RenderTarget
 import com.sza.fastmediasorter.vr.capture.VrStereoSnapshotManager
+import com.sza.fastmediasorter.vr.helpers.VrControllerInputManager
+import com.sza.fastmediasorter.vr.helpers.VrCommandSource
+import com.sza.fastmediasorter.vr.helpers.VrRecentDestinationsPrefs
 import com.sza.fastmediasorter.vr.helpers.VrRouteDecision
 import com.sza.fastmediasorter.vr.helpers.VrRouteDecisionHelper
 import com.sza.fastmediasorter.vr.helpers.VrToggleButtonManager
+import com.sza.fastmediasorter.vr.openxr.OpenXrNative
 import com.sza.fastmediasorter.vr.openxr.OpenXrSessionManager
+import com.sza.fastmediasorter.vr.openxr.XrHand
 import com.sza.fastmediasorter.vr.openxr.XrRenderCallback
 import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
 import com.sza.fastmediasorter.vr.render.VrLayerFactory
@@ -41,7 +52,12 @@ import com.sza.fastmediasorter.vr.render.VrEye
 import com.sza.fastmediasorter.vr.playback.VrPlaybackEngine
 import com.sza.fastmediasorter.vr.render.VrStereoRenderer
 import com.sza.fastmediasorter.vr.render.VrVideoSurfaceTextureBridge
+import com.sza.fastmediasorter.vr.ui.VrCheatsheetOverlayManager
 import com.sza.fastmediasorter.vr.ui.VrControlOverlayManager
+import com.sza.fastmediasorter.vr.ui.VrFileOpsOverlayManager
+import com.sza.fastmediasorter.vr.ui.VrHandRayManager
+import com.sza.fastmediasorter.vr.ui.VrHudIndicatorManager
+import com.sza.fastmediasorter.vr.ui.VrZoomManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -72,6 +88,9 @@ class VrPlayerActivity : PlayerActivity() {
     @Inject
     lateinit var vrLayerFactory: VrLayerFactory
 
+    @Inject
+    lateinit var vrRecentDestinationsPrefs: VrRecentDestinationsPrefs
+
     private var xrSessionManager: OpenXrSessionManager? = null
     private var stereoRenderer: VrStereoRenderer? = null
     private var photoSphereRenderer: VrPhotoSphereRenderer? = null
@@ -79,6 +98,16 @@ class VrPlayerActivity : PlayerActivity() {
     private var stereoSnapshotManager: VrStereoSnapshotManager? = null
     private val stereoDetector = StereoDetector()
     private val routeDecisionHelper = VrRouteDecisionHelper()
+
+    // ── VR immersive controls (spec_vr-immersive-controls-tech) ──────────────
+    private var vrInputManager: VrControllerInputManager? = null
+    private var vrZoomManager: VrZoomManager? = null
+    private var vrHudManager: VrHudIndicatorManager? = null
+    private var vrCheatsheetManager: VrCheatsheetOverlayManager? = null
+    private var vrFileOpsManager: VrFileOpsOverlayManager? = null
+    private var vrHandRayManager: VrHandRayManager? = null
+    private var audioManager: AudioManager? = null
+    private var cheatsheetAutoShown = false
 
     @Volatile
     private var currentVrImageKey: String? = null
@@ -214,6 +243,41 @@ class VrPlayerActivity : PlayerActivity() {
             )
         }
 
+        // Build the VR immersive controls pipeline BEFORE OpenXrSessionManager so we can
+        // pass the input callback straight into the session constructor.
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        val mainHandler = Handler(Looper.getMainLooper())
+        // Layer E: hand-tracking ray manager. Constructed early so it can be wired
+        // into VrControllerInputManager before the input callback reaches the XR
+        // runtime. release() is called alongside the other managers in onDestroy.
+        val handRay = VrHandRayManager(this)
+        vrHandRayManager = handRay
+        val inputManager = VrControllerInputManager(
+            mainHandler = mainHandler,
+            onCommand = { command, source -> handleVrCommand(command, source) },
+            onVolumeStep = ::onVolumeStep,
+            onZoomGripDelta = ::onZoomGripDelta,
+            audioManager = audioManager,
+            onPointerEvent = { hand, down -> handRay.onPointerClick(hand, down) },
+        )
+        // Route per-frame pointer positions (Layer E) from the input manager into the
+        // ray manager; the sink is volatile so the render-thread doesn't need a lock.
+        inputManager.pointerMoveSink = { hand, ndcX, ndcY ->
+            handRay.onPointerMove(hand, ndcX, ndcY)
+        }
+        vrInputManager = inputManager
+        vrHudManager = VrHudIndicatorManager(this)
+        vrCheatsheetManager = VrCheatsheetOverlayManager(this)
+        vrZoomManager = VrZoomManager { descriptor ->
+            xrSessionManager?.updateLayerDescriptor(descriptor)
+            currentLayerDescriptor = descriptor
+        }
+        vrFileOpsManager = VrFileOpsOverlayManager(
+            activity = this,
+            recentDestinations = vrRecentDestinationsPrefs,
+            callbacks = buildFileOpsCallbacks(),
+        )
+
         // Initialise VR-specific components
         // onSessionReady (= ::initializeVrRenderPipeline) runs on the GL thread after the XR
         // session is established so that bridge/renderer GL resources are created in the right context.
@@ -221,12 +285,14 @@ class VrPlayerActivity : PlayerActivity() {
             renderCallback,
             onSessionReady = ::initializeVrRenderPipeline,
             onSessionStopped = ::releaseVrRenderPipeline,
+            inputCallback = inputManager,
         )
         stereoRenderer = VrStereoRenderer()
         photoSphereRenderer = VrPhotoSphereRenderer(this)
-        controlOverlay = VrControlOverlayManager { command ->
-            handleVrCommand(command)
-        }
+        controlOverlay = VrControlOverlayManager(
+            activity = this,
+            onCommand = { command -> handleVrCommand(command, VrCommandSource.UI) },
+        )
 
         // Create the video → GL texture bridge.
         // initialize() requires a GL context which isn't available until the XR session
@@ -549,7 +615,16 @@ class VrPlayerActivity : PlayerActivity() {
         if (vrRenderingActive == active) return
         vrRenderingActive = active
         Timber.i("VrPlayerActivity: vrRenderingActive=%b (reason=%s)", active, reason)
-        runOnUiThread { vrToggleButtonManager?.updateState(active) }
+        runOnUiThread {
+            vrToggleButtonManager?.updateState(active)
+            // First time the immersive render pipeline goes live, auto-show the
+            // controls cheatsheet per spec §5.3. SharedPreferences-gated so only
+            // the first-ever entry after install triggers it.
+            if (active && !cheatsheetAutoShown) {
+                cheatsheetAutoShown = true
+                vrCheatsheetManager?.showIfFirstTime()
+            }
+        }
     }
 
     override fun onResume() {
@@ -596,6 +671,23 @@ class VrPlayerActivity : PlayerActivity() {
         videoSurfaceBridge = null
         stereoRenderer = null
         photoSphereRenderer = null
+        // Release VR immersive controls managers.
+        controlOverlay?.release()
+        controlOverlay = null
+        vrHudManager?.release()
+        vrHudManager = null
+        vrCheatsheetManager?.release()
+        vrCheatsheetManager = null
+        vrFileOpsManager?.release()
+        vrFileOpsManager = null
+        vrZoomManager = null
+        // Detach the pointer stream BEFORE releasing the hand-ray manager — otherwise
+        // a queued main-thread Runnable from the xr-render-thread could resurrect the
+        // decor overlay after release() has already torn it down.
+        vrInputManager?.pointerMoveSink = null
+        vrHandRayManager?.release()
+        vrHandRayManager = null
+        vrInputManager = null
         xrSessionManager?.release()
         xrSessionManager = null
         super.onDestroy()
@@ -628,21 +720,20 @@ class VrPlayerActivity : PlayerActivity() {
         stereoSnapshotManager?.captureCurrentFrame() ?: super.saveCurrentFrame()
     }
 
+    override fun exitPlayerWithAudioCheck(withTransition: Boolean) {
+        // In immersive VR the base finish() drops the user at the system shell because
+        // the panel task was destroyed on entry. Route through VrTaskTransition instead.
+        exitVrAndStopPlayback("gamepad-or-keyboard-exit")
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // VR-specific buttons handled here (MENU, BACK, thumbstick click) because they
+        // are Quest-controller signals, not standard gamepad buttons covered by
+        // GamepadInputManager. KEYCODE_BUTTON_X/A/B/Y routing goes through super →
+        // PlayerActivity.dispatchKeyEvent → GamepadInputManager so VR and phone players
+        // share identical gamepad behaviour.
         if (event.action == KeyEvent.ACTION_UP) {
             when (event.keyCode) {
-                KeyEvent.KEYCODE_BUTTON_X -> {
-                    Timber.i("VrPlayerActivity: X button (left controller) → exit immersive")
-                    exitVrAndStopPlayback("controller-x-exit")
-                    return true
-                }
-                KeyEvent.KEYCODE_BUTTON_B -> {
-                    // B button (right controller) = conventional "back/exit" on Quest controllers.
-                    // Provides an always-reachable escape even when overlay is not visible.
-                    Timber.i("VrPlayerActivity: B button (right controller) → exit immersive")
-                    exitVrAndStopPlayback("controller-b-exit")
-                    return true
-                }
                 KeyEvent.KEYCODE_MENU -> {
                     // Left controller ≡ button — open the playback controls dialog (3D, volume, brightness..).
                     Timber.i("VrPlayerActivity: Menu button (left controller ≡) → showPlaybackControlDialog")
@@ -665,7 +756,29 @@ class VrPlayerActivity : PlayerActivity() {
                 }
             }
         }
+        val inputManager = vrInputManager
+        if (inputManager != null) {
+            val isKeyboardSource = (event.source and InputDevice.SOURCE_KEYBOARD) != 0
+            // WHY: PlayerActivity owns shared keyboard/media shortcuts on ACTION_DOWN.
+            // Route only VR-exclusive keyboard commands through the VR layer; all non-keyboard
+            // sources (OpenXR button KeyEvents, HID side buttons) still use the full VR mapper.
+            val shouldRouteToVr = if (isKeyboardSource) {
+                inputManager.shouldInterceptKeyboardShortcut(event)
+            } else {
+                true
+            }
+            if (shouldRouteToVr && inputManager.onKeyEvent(event) == true) return true
+        }
+        // Standard gamepad buttons (A/B/X/Y/L1/R1/START/SELECT) are routed by
+        // PlayerActivity.dispatchKeyEvent → GamepadInputManager. B (Exit) dispatches
+        // exitPlayerWithAudioCheck, which for VrPlayerActivity exits immersive mode.
         return super.dispatchKeyEvent(event)
+    }
+
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        // Route BT mouse wheel / cursor motion through the VR input manager.
+        if (vrInputManager?.onMotionEvent(event) == true) return true
+        return super.onGenericMotionEvent(event)
     }
 
     override fun handle3dVrToggleClicked() {
@@ -686,21 +799,223 @@ class VrPlayerActivity : PlayerActivity() {
     }
 
     /**
-     * Dispatch a command from the VR overlay to the inherited player.
+     * Dispatch a command from the VR overlay or controller input manager to the
+     * inherited player. All UI feedback (HUD, haptic) is triggered here so every
+     * input source (OpenXR / keyboard / mouse) produces identical feedback.
      */
-    private fun handleVrCommand(command: PlaybackCommand) {
+    private fun handleVrCommand(command: PlaybackCommand, source: VrCommandSource = VrCommandSource.UI) {
         Timber.d("VrPlayerActivity: handling VR command $command")
         when (command) {
-            PlaybackCommand.Play -> viewModel.togglePause()
-            PlaybackCommand.Pause -> viewModel.togglePause()
-            PlaybackCommand.SeekForward -> videoPlayerManager.seekForward(VR_SEEK_SECONDS)
-            PlaybackCommand.SeekBackward -> videoPlayerManager.seekBackward(VR_SEEK_SECONDS)
-            PlaybackCommand.NextFile -> viewModel.nextFile()
-            PlaybackCommand.PreviousFile -> viewModel.previousFile()
+            PlaybackCommand.Play -> {
+                viewModel.setPaused(false)
+                vrHudManager?.showPauseIndicator(paused = false)
+            }
+            PlaybackCommand.Pause -> {
+                viewModel.setPaused(true)
+                vrHudManager?.showPauseIndicator(paused = true)
+            }
+            PlaybackCommand.TogglePausePlay -> {
+                val nowPaused = !viewModel.state.value.isPaused
+                viewModel.togglePause()
+                vrHudManager?.showPauseIndicator(paused = nowPaused)
+                maybeTriggerHaptic(source, XrHand.RIGHT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
+            }
+            PlaybackCommand.SeekForward -> {
+                videoPlayerManager.seekForward(VR_SEEK_SECONDS)
+                showSeekFeedback(+VR_SEEK_SECONDS)
+                maybeTriggerHaptic(source, XrHand.LEFT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
+            }
+            PlaybackCommand.SeekBackward -> {
+                videoPlayerManager.seekBackward(VR_SEEK_SECONDS)
+                showSeekFeedback(-VR_SEEK_SECONDS)
+                maybeTriggerHaptic(source, XrHand.LEFT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
+            }
+            is PlaybackCommand.SeekMicro -> {
+                val d = if (command.forward) VR_SEEK_MICRO else -VR_SEEK_MICRO
+                if (command.forward) videoPlayerManager.seekForward(VR_SEEK_MICRO)
+                else videoPlayerManager.seekBackward(VR_SEEK_MICRO)
+                showSeekFeedback(d)
+            }
+            is PlaybackCommand.SeekMacro -> {
+                val d = if (command.forward) VR_SEEK_MACRO else -VR_SEEK_MACRO
+                if (command.forward) videoPlayerManager.seekForward(VR_SEEK_MACRO)
+                else videoPlayerManager.seekBackward(VR_SEEK_MACRO)
+                showSeekFeedback(d)
+            }
+            PlaybackCommand.NextFile -> {
+                viewModel.nextFile()
+                showFileFeedback()
+                maybeTriggerHaptic(source, XrHand.RIGHT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
+            }
+            PlaybackCommand.PreviousFile -> {
+                viewModel.previousFile()
+                showFileFeedback()
+                maybeTriggerHaptic(source, XrHand.RIGHT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
+            }
             PlaybackCommand.OpenControls -> dialogHelper.showPlaybackControlDialog()
             PlaybackCommand.Exit -> exitVrAndStopPlayback("overlay-exit-command")
-            else -> Timber.w("VrPlayerActivity: unhandled VR command $command")
+            PlaybackCommand.OpenFileOps -> vrFileOpsManager?.show()
+            PlaybackCommand.CopyFile    -> vrFileOpsManager?.showAndCopy()
+            PlaybackCommand.MoveFile    -> vrFileOpsManager?.showAndMove()
+            PlaybackCommand.DeleteFile  -> vrFileOpsManager?.showAndDelete()
+            PlaybackCommand.RenameFile  -> vrFileOpsManager?.showAndRename()
+            is PlaybackCommand.VolumeStep -> {
+                showVolumeFeedback()
+            }
+            is PlaybackCommand.ZoomStep -> {
+                vrZoomManager?.onDiscreteStep(command.increase)
+                vrHudManager?.showZoomIndicator(vrZoomManager?.zoom() ?: 1f)
+            }
+            PlaybackCommand.ZoomReset -> {
+                vrZoomManager?.reset()
+                vrHudManager?.showZoomIndicator(1f)
+                maybeTriggerHaptic(source, XrHand.LEFT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
+            }
+            PlaybackCommand.Recenter -> {
+                // Recentering requires a tracker reset at the native layer; for this iteration
+                // we show the visual cue only. Native API is queued in the follow-up spec.
+                vrHudManager?.showRecenterFlash()
+                maybeTriggerHaptic(source, XrHand.RIGHT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
+            }
+            PlaybackCommand.ToggleImmersiveMode -> {
+                vrToggleButtonManager?.onToggleRequested()
+                vrHudManager?.showImmersiveModeChanged(immersive = !vrRenderingActive)
+            }
+            PlaybackCommand.ShowCheatsheet -> vrCheatsheetManager?.toggleManual()
+            PlaybackCommand.ToggleOverlay  -> controlOverlay?.toggle()
+            PlaybackCommand.Mute -> toggleMute()
         }
+    }
+
+    // ── VR immersive input helper methods (spec_vr-immersive-controls-tech) ──
+
+    private fun onVolumeStep(delta: Int) {
+        val am = audioManager ?: return
+        val dir = if (delta > 0) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER
+        try {
+            am.adjustStreamVolume(AudioManager.STREAM_MUSIC, dir, 0)
+        } catch (t: Throwable) {
+            Timber.w(t, "VrPlayerActivity: AudioManager.adjustStreamVolume failed")
+        }
+        showVolumeFeedback()
+    }
+
+    private fun showVolumeFeedback() {
+        val am = audioManager ?: return
+        val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
+        val current = am.getStreamVolume(AudioManager.STREAM_MUSIC)
+        val percent = (current * 100 / max).coerceIn(0, 100)
+        vrHudManager?.showVolumeIndicator(percent)
+    }
+
+    private fun onZoomGripDelta(delta: Float) {
+        vrZoomManager?.onGripDelta(delta)
+        vrHudManager?.showZoomIndicator(vrZoomManager?.zoom() ?: 1f)
+    }
+
+    private fun showSeekFeedback(deltaSeconds: Int) {
+        val p = videoPlayerManager.exoPlayer
+        val pos = p?.currentPosition ?: 0L
+        val total = p?.duration ?: 0L
+        vrHudManager?.showSeekIndicator(deltaSeconds, pos, total)
+    }
+
+    private fun showFileFeedback() {
+        val state = viewModel.state.value
+        val file = state.currentFile ?: return
+        val index = state.currentIndex.coerceAtLeast(0) + 1
+        val total = state.files.size.coerceAtLeast(1)
+        vrHudManager?.showFileIndicator(file.name, index, total)
+    }
+
+    private fun toggleMute() {
+        val am = audioManager ?: return
+        val current = am.getStreamVolume(AudioManager.STREAM_MUSIC)
+        try {
+            if (current > 0) {
+                am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
+            } else {
+                am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
+            }
+        } catch (t: Throwable) {
+            Timber.w(t, "VrPlayerActivity: toggleMute failed")
+        }
+        showVolumeFeedback()
+    }
+
+    private fun triggerHaptic(hand: Int, durationNs: Long, amplitude: Float) {
+        try {
+            OpenXrNative.nativeTriggerHaptic(hand, durationNs, amplitude)
+        } catch (t: Throwable) {
+            // Native may not be loaded on fallback path — silently skip.
+            Timber.v(t, "VrPlayerActivity: haptic trigger failed (hand=%d)", hand)
+        }
+    }
+
+    private fun maybeTriggerHaptic(source: VrCommandSource, hand: Int, durationNs: Long, amplitude: Float) {
+        // Only physical XR controllers can provide meaningful haptics. Hand tracking,
+        // keyboard, mouse and Android-view UI paths must stay silent here; hand input
+        // already gets audio confirmation in VrControllerInputManager.
+        if (source != VrCommandSource.CONTROLLER) return
+        triggerHaptic(hand, durationNs, amplitude)
+    }
+
+    private fun buildFileOpsCallbacks() = object : VrFileOpsOverlayManager.Callbacks {
+        override fun currentFile(): MediaFile? = viewModel.state.value.currentFile
+        override fun isPlaying(): Boolean = !viewModel.state.value.isPaused
+        override fun pausePlayback() { viewModel.setPaused(true) }
+        override fun resumePlayback() { viewModel.setPaused(false) }
+        override fun copyFileTo(file: MediaFile, destinationPath: String) {
+            Toast.makeText(this@VrPlayerActivity,
+                getString(R.string.vr_fops_not_implemented_copy), Toast.LENGTH_SHORT).show()
+            Timber.w("VrFileOps: copyFileTo path=%s — direct-path copy not wired in this iteration", destinationPath)
+        }
+        override fun moveFileTo(file: MediaFile, destinationPath: String) {
+            Toast.makeText(this@VrPlayerActivity,
+                getString(R.string.vr_fops_not_implemented_move), Toast.LENGTH_SHORT).show()
+            Timber.w("VrFileOps: moveFileTo path=%s — direct-path move not wired in this iteration", destinationPath)
+        }
+        override fun deleteFile(file: MediaFile) {
+            viewModel.deleteCurrentFile()
+        }
+        override fun renameFile(file: MediaFile, newName: String) {
+            Toast.makeText(this@VrPlayerActivity,
+                getString(R.string.vr_fops_not_implemented_rename), Toast.LENGTH_SHORT).show()
+            Timber.w("VrFileOps: renameFile name=%s — rename flow not wired in this iteration", newName)
+        }
+        override fun openFolderBrowserForDestination(file: MediaFile, move: Boolean) {
+            // Route back to the 2D panel so the user can pick a folder with the full tree UI.
+            Timber.i("VrFileOps: exiting immersive to pick destination (move=%b)", move)
+            VrTaskTransition.exitImmersiveToPanel(this@VrPlayerActivity)
+        }
+        override fun buildFileInfoText(file: MediaFile): CharSequence {
+            val parts = mutableListOf<String>()
+            parts += getString(R.string.vr_info_name) + " " + file.name
+            parts += getString(R.string.vr_info_path) + " " + file.path
+            if (file.size > 0) parts += getString(R.string.vr_info_size) + " " + humanReadableSize(file.size)
+            val w = file.width ?: 0; val h = file.height ?: 0
+            if (w > 0 && h > 0) parts += getString(R.string.vr_info_resolution, w, h)
+            file.duration?.let { parts += getString(R.string.vr_info_duration) + " " + formatDurationMs(it) }
+            file.videoCodec?.let { parts += getString(R.string.vr_info_video) + " " + it }
+            file.videoBitrate?.let { parts += getString(R.string.vr_info_bitrate, it / 1000) }
+            return parts.joinToString("\n")
+        }
+    }
+
+    private fun humanReadableSize(bytes: Long): String {
+        val kb = bytes / 1024.0; val mb = kb / 1024.0; val gb = mb / 1024.0
+        return when {
+            gb >= 1 -> String.format("%.2f GB", gb)
+            mb >= 1 -> String.format("%.2f MB", mb)
+            kb >= 1 -> String.format("%.1f KB", kb)
+            else -> "$bytes B"
+        }
+    }
+
+    private fun formatDurationMs(ms: Long): String {
+        val total = (ms / 1000).coerceAtLeast(0)
+        val h = total / 3600; val m = (total % 3600) / 60; val s = total % 60
+        return if (h > 0) String.format("%d:%02d:%02d", h, m, s) else String.format("%d:%02d", m, s)
     }
 
     private fun exitVrAndStopPlayback(reason: String) {
@@ -983,7 +1298,14 @@ class VrPlayerActivity : PlayerActivity() {
         } else {
             VrRenderContext.DEFAULT_SOURCE_ASPECT_RATIO
         }
-        xrSessionManager?.updateLayerDescriptor(descriptor)
+        // When the zoom manager is wired, route through it so the user's current zoom
+        // factor is re-applied on top of the new base descriptor. Otherwise submit directly.
+        val zoom = vrZoomManager
+        if (zoom != null) {
+            zoom.setBaseDescriptor(descriptor)
+        } else {
+            xrSessionManager?.updateLayerDescriptor(descriptor)
+        }
         Timber.d(
             "VrPlayerActivity: layer descriptor → %s (reason=%s, stereo=%s, renderMode=%s)",
             descriptor.type,
@@ -1081,8 +1403,19 @@ class VrPlayerActivity : PlayerActivity() {
 
     companion object {
         /** Seek increment for VR controller seek commands (seconds). */
-        private const val VR_SEEK_SECONDS = 15
+        private const val VR_SEEK_SECONDS = 10
+        /** Shift+arrow / `Shift+wheel` micro-seek increment (seconds). */
+        private const val VR_SEEK_MICRO = 3
+        /** Ctrl+arrow macro-seek increment (seconds). */
+        private const val VR_SEEK_MACRO = 60
         private const val VR_FALLBACK_ERROR_DELAY_MS = 350L
+
+        /** Short haptic pulse (~20 ms). */
+        private const val HAPTIC_SHORT_NS = 20_000_000L
+        /** Long haptic pulse (~150 ms) for warning / boundary. */
+        private const val HAPTIC_LONG_NS  = 150_000_000L
+        /** Standard haptic amplitude (0..1). */
+        private const val HAPTIC_AMPL = 0.5f
 
         /** When true, bypass stereo-detection gate and force immersive XR route for video. */
         const val EXTRA_FORCE_IMMERSIVE = "com.sza.fastmediasorter.EXTRA_FORCE_IMMERSIVE"

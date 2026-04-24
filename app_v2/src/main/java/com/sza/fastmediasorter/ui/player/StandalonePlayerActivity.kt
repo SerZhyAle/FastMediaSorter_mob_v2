@@ -72,6 +72,9 @@ import com.sza.fastmediasorter.ui.player.helpers.btnEpubToc
 import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeDecrease
 import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeIncrease
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -79,6 +82,9 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+import android.view.KeyEvent
+import android.view.MotionEvent
+import androidx.media3.common.Player
 
 /**
  * Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW
@@ -156,6 +162,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private lateinit var viewManager: StandaloneViewManager
     private var pipManager: PictureInPictureManager? = null
     private lateinit var lifecycleManager: StandalonePlayerLifecycleManager
+    private lateinit var keyboardHandler: PlayerKeyboardHandler
     private var videoControlsManager: StandaloneVideoControlsManager? = null
     private var standaloneTrackSelectionManager: VideoTrackSelectionManager? = null
     private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
@@ -285,7 +292,99 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: pre-parseIncomingIntent total=${SystemClock.uptimeMillis() - t0}ms")
         parseIncomingIntent()
+        setupKeyboardHandler()
         if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: setupViews DONE total=${SystemClock.uptimeMillis() - t0}ms")
+    }
+
+    private fun setupKeyboardHandler() {
+        keyboardHandler = PlayerKeyboardHandler(
+            callback = object : PlayerKeyboardHandler.PlayerKeyboardCallback {
+                override fun onDeleteFile() = fileOperations.deleteCurrentFile()
+                override fun onExitPlayer() = finish()
+                override fun onToggleSlideshow() { /* standalone has no playlist slideshow */ }
+                override fun onShowRenameDialog() = fileOperations.showStandaloneRenameDialog()
+                override fun onShowFileInfo() {
+                    val file = viewModel.state.value.mediaFile ?: return
+                    MaterialAlertDialogBuilder(this@StandalonePlayerActivity)
+                        .setTitle(file.name)
+                        .setMessage(file.path)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
+                }
+                override fun onToggleCommandPanel() {
+                    binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+                }
+                override fun onToggleCopyPanel() { /* not applicable in standalone */ }
+                override fun onToggleMovePanel() { /* not applicable in standalone */ }
+                override fun onShowEditDialog() { /* not applicable in standalone */ }
+                override fun getActivePlayer(): Player? = viewManager.getExoPlayer()
+                override fun getCurrentMediaType(): MediaType? =
+                    viewModel.state.value.mediaFile?.type
+                override fun onPdfNextPage() = viewManager.showPdfNextPage()
+                override fun onPdfPreviousPage() = viewManager.showPdfPreviousPage()
+                override fun onPdfHome() = viewManager.showPdfFirstPage()
+                override fun onPdfEnd() { /* not exposed in standalone */ }
+                override fun onEpubNextPage() = viewManager.showEpubNextChapter()
+                override fun onEpubPreviousPage() = viewManager.showEpubPreviousChapter()
+                override fun onEpubHome() = viewManager.showEpubFirstChapter()
+                override fun onEpubEnd() { /* not exposed in standalone */ }
+                override fun onTextScrollDown() = viewManager.textViewerManagerProvider().scrollDown()
+                override fun onTextScrollUp() = viewManager.textViewerManagerProvider().scrollUp()
+                override fun onTextHome() = viewManager.textViewerManagerProvider().scrollToTop()
+                override fun onTextEnd() = viewManager.textViewerManagerProvider().scrollToBottom()
+                override fun onSeekForward(seconds: Int) {
+                    val p = viewManager.getExoPlayer() ?: return
+                    p.seekTo((p.currentPosition + seconds * 1000L).coerceAtMost(p.duration))
+                }
+                override fun onSeekBackward(seconds: Int) {
+                    val p = viewManager.getExoPlayer() ?: return
+                    p.seekTo((p.currentPosition - seconds * 1000L).coerceAtLeast(0L))
+                }
+                override fun onEpubScrollDelta(verticalScroll: Float) {
+                    if (verticalScroll > 0) viewManager.showEpubPreviousChapter()
+                    else viewManager.showEpubNextChapter()
+                }
+                override fun onNavigationScroll(verticalScroll: Float) { /* single-file standalone */ }
+                override fun onToggleMute() {
+                    val p = viewManager.getPlayer(viewModel.state.value.mediaFile?.type) ?: return
+                    p.volume = if (p.volume > 0f) 0f else 1f
+                }
+                override fun onToggleFullscreen() {
+                    fullscreenManager?.toggleFullscreen()
+                }
+                override fun onChangeVolume(delta: Int) {
+                    val p = viewManager.getPlayer(viewModel.state.value.mediaFile?.type) ?: return
+                    p.volume = (p.volume + delta * 0.1f).coerceIn(0f, 1f)
+                }
+                override fun onShowHelp() {
+                    InputHelpDialogFragment.show(supportFragmentManager, InputSurface.PLAYER)
+                }
+                override fun onDocumentSearch() {
+                    searchControlsManager?.showSearchPanel()
+                }
+                override fun onSaveCurrent() { /* save frame not supported in standalone */ }
+                override fun onShowContextMenu() {
+                    binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
+                }
+                // Standalone plays a single file — no playlist navigation.
+                override fun onNextFile() {}
+                override fun onPreviousFile() {}
+                override fun onToggleFavourite() = viewModel.toggleFavorite()
+                override fun onUndoOperation() {}
+            }
+        )
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (::keyboardHandler.isInitialized &&
+            keyboardHandler.handleKeyDown(keyCode, event)) return true
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent?): Boolean {
+        if (::keyboardHandler.isInitialized &&
+            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+        return super.dispatchGenericMotionEvent(event)
     }
 
     override fun observeData() {

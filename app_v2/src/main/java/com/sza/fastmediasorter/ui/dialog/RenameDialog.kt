@@ -91,8 +91,9 @@ class RenameDialog(
             btnCancel.setOnClickListenerDebounced { dismiss() }
             btnApply.setOnClickListenerDebounced { renameFiles() }
         }
-        
+
         window?.setBackgroundDrawableResource(R.drawable.bg_rename_dialog)
+        DialogKeyboardDelegate.applyTo(this, onConfirm = ::renameFiles)
     }
 
     private fun renameFiles() {

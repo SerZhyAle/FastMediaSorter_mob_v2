@@ -159,6 +159,13 @@ class BrowseManagerInitializer(
                 UserActionLogger.logItemLongClick(file.name, context = "Range selection")
                 viewModel.selectFileRange(file.path)
             },
+            onContextMenuRequest = { anchor, file ->
+                UserActionLogger.logItemLongClick(file.name, context = "Mouse context menu")
+                resourceOpsMenuManager.showMenu(
+                    anchor = anchor,
+                    viewModel = viewModel,
+                )
+            },
             onSelectionChanged = { file, selected ->
                 UserActionLogger.logSelection(file.name, selected, context = "Checkbox click")
                 viewModel.selectFile(file.path)
@@ -279,7 +286,6 @@ class BrowseManagerInitializer(
                 override fun showDeleteConfirmation() = this@BrowseManagerInitializer.showDeleteConfirmation()
                 override fun showCopyDialog() = this@BrowseManagerInitializer.showCopyDialog()
                 override fun showMoveDialog() = this@BrowseManagerInitializer.showMoveDialog()
-                override fun performButtonClick(buttonId: Int) {}
                 override fun selectAllFiles() { performSelectAllWithToast() }
                 override fun showRenameDialog() {
                     val s = viewModel.state.value.selectedFiles
@@ -291,6 +297,37 @@ class BrowseManagerInitializer(
                 override fun refreshFiles() = viewModel.reloadFiles()
                 override fun clearSelection() = viewModel.clearSelection()
                 override fun navigateUp() { viewModel.navigateUp() }
+                override fun showCreateFolderDialog() {
+                    resourceOpsMenuManager.showCreateFolderDialog(viewModel)
+                }
+                override fun showHelp() {
+                    com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
+                        activity.supportFragmentManager,
+                        com.sza.fastmediasorter.ui.common.input.InputSurface.BROWSE,
+                    )
+                }
+                override fun showContextMenu() {
+                    // Context menu is pointer-anchored; keyboard shortcut opens it at top of list.
+                    val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(
+                        stateManager.getCurrentFocusPosition()
+                    )?.itemView ?: binding.rvMediaFiles
+                    resourceOpsMenuManager.showMenu(
+                        anchor = anchor,
+                        viewModel = viewModel,
+                    )
+                }
+                override fun extendSelectionUp() {
+                    val pos = (stateManager.getCurrentFocusPosition() - 1).coerceAtLeast(0)
+                    viewModel.state.value.mediaFiles.getOrNull(pos)?.let { viewModel.selectFileRange(it.path) }
+                }
+                override fun extendSelectionDown() {
+                    val files = viewModel.state.value.mediaFiles
+                    val pos = (stateManager.getCurrentFocusPosition() + 1).coerceAtMost(files.size - 1)
+                    files.getOrNull(pos)?.let { viewModel.selectFileRange(it.path) }
+                }
+                override fun undoLastOperation() {
+                    viewModel.undoLastOperation()
+                }
             }
         )
 

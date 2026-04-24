@@ -86,4 +86,23 @@ internal object OpenXrNative {
 
     @JvmStatic external fun nativeGetEyeWidth(eye: Int): Int
     @JvmStatic external fun nativeGetEyeHeight(eye: Int): Int
+
+    /**
+     * Register (or clear with `null`) the input callback that receives per-frame
+     * controller edge events and hand-tracking pointer/pinch events. The callback
+     * runs on the xr-render-thread; implementations MUST hop to the main looper
+     * before touching UI or ViewModel state.
+     *
+     * The native bridge caches method IDs for `onInputEvent(IIFI)V` and, optionally,
+     * `onPointerMove(IFF)V`. A missing `onPointerMove` is non-fatal — the pointer
+     * stream is silently dropped when the method is absent.
+     */
+    @JvmStatic external fun nativeSetInputCallback(callback: XrInputCallback?)
+
+    /**
+     * Trigger haptic feedback on [hand] (0 = left, 1 = right) for [durationNs]
+     * nanoseconds with the given [amplitude] (0.0–1.0).
+     * Returns true if the runtime accepted the request.
+     */
+    @JvmStatic external fun nativeTriggerHaptic(hand: Int, durationNs: Long, amplitude: Float): Boolean
 }

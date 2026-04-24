@@ -7,6 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:descendantFocusability="afterDescendants"
     android:orientation="vertical"
     android:padding="12dp">
 
@@ -32,6 +33,8 @@
             style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:focusableInTouchMode="false"
             android:text="@string/playback_control_done" />
     </LinearLayout>
 
@@ -51,6 +54,8 @@
                 android:id="@+id/rbSectionVolume"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_control_tab_volume" />
 
@@ -58,6 +63,8 @@
                 android:id="@+id/rbSectionAudio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_control_tab_audio" />
 
@@ -65,6 +72,8 @@
                 android:id="@+id/rbSectionSubtitles"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_control_tab_subtitles" />
 
@@ -72,6 +81,8 @@
                 android:id="@+id/rbSectionStereo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_settings_3d_tab" />
 
@@ -79,6 +90,8 @@
                 android:id="@+id/rbSectionHue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_control_tab_hue" />
 
@@ -86,6 +99,8 @@
                 android:id="@+id/rbSectionBrightness"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_control_tab_brightness" />
 
@@ -93,6 +108,8 @@
                 android:id="@+id/rbSectionSpeed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
                 android:paddingHorizontal="12dp"
                 android:text="@string/playback_control_tab_speed" />
         </RadioGroup>
@@ -133,7 +150,9 @@
                 <com.sza.fastmediasorter.ui.player.VerticalSeekBar
                     android:id="@+id/seekVolume"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -146,6 +165,8 @@
                         style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:focusableInTouchMode="false"
                         android:layout_weight="1"
                         android:minHeight="56dp"
                         android:text="@string/playback_control_mute"
@@ -158,6 +179,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
+                        android:focusable="true"
+                        android:focusableInTouchMode="false"
                         android:layout_weight="1"
                         android:text="@string/volume_50_percent" />
 
@@ -167,6 +190,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
+                        android:focusable="true"
+                        android:focusableInTouchMode="false"
                         android:layout_weight="1"
                         android:text="@string/volume_max" />
                 </LinearLayout>
@@ -240,6 +265,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="6dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
                     android:text="@string/playback_settings_3d_override_format_type" />
 
                 <!-- Two columns: Flat (left) | Spherical (right) — halves the vertical footprint -->
@@ -274,6 +301,8 @@
                                 android:id="@+id/radio3DAuto"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_auto" />
 
@@ -281,6 +310,8 @@
                                 android:id="@+id/radio3DSbs"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_sbs" />
 
@@ -288,6 +319,8 @@
                                 android:id="@+id/radio3DOU"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_ou" />
 
@@ -295,6 +328,8 @@
                                 android:id="@+id/radio3DMono"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_mono" />
                         </RadioGroup>
@@ -332,6 +367,8 @@
                                 android:id="@+id/radio360Auto"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_auto" />
 
@@ -339,6 +376,8 @@
                                 android:id="@+id/radio360Mono"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_360_mono" />
 
@@ -346,6 +385,8 @@
                                 android:id="@+id/radio360Sbs"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_360_sbs" />
 
@@ -353,6 +394,8 @@
                                 android:id="@+id/radio360Ou"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_360_ou" />
 
@@ -360,6 +403,8 @@
                                 android:id="@+id/radioVr180"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_vr180" />
 
@@ -367,6 +412,8 @@
                                 android:id="@+id/radioCylinder180"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:focusableInTouchMode="false"
                                 android:minHeight="36dp"
                                 android:text="@string/playback_settings_3d_cylinder_180" />
                         </RadioGroup>
@@ -403,6 +450,8 @@
                     android:id="@+id/seekHue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
                     android:max="360" />
 
                 <com.google.android.material.button.MaterialButton
@@ -411,6 +460,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
                     android:text="@string/reset" />
             </LinearLayout>
 
@@ -433,6 +484,8 @@
                     android:id="@+id/seekBrightness"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
                     android:max="100" />
 
                 <com.google.android.material.button.MaterialButton
@@ -441,6 +494,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
                     android:text="@string/reset" />
             </LinearLayout>
 
@@ -463,6 +518,8 @@
                     android:id="@+id/seekSpeed"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
                     android:max="7" />
 
                 <com.google.android.material.button.MaterialButton
@@ -471,6 +528,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="false"
                     android:text="@string/reset" />
             </LinearLayout>
 

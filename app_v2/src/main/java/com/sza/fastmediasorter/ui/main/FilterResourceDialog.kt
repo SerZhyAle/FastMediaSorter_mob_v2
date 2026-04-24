@@ -9,6 +9,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.DialogFragment
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.DialogFilterResourceBinding
@@ -207,6 +208,11 @@ class FilterResourceDialog : DialogFragment() {
         
         setupResourceTypeChips()
         setupMediaTypeChips()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = ::applyFilters)
     }
 
     override fun onDestroyView() {

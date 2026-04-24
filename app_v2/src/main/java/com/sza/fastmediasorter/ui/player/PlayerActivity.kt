@@ -13,12 +13,14 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -293,6 +295,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     lateinit var mediaFilesCacheManager: MediaFilesCacheManager
 
     @Inject
+    lateinit var gamepadInputManager: GamepadInputManager
+
+    @Inject
     lateinit var smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 
     @Inject
@@ -393,7 +398,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         observerManager.startObserving()
     }
 
-    internal fun exitPlayerWithAudioCheck(withTransition: Boolean = false) =
+    // Open so VrPlayerActivity can route exit through VrTaskTransition instead of a plain finish(),
+    // keeping gamepad B / keyboard Escape paths consistent in VR immersive mode.
+    internal open fun exitPlayerWithAudioCheck(withTransition: Boolean = false) =
         lifecycleManager.exitPlayerWithAudioCheck(withTransition)
 
     private fun setupGestureDetector() = gestureSetupManager.setupGestureDetector()
@@ -642,8 +649,40 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         return keyboardHandler.handleKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
     }
 
-    override fun dispatchGenericMotionEvent(event: MotionEvent?): Boolean =
-        keyboardHandler.handleGenericMotionEvent(event) || super.dispatchGenericMotionEvent(event)
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Gamepad buttons are intercepted before onKeyDown to keep input routing in one place.
+        // BT keyboard / remote keys fall through to super → onKeyDown → keyboardHandler.
+        val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.PLAYER)
+        if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent?): Boolean {
+        if (event != null) {
+            val action = gamepadInputManager.handleMotionEvent(event, GamepadInputManager.Surface.PLAYER)
+            if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
+        }
+        return keyboardHandler.handlePointerEvent(window.decorView, event) || super.dispatchGenericMotionEvent(event)
+    }
+
+    /** Routes a [GamepadAction.PlayerAction] to the same callbacks used by keyboard input. */
+    private fun routePlayerGamepadAction(action: GamepadAction.PlayerAction): Boolean {
+        val callback = keyboardHandler.callback
+        when (action) {
+            is GamepadAction.PlayerAction.PlayPause -> viewModel.togglePause()
+            is GamepadAction.PlayerAction.Next -> callback.onNextFile()
+            is GamepadAction.PlayerAction.Prev -> callback.onPreviousFile()
+            is GamepadAction.PlayerAction.Seek -> {
+                val seconds = (action.ms / 1000L).toInt()
+                if (action.ms >= 0L) callback.onSeekForward(seconds) else callback.onSeekBackward(-seconds)
+            }
+            is GamepadAction.PlayerAction.Volume -> callback.onChangeVolume(if (action.up) +1 else -1)
+            is GamepadAction.PlayerAction.ToggleHud -> callback.onToggleCommandPanel()
+            is GamepadAction.PlayerAction.ToggleHints -> callback.onShowHelp()
+            is GamepadAction.PlayerAction.Exit -> callback.onExitPlayer()
+        }
+        return true
+    }
 
     fun advanceAudioBackgroundPhoto() = audioSlideshowPhotoModeManager.advancePhoto()
 

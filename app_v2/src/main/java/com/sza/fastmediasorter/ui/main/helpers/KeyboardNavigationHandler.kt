@@ -8,7 +8,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.common.FocusManager
+import com.sza.fastmediasorter.ui.common.input.FocusDirection
+import com.sza.fastmediasorter.ui.common.input.InputAction
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.main.MainViewModel
+import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 import timber.log.Timber
 
 /**
@@ -26,174 +31,117 @@ class KeyboardNavigationHandler(
     private val viewModel: MainViewModel,
     private val onDeleteConfirmation: (MediaResource) -> Unit,
     private val onAddResourceClick: () -> Unit,
-    private val onSettingsClick: () -> Unit,
     private val onFilterClick: () -> Unit,
-    private val onExit: () -> Unit
+    private val onExit: () -> Unit,
+    private val onShowHelp: () -> Unit,
+    private val onEditResourceClick: (MediaResource) -> Unit = {},
 ) {
+
+    private val focusManager = FocusManager(
+        recyclerView = recyclerView,
+        callbacks = object : FocusManager.FocusCallbacks {
+            override fun onItemFocused(position: Int) {
+                selectResourceAt(position)
+            }
+
+            override fun onItemSelected(position: Int) {
+                getCurrentResource(position)?.let { resource ->
+                    viewModel.selectResource(resource)
+                    viewModel.openBrowse(resource)
+                }
+            }
+
+            override fun getItemCount(): Int = viewModel.state.value.resources.size
+        }
+    )
+
+    private val shortcutHandler = KeyboardShortcutHandler(
+        surface = InputSurface.MAIN,
+        dispatcher = KeyboardShortcutHandler.ActionDispatcher { action -> dispatchSharedAction(action) }
+    )
     
     /**
      * Main keyboard event handler. Returns true if event was consumed.
      * 
      * Supported keys:
-     * - Arrow keys: Navigate through resources (grid/list aware)
-     * - Page Up/Down, Home/End: Fast navigation
-     * - Enter: Open Browse for selected resource
-     * - Delete: Delete selected resource
-     * - Escape: Exit app completely
-     * - Insert/+: Add new resource
-     * - F1-F5: Function shortcuts (slideshow, settings, filter, refresh, copy)
+     * - Shared semantic navigation via [KeyboardShortcutHandler]
+     * - Insert / + remains a narrow local fallback for opening add-resource
      */
     fun handleKeyDown(keyCode: Int, @Suppress("UNUSED_PARAMETER") event: KeyEvent?): Boolean {
-        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
-        val currentPosition = getCurrentFocusPosition()
-        
+        if (event != null && shortcutHandler.handleKeyEvent(keyCode, event)) {
+            return true
+        }
+
         return when (keyCode) {
-            // Arrow navigation through resources
-            KeyEvent.KEYCODE_DPAD_UP -> {
-                navigateUp(currentPosition, layoutManager)
-                true
-            }
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
-                navigateDown(currentPosition, layoutManager)
-                true
-            }
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                // Left arrow in grid mode
-                if (layoutManager is GridLayoutManager) {
-                    val newPosition = (currentPosition - 1).coerceAtLeast(0)
-                    scrollToPosition(newPosition)
-                }
-                true
-            }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                // Right arrow in grid mode
-                if (layoutManager is GridLayoutManager) {
-                    val maxPosition = viewModel.state.value.resources.size - 1
-                    val newPosition = (currentPosition + 1).coerceAtMost(maxPosition)
-                    scrollToPosition(newPosition)
-                }
-                true
-            }
-            
-            // Page navigation
-            KeyEvent.KEYCODE_PAGE_UP -> {
-                scrollPage(-1)
-                true
-            }
-            KeyEvent.KEYCODE_PAGE_DOWN -> {
-                scrollPage(1)
-                true
-            }
-            KeyEvent.KEYCODE_MOVE_HOME -> {
-                scrollToPosition(0)
-                true
-            }
-            KeyEvent.KEYCODE_MOVE_END -> {
-                val lastPosition = viewModel.state.value.resources.size - 1
-                scrollToPosition(lastPosition)
-                true
-            }
-            
-            // Exit application (kill process completely)
-            KeyEvent.KEYCODE_ESCAPE -> {
-                onExit()
-                true
-            }
-            
-            // Add resource
             KeyEvent.KEYCODE_PLUS, KeyEvent.KEYCODE_INSERT -> {
                 onAddResourceClick()
                 true
             }
-            
-            // Browse selected resource
-            KeyEvent.KEYCODE_ENTER -> {
-                val selectedResource = getCurrentResource(currentPosition)
-                if (selectedResource != null) {
-                    viewModel.selectResource(selectedResource)
-                    viewModel.openBrowse(selectedResource)
-                }
-                true
-            }
-            
-            // Delete selected resource
-            KeyEvent.KEYCODE_DEL, KeyEvent.KEYCODE_FORWARD_DEL -> {
-                val selectedResource = getCurrentResource(currentPosition)
-                if (selectedResource != null) {
-                    onDeleteConfirmation(selectedResource)
-                }
-                true
-            }
-            
-            // Function keys
-            KeyEvent.KEYCODE_F1 -> handleF1Slideshow(currentPosition)
-            KeyEvent.KEYCODE_F2 -> handleF2Settings()
-            KeyEvent.KEYCODE_F3 -> handleF3Filter()
-            KeyEvent.KEYCODE_F4 -> handleF4Refresh()
-            KeyEvent.KEYCODE_F5 -> handleF5Copy(currentPosition)
-            
             else -> false
         }
     }
-    
-    // ========== Function Key Handlers ==========
-    
-    /**
-     * F1: Start slideshow for selected/first resource
-     */
-    private fun handleF1Slideshow(currentPosition: Int): Boolean {
-        val selectedResource = getCurrentResource(currentPosition) 
-            ?: viewModel.state.value.resources.firstOrNull()
-        if (selectedResource != null) {
-            viewModel.selectResource(selectedResource)
-            viewModel.startPlayer()
+
+    private fun dispatchSharedAction(action: InputAction): Boolean {
+        val pos = getCurrentFocusPosition()
+        return when (action) {
+            InputAction.ShowHelp -> { onShowHelp(); true }
+            InputAction.ExitSurface -> { onExit(); true }
+            InputAction.SearchRequested -> { onFilterClick(); true }
+            // color keys and Ctrl+ duplicates for resource list
+            InputAction.CopySelection -> {
+                getCurrentResource(pos)?.let { viewModel.copySelectedResource(it) }
+                true
+            }
+            InputAction.RenameSelection -> {
+                getCurrentResource(pos)?.let { onEditResourceClick(it) }
+                true
+            }
+            InputAction.DeleteSelection -> {
+                getCurrentResource(pos)?.let { onDeleteConfirmation(it) }
+                true
+            }
+            InputAction.RefreshCurrent -> {
+                viewModel.refreshResources()
+                Toast.makeText(context, R.string.toast_resources_refreshed, Toast.LENGTH_SHORT).show()
+                true
+            }
+            // Do not swallow unsupported resource operations on main: help and parser must
+            // reflect only actions the surface can really execute.
+            InputAction.MoveSelection,
+            InputAction.CreateFolder -> false
+            // Do not swallow unsupported undo/redo on main: a consumed no-op looks like success.
+            InputAction.UndoRequested,
+            InputAction.RedoRequested -> false
+            is InputAction.MoveFocus -> {
+                if (action.direction == FocusDirection.NEXT || action.direction == FocusDirection.PREVIOUS) {
+                    false
+                } else {
+                    focusManager.applyAction(action)
+                }
+            }
+            is InputAction.PageJump,
+            InputAction.OpenCurrent -> focusManager.applyAction(action)
+            else -> false
         }
-        return true
     }
-    
-    /**
-     * F2: Open Settings
-     */
-    private fun handleF2Settings(): Boolean {
-        onSettingsClick()
-        return true
+
+    fun ensureFocus() {
+        focusManager.ensureFocus()
     }
-    
-    /**
-     * F3: Open Filter dialog
-     */
-    private fun handleF3Filter(): Boolean {
-        onFilterClick()
-        return true
+
+    fun clearFocus() {
+        focusManager.reset()
     }
-    
-    /**
-     * F4: Refresh resources list
-     */
-    private fun handleF4Refresh(): Boolean {
-        viewModel.refreshResources()
-        Toast.makeText(context, R.string.toast_resources_refreshed, Toast.LENGTH_SHORT).show()
-        return true
-    }
-    
-    /**
-     * F5: Copy selected resource
-     */
-    private fun handleF5Copy(currentPosition: Int): Boolean {
-        val selectedResource = getCurrentResource(currentPosition)
-        if (selectedResource != null) {
-            viewModel.selectResource(selectedResource)
-            viewModel.copySelectedResource(selectedResource)
-        }
-        return true
-    }
-    
+
     // ========== Navigation Helpers ==========
     
     /**
      * Get currently focused item position in RecyclerView.
      */
     private fun getCurrentFocusPosition(): Int {
+        val sharedFocusPosition = focusManager.getCurrentPosition()
+        if (sharedFocusPosition >= 0) return sharedFocusPosition
+
         val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
         return layoutManager?.findFirstVisibleItemPosition() ?: 0
     }

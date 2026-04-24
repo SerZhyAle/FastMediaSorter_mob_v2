@@ -273,7 +273,7 @@ class ResourceOpsMenuManager @Inject constructor(
     // Create folder
     // -------------------------------------------------------------------------
 
-    private fun showCreateFolderDialog(viewModel: BrowseViewModel) {
+    fun showCreateFolderDialog(viewModel: BrowseViewModel) {
         val activity = context as? BrowseActivity ?: return
 
         val forbiddenChars = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')

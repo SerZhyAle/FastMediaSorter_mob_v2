@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.cloudfolders
 
 import android.content.Intent
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
@@ -11,6 +12,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityDropboxFolderPickerBinding
 import com.sza.fastmediasorter.databinding.ItemDropboxFolderBinding
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -23,6 +26,16 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
 
     private val viewModel: DropboxFolderPickerViewModel by viewModels()
     private lateinit var folderAdapter: CloudFolderAdapter
+    private val keyboardDelegate = CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
+        override fun activateFocused(): Boolean {
+            // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
+            return currentFocus?.performClick() == true
+        }
+        override fun navigateUp() { handleBackNavigation() }
+        override fun refresh() { viewModel.loadFolders() }
+        override fun cancel() { finish() }
+        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.CLOUD_PICKER) }
+    })
 
     override fun getViewBinding(): ActivityDropboxFolderPickerBinding {
         return ActivityDropboxFolderPickerBinding.inflate(layoutInflater)
@@ -125,6 +138,11 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
                 }
             }
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyboardDelegate.handleKeyDown(keyCode, event)) return true
+        return super.onKeyDown(keyCode, event)
     }
 
     private fun handleBackNavigation() {

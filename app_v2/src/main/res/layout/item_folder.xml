@@ -6,7 +6,9 @@
     android:orientation="horizontal"
     android:padding="@dimen/item_padding_vertical"
     android:gravity="center_vertical"
-    android:background="?attr/selectableItemBackground">
+    android:background="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:focusableInTouchMode="false">
 
     <ImageView
         android:layout_width="@dimen/item_status_badge_size"

@@ -15,17 +15,35 @@ sealed class PlaybackCommand {
     data object NextFile : PlaybackCommand()
     data object OpenControls : PlaybackCommand()
     data object Exit : PlaybackCommand()
-    // File operations — available in standard; excluded from VR overlay
+    // File operations — available in standard; VR exposes these through the immersive file-ops panel.
     data object MoveFile : PlaybackCommand()
     data object CopyFile : PlaybackCommand()
     data object DeleteFile : PlaybackCommand()
+    // VR-specific commands — immersive controls (keyboard/mouse/OpenXR controllers).
+    data object TogglePausePlay : PlaybackCommand()
+    data class VolumeStep(val delta: Int) : PlaybackCommand()
+    data class ZoomStep(val increase: Boolean) : PlaybackCommand()
+    data object ZoomReset : PlaybackCommand()
+    data object Recenter : PlaybackCommand()
+    data object ToggleImmersiveMode : PlaybackCommand()
+    data object ShowCheatsheet : PlaybackCommand()
+    data object ToggleOverlay : PlaybackCommand()
+    data object OpenFileOps : PlaybackCommand()
+    data object RenameFile : PlaybackCommand()
+    data class SeekMicro(val forward: Boolean) : PlaybackCommand()
+    data class SeekMacro(val forward: Boolean) : PlaybackCommand()
+    data object Mute : PlaybackCommand()
 }
 
 data class PlaybackCommandSet(
     val available: Set<PlaybackCommand>
 ) {
     companion object {
-        /** VR overlay command set — playback controls only, no file operations. */
+        /**
+         * VR overlay / immersive command set. Includes file operations
+         * because the immersive file-ops panel delegates through the
+         * same dispatch pipeline as keyboard and mouse input.
+         */
         fun forVrPlayback() = PlaybackCommandSet(
             available = setOf(
                 PlaybackCommand.Play,
@@ -35,7 +53,19 @@ data class PlaybackCommandSet(
                 PlaybackCommand.PreviousFile,
                 PlaybackCommand.NextFile,
                 PlaybackCommand.OpenControls,
-                PlaybackCommand.Exit
+                PlaybackCommand.Exit,
+                PlaybackCommand.MoveFile,
+                PlaybackCommand.CopyFile,
+                PlaybackCommand.DeleteFile,
+                PlaybackCommand.TogglePausePlay,
+                PlaybackCommand.ZoomReset,
+                PlaybackCommand.Recenter,
+                PlaybackCommand.ToggleImmersiveMode,
+                PlaybackCommand.ShowCheatsheet,
+                PlaybackCommand.ToggleOverlay,
+                PlaybackCommand.OpenFileOps,
+                PlaybackCommand.RenameFile,
+                PlaybackCommand.Mute,
             )
         )
 

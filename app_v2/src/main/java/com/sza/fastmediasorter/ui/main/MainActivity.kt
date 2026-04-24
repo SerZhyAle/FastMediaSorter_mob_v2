@@ -21,10 +21,12 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
@@ -43,6 +45,8 @@ import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
@@ -93,6 +97,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var resourceRepository: ResourceRepository
+
+    @Inject
+    lateinit var gamepadInputManager: GamepadInputManager
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -228,12 +235,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel = viewModel,
             onDeleteConfirmation = { resource -> showDeleteConfirmation(resource) },
             onAddResourceClick = { binding.btnAddResource.performClick() },
-            onSettingsClick = { binding.btnSettings.performClick() },
             onFilterClick = { binding.btnFilter.performClick() },
             onExit = {
                 stopAudioPlaybackService()
                 finishAffinity()
                 android.os.Process.killProcess(android.os.Process.myPid())
+            },
+            onShowHelp = {
+                InputHelpDialogFragment.show(supportFragmentManager, InputSurface.MAIN)
+            },
+            onEditResourceClick = { resource ->
+                if (!resource.accessPin.isNullOrBlank()) {
+                    passwordManager.checkResourcePinForEdit(resource)
+                } else {
+                    startActivity(ResourceEditorActivity.createEditIntent(this, resource.id))
+                }
             }
         )
         
@@ -521,6 +537,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             resourceAdapter.submitList(state.resources)
             resourceAdapter.setSelectedResource(state.selectedResource?.id)
             resourceAdapter.setViewMode(state.isResourceGridMode)
+
+            if (state.resources.isEmpty()) {
+                // Reset the shared focus state when the list disappears so the
+                // next keyboard action can restore focus deterministically.
+                keyboardNavigationHandler.clearFocus()
+            }
 
             // Update layout manager based on mode and screen size
             layoutChrome.updateLayoutManagerForScreenSize()
@@ -846,6 +868,42 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         } else {
             super.onKeyDown(keyCode, event)
         }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Gamepad buttons first. D-pad / left stick focus moves are left to Android's
+        // default focus search (super), which already works with focusable="true" items.
+        val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.BROWSER)
+        if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
+        when (action) {
+            is GamepadAction.BrowserAction.Select -> {
+                // Trigger a click on whatever has focus — delegates to the adapter/button listeners.
+                currentFocus?.performClick() ?: return false
+            }
+            is GamepadAction.BrowserAction.Back -> onBackPressedDispatcher.onBackPressed()
+            is GamepadAction.BrowserAction.MultiSelect -> {
+                // Resource list is single-select; fall back to Select semantics for consistency.
+                currentFocus?.performClick() ?: return false
+            }
+            is GamepadAction.BrowserAction.ContextMenu -> {
+                // Long-press the focused resource row to surface its menu.
+                currentFocus?.performLongClick() ?: return false
+            }
+            is GamepadAction.BrowserAction.Search -> binding.btnFilter.performClick()
+            is GamepadAction.BrowserAction.SwitchTab -> {
+                val tabs = binding.tabResourceTypes
+                val count = tabs.tabCount
+                if (count <= 1) return false
+                val current = tabs.selectedTabPosition.coerceAtLeast(0)
+                val next = if (action.forward) (current + 1) % count else (current - 1 + count) % count
+                tabs.selectTab(tabs.getTabAt(next))
+            }
+        }
+        return true
     }
     
     private fun setupResourceTypeTabs() {

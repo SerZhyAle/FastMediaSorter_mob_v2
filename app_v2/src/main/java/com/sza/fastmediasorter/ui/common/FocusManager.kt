@@ -5,267 +5,216 @@ import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.ui.common.input.FocusDirection
+import com.sza.fastmediasorter.ui.common.input.FocusRingHelper
+import com.sza.fastmediasorter.ui.common.input.InputAction
 import timber.log.Timber
 
 /**
- * Focus manager for arrow key navigation in RecyclerView
- * Task 8: Full keyboard and mouse support
- * 
- * Handles:
- * - Arrow key navigation (up/down/left/right)
- * - Home/End keys for quick navigation
- * - Page Up/Page Down for fast scrolling
- * - Grid and list layout support
+ * Shared focus primitive for keyboard-driven list / grid surfaces.
+ *
+ * Responsibilities:
+ *  - arrow / page / home-end navigation over a RecyclerView
+ *  - deterministic initial focus
+ *  - visible focus state via [FocusRingHelper]
+ *  - selection-range extension hooks for `Shift+Up/Down`
+ *
+ * Arrow navigation is grid-aware (uses [GridLayoutManager.spanCount]).
+ * Callers translate [android.view.KeyEvent] -> [InputAction] via the
+ * shared parser and call [applyAction], or hand raw key codes to
+ * [handleArrowKey] for the legacy path.
  */
 class FocusManager(
     private val recyclerView: RecyclerView,
-    private val callbacks: FocusCallbacks
+    private val callbacks: FocusCallbacks,
 ) {
-    
+
     interface FocusCallbacks {
-        /** Called when focus moves to a new item */
+        /** Focus moved to [position]. */
         fun onItemFocused(position: Int)
-        
-        /** Called when item is selected (Enter/Space) */
+
+        /** User opened item at [position] (Enter / Space / double-click). */
         fun onItemSelected(position: Int)
-        
-        /** Get total item count in adapter */
+
+        /** Total item count in the adapter. */
         fun getItemCount(): Int
+
+        /**
+         * Optional: selection range extended from [anchor] to [position].
+         * Default no-op; surfaces that support range selection override.
+         */
+        fun onRangeExtended(anchor: Int, position: Int) {}
     }
-    
+
     companion object {
         private const val TAG = "FocusManager"
-        private const val PAGE_SIZE = 10 // Items to skip for Page Up/Down
+        private const val PAGE_SIZE = 10
     }
-    
+
     private var currentFocusPosition = -1
+    private var rangeAnchorPosition = -1
     private var focusHighlightEnabled = true
-    
+
     /**
-     * Handle arrow key navigation
-     * @return true if event was handled
+     * Legacy key-code entry point. Prefer [applyAction] for new callers.
      */
     fun handleArrowKey(keyCode: Int, event: KeyEvent): Boolean {
-        if (event.action != KeyEvent.ACTION_DOWN) {
-            return false
-        }
-        
+        if (event.action != KeyEvent.ACTION_DOWN) return false
+        val action = when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP -> InputAction.MoveFocus(FocusDirection.UP)
+            KeyEvent.KEYCODE_DPAD_DOWN -> InputAction.MoveFocus(FocusDirection.DOWN)
+            KeyEvent.KEYCODE_DPAD_LEFT -> InputAction.MoveFocus(FocusDirection.LEFT)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> InputAction.MoveFocus(FocusDirection.RIGHT)
+            KeyEvent.KEYCODE_MOVE_HOME -> InputAction.MoveFocus(FocusDirection.FIRST)
+            KeyEvent.KEYCODE_MOVE_END -> InputAction.MoveFocus(FocusDirection.LAST)
+            KeyEvent.KEYCODE_PAGE_UP -> InputAction.PageJump(-1)
+            KeyEvent.KEYCODE_PAGE_DOWN -> InputAction.PageJump(+1)
+            else -> null
+        } ?: return false
+        return applyAction(action)
+    }
+
+    /**
+     * Apply a semantic navigation action. Returns true if the action
+     * affected focus state.
+     */
+    fun applyAction(action: InputAction): Boolean {
         val itemCount = callbacks.getItemCount()
         if (itemCount == 0) {
-            Timber.d("$TAG: No items to navigate")
+            Timber.v("%s: no items", TAG)
             return false
         }
-        
-        // Initialize focus if not set
+
         if (currentFocusPosition == -1) {
-            currentFocusPosition = 0
             moveFocus(0)
-            return true
+            if (action !is InputAction.MoveFocus && action !is InputAction.PageJump) return true
         }
-        
+
         val layoutManager = recyclerView.layoutManager ?: return false
         val spanCount = getSpanCount(layoutManager)
-        val isGridLayout = spanCount > 1
-        
-        Timber.d("$TAG: Handling keyCode=$keyCode, currentPos=$currentFocusPosition, spanCount=$spanCount")
-        
-        return when (keyCode) {
-            // Up arrow
-            KeyEvent.KEYCODE_DPAD_UP -> {
-                val newPosition = if (isGridLayout) {
-                    (currentFocusPosition - spanCount).coerceAtLeast(0)
-                } else {
-                    (currentFocusPosition - 1).coerceAtLeast(0)
-                }
-                moveFocus(newPosition)
+        val isGrid = spanCount > 1
+        val cur = currentFocusPosition
+
+        return when (action) {
+            is InputAction.MoveFocus -> {
+                val target = when (action.direction) {
+                    FocusDirection.UP -> if (isGrid) cur - spanCount else cur - 1
+                    FocusDirection.DOWN -> if (isGrid) cur + spanCount else cur + 1
+                    FocusDirection.LEFT -> if (isGrid && cur % spanCount != 0) cur - 1 else cur
+                    FocusDirection.RIGHT -> if (isGrid && (cur + 1) % spanCount != 0) cur + 1 else cur
+                    FocusDirection.FIRST,
+                    FocusDirection.PREVIOUS -> if (action.direction == FocusDirection.FIRST) 0 else cur - 1
+                    FocusDirection.LAST,
+                    FocusDirection.NEXT -> if (action.direction == FocusDirection.LAST) itemCount - 1 else cur + 1
+                }.coerceIn(0, itemCount - 1)
+                moveFocus(target)
                 true
             }
-            
-            // Down arrow
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
-                val newPosition = if (isGridLayout) {
-                    (currentFocusPosition + spanCount).coerceAtMost(itemCount - 1)
-                } else {
-                    (currentFocusPosition + 1).coerceAtMost(itemCount - 1)
-                }
-                moveFocus(newPosition)
+            is InputAction.PageJump -> {
+                val jump = if (isGrid) spanCount * 3 else PAGE_SIZE
+                val target = (cur + action.deltaPages * jump).coerceIn(0, itemCount - 1)
+                moveFocus(target)
                 true
             }
-            
-            // Left arrow
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                if (isGridLayout && currentFocusPosition % spanCount != 0) {
-                    val newPosition = (currentFocusPosition - 1).coerceAtLeast(0)
-                    moveFocus(newPosition)
-                }
+            InputAction.RangeExtendUp -> {
+                val target = (cur - 1).coerceAtLeast(0)
+                extendRange(target)
                 true
             }
-            
-            // Right arrow
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                if (isGridLayout && (currentFocusPosition + 1) % spanCount != 0) {
-                    val newPosition = (currentFocusPosition + 1).coerceAtMost(itemCount - 1)
-                    moveFocus(newPosition)
-                }
+            InputAction.RangeExtendDown -> {
+                val target = (cur + 1).coerceAtMost(itemCount - 1)
+                extendRange(target)
                 true
             }
-            
-            // Home - go to first item
-            KeyEvent.KEYCODE_MOVE_HOME -> {
-                moveFocus(0)
-                true
-            }
-            
-            // End - go to last item
-            KeyEvent.KEYCODE_MOVE_END -> {
-                moveFocus(itemCount - 1)
-                true
-            }
-            
-            // Page Up - jump up
-            KeyEvent.KEYCODE_PAGE_UP -> {
-                val jump = if (isGridLayout) spanCount * 3 else PAGE_SIZE
-                val newPosition = (currentFocusPosition - jump).coerceAtLeast(0)
-                moveFocus(newPosition)
-                true
-            }
-            
-            // Page Down - jump down
-            KeyEvent.KEYCODE_PAGE_DOWN -> {
-                val jump = if (isGridLayout) spanCount * 3 else PAGE_SIZE
-                val newPosition = (currentFocusPosition + jump).coerceAtMost(itemCount - 1)
-                moveFocus(newPosition)
-                true
-            }
-            
+            InputAction.OpenCurrent -> selectCurrentItem()
             else -> false
         }
     }
-    
-    /**
-     * Get span count from layout manager
-     */
-    private fun getSpanCount(layoutManager: RecyclerView.LayoutManager): Int {
-        return when (layoutManager) {
-            is GridLayoutManager -> layoutManager.spanCount
-            is LinearLayoutManager -> 1
-            else -> 1
-        }
+
+    private fun getSpanCount(lm: RecyclerView.LayoutManager): Int = when (lm) {
+        is GridLayoutManager -> lm.spanCount
+        is LinearLayoutManager -> 1
+        else -> 1
     }
-    
-    /**
-     * Move focus to new position with visual feedback
-     */
+
     private fun moveFocus(newPosition: Int) {
-        if (newPosition == currentFocusPosition || newPosition < 0) {
-            return
-        }
-        
+        if (newPosition == currentFocusPosition || newPosition < 0) return
         val itemCount = callbacks.getItemCount()
-        if (newPosition >= itemCount) {
-            return
-        }
-        
-        Timber.d("$TAG: Moving focus from $currentFocusPosition to $newPosition")
-        
-        val oldPosition = currentFocusPosition
+        if (newPosition >= itemCount) return
+
+        val old = currentFocusPosition
         currentFocusPosition = newPosition
-        
-        // Scroll to make item visible
+        rangeAnchorPosition = newPosition
         recyclerView.smoothScrollToPosition(newPosition)
-        
-        // Notify callback
         callbacks.onItemFocused(newPosition)
-        
-        // Update visual focus state
         recyclerView.post {
-            // Remove focus from old item
-            if (oldPosition >= 0) {
-                recyclerView.findViewHolderForAdapterPosition(oldPosition)?.itemView?.let { view ->
-                    setItemFocused(view, false)
+            if (old >= 0) {
+                recyclerView.findViewHolderForAdapterPosition(old)?.itemView?.let { view ->
+                    FocusRingHelper.setFocused(view, focusHighlightEnabled && false)
                 }
             }
-            
-            // Add focus to new item
             recyclerView.findViewHolderForAdapterPosition(newPosition)?.itemView?.let { view ->
-                setItemFocused(view, true)
+                FocusRingHelper.setFocused(view, focusHighlightEnabled)
                 view.requestFocus()
             }
         }
     }
-    
-    /**
-     * Set visual focus state on item view
-     */
-    private fun setItemFocused(view: View, focused: Boolean) {
-        if (!focusHighlightEnabled) return
-        
-        view.isActivated = focused
-        if (focused) {
-            view.alpha = 1.0f
-        } else {
-            view.alpha = 1.0f // Keep normal alpha, use activated state for styling
+
+    private fun extendRange(target: Int) {
+        val anchor = if (rangeAnchorPosition == -1) currentFocusPosition else rangeAnchorPosition
+        if (anchor < 0) {
+            moveFocus(target)
+            return
+        }
+        currentFocusPosition = target
+        rangeAnchorPosition = anchor
+        recyclerView.smoothScrollToPosition(target)
+        callbacks.onItemFocused(target)
+        callbacks.onRangeExtended(anchor, target)
+        recyclerView.post {
+            recyclerView.findViewHolderForAdapterPosition(target)?.itemView?.let { view ->
+                FocusRingHelper.setFocused(view, focusHighlightEnabled)
+                view.requestFocus()
+            }
         }
     }
-    
-    /**
-     * Handle selection on current focused item
-     * @return true if there was a focused item to select
-     */
+
+    /** Activate current item (Enter / Space / click). */
     fun selectCurrentItem(): Boolean {
-        if (currentFocusPosition >= 0 && currentFocusPosition < callbacks.getItemCount()) {
-            Timber.d("$TAG: Selecting item at position $currentFocusPosition")
+        if (currentFocusPosition in 0 until callbacks.getItemCount()) {
             callbacks.onItemSelected(currentFocusPosition)
             return true
         }
         return false
     }
-    
-    /**
-     * Get current focus position
-     */
+
     fun getCurrentPosition(): Int = currentFocusPosition
-    
-    /**
-     * Set focus position programmatically
-     */
+
+    /** Programmatic focus move. */
     fun setPosition(position: Int) {
         val itemCount = callbacks.getItemCount()
-        if (position in 0 until itemCount) {
-            moveFocus(position)
-        }
+        if (position in 0 until itemCount) moveFocus(position)
     }
-    
-    /**
-     * Reset focus state
-     */
+
+    /** Reset focus state and visual highlight. */
     fun reset() {
         if (currentFocusPosition >= 0) {
             recyclerView.findViewHolderForAdapterPosition(currentFocusPosition)?.itemView?.let { view ->
-                setItemFocused(view, false)
+                FocusRingHelper.setFocused(view, false)
             }
         }
         currentFocusPosition = -1
+        rangeAnchorPosition = -1
     }
-    
-    /**
-     * Enable/disable focus highlighting
-     */
+
     fun setFocusHighlightEnabled(enabled: Boolean) {
         focusHighlightEnabled = enabled
     }
-    
-    /**
-     * Check if any item is currently focused
-     */
+
     fun hasFocus(): Boolean = currentFocusPosition >= 0
-    
-    /**
-     * Focus first item if nothing is focused
-     */
+
+    /** Focus first item if nothing is focused. */
     fun ensureFocus() {
-        if (currentFocusPosition == -1 && callbacks.getItemCount() > 0) {
-            moveFocus(0)
-        }
+        if (currentFocusPosition == -1 && callbacks.getItemCount() > 0) moveFocus(0)
     }
 }

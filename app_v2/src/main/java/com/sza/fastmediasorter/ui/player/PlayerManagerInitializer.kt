@@ -132,7 +132,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.slideshowController = activity.navigationManager.getSlideshowController()
 
         activity.keyboardHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler(
-            viewModel = activity.viewModel,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerKeyboardCallbackImpl(
                 activity = activity,
                 viewModel = activity.viewModel

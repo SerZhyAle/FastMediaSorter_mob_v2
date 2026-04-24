@@ -11,8 +11,12 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import android.view.KeyEvent
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.ui.common.input.FocusDirection
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
@@ -30,6 +34,23 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private val viewModel: AddResourceViewModel by viewModels()
 
     private var copyResourceId: Long? = null
+
+    private val keyboardDelegate = AddResourceKeyboardDelegate(object : AddResourceKeyboardDelegate.Callback {
+        override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
+        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.ADD_RESOURCE) }
+        override fun activateFocused(): Boolean = currentFocus?.performClick() == true
+        override fun moveFocus(direction: FocusDirection) {
+            val focusDir = when (direction) {
+                FocusDirection.UP, FocusDirection.PREVIOUS -> android.view.View.FOCUS_UP
+                FocusDirection.DOWN, FocusDirection.NEXT -> android.view.View.FOCUS_DOWN
+                FocusDirection.LEFT -> android.view.View.FOCUS_LEFT
+                FocusDirection.RIGHT -> android.view.View.FOCUS_RIGHT
+                FocusDirection.FIRST -> android.view.View.FOCUS_UP
+                FocusDirection.LAST -> android.view.View.FOCUS_DOWN
+            }
+            currentFocus?.focusSearch(focusDir)?.requestFocus()
+        }
+    })
 
     @Inject lateinit var unifiedAuthManager: UnifiedCloudAuthManager
     @Inject lateinit var dropboxClient: dagger.Lazy<DropboxClient>
@@ -376,6 +397,11 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 lifecycleScope.launch { unifiedAuthManager.processIntentResult(data) }
             }
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyboardDelegate.handleKeyDown(keyCode, event)) return true
+        return super.onKeyDown(keyCode, event)
     }
 
     companion object {

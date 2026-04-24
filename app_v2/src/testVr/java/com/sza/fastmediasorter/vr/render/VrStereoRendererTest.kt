@@ -4,6 +4,10 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * VR planner coverage is flavor-specific because the render plan types live
+ * under `src/vr/java`, so this test belongs to `testVr` rather than generic `test`.
+ */
 class VrStereoRendererTest {
 
     private val renderer = VrRenderPlanner()

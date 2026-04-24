@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Complete Feature List
 
-*Last updated: 2026-04-19*
+*Last updated: 2026-04-24*
 
 This document is the canonical, up-to-date inventory of all user-facing features implemented in the application. It serves as a comprehensive guide to what the application can do, how each feature works, and why it is useful for the user.
 
@@ -73,7 +73,10 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Scan progress indicator**: Track the progress of large folder scans with a non-intrusive indicator that appears after 5 seconds. You can securely cancel long-running operations using the built-in STOP button.
 - **Pagination**: Navigate incredibly large catalogs smoothly without memory crashes. The app automatically switches to paged loading to ensure the interface remains highly responsive regardless of folder size.
 - **Inline audio mini-player**: Start playing music tracks seamlessly directly from the file browser. This avoids disrupting your navigation flow and lets you preview audio files instantly.
-- **Keyboard navigation**: Use external or hardware keyboards to navigate lists and trigger actions. This facilitates a rapid, desktop-like browsing experience on tablets or devices with physical keyboards.
+- **Full keyboard navigation on all screens**: Every screen — file browser, player, standalone viewer, settings, all dialogs, add-resource form, cloud-picker flows, resource editor, receive-share, and widget configurator — responds to hardware keyboard input. **Enter** activates the focused item, **Escape** exits or dismisses, **Arrow keys** move focus, **Backspace** navigates one folder up in Browse and cloud pickers. Enables a desktop-like workflow on tablets, Android TV, and devices with Bluetooth keyboards.
+- **NC-style file-management shortcuts and TV color keys**: On Browse and cloud-picker surfaces, keyboard shortcuts follow the classic Norton Commander layout: **F5** copies, **F6** moves, **F7** creates a subfolder, **F8** deletes. Android TV remote color keys map the same four operations: Red = Delete, Green = Copy, Yellow = Move, Blue = Rename. **Ctrl+F** opens document-search in text/PDF/EPUB viewers; **Ctrl+S** saves edits in the resource editor.
+- **F1 help dialog and visible keyboard focus**: Press **F1** on any hardware keyboard to open a surface-specific shortcut reference with a link to the online docs — every screen has its own tailored hint list. The active item also receives a visible focus ring during keyboard navigation.
+- **Gamepad support (Xbox / DualSense / 8BitDo)**: A standard Bluetooth or USB gamepad drives the file browser, both standard and VR players. **D-pad / left stick** move focus, **A** opens or confirms, **B** goes back or exits the player, **X** skips to the next file (or toggles multi-select in the browser), **Y** opens the previous file or the context menu, **L1/R1** seek ±10s or switch views, **Start** toggles the HUD / opens search, **Select** toggles on-screen hints. Analog seek on the right stick scales by deflection; dead-zone and rate-limiting keep volume and seek smooth.
 - **Manual drag-to-reorder**: In Manual sort mode, drag files using the handle that appears next to each item to set a custom display order. The order is persisted per directory and automatically restored on the next visit.
 
 ## 3. File Operations
@@ -150,6 +153,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Dual-group VR format override dialog**: In the VR edition, the `Control -> 3D` dialog shows flat and spherical format groups at the same time. The inactive family stays visible but disabled by default, a dedicated `Override format type` switch unlocks cross-family overrides, manual selections toast briefly, and remembered selections restore per file on reopen when `Remember file format` is enabled.
 - **Split VR forced-format settings**: The VR settings screen exposes separate `Forced flat format` and `Forced spherical format` spinners. Legacy installs keep their old `vrForcedFormat` value through compatibility fallback, flat overrides never affect 360°/VR180 content, spherical overrides never affect flat cinema playback, and backup export/import preserves both fields.
 - **3DVR toggle button**: A dedicated "Watch in 3D VR" button appears on the video player command bar (VR edition only). Tapping it relaunches the current video in immersive OpenXR mode without leaving the player; in immersive mode the same slot shows "Exit 3D VR" to return to the panel player. The left thumbstick click also toggles between modes. Playback position is preserved across the switch via the automatic position-save system.
+- **VR Immersive Controls**: Touch Plus/Pro controllers, Bluetooth keyboard, and Bluetooth mouse are fully operable inside the immersive 3D session. Playback (pause, seek, volume, next/previous file, zoom, re-center), the settings dialog, and the full file operations set (copy, move, delete, rename, info) are accessible without removing the headset. A first-run cheatsheet auto-appears for 4 seconds; long-press Y on the left controller or press F1 on a BT keyboard to bring it back.
 
 ## 9. Audio Player
 
@@ -295,6 +299,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 | **Backup** | Manage holistic state persistence securely. Produce strict JSON payloads encapsulating your precise application state ready for local export, facilitate JSON data importing, or automate Backup and Restoration operations utilizing rigorous Google Drive integration. |
 
 - **Landscape-adaptive dialogs**: All dialogs across the app include dedicated landscape layout variants (`layout-land/`). In landscape orientation every dialog is constrained to 320 dp maximum height and made scrollable, with action buttons and close controls pinned at the top of content so they are always immediately reachable regardless of how far the user has scrolled. Applies to all product flavors (Standard, Lite, Photos, Legacy).
+- **Keyboard navigation**: Navigate the settings layout entirely by keyboard — **Arrow keys** and **Tab** move focus between rows, **Enter** activates the focused toggle or row, **Ctrl+F** opens the built-in settings search overlay inline, and **Escape** closes it. The same keyboard delegate keeps navigation live inside search results.
 
 ## 20. Settings Search
 

@@ -40,6 +40,12 @@ class OpenXrSessionManager(
      * [VrStereoRenderer] require release() on the thread that owns the current context.
      */
     private val onSessionStopped: (() -> Unit)? = null,
+    /**
+     * Optional callback that receives per-frame controller/stick/grip edge events from
+     * the native OpenXR action system. Registered via [OpenXrNative.nativeSetInputCallback]
+     * after a successful session init.
+     */
+    private val inputCallback: XrInputCallback? = null,
 ) {
 
     data class StereoSnapshotPixels(
@@ -127,6 +133,22 @@ class OpenXrSessionManager(
             } catch (t: Throwable) {
                 Timber.e(t, "OpenXrSessionManager: nativeInitialize THREW — see stack above")
                 false
+            }
+
+            // Register the input callback as soon as the native session is up so that
+            // controller events start flowing on the first rendered frame.
+            if (ok) {
+                val localInputCallback = inputCallback
+                if (localInputCallback != null) {
+                    try {
+                        OpenXrNative.nativeSetInputCallback(localInputCallback)
+                        Timber.i("OpenXrSessionManager: input callback registered")
+                    } catch (t: Throwable) {
+                        Timber.w(t, "OpenXrSessionManager: nativeSetInputCallback failed — controllers will be silent")
+                    }
+                } else {
+                    Timber.d("OpenXrSessionManager: no inputCallback provided — controller input disabled")
+                }
             }
 
             initialized.set(ok)

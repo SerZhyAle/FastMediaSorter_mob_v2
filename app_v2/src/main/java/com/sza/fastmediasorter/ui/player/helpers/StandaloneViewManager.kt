@@ -159,6 +159,8 @@ class StandaloneViewManager(
 
     fun getExoPlayer(): ExoPlayer? = exoPlayer
 
+    fun getPlayer(mediaType: MediaType?): Player? = activePlayer(mediaType)
+
     fun isVideoPlaying(): Boolean = exoPlayer?.isPlaying == true
 
     fun setHueAdjustmentDegrees(hueDegrees: Float) {

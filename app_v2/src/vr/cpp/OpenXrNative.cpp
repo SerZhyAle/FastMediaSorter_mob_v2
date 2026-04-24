@@ -16,11 +16,140 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+// ─── Hand-tracking extensions — defensive local declarations ──────────────────
+// XR_EXT_hand_tracking is part of mainline openxr.h since 1.0.21; XR_META_* are
+// vendor-specific and ship in the Meta OpenXR Mobile SDK headers which are NOT
+// guaranteed to be in the Khronos AAR. To keep the build independent of SDK
+// header availability, declare the Meta structures locally when missing, and
+// dispatch every function via xrGetInstanceProcAddr at runtime.
+// Extension-name macros are referenced unconditionally below, so guard each with
+// an individual #ifndef — openxr.h defines them inside the same extension block
+// as the types, but ordering of `#define` guard vs name-string varies by SDK
+// version, so duplicating them here is the only way to guarantee the symbol
+// exists regardless of header state.
+#ifndef XR_EXT_HAND_TRACKING_EXTENSION_NAME
+#define XR_EXT_HAND_TRACKING_EXTENSION_NAME "XR_EXT_hand_tracking"
+#endif
+#ifndef XR_META_HAND_TRACKING_AIM_EXTENSION_NAME
+#define XR_META_HAND_TRACKING_AIM_EXTENSION_NAME "XR_META_hand_tracking_aim"
+#endif
+#ifndef XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME
+#define XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME "XR_FB_hand_tracking_aim"
+#endif
+#ifndef XR_META_HAND_TRACKING_MICROGESTURES_EXTENSION_NAME
+#define XR_META_HAND_TRACKING_MICROGESTURES_EXTENSION_NAME "XR_META_hand_tracking_microgestures"
+#endif
+
+#ifndef XR_EXT_hand_tracking
+#define XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT static_cast<XrStructureType>(1000051000)
+#define XR_TYPE_HAND_TRACKER_CREATE_INFO_EXT static_cast<XrStructureType>(1000051001)
+#define XR_TYPE_HAND_JOINTS_LOCATE_INFO_EXT static_cast<XrStructureType>(1000051002)
+#define XR_TYPE_HAND_JOINT_LOCATIONS_EXT static_cast<XrStructureType>(1000051003)
+#define XR_TYPE_HAND_JOINT_VELOCITIES_EXT static_cast<XrStructureType>(1000051004)
+XR_DEFINE_HANDLE(XrHandTrackerEXT)
+typedef enum XrHandEXT
+{
+    XR_HAND_LEFT_EXT = 1,
+    XR_HAND_RIGHT_EXT = 2,
+} XrHandEXT;
+typedef enum XrHandJointSetEXT
+{
+    XR_HAND_JOINT_SET_DEFAULT_EXT = 0,
+} XrHandJointSetEXT;
+#define XR_HAND_JOINT_COUNT_EXT 26
+typedef struct XrHandTrackerCreateInfoEXT
+{
+    XrStructureType type;
+    const void *next;
+    XrHandEXT hand;
+    XrHandJointSetEXT handJointSet;
+} XrHandTrackerCreateInfoEXT;
+typedef struct XrHandJointsLocateInfoEXT
+{
+    XrStructureType type;
+    const void *next;
+    XrSpace baseSpace;
+    XrTime time;
+} XrHandJointsLocateInfoEXT;
+typedef struct XrHandJointLocationEXT
+{
+    XrSpaceLocationFlags locationFlags;
+    XrPosef pose;
+    float radius;
+} XrHandJointLocationEXT;
+typedef struct XrHandJointLocationsEXT
+{
+    XrStructureType type;
+    void *next;
+    XrBool32 isActive;
+    uint32_t jointCount;
+    XrHandJointLocationEXT *jointLocations;
+} XrHandJointLocationsEXT;
+#endif // XR_EXT_hand_tracking
+
+// XR_META_hand_tracking_aim / XR_FB_hand_tracking_aim — ray + pinch strength
+// chained onto joint locations. Meta and FB variants share the same struct +
+// flag layout, so either header makes the types available. Guard on BOTH so we
+// never redeclare types when only the FB alias ships in the Khronos headers.
+#if !defined(XR_META_hand_tracking_aim) && !defined(XR_FB_hand_tracking_aim)
+#define XR_TYPE_HAND_TRACKING_AIM_STATE_FB static_cast<XrStructureType>(1000111001)
+typedef XrFlags64 XrHandTrackingAimFlagsFB;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_COMPUTED_BIT_FB = 0x00000001;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_VALID_BIT_FB = 0x00000002;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_INDEX_PINCHING_BIT_FB = 0x00000004;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_MIDDLE_PINCHING_BIT_FB = 0x00000008;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_RING_PINCHING_BIT_FB = 0x00000010;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_LITTLE_PINCHING_BIT_FB = 0x00000020;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_SYSTEM_GESTURE_BIT_FB = 0x00000040;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_DOMINANT_HAND_BIT_FB = 0x00000080;
+static constexpr XrHandTrackingAimFlagsFB XR_HAND_TRACKING_AIM_MENU_PRESSED_BIT_FB = 0x00000100;
+typedef struct XrHandTrackingAimStateFB
+{
+    XrStructureType type;
+    void *next;
+    XrHandTrackingAimFlagsFB status;
+    XrPosef aimPose;
+    float pinchStrengthIndex;
+    float pinchStrengthMiddle;
+    float pinchStrengthRing;
+    float pinchStrengthLittle;
+} XrHandTrackingAimStateFB;
+#endif // !XR_META_hand_tracking_aim && !XR_FB_hand_tracking_aim
+
+// XR_META_hand_tracking_microgestures — per-hand swipe enum chained onto joint locations.
+// Horizon OS v62+ only; declare defensively and disable at runtime when missing.
+// Some Khronos-distributed Android headers advertise the extension name macro
+// but omit the actual META typedefs/structure constants. Guard on the concrete
+// structure symbol instead so our local fallback still compiles in that case.
+#ifndef XR_TYPE_HAND_MICROGESTURES_STATE_META
+#define XR_TYPE_HAND_MICROGESTURES_STATE_META static_cast<XrStructureType>(1000265000)
+typedef XrFlags64 XrHandMicrogestureFlagsMETA;
+static constexpr XrHandMicrogestureFlagsMETA XR_HAND_MICROGESTURE_SWIPE_LEFT_META = 0x00000001;
+static constexpr XrHandMicrogestureFlagsMETA XR_HAND_MICROGESTURE_SWIPE_RIGHT_META = 0x00000002;
+static constexpr XrHandMicrogestureFlagsMETA XR_HAND_MICROGESTURE_SWIPE_UP_META = 0x00000004;
+static constexpr XrHandMicrogestureFlagsMETA XR_HAND_MICROGESTURE_SWIPE_DOWN_META = 0x00000008;
+typedef struct XrHandMicrogesturesStateMETA
+{
+    XrStructureType type;
+    void *next;
+    XrHandMicrogestureFlagsMETA currentGestures;
+    XrHandMicrogestureFlagsMETA gesturesSinceLastSync;
+} XrHandMicrogesturesStateMETA;
+#endif // XR_TYPE_HAND_MICROGESTURES_STATE_META
+
+// Function pointer typedefs for runtime resolution via xrGetInstanceProcAddr.
+typedef XrResult(XRAPI_PTR *PFN_xrCreateHandTrackerEXT_LOCAL)(
+    XrSession, const XrHandTrackerCreateInfoEXT *, XrHandTrackerEXT *);
+typedef XrResult(XRAPI_PTR *PFN_xrDestroyHandTrackerEXT_LOCAL)(XrHandTrackerEXT);
+typedef XrResult(XRAPI_PTR *PFN_xrLocateHandJointsEXT_LOCAL)(
+    XrHandTrackerEXT, const XrHandJointsLocateInfoEXT *, XrHandJointLocationsEXT *);
+
 #include <dlfcn.h>
 
 #include <atomic>
 #include <algorithm>
 #include <cstring>
+#include <ctime>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -148,9 +277,112 @@ namespace
         bool supportsCylinder = false;
         bool warnedMissingEquirect2 = false;
         bool warnedMissingCylinder = false;
+        // Hand-tracking extension availability — populated in enumerateAndCreateInstance()
+        // and gated on during session setup / per-frame sync.
+        bool supportsHandTracking = false;
+        bool supportsHandAim = false;
+        bool supportsMicrogestures = false;
         LayerConfig layerConfig{};
 
         EyeSwapchain eyes[kViewCount];
+
+        // === OPENXR INPUT SYSTEM ===
+        // Handles and state for the per-frame action sync + edge detection performed
+        // on the xr-render-thread. Events are pushed to Kotlin via a global-ref
+        // callback; all XrAction handles live for the lifetime of the session.
+        struct InputSystem
+        {
+            XrActionSet actionSet = XR_NULL_HANDLE;
+            XrAction aPauseToggle = XR_NULL_HANDLE;
+            XrAction bExit = XR_NULL_HANDLE;
+            XrAction xExit = XR_NULL_HANDLE;
+            XrAction yFileOps = XR_NULL_HANDLE;
+            XrAction menuCtrl = XR_NULL_HANDLE;
+            XrAction thumbClickL = XR_NULL_HANDLE;
+            XrAction thumbClickR = XR_NULL_HANDLE;
+            XrAction gripL = XR_NULL_HANDLE;
+            XrAction gripR = XR_NULL_HANDLE;
+            XrAction stickL = XR_NULL_HANDLE;
+            XrAction stickR = XR_NULL_HANDLE;
+            XrAction hapticL = XR_NULL_HANDLE;
+            XrAction hapticR = XR_NULL_HANDLE;
+
+            // Edge-detection state (previous frame).
+            bool prevA = false, prevB = false, prevX = false, prevY = false;
+            bool prevMenu = false, prevThumbL = false, prevThumbR = false;
+            float prevGripL = 0.0f, prevGripR = 0.0f;
+
+            // Stick hysteresis: separate edge flag for X and Y axes of each stick.
+            bool stickLEdgeXActive = false, stickLEdgeYActive = false;
+            bool stickREdgeXActive = false, stickREdgeYActive = false;
+
+            // Y long-press detection for short (file ops) vs long (cheatsheet) release.
+            int64_t yPressTimeNs = 0;
+            bool yLongPressEmitted = false;
+
+            // Both-grips hold → zoom reset (1 s guard).
+            int64_t bothGripsPressTimeNs = 0;
+            bool bothGripsResetEmitted = false;
+
+            // Kotlin callback — set via nativeSetInputCallback JNI entry point.
+            jobject inputCallbackRef = nullptr;
+            jmethodID onInputEventMethod = nullptr;
+            jmethodID onPointerMoveMethod = nullptr;
+
+            // Last controller-edge emission timestamp (monotonic ns). Drives the
+            // modality gate: while controllers are active (events within 2 s),
+            // hand tracking is suppressed to avoid duplicate UI triggers.
+            int64_t lastControllerEventNs = 0;
+
+            bool initialized = false;
+        } input;
+
+        // ═════════════════════════════════════════════════════════════════
+        // Hand-tracking subsystem (spec_vr-hand-tracking-tech §5).
+        // Parallel input surface alongside InputSystem. C++ polls aim + pinch
+        // + microgestures per frame, hit-tests against the UI composition
+        // plane, and emits pointer/click/swipe events through the same JNI
+        // callback (distinguished by `source=SOURCE_HAND`).
+        // ═════════════════════════════════════════════════════════════════
+        struct HandSystem
+        {
+            // Dynamically resolved function pointers (nullptr when the runtime
+            // does not advertise the extension — hand tracking stays off).
+            PFN_xrCreateHandTrackerEXT_LOCAL pfnCreate = nullptr;
+            PFN_xrDestroyHandTrackerEXT_LOCAL pfnDestroy = nullptr;
+            PFN_xrLocateHandJointsEXT_LOCAL pfnLocate = nullptr;
+
+            XrHandTrackerEXT trackerL = XR_NULL_HANDLE;
+            XrHandTrackerEXT trackerR = XR_NULL_HANDLE;
+
+            // Joint buffers — reused every frame to avoid per-frame alloc.
+            XrHandJointLocationEXT jointsL[XR_HAND_JOINT_COUNT_EXT];
+            XrHandJointLocationEXT jointsR[XR_HAND_JOINT_COUNT_EXT];
+
+            // Pinch state with hysteresis — press at 0.9, release at 0.6.
+            bool isPinchingL = false;
+            bool isPinchingR = false;
+            bool suppressClickReleaseL = false;
+            bool suppressClickReleaseR = false;
+
+            // DOUBLE_PINCH is a session-level gesture, not a per-hand command.
+            // Keep one shared timestamp so a second pinch on either hand within the
+            // gesture window can toggle pause/play without depending on Kotlin timing.
+            int64_t lastPinchDownNs = 0;
+
+            // Aim-ray freeze latch: XY held from the pre-pinch frame to prevent
+            // cursor shift during pinch closure (mitigation for §6 risk).
+            bool aimFrozenL = false, aimFrozenR = false;
+            float frozenAimXL = 0.0f, frozenAimYL = 0.0f;
+            float frozenAimXR = 0.0f, frozenAimYR = 0.0f;
+
+            // Microgestures cached for one-shot edge detection (gesturesSinceLastSync
+            // accumulates flags; we emit each bit once per frame it becomes set).
+            XrHandMicrogestureFlagsMETA prevGesturesL = 0;
+            XrHandMicrogestureFlagsMETA prevGesturesR = 0;
+
+            bool initialized = false;
+        } hands;
 
         struct StereoSnapshot
         {
@@ -169,6 +401,23 @@ namespace
     // Single process-wide context. The vr flavor only ever runs one XR session.
     XrCtx g_ctx{};
     std::mutex g_ctxMutex;
+
+    // Forward declarations for input-system helpers defined later in this translation unit.
+    // createSessionAndSwapchains() calls setupActionSet() before the full definition appears.
+    bool setupActionSet();
+    void syncInputActions(JNIEnv *env);
+    void destroyInputHandles();
+    void releaseInputCallback(JNIEnv *env);
+    XrResult triggerHapticImpl(int hand, int64_t durationNs, float amplitude);
+    void emitInputEvent(JNIEnv *env, int32_t type, int32_t hand, float value, int32_t source);
+    void emitPointerMove(JNIEnv *env, int32_t hand, float ndcX, float ndcY);
+    bool initHandTracking();
+    void syncHandTracking(JNIEnv *env);
+    void destroyHandTracking();
+
+    // Event source identifiers — lockstep with Kotlin `XrInputSource`.
+    constexpr int32_t XR_SRC_CONTROLLER = 0;
+    constexpr int32_t XR_SRC_HAND = 1;
 
 #define XR_CHECK(expr, tag)                                   \
     do                                                        \
@@ -238,12 +487,24 @@ namespace
         const char *kAndroidCreateExt = XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME;
         const char *kEquirect2Ext = XR_KHR_COMPOSITION_LAYER_EQUIRECT2_EXTENSION_NAME;
         const char *kCylinderExt = XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME;
+        // Hand-tracking trio (spec_vr-hand-tracking-tech §5.1). XR_EXT_hand_tracking is
+        // cross-vendor; XR_META_hand_tracking_aim has a legacy XR_FB_* alias on older
+        // Horizon builds; XR_META_hand_tracking_microgestures only on v62+ runtimes.
+        const char *kHandTrackingExt = XR_EXT_HAND_TRACKING_EXTENSION_NAME;
+        const char *kHandAimMetaExt = XR_META_HAND_TRACKING_AIM_EXTENSION_NAME;
+        const char *kHandAimFbExt = XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME;
+        const char *kMicrogesturesExt = XR_META_HAND_TRACKING_MICROGESTURES_EXTENSION_NAME;
 
-        LOGI("Extension check: GraphicsES=%d AndroidCreate=%d Equirect2=%d Cylinder=%d",
+        LOGI("Extension check: GraphicsES=%d AndroidCreate=%d Equirect2=%d Cylinder=%d "
+             "HandTracking=%d HandAim(META=%d FB=%d) Microgestures=%d",
              hasExt(kGraphicsExt),
              hasExt(kAndroidCreateExt),
              hasExt(kEquirect2Ext),
-             hasExt(kCylinderExt));
+             hasExt(kCylinderExt),
+             hasExt(kHandTrackingExt),
+             hasExt(kHandAimMetaExt),
+             hasExt(kHandAimFbExt),
+             hasExt(kMicrogesturesExt));
 
         if (!hasExt(kGraphicsExt))
         {
@@ -265,10 +526,35 @@ namespace
         {
             enabledExts.push_back(kCylinderExt);
         }
-        LOGI("Enabled extensions (%zu): GraphicsES Equirect2=%d Cylinder=%d",
+        g_ctx.supportsHandTracking = hasExt(kHandTrackingExt);
+        if (g_ctx.supportsHandTracking)
+        {
+            enabledExts.push_back(kHandTrackingExt);
+            // Aim extension: prefer META, fall back to FB — spec §6 mitigation.
+            if (hasExt(kHandAimMetaExt))
+            {
+                enabledExts.push_back(kHandAimMetaExt);
+                g_ctx.supportsHandAim = true;
+            }
+            else if (hasExt(kHandAimFbExt))
+            {
+                enabledExts.push_back(kHandAimFbExt);
+                g_ctx.supportsHandAim = true;
+            }
+            if (hasExt(kMicrogesturesExt))
+            {
+                enabledExts.push_back(kMicrogesturesExt);
+                g_ctx.supportsMicrogestures = true;
+            }
+        }
+        LOGI("Enabled extensions (%zu): GraphicsES Equirect2=%d Cylinder=%d "
+             "HandTracking=%d HandAim=%d Microgestures=%d",
              enabledExts.size(),
              static_cast<int>(g_ctx.supportsEquirect2),
-             static_cast<int>(g_ctx.supportsCylinder));
+             static_cast<int>(g_ctx.supportsCylinder),
+             static_cast<int>(g_ctx.supportsHandTracking),
+             static_cast<int>(g_ctx.supportsHandAim),
+             static_cast<int>(g_ctx.supportsMicrogestures));
 
         // Android create info must be in the chain so the runtime has VM + Activity.
         XrInstanceCreateInfoAndroidKHR androidCreate{XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
@@ -387,16 +673,15 @@ namespace
             if (pfnGetGfxReqs == nullptr)
             {
                 // Try both common loader library names on Meta Quest Android.
-                static const char* const kLoaderLibs[] = {
+                static const char *const kLoaderLibs[] = {
                     "libopenxr_loader.so",
                     "libopenxr.so",
-                    nullptr
-                };
+                    nullptr};
                 for (int li = 0; kLoaderLibs[li] != nullptr && pfnGetGfxReqs == nullptr; ++li)
                 {
                     // RTLD_NOLOAD: only succeed if the library is already mapped; we never
                     // want to load a new SO here — the loader must already be in process.
-                    void* loaderLib = dlopen(kLoaderLibs[li], RTLD_NOW | RTLD_NOLOAD);
+                    void *loaderLib = dlopen(kLoaderLibs[li], RTLD_NOW | RTLD_NOLOAD);
                     if (loaderLib)
                     {
                         pfnGetGfxReqs = reinterpret_cast<PFN_GetGfxReqsGLES>(
@@ -555,6 +840,21 @@ namespace
                  static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(g_ctx.eyes[eye].handle)));
         }
 
+        // OpenXR input system: create ActionSet + bindings BEFORE xrBeginSession.
+        // Per spec: xrAttachSessionActionSets must run in the window between
+        // xrCreateSession and the first xrBeginSession (triggered on STATE_READY).
+        if (!setupActionSet())
+        {
+            LOGW("createSessionAndSwapchains: setupActionSet failed — controllers will not respond; continuing");
+        }
+
+        // Hand tracking (Layer E) — optional, silently disabled if the runtime / user
+        // permission declines it. Controllers stay functional regardless.
+        if (!initHandTracking())
+        {
+            LOGI("createSessionAndSwapchains: hand tracking disabled — continuing with controllers only");
+        }
+
         LOGI("createSessionAndSwapchains: complete — session ready for runtime events");
         return true;
     }
@@ -669,11 +969,840 @@ namespace
         return eye == 0 ? XR_EYE_VISIBILITY_LEFT : XR_EYE_VISIBILITY_RIGHT;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // OpenXR Input System helpers.
+    // Event-type enum is kept in lockstep with Kotlin `XrInputEventType`.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    enum XrInputEvt : int32_t
+    {
+        XR_EVT_PAUSE_TOGGLE = 0,
+        XR_EVT_EXIT = 1,
+        XR_EVT_FILE_OPS = 2,
+        XR_EVT_MENU = 3,
+        XR_EVT_SEEK_BACKWARD = 4,
+        XR_EVT_SEEK_FORWARD = 5,
+        XR_EVT_FILE_PREV = 6,
+        XR_EVT_FILE_NEXT = 7,
+        XR_EVT_VOLUME_UP = 8,
+        XR_EVT_VOLUME_DOWN = 9,
+        XR_EVT_RECENTER = 10,
+        XR_EVT_TOGGLE_IMMERSIVE = 11,
+        XR_EVT_CHEATSHEET = 12,
+        XR_EVT_ZOOM_START = 13,
+        XR_EVT_ZOOM_DELTA = 14,
+        XR_EVT_ZOOM_END = 15,
+        XR_EVT_ZOOM_RESET = 16,
+        // Hand-tracking — mirror of XrInputEventType.POINTER_* / SWIPE_* / DOUBLE_PINCH.
+        XR_EVT_POINTER_CLICK_DOWN = 17,
+        XR_EVT_POINTER_CLICK_UP = 18,
+        XR_EVT_SWIPE_LEFT = 19,
+        XR_EVT_SWIPE_RIGHT = 20,
+        XR_EVT_SWIPE_UP = 21,
+        XR_EVT_SWIPE_DOWN = 22,
+        XR_EVT_DOUBLE_PINCH = 23,
+    };
+
+    // Modality switch: hand tracking is suppressed while controllers emit events
+    // within this window. 2 s matches spec §3.3 ("inactive for > 2.0 seconds").
+    constexpr int64_t kControllerIdleSwitchNs = 2'000'000'000LL;
+
+    // Pinch hysteresis thresholds (spec §5.1 / §6).
+    constexpr float kPinchPressThreshold = 0.9f;
+    constexpr float kPinchReleaseThreshold = 0.6f;
+    constexpr float kPinchAimFreezeThreshold = 0.5f; // Freeze raycast once past this.
+    constexpr int64_t kDoublePinchWindowNs = 300'000'000LL;
+
+    // Analog thresholds tuned per UX spec §4.1.1 / §4.1.2.
+    constexpr float kStickThreshold = 0.7f;
+    constexpr float kStickReturnZone = 0.15f; // Hysteresis: must return near zero before re-trigger.
+    constexpr float kGripPressThresh = 0.7f;
+    constexpr float kGripReleaseThresh = 0.4f;
+    constexpr float kGripDeltaMin = 0.01f;
+    constexpr int64_t kYLongPressNs = 800'000'000LL;      // 0.8 s
+    constexpr int64_t kBothGripsHoldNs = 1'000'000'000LL; // 1.0 s
+
+    inline int64_t monotonicNowNs()
+    {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        return static_cast<int64_t>(ts.tv_sec) * 1'000'000'000LL + static_cast<int64_t>(ts.tv_nsec);
+    }
+
+    void emitInputEvent(JNIEnv *env, int32_t type, int32_t hand, float value, int32_t source)
+    {
+        auto &io = g_ctx.input;
+        if (!io.inputCallbackRef || !io.onInputEventMethod || !env)
+            return;
+        // Track controller-edge activity for the modality gate: any controller-sourced
+        // edge event refreshes the idle timer so hand polling stays suppressed.
+        if (source == XR_SRC_CONTROLLER)
+            io.lastControllerEventNs = monotonicNowNs();
+        env->CallVoidMethod(io.inputCallbackRef, io.onInputEventMethod,
+                            static_cast<jint>(type),
+                            static_cast<jint>(hand),
+                            static_cast<jfloat>(value),
+                            static_cast<jint>(source));
+        if (env->ExceptionCheck())
+        {
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+        }
+    }
+
+    void emitPointerMove(JNIEnv *env, int32_t hand, float ndcX, float ndcY)
+    {
+        auto &io = g_ctx.input;
+        if (!io.inputCallbackRef || !io.onPointerMoveMethod || !env)
+            return;
+        env->CallVoidMethod(io.inputCallbackRef, io.onPointerMoveMethod,
+                            static_cast<jint>(hand),
+                            static_cast<jfloat>(ndcX),
+                            static_cast<jfloat>(ndcY));
+        if (env->ExceptionCheck())
+        {
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+        }
+    }
+
+    // Create ActionSet, all 13 XrActions, suggest bindings for Touch + TouchPro profiles,
+    // and attach the set to the session. MUST be called AFTER xrCreateSession and BEFORE
+    // xrBeginSession (which runs in handleSessionStateChange on XR_SESSION_STATE_READY).
+    bool setupActionSet()
+    {
+        auto &io = g_ctx.input;
+        if (io.initialized)
+        {
+            LOGW("setupActionSet: already initialized, skipping");
+            return true;
+        }
+        if (g_ctx.instance == XR_NULL_HANDLE || g_ctx.session == XR_NULL_HANDLE)
+        {
+            LOGE("setupActionSet: instance/session missing");
+            return false;
+        }
+
+        XrActionSetCreateInfo asci{XR_TYPE_ACTION_SET_CREATE_INFO};
+        std::strncpy(asci.actionSetName, "playback", XR_MAX_ACTION_SET_NAME_SIZE - 1);
+        std::strncpy(asci.localizedActionSetName, "Playback controls", XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE - 1);
+        asci.priority = 0;
+        XrResult r = xrCreateActionSet(g_ctx.instance, &asci, &io.actionSet);
+        if (XR_FAILED(r))
+        {
+            LOGE("setupActionSet: xrCreateActionSet failed: %d", static_cast<int>(r));
+            return false;
+        }
+
+        XrPath handLeft = XR_NULL_PATH, handRight = XR_NULL_PATH;
+        xrStringToPath(g_ctx.instance, "/user/hand/left", &handLeft);
+        xrStringToPath(g_ctx.instance, "/user/hand/right", &handRight);
+
+        auto makeAction = [&](const char *name, const char *loc, XrActionType kind, XrPath subaction) -> XrAction
+        {
+            XrAction act = XR_NULL_HANDLE;
+            XrActionCreateInfo aci{XR_TYPE_ACTION_CREATE_INFO};
+            std::strncpy(aci.actionName, name, XR_MAX_ACTION_NAME_SIZE - 1);
+            std::strncpy(aci.localizedActionName, loc, XR_MAX_LOCALIZED_ACTION_NAME_SIZE - 1);
+            aci.actionType = kind;
+            if (subaction != XR_NULL_PATH)
+            {
+                aci.countSubactionPaths = 1;
+                aci.subactionPaths = &subaction;
+            }
+            XrResult rr = xrCreateAction(io.actionSet, &aci, &act);
+            if (XR_FAILED(rr))
+                LOGE("setupActionSet: xrCreateAction(%s) failed: %d", name, static_cast<int>(rr));
+            return act;
+        };
+
+        io.aPauseToggle = makeAction("a_pause", "Pause/Play (A)", XR_ACTION_TYPE_BOOLEAN_INPUT, handRight);
+        io.bExit = makeAction("b_exit", "Exit (B)", XR_ACTION_TYPE_BOOLEAN_INPUT, handRight);
+        io.xExit = makeAction("x_exit", "Exit dup (X)", XR_ACTION_TYPE_BOOLEAN_INPUT, handLeft);
+        io.yFileOps = makeAction("y_fileops", "File ops / cheatsheet (Y)", XR_ACTION_TYPE_BOOLEAN_INPUT, handLeft);
+        io.menuCtrl = makeAction("menu_ctrl", "Playback control dialog (Menu)", XR_ACTION_TYPE_BOOLEAN_INPUT, handLeft);
+        io.thumbClickL = makeAction("thumb_l", "Toggle immersive (L stick click)", XR_ACTION_TYPE_BOOLEAN_INPUT, handLeft);
+        io.thumbClickR = makeAction("thumb_r", "Recenter (R stick click)", XR_ACTION_TYPE_BOOLEAN_INPUT, handRight);
+        io.gripL = makeAction("grip_l", "Zoom grip (L)", XR_ACTION_TYPE_FLOAT_INPUT, handLeft);
+        io.gripR = makeAction("grip_r", "Zoom grip (R)", XR_ACTION_TYPE_FLOAT_INPUT, handRight);
+        io.stickL = makeAction("stick_l", "Seek / volume (L stick)", XR_ACTION_TYPE_VECTOR2F_INPUT, handLeft);
+        io.stickR = makeAction("stick_r", "File / volume (R stick)", XR_ACTION_TYPE_VECTOR2F_INPUT, handRight);
+        io.hapticL = makeAction("haptic_l", "Haptic (L)", XR_ACTION_TYPE_VIBRATION_OUTPUT, handLeft);
+        io.hapticR = makeAction("haptic_r", "Haptic (R)", XR_ACTION_TYPE_VIBRATION_OUTPUT, handRight);
+
+        XrPath pLeftX, pLeftY, pLeftMenu, pLeftThumb, pLeftThumbClk, pLeftGrip, pLeftHaptic;
+        XrPath pRightA, pRightB, pRightThumb, pRightThumbClk, pRightGrip, pRightHaptic;
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/x/click", &pLeftX);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/y/click", &pLeftY);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/menu/click", &pLeftMenu);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/thumbstick", &pLeftThumb);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/thumbstick/click", &pLeftThumbClk);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/squeeze/value", &pLeftGrip);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/output/haptic", &pLeftHaptic);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/input/a/click", &pRightA);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/input/b/click", &pRightB);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/input/thumbstick", &pRightThumb);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/input/thumbstick/click", &pRightThumbClk);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/input/squeeze/value", &pRightGrip);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/output/haptic", &pRightHaptic);
+
+        std::vector<XrActionSuggestedBinding> bindings = {
+            {io.aPauseToggle, pRightA},
+            {io.bExit, pRightB},
+            {io.xExit, pLeftX},
+            {io.yFileOps, pLeftY},
+            {io.menuCtrl, pLeftMenu},
+            {io.thumbClickL, pLeftThumbClk},
+            {io.thumbClickR, pRightThumbClk},
+            {io.gripL, pLeftGrip},
+            {io.gripR, pRightGrip},
+            {io.stickL, pLeftThumb},
+            {io.stickR, pRightThumb},
+            {io.hapticL, pLeftHaptic},
+            {io.hapticR, pRightHaptic},
+        };
+
+        auto suggestProfile = [&](const char *profileStr)
+        {
+            XrPath profilePath = XR_NULL_PATH;
+            xrStringToPath(g_ctx.instance, profileStr, &profilePath);
+            XrInteractionProfileSuggestedBinding sugg{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
+            sugg.interactionProfile = profilePath;
+            sugg.countSuggestedBindings = static_cast<uint32_t>(bindings.size());
+            sugg.suggestedBindings = bindings.data();
+            XrResult sr = xrSuggestInteractionProfileBindings(g_ctx.instance, &sugg);
+            if (XR_FAILED(sr))
+            {
+                LOGW("setupActionSet: suggest %s failed: %d (non-fatal if profile unsupported)",
+                     profileStr, static_cast<int>(sr));
+            }
+            else
+            {
+                LOGI("setupActionSet: suggested bindings for %s (%zu)", profileStr, bindings.size());
+            }
+        };
+        suggestProfile("/interaction_profiles/oculus/touch_controller");     // Quest 2 / 3
+        suggestProfile("/interaction_profiles/oculus/touch_pro_controller"); // Quest Pro
+
+        XrSessionActionSetsAttachInfo asai{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
+        asai.countActionSets = 1;
+        asai.actionSets = &io.actionSet;
+        XrResult ar = xrAttachSessionActionSets(g_ctx.session, &asai);
+        if (XR_FAILED(ar))
+        {
+            LOGE("setupActionSet: xrAttachSessionActionSets failed: %d", static_cast<int>(ar));
+            return false;
+        }
+
+        io.initialized = true;
+        LOGI("setupActionSet: input system ready (13 actions, 2 profiles attached)");
+        return true;
+    }
+
+    // Per-frame: xrSyncActions, read each action state, detect edges, emit events.
+    // Called from renderFrame(); runs on xr-render-thread; g_ctxMutex already held.
+    void syncInputActions(JNIEnv *env)
+    {
+        auto &io = g_ctx.input;
+        if (!io.initialized || io.actionSet == XR_NULL_HANDLE || !g_ctx.sessionRunning)
+            return;
+
+        XrActiveActionSet activeSet{};
+        activeSet.actionSet = io.actionSet;
+        activeSet.subactionPath = XR_NULL_PATH;
+        XrActionsSyncInfo sync{XR_TYPE_ACTIONS_SYNC_INFO};
+        sync.countActiveActionSets = 1;
+        sync.activeActionSets = &activeSet;
+        if (XR_FAILED(xrSyncActions(g_ctx.session, &sync)))
+            return;
+
+        auto readBool = [&](XrAction act) -> bool
+        {
+            if (act == XR_NULL_HANDLE)
+                return false;
+            XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO};
+            gi.action = act;
+            XrActionStateBoolean st{XR_TYPE_ACTION_STATE_BOOLEAN};
+            if (XR_FAILED(xrGetActionStateBoolean(g_ctx.session, &gi, &st)))
+                return false;
+            return st.isActive && st.currentState;
+        };
+        auto readFloat = [&](XrAction act) -> float
+        {
+            if (act == XR_NULL_HANDLE)
+                return 0.0f;
+            XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO};
+            gi.action = act;
+            XrActionStateFloat st{XR_TYPE_ACTION_STATE_FLOAT};
+            if (XR_FAILED(xrGetActionStateFloat(g_ctx.session, &gi, &st)))
+                return 0.0f;
+            return st.isActive ? st.currentState : 0.0f;
+        };
+        auto readVec2 = [&](XrAction act) -> XrVector2f
+        {
+            XrVector2f zero{0.0f, 0.0f};
+            if (act == XR_NULL_HANDLE)
+                return zero;
+            XrActionStateGetInfo gi{XR_TYPE_ACTION_STATE_GET_INFO};
+            gi.action = act;
+            XrActionStateVector2f st{XR_TYPE_ACTION_STATE_VECTOR2F};
+            if (XR_FAILED(xrGetActionStateVector2f(g_ctx.session, &gi, &st)))
+                return zero;
+            return st.isActive ? st.currentState : zero;
+        };
+
+        // ── Boolean rising-edge detection ───────────────────────────────────
+        bool a = readBool(io.aPauseToggle);
+        if (a && !io.prevA)
+            emitInputEvent(env, XR_EVT_PAUSE_TOGGLE, 1, 0.0f, XR_SRC_CONTROLLER);
+        io.prevA = a;
+
+        bool b = readBool(io.bExit);
+        if (b && !io.prevB)
+            emitInputEvent(env, XR_EVT_EXIT, 1, 0.0f, XR_SRC_CONTROLLER);
+        io.prevB = b;
+
+        bool x = readBool(io.xExit);
+        if (x && !io.prevX)
+            emitInputEvent(env, XR_EVT_EXIT, 0, 0.0f, XR_SRC_CONTROLLER);
+        io.prevX = x;
+
+        bool menu = readBool(io.menuCtrl);
+        if (menu && !io.prevMenu)
+            emitInputEvent(env, XR_EVT_MENU, 0, 0.0f, XR_SRC_CONTROLLER);
+        io.prevMenu = menu;
+
+        bool tL = readBool(io.thumbClickL);
+        if (tL && !io.prevThumbL)
+            emitInputEvent(env, XR_EVT_TOGGLE_IMMERSIVE, 0, 0.0f, XR_SRC_CONTROLLER);
+        io.prevThumbL = tL;
+
+        bool tR = readBool(io.thumbClickR);
+        if (tR && !io.prevThumbR)
+            emitInputEvent(env, XR_EVT_RECENTER, 1, 0.0f, XR_SRC_CONTROLLER);
+        io.prevThumbR = tR;
+
+        // Y button: press timestamps + short(<0.8s)=FILE_OPS / long(>=0.8s)=CHEATSHEET.
+        bool y = readBool(io.yFileOps);
+        if (y && !io.prevY)
+        {
+            io.yPressTimeNs = monotonicNowNs();
+            io.yLongPressEmitted = false;
+        }
+        else if (y && !io.yLongPressEmitted)
+        {
+            if ((monotonicNowNs() - io.yPressTimeNs) >= kYLongPressNs)
+            {
+                emitInputEvent(env, XR_EVT_CHEATSHEET, 0, 0.0f, XR_SRC_CONTROLLER);
+                io.yLongPressEmitted = true;
+            }
+        }
+        else if (!y && io.prevY)
+        {
+            if (!io.yLongPressEmitted && (monotonicNowNs() - io.yPressTimeNs) < kYLongPressNs)
+                emitInputEvent(env, XR_EVT_FILE_OPS, 0, 0.0f, XR_SRC_CONTROLLER);
+        }
+        io.prevY = y;
+
+        // ── Grip: analog zoom ──────────────────────────────────────────────
+        auto processGrip = [&](float current, float &prev, int hand)
+        {
+            if (current > kGripPressThresh && prev <= kGripPressThresh)
+                emitInputEvent(env, XR_EVT_ZOOM_START, hand, current, XR_SRC_CONTROLLER);
+            else if (current < kGripReleaseThresh && prev >= kGripReleaseThresh)
+                emitInputEvent(env, XR_EVT_ZOOM_END, hand, current, XR_SRC_CONTROLLER);
+            else if (current > kGripPressThresh)
+            {
+                float d = current - prev;
+                if (d > kGripDeltaMin || d < -kGripDeltaMin)
+                    emitInputEvent(env, XR_EVT_ZOOM_DELTA, hand, d, XR_SRC_CONTROLLER);
+            }
+            prev = current;
+        };
+        float gL = readFloat(io.gripL);
+        float gR = readFloat(io.gripR);
+        processGrip(gL, io.prevGripL, 0);
+        processGrip(gR, io.prevGripR, 1);
+
+        // Both grips held ≥ 1 s → zoom reset.
+        if (gL > kGripPressThresh && gR > kGripPressThresh)
+        {
+            if (io.bothGripsPressTimeNs == 0)
+                io.bothGripsPressTimeNs = monotonicNowNs();
+            else if (!io.bothGripsResetEmitted &&
+                     (monotonicNowNs() - io.bothGripsPressTimeNs) >= kBothGripsHoldNs)
+            {
+                emitInputEvent(env, XR_EVT_ZOOM_RESET, -1, 0.0f, XR_SRC_CONTROLLER);
+                io.bothGripsResetEmitted = true;
+            }
+        }
+        else
+        {
+            io.bothGripsPressTimeNs = 0;
+            io.bothGripsResetEmitted = false;
+        }
+
+        // ── Sticks: threshold + hysteresis → discrete edge events ──────────
+        auto processStick = [&](XrAction act, bool &edgeX, bool &edgeY, bool isLeft)
+        {
+            XrVector2f v = readVec2(act);
+            // X axis
+            if (!edgeX)
+            {
+                if (v.x > kStickThreshold)
+                {
+                    emitInputEvent(env,
+                                   isLeft ? XR_EVT_SEEK_FORWARD : XR_EVT_FILE_NEXT,
+                                   isLeft ? 0 : 1, v.x, XR_SRC_CONTROLLER);
+                    edgeX = true;
+                }
+                else if (v.x < -kStickThreshold)
+                {
+                    emitInputEvent(env,
+                                   isLeft ? XR_EVT_SEEK_BACKWARD : XR_EVT_FILE_PREV,
+                                   isLeft ? 0 : 1, -v.x, XR_SRC_CONTROLLER);
+                    edgeX = true;
+                }
+            }
+            else if (v.x > -kStickReturnZone && v.x < kStickReturnZone)
+            {
+                edgeX = false;
+            }
+            // Y axis → volume (both sticks duplicate)
+            if (!edgeY)
+            {
+                if (v.y > kStickThreshold)
+                {
+                    emitInputEvent(env, XR_EVT_VOLUME_UP, isLeft ? 0 : 1, v.y, XR_SRC_CONTROLLER);
+                    edgeY = true;
+                }
+                else if (v.y < -kStickThreshold)
+                {
+                    emitInputEvent(env, XR_EVT_VOLUME_DOWN, isLeft ? 0 : 1, -v.y, XR_SRC_CONTROLLER);
+                    edgeY = true;
+                }
+            }
+            else if (v.y > -kStickReturnZone && v.y < kStickReturnZone)
+            {
+                edgeY = false;
+            }
+        };
+        processStick(io.stickL, io.stickLEdgeXActive, io.stickLEdgeYActive, /*isLeft=*/true);
+        processStick(io.stickR, io.stickREdgeXActive, io.stickREdgeYActive, /*isLeft=*/false);
+    }
+
+    // Destroy OpenXR action handles (no env required).
+    void destroyInputHandles()
+    {
+        auto &io = g_ctx.input;
+        if (io.actionSet != XR_NULL_HANDLE)
+        {
+            xrDestroyActionSet(io.actionSet);
+            io.actionSet = XR_NULL_HANDLE;
+        }
+        io.aPauseToggle = io.bExit = io.xExit = io.yFileOps = io.menuCtrl = XR_NULL_HANDLE;
+        io.thumbClickL = io.thumbClickR = XR_NULL_HANDLE;
+        io.gripL = io.gripR = XR_NULL_HANDLE;
+        io.stickL = io.stickR = XR_NULL_HANDLE;
+        io.hapticL = io.hapticR = XR_NULL_HANDLE;
+        io.initialized = false;
+        io.prevA = io.prevB = io.prevX = io.prevY = false;
+        io.prevMenu = io.prevThumbL = io.prevThumbR = false;
+        io.prevGripL = io.prevGripR = 0.0f;
+        io.stickLEdgeXActive = io.stickLEdgeYActive = false;
+        io.stickREdgeXActive = io.stickREdgeYActive = false;
+        io.yPressTimeNs = 0;
+        io.yLongPressEmitted = false;
+        io.bothGripsPressTimeNs = 0;
+        io.bothGripsResetEmitted = false;
+    }
+
+    // Release the Kotlin callback global ref. Requires a valid env.
+    void releaseInputCallback(JNIEnv *env)
+    {
+        auto &io = g_ctx.input;
+        if (io.inputCallbackRef && env)
+            env->DeleteGlobalRef(io.inputCallbackRef);
+        io.inputCallbackRef = nullptr;
+        io.onInputEventMethod = nullptr;
+        io.onPointerMoveMethod = nullptr;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Hand-tracking subsystem (Layer E) — spec_vr-hand-tracking-tech §5.1.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    bool initHandTracking()
+    {
+        auto &h = g_ctx.hands;
+        if (h.initialized)
+            return true;
+        if (!g_ctx.supportsHandTracking)
+        {
+            LOGI("initHandTracking: XR_EXT_hand_tracking unsupported on this runtime — Layer E disabled");
+            return false;
+        }
+        if (g_ctx.instance == XR_NULL_HANDLE || g_ctx.session == XR_NULL_HANDLE)
+        {
+            LOGE("initHandTracking: instance/session missing");
+            return false;
+        }
+
+        // Resolve function pointers lazily — if any entry is missing we treat hand
+        // tracking as absent rather than aborting session creation.
+        auto resolveProc = [&](const char *name) -> PFN_xrVoidFunction
+        {
+            PFN_xrVoidFunction raw = nullptr;
+            XrResult r = xrGetInstanceProcAddr(g_ctx.instance, name, &raw);
+            if (XR_FAILED(r) || raw == nullptr)
+            {
+                LOGW("initHandTracking: xrGetInstanceProcAddr(%s) result=%d ptr=%p",
+                     name, static_cast<int>(r), reinterpret_cast<void *>(raw));
+                return nullptr;
+            }
+            return raw;
+        };
+        h.pfnCreate = reinterpret_cast<PFN_xrCreateHandTrackerEXT_LOCAL>(resolveProc("xrCreateHandTrackerEXT"));
+        h.pfnDestroy = reinterpret_cast<PFN_xrDestroyHandTrackerEXT_LOCAL>(resolveProc("xrDestroyHandTrackerEXT"));
+        h.pfnLocate = reinterpret_cast<PFN_xrLocateHandJointsEXT_LOCAL>(resolveProc("xrLocateHandJointsEXT"));
+        if (!h.pfnCreate || !h.pfnDestroy || !h.pfnLocate)
+        {
+            LOGW("initHandTracking: required entry points missing — Layer E disabled");
+            return false;
+        }
+
+        auto createOne = [&](XrHandEXT hand, XrHandTrackerEXT &outTracker) -> bool
+        {
+            XrHandTrackerCreateInfoEXT ci{};
+            ci.type = XR_TYPE_HAND_TRACKER_CREATE_INFO_EXT;
+            ci.hand = hand;
+            ci.handJointSet = XR_HAND_JOINT_SET_DEFAULT_EXT;
+            XrResult r = h.pfnCreate(g_ctx.session, &ci, &outTracker);
+            if (XR_FAILED(r))
+            {
+                LOGW("initHandTracking: xrCreateHandTrackerEXT(hand=%d) failed: %d "
+                     "(permission missing or user disabled hand tracking)",
+                     static_cast<int>(hand), static_cast<int>(r));
+                outTracker = XR_NULL_HANDLE;
+                return false;
+            }
+            return true;
+        };
+        bool left = createOne(XR_HAND_LEFT_EXT, h.trackerL);
+        bool right = createOne(XR_HAND_RIGHT_EXT, h.trackerR);
+        if (!left && !right)
+        {
+            LOGW("initHandTracking: no trackers created — Layer E disabled at runtime");
+            return false;
+        }
+
+        h.initialized = true;
+        LOGI("initHandTracking: ready  left=%d right=%d  aim=%d microgestures=%d",
+             static_cast<int>(left), static_cast<int>(right),
+             static_cast<int>(g_ctx.supportsHandAim),
+             static_cast<int>(g_ctx.supportsMicrogestures));
+        return true;
+    }
+
+    void destroyHandTracking()
+    {
+        auto &h = g_ctx.hands;
+        if (h.pfnDestroy)
+        {
+            if (h.trackerL != XR_NULL_HANDLE)
+            {
+                h.pfnDestroy(h.trackerL);
+                h.trackerL = XR_NULL_HANDLE;
+            }
+            if (h.trackerR != XR_NULL_HANDLE)
+            {
+                h.pfnDestroy(h.trackerR);
+                h.trackerR = XR_NULL_HANDLE;
+            }
+        }
+        h.pfnCreate = nullptr;
+        h.pfnDestroy = nullptr;
+        h.pfnLocate = nullptr;
+        h.isPinchingL = h.isPinchingR = false;
+        h.aimFrozenL = h.aimFrozenR = false;
+        h.prevGesturesL = h.prevGesturesR = 0;
+        h.initialized = false;
+    }
+
+    // Per-frame hand polling. Runs AFTER syncInputActions so the controller modality
+    // gate sees the freshest controller edge timestamp.
+    void syncHandTracking(JNIEnv *env)
+    {
+        auto &h = g_ctx.hands;
+        auto &io = g_ctx.input;
+        if (!h.initialized || !g_ctx.sessionRunning)
+            return;
+
+        // Modality gate: suppress hand polling while controllers emit edge events.
+        // This is the strict priority lock from §3.3 — controllers unconditionally
+        // win; hand output is dropped during/for 2 s after any controller event.
+        const int64_t nowNs = monotonicNowNs();
+        if (io.lastControllerEventNs != 0 &&
+            (nowNs - io.lastControllerEventNs) < kControllerIdleSwitchNs)
+        {
+            // If a pinch was in flight when the controller re-engaged we must still
+            // emit the matching CLICK_UP so the Kotlin view hierarchy does not stay
+            // in a pressed state. Off-plane pointer hides the cursor dot too.
+            if (h.isPinchingL && !h.suppressClickReleaseL)
+                emitInputEvent(env, XR_EVT_POINTER_CLICK_UP, 0, 0.0f, XR_SRC_HAND);
+            if (h.isPinchingR && !h.suppressClickReleaseR)
+                emitInputEvent(env, XR_EVT_POINTER_CLICK_UP, 1, 0.0f, XR_SRC_HAND);
+            if (h.isPinchingL || h.isPinchingR || h.aimFrozenL || h.aimFrozenR)
+            {
+                emitPointerMove(env, 0, 2.0f, 2.0f);
+                emitPointerMove(env, 1, 2.0f, 2.0f);
+            }
+            h.isPinchingL = h.isPinchingR = false;
+            h.suppressClickReleaseL = h.suppressClickReleaseR = false;
+            h.aimFrozenL = h.aimFrozenR = false;
+            h.lastPinchDownNs = 0;
+            return;
+        }
+
+        if (g_ctx.appSpace == XR_NULL_HANDLE)
+            return;
+
+        // Frame predicted display time is unavailable here — use an approximation
+        // via xrLocateHandJointsEXT with current monotonic time converted to XrTime.
+        // Meta runtimes accept XrTime == CLOCK_MONOTONIC nanoseconds directly because
+        // XR_KHR_convert_timespec_time is the canonical conversion; our approximation
+        // is accurate to within a render frame which is sufficient for UI targeting.
+        const XrTime predictedTime = static_cast<XrTime>(nowNs);
+
+        auto processHand = [&](XrHandTrackerEXT tracker, int handIdx,
+                               XrHandJointLocationEXT *jointsBuf,
+                               bool &pinchState, bool &suppressClickRelease,
+                               bool &frozen, float &frozenX, float &frozenY,
+                               XrHandMicrogestureFlagsMETA &prevGestures)
+        {
+            if (tracker == XR_NULL_HANDLE)
+                return;
+
+            XrHandJointLocationsEXT locations{};
+            locations.type = XR_TYPE_HAND_JOINT_LOCATIONS_EXT;
+            locations.jointCount = XR_HAND_JOINT_COUNT_EXT;
+            locations.jointLocations = jointsBuf;
+
+            // Chain aim state + microgestures onto the next pointer so we get them
+            // atomically with the joints in one runtime call.
+            XrHandTrackingAimStateFB aimState{};
+            aimState.type = XR_TYPE_HAND_TRACKING_AIM_STATE_FB;
+            XrHandMicrogesturesStateMETA mgState{};
+            mgState.type = XR_TYPE_HAND_MICROGESTURES_STATE_META;
+
+            void *nextChain = nullptr;
+            if (g_ctx.supportsHandAim)
+            {
+                aimState.next = nextChain;
+                nextChain = &aimState;
+            }
+            if (g_ctx.supportsMicrogestures)
+            {
+                mgState.next = nextChain;
+                nextChain = &mgState;
+            }
+            locations.next = nextChain;
+
+            XrHandJointsLocateInfoEXT locateInfo{};
+            locateInfo.type = XR_TYPE_HAND_JOINTS_LOCATE_INFO_EXT;
+            locateInfo.baseSpace = g_ctx.appSpace;
+            locateInfo.time = predictedTime;
+
+            XrResult r = h.pfnLocate(tracker, &locateInfo, &locations);
+            if (XR_FAILED(r) || !locations.isActive)
+            {
+                // Tracking lost or hand out of view — reset pinch state so we don't
+                // emit a dangling CLICK_UP once it comes back, and emit an off-plane
+                // pointer so the Kotlin ray manager hides the cursor dot.
+                if (pinchState && !suppressClickRelease)
+                {
+                    emitInputEvent(env, XR_EVT_POINTER_CLICK_UP, handIdx, 0.0f, XR_SRC_HAND);
+                }
+                pinchState = false;
+                suppressClickRelease = false;
+                frozen = false;
+                prevGestures = 0;
+                emitPointerMove(env, handIdx, 2.0f, 2.0f);
+                return;
+            }
+
+            // Suppress hand input while the user is performing the Meta system gesture
+            // (palm up → system UI summon). Emitting clicks here would interact with
+            // the overlay while the user clearly intends to open the OS menu.
+            // COMPUTED must be set before any other status bit can be trusted.
+            const bool aimComputed = g_ctx.supportsHandAim &&
+                                     (aimState.status & XR_HAND_TRACKING_AIM_COMPUTED_BIT_FB) != 0;
+            if (aimComputed &&
+                (aimState.status & XR_HAND_TRACKING_AIM_SYSTEM_GESTURE_BIT_FB) != 0)
+            {
+                if (pinchState && !suppressClickRelease)
+                {
+                    emitInputEvent(env, XR_EVT_POINTER_CLICK_UP, handIdx, 0.0f, XR_SRC_HAND);
+                }
+                pinchState = false;
+                suppressClickRelease = false;
+                frozen = false;
+                emitPointerMove(env, handIdx, 2.0f, 2.0f);
+                return;
+            }
+
+            // Ray-plane intersection against the UI quad layer.
+            // LayerConfig positions the quad at z = -distanceMeters, facing the user,
+            // centred in the LOCAL reference frame (see createProjectionLayer below).
+            // Plane normal = (0,0,1) pointing at the camera; plane point = (0,0,-d).
+            // Ray origin = aimPose.position; direction = aimPose.orientation * (0,0,-1).
+            float ndcX = 2.0f, ndcY = 2.0f; // Off-plane sentinel: > 1.0 means "no hit".
+            if (aimComputed && (aimState.status & XR_HAND_TRACKING_AIM_VALID_BIT_FB))
+            {
+                const XrPosef &p = aimState.aimPose;
+                // Rotate (0,0,-1) by quaternion q to get forward direction.
+                // forward = q * (0,0,-1) * q^-1 — expanded below.
+                const float qx = p.orientation.x;
+                const float qy = p.orientation.y;
+                const float qz = p.orientation.z;
+                const float qw = p.orientation.w;
+                // Derived from standard quaternion-vector rotation of (0,0,-1):
+                const float fx = -2.0f * (qx * qz + qw * qy);
+                const float fy = -2.0f * (qy * qz - qw * qx);
+                const float fz = -(1.0f - 2.0f * (qx * qx + qy * qy));
+
+                const float planeDist = g_ctx.layerConfig.distanceMeters;
+                const float halfW = g_ctx.layerConfig.widthMeters * 0.5f;
+                const float halfH = g_ctx.layerConfig.heightMeters * 0.5f;
+                // Intersection of ray(origin + t*forward) with plane z = -planeDist.
+                if (fz < -1e-4f) // Pointing forward.
+                {
+                    const float t = (-planeDist - p.position.z) / fz;
+                    if (t > 0.0f)
+                    {
+                        const float ix = p.position.x + t * fx;
+                        const float iy = p.position.y + t * fy;
+                        // Normalise to NDC; UI Y convention: +Y up in world, but Android
+                        // view coords put +Y down — the Kotlin ray manager flips it.
+                        if (halfW > 1e-4f && halfH > 1e-4f)
+                        {
+                            ndcX = ix / halfW;
+                            ndcY = iy / halfH;
+                        }
+                    }
+                }
+            }
+
+            // Aim-freeze: once pinch strength crosses mid-threshold, lock the NDC XY
+            // so the last-frame click lands on the button the user was targeting
+            // (§6 mitigation against jitter during pinch closure).
+            const float pinchStrength = aimComputed ? aimState.pinchStrengthIndex : 0.0f;
+            if (pinchStrength >= kPinchAimFreezeThreshold)
+            {
+                if (!frozen)
+                {
+                    frozen = true;
+                    frozenX = ndcX;
+                    frozenY = ndcY;
+                }
+                // Override the reported NDC with the latched value while pinch is active.
+                ndcX = frozenX;
+                ndcY = frozenY;
+            }
+            else
+            {
+                frozen = false;
+            }
+
+            // Always emit pointer position so the Kotlin ray manager can render the
+            // cursor and drive hover/move into the view hierarchy.
+            emitPointerMove(env, handIdx, ndcX, ndcY);
+
+            // Pinch hysteresis — CLICK_DOWN on rising edge past 0.9, CLICK_UP when
+            // dropping below 0.6 (spec §5.1).
+            if (!pinchState && pinchStrength >= kPinchPressThreshold)
+            {
+                pinchState = true;
+                if (h.lastPinchDownNs != 0 &&
+                    (nowNs - h.lastPinchDownNs) <= kDoublePinchWindowNs)
+                {
+                    // Native owns the double-pinch gesture now: the second pinch should
+                    // toggle play/pause globally, not deliver a second UI click pair.
+                    suppressClickRelease = true;
+                    h.lastPinchDownNs = 0;
+                    emitInputEvent(env, XR_EVT_DOUBLE_PINCH, handIdx, pinchStrength, XR_SRC_HAND);
+                }
+                else
+                {
+                    suppressClickRelease = false;
+                    h.lastPinchDownNs = nowNs;
+                    emitInputEvent(env, XR_EVT_POINTER_CLICK_DOWN, handIdx, pinchStrength, XR_SRC_HAND);
+                }
+            }
+            else if (pinchState && pinchStrength <= kPinchReleaseThreshold)
+            {
+                pinchState = false;
+                if (!suppressClickRelease)
+                    emitInputEvent(env, XR_EVT_POINTER_CLICK_UP, handIdx, pinchStrength, XR_SRC_HAND);
+                suppressClickRelease = false;
+            }
+
+            // Microgestures — emit one event per bit that became set this sync.
+            // We use `gesturesSinceLastSync` rather than `currentGestures` so a short
+            // swipe fires exactly once even if it spans multiple frames.
+            if (g_ctx.supportsMicrogestures && mgState.gesturesSinceLastSync != prevGestures)
+            {
+                XrHandMicrogestureFlagsMETA rising = mgState.gesturesSinceLastSync & ~prevGestures;
+                if (rising & XR_HAND_MICROGESTURE_SWIPE_LEFT_META)
+                    emitInputEvent(env, XR_EVT_SWIPE_LEFT, handIdx, 0.0f, XR_SRC_HAND);
+                if (rising & XR_HAND_MICROGESTURE_SWIPE_RIGHT_META)
+                    emitInputEvent(env, XR_EVT_SWIPE_RIGHT, handIdx, 0.0f, XR_SRC_HAND);
+                if (rising & XR_HAND_MICROGESTURE_SWIPE_UP_META)
+                    emitInputEvent(env, XR_EVT_SWIPE_UP, handIdx, 0.0f, XR_SRC_HAND);
+                if (rising & XR_HAND_MICROGESTURE_SWIPE_DOWN_META)
+                    emitInputEvent(env, XR_EVT_SWIPE_DOWN, handIdx, 0.0f, XR_SRC_HAND);
+                prevGestures = mgState.gesturesSinceLastSync;
+            }
+        };
+
+        processHand(h.trackerL, 0, h.jointsL, h.isPinchingL, h.suppressClickReleaseL, h.aimFrozenL, h.frozenAimXL, h.frozenAimYL, h.prevGesturesL);
+        processHand(h.trackerR, 1, h.jointsR, h.isPinchingR, h.suppressClickReleaseR, h.aimFrozenR, h.frozenAimXR, h.frozenAimYR, h.prevGesturesR);
+    }
+
+    // Trigger haptic feedback on one hand. Guarded against inactive session.
+    XrResult triggerHapticImpl(int hand, int64_t durationNs, float amplitude)
+    {
+        auto &io = g_ctx.input;
+        if (!io.initialized || !g_ctx.sessionRunning)
+            return XR_ERROR_SESSION_NOT_RUNNING;
+        XrAction act = (hand == 0) ? io.hapticL : io.hapticR;
+        if (act == XR_NULL_HANDLE)
+            return XR_ERROR_HANDLE_INVALID;
+        float clamped = amplitude < 0.0f ? 0.0f : (amplitude > 1.0f ? 1.0f : amplitude);
+        XrHapticVibration vib{XR_TYPE_HAPTIC_VIBRATION};
+        vib.duration = static_cast<XrDuration>(durationNs);
+        vib.frequency = XR_FREQUENCY_UNSPECIFIED;
+        vib.amplitude = clamped;
+        XrHapticActionInfo hai{XR_TYPE_HAPTIC_ACTION_INFO};
+        hai.action = act;
+        return xrApplyHapticFeedback(g_ctx.session, &hai,
+                                     reinterpret_cast<const XrHapticBaseHeader *>(&vib));
+    }
+
     void renderFrame(JNIEnv *env)
     {
         // Static frame counter — never wraps in practice but uint64 just in case.
         static uint64_t s_frameCount = 0;
         ++s_frameCount;
+
+        // Poll OpenXR controller input FIRST so edge events for the current frame
+        // are delivered before rendering happens. Guarded internally on initialized+running.
+        syncInputActions(env);
+
+        // Then poll hand tracking — the modality gate inside syncHandTracking uses
+        // controller edge timestamps updated by the previous call to enforce the
+        // strict priority (§3.3): controllers always override hands.
+        syncHandTracking(env);
 
         XrFrameWaitInfo waitInfo{XR_TYPE_FRAME_WAIT_INFO};
         XrFrameState frameState{XR_TYPE_FRAME_STATE};
@@ -953,10 +2082,18 @@ namespace
             g_ctx.callbackRef = nullptr;
         }
         g_ctx.onRenderEyeMethod = nullptr;
+        // Release the input callback alongside the render callback so JNI global refs
+        // do not leak across session teardown.
+        releaseInputCallback(env);
     }
 
     void destroyAll()
     {
+        // Destroy hand trackers first — they hold references to the session handle.
+        destroyHandTracking();
+        // Destroy OpenXR input handles before swapchains/session so xrDestroyActionSet
+        // runs while the session/instance handles are still valid.
+        destroyInputHandles();
         for (auto &eye : g_ctx.eyes)
         {
             for (auto &img : eye.images)
@@ -994,6 +2131,9 @@ namespace
         g_ctx.supportsCylinder = false;
         g_ctx.warnedMissingEquirect2 = false;
         g_ctx.warnedMissingCylinder = false;
+        g_ctx.supportsHandTracking = false;
+        g_ctx.supportsHandAim = false;
+        g_ctx.supportsMicrogestures = false;
         g_ctx.layerConfig = LayerConfig{};
         g_ctx.stereoSnapshot.requested.store(false);
         g_ctx.stereoSnapshot.ready.store(false);
@@ -1253,4 +2393,74 @@ Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeGetEyeHeight(JNIEnv *,
     if (eye < 0 || eye >= static_cast<jint>(kViewCount))
         return 0;
     return static_cast<jint>(g_ctx.eyes[eye].height);
+}
+
+// Register / replace the Kotlin XrInputCallback that receives per-frame edge events.
+// Safe to call multiple times — previous global ref is released on replacement.
+extern "C" JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeSetInputCallback(
+    JNIEnv *env, jclass, jobject callback)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    auto &io = g_ctx.input;
+
+    // Swap out the old global ref if present.
+    if (io.inputCallbackRef)
+    {
+        env->DeleteGlobalRef(io.inputCallbackRef);
+        io.inputCallbackRef = nullptr;
+    }
+    io.onInputEventMethod = nullptr;
+    io.onPointerMoveMethod = nullptr;
+
+    if (callback == nullptr)
+    {
+        LOGI("nativeSetInputCallback: callback cleared");
+        return;
+    }
+
+    jclass cls = env->GetObjectClass(callback);
+    // XrInputCallback.onInputEvent(I, I, F, I)V — type, hand, value, source.
+    io.onInputEventMethod = env->GetMethodID(cls, "onInputEvent", "(IIFI)V");
+    if (!io.onInputEventMethod)
+    {
+        LOGE("nativeSetInputCallback: onInputEvent(IIFI)V not found on callback class");
+        env->DeleteLocalRef(cls);
+        return;
+    }
+    // XrInputCallback.onPointerMove(I, F, F)V — hand, ndcX, ndcY. Optional —
+    // controller-only callbacks may omit it (default implementation is a no-op),
+    // so a missing ID is non-fatal: pointer events are silently dropped.
+    io.onPointerMoveMethod = env->GetMethodID(cls, "onPointerMove", "(IFF)V");
+    if (!io.onPointerMoveMethod)
+    {
+        LOGW("nativeSetInputCallback: onPointerMove(IFF)V not found — pointer stream disabled");
+        // Not fatal: leave io.onPointerMoveMethod null so emitPointerMove short-circuits.
+        env->ExceptionClear();
+    }
+    io.inputCallbackRef = env->NewGlobalRef(callback);
+    env->DeleteLocalRef(cls);
+    LOGI("nativeSetInputCallback: callback registered  ref=%p input=%p pointer=%p",
+         static_cast<void *>(io.inputCallbackRef),
+         static_cast<void *>(io.onInputEventMethod),
+         static_cast<void *>(io.onPointerMoveMethod));
+}
+
+// Trigger haptic vibration on the specified hand (0 = left, 1 = right).
+// Returns true if the call reached the runtime (does not guarantee perception).
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeTriggerHaptic(
+    JNIEnv *, jclass, jint hand, jlong durationNs, jfloat amplitude)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    XrResult r = triggerHapticImpl(static_cast<int>(hand),
+                                   static_cast<int64_t>(durationNs),
+                                   static_cast<float>(amplitude));
+    if (XR_FAILED(r))
+    {
+        // Warn once per call level; not worth its own throttle since haptic is user-initiated.
+        LOGD("nativeTriggerHaptic: xrApplyHapticFeedback returned %d", static_cast<int>(r));
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
 }

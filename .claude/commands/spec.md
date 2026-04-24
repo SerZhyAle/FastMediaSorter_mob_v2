@@ -1,18 +1,31 @@
-# Specification Writer
+# Strategic Specification Writer
 
-Write a detailed implementation specification for a roadmap item in this project.
+Write a **strategic specification** for a roadmap item or ad-hoc feature. Strategic specs answer *what* and *why* in Russian, at a level that stakeholders can review without reading code. Class names, file paths, line budgets, Hilt modules and step-by-step sequencing belong in the **tactical** spec — see `/spec-tech`.
 
 ## Usage
 
-```
+```text
 /spec <roadmap-id> <short-name>
 ```
 
 Examples:
+
 - `/spec X.11 background-thumbnail-preload`
 - `/spec III.12 standalone-player-playlist`
+- `/spec ad-hoc player-keybinding-remapping` (when no roadmap ID exists — use `ad-hoc` as the ID).
 
-The `short-name` becomes the filename: `PLAN/spec_<short-name>.md`
+The `short-name` becomes the filename: `PLAN/spec_<short-name>.md`.
+
+A tactical spec for the same feature lives at `PLAN/spec_<short-name>/` (directory) and is created separately by `/spec-tech`.
+
+---
+
+## Language & Audience
+
+- **Body language:** Russian (the spec is a product/architectural document for the owner, not a developer handoff).
+- **Author style:** `..` not `...`; always use `ё`/`Ё` where grammatically correct.
+- **Reading level:** any stakeholder — product, QA, architect. A developer should also read it, but for execution they open the tactical spec.
+- **Content discipline:** describe goals, constraints, open questions. Do **not** propose concrete class names, file paths, function signatures, line budgets, Hilt modules, Room schema versions — those all belong in `/spec-tech`. If you are tempted to name a class, rewrite the sentence at one level higher ("компонент диспетчеризации ввода" вместо "KeyEventDispatcher").
 
 ---
 
@@ -21,242 +34,219 @@ The `short-name` becomes the filename: `PLAN/spec_<short-name>.md`
 When this command is invoked with `$ARGUMENTS`:
 
 **Step 1 — Parse arguments.**
-Extract the roadmap ID (e.g. `X.11`) and short name (e.g. `background-thumbnail-preload`).
-Output filename: `PLAN/spec_<short-name>.md`
+Extract the roadmap ID (e.g. `X.11`, or `ad-hoc`) and short name. Output filename: `PLAN/spec_<short-name>.md`.
 
 **Step 2 — Read context.**
-- Read `PLAN/IMPROVEMENT_ROADMAP.md` to find the roadmap entry for the given ID (tier, description, risk factor).
-- Read `dev/PROJECT_OPERATIONS_INDEX.md` to identify which modules and paths are relevant.
-- Read `docs/ARCHITECTURE.md` for data-flow and layer context.
-- Read `app_v2/build.gradle.kts` to identify which product flavors are affected and what `BuildConfig` flags apply.
-- Read all source files relevant to the feature (use Grep/Glob to find them). Be thorough — the "Current Architecture" section must be accurate.
-- If the feature touches the player, read `ui/player/PlayerActivity.kt` and all files in `ui/player/helpers/`.
-- If the feature touches settings, read the relevant fragment in `ui/settings/fragments/`.
-- If the feature may affect Wear OS, check `wear/src/main/java/com/sza/fastmediasorter/wear/`.
+
+- `PLAN/IMPROVEMENT_ROADMAP.md` — roadmap entry (tier, description, risk factor) if the ID is not `ad-hoc`.
+- `dev/PROJECT_OPERATIONS_INDEX.md` — Feature-to-Path Map + module boundaries.
+- `docs/ARCHITECTURE.md` — current data-flow and layer topology.
+- `app_v2/build.gradle.kts` — flavor set, `BuildConfig` flags, minSdk/targetSdk.
+- `docs/FEATURES.md` — existing feature inventory (avoid duplication).
+- For features touching player/settings/wear: skim the relevant catalog file under `dev/CATALOG/`.
 
 **Step 3 — Determine the Tier label.**
 Map the roadmap tier to the spec header string:
+
 - TIER 0 → `0 — Security/Compliance (urgent)`
 - TIER 1 → `1 — Quick Win (1–2h, zero risk)`
 - TIER 2 → `2 — Easy (2–4h, low risk)`
 - TIER 3 → `3 — Moderate (4–8h, medium risk)`
 - TIER 4 → `4 — Strategic (8h+, high risk)`
 
+If the feature is `ad-hoc`, estimate the tier from scope and note "ad-hoc" alongside.
+
 **Step 4 — Write the spec file** to `PLAN/spec_<short-name>.md` using the exact template below.
 
+**Status lifecycle:**
+
+- `Draft` — just written, not yet agreed.
+- `Approved` — aligned with user, ready for tactical breakdown.
+- `Tactical` — tactical spec folder exists and is populated by `/spec-tech`.
+- `In Progress` — implementation started against the tactical plan.
+- `Implemented` — every tactical phase marked Done; awaits `/spec-check`.
+- `Verified` — `/spec-check` ran on strategic + tactical and every criterion passed.
+- `Partial` — `/spec-check` found soft gaps; see audit report.
+- `Broken` — `/spec-check` found hard failures; see audit report.
+
 **Step 5 — Run the dev log command** (mandatory after every file change):
+
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec" "Add specification for <roadmap-id>"
+.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec" "Add strategic specification for <roadmap-id>"
 ```
 
+**Step 6 — Recommend `/spec-tech`.**
+At the end of the chat response, remind the user that the tactical breakdown is authored separately via `/spec-tech <short-name>`. Do **not** invoke it automatically — strategic spec should be reviewed/approved first.
+
 ---
 
-## Spec Template
+## Strategic Spec Template
 
-Use this exact structure. Do not skip sections. Fill every section with real content derived from the code you read — no placeholders.
+Use this exact structure. Body text in Russian. Do not skip sections. Fill every section with real content derived from the code/docs you read — no placeholders.
 
 ```markdown
-# Specification: <ID> — <Feature Name>
+# Стратегическая спецификация: <ID> — <Название фичи>
 
 **Status:** Draft
-**Date:** <today's date YYYY-MM-DD>
-**Tier:** <tier label from Step 3>
-**Roadmap entry:** <exact description text from IMPROVEMENT_ROADMAP.md>
+**Date:** <сегодняшняя дата YYYY-MM-DD>
+**Tier:** <метка tier из шага 3>
+**Roadmap entry:** <точный текст описания из IMPROVEMENT_ROADMAP.md или «Ad-hoc — запрос пользователя <дата>»>
+**Tactical spec:** `PLAN/spec_<short-name>/` (будет создан через `/spec-tech`)
+
+> **Scope of this document:** STRATEGIC. Цели, пожелания, открытые вопросы и ограничения. Без имён классов, путей к файлам, лимитов строк, миграций Room, модулей Hilt — это всё в тактической спецификации.
 
 ---
 
-## 1. Problem Statement
+## 1. Проблема
 
-<2–4 sentences. What is broken or missing? What is the user impact? Reference specific classes or files where the gap exists.>
-
----
-
-## 2. Goals
-
-<Numbered list of concrete deliverables. Each item = one testable outcome.>
-
-Non-goals for this spec: <list things explicitly out of scope>
+<2–4 предложения. Что сломано или чего не хватает? Какой эффект на пользователя? Укажи область кода (модуль/feature-path), где существует разрыв, без называния конкретных классов.>
 
 ---
 
-## 3. Flavor & API Level Scope
+## 2. Цели
 
-### 3.1 Product Flavor Impact
+<Нумерованный список. Каждая цель — одно наблюдаемое пользователем или архитектурное улучшение. Фраза «что станет возможным / что перестанет происходить», а не «какой класс будет создан».>
 
-| Flavor | Affected? | Notes |
-|--------|:---------:|-------|
-| `standard` | ✅ / ❌ | |
-| `lite`     | ✅ / ❌ | |
-| `photos`   | ✅ / ❌ | |
-| `legacy`   | ✅ / ❌ | |
+Non-goals:
 
-<If the feature is flavor-specific, name the `BuildConfig` flag that gates it (e.g. `BuildConfig.FEATURE_AUDIO`). If no existing flag applies, propose the new flag and where to declare it in `build.gradle.kts`.>
-
-### 3.2 Android API Level Forks
-
-| API level | Behavior / Constraint |
-|-----------|-----------------------|
-| 23+ (legacy minSdk) | <note if legacy flavor needs different handling> |
-| 26+ (standard minSdk) | <default path> |
-| 29 (Android 10) | <scoped storage, RecoverableSecurityException, etc. if relevant> |
-| 30+ (Android 11) | <MediaStore batch ops, package visibility, etc. if relevant> |
-| 31+ (Android 12) | <SplashScreen, exact alarms, notification permission if relevant> |
-| 34+ (Android 14) | <photo picker, predictive back, etc. if relevant> |
-
-<Remove rows not relevant to this feature. Add rows for other API-gated behaviour.>
-
-### 3.3 Wear OS Impact
-
-<One sentence: does this change require any update to the `wear/` module? If yes, explain what. If no, state "No Wear OS changes required.">
+- <что явно вне объёма — чтобы тактическая спека не раздулась>
+- <..>
 
 ---
 
-## 4. Current Architecture (Relevant Parts)
+## 3. Пожелания и ограничения
 
-| Component | Location | Role |
-|-----------|----------|------|
-| `ClassName` | `path/to/File.kt` | What it does today |
-...
+### 3.1 Пожелания владельца
 
-<Add 1–2 sentences describing the key limitation or gap in the current architecture.>
+<Нумерованный список. То, что хочется получить в идеале, но не обязательно к первой итерации. Эти пункты подпитывают «Out of Scope» в тактической спеке.>
 
----
+### 3.2 Жёсткие ограничения
 
-## 5. Proposed Architecture
-
-### 5.1 <Main structural change>
-
-<Describe the change. Use code snippets (Kotlin) for new classes/interfaces/data classes where helpful.>
-
-### 5.2 New classes / files
-
-| Class / File | Location | Lines budget |
-|-------------|----------|-------------|
-| `NewClass.kt` | `path/to/` | ≤ N |
-...
-
-<All new files must respect the 1000-line limit. If estimated lines > 600, plan extraction into a helper Manager from the start — do not wait until the limit is hit.>
-
-### 5.3 Architecture Compliance
-
-| Rule | Compliant? | Notes |
-|------|:----------:|-------|
-| No business logic in Activities/Fragments | ✅ / ⚠️ | <Manager(s) that will hold the logic> |
-| New classes follow naming (`VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`) | ✅ | |
-| Data flow strictly `UI → ViewModel → UseCase → Repository → DataSource` | ✅ / ⚠️ | |
-| No `Log.d()` — Timber only | ✅ | |
-| Room schema version incremented (if DB changes) | ✅ / N/A | <new version number if applicable> |
-| `StateFlow` for state, `SharedFlow` for one-shot events | ✅ / N/A | |
-| Hilt DI: new bindings declared in module file | ✅ / N/A | <which `@Module` file> |
-
-### 5.4–5.N <Additional subsections as needed>
-
-<Detail each major component: responsibilities, key methods, state management, lifecycle hooks.>
+- **Flavor:** <какие варианты сборки затронуты: `standard` / `lite` / `photos` / `legacy` — или «все»; одна фраза о `BuildConfig` gating без указания флага>
+- **API level:** <минимальный релевантный уровень Android; «без API-специфики» если не применимо>
+- **Wear OS:** <затрагивается или нет>
+- **Производительность:** <бюджет по CPU/памяти/батарее, если критично>
+- **Совместимость данных:** <если нужна миграция — один абзац про форму; без номера версии Room>
+- **Локализация:** <EN/RU/UK — всегда обязательно, или уточнение>
+- **Доступность:** <если фича визуальная — требования по TalkBack / touch target / не-цветовому отличию>
 
 ---
 
-## 6. Data Flow
+## 4. Контекст текущей архитектуры
 
-<ASCII diagram showing the data/event flow through the new architecture. Use → for calls and ←—— for observations/callbacks.>
-
----
-
-## 7. Files to Modify
-
-| File | Change | Est. size after |
-|------|--------|-----------------|
-| `ExistingFile.kt` | What changes and why | N lines |
-...
-
-<If any file will exceed 500 lines after the change, add a backup step in section 9.>
+<Один-два абзаца прозой. Какие слои / компоненты на сегодня отвечают за затронутую область. Какие у них ограничения, из-за которых сейчас нельзя решить проблему из §1. Без перечисления классов — описывай роль («менеджер жестов в плеере», «репозиторий загрузок облачных папок»).>
 
 ---
 
-## 8. Risk Analysis
+## 5. Предлагаемый подход
 
-| Risk | Likelihood | Mitigation |
-|------|:----------:|-----------|
-| <risk description> | Low / Med / High | <how to prevent or recover> |
-...
+<Основная часть. Описывает, как архитектурно будет решена проблема, на уровне концепций:
 
----
+- Какие новые **роли** появятся (например: «каталог сопоставлений клавиш», «диспетчер ввода с пре-фильтрацией»).
+- Откуда эти роли читают и куда пишут.
+- Какие существующие роли меняют ответственность.
 
-## 9. Testing Plan
+Используй эскизные блоки / ASCII только для концептуального потока данных. Имена классов, файлов, методов — запрещены.>
 
-### 9.1 Unit Tests
+### 5.1 Основные столпы / модули
 
-<List the classes/methods that warrant unit tests. For each, name the test class and the key scenario(s) to cover. If this tier is 1 or 2 and logic is trivial, "No unit tests required" is acceptable — but justify it.>
+<Крупные логические блоки. Каждый столп — одна подглава с описанием цели и требований.>
 
-### 9.2 Manual Test Cases
+### 5.2 Потоки данных и событий
 
-<Ordered list of manual verification steps. Include: happy path, error states, API-level variants (e.g., "test on Android 10 device for RecoverableSecurityException").>
+<Высокоуровневая диаграмма/описание. «UI → слой применения настроек → кэш в памяти → ..». Без имён методов.>
 
-### 9.3 Maestro E2E (if applicable)
+### 5.3 Точки расширяемости
 
-<If the feature has a user-visible flow suitable for automation, describe the Maestro flow file to add in `maestro/smoke/` or `maestro/critical/`. If not applicable, state "No Maestro tests needed.">
-
----
-
-## 10. Accessibility
-
-<One paragraph. Does this feature add or change UI elements? If yes: are all interactive elements reachable by TalkBack (content descriptions, focusable flags)? Are minimum touch targets 48dp? Any colour-only affordances that need a non-colour alternative? If the feature is purely non-visual (e.g. a background service), state "No accessibility changes.">
+<Что должно остаться открытым к расширению в будущем (новые устройства ввода, новые типы медиа и т.д.), чтобы тактическая спека заложила правильные абстракции.>
 
 ---
 
-## 11. User-Facing Feature Update
+## 6. Открытые вопросы / Research items
 
-<If this feature adds or materially changes what the user can do, list the three FEATURES doc entries to add/update:>
-- `docs/FEATURES.md` (EN): <bullet text>
-- `docs/FEATURES_RU.md` (RU): <bullet text>
-- `docs/FEATURES_UK.md` (UK): <bullet text>
+<Нумерованный список. Каждый пункт — вопрос, на который нужно ответить ДО написания тактической спеки или параллельно с ней. Формат:>
 
-<If no user-visible change, state "No FEATURES doc update required.">
+1. **<Короткий заголовок вопроса>**
+   - **Вопрос:** <формулировка>
+   - **Варианты:** <если уже понятны>
+   - **Нужно выяснить:** <что конкретно проверить — документация SDK, поведение на конкретном API level, опыт других приложений, измерение на устройстве>
+   - **Статус:** Open / Resolved (<ссылка на ADR или результат>)
 
----
-
-## 12. Architecture Decision Records (ADRs)
-
-<List any non-obvious architectural choices made in this spec and the reason behind them. Use this format:>
-
-**ADR-1: <Decision title>**
-- **Decision:** <What was decided>
-- **Alternatives considered:** <What else was evaluated>
-- **Reason:** <Why this option was chosen>
-
-<Add one ADR per significant trade-off. If there are no notable decisions, write "No ADRs — implementation follows established patterns.">
+<Если вопросов нет, напиши «Открытых вопросов нет — подход достаточно определён для тактической спеки.»>
 
 ---
 
-## 13. Implementation Steps
+## 7. Риски
 
-<Numbered ordered list. Each step = one atomic unit of work (create a file, add a method, modify a layout). Follow dependency order — create data classes before classes that use them. End with the dev log command for each modified file.>
-
-Mandatory step checklist at the end:
-- [ ] String resources added in EN/RU/UK (`values/`, `values-ru/`, `values-uk/`)
-- [ ] `docs/FEATURES.md` + `docs/FEATURES_RU.md` + `docs/FEATURES_UK.md` updated (if user-facing)
-- [ ] Room DB migration added + version incremented (if DB schema changes)
-- [ ] `.\scripts\add_to_dev_log.ps1` run for every modified file
+| Риск | Вероятность | Последствия | Митигация |
+|------|:-----------:|-------------|-----------|
+| <описание> | Низкая / Средняя / Высокая | <что сломается / кого затронет> | <как предотвратить или восстановить> |
 
 ---
 
-## 14. Out of Scope (future items)
+## 8. Влияние на пользователя (docs/FEATURES)
 
-<Bullet list of related improvements deliberately deferred to keep this spec focused.>
+<Если фича видима пользователю — сформулируй одно предложение, которое потом попадёт в `docs/FEATURES.md` + `_RU` + `_UK` после реализации. Без технических деталей.
+
+Если фича невидима — напиши «Без изменений в docs/FEATURES.» и обоснуй.>
+
+---
+
+## 9. Архитектурные решения (ADR)
+
+<Список нетривиальных решений, принятых в этой спеке. Формат:>
+
+**ADR-1: <Заголовок решения>**
+
+- **Решение:** <что решено>
+- **Альтернативы:** <что ещё рассматривалось>
+- **Почему так:** <обоснование выбора>
+
+<Добавляй по одному ADR на значимый trade-off. Если значимых нет — «ADR нет — решение идёт по устоявшимся паттернам проекта.»>
+
+---
+
+## 10. Связи с другими спеками
+
+<Список:
+
+- Другие стратегические спеки, которые связаны / блокируют / блокируются этой.
+- Спеки, с которыми делим инфраструктуру (например, общий каталог бинарей).
+- Out-of-scope пункты из §3.1 — потенциальные будущие спеки.
+
+Если связей нет — «Связей с другими спеками нет.»>
+
+---
+
+## 11. Критерии готовности (strategic-level)
+
+<Нумерованный список наблюдаемых на высоком уровне результатов. Это НЕ проверочные инварианты для `/spec-check` (те живут в тактической спеке), а критерии, по которым владелец/стейкхолдер скажет «задача решена». Пример:
+
+1. Пользователь может переназначить любую кнопку в плеере через UI настроек.
+2. Сброс к заводским значениям доступен на трёх уровнях: команда / группа / всё.
+3. Нераспознанные устройства ввода не блокируют связывание — их можно «записать» жестом нажатия.
+
+Каждый критерий детализируется в фазы тактической спеки.>
+
+---
+
+## 12. Ссылка на тактическую спецификацию
+
+После утверждения этой страницы — перейди к `/spec-tech <short-name>`, она создаст папку `PLAN/spec_<short-name>/` с фазами реализации. Тактическая спека — строгая, нумерованная, на английском, с промптами разработчику и верификацией на каждый шаг.
 ```
 
 ---
 
 ## Quality Rules
 
-- Every class reference must match an actual file that exists in the codebase (verify with Grep/Glob before writing).
-- Line budgets in section 5.2 must respect the 1000-line file limit from `CLAUDE.md`. If any class will exceed 600 lines, split it proactively using the Manager pattern.
-- Section 13 steps must be in dependency order (create data classes before classes that use them).
-- String resources must include EN/RU/UK variants — add a step in section 13 for each language file.
-- If the feature touches a file > 500 lines, add a step to create a timestamped backup in `temp/` first.
-- Do not reference files in read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- Sections 3.1 and 3.2 must be filled even if the answer is "all flavors" or "no API-level differences" — state it explicitly.
-- Section 5.3 Architecture Compliance table must be filled for every rule — never leave it empty.
-- Section 9.2 Manual Test Cases must include at least one error-state scenario.
-- Sections 10 (Accessibility) and 11 (User-Facing Feature Update) must not be omitted — write "No changes" if not applicable, but do not skip.
-- If the feature adds new Hilt bindings, name the `@Module` file in section 5.3 and include the binding as a step in section 13.
-- If the feature has `BuildConfig`-gated code, note the flag name in section 3.1 and in the relevant implementation step.
+- **Язык тела спеки — русский. Без исключений.** Единственное, что остаётся английским — frontmatter-поля (`Status`, `Date`, `Tier`), имена разделов из кода (`BuildConfig`, `minSdk`), пути к файлам.
+- **Никаких имён классов, методов, файлов в §5.** Если появилось желание написать `KeyEventDispatcher` — это сигнал, что ты уходишь в тактику. Переформулируй на уровне роли.
+- **Никаких бюджетов строк, версий Room, названий Hilt-модулей, имён миграций.** Всё это — в `/spec-tech`.
+- **Секции 6 и 7 обязательны даже если ответ тривиален.** Пустая секция = «всё понятно и без рисков» должно быть явно написано словами.
+- **§11 должен быть наблюдаемым.** «Архитектурная чистота» — плохой критерий. «Пользователь видит X» или «Batch job завершается за N минут» — хорошие.
+- **§8 синхронизирован с `docs/FEATURES.md` только после реализации**, но формулировка должна быть готова уже в спеке.
+- **Ссылки на read-only зоны запрещены:** `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- **Автор-стиль обязателен:** `..` вместо `...`, `ё`/`Ё` всегда.
+- **Не дублируй FEATURES.md.** Перед написанием §1 и §2 убедись, что такой фичи или её части ещё нет.
+- **Не смешивай стратегию с роадмапом.** Roadmap говорит «что делать», стратегическая спека — «как мы к этому подойдём и зачем именно так».
+- **Когда спека утверждена** — двигай `Status:` на `Approved` и зови `/spec-tech`. До `Approved` тактика не пишется.

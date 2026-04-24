@@ -2523,4 +2523,150 @@
     <string name="vr_install_cta_message">Для кращого перегляду скористайтесь VR-версією FastMediaSorter на шоломі Quest.</string>
     <string name="vr_install_cta_action">Відкрити в магазині</string>
     <string name="vr_install_cta_dismiss">Відтворити</string>
+
+    <!-- Довідка з клавіатури та миші (F1) -->
+    <string name="kbm_help_title">Сполучення клавіш</string>
+    <string name="kbm_help_full_docs_link">Відкрити повну довідку з клавіатури та миші ..</string>
+    <string name="kbm_help_empty">Для цього екрана сполучень клавіш ще немає.</string>
+    <string name="kbm_help_section_global">Загальні</string>
+    <string name="kbm_help_section_navigation">Навігація</string>
+    <string name="kbm_help_section_selection">Виділення</string>
+    <string name="kbm_help_section_file_ops">Операції з файлами</string>
+    <string name="kbm_help_section_playback">Відтворення</string>
+    <string name="kbm_help_section_dialog">Діалог</string>
+
+    <string name="kbm_help_global_f1">Показати цю довідку</string>
+    <string name="kbm_help_global_exit">Закрити поточний екран</string>
+    <string name="kbm_help_global_escape">Скасувати, зняти виділення, закрити діалог</string>
+    <string name="kbm_help_global_tab">Фокус уперед / назад</string>
+    <string name="kbm_help_global_search">Пошук / фільтр</string>
+    <string name="kbm_help_global_undo_redo">Скасувати / повторити</string>
+
+    <string name="kbm_help_nav_arrows">Перемістити фокус</string>
+    <string name="kbm_help_nav_page">Сторінка вгору / вниз</string>
+    <string name="kbm_help_nav_home_end">На початок / у кінець</string>
+    <string name="kbm_help_nav_enter">Відкрити поточний елемент</string>
+    <string name="kbm_help_nav_backspace">На рівень вище</string>
+    <string name="kbm_help_nav_escape">Скасувати й закрити</string>
+
+    <string name="kbm_help_main_open">Відкрити ресурс в огляді</string>
+    <string name="kbm_help_main_add">Додати ресурс</string>
+
+    <string name="kbm_help_browse_open">Відкрити папку або файл</string>
+    <string name="kbm_help_browse_back">У батьківську папку</string>
+
+    <string name="kbm_help_sel_toggle">Перемкнути виділення</string>
+    <string name="kbm_help_sel_all">Виділити все</string>
+    <string name="kbm_help_sel_clear">Зняти виділення</string>
+    <string name="kbm_help_sel_invert">Інвертувати виділення</string>
+    <string name="kbm_help_sel_range">Розширити виділення</string>
+
+    <string name="kbm_help_op_rename">Перейменувати</string>
+    <string name="kbm_help_op_view">Перегляд</string>
+    <string name="kbm_help_op_edit">Редагувати</string>
+    <string name="kbm_help_op_copy">Копіювати</string>
+    <string name="kbm_help_op_move">Перемістити</string>
+    <string name="kbm_help_op_create_folder">Створити папку</string>
+    <string name="kbm_help_op_create_group">Створити групу</string>
+    <string name="kbm_help_op_delete">Видалити</string>
+    <string name="kbm_help_op_context_menu">Контекстне меню</string>
+    <string name="kbm_help_op_refresh">Оновити</string>
+
+    <string name="kbm_help_player_playpause">Відтворення / пауза</string>
+    <string name="kbm_help_player_prev_next">Попередній / наступний файл</string>
+    <string name="kbm_help_player_seek_10s">Перемотування −10с / +10с</string>
+    <string name="kbm_help_player_seek_60s">Перемотування −60с / +60с</string>
+    <string name="kbm_help_player_volume">Гучність + / −</string>
+    <string name="kbm_help_player_mute">Вимкнути / увімкнути звук</string>
+    <string name="kbm_help_player_fullscreen">Повноекранний режим</string>
+    <string name="kbm_help_player_frame_step">Кадр назад / вперед</string>
+    <string name="kbm_help_player_info">Інформація про файл</string>
+    <string name="kbm_help_player_save">Зберегти кадр / поточне</string>
+
+    <string name="kbm_help_settings_tabs">Перемкнути вкладку</string>
+    <string name="kbm_help_settings_rows">Попередній / наступний рядок</string>
+    <string name="kbm_help_settings_activate">Активувати / перемкнути</string>
+    <string name="kbm_help_settings_search">Пошук у налаштуваннях</string>
+    <string name="kbm_help_settings_back">Назад / закрити</string>
+
+    <string name="kbm_help_dialog_primary">Основна дія (OK / Застосувати)</string>
+    <string name="kbm_help_dialog_cancel">Скасувати</string>
+    <string name="kbm_help_dialog_arrows">Навігація між рядками</string>
+    <string name="kbm_help_dialog_toggle">Перемкнути параметр</string>
+
+    <!-- Керування у VR — HUD-індикатори (spec_vr-immersive-controls-tech) -->
+    <string name="vr_hud_paused">Пауза</string>
+    <string name="vr_hud_playing">Відтворення</string>
+    <string name="vr_hud_volume_percent">Гучність %1$d%%</string>
+    <string name="vr_hud_seek_fwd">Перемотка вперед</string>
+    <string name="vr_hud_seek_bwd">Перемотка назад</string>
+    <string name="vr_hud_file_position">%1$s  %2$d / %3$d</string>
+    <string name="vr_hud_zoom_factor">Масштаб %1$.1fx</string>
+    <string name="vr_hud_recenter_done">Центр скинуто</string>
+    <string name="vr_hud_first_file">Перший файл</string>
+    <string name="vr_hud_last_file">Останній файл</string>
+    <string name="vr_hud_copy_done">Скопійовано</string>
+    <string name="vr_hud_move_done">Переміщено</string>
+    <string name="vr_hud_error_network">Немає мережі</string>
+    <string name="vr_hud_immersive_on">3D VR</string>
+    <string name="vr_hud_immersive_off">Плоский екран</string>
+
+    <!-- Керування у VR — панель файлових операцій -->
+    <string name="vr_fops_title">Операції з файлом</string>
+    <string name="vr_fops_copy_to">Скопіювати в..</string>
+    <string name="vr_fops_move_to">Перемістити в..</string>
+    <string name="vr_fops_delete">Видалити</string>
+    <string name="vr_fops_rename">Перейменувати</string>
+    <string name="vr_fops_info">Про файл</string>
+    <string name="vr_fops_choose_folder">Обрати іншу теку..</string>
+    <string name="vr_fops_close">Закрити</string>
+    <string name="vr_fops_choose_copy_target">Куди копіювати?</string>
+    <string name="vr_fops_choose_move_target">Куди перемістити?</string>
+    <string name="vr_fops_no_recent">Нещодавніх тек поки немає</string>
+    <string name="vr_fops_not_implemented_copy">Копіювання в теку з VR з\'явиться у наступній ітерації</string>
+    <string name="vr_fops_not_implemented_move">Переміщення в теку з VR з\'явиться у наступній ітерації</string>
+    <string name="vr_fops_not_implemented_rename">Перейменування з VR з\'явиться у наступній ітерації</string>
+
+    <!-- Керування у VR — діалоги підтвердження та інформація про файл -->
+    <string name="vr_delete_confirm_title">Видалити файл?</string>
+    <string name="vr_delete_confirm_msg">\"%1$s\"  %2$s</string>
+    <string name="vr_rename_hint">Нове ім\'я</string>
+    <string name="vr_info_title">Про файл</string>
+    <string name="vr_info_name">Ім\'я:</string>
+    <string name="vr_info_path">Шлях:</string>
+    <string name="vr_info_size">Розмір:</string>
+    <string name="vr_info_resolution">Розмір: %1$d × %2$d</string>
+    <string name="vr_info_duration">Тривалість:</string>
+    <string name="vr_info_video">Відеокодек:</string>
+    <string name="vr_info_bitrate">Бітрейт: %1$d кбіт/с</string>
+
+    <!-- Керування у VR — швидкі кнопки оверлея -->
+    <string name="vr_overlay_btn_prev">Назад</string>
+    <string name="vr_overlay_btn_next">Далі</string>
+    <string name="vr_overlay_btn_seek_back">−10с</string>
+    <string name="vr_overlay_btn_seek_fwd">+10с</string>
+    <string name="vr_overlay_btn_play_pause">Плей / Пауза</string>
+    <string name="vr_overlay_btn_settings">Налаштування</string>
+    <string name="vr_overlay_btn_exit">Вихід</string>
+
+    <!-- Керування у VR — вміст шпаргалки -->
+    <string name="vr_cheatsheet_title">Керування у VR</string>
+    <string name="vr_cheatsheet_section_controllers">Контролери Touch (Quest 2 / 3 / Pro):</string>
+    <string name="vr_cheatsheet_ctrl_a">A (правий) — пауза / плей</string>
+    <string name="vr_cheatsheet_ctrl_b">B (правий) — вихід у 2D-панель</string>
+    <string name="vr_cheatsheet_ctrl_x">X (лівий) — вихід (дубль)</string>
+    <string name="vr_cheatsheet_ctrl_y">Y (лівий) — файлові операції (коротко) / ця шпаргалка (довго)</string>
+    <string name="vr_cheatsheet_ctrl_menu">≡ (лівий) — діалог налаштувань відтворення</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">Лівий стік — ↑↓ гучність · ←→ перемотка ±10с · клік: імерсив ↔ плоский</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">Правий стік — ↑↓ гучність · ←→ попередній / наступний файл · клік: ре-центр</string>
+    <string name="vr_cheatsheet_ctrl_grip">Грип — утримувати + рухати рукою = масштаб · обидва грипи ≥ 1с = скидання масштабу</string>
+    <string name="vr_cheatsheet_section_keyboard">Bluetooth-клавіатура:</string>
+    <string name="vr_cheatsheet_kb_space">Space / K — пауза / плей · J / L — ±10с · N / P — попередній / наступний · M — без звуку</string>
+    <string name="vr_cheatsheet_kb_arrows">← → — перемотка ±10с · Shift+←→ — ±3с · Ctrl+←→ — ±60с · ↑↓ — гучність</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 — ця шпаргалка · F2 — перейменувати · F3 — про файл · F4 — налаштування · F5 — копіювати · F6 — перемістити · F7 — операції · F8 — видалити · F10 — вихід</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R — перейменувати · Ctrl+C — копіювати · Ctrl+X — перемістити · Ctrl+I — інформація · Ctrl+Y — операції</string>
+    <string name="vr_cheatsheet_section_mouse">Bluetooth-миша:</string>
+    <string name="vr_cheatsheet_mouse_buttons">ЛКМ — пауза / плей · ПКМ — налаштування · СКМ — ре-центр · кнопка 4/5 — попередній / наступний файл</string>
+    <string name="vr_cheatsheet_mouse_wheel">Колесо — гучність · Shift+колесо — перемотка ±10с</string>
+    <string name="vr_cheatsheet_footer">Торкніться будь-де щоб закрити · тривале Y або F1 — відкрити знову</string>
 </resources>

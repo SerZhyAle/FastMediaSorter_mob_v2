@@ -22,6 +22,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
+import com.sza.fastmediasorter.ui.common.input.FocusDirection
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -35,6 +38,31 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private val viewModel: SettingsViewModel by viewModels()
     private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
     private var searchDebounceJob: Job? = null
+    private val keyboardManager = SettingsKeyboardNavigationManager(object : SettingsKeyboardNavigationManager.Callback {
+        override fun switchTab(delta: Int) {
+            binding.viewPager.currentItem = (binding.viewPager.currentItem + delta)
+                .coerceIn(0, (binding.viewPager.adapter?.itemCount ?: 1) - 1)
+        }
+        override fun tabCount(): Int = binding.viewPager.adapter?.itemCount ?: 0
+        override fun currentTab(): Int = binding.viewPager.currentItem
+        override fun openSearchOverlay() = this@SettingsActivity.openSearchOverlay()
+        override fun closeSearchOverlay() = this@SettingsActivity.closeSearchOverlay()
+        override fun isSearchVisible(): Boolean = binding.searchOverlay.isVisible
+        override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
+        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.SETTINGS) }
+        override fun activateFocused() { currentFocus?.performClick() }
+        override fun moveFocus(direction: FocusDirection) {
+            val focusDir = when (direction) {
+                FocusDirection.UP, FocusDirection.PREVIOUS -> View.FOCUS_UP
+                FocusDirection.DOWN, FocusDirection.NEXT -> View.FOCUS_DOWN
+                FocusDirection.LEFT -> View.FOCUS_LEFT
+                FocusDirection.RIGHT -> View.FOCUS_RIGHT
+                FocusDirection.FIRST -> View.FOCUS_UP
+                FocusDirection.LAST -> View.FOCUS_DOWN
+            }
+            currentFocus?.focusSearch(focusDir)?.requestFocus()
+        }
+    })
     private var setupStartUptimeMs: Long = 0L
     private var actionBarSizePx = 0
     private var statusBarInsetPx = 0
@@ -226,71 +254,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            // Previous tab
-            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_PAGE_UP -> {
-                val currentPosition = binding.viewPager.currentItem
-                if (currentPosition > 0) {
-                    binding.viewPager.currentItem = currentPosition - 1
-                }
-                return true
-            }
-            
-            // Next tab
-            KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_PAGE_DOWN -> {
-                val currentPosition = binding.viewPager.currentItem
-                val adapter = binding.viewPager.adapter
-                if (adapter != null && currentPosition < adapter.itemCount - 1) {
-                    binding.viewPager.currentItem = currentPosition + 1
-                }
-                return true
-            }
-            
-            // Exit settings
-            KeyEvent.KEYCODE_ESCAPE -> {
-                if (binding.searchOverlay.isVisible) {
-                    closeSearchOverlay()
-                    return true
-                }
-                onBackPressedDispatcher.onBackPressed()
-                return true
-            }
-            
-            // Next UI element (TAB or Down arrow)
-            KeyEvent.KEYCODE_TAB -> {
-                if (event?.isShiftPressed == true) {
-                    // Shift+TAB: previous element
-                    val currentFocus = currentFocus
-                    currentFocus?.focusSearch(View.FOCUS_UP)?.requestFocus()
-                } else {
-                    // TAB: next element
-                    val currentFocus = currentFocus
-                    currentFocus?.focusSearch(View.FOCUS_DOWN)?.requestFocus()
-                }
-                return true
-            }
-            
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
-                // Down arrow: next element
-                val currentFocus = currentFocus
-                val nextFocus = currentFocus?.focusSearch(View.FOCUS_DOWN)
-                if (nextFocus != null && nextFocus != currentFocus) {
-                    nextFocus.requestFocus()
-                    return true
-                }
-            }
-            
-            KeyEvent.KEYCODE_DPAD_UP -> {
-                // Up arrow: previous element
-                val currentFocus = currentFocus
-                val prevFocus = currentFocus?.focusSearch(View.FOCUS_UP)
-                if (prevFocus != null && prevFocus != currentFocus) {
-                    prevFocus.requestFocus()
-                    return true
-                }
-            }
-        }
-        
+        if (keyboardManager.handleKeyDown(keyCode, event)) return true
         return super.onKeyDown(keyCode, event)
     }
 

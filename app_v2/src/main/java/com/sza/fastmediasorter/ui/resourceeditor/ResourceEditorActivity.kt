@@ -3,11 +3,14 @@ package com.sza.fastmediasorter.ui.resourceeditor
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityResourceEditorBinding
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,6 +35,25 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
 
     override fun observeData() {
         // Fragment manages its own data
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when {
+            keyCode == KeyEvent.KEYCODE_F1 -> {
+                InputHelpDialogFragment.show(supportFragmentManager, InputSurface.RESOURCE_EDITOR)
+                return true
+            }
+            keyCode == KeyEvent.KEYCODE_S && event?.isCtrlPressed == true -> {
+                val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+                if (fragment is ResourceEditorFragment) fragment.performSave()
+                return true
+            }
+            keyCode == KeyEvent.KEYCODE_ESCAPE -> {
+                onBackPressedDispatcher.onBackPressed()
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

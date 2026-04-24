@@ -11,12 +11,14 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
+import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
@@ -51,6 +53,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
     @Inject lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
     @Inject lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
+    @Inject lateinit var gamepadInputManager: GamepadInputManager
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -210,6 +213,34 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         return if (::initializer.isInitialized) {
             initializer.keyboardNavigationManager.handleKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
         } else super.onKeyDown(keyCode, event)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // D-pad / left stick focus moves rely on Android's default focus search
+        // (item_media_file.xml and item_media_file_grid.xml are focusable).
+        // A/B/X/Y/Start/L1/R1 are intercepted here via GamepadInputManager.
+        val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.BROWSER)
+        if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
+        when (action) {
+            is GamepadAction.BrowserAction.Select -> {
+                currentFocus?.performClick() ?: return false
+            }
+            is GamepadAction.BrowserAction.Back -> onBackPressedDispatcher.onBackPressed()
+            is GamepadAction.BrowserAction.MultiSelect -> {
+                // Long-click on a file row toggles multi-selection mode in MediaFileAdapter.
+                currentFocus?.performLongClick() ?: return false
+            }
+            is GamepadAction.BrowserAction.ContextMenu -> {
+                currentFocus?.performLongClick() ?: return false
+            }
+            is GamepadAction.BrowserAction.Search -> binding.btnFilter.performClick()
+            is GamepadAction.BrowserAction.SwitchTab -> binding.btnToggleView.performClick()
+        }
+        return true
     }
 
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {

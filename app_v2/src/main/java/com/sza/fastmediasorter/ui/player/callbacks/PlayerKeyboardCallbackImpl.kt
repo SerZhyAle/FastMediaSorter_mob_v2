@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.ui.player.callbacks
 
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -53,9 +55,13 @@ class PlayerKeyboardCallbackImpl(
         activity.dialogAndUiStateManager.toggleCopyPanel()
     }
 
+    override fun canCopyCurrent(): Boolean = true
+
     override fun onToggleMovePanel() {
         activity.dialogAndUiStateManager.toggleMovePanel()
     }
+
+    override fun canMoveCurrent(): Boolean = true
 
     override fun onShowEditDialog() {
         val currentFile = viewModel.state.value.currentFile
@@ -145,4 +151,48 @@ class PlayerKeyboardCallbackImpl(
     override fun onNavigationScroll(verticalScroll: Float) {
         activity.navigationManager.handleMouseWheelScroll(verticalScroll)
     }
+
+    override fun onToggleMute() {
+        if (activity._videoPlayerManager != null) {
+            val player = activity.videoPlayerManager.getPlayer() ?: return
+            player.volume = if (player.volume > 0f) 0f else 1f
+        }
+    }
+
+    // Fullscreen toggle reuses the command-panel toggle: hiding the panel enters fullscreen.
+    override fun onToggleFullscreen() {
+        viewModel.toggleCommandPanel()
+    }
+
+    // delta is ±1 step; PlayerActivity.adjustVolume expects ±0.1 per step.
+    override fun onChangeVolume(delta: Int) {
+        activity.adjustVolume(delta * 0.1f)
+    }
+
+    override fun onShowHelp() {
+        InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.PLAYER)
+    }
+
+    override fun onDocumentSearch() {
+        // The handler already gates this to document surfaces; runCatching avoids lateinit crashes
+        // on hosts where the search controls manager has not been prepared yet.
+        runCatching {
+            activity.searchControlsManager.showSearchPanel()
+        }
+    }
+
+    // Ctrl+S saves the current video frame as an image.
+    override fun onSaveCurrent() {
+        activity.saveVideoFrameManager.saveCurrentFrame()
+    }
+
+    // F9 / Ctrl+M in player shows the command/context panel.
+    override fun onShowContextMenu() {
+        viewModel.toggleCommandPanel()
+    }
+
+    override fun onNextFile() = viewModel.nextFile()
+    override fun onPreviousFile() = viewModel.previousFile()
+    override fun onToggleFavourite() = viewModel.toggleFavorite()
+    override fun onUndoOperation() = viewModel.undoLastOperation()
 }

@@ -5,6 +5,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * VR layer mapping is flavor-specific because the implementation lives under
+ * `src/vr/java`, so the regression tests must compile only for the VR flavor.
+ */
 class VrLayerFactoryTest {
 
     private val factory: VrLayerFactory = DefaultVrLayerFactory()

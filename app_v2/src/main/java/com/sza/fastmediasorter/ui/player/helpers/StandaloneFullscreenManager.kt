@@ -15,6 +15,16 @@ import timber.log.Timber
  */
 class StandaloneFullscreenManager(private val activity: Activity) {
 
+    fun toggleFullscreen() {
+        val decorView = activity.window.decorView
+        val insets = WindowInsetsCompat.toWindowInsetsCompat(decorView.rootWindowInsets, decorView)
+        if (insets.isVisible(WindowInsetsCompat.Type.systemBars())) {
+            enterFullscreen()
+        } else {
+            exitFullscreen()
+        }
+    }
+
     fun enterFullscreen() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

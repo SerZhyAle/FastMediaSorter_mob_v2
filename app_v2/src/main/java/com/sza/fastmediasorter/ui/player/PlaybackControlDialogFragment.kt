@@ -274,6 +274,10 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 text = track.label
                 isChecked = track.isSelected
                 minHeight = (48 * resources.displayMetrics.density).roundToInt()
+                // Audio/subtitle rows are added at runtime, so they need explicit focus flags to
+                // participate in D-pad/gamepad navigation the same way as the XML-defined controls.
+                isFocusable = true
+                isFocusableInTouchMode = false
                 setOnClickListener {
                     handle.selectAudioTrack(track.groupIndex, track.trackIndex)
                     refreshAudioTab()
@@ -297,6 +301,8 @@ class PlaybackControlDialogFragment : DialogFragment() {
             text = getString(R.string.subtitle_off)
             isChecked = tracks.none { it.isSelected }
             minHeight = (48 * resources.displayMetrics.density).roundToInt()
+            isFocusable = true
+            isFocusableInTouchMode = false
             setOnClickListener {
                 val groupIndex = tracks.firstOrNull()?.groupIndex ?: 0
                 handle.selectSubtitleTrack(groupIndex, -1)
@@ -310,6 +316,8 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 text = track.label
                 isChecked = track.isSelected
                 minHeight = (48 * resources.displayMetrics.density).roundToInt()
+                isFocusable = true
+                isFocusableInTouchMode = false
                 setOnClickListener {
                     handle.selectSubtitleTrack(track.groupIndex, track.trackIndex)
                     refreshSubtitleTab()

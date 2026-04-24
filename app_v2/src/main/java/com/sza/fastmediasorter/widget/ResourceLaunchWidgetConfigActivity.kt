@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.widget
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -39,6 +40,11 @@ class ResourceLaunchWidgetConfigActivity : ComponentActivity() {
     @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
     interface ResourceWidgetEntryPoint {
         fun database(): AppDatabase
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_ESCAPE) { finish(); return true }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

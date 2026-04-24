@@ -51,6 +51,7 @@ import java.util.Date
 class MediaFileAdapter(
     private val onFileClick: (MediaFile) -> Unit,
     private val onFileLongClick: (MediaFile) -> Unit,
+    private val onContextMenuRequest: (android.view.View, MediaFile) -> Unit = { _, _ -> },
     private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
     private val onSelectionRangeRequested: (MediaFile) -> Unit = {}, // Long click on checkbox
     private val onPlayClick: (MediaFile) -> Unit,
@@ -530,11 +531,14 @@ class MediaFileAdapter(
                 }
             }
 
-            binding.root.setOnGenericMotionListener { _, event ->
-                if (event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
+            binding.root.setOnGenericMotionListener { view, event ->
+                if (event.action == MotionEvent.ACTION_BUTTON_PRESS &&
+                    event.buttonState == MotionEvent.BUTTON_SECONDARY
+                ) {
                     val file = getItemByPosition() ?: return@setOnGenericMotionListener false
                     Timber.d("Right-click on ${file.name}")
-                    onFileLongClick(file)
+                    // Right-click must open the context menu, not reuse range-selection semantics.
+                    onContextMenuRequest(view, file)
                     return@setOnGenericMotionListener true
                 }
                 false
@@ -922,11 +926,14 @@ class MediaFileAdapter(
                 }
             }
 
-            binding.root.setOnGenericMotionListener { _, event ->
-                if (event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
+            binding.root.setOnGenericMotionListener { view, event ->
+                if (event.action == MotionEvent.ACTION_BUTTON_PRESS &&
+                    event.buttonState == MotionEvent.BUTTON_SECONDARY
+                ) {
                     val file = getItemByPosition() ?: return@setOnGenericMotionListener false
                     Timber.d("Right-click on ${file.name}")
-                    onFileLongClick(file)
+                    // Right-click must open the context menu, not reuse range-selection semantics.
+                    onContextMenuRequest(view, file)
                     return@setOnGenericMotionListener true
                 }
                 false

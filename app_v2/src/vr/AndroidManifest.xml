@@ -111,4 +111,17 @@
         android:name="android.hardware.xr.immersive"
         android:required="false" />
 
+    <!--
+      Hand tracking (spec_vr-hand-tracking-tech §3).
+      Permission is required on HorizonOS v62+ to open XrHandTrackerEXT — without it
+      xrCreateHandTrackerEXT returns XR_ERROR_PERMISSION_INSUFFICIENT and hand tracking
+      stays off while controllers keep working. The feature is optional so non-Quest
+      devices still install.
+    -->
+    <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+
+    <uses-feature
+        android:name="oculus.software.handtracking"
+        android:required="false" />
+
 </manifest>

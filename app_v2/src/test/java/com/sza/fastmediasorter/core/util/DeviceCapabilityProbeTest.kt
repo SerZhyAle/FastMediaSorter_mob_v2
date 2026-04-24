@@ -1,36 +1,57 @@
 package com.sza.fastmediasorter.core.util
 
+import android.app.ActivityManager
 import android.content.Context
+import android.os.StatFs
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.unmockkAll
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
-import org.robolectric.annotation.Config
 
 /**
  * Unit tests for [DeviceCapabilityProbe].
  *
  * The probe reads free heap (JVM `Runtime`), free storage (`StatFs(cacheDir)`), and
- * a coarse [MemoryTier] (`ActivityManager`). Exact values depend on the Robolectric
- * host's JVM and sandbox, so these tests assert invariants rather than magic numbers:
+ * a coarse [MemoryTier] (`ActivityManager`). Exact values depend on the host JVM, so
+ * these tests assert invariants rather than magic numbers:
  * budget is non-negative, never exceeds the absolute cap, and respects both the
  * heap and storage fractions.
  */
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
 class DeviceCapabilityProbeTest {
 
     private lateinit var context: Context
     private lateinit var probe: DeviceCapabilityProbe
+    private lateinit var activityManager: ActivityManager
 
     @Before
     fun setup() {
-        context = RuntimeEnvironment.getApplication()
+        activityManager = mockk(relaxed = true)
+        context = mockk(relaxed = true)
+        mockkConstructor(StatFs::class)
+
+        // Keep this test off the real Application instance so Room never opens a
+        // Robolectric temp database that Windows then refuses to delete during cleanup.
+        every { context.cacheDir } returns File("temp/device-capability-probe-test-cache")
+        every { context.getSystemService(Context.ACTIVITY_SERVICE) } returns activityManager
+        every { anyConstructed<StatFs>().availableBytes } returns 4L * 1024 * 1024 * 1024
+        every { activityManager.isLowRamDevice } returns false
+        every { activityManager.getMemoryInfo(any()) } answers {
+            firstArg<ActivityManager.MemoryInfo>().totalMem = 8L * 1024 * 1024 * 1024
+        }
+
         probe = DeviceCapabilityProbe(context)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     @Test

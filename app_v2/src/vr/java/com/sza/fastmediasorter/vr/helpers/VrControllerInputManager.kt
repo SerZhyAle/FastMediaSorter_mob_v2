@@ -1,0 +1,386 @@
+package com.sza.fastmediasorter.vr.helpers
+
+import android.media.AudioManager
+import android.os.Handler
+import android.os.SystemClock
+import android.view.InputDevice
+import android.view.KeyEvent
+import android.view.MotionEvent
+import com.sza.fastmediasorter.ui.player.contracts.PlaybackCommand
+import com.sza.fastmediasorter.vr.openxr.XrHand
+import com.sza.fastmediasorter.vr.openxr.XrInputCallback
+import com.sza.fastmediasorter.vr.openxr.XrInputEventType
+import com.sza.fastmediasorter.vr.openxr.XrInputSource
+import timber.log.Timber
+
+enum class VrCommandSource {
+    CONTROLLER,
+    HAND,
+    KEYBOARD,
+    MOUSE,
+    UI,
+}
+
+/**
+ * Central router that converts four parallel input surfaces into [PlaybackCommand]s:
+ *
+ *  - **Layer A** — OpenXR controllers (Touch / Touch Pro) via [XrInputCallback].
+ *    C++ edge-detects on the xr-render-thread; events are dispatched to [mainHandler]
+ *    before touching any UI / ViewModel state.
+ *  - **Layer B** — Bluetooth keyboard via [onKeyEvent].
+ *  - **Layer C** — Bluetooth mouse via [onMotionEvent] (+ clicks via [onKeyEvent]).
+ *  - **Layer E** — OpenXR hand tracking (spec_vr-hand-tracking-tech). Shares the
+ *    [XrInputCallback] channel but is distinguished by `source = XrInputSource.HAND`;
+ *    pinches trigger UI clicks via [onPointerEvent], thumb microgestures map to
+ *    seek / volume commands, and audio feedback replaces haptics.
+ *
+ * All business logic (pause, seek, file ops, zoom) is delegated to the enclosing
+ * activity through [onCommand], [onVolumeStep] and [onZoomGripDelta]; this class
+ * only maps events → commands with the rate limiting required for analog inputs.
+ *
+ * @param audioManager source for system UI click sounds emitted when hand-tracking
+ *                     pinches fire — compensates for the lack of haptic feedback.
+ *                     May be null on devices without an AudioManager (unusual).
+ * @param onPointerEvent optional sink for pointer click transitions sourced from
+ *                       hand tracking — forwarded to `VrHandRayManager` so the
+ *                       current hover target receives synthetic MotionEvents.
+ */
+class VrControllerInputManager(
+    private val mainHandler: Handler,
+    private val onCommand: (PlaybackCommand, VrCommandSource) -> Unit,
+    private val onVolumeStep: (Int) -> Unit,
+    private val onZoomGripDelta: (Float) -> Unit,
+    private val audioManager: AudioManager? = null,
+    private val onPointerEvent: ((hand: Int, down: Boolean) -> Unit)? = null,
+) : XrInputCallback {
+
+    @Volatile
+    private var lastVolumeEventMs = -1L
+
+    @Volatile
+    private var lastZoomStepMs = -1L
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Layer A — OpenXR controllers (called from xr-render-thread)
+    // Layer E — OpenXR hand tracking (same channel, source = HAND)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    override fun onInputEvent(type: Int, hand: Int, value: Float, source: Int) {
+        // Hop to main thread before touching UI / ViewModel.
+        mainHandler.post { dispatchXrEvent(type, hand, value, source) }
+    }
+
+    override fun onPointerMove(hand: Int, ndcX: Float, ndcY: Float) {
+        // High-frequency per-frame stream — Kotlin side is expected to throttle before
+        // forwarding to the view hierarchy. Forwarded through the main handler.
+        val rayManager = pointerMoveSink ?: return
+        mainHandler.post { rayManager(hand, ndcX, ndcY) }
+    }
+
+    /**
+     * Optional high-frequency sink invoked from [onPointerMove]. Set by
+     * `VrPlayerActivity` once `VrHandRayManager` is constructed so pointer coordinates
+     * can reach the view hierarchy. Volatile so the render-thread observes
+     * subscription changes without synchronisation.
+     */
+    @Volatile
+    var pointerMoveSink: ((hand: Int, ndcX: Float, ndcY: Float) -> Unit)? = null
+
+    private fun dispatchXrEvent(type: Int, hand: Int, value: Float, source: Int) {
+        val commandSource = xrCommandSource(source)
+        Timber.v("VrInput[xr]: type=%d hand=%d value=%.3f source=%d", type, hand, value, source)
+        when (type) {
+            XrInputEventType.PAUSE_TOGGLE       -> dispatchCommand(PlaybackCommand.TogglePausePlay, commandSource)
+            XrInputEventType.EXIT               -> dispatchCommand(PlaybackCommand.Exit, commandSource)
+            XrInputEventType.FILE_OPS           -> dispatchCommand(PlaybackCommand.OpenFileOps, commandSource)
+            XrInputEventType.MENU               -> dispatchCommand(PlaybackCommand.OpenControls, commandSource)
+            XrInputEventType.SEEK_BACKWARD      -> dispatchCommand(PlaybackCommand.SeekBackward, commandSource)
+            XrInputEventType.SEEK_FORWARD       -> dispatchCommand(PlaybackCommand.SeekForward, commandSource)
+            XrInputEventType.FILE_PREV          -> dispatchCommand(PlaybackCommand.PreviousFile, commandSource)
+            XrInputEventType.FILE_NEXT          -> dispatchCommand(PlaybackCommand.NextFile, commandSource)
+            XrInputEventType.VOLUME_UP          -> rateLimitedVolume(+1, commandSource)
+            XrInputEventType.VOLUME_DOWN        -> rateLimitedVolume(-1, commandSource)
+            XrInputEventType.RECENTER           -> dispatchCommand(PlaybackCommand.Recenter, commandSource)
+            XrInputEventType.TOGGLE_IMMERSIVE   -> dispatchCommand(PlaybackCommand.ToggleImmersiveMode, commandSource)
+            XrInputEventType.CHEATSHEET         -> dispatchCommand(PlaybackCommand.ShowCheatsheet, commandSource)
+            XrInputEventType.ZOOM_START         -> { /* no-op: hand started gripping */ }
+            XrInputEventType.ZOOM_DELTA         -> onZoomGripDelta(value)
+            XrInputEventType.ZOOM_END           -> { /* no-op: hand released grip */ }
+            XrInputEventType.ZOOM_RESET         -> dispatchCommand(PlaybackCommand.ZoomReset, commandSource)
+            // ── Hand-tracking events (spec_vr-hand-tracking-tech §5.3) ──
+            XrInputEventType.POINTER_CLICK_DOWN -> handlePointerClick(hand, down = true)
+            XrInputEventType.POINTER_CLICK_UP   -> handlePointerClick(hand, down = false)
+            XrInputEventType.SWIPE_LEFT         -> dispatchCommand(PlaybackCommand.SeekMicro(forward = false), commandSource)
+            XrInputEventType.SWIPE_RIGHT        -> dispatchCommand(PlaybackCommand.SeekMicro(forward = true), commandSource)
+            XrInputEventType.SWIPE_UP           -> rateLimitedVolume(+1, commandSource)
+            XrInputEventType.SWIPE_DOWN         -> rateLimitedVolume(-1, commandSource)
+            XrInputEventType.DOUBLE_PINCH       -> dispatchCommand(PlaybackCommand.TogglePausePlay, commandSource)
+            else -> Timber.w("VrInput[xr]: unknown event type=%d", type)
+        }
+    }
+
+    private fun handlePointerClick(hand: Int, down: Boolean) {
+        if (down) {
+            // UI click sound compensates for the missing haptic cue. Using the system
+            // click avoids shipping additional audio assets. DOUBLE_PINCH is emitted
+            // by native and bypasses this method entirely.
+            audioManager?.playSoundEffect(AudioManager.FX_KEY_CLICK)
+        }
+        onPointerEvent?.invoke(hand, down)
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Layer B — Bluetooth keyboard (main thread via dispatchKeyEvent)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Keyboard sources already flow through PlayerActivity.onKeyDown on ACTION_DOWN.
+     * Only VR-exclusive shortcuts should bypass that path; shared media/navigation
+     * keys must stay on the base handler to avoid duplicate playback commands.
+     */
+    fun shouldInterceptKeyboardShortcut(event: KeyEvent): Boolean {
+        val isKeyboardSource = (event.source and InputDevice.SOURCE_KEYBOARD) != 0
+        if (!isKeyboardSource) return false
+
+        return when (event.keyCode) {
+            KeyEvent.KEYCODE_C -> !event.isCtrlPressed && !event.isAltPressed
+            KeyEvent.KEYCODE_V -> !event.isCtrlPressed && !event.isAltPressed
+            KeyEvent.KEYCODE_0,
+            KeyEvent.KEYCODE_NUMPAD_0,
+            KeyEvent.KEYCODE_PLUS,
+            KeyEvent.KEYCODE_EQUALS,
+            KeyEvent.KEYCODE_NUMPAD_ADD,
+            KeyEvent.KEYCODE_MINUS,
+            KeyEvent.KEYCODE_NUMPAD_SUBTRACT -> !event.isCtrlPressed && !event.isAltPressed
+            else -> false
+        }
+    }
+
+    fun onKeyEvent(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_UP) return false
+
+        val ctrl = event.isCtrlPressed
+        val shift = event.isShiftPressed
+        val alt = event.isAltPressed
+
+        val code = event.keyCode
+
+        // ── Gamepad / HID buttons that some BT devices route through KeyEvent ──
+        // Primary/secondary/tertiary mouse clicks come via ACTION_BUTTON_PRESS in onMotionEvent.
+        // KEYCODE_BUTTON_4/5 handle gamepad-style side buttons on some HID devices.
+        when (code) {
+            KeyEvent.KEYCODE_BUTTON_4 -> {
+                dispatchCommand(PlaybackCommand.PreviousFile, VrCommandSource.KEYBOARD)
+                return true
+            }
+            KeyEvent.KEYCODE_BUTTON_5 -> {
+                dispatchCommand(PlaybackCommand.NextFile, VrCommandSource.KEYBOARD)
+                return true
+            }
+        }
+
+        // ── Media keys (BT remotes) — take precedence over letter keys ──
+        when (code) {
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { dispatchCommand(PlaybackCommand.TogglePausePlay, VrCommandSource.KEYBOARD); return true }
+            KeyEvent.KEYCODE_MEDIA_PLAY       -> { dispatchCommand(PlaybackCommand.Play, VrCommandSource.KEYBOARD);            return true }
+            KeyEvent.KEYCODE_MEDIA_PAUSE      -> { dispatchCommand(PlaybackCommand.Pause, VrCommandSource.KEYBOARD);           return true }
+            KeyEvent.KEYCODE_MEDIA_NEXT       -> { dispatchCommand(PlaybackCommand.NextFile, VrCommandSource.KEYBOARD);        return true }
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS   -> { dispatchCommand(PlaybackCommand.PreviousFile, VrCommandSource.KEYBOARD);    return true }
+            KeyEvent.KEYCODE_MEDIA_STOP       -> { dispatchCommand(PlaybackCommand.Pause, VrCommandSource.KEYBOARD);           return true }
+            // KEYCODE_VOLUME_* intentionally NOT intercepted — Android system handles those.
+        }
+
+        // ── F-keys (Norton Commander layer) ──
+        when (code) {
+            KeyEvent.KEYCODE_F1 -> { dispatchCommand(PlaybackCommand.ShowCheatsheet, VrCommandSource.KEYBOARD); return true }
+            KeyEvent.KEYCODE_F2 -> { dispatchCommand(PlaybackCommand.RenameFile, VrCommandSource.KEYBOARD);     return true }
+            KeyEvent.KEYCODE_F3 -> { dispatchCommand(PlaybackCommand.OpenFileOps, VrCommandSource.KEYBOARD);    return true } // Info lives inside ops panel.
+            KeyEvent.KEYCODE_F4 -> {
+                if (alt) dispatchCommand(PlaybackCommand.Exit, VrCommandSource.KEYBOARD) else dispatchCommand(PlaybackCommand.OpenControls, VrCommandSource.KEYBOARD)
+                return true
+            }
+            KeyEvent.KEYCODE_F5 -> { dispatchCommand(PlaybackCommand.CopyFile, VrCommandSource.KEYBOARD);       return true }
+            KeyEvent.KEYCODE_F6 -> { dispatchCommand(PlaybackCommand.MoveFile, VrCommandSource.KEYBOARD);       return true }
+            KeyEvent.KEYCODE_F7 -> { dispatchCommand(PlaybackCommand.OpenFileOps, VrCommandSource.KEYBOARD);    return true }
+            KeyEvent.KEYCODE_F8 -> { dispatchCommand(PlaybackCommand.DeleteFile, VrCommandSource.KEYBOARD);     return true }
+            KeyEvent.KEYCODE_F10 -> { dispatchCommand(PlaybackCommand.Exit, VrCommandSource.KEYBOARD);          return true }
+        }
+
+        // ── Navigation / seek / volume arrows ──
+        when (code) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                when {
+                    shift -> dispatchCommand(PlaybackCommand.SeekMicro(forward = false), VrCommandSource.KEYBOARD)
+                    ctrl  -> dispatchCommand(PlaybackCommand.SeekMacro(forward = false), VrCommandSource.KEYBOARD)
+                    else  -> dispatchCommand(PlaybackCommand.SeekBackward, VrCommandSource.KEYBOARD)
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                when {
+                    shift -> dispatchCommand(PlaybackCommand.SeekMicro(forward = true), VrCommandSource.KEYBOARD)
+                    ctrl  -> dispatchCommand(PlaybackCommand.SeekMacro(forward = true), VrCommandSource.KEYBOARD)
+                    else  -> dispatchCommand(PlaybackCommand.SeekForward, VrCommandSource.KEYBOARD)
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                rateLimitedVolume(+1, VrCommandSource.KEYBOARD); return true
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                rateLimitedVolume(-1, VrCommandSource.KEYBOARD); return true
+            }
+        }
+
+        // ── File navigation Page keys ──
+        when (code) {
+            KeyEvent.KEYCODE_PAGE_UP   -> { dispatchCommand(PlaybackCommand.PreviousFile, VrCommandSource.KEYBOARD); return true }
+            KeyEvent.KEYCODE_PAGE_DOWN -> { dispatchCommand(PlaybackCommand.NextFile, VrCommandSource.KEYBOARD);     return true }
+        }
+
+        // ── Letter / symbol keys ──
+        return when (code) {
+            KeyEvent.KEYCODE_SPACE,
+            KeyEvent.KEYCODE_K -> {
+                dispatchCommand(PlaybackCommand.TogglePausePlay, VrCommandSource.KEYBOARD); true
+            }
+            KeyEvent.KEYCODE_J -> { dispatchCommand(PlaybackCommand.SeekBackward, VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_L -> { dispatchCommand(PlaybackCommand.SeekForward, VrCommandSource.KEYBOARD);  true }
+            KeyEvent.KEYCODE_M -> { dispatchCommand(PlaybackCommand.Mute, VrCommandSource.KEYBOARD);         true }
+            KeyEvent.KEYCODE_N -> { dispatchCommand(PlaybackCommand.NextFile, VrCommandSource.KEYBOARD);     true }
+            KeyEvent.KEYCODE_P -> { dispatchCommand(PlaybackCommand.PreviousFile, VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_TAB -> { dispatchCommand(PlaybackCommand.OpenControls, VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_C -> {
+                when {
+                    ctrl -> { dispatchCommand(PlaybackCommand.CopyFile, VrCommandSource.KEYBOARD); true }
+                    else -> { dispatchCommand(PlaybackCommand.Recenter, VrCommandSource.KEYBOARD); true }
+                }
+            }
+            KeyEvent.KEYCODE_X -> {
+                when {
+                    ctrl -> { dispatchCommand(PlaybackCommand.MoveFile, VrCommandSource.KEYBOARD); true }
+                    else -> false
+                }
+            }
+            KeyEvent.KEYCODE_R -> {
+                when {
+                    ctrl -> { dispatchCommand(PlaybackCommand.RenameFile, VrCommandSource.KEYBOARD); true }
+                    else -> false
+                }
+            }
+            KeyEvent.KEYCODE_I -> {
+                when {
+                    ctrl -> { dispatchCommand(PlaybackCommand.OpenFileOps, VrCommandSource.KEYBOARD); true }
+                    else -> false
+                }
+            }
+            KeyEvent.KEYCODE_Y -> {
+                when {
+                    ctrl -> { dispatchCommand(PlaybackCommand.OpenFileOps, VrCommandSource.KEYBOARD); true }
+                    else -> false
+                }
+            }
+            KeyEvent.KEYCODE_V -> { dispatchCommand(PlaybackCommand.ToggleImmersiveMode, VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_ESCAPE -> { dispatchCommand(PlaybackCommand.Exit, VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_FORWARD_DEL,
+            KeyEvent.KEYCODE_DEL -> { dispatchCommand(PlaybackCommand.DeleteFile, VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_PLUS,
+            KeyEvent.KEYCODE_EQUALS,
+            KeyEvent.KEYCODE_NUMPAD_ADD -> { rateLimitedZoom(increase = true, source = VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_MINUS,
+            KeyEvent.KEYCODE_NUMPAD_SUBTRACT -> { rateLimitedZoom(increase = false, source = VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_0,
+            KeyEvent.KEYCODE_NUMPAD_0 -> { dispatchCommand(PlaybackCommand.ZoomReset, VrCommandSource.KEYBOARD); true }
+            KeyEvent.KEYCODE_ENTER,
+            KeyEvent.KEYCODE_NUMPAD_ENTER -> { dispatchCommand(PlaybackCommand.OpenControls, VrCommandSource.KEYBOARD); true }
+            else -> false
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Layer C — Bluetooth mouse (main thread via onGenericMotionEvent)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    fun onMotionEvent(event: MotionEvent): Boolean {
+        val isMouse = (event.source and InputDevice.SOURCE_MOUSE) == InputDevice.SOURCE_MOUSE
+        if (!isMouse) return false
+
+        when (event.action) {
+            MotionEvent.ACTION_BUTTON_PRESS -> {
+                when (event.actionButton) {
+                    MotionEvent.BUTTON_PRIMARY   -> { dispatchCommand(PlaybackCommand.TogglePausePlay, VrCommandSource.MOUSE); return true }
+                    MotionEvent.BUTTON_SECONDARY -> { dispatchCommand(PlaybackCommand.OpenControls, VrCommandSource.MOUSE);    return true }
+                    MotionEvent.BUTTON_TERTIARY  -> { dispatchCommand(PlaybackCommand.Recenter, VrCommandSource.MOUSE);        return true }
+                    MotionEvent.BUTTON_BACK      -> { dispatchCommand(PlaybackCommand.PreviousFile, VrCommandSource.MOUSE);    return true }
+                    MotionEvent.BUTTON_FORWARD   -> { dispatchCommand(PlaybackCommand.NextFile, VrCommandSource.MOUSE);        return true }
+                }
+            }
+            MotionEvent.ACTION_SCROLL -> {
+                val vScroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+                if (vScroll == 0f) return false
+                val metaShift = (event.metaState and KeyEvent.META_SHIFT_ON) != 0
+                if (metaShift) {
+                    if (vScroll > 0f) dispatchCommand(PlaybackCommand.SeekForward, VrCommandSource.MOUSE)
+                    else dispatchCommand(PlaybackCommand.SeekBackward, VrCommandSource.MOUSE)
+                } else {
+                    rateLimitedVolume(if (vScroll > 0f) +1 else -1, VrCommandSource.MOUSE)
+                }
+                return true
+            }
+            MotionEvent.ACTION_HOVER_MOVE -> {
+                // Cursor movement — not mapped to a command; overlay layer handles cursor tracking.
+                return false
+            }
+        }
+        return false
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Rate-limiting helpers (analog inputs produce bursts)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private fun rateLimitedVolume(delta: Int, source: VrCommandSource) {
+        val now = SystemClock.uptimeMillis()
+        // Allow the very first analog step immediately; later events are throttled.
+        if (lastVolumeEventMs >= 0L && now - lastVolumeEventMs < VOLUME_STEP_INTERVAL_MS) return
+        lastVolumeEventMs = now
+        onVolumeStep(delta)
+        dispatchCommand(PlaybackCommand.VolumeStep(delta), source)
+    }
+
+    private fun rateLimitedZoom(increase: Boolean, source: VrCommandSource) {
+        val now = SystemClock.uptimeMillis()
+        if (lastZoomStepMs >= 0L && now - lastZoomStepMs < ZOOM_STEP_INTERVAL_MS) return
+        lastZoomStepMs = now
+        dispatchCommand(PlaybackCommand.ZoomStep(increase), source)
+    }
+
+    private fun dispatchCommand(command: PlaybackCommand, source: VrCommandSource) {
+        onCommand(command, source)
+    }
+
+    private fun xrCommandSource(source: Int): VrCommandSource = when (source) {
+        XrInputSource.HAND -> VrCommandSource.HAND
+        else -> VrCommandSource.CONTROLLER
+    }
+
+    companion object {
+        /** Minimum interval between consecutive volume steps from analog sources. */
+        const val VOLUME_STEP_INTERVAL_MS = 150L
+
+        /** Minimum interval between discrete zoom steps to avoid key-repeat overshoot. */
+        const val ZOOM_STEP_INTERVAL_MS = 120L
+
+        @Suppress("unused")
+        private const val HAND_LEFT = XrHand.LEFT
+
+        @Suppress("unused")
+        private const val HAND_RIGHT = XrHand.RIGHT
+
+        @Suppress("unused")
+        private const val SOURCE_CONTROLLER = XrInputSource.CONTROLLER
+
+        @Suppress("unused")
+        private const val SOURCE_HAND = XrInputSource.HAND
+    }
+}

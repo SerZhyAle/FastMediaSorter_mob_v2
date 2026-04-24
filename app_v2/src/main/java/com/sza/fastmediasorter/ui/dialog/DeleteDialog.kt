@@ -50,12 +50,13 @@ class DeleteDialog(
                     sourceFolderName
                 )
             }
-            
+
             btnCancel.setOnClickListenerDebounced { dismiss() }
             btnDelete.setOnClickListenerDebounced { deleteFiles() }
         }
-        
+
         window?.setBackgroundDrawableResource(R.drawable.bg_delete_dialog)
+        DialogKeyboardDelegate.applyTo(this, onConfirm = ::deleteFiles)
     }
 
     private fun deleteFiles() {
