@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.StereoDetector
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.contracts.PlaybackCommand
+import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.VrForcedFormatResolver
 import com.sza.fastmediasorter.ui.player.helpers.seekForward
@@ -704,7 +705,9 @@ class VrPlayerActivity : PlayerActivity() {
 
     private fun exitVrAndStopPlayback(reason: String) {
         forceStopVrPlayback(reason)
-        finish()
+        // Hybrid-app exit: the panel task was destroyed on entry, so finish() alone would
+        // drop the user at the system shell. Route back to a fresh MainActivity panel.
+        VrTaskTransition.exitImmersiveToPanel(this)
     }
 
     private fun launchVrFailureRecovery(
@@ -723,7 +726,9 @@ class VrPlayerActivity : PlayerActivity() {
             forceStopVrPlayback(reason)
             showError(userMessage)
             if (shouldFinish) {
-                window.decorView.post { finish() }
+                // Hybrid-app exit: the panel task was destroyed on entry; route back to a
+                // fresh MainActivity panel so the user is not stranded on a dead surface.
+                window.decorView.post { VrTaskTransition.exitImmersiveToPanel(this) }
             }
         }
     }
@@ -831,6 +836,11 @@ class VrPlayerActivity : PlayerActivity() {
             reason,
         )
         forceStopVrPlayback("standard-player-fallback:$reason")
+        // Intentionally NOT using VrTaskTransition here: this is post-entry recovery for
+        // non-immersive media (MONO/audio). The task is already the dedicated VR task
+        // created by the hybrid-app handoff; re-targeting PlayerActivity into the same
+        // task is the standard within-flavor fallback and does not participate in the
+        // FOCUSED-entry problem this handoff solves.
         startActivity(Intent(intent).apply {
             setClass(this@VrPlayerActivity, PlayerActivity::class.java)
         })
@@ -862,6 +872,8 @@ class VrPlayerActivity : PlayerActivity() {
         // activity hands control to PlayerActivity. Without this delay the fallback is silent.
         window.decorView.postDelayed({
             if (isFinishing || isDestroyed) return@postDelayed
+            // Intentionally NOT using VrTaskTransition: unsupported-media recovery stays
+            // inside the current (VR) task, same rationale as launchStandardPlayerFallback.
             startActivity(Intent(intent).apply {
                 setClass(this@VrPlayerActivity, PlayerActivity::class.java)
             })
@@ -1072,13 +1084,6 @@ class VrPlayerActivity : PlayerActivity() {
         private const val VR_SEEK_SECONDS = 15
         private const val VR_FALLBACK_ERROR_DELAY_MS = 350L
 
-        /**
-         * Intent extra carrying the Meta Quest shell launch token.
-         * Populated by HorizonOS when the app is opened from the Library; must be
-         * forwarded from MainActivity's intent so VrPlayerActivity sees it too.
-         */
-        const val EXTRA_VR_SHELL_LAUNCH_ID = "com.oculus.vrshell.launch_id"
-
         /** When true, bypass stereo-detection gate and force immersive XR route for video. */
         const val EXTRA_FORCE_IMMERSIVE = "com.sza.fastmediasorter.EXTRA_FORCE_IMMERSIVE"
 
@@ -1092,17 +1097,5 @@ class VrPlayerActivity : PlayerActivity() {
                 false
             }
         }
-
-        /**
-         * Called by the Meta OpenXR runtime via JNI reflection during xrCreateSession.
-         * Returning a non-empty launch token lets the runtime register the client with
-         * a valid `clientLaunchId` and transition the session to FOCUSED, which is the
-         * state required for true immersive VR (exclusive headset takeover, no shell
-         * overlay). Empty string on ADB launches keeps the current VISIBLE behaviour.
-         */
-        @JvmStatic
-        @Suppress("unused")
-        fun getLaunchId(activity: Activity): String =
-            activity.intent?.getStringExtra(EXTRA_VR_SHELL_LAUNCH_ID) ?: ""
     }
 }

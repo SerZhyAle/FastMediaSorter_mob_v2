@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
@@ -110,10 +111,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         super.onCreate(savedInstanceState)
-        
+
         // Log config changes to detect unexpected recreations
         Timber.d("MainActivity.onCreate: savedInstanceState=${savedInstanceState != null}, isChangingConfigurations=$isChangingConfigurations")
-        
+
         // Fix old cloud paths format (cloud:/ → cloud://)
         MediaFilesCacheManager.fixCloudPaths()
         
@@ -146,8 +147,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     resourceId = AudioPlaybackService.currentResourceId,
                     initialIndex = AudioPlaybackService.currentInitialIndex,
                     skipAvailabilityCheck = true
-                ).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT }
-                startActivity(playerIntent)
+                )
+                if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
+                    // FLAG_ACTIVITY_REORDER_TO_FRONT is meaningless once enterImmersive
+                    // forces a fresh task via FLAG_ACTIVITY_NEW_TASK, so skip it here.
+                    VrTaskTransition.enterImmersive(this, playerIntent)
+                } else {
+                    playerIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    startActivity(playerIntent)
+                }
             }
             // MainActivity continues loading as the back-stack root; do NOT finish().
         }
@@ -257,7 +265,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
         Timber.d("openAudioPlayerFromNotification: resourceId=$resourceId index=$index")
-        startActivity(PlayerActivity.createIntent(this, resourceId, index, skipAvailabilityCheck = true))
+        val playerIntent = PlayerActivity.createIntent(this, resourceId, index, skipAvailabilityCheck = true)
+        if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
+            VrTaskTransition.enterImmersive(this, playerIntent)
+        } else {
+            startActivity(playerIntent)
+        }
     }
 
     override fun onResume() {
@@ -271,8 +284,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         
         // Sync TabLayout with ViewModel state immediately on resume
         // Skip FAVORITES tab - it's action-only (opens Browse), not a filter
+        // Guard: tabsManager is initialized inside setupViews() via post{} — may not be ready
+        // on the very first onResume if the system triggers it before the first frame renders
         val currentTab = viewModel.state.value.activeResourceTab
-        if (currentTab != ResourceTab.FAVORITES) {
+        if (currentTab != ResourceTab.FAVORITES && ::tabsManager.isInitialized) {
             val tabPosition = getTabIndexForResourceTab(currentTab)
             if (binding.tabResourceTypes.selectedTabPosition != tabPosition) {
                 binding.tabResourceTypes.selectTab(binding.tabResourceTypes.getTabAt(tabPosition))
@@ -626,9 +641,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     ).apply {
                         putExtra("slideshow_mode", true)
                     }
-                    startActivity(intent)
-                    @Suppress("DEPRECATION")
-                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
+                        VrTaskTransition.enterImmersive(this@MainActivity, intent)
+                    } else {
+                        startActivity(intent)
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
                 }
                 is MainEvent.NavigateToPlayerRandomMusic -> {
                     val intent = PlayerActivity.createIntent(
@@ -639,9 +658,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         isPlaying = true,
                         shuffleOnStart = true
                     )
-                    startActivity(intent)
-                    @Suppress("DEPRECATION")
-                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
+                        VrTaskTransition.enterImmersive(this@MainActivity, intent)
+                    } else {
+                        startActivity(intent)
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
                 }
                 is MainEvent.NavigateToEditResource -> {
                     // Check if resource has PIN protection before editing

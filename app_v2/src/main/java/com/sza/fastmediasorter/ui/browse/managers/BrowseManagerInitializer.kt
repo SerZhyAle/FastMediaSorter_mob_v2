@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -727,7 +728,11 @@ class BrowseManagerInitializer(
             val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck).apply {
                 if (!isDoc) putExtra("slideshow_mode", true)
             }
-            activity.startActivity(intent)
+            if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
+                VrTaskTransition.enterImmersive(activity, intent)
+            } else {
+                activity.startActivity(intent)
+            }
         } else {
             Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
         }

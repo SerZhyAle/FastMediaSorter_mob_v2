@@ -6,15 +6,21 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.ui.player.helpers.PlayerStereoModeCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -24,7 +30,8 @@ import javax.inject.Inject
 class StandalonePlayerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val favoritesUseCase: FavoritesUseCase,
-    private val resourceRepository: ResourceRepository
+    private val resourceRepository: ResourceRepository,
+    stereoFormatOverrideDao: StereoFormatOverrideDao
 ) :
     BaseViewModel<StandalonePlayerViewModel.StandalonePlayerState, StandalonePlayerViewModel.StandalonePlayerEvent>() {
 
@@ -42,6 +49,33 @@ class StandalonePlayerViewModel @Inject constructor(
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+
+    private val _messageFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val messageFlow: SharedFlow<String> = _messageFlow.asSharedFlow()
+
+    private val stereoCoordinator = PlayerStereoModeCoordinator(
+        stereoFormatOverrideDao = stereoFormatOverrideDao,
+        scope = viewModelScope,
+        getCurrentFilePath = { state.value.mediaFile?.path }
+    )
+
+    val stereoMode: StateFlow<StereoMode> = stereoCoordinator.stereoMode
+    val detectedStereoMode: StateFlow<StereoMode> = stereoCoordinator.detectedStereoMode
+
+    fun setStereoMode(mode: StereoMode) = stereoCoordinator.setStereoMode(mode)
+
+    fun rememberStereoModeIfEnabled(mode: StereoMode) =
+        stereoCoordinator.rememberStereoModeIfEnabled(mode)
+
+    fun setAutoDetectedStereoMode(mode: StereoMode) =
+        stereoCoordinator.setAutoDetectedStereoMode(mode)
+
+    fun resetStereoModeForNewFile() =
+        stereoCoordinator.resetStereoModeForNewFile(state.value.mediaFile?.path)
+
+    fun showMessage(message: String) {
+        _messageFlow.tryEmit(message)
+    }
 
     override fun getInitialState(): StandalonePlayerState = StandalonePlayerState()
 
@@ -82,6 +116,9 @@ class StandalonePlayerViewModel @Inject constructor(
                 errorMessage = null
             )
         }
+
+        // Trigger DB lookup for remembered stereo mode so it's applied before the dialog opens.
+        stereoCoordinator.resetStereoModeForNewFile(uri.toString())
 
         checkFavoriteStatus(uri.toString())
     }

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player
 import android.content.Context
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import io.mockk.mockk
@@ -40,7 +41,8 @@ class StandalonePlayerViewModelTest {
         viewModel = StandalonePlayerViewModel(
             context = mockk<Context>(relaxed = true),
             favoritesUseCase = mockk<FavoritesUseCase>(relaxed = true),
-            resourceRepository = mockk<ResourceRepository>(relaxed = true)
+            resourceRepository = mockk<ResourceRepository>(relaxed = true),
+            stereoFormatOverrideDao = mockk<StereoFormatOverrideDao>(relaxed = true),
         )
     }
 

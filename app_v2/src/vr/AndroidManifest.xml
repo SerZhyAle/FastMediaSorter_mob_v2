@@ -21,18 +21,34 @@
             android:value="quest|quest2|quest3|questpro|quest3s" />
 
         <!--
-          VrPlayerActivity: no VR intent-filter here — Quest would force-switch passthrough OFF
-          the moment this Activity starts, causing a black screen before the XR session is ready.
-          Panel mode (2D/flat-stereo content) requires passthrough to remain active.
-          The VR entry point is on MainActivity (see below).
+          VrPlayerActivity: Meta Hybrid App Model immersive Activity.
+          Two co-requisites make the VR category safe:
+            1. Dedicated taskAffinity below — the VR task runs separately from the 2D
+               panel task, so the compositor does not have a 2D window competing for
+               the foreground slot while the XR session is ramping up.
+            2. com.oculus.intent.category.VR in the intent-filter — tells HorizonOS
+               this Activity is an immersive peer, not a panel child.
+          Without the task split, the category alone previously produced an immediate
+          black screen (passthrough disabled before the XR session was ready). With the
+          split, HorizonOS can transition the XR session to FOCUSED.
+          VrTaskTransition in main/.../ui/player/entry/ performs the runtime handoff
+          (FLAG_ACTIVITY_NEW_TASK + finishAndRemoveTask on entry, home-intent PendingIntent on exit).
         -->
         <activity
             android:name="com.sza.fastmediasorter.vr.VrPlayerActivity"
             android:configChanges="density|fontScale|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:excludeFromRecents="false"
             android:exported="false"
             android:launchMode="singleTask"
             android:resizeableActivity="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:taskAffinity="${applicationId}.vr">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="com.oculus.intent.category.VR" />
+            </intent-filter>
 
             <!--
               Required on HorizonOS v67+: grants the activity VR focus and enables
@@ -72,9 +88,15 @@
             </intent-filter>
         </activity>
 
+        <!--
+          Empty taskAffinity lets VrPhoneFallbackActivity join the caller's task on phones
+          (no XR runtime). Without this, the VR-task affinity above would propagate via
+          the same source set and isolate the fallback Activity in its own task.
+        -->
         <activity
             android:name="com.sza.fastmediasorter.vr.VrPhoneFallbackActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:taskAffinity="" />
 
     </application>
 

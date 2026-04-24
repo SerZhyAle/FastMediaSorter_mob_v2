@@ -15,6 +15,8 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import timber.log.Timber
@@ -50,7 +52,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private val currentMediaType: MediaType?
-        get() = playerActivity().viewModel.state.value.currentFile?.type
+        get() = host().currentMediaType.value
 
     private val activeSections: List<ControlSection>
         get() = when (currentMediaType) {
@@ -62,10 +64,10 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 // 3D/Stereo tab: shown in VR flavor (unless kill-switch is ON), AND in any flavor
                 // when the current file has stereo content detected (SBS/OU image or video).
                 val disable3dVr = arguments?.getBoolean(ARG_DISABLE_3D_VR, false) ?: false
-                val currentStereo = playerActivity().viewModel.stereoMode.value
-                val isStereoContent = currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.AUTO &&
-                    currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.MONO &&
-                    currentStereo != com.sza.fastmediasorter.domain.model.StereoMode.UNKNOWN
+                val currentStereo = host().stereoMode.value
+                val isStereoContent = currentStereo != StereoMode.AUTO &&
+                    currentStereo != StereoMode.MONO &&
+                    currentStereo != StereoMode.UNKNOWN
                 if (!disable3dVr && (BuildConfig.SUPPORT_VR_PLAYER || isStereoContent)) {
                     add(ControlSection.STEREO)
                 }
@@ -262,7 +264,8 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private fun setupAudioTab() {
-        val tracks = playerActivity().videoPlayerManager.getAvailableAudioTracks()
+        val handle = host().videoPlayerHandle ?: return
+        val tracks = handle.getAvailableAudioTracks()
         binding.groupAudioTracks.removeAllViews()
         binding.tvAudioEmpty.isVisible = tracks.isEmpty()
 
@@ -272,7 +275,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 isChecked = track.isSelected
                 minHeight = (48 * resources.displayMetrics.density).roundToInt()
                 setOnClickListener {
-                    playerActivity().videoPlayerManager.selectAudioTrack(track.groupIndex, track.trackIndex)
+                    handle.selectAudioTrack(track.groupIndex, track.trackIndex)
                     refreshAudioTab()
                 }
             }
@@ -285,7 +288,8 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private fun setupSubtitleTab() {
-        val tracks = playerActivity().videoPlayerManager.getAvailableSubtitleTracks()
+        val handle = host().videoPlayerHandle ?: return
+        val tracks = handle.getAvailableSubtitleTracks()
         binding.groupSubtitleTracks.removeAllViews()
         binding.tvSubtitleEmpty.isVisible = tracks.isEmpty()
 
@@ -295,7 +299,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
             minHeight = (48 * resources.displayMetrics.density).roundToInt()
             setOnClickListener {
                 val groupIndex = tracks.firstOrNull()?.groupIndex ?: 0
-                playerActivity().videoPlayerManager.selectSubtitleTrack(groupIndex, -1)
+                handle.selectSubtitleTrack(groupIndex, -1)
                 refreshSubtitleTab()
             }
         }
@@ -307,7 +311,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 isChecked = track.isSelected
                 minHeight = (48 * resources.displayMetrics.density).roundToInt()
                 setOnClickListener {
-                    playerActivity().videoPlayerManager.selectSubtitleTrack(track.groupIndex, track.trackIndex)
+                    handle.selectSubtitleTrack(track.groupIndex, track.trackIndex)
                     refreshSubtitleTab()
                 }
             }
@@ -320,7 +324,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private fun setupStereoSection() {
-        val currentMode = playerActivity().viewModel.stereoMode.value
+        val currentMode = host().stereoMode.value
         bindStereoMode(currentMode)
 
         // Stereo mode is session-scoped in the ViewModel; switching it here immediately updates
@@ -351,7 +355,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
         binding.switchVrOverrideFormatType.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingStereoControls) return@setOnCheckedChangeListener
-            updateStereoFamilyAvailability(resolveStereoFamily(playerActivity().viewModel.stereoMode.value), isChecked)
+            updateStereoFamilyAvailability(resolveStereoFamily(host().stereoMode.value), isChecked)
         }
 
         // VR-specific controls (spec §5.8) — only visible in VR flavor
@@ -434,14 +438,14 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private fun handleStereoModeSelection(mode: StereoMode) {
         Timber.d("PlaybackControlDialog: Stereo mode selected → $mode")
 
-        playerActivity().viewModel.rememberStereoModeIfEnabled(mode)
-        playerActivity().viewModel.setStereoMode(mode)
+        host().rememberStereoModeIfEnabled(mode)
+        host().setStereoMode(mode)
 
-        val effectiveMode = playerActivity().viewModel.stereoMode.value
+        val effectiveMode = host().stereoMode.value
         bindStereoMode(effectiveMode)
 
         if (mode != StereoMode.AUTO) {
-            playerActivity().viewModel.showMessage(
+            host().showMessage(
                 getString(R.string.playback_settings_3d_manual_toast, stereoModeLabel(effectiveMode))
             )
         }
@@ -476,7 +480,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         // Explicit flat modes (SBS/OU/MONO) always map to FLAT regardless of detectedStereoMode.
         // Only AUTO/UNKNOWN fall back to the detected result so the correct group is pre-selected.
         if (mode != StereoMode.AUTO && mode != StereoMode.UNKNOWN) return StereoFamily.FLAT
-        val detectedMode = playerActivity().viewModel.detectedStereoMode.value
+        val detectedMode = host().detectedStereoMode.value
         return if (detectedMode.isSpherical()) StereoFamily.SPHERICAL else StereoFamily.FLAT
     }
 
@@ -511,16 +515,17 @@ class PlaybackControlDialogFragment : DialogFragment() {
     )
 
     private fun setupHueTab() {
+        val handle = host().videoPlayerHandle ?: return
         val savedHue = prefs.getFloat(
             PlaybackControlPreferences.KEY_HUE_DEGREES,
-            playerActivity().videoPlayerManager.getHueAdjustmentDegrees()
+            handle.getHueAdjustmentDegrees()
         )
         binding.seekHue.max = hueProgressCenter * 2
         binding.seekHue.progress = hueToProgress(savedHue)
         updateHueLabel(savedHue)
 
         // Align the player with persisted state even if the dialog opens after player recreation.
-        playerActivity().videoPlayerManager.setHueAdjustmentDegrees(savedHue)
+        handle.setHueAdjustmentDegrees(savedHue)
 
         binding.seekHue.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -528,7 +533,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 val hueDegrees = progressToHue(progress)
                 Timber.d("PlaybackControlDialog: HUE slider → $hueDegrees° (progress=$progress)")
                 prefs.edit().putFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, hueDegrees).apply()
-                playerActivity().videoPlayerManager.setHueAdjustmentDegrees(hueDegrees)
+                handle.setHueAdjustmentDegrees(hueDegrees)
                 updateHueLabel(hueDegrees)
             }
 
@@ -542,24 +547,24 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private fun setupBrightnessTab() {
-        val videoManager = playerActivity().videoPlayerManager
+        val handle = host().videoPlayerHandle ?: return
         val brightnessProgress = prefs.getInt(
             PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
-            videoManager.getBrightnessProgress()
+            handle.getBrightnessProgress()
         )
         binding.seekBrightness.progress = brightnessProgress
-        updateBrightnessLabel(videoManager.getBrightnessPercentOffset())
+        updateBrightnessLabel(handle.getBrightnessPercentOffset())
 
         // Keep brightness state in the same Media3 chain as HUE so resets are deterministic.
-        videoManager.setBrightnessProgress(brightnessProgress)
+        handle.setBrightnessProgress(brightnessProgress)
 
         binding.seekBrightness.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
                 Timber.d("PlaybackControlDialog: Brightness slider → progress=$progress")
                 prefs.edit().putInt(PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT, progress).apply()
-                videoManager.setBrightnessProgress(progress)
-                updateBrightnessLabel(videoManager.getBrightnessPercentOffset())
+                handle.setBrightnessProgress(progress)
+                updateBrightnessLabel(handle.getBrightnessPercentOffset())
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
@@ -572,8 +577,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
     }
 
     private fun setupSpeedTab() {
-        val player = activePlayer()
-        val currentSpeed = player?.playbackParameters?.speed ?: 1.0f
+        val currentSpeed = host().videoPlayerHandle?.getPlaybackSpeed() ?: 1.0f
         val selectedIndex = speedSteps.indices.minByOrNull { index -> abs(speedSteps[index] - currentSpeed) } ?: 3
         // Drive max from speedSteps so XML and code stay in sync
         binding.seekSpeed.max = speedSteps.size - 1
@@ -585,7 +589,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 if (!fromUser) return
                 val speed = speedSteps.getOrElse(progress) { 1.0f }
                 Timber.d("PlaybackControlDialog: Speed slider → ${speed}x (progress=$progress)")
-                setPlaybackSpeed(speed)
+                host().videoPlayerHandle?.setPlaybackSpeed(speed)
                 updateSpeedLabel(speed)
             }
 
@@ -622,53 +626,33 @@ class PlaybackControlDialogFragment : DialogFragment() {
         (progress.coerceIn(0, hueProgressCenter * 2) - hueProgressCenter).toFloat()
 
     private fun resetHue() {
+        val handle = host().videoPlayerHandle ?: return
         prefs.edit().putFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f).apply()
         binding.seekHue.progress = hueToProgress(0f)
-        playerActivity().videoPlayerManager.setHueAdjustmentDegrees(0f)
+        handle.setHueAdjustmentDegrees(0f)
         updateHueLabel(0f)
     }
 
     private fun resetBrightness() {
+        val handle = host().videoPlayerHandle ?: return
         prefs.edit().putInt(PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT, brightnessProgressCenter).apply()
         binding.seekBrightness.progress = brightnessProgressCenter
-        playerActivity().videoPlayerManager.setBrightnessProgress(brightnessProgressCenter)
-        updateBrightnessLabel(playerActivity().videoPlayerManager.getBrightnessPercentOffset())
+        handle.setBrightnessProgress(brightnessProgressCenter)
+        updateBrightnessLabel(handle.getBrightnessPercentOffset())
     }
 
     private fun resetSpeed() {
         val defaultSpeed = 1.0f
         val defaultIndex = speedSteps.indexOf(defaultSpeed).coerceAtLeast(0)
         binding.seekSpeed.progress = defaultIndex
-        setPlaybackSpeed(defaultSpeed)
+        host().videoPlayerHandle?.setPlaybackSpeed(defaultSpeed)
         updateSpeedLabel(defaultSpeed)
     }
 
-    // For AUDIO, the "active" player depends on whether persistent-audio service is running:
-    // - service active → MediaController bound to AudioPlaybackService
-    // - service inactive (background playback off) → the Activity's ExoPlayer in VideoPlayerManager
-    // Always routing audio to audioServiceController here is a silent no-op when the service
-    // isn't connected, which caused the speed slider to appear to do nothing.
-    private fun activePlayer() =
-        if (currentMediaType == MediaType.AUDIO && isServiceAudioActive()) {
-            playerActivity().audioServiceController?.player
-        } else {
-            playerActivity().videoPlayerManager.getPlayer()
-        }
-
-    private fun setPlaybackSpeed(speed: Float) {
-        if (currentMediaType == MediaType.AUDIO && isServiceAudioActive()) {
-            activePlayer()?.setPlaybackSpeed(speed)
-        } else {
-            playerActivity().videoPlayerManager.setPlaybackSpeed(speed)
-        }
-    }
-
-    private fun isServiceAudioActive(): Boolean =
-        playerActivity().isMediaLoaderManagerInitialized
-            && playerActivity().mediaLoaderManager.isServiceAudioActive
-
-
-    private fun playerActivity(): PlayerActivity = requireActivity() as PlayerActivity
+    /** Returns the host activity cast to [PlayerHostCapabilities]. Both [PlayerActivity] and
+     * [StandalonePlayerActivity] implement this interface; if neither does, this will throw an
+     * informative ClassCastException at the call site. */
+    private fun host(): PlayerHostCapabilities = requireActivity() as PlayerHostCapabilities
 
     companion object {
         const val TAG = "PlaybackControlDialog"

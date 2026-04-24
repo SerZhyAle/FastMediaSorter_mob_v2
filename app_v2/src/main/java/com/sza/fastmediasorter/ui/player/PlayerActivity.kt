@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -35,9 +34,16 @@ import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import java.util.Optional
@@ -45,7 +51,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 // Open: VrPlayerActivity in vr flavor extends this to add OpenXR rendering layer
-open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
+open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
@@ -667,6 +673,93 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) =
         audioMetadataManager.onMetadataLoaded(metadata, viewModel.state.value.currentFile)
 
+    // ── PlayerHostCapabilities ────────────────────────────────────────────────
+
+    override val supportsListNavigation: Boolean = true
+    override val supportsSlideshow: Boolean = true
+    override val supportsPersistentAudio: Boolean = true
+    override val supportsCast: Boolean = true
+    override val supportsDeleteUndo: Boolean = true
+    override val supportsCommandPanelFolding: Boolean = true
+
+    override val currentMediaFile: StateFlow<MediaFile?> by lazy {
+        viewModel.state.map { it.currentFile }
+            .stateIn(lifecycleScope, SharingStarted.Eagerly, viewModel.state.value.currentFile)
+    }
+
+    override val currentMediaType: StateFlow<MediaType?> by lazy {
+        viewModel.state.map { it.currentFile?.type }
+            .stateIn(lifecycleScope, SharingStarted.Eagerly, viewModel.state.value.currentFile?.type)
+    }
+
+    override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
+    override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
+
+    override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
+    override fun rememberStereoModeIfEnabled(mode: StereoMode) = viewModel.rememberStereoModeIfEnabled(mode)
+
+    override val videoPlayerHandle: VideoPlayerHandle get() = playerActivityVideoHandle
+
+    private val playerActivityVideoHandle: VideoPlayerHandle by lazy { PlayerActivityVideoHandle() }
+
+    override val isAudioServiceActive: Boolean
+        get() = isMediaLoaderManagerInitialized && mediaLoaderManager.isServiceAudioActive
+
+    override fun showMessage(message: String) = viewModel.showMessage(message)
+
+    // Handled internally: PlayerDeleteUndoCoordinator advances the file list or emits FinishActivity.
+    override fun requestFinishAfterDelete() = Unit
+
+    private inner class PlayerActivityVideoHandle : VideoPlayerHandle {
+        override fun getAvailableAudioTracks(): List<VideoTrackSelectionManager.TrackInfo> =
+            _videoPlayerManager?.getAvailableAudioTracks()
+                ?.map { VideoTrackSelectionManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+                ?: emptyList()
+
+        override fun selectAudioTrack(groupIndex: Int, trackIndex: Int) =
+            _videoPlayerManager?.selectAudioTrack(groupIndex, trackIndex) ?: Unit
+
+        override fun getAvailableSubtitleTracks(): List<VideoTrackSelectionManager.TrackInfo> =
+            _videoPlayerManager?.getAvailableSubtitleTracks()
+                ?.map { VideoTrackSelectionManager.TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+                ?: emptyList()
+
+        override fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) =
+            _videoPlayerManager?.selectSubtitleTrack(groupIndex, trackIndex) ?: Unit
+
+        override fun getHueAdjustmentDegrees(): Float =
+            _videoPlayerManager?.getHueAdjustmentDegrees() ?: 0f
+
+        override fun setHueAdjustmentDegrees(degrees: Float) {
+            _videoPlayerManager?.setHueAdjustmentDegrees(degrees)
+        }
+
+        override fun getBrightnessProgress(): Int =
+            _videoPlayerManager?.getBrightnessProgress() ?: 50
+
+        override fun setBrightnessProgress(progress: Int) {
+            _videoPlayerManager?.setBrightnessProgress(progress)
+        }
+
+        override fun getBrightnessPercentOffset(): Int =
+            _videoPlayerManager?.getBrightnessPercentOffset() ?: 0
+
+        override fun getPlaybackSpeed(): Float =
+            if (isAudioServiceActive) {
+                audioServiceController?.player?.playbackParameters?.speed ?: 1.0f
+            } else {
+                _videoPlayerManager?.getPlayer()?.playbackParameters?.speed ?: 1.0f
+            }
+
+        override fun setPlaybackSpeed(speed: Float) {
+            if (isAudioServiceActive) {
+                audioServiceController?.player?.setPlaybackSpeed(speed)
+            } else {
+                _videoPlayerManager?.setPlaybackSpeed(speed)
+            }
+        }
+    }
+
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
         const val EXTRA_MODIFIED_FILES = "modified_files"
@@ -697,14 +790,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 isPlaying?.let { putExtra("resumeIsPlaying", it) }
                 if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
                 if (shuffleOnStart) putExtra("shuffleOnStart", true)
-                // Forward the Meta Quest shell launch token so VrPlayerActivity can
-                // return it from getLaunchId() and let the XR session reach FOCUSED.
-                // Absent on ADB launches; only set when MainActivity was opened from
-                // the HorizonOS Library.
-                (context as? Activity)?.intent
-                    ?.getStringExtra("com.oculus.vrshell.launch_id")
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.let { putExtra("com.oculus.vrshell.launch_id", it) }
             }
         }
     }

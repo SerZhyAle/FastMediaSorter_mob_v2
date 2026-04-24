@@ -2,7 +2,7 @@
 
 **Target:** every `.kt` file ≤ 700 LOC (hard cap: ≤ 1000 per CLAUDE.md). **Importance weights:** Activity/Fragment = 5, ViewModel = 4, Manager/Helper/Handler/Adapter = 3, Data Client/Repository/UseCase/Strategy = 2. **Score** = LOC × weight.
 
-**Last measured:** 2026-04-23
+**Last measured:** 2026-04-24
 
 **Loop status:** running automated decomposition loop — pick the largest file by score, extract helpers until it is ≤ 1000 LOC, build standard debug, fix compile errors, commit, then advance to the next file.
 
@@ -169,48 +169,45 @@
 | # | File | LOC | Target | Weight | Score |
 | --- | ---- | ---: | :----: | :----: | ---: |
 | 1 | `app_v2/ui/player/helpers/EpubViewerManager.kt` | 2 191 | ≤ 700 | 3 | 6 573 |
-| 2 | `app_v2/ui/player/PlayerViewModel.kt` | 1 321 | ≤ 700 | 4 | 5 284 |
-| 3 | `app_v2/ui/player/helpers/TextViewerManager.kt` | 1 823 | ≤ 700 | 3 | 5 469 |
-| 4 | `app_v2/ui/player/helpers/PdfViewerManager.kt` | 1 640 | ≤ 700 | 3 | 4 920 |
-| 5 | `app_v2/data/remote/ftp/FtpClient.kt` | 1 603 | ≤ 700 | 2 | 3 206 |
-| 6 | `app_v2/data/cloud/GoogleDriveRestClient.kt` | 1 452 | ≤ 700 | 2 | 2 904 |
-| 7 | `app_v2/data/cloud/OneDriveRestClient.kt` | 1 433 | ≤ 700 | 2 | 2 866 |
-| 8 | `app_v2/ui/main/MainActivity.kt` | 1 330 | ≤ 700 | 5 | 6 650 |
-| 9 | `app_v2/data/remote/sftp/SftpClient.kt` | 1 311 | ≤ 700 | 2 | 2 622 |
-| 10 | `app_v2/ui/player/ImageLoadingManager.kt` | 1 304 | ≤ 700 | 3 | 3 912 |
-| 11 | `app_v2/data/network/SmbClient.kt` | 1 291 | ≤ 700 | 2 | 2 582 |
-| 12 | `app_v2/data/cloud/CloudFileOperationHandler.kt` | 1 222 | ≤ 700 | 3 | 3 666 |
-| 13 | `app_v2/data/cloud/DropboxClient.kt` | 1 181 | ≤ 700 | 2 | 2 362 |
-| 14 | `app_v2/ui/player/StandalonePlayerActivity.kt` | 1 129 | ≤ 700 | 5 | 5 645 |
-| 15 | `app_v2/ui/browse/MediaFileAdapter.kt` | 1 095 | ≤ 700 | 3 | 3 285 |
-| 16 | `app_v2/data/network/SmbConnectionManager.kt` | 1 079 | ≤ 700 | 3 | 3 237 |
-| 17 | `app_v2/ui/resourceeditor/ResourceEditorFragment.kt` | 1 057 | ≤ 700 | 5 | 5 285 |
-| 18 | `app_v2/ui/player/helpers/TranslationManager.kt` | 1 011 | ≤ 700 | 3 | 3 033 |
-| 19 | `app_v2/ui/player/helpers/PlayerMediaLoaderManager.kt` | 1 002 | ≤ 700 | 3 | 3 006 |
-| 20 | `app_v2/ui/player/CommandPanelController.kt` | 986 | ≤ 700 | 3 | 2 958 |
-| 21 | `app_v2/ui/dialog/FileInfoDialog.kt` | 946 | ≤ 700 | 3 | 2 838 |
-| 22 | `app_v2/ui/browse/managers/BrowseFileOperationsManager.kt` | 941 | ≤ 700 | 3 | 2 823 |
-| 23 | `app_v2/data/transfer/BaseFileOperationHandler.kt` | 939 | ≤ 700 | 3 | 2 817 |
-| 24 | `app_v2/data/network/FtpFileOperationHandler.kt` | 938 | ≤ 700 | 3 | 2 814 |
-| 25 | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 822 | ≤ 700 | 2 | 1 644 |
-| 26 | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 804 | ≤ 700 | 2 | 1 608 |
-| 27 | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 802 | ≤ 700 | 3 | 2 406 |
-| 28 | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 802 | ≤ 700 | 2 | 1 604 |
+| 2 | `app_v2/ui/player/helpers/TextViewerManager.kt` | 1 823 | ≤ 700 | 3 | 5 469 |
+| 3 | `app_v2/ui/player/helpers/PdfViewerManager.kt` | 1 640 | ≤ 700 | 3 | 4 920 |
+| 4 | `app_v2/ui/player/ImageLoadingManager.kt` | 1 239 | ≤ 700 | 3 | 3 717 |
+| 5 | `app_v2/data/cloud/GoogleDriveRestClient.kt` | 1 102 | ≤ 700 | 2 | 2 204 |
+| 6 | `app_v2/ui/browse/MediaFileAdapter.kt` | 1 095 | ≤ 700 | 3 | 3 285 |
+| 7 | `app_v2/ui/player/CommandPanelController.kt` | 1 005 | ≤ 700 | 3 | 3 015 |
+| 8 | `app_v2/data/network/SmbConnectionManager.kt` | 1 000 | ≤ 700 | 3 | 3 000 |
+| 9 | `app_v2/data/cloud/CloudFileOperationHandler.kt` | 997 | ≤ 700 | 3 | 2 991 |
+| 10 | `app_v2/data/cloud/DropboxClient.kt` | 981 | ≤ 700 | 2 | 1 962 |
+| 11 | `app_v2/ui/resourceeditor/ResourceEditorFragment.kt` | 978 | ≤ 700 | 5 | 4 890 |
+| 12 | `app_v2/ui/player/helpers/PlayerMediaLoaderManager.kt` | 967 | ≤ 700 | 3 | 2 901 |
+| 13 | `app_v2/ui/player/helpers/TranslationManager.kt` | 961 | ≤ 700 | 3 | 2 883 |
+| 14 | `app_v2/data/network/SmbClient.kt` | 954 | ≤ 700 | 2 | 1 908 |
+| 15 | `app_v2/ui/dialog/FileInfoDialog.kt` | 946 | ≤ 700 | 3 | 2 838 |
+| 16 | `app_v2/ui/browse/managers/BrowseFileOperationsManager.kt` | 941 | ≤ 700 | 3 | 2 823 |
+| 17 | `app_v2/data/transfer/BaseFileOperationHandler.kt` | 939 | ≤ 700 | 3 | 2 817 |
+| 18 | `app_v2/data/network/FtpFileOperationHandler.kt` | 938 | ≤ 700 | 3 | 2 814 |
+| 19 | `app_v2/ui/player/StandalonePlayerActivity.kt` | 933 | ≤ 700 | 5 | 4 665 |
+| 20 | `app_v2/ui/main/MainActivity.kt` | 928 | ≤ 700 | 5 | 4 640 |
+| 21 | `app_v2/data/remote/ftp/FtpClient.kt` | 906 | ≤ 700 | 2 | 1 812 |
+| 22 | `app_v2/data/cloud/OneDriveRestClient.kt` | 896 | ≤ 700 | 2 | 1 792 |
+| 23 | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 822 | ≤ 700 | 2 | 1 644 |
+| 24 | `app_v2/ui/player/PlayerActivity.kt` | 816 | ≤ 700 | 5 | 4 080 |
+| 25 | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 804 | ≤ 700 | 2 | 1 608 |
+| 26 | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 802 | ≤ 700 | 3 | 2 406 |
+| 27 | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 802 | ≤ 700 | 2 | 1 604 |
+| 28 | `app_v2/ui/player/VideoPlayerManager.kt` | 801 | ≤ 700 | 3 | 2 403 |
 | 29 | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 795 | ≤ 700 | 3 | 2 385 |
-| 30 | `app_v2/data/local/LocalMediaScanner.kt` | 785 | ≤ 700 | 2 | 1 570 |
-| 31 | `app_v2/ui/player/VideoPlayerManager.kt` | 770 | ≤ 700 | 3 | 2 310 |
-| 32 | `app_v2/ui/player/PlayerManagerInitializer.kt` | 760 | ≤ 700 | 3 | 2 280 |
-| 33 | `app_v2/data/network/SmbMediaScanner.kt` | 746 | ≤ 700 | 2 | 1 492 |
-| 34 | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 740 | ≤ 700 | 2 | 1 480 |
-| 35 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 738 | ≤ 700 | 2 | 1 476 |
-| 36 | `app_v2/ui/main/ResourceAdapter.kt` | 733 | ≤ 700 | 3 | 2 199 |
-| 37 | `app_v2/ui/browse/managers/BrowseDialogHelper.kt` | 733 | ≤ 700 | 3 | 2 199 |
-| 38 | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 730 | ≤ 700 | 2 | 1 460 |
-| 39 | `app_v2/ui/player/helpers/TouchZoneGestureManager.kt` | 719 | ≤ 700 | 3 | 2 157 |
-| 40 | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 719 | ≤ 700 | 2 | 1 438 |
-| 41 | `app_v2/data/transfer/strategy/SftpOperationStrategy.kt` | 711 | ≤ 700 | 2 | 1 422 |
-| 42 | `app_v2/ui/player/PlayerActivity.kt` | 708 | ≤ 700 | 5 | 3 540 |
-| 43 | `app_v2/data/transfer/strategy/FtpOperationStrategy.kt` | 707 | ≤ 700 | 2 | 1 414 |
+| 30 | `app_v2/data/local/LocalMediaScanner.kt` | 786 | ≤ 700 | 2 | 1 572 |
+| 31 | `app_v2/data/network/SmbMediaScanner.kt` | 746 | ≤ 700 | 2 | 1 492 |
+| 32 | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 740 | ≤ 700 | 2 | 1 480 |
+| 33 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 738 | ≤ 700 | 2 | 1 476 |
+| 34 | `app_v2/ui/main/ResourceAdapter.kt` | 733 | ≤ 700 | 3 | 2 199 |
+| 35 | `app_v2/ui/browse/managers/BrowseDialogHelper.kt` | 733 | ≤ 700 | 3 | 2 199 |
+| 36 | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 731 | ≤ 700 | 2 | 1 462 |
+| 37 | `app_v2/ui/player/helpers/TouchZoneGestureManager.kt` | 719 | ≤ 700 | 3 | 2 157 |
+| 38 | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 719 | ≤ 700 | 2 | 1 438 |
+| 39 | `app_v2/data/transfer/strategy/SftpOperationStrategy.kt` | 711 | ≤ 700 | 2 | 1 422 |
+| 40 | `app_v2/data/transfer/strategy/FtpOperationStrategy.kt` | 707 | ≤ 700 | 2 | 1 414 |
 
 ---
 
@@ -218,49 +215,46 @@
 
 | Rank | File | LOC | Score |
 | ---: | ---- | ---: | ---: |
-| 1 | `PlayerViewModel.kt` | 1 321 | 5 284 |
-| 2 | `MainActivity.kt` | 1 330 | 6 650 |
-| 3 | `EpubViewerManager.kt` | 2 191 | 6 573 |
-| 4 | `StandalonePlayerActivity.kt` | 1 129 | 5 645 |
-| 5 | `TextViewerManager.kt` | 1 823 | 5 469 |
-| 6 | `ResourceEditorFragment.kt` | 1 057 | 5 285 |
-| 7 | `PdfViewerManager.kt` | 1 640 | 4 920 |
-| 8 | `ImageLoadingManager.kt` | 1 304 | 3 912 |
-| 9 | `CloudFileOperationHandler.kt` | 1 222 | 3 666 |
-| 10 | `PlayerActivity.kt` | 708 | 3 540 |
-| 11 | `MediaFileAdapter.kt` | 1 095 | 3 285 |
-| 12 | `SmbConnectionManager.kt` | 1 079 | 3 237 |
-| 13 | `FtpClient.kt` | 1 603 | 3 206 |
-| 14 | `TranslationManager.kt` | 1 011 | 3 033 |
-| 15 | `PlayerMediaLoaderManager.kt` | 1 002 | 3 006 |
-| 16 | `CommandPanelController.kt` | 986 | 2 958 |
-| 17 | `GoogleDriveRestClient.kt` | 1 452 | 2 904 |
-| 18 | `OneDriveRestClient.kt` | 1 433 | 2 866 |
-| 19 | `FileInfoDialog.kt` | 946 | 2 838 |
-| 20 | `BrowseFileOperationsManager.kt` | 941 | 2 823 |
-| 21 | `BaseFileOperationHandler.kt` | 939 | 2 817 |
-| 22 | `FtpFileOperationHandler.kt` | 938 | 2 814 |
-| 23 | `SftpClient.kt` | 1 311 | 2 622 |
-| 24 | `SmbClient.kt` | 1 291 | 2 582 |
-| 25 | `PagingMediaFileAdapter.kt` | 802 | 2 406 |
-| 26 | `BrowseManagerInitializer.kt` | 795 | 2 385 |
-| 27 | `DropboxClient.kt` | 1 181 | 2 362 |
-| 28 | `VideoPlayerManager.kt` | 770 | 2 310 |
-| 29 | `PlayerManagerInitializer.kt` | 760 | 2 280 |
-| 30 | `ResourceAdapter.kt` | 733 | 2 199 |
-| 31 | `BrowseDialogHelper.kt` | 733 | 2 199 |
-| 32 | `TouchZoneGestureManager.kt` | 719 | 2 157 |
-| 33 | `SmbOperationStrategy.kt` | 822 | 1 644 |
-| 34 | `SearchLyricsUseCase.kt` | 804 | 1 608 |
-| 35 | `SettingsRepositoryImpl.kt` | 802 | 1 604 |
-| 36 | `LocalMediaScanner.kt` | 785 | 1 570 |
-| 37 | `SmbMediaScanner.kt` | 746 | 1 492 |
-| 38 | `CloudOperationStrategy.kt` | 740 | 1 480 |
-| 39 | `SmbOperationsUseCase.kt` | 738 | 1 476 |
-| 40 | `ResourceEditorUseCase.kt` | 730 | 1 460 |
-| 41 | `NetworkFileModelLoader.kt` | 719 | 1 438 |
-| 42 | `SftpOperationStrategy.kt` | 711 | 1 422 |
-| 43 | `FtpOperationActionStrategy.kt` | 707 | 1 414 |
+| 1 | `EpubViewerManager.kt` | 2 191 | 6 573 |
+| 2 | `TextViewerManager.kt` | 1 823 | 5 469 |
+| 3 | `PdfViewerManager.kt` | 1 640 | 4 920 |
+| 4 | `ResourceEditorFragment.kt` | 978 | 4 890 |
+| 5 | `StandalonePlayerActivity.kt` | 933 | 4 665 |
+| 6 | `MainActivity.kt` | 928 | 4 640 |
+| 7 | `PlayerActivity.kt` | 816 | 4 080 |
+| 8 | `ImageLoadingManager.kt` | 1 239 | 3 717 |
+| 9 | `MediaFileAdapter.kt` | 1 095 | 3 285 |
+| 10 | `CommandPanelController.kt` | 1 005 | 3 015 |
+| 11 | `SmbConnectionManager.kt` | 1 000 | 3 000 |
+| 12 | `CloudFileOperationHandler.kt` | 997 | 2 991 |
+| 13 | `PlayerMediaLoaderManager.kt` | 967 | 2 901 |
+| 14 | `TranslationManager.kt` | 961 | 2 883 |
+| 15 | `FileInfoDialog.kt` | 946 | 2 838 |
+| 16 | `BrowseFileOperationsManager.kt` | 941 | 2 823 |
+| 17 | `BaseFileOperationHandler.kt` | 939 | 2 817 |
+| 18 | `FtpFileOperationHandler.kt` | 938 | 2 814 |
+| 19 | `PagingMediaFileAdapter.kt` | 802 | 2 406 |
+| 20 | `VideoPlayerManager.kt` | 801 | 2 403 |
+| 21 | `BrowseManagerInitializer.kt` | 795 | 2 385 |
+| 22 | `GoogleDriveRestClient.kt` | 1 102 | 2 204 |
+| 23 | `ResourceAdapter.kt` | 733 | 2 199 |
+| 24 | `BrowseDialogHelper.kt` | 733 | 2 199 |
+| 25 | `TouchZoneGestureManager.kt` | 719 | 2 157 |
+| 26 | `DropboxClient.kt` | 981 | 1 962 |
+| 27 | `SmbClient.kt` | 954 | 1 908 |
+| 28 | `FtpClient.kt` | 906 | 1 812 |
+| 29 | `OneDriveRestClient.kt` | 896 | 1 792 |
+| 30 | `SmbOperationStrategy.kt` | 822 | 1 644 |
+| 31 | `SearchLyricsUseCase.kt` | 804 | 1 608 |
+| 32 | `SettingsRepositoryImpl.kt` | 802 | 1 604 |
+| 33 | `LocalMediaScanner.kt` | 786 | 1 572 |
+| 34 | `SmbMediaScanner.kt` | 746 | 1 492 |
+| 35 | `CloudOperationStrategy.kt` | 740 | 1 480 |
+| 36 | `SmbOperationsUseCase.kt` | 738 | 1 476 |
+| 37 | `ResourceEditorUseCase.kt` | 731 | 1 462 |
+| 38 | `NetworkFileModelLoader.kt` | 719 | 1 438 |
+| 39 | `SftpOperationStrategy.kt` | 711 | 1 422 |
+| 40 | `FtpOperationStrategy.kt` | 707 | 1 414 |
 
 ---
 
@@ -306,14 +300,25 @@ Next dynamic-loop candidates (sub-1500 LOC, easy quick wins toward the 1000 cap)
 
 | File | LOC | Margin |
 | --- | ---: | ---: |
-| `ui/player/StandalonePlayerActivity.kt` | 1 129 | 130 |
-| `ui/player/ImageLoadingManager.kt` | 1 304 | 305 |
-| `ui/main/MediaFileAdapter.kt` | 1 095 | 96 |
-| `data/network/SmbConnectionManager.kt` | 1 079 | 80 |
-| `data/cloud/CloudFileOperationHandler.kt` | 1 222 | 223 |
-| `data/cloud/DropboxClient.kt` | 1 181 | 182 |
-| `ui/player/helpers/TranslationManager.kt` | 1 011 | 12 |
-| `ui/player/helpers/PlayerMediaLoaderManager.kt` | 1 002 | 3 |
-| `ui/player/CommandPanelController.kt` | 986 | within cap |
+| `OneDriveRestClient.kt` | 896 | 392 |
+| `FtpClient.kt` | 906 | 412 |
+| `SmbClient.kt` | 954 | 508 |
+| `DropboxClient.kt` | 981 | 562 |
+| `PlayerActivity.kt` | 816 | 580 |
+| `FtpFileOperationHandler.kt` | 938 | 714 |
+| `BaseFileOperationHandler.kt` | 939 | 717 |
+| `BrowseFileOperationsManager.kt` | 941 | 723 |
+| `FileInfoDialog.kt` | 946 | 738 |
+| `TranslationManager.kt` | 961 | 783 |
+| `PlayerMediaLoaderManager.kt` | 967 | 801 |
+| `GoogleDriveRestClient.kt` | 1 102 | 804 |
+| `CloudFileOperationHandler.kt` | 997 | 891 |
+| `SmbConnectionManager.kt` | 1 000 | 900 |
+| `CommandPanelController.kt` | 1 005 | 915 |
+| `MainActivity.kt` | 928 | 1 140 |
+| `StandalonePlayerActivity.kt` | 933 | 1 165 |
+| `MediaFileAdapter.kt` | 1 095 | 1 185 |
+| `ResourceEditorFragment.kt` | 978 | 1 390 |
+| `ImageLoadingManager.kt` | 1 239 | 1 617 |
 
 The loop continues from the smallest-margin file each iteration.

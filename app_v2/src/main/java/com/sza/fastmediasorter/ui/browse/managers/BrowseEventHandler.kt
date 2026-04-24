@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.StereoDetector
 import com.sza.fastmediasorter.ui.player.VrForcedFormatResolver
+import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -80,9 +81,17 @@ class BrowseEventHandler(
                         )
                     }
 
-                    playerActivityLauncher.launch(playerIntent)
-                    @Suppress("DEPRECATION")
-                    activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
+                        // Hybrid-app entry: browse task is destroyed on enterImmersive, so no
+                        // activity result can be delivered back. Standard-player intents (above
+                        // if-branch) still go through playerActivityLauncher to preserve the
+                        // EXTRA_MODIFIED_FILES result contract used by the browse list.
+                        VrTaskTransition.enterImmersive(activity, playerIntent)
+                    } else {
+                        playerActivityLauncher.launch(playerIntent)
+                        @Suppress("DEPRECATION")
+                        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
                 }
             }
             is BrowseEvent.ShowCloudAuthenticationRequired -> {

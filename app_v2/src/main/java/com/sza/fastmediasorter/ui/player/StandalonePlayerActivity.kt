@@ -40,8 +40,16 @@ import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
@@ -84,7 +92,7 @@ import javax.inject.Inject
 // to startActivity/startService — received URIs are only passed to ExoPlayer/Glide as media.
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
-class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
+class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), PlayerHostCapabilities {
 
     companion object {
         private val DEFAULT_PLAYER_COMPONENT_SUFFIXES = listOf(
@@ -283,6 +291,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     override fun observeData() {
         observeViewModelState()
         observeViewModelEvents()
+        observeMessages()
         observeFavoriteState()
         observeTranslationSettings()
         observePipSettings()
@@ -328,10 +337,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (currentType != MediaType.VIDEO && currentType != MediaType.AUDIO) return
         val fragmentManager = supportFragmentManager
         if (fragmentManager.isStateSaved) return
-        if (fragmentManager.findFragmentByTag(StandalonePlaybackControlDialogFragment.TAG) != null) return
-        StandalonePlaybackControlDialogFragment().show(
+        if (fragmentManager.findFragmentByTag(PlaybackControlDialogFragment.TAG) != null) return
+        PlaybackControlDialogFragment().show(
             fragmentManager,
-            StandalonePlaybackControlDialogFragment.TAG
+            PlaybackControlDialogFragment.TAG
         )
     }
 
@@ -834,4 +843,91 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun updateRenameButtonVisibility() = fileOperations.updateRenameButtonVisibility()
     private fun showStandaloneRenameDialog() = fileOperations.showStandaloneRenameDialog()
+
+    private fun observeMessages() {
+        collectOnLifecycle(viewModel.messageFlow) { message ->
+            Toast.makeText(this@StandalonePlayerActivity, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // ── PlayerHostCapabilities ────────────────────────────────────────────────
+
+    override val supportsListNavigation: Boolean = false
+    override val supportsSlideshow: Boolean = false
+    override val supportsPersistentAudio: Boolean = false
+    override val supportsCast: Boolean = false
+    override val supportsDeleteUndo: Boolean = true
+    override val supportsCommandPanelFolding: Boolean = false
+
+    override val currentMediaFile: StateFlow<MediaFile?> by lazy {
+        viewModel.state.map { it.mediaFile }
+            .stateIn(lifecycleScope, SharingStarted.Eagerly, viewModel.state.value.mediaFile)
+    }
+
+    override val currentMediaType: StateFlow<MediaType?> by lazy {
+        viewModel.state.map { it.mediaType }
+            .stateIn(lifecycleScope, SharingStarted.Eagerly, viewModel.state.value.mediaType)
+    }
+
+    override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
+    override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
+
+    override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
+    override fun rememberStereoModeIfEnabled(mode: StereoMode) =
+        viewModel.rememberStereoModeIfEnabled(mode)
+
+    override val videoPlayerHandle: VideoPlayerHandle get() = standaloneVideoPlayerHandle
+
+    private val standaloneVideoPlayerHandle: VideoPlayerHandle by lazy {
+        StandaloneVideoPlayerHandle()
+    }
+
+    override val isAudioServiceActive: Boolean = false
+
+    override fun showMessage(message: String) = viewModel.showMessage(message)
+
+    override fun requestFinishAfterDelete() = finish()
+
+    private inner class StandaloneVideoPlayerHandle : VideoPlayerHandle {
+        override fun getAvailableAudioTracks(): List<VideoTrackSelectionManager.TrackInfo> =
+            standaloneTrackSelectionManager?.getAvailableAudioTracks() ?: emptyList()
+
+        override fun selectAudioTrack(groupIndex: Int, trackIndex: Int) {
+            standaloneTrackSelectionManager?.selectAudioTrack(groupIndex, trackIndex)
+        }
+
+        override fun getAvailableSubtitleTracks(): List<VideoTrackSelectionManager.TrackInfo> =
+            standaloneTrackSelectionManager?.getAvailableSubtitleTracks() ?: emptyList()
+
+        override fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) {
+            standaloneTrackSelectionManager?.selectSubtitleTrack(groupIndex, trackIndex)
+        }
+
+        override fun getHueAdjustmentDegrees(): Float =
+            if (::viewManager.isInitialized) viewManager.getHueAdjustmentDegrees() else 0f
+
+        override fun setHueAdjustmentDegrees(degrees: Float) {
+            if (::viewManager.isInitialized) viewManager.setHueAdjustmentDegrees(degrees)
+        }
+
+        override fun getBrightnessProgress(): Int =
+            if (::viewManager.isInitialized) viewManager.getBrightnessProgress() else 50
+
+        override fun setBrightnessProgress(progress: Int) {
+            if (::viewManager.isInitialized) viewManager.setBrightnessProgress(progress)
+        }
+
+        override fun getBrightnessPercentOffset(): Int =
+            if (::viewManager.isInitialized) viewManager.getBrightnessPercentOffset() else 0
+
+        override fun getPlaybackSpeed(): Float {
+            val mediaType = viewModel.state.value.mediaType
+            return if (::viewManager.isInitialized) viewManager.getPlaybackSpeed(mediaType) else 1.0f
+        }
+
+        override fun setPlaybackSpeed(speed: Float) {
+            val mediaType = viewModel.state.value.mediaType
+            if (::viewManager.isInitialized) viewManager.setPlaybackSpeed(mediaType, speed)
+        }
+    }
 }
