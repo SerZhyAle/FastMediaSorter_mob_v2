@@ -14,7 +14,7 @@
 ## Phase Overview
 
 | # | Phase | Depends on | Status | Steps | File |
-|---|-------|-----------|--------|------:|------|
+| --- | --- | --- | --- | ---: | --- |
 | 01 | preparation-inventory | — | ⬜ Not started | 0/8 | [PHASE_01__preparation-inventory.md](PHASE_01__preparation-inventory.md) |
 | 02 | foundation | 01 | ⬜ Not started | 0/8 | [PHASE_02__foundation.md](PHASE_02__foundation.md) |
 | 03 | keyboard-migration | 02 | ⬜ Not started | 0/6 | [PHASE_03__keyboard-migration.md](PHASE_03__keyboard-migration.md) |
@@ -30,20 +30,20 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 ## Pre-Implementation Blockers
 
-The strategic spec §10 UI Ambiguity Gate lists ten open decisions. Each must have an explicit resolution line (no `?` / `TBD` tokens) in `../spec_player-keybinding-remapping.md` §10 **before the listed phase may start**.
+All ten strategic §10 UI Ambiguity Gate items **resolved on 2026-04-25**. See `../spec_player-keybinding-remapping.md` §10 for full resolution text. Quick reference:
 
-Phase 01 (preparation/inventory) may proceed before any of these are resolved — it is pure research.
+- [x] **Merge policy:** Replace. User binding replaces all defaults for that command on the device.
+- [x] **Max bindings per command per device:** 2.
+- [x] **Conflict policy:** Block at capture (commit button disabled).
+- [x] **Capture timeout:** 30 seconds.
+- [x] **Unrecognised trigger display:** Both label + raw code (`"Unknown keyboard key [10045]"`).
+- [x] **Modifier capture policy:** Always capture modifiers.
+- [x] **Analog threshold UX:** Fixed global `±0.7`.
+- [x] **Reset confirmation granularity:** Single + Group instant; Global requires confirmation.
+- [x] **Undo window:** Immediate commit, no undo snackbar. **→ Phase 07 Step 07.6 is `[-] skipped`.**
+- [x] **Per-profile support:** Single profile in v1. No `profileId` column in schema.
 
-- [ ] **Merge policy for overrides.** Replace-all vs. additive. Blocks Phase 02 (binding-resolution contract).
-- [ ] **Max bindings per command per device category.** Recommended cap: two. Blocks Phase 02 (schema) and Phase 06 (row layout).
-- [ ] **Conflict policy.** Block / flag / silently-overwrite. Blocks Phase 07 (conflict visualiser).
-- [ ] **Capture timeout.** Indefinite or N seconds. Blocks Phase 06 (capture mode).
-- [ ] **Unrecognised trigger display.** Raw code / friendly fallback / both. Blocks Phase 06 (row label).
-- [ ] **Modifier capture policy.** Plain-keys-only vs. always-capture-modifiers. Blocks Phase 06 (capture mode).
-- [ ] **Analog threshold UX.** Fixed vs. user-adjustable. Blocks Phase 02 (schema) and Phase 06 (row layout).
-- [ ] **Reset confirmation granularity.** Per single / group / global. Blocks Phase 07 (reset UX).
-- [ ] **Undo window.** Time-limited snackbar vs. immediate commit. Blocks Phase 07 (reset UX) and Phase 06 (override edit).
-- [ ] **Per-profile support.** Single profile v1 — recommendation accepted? Blocks Phase 02 (persistence) and Phase 06 (UI).
+No further blockers. Phase 01 may start immediately; Phases 02+ unblocked.
 
 ---
 
@@ -72,7 +72,7 @@ The feature is Done when **every** item below is ticked:
 
 ## Blockers Log
 
-*(Empty on first write — append as issues arise.)*
+Empty on first write. Append one bullet per blocker as issues arise, format `- YYYY-MM-DD — Phase NN blocked: <cause>. Next action: <who/what/when>.`
 
 ---
 

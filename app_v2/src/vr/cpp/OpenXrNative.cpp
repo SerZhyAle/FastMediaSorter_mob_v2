@@ -148,6 +148,7 @@ typedef XrResult(XRAPI_PTR *PFN_xrLocateHandJointsEXT_LOCAL)(
 
 #include <atomic>
 #include <algorithm>
+#include <cstdarg>
 #include <cstring>
 #include <ctime>
 #include <mutex>
@@ -155,10 +156,61 @@ typedef XrResult(XRAPI_PTR *PFN_xrLocateHandJointsEXT_LOCAL)(
 #include <vector>
 
 #define LOG_TAG "OpenXrNative"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+
+// Native log forwarding buffer: every LOG* emits to Android logcat (as before)
+// AND appends to this ring. Kotlin drains it via nativeDrainLog() so OpenXR
+// diagnostics land in fastmediasorter_*.log alongside Timber output — without
+// that, `nativeInitialize returned false` arrives at the user without any
+// trace of which xr* call actually failed.
+static std::mutex g_logBufferMutex;
+static std::vector<std::string> g_logBuffer;
+static constexpr size_t kLogBufferMaxEntries = 512;
+
+static void nativeLogBufferAppend(char prioChar, const char *msg)
+{
+    std::lock_guard<std::mutex> lock(g_logBufferMutex);
+    if (g_logBuffer.size() >= kLogBufferMaxEntries)
+    {
+        g_logBuffer.erase(g_logBuffer.begin(),
+                          g_logBuffer.begin() + (g_logBuffer.size() - kLogBufferMaxEntries + 1));
+    }
+    std::string entry;
+    entry.reserve(2 + std::strlen(msg));
+    entry.push_back(prioChar);
+    entry.push_back('|');
+    entry.append(msg);
+    g_logBuffer.emplace_back(std::move(entry));
+}
+
+static void nativeLogEmit(int androidPrio, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void nativeLogEmit(int androidPrio, const char *fmt, ...)
+{
+    char buf[1024];
+    va_list args;
+    va_start(args, fmt);
+    const int written = vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    if (written < 0)
+    {
+        return;
+    }
+    __android_log_write(androidPrio, LOG_TAG, buf);
+    char prioChar;
+    switch (androidPrio)
+    {
+    case ANDROID_LOG_ERROR: prioChar = 'E'; break;
+    case ANDROID_LOG_WARN:  prioChar = 'W'; break;
+    case ANDROID_LOG_INFO:  prioChar = 'I'; break;
+    case ANDROID_LOG_DEBUG: prioChar = 'D'; break;
+    default:                prioChar = 'V'; break;
+    }
+    nativeLogBufferAppend(prioChar, buf);
+}
+
+#define LOGI(...) nativeLogEmit(ANDROID_LOG_INFO,  __VA_ARGS__)
+#define LOGW(...) nativeLogEmit(ANDROID_LOG_WARN,  __VA_ARGS__)
+#define LOGE(...) nativeLogEmit(ANDROID_LOG_ERROR, __VA_ARGS__)
+#define LOGD(...) nativeLogEmit(ANDROID_LOG_DEBUG, __VA_ARGS__)
 
 // ─── Debug helpers ────────────────────────────────────────────────────────────
 
@@ -541,7 +593,12 @@ namespace
                 enabledExts.push_back(kHandAimFbExt);
                 g_ctx.supportsHandAim = true;
             }
-            if (hasExt(kMicrogesturesExt))
+            // Horizon OS v74+ rejects xrCreateInstance with XR_ERROR_EXTENSION_DEPENDENCY_NOT_ENABLED
+            // when XR_META_hand_tracking_microgestures is enabled without XR_META_hand_tracking_aim
+            // — the runtime no longer accepts the FB aim alias as a microgestures dependency.
+            // Gate microgestures on the META aim being present so older runtimes (FB-only) still
+            // get hand tracking + aim, just without microgestures.
+            if (hasExt(kMicrogesturesExt) && hasExt(kHandAimMetaExt))
             {
                 enabledExts.push_back(kMicrogesturesExt);
                 g_ctx.supportsMicrogestures = true;
@@ -582,7 +639,41 @@ namespace
              ci.applicationInfo.applicationName,
              ci.applicationInfo.engineName);
 
-        XR_CHECK(xrCreateInstance(&ci, &g_ctx.instance), "xrCreateInstance");
+        XrResult createResult = xrCreateInstance(&ci, &g_ctx.instance);
+        // Retry path for XR_ERROR_EXTENSION_DEPENDENCY_NOT_ENABLED (-1000710001):
+        // a future runtime change may flag yet another optional extension dependency we
+        // can't predict here. Drop everything except the base required pair so users keep
+        // a working immersive view (no equirect/cylinder/hand-tracking) instead of being
+        // stranded on the flat-cinema fallback. Each dropped capability is logged so the
+        // regression is obvious in fastmediasorter_*.log.
+        if (createResult == XR_ERROR_EXTENSION_DEPENDENCY_NOT_ENABLED)
+        {
+            LOGE("xrCreateInstance: XR_ERROR_EXTENSION_DEPENDENCY_NOT_ENABLED — retrying with minimal extension set");
+            for (const char *name : enabledExts)
+            {
+                LOGW("  was-enabled: %s", name);
+            }
+            enabledExts.clear();
+            enabledExts.push_back(kGraphicsExt);
+            if (hasExt(kAndroidCreateExt))
+            {
+                enabledExts.push_back(kAndroidCreateExt);
+            }
+            g_ctx.supportsEquirect2 = false;
+            g_ctx.supportsCylinder = false;
+            g_ctx.supportsHandTracking = false;
+            g_ctx.supportsHandAim = false;
+            g_ctx.supportsMicrogestures = false;
+            ci.enabledExtensionCount = static_cast<uint32_t>(enabledExts.size());
+            ci.enabledExtensionNames = enabledExts.data();
+            LOGI("xrCreateInstance: retry with %zu extensions (graphics-only)", enabledExts.size());
+            createResult = xrCreateInstance(&ci, &g_ctx.instance);
+        }
+        if (XR_FAILED(createResult))
+        {
+            LOGE("xrCreateInstance failed: %d", static_cast<int>(createResult));
+            return false;
+        }
         LOGI("XR instance created: handle=0x%llx  extensions=%zu  Equirect2=%d Cylinder=%d",
              static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(g_ctx.instance)),
              enabledExts.size(),
@@ -2463,4 +2554,40 @@ Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeTriggerHaptic(
         return JNI_FALSE;
     }
     return JNI_TRUE;
+}
+
+// Drain buffered native log entries (each prefixed with "X|" where X is the
+// priority char V/D/I/W/E). Called from OpenXrSessionManager so the init
+// trace lands in the app's Timber-backed log file even though C++ writes via
+// __android_log_print. Returns an empty array when the buffer is empty.
+extern "C" JNIEXPORT jobjectArray JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeDrainLog(JNIEnv *env, jclass)
+{
+    std::vector<std::string> drained;
+    {
+        std::lock_guard<std::mutex> lock(g_logBufferMutex);
+        drained.swap(g_logBuffer);
+    }
+    jclass stringCls = env->FindClass("java/lang/String");
+    if (stringCls == nullptr)
+    {
+        return nullptr;
+    }
+    jobjectArray arr = env->NewObjectArray(static_cast<jsize>(drained.size()), stringCls, nullptr);
+    if (arr == nullptr)
+    {
+        env->DeleteLocalRef(stringCls);
+        return nullptr;
+    }
+    for (jsize i = 0; i < static_cast<jsize>(drained.size()); ++i)
+    {
+        jstring s = env->NewStringUTF(drained[static_cast<size_t>(i)].c_str());
+        if (s != nullptr)
+        {
+            env->SetObjectArrayElement(arr, i, s);
+            env->DeleteLocalRef(s);
+        }
+    }
+    env->DeleteLocalRef(stringCls);
+    return arr;
 }

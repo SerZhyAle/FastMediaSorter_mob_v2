@@ -117,6 +117,7 @@ class OpenXrSessionManager(
             val egl = XrEglContext()
             Timber.d("OpenXrSessionManager: creating EGL context...")
             if (!egl.create()) {
+                drainNativeLog()
                 Timber.e("OpenXrSessionManager: EGL setup FAILED — no GL context, XR cannot start")
                 starting.set(false)
                 initFinished.set(true)
@@ -128,9 +129,11 @@ class OpenXrSessionManager(
             Timber.i("OpenXrSessionManager: calling nativeInitialize...")
             val ok = try {
                 val result = OpenXrNative.nativeInitialize(activity, callback)
+                drainNativeLog()
                 Timber.i("OpenXrSessionManager: nativeInitialize returned %b", result)
                 result
             } catch (t: Throwable) {
+                drainNativeLog()
                 Timber.e(t, "OpenXrSessionManager: nativeInitialize THREW — see stack above")
                 false
             }
@@ -216,6 +219,7 @@ class OpenXrSessionManager(
 
             Timber.i("OpenXrSessionManager: calling nativeRelease")
             OpenXrNative.nativeRelease()
+            drainNativeLog()
             Timber.i("OpenXrSessionManager: destroying EGL context")
             egl.destroy()
 
@@ -297,6 +301,7 @@ class OpenXrSessionManager(
                 thread = null
             }
         }
+        drainNativeLog()
     }
 
     fun isActive(): Boolean = running.get()
@@ -355,6 +360,29 @@ class OpenXrSessionManager(
             } catch (_: Throwable) {
             }
             null
+        }
+    }
+
+    private fun drainNativeLog() {
+        val entries = try {
+            OpenXrNative.nativeDrainLog()
+        } catch (t: Throwable) {
+            Timber.w(t, "OpenXrSessionManager: nativeDrainLog failed")
+            return
+        }
+        for (raw in entries) {
+            if (raw.isEmpty()) continue
+            val pipeIdx = raw.indexOf('|')
+            val prio = if (pipeIdx > 0) raw[0] else 'I'
+            val msg = if (pipeIdx >= 0) raw.substring(pipeIdx + 1) else raw
+            val tagged = Timber.tag("OpenXrNative")
+            when (prio) {
+                'E' -> tagged.e(msg)
+                'W' -> tagged.w(msg)
+                'I' -> tagged.i(msg)
+                'D' -> tagged.d(msg)
+                else -> tagged.v(msg)
+            }
         }
     }
 

@@ -3683,3 +3683,18 @@ Format: | datetime | file | target | description |
 | 2026-04-25 01:22:58 | `PLAN/spec_player-keybinding-remapping/PHASE_07__reset-conflict-polish.md` | `spec-tech` | Phase 07: Hierarchical reset + conflict policy + polish |
 | 2026-04-25 01:22:58 | `PLAN/spec_player-keybinding-remapping/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: Docs + catalog + cleanup |
 | 2026-04-25 01:22:58 | `PLAN/spec_player-keybinding-remapping.md` | `spec-tech` | Move strategic status Approved -> Tactical; link tactical plan |
+| 2026-04-25 01:30:24 | `app_v2/src/vr/cpp/OpenXrNative.cpp, app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrNative.kt, app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt, app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `vr` | Forward native OpenXR diagnostics via nativeDrainLog -> Timber so XR init failures appear in fastmediasorter_*.log; auto-route to standard PlayerActivity when XR init fails so user is not stuck in unusable headset panel UI |
+| 2026-04-25 01:40:02 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `vr` | Fix xrCreateInstance failure with XR_ERROR_EXTENSION_DEPENDENCY_NOT_ENABLED on Horizon OS v74+: gate XR_META_hand_tracking_microgestures on XR_META_hand_tracking_aim presence (FB alias no longer accepted), and fall back to graphics-only extension set when dependency error still occurs |
+| 2026-04-25 02:02:49 | `PLAN/spec_player-keybinding-remapping.md` | `spec-tech` | Resolve all 10 UI Ambiguity Gate items (strategic §10) |
+| 2026-04-25 02:02:49 | `PLAN/spec_player-keybinding-remapping/INDEX.md` | `spec-tech` | Mark all 10 Pre-Implementation Blockers resolved; fix lint MD060/MD036 |
+| 2026-04-25 02:24:08 | `PLAN/spec_vr-immersive-hud-gl.md` | `spec` | Add strategic specification for VR immersive HUD via OpenXR composition layer |
+| 2026-04-25 02:31:37 | `PLAN/spec_vr-immersive-hud-gl.md` | `spec` | Approve strategic spec; resolve research §6.2 (update cadence) and §6.5 (first-run HUD cheatsheet); fix defaults for §6.1, §6.3, §6.4 |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/INDEX.md` | `spec-tech` | Create tactical plan for vr-immersive-hud-gl |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_01__foundations.md` | `spec-tech` | Phase 01: foundations |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_02__composition-layer.md` | `spec-tech` | Phase 02: composition-layer |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_03__bitmap-upload.md` | `spec-tech` | Phase 03: bitmap-upload |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_04__scene-composer.md` | `spec-tech` | Phase 04: scene-composer |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_05__event-routing.md` | `spec-tech` | Phase 05: event-routing |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_06__transitional-guard.md` | `spec-tech` | Phase 06: transitional-guard |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
+| 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl.md` | `spec-tech` | Move strategic status to Tactical; link tactical plan |

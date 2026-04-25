@@ -199,22 +199,22 @@ These are design *constraints* the tactical spec must honour — not an implemen
 
 ---
 
-## 10. UI Ambiguity Gate (blockers for tactical phase)
+## 10. UI Ambiguity Gate (resolved 2026-04-25)
 
-The following decisions are **open** and must be resolved in writing before any implementation starts. The tactical spec must answer each.
+The following decisions were open at Draft / Approved time and must be resolved in writing before any implementation starts. All ten are now resolved.
 
-- [ ] **Merge policy for overrides.** When a user sets a custom binding for a command, do custom bindings *replace* all defaults for that command, or *add to* them? (Affects the reset model and the "how many bindings per command" UX.)
-- [ ] **Max bindings per command per device category.** One? Two? Unlimited? Recommended cap: two.
-- [ ] **Conflict policy.** If the same trigger resolves to two commands, do we (a) block the assignment at capture time, (b) allow it and flag visually, or (c) silently use the most recently assigned? Choose one and document.
-- [ ] **Capture timeout.** Does capture mode auto-cancel after N seconds, or wait indefinitely until the user taps Cancel? If timed, what value?
-- [ ] **Unrecognised trigger display.** For an input whose label is unknown, show a raw code (`Key [10045]`), a friendly fallback (`Unknown keyboard key`), or both?
-- [ ] **Modifier capture policy.** For keyboard, do we capture plain keys only by default and require an explicit modifier gesture, or always capture the full modifier state when the user presses the key?
-- [ ] **Analog threshold UX.** For gamepad/VR analog axes, does the user see and adjust the activation threshold, or is it fixed globally (e.g. `±0.7`)?
-- [ ] **Reset confirmation granularity.** Confirmation dialog for global reset — confirmed. What about group reset? Single-command reset? Recommend: none for single, none for group, confirmation for global.
-- [ ] **Undo window.** After a reset or an override change, is there a time-limited undo (e.g. snackbar for 5 s), or is every change immediately permanent?
-- [ ] **Per-profile support.** Is there exactly one binding set per device/account, or multiple named profiles the user can switch between? Strong recommendation: single profile in v1, profiles are out of scope.
+- [x] **Merge policy for overrides.** **Resolution:** Replace. A user-assigned binding for a command replaces every default trigger of that command on the affected device category. Reset restores the defaults. Simpler schema, simpler mental model.
+- [x] **Max bindings per command per device category.** **Resolution:** 2. Two slots per device per command (e.g. `Space` + `K` both trigger Pause). Matches current defaults and keeps the row layout compact.
+- [x] **Conflict policy.** **Resolution:** Block at capture. Capture dialog disables the commit button when the sampled trigger is already bound to another command on the same surface; shows `"Already bound to: <command>"`. User must clear the other binding first. Zero chance of silent breakage.
+- [x] **Capture timeout.** **Resolution:** 30 seconds. `CountDownTimer` auto-cancels capture mode after 30 s of inactivity; prior value is retained.
+- [x] **Unrecognised trigger display.** **Resolution:** Both. Label plus raw code: `"Unknown keyboard key [10045]"`. Distinguishes multiple unnamed keys on the same device.
+- [x] **Modifier capture policy.** **Resolution:** Always capture modifiers. Pressing `Ctrl+R` stores `Ctrl+R`. For a plain-key binding, the user releases the modifier before pressing. Matches IDE/editor convention.
+- [x] **Analog threshold UX.** **Resolution:** Fixed. Global deadzone `±0.7` applied to all analog axes; not user-adjustable. Keeps the UI simple and matches current gamepad/VR behaviour.
+- [x] **Reset confirmation granularity.** **Resolution:** Single + Group are instant; Global requires destructive confirmation dialog. Covers accidental-wipe protection without friction for routine per-row adjustments.
+- [x] **Undo window.** **Resolution:** Immediate commit, no undo snackbar. Every change is committed without a time-limited undo window; recovery path is manual `Reset to default` per row (or per group). Phase 07 Step 07.6 is skipped per this resolution.
+- [x] **Per-profile support.** **Resolution:** Single profile in v1. One binding set per user; named profiles (`Gaming`, `Couch`, `VR`) are out of scope (strategic §14). Schema carries no `profileId` column.
 
-No implementation task proceeds until every item above has an explicit answer.
+All items resolved on 2026-04-25. Implementation may proceed per the tactical plan `spec_player-keybinding-remapping/`.
 
 ---
 

@@ -81,6 +81,15 @@ internal object OpenXrNative {
     /** Cooperatively signal the native loop to exit (e.g. on Activity finish). */
     @JvmStatic external fun nativeRequestExit()
 
+    /**
+     * Drain buffered native log messages (each `"X|message"` where `X` is the priority
+     * char: V/D/I/W/E). The buffer is filled by every LOG* call inside the C++ bridge
+     * in parallel with `__android_log_print`. Kotlin forwards each entry into Timber
+     * so failed XR init produces a complete trace in the app's file log — not just
+     * the bare `nativeInitialize returned false` line.
+     */
+    @JvmStatic external fun nativeDrainLog(): Array<String>
+
     /** Destroy swapchains, session, instance in reverse order. */
     @JvmStatic external fun nativeRelease()
 

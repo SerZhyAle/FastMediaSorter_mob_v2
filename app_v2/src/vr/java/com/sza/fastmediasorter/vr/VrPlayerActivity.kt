@@ -1222,29 +1222,38 @@ class VrPlayerActivity : PlayerActivity() {
     /**
      * Called when the XR session fails to initialize.
      *
-     * Instead of stopping playback and closing the activity, we leave ExoPlayer running
-     * on the regular PlayerView — which the headset compositor shows as a flat 2D panel.
-     * The user can see the content, open the settings menu to correct the stereo format,
-     * and re-open the file when ready.
-     *
-     * Important: when XR init fails, [initializeVrRenderPipeline] was never called,
-     * so ExoPlayer is still on the PlayerView surface — no surface redirect is needed here.
+     * Staying in VrPlayerActivity after a failed XR init leaves the user stuck: the
+     * activity is sized to the headset panel resolution (~4128x2208) and command
+     * panels collapse to a few physical millimetres, making every button unreachable
+     * with the Quest controller. We therefore hand the session off to the regular
+     * PlayerActivity — the Quest compositor renders it as an ordinary 2D window panel
+     * where the UI is full-size and usable, and ResumeStateRepository restores the
+     * playback position so the user re-enters at the same frame.
      */
     private fun fallbackToFlatCinemaMode(reason: String) {
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
-            Timber.w("VrPlayerActivity: fallbackToFlatCinemaMode (reason=%s) — XR unavailable, keeping flat playback", reason)
-            // Allow a fresh XR attempt when the user changes stereo mode after a failed init.
+            Timber.w("VrPlayerActivity: fallbackToFlatCinemaMode (reason=%s) — XR unavailable, routing to standard PlayerActivity", reason)
             xrInitializationRequested = false
-            // Release partial XR state to free resources (no active render loop to stop).
             try {
                 xrSessionManager?.release()
             } catch (t: Throwable) {
                 Timber.w(t, "VrPlayerActivity: fallbackToFlatCinemaMode — XR release failed, ignoring")
             }
-            // Non-blocking info toast: user sees content in flat mode and can access
-            // player settings to fix the stereo format, then re-open the file.
             showError(getString(R.string.vr_xr_fallback_flat_mode))
+
+            val currentFile = viewModel.state.value.currentFile
+            if (currentFile == null) {
+                Timber.w("VrPlayerActivity: fallbackToFlatCinemaMode — currentFile is null, finishing without fallback target")
+                finish()
+                return@runOnUiThread
+            }
+            // Delay matches launchUnsupportedImmersiveFallback: give the toast one UI frame
+            // to enqueue before the activity hands off, otherwise the message is silent.
+            window.decorView.postDelayed({
+                if (isFinishing || isDestroyed) return@postDelayed
+                launchStandardPlayerFallback(currentFile, "xr-init-failed:$reason")
+            }, VR_FALLBACK_ERROR_DELAY_MS)
         }
     }
 
