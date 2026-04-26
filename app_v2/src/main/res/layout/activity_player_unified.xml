@@ -170,8 +170,10 @@
 
         <include layout="@layout/player_deprecated_translate_image_button_content" />
 
-        <!-- EPUB WebView Container -->
-        <WebView android:id="@+id/epubWebView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
+        <!-- EPUB WebView Container: FrameLayout keeps the id so all .isVisible calls in managers work.
+             The actual WebView is created programmatically in EpubViewerManager.getOrCreateWebView()
+             only when an EPUB is opened, avoiding Chromium native heap load at layout inflation time. -->
+        <FrameLayout android:id="@+id/epubWebView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
 
         <ImageButton android:id="@+id/btnExitEpubFullscreen" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:src="@drawable/ic_fullscreen_exit" android:background="@drawable/bg_circle_dark" app:tint="@color/white" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:visibility="gone" android:contentDescription="@string/exit_fullscreen" />
 

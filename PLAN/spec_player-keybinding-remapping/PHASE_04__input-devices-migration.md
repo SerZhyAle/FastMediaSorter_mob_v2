@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 02
 **Blocks:** Phase 07
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-25
+**Completed:** 2026-04-25
 
 ---
 

@@ -5,7 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.InputSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
+import com.sza.fastmediasorter.domain.input.fromKeyEvent
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * Phase 5: Hardware media button handler for cold service restart.
@@ -17,8 +23,16 @@ import timber.log.Timber
  *
  * Enabled/disabled via PackageManager.setComponentEnabledSetting() controlled by
  * the "Use as primary media player" toggle in Playback Settings.
+ *
+ * R1 migration: instead of a hardcoded KEYCODE_MEDIA_* whitelist, the receiver
+ * resolves the key event through [KeyBindingManager]. Any command in the
+ * playback or navigation group triggers a service restart — user remapped media
+ * buttons are respected automatically.
  */
+@AndroidEntryPoint
 class MediaButtonRestartReceiver : BroadcastReceiver() {
+
+    @Inject lateinit var keyBindingManager: KeyBindingManager
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_MEDIA_BUTTON) return
@@ -32,25 +46,24 @@ class MediaButtonRestartReceiver : BroadcastReceiver() {
 
         if (keyEvent?.action != KeyEvent.ACTION_DOWN) return
 
-        // Restart on PLAY / PAUSE / PLAY_PAUSE / NEXT / PREV — any media control key that
-        // implies the user expects the app to be active (e.g. car stereo, Bluetooth headphones).
-        val isMediaKey = keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY
-            || keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE
-            || keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
-            || keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_NEXT
-            || keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS
+        val trigger = InputTrigger.fromKeyEvent(keyEvent)
+        val commandId = keyBindingManager.resolve(trigger, InputSurface.PLAYER)
 
-        if (!isMediaKey) return
+        // Restart on any command that implies the user expects active playback —
+        // playback.* covers play/pause/stop and navigation.* covers next/prev/seek.
+        val isPlaybackOrNavigation = commandId != null && (
+            commandId.startsWith("playback.") || commandId.startsWith("navigation.")
+        )
+        if (!isPlaybackOrNavigation) return
 
         if (AudioPlaybackService.isRunning) {
             Timber.d("MediaButtonRestartReceiver: service already running, skipping restart")
             return
         }
 
-        Timber.d("MediaButtonRestartReceiver: media key pressed while service dead — restarting AudioPlaybackService")
+        Timber.d("MediaButtonRestartReceiver: command=%s while service dead — restarting AudioPlaybackService", commandId)
         // Android 8+ requires a foreground service to post a notification within 5 s.
-        // The "quiet restart" guarantee is: no Activity is launched, no toast is shown —
-        // only the standard media notification (expected in car / headphone mode).
+        // The "quiet restart" guarantee: no Activity launched, no toast — standard media notification only.
         val serviceIntent = Intent(context, AudioPlaybackService::class.java)
         try {
             ContextCompat.startForegroundService(context, serviceIntent)

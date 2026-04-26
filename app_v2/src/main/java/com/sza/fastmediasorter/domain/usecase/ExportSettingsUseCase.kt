@@ -120,6 +120,8 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <rendererMigrationEnabled>${settings.rendererMigrationEnabled}</rendererMigrationEnabled>")
                 appendLine("    <enableSafeMode>${settings.enableSafeMode}</enableSafeMode>")
                 appendLine("    <enableFavorites>${settings.enableFavorites}</enableFavorites>")
+                appendLine("    <disableCameraCapture>${settings.disableCameraCapture}</disableCameraCapture>")
+                appendLine("    <skipCameraFilenameDialog>${settings.skipCameraFilenameDialog}</skipCameraFilenameDialog>")
                 appendLine("    <enableScheduledOperations>${settings.enableScheduledOperations}</enableScheduledOperations>")
                 appendLine("    <enableCopying>${settings.enableCopying}</enableCopying>")
                 appendLine("    <goToNextAfterCopy>${settings.goToNextAfterCopy}</goToNextAfterCopy>")

@@ -37,7 +37,8 @@ class BrowseEventHandler(
     private val permissionRequestLauncher: ActivityResultLauncher<IntentSenderRequest>,
     private val playerActivityLauncher: ActivityResultLauncher<Intent>,
     private val onShowCloudAuthDialog: (CloudProvider) -> Unit,
-    private val skipAvailabilityCheck: Boolean
+    private val skipAvailabilityCheck: Boolean,
+    private val onScrollToFile: ((String) -> Unit)? = null
 ) {
     private val stereoDetector = StereoDetector()
 
@@ -143,6 +144,9 @@ class BrowseEventHandler(
                 archiveDialogManager.onExtractionFailed(event.message)
             is BrowseEvent.ResourceAddedAsDestination -> {
                 showAddedAsDestinationSnackbar()
+            }
+            is BrowseEvent.ScrollToFile -> {
+                onScrollToFile?.invoke(event.fileName)
             }
         }
     }

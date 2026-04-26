@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 04
 **Blocks:** Phase 06, Phase 07
 **Steps done:** 0 / 5
@@ -62,7 +62,7 @@ Check each before starting Step 1:
 - `/build` skill compiles `vrDebug` without errors.
 - Device test: without the real wiring yet, the HUD quad stays hidden (no more dark rectangle, no more sample preview).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -103,7 +103,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `fun updateProgress` returns exactly one hit in `VrHudSink.kt`.
 - `/build` skill compiles `vrDebug` without errors.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -131,7 +131,7 @@ Check each before starting Step 1:
 - File ≤ 320 LOC.
 - `/build` skill compiles `vrDebug`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -161,7 +161,7 @@ Check each before starting Step 1:
 - File ≤ 250 LOC.
 - `/build` skill compiles `vrDebug`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -192,7 +192,7 @@ Check each before starting Step 1:
 - `Grep -n "Log\.d\(" app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` returns zero hits in the lines touched by this phase (the pre-existing ones are legacy and out of scope for this step — verify the diff).
 - On-device test on Quest 3: launching immersive video shows the HUD pause/progress/seek/volume/file/zoom/recenter indicators exactly when the corresponding control is pressed. Exiting immersive and re-entering does not leak resources (watch for duplicate `HUD swapchain:` log lines without matching `destroyed`).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

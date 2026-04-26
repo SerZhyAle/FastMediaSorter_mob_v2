@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 02
 **Blocks:** Phase 04, Phase 05, Phase 06, Phase 07
 **Steps done:** 0 / 4
@@ -56,7 +56,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `#include <android/bitmap.h>` in `app_v2/src/vr/cpp/OpenXrNative.cpp` returns exactly one hit.
 - `/build` skill compiles `vrDebug` — linker resolves `AndroidBitmap_lockPixels`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -89,7 +89,7 @@ Check each before starting Step 1:
 - `/build` skill compiles `vrDebug` without errors.
 - Device test: call `nativeUploadHudBitmap` from a throw-away Kotlin test with a solid red Bitmap; the HUD rectangle turns red. If it stays dark, check `AndroidBitmap_getInfo` result and swapchain image binding.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -114,7 +114,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `hudFrameUploaded` in `OpenXrNative.cpp` returns at least three hits (declaration, set on upload, check in renderFrame).
 - Device test: sustained HUD uploads for ≥ 30 s (drive via test activity) produce no `XR_ERROR_CALL_ORDER_INVALID` lines in the logcat.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -149,7 +149,7 @@ Check each before starting Step 1:
 - File ≤ 250 LOC.
 - `/build` skill compiles `vrDebug` without errors.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

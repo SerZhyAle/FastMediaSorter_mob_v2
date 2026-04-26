@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.NonCancellable
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -530,7 +531,14 @@ class BrowseViewModel @Inject constructor(
         reloadFilesJob?.cancel()
         reloadFilesJob = refreshManager.launchReload(clearList)
     }
-    
+
+    fun scrollToFileAfterRefresh(fileName: String) {
+        viewModelScope.launch {
+            state.first { it.mediaFiles.any { f -> f.name == fileName } }
+            sendEvent(BrowseEvent.ScrollToFile(fileName))
+        }
+    }
+
     fun refreshResourceMetadata() = resourceStateManager.refreshResourceMetadata()
 
     /**

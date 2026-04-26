@@ -114,4 +114,22 @@ internal object OpenXrNative {
      * Returns true if the runtime accepted the request.
      */
     @JvmStatic external fun nativeTriggerHaptic(hand: Int, durationNs: Long, amplitude: Float): Boolean
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // HUD composition layer (spec_vr-immersive-hud-gl).
+    // Phase 01: stubs only. Phase 02 wires the real XrSwapchain + xrEndFrame.
+    // Phase 03 turns nativeUploadHudBitmap into a glTexSubImage2D upload.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /** Reserve dimensions for the HUD quad swapchain. Returns true on success. */
+    @JvmStatic external fun nativeCreateHudSwapchain(width: Int, height: Int): Boolean
+
+    /** Release HUD swapchain resources and force the layer hidden. */
+    @JvmStatic external fun nativeDestroyHudSwapchain()
+
+    /** Toggle inclusion of the HUD quad layer in xrEndFrame composition. */
+    @JvmStatic external fun nativeSetHudLayerVisible(visible: Boolean)
+
+    /** Upload a premultiplied ARGB_8888 [bitmap] into the next HUD swapchain image. */
+    @JvmStatic external fun nativeUploadHudBitmap(bitmap: android.graphics.Bitmap): Boolean
 }

@@ -6,6 +6,11 @@ import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.CommandId
+import com.sza.fastmediasorter.domain.input.InputSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
+import com.sza.fastmediasorter.domain.input.fromXrInputEvent
 import com.sza.fastmediasorter.ui.player.contracts.PlaybackCommand
 import com.sza.fastmediasorter.vr.openxr.XrHand
 import com.sza.fastmediasorter.vr.openxr.XrInputCallback
@@ -38,6 +43,7 @@ enum class VrCommandSource {
  * activity through [onCommand], [onVolumeStep] and [onZoomGripDelta]; this class
  * only maps events → commands with the rate limiting required for analog inputs.
  *
+ * @param keyBindingManager resolver for XR trigger → [CommandId] lookups.
  * @param audioManager source for system UI click sounds emitted when hand-tracking
  *                     pinches fire — compensates for the lack of haptic feedback.
  *                     May be null on devices without an AudioManager (unusual).
@@ -47,6 +53,7 @@ enum class VrCommandSource {
  */
 class VrControllerInputManager(
     private val mainHandler: Handler,
+    private val keyBindingManager: KeyBindingManager,
     private val onCommand: (PlaybackCommand, VrCommandSource) -> Unit,
     private val onVolumeStep: (Int) -> Unit,
     private val onZoomGripDelta: (Float) -> Unit,
@@ -89,34 +96,20 @@ class VrControllerInputManager(
     private fun dispatchXrEvent(type: Int, hand: Int, value: Float, source: Int) {
         val commandSource = xrCommandSource(source)
         Timber.v("VrInput[xr]: type=%d hand=%d value=%.3f source=%d", type, hand, value, source)
+
+        // Pointer-click events feed the hand-ray manager (UI layer), not the command bus.
+        // They are not routed through the resolver — they have no PlaybackCommand equivalent.
         when (type) {
-            XrInputEventType.PAUSE_TOGGLE       -> dispatchCommand(PlaybackCommand.TogglePausePlay, commandSource)
-            XrInputEventType.EXIT               -> dispatchCommand(PlaybackCommand.Exit, commandSource)
-            XrInputEventType.FILE_OPS           -> dispatchCommand(PlaybackCommand.OpenFileOps, commandSource)
-            XrInputEventType.MENU               -> dispatchCommand(PlaybackCommand.OpenControls, commandSource)
-            XrInputEventType.SEEK_BACKWARD      -> dispatchCommand(PlaybackCommand.SeekBackward, commandSource)
-            XrInputEventType.SEEK_FORWARD       -> dispatchCommand(PlaybackCommand.SeekForward, commandSource)
-            XrInputEventType.FILE_PREV          -> dispatchCommand(PlaybackCommand.PreviousFile, commandSource)
-            XrInputEventType.FILE_NEXT          -> dispatchCommand(PlaybackCommand.NextFile, commandSource)
-            XrInputEventType.VOLUME_UP          -> rateLimitedVolume(+1, commandSource)
-            XrInputEventType.VOLUME_DOWN        -> rateLimitedVolume(-1, commandSource)
-            XrInputEventType.RECENTER           -> dispatchCommand(PlaybackCommand.Recenter, commandSource)
-            XrInputEventType.TOGGLE_IMMERSIVE   -> dispatchCommand(PlaybackCommand.ToggleImmersiveMode, commandSource)
-            XrInputEventType.CHEATSHEET         -> dispatchCommand(PlaybackCommand.ShowCheatsheet, commandSource)
-            XrInputEventType.ZOOM_START         -> { /* no-op: hand started gripping */ }
-            XrInputEventType.ZOOM_DELTA         -> onZoomGripDelta(value)
-            XrInputEventType.ZOOM_END           -> { /* no-op: hand released grip */ }
-            XrInputEventType.ZOOM_RESET         -> dispatchCommand(PlaybackCommand.ZoomReset, commandSource)
-            // ── Hand-tracking events (spec_vr-hand-tracking-tech §5.3) ──
-            XrInputEventType.POINTER_CLICK_DOWN -> handlePointerClick(hand, down = true)
-            XrInputEventType.POINTER_CLICK_UP   -> handlePointerClick(hand, down = false)
-            XrInputEventType.SWIPE_LEFT         -> dispatchCommand(PlaybackCommand.SeekMicro(forward = false), commandSource)
-            XrInputEventType.SWIPE_RIGHT        -> dispatchCommand(PlaybackCommand.SeekMicro(forward = true), commandSource)
-            XrInputEventType.SWIPE_UP           -> rateLimitedVolume(+1, commandSource)
-            XrInputEventType.SWIPE_DOWN         -> rateLimitedVolume(-1, commandSource)
-            XrInputEventType.DOUBLE_PINCH       -> dispatchCommand(PlaybackCommand.TogglePausePlay, commandSource)
-            else -> Timber.w("VrInput[xr]: unknown event type=%d", type)
+            XrInputEventType.POINTER_CLICK_DOWN -> { handlePointerClick(hand, down = true); return }
+            XrInputEventType.POINTER_CLICK_UP   -> { handlePointerClick(hand, down = false); return }
         }
+
+        val trigger = InputTrigger.fromXrInputEvent(type)
+        val commandId = keyBindingManager.resolve(trigger, InputSurface.VR) ?: run {
+            Timber.w("VrInput[xr]: unresolved event type=%d", type)
+            return
+        }
+        dispatchVrCommand(commandId, hand, value, commandSource)
     }
 
     private fun handlePointerClick(hand: Int, down: Boolean) {
@@ -127,6 +120,55 @@ class VrControllerInputManager(
             audioManager?.playSoundEffect(AudioManager.FX_KEY_CLICK)
         }
         onPointerEvent?.invoke(hand, down)
+    }
+
+    /**
+     * Maps a resolved [CommandId] to the corresponding [PlaybackCommand] and dispatches it.
+     * The [hand] and [value] parameters carry analog payload for commands that need it
+     * (e.g. [CommandId.VR_ZOOM_GRIP] uses [value] as the grip delta).
+     */
+    private fun dispatchVrCommand(commandId: String, hand: Int, value: Float, source: VrCommandSource) {
+        when (commandId) {
+            CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE ->
+                dispatchCommand(PlaybackCommand.TogglePausePlay, source)
+            CommandId.EXIT ->
+                dispatchCommand(PlaybackCommand.Exit, source)
+            CommandId.FILE_OPS ->
+                dispatchCommand(PlaybackCommand.OpenFileOps, source)
+            CommandId.TOGGLE_CONTROLS ->
+                dispatchCommand(PlaybackCommand.OpenControls, source)
+            CommandId.SEEK_FORWARD_5S, CommandId.SEEK_FORWARD_30S, CommandId.SEEK_MACRO_FORWARD ->
+                dispatchCommand(PlaybackCommand.SeekForward, source)
+            CommandId.SEEK_BACKWARD_5S, CommandId.SEEK_BACKWARD_30S, CommandId.SEEK_MACRO_BACKWARD ->
+                dispatchCommand(PlaybackCommand.SeekBackward, source)
+            CommandId.SEEK_MICRO_FORWARD, CommandId.VR_SWIPE_RIGHT ->
+                dispatchCommand(PlaybackCommand.SeekMicro(forward = true), source)
+            CommandId.SEEK_MICRO_BACKWARD, CommandId.VR_SWIPE_LEFT ->
+                dispatchCommand(PlaybackCommand.SeekMicro(forward = false), source)
+            CommandId.NEXT_FILE ->
+                dispatchCommand(PlaybackCommand.NextFile, source)
+            CommandId.PREVIOUS_FILE ->
+                dispatchCommand(PlaybackCommand.PreviousFile, source)
+            CommandId.VOLUME_UP, CommandId.VR_SWIPE_UP ->
+                rateLimitedVolume(+1, source)
+            CommandId.VOLUME_DOWN, CommandId.VR_SWIPE_DOWN ->
+                rateLimitedVolume(-1, source)
+            CommandId.VR_RECENTER ->
+                dispatchCommand(PlaybackCommand.Recenter, source)
+            CommandId.VR_TOGGLE_IMMERSIVE ->
+                dispatchCommand(PlaybackCommand.ToggleImmersiveMode, source)
+            CommandId.VR_CHEATSHEET ->
+                dispatchCommand(PlaybackCommand.ShowCheatsheet, source)
+            CommandId.VR_ZOOM_GRIP ->
+                onZoomGripDelta(value)
+            CommandId.VR_ZOOM_START, CommandId.VR_ZOOM_END -> { /* no-op: grip state transitions */ }
+            CommandId.ZOOM_RESET ->
+                dispatchCommand(PlaybackCommand.ZoomReset, source)
+            CommandId.VR_DOUBLE_PINCH ->
+                dispatchCommand(PlaybackCommand.TogglePausePlay, source)
+            else ->
+                Timber.w("VrInput: unknown commandId=%s", commandId)
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════

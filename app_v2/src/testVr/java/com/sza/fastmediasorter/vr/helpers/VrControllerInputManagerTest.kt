@@ -4,6 +4,10 @@ import android.os.Handler
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.CommandId
+import com.sza.fastmediasorter.domain.input.InputSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.ui.player.contracts.PlaybackCommand
 import com.sza.fastmediasorter.vr.openxr.XrInputEventType
 import io.mockk.every
@@ -29,6 +33,7 @@ class VrControllerInputManagerTest {
     private lateinit var volumeSteps: MutableList<Int>
     private lateinit var zoomDeltas: MutableList<Float>
     private lateinit var manager: VrControllerInputManager
+    private lateinit var mockKeyBindingManager: KeyBindingManager
 
     @Before
     fun setUp() {
@@ -41,8 +46,41 @@ class VrControllerInputManagerTest {
             firstArg<Runnable>().run()
             true
         }
+        mockKeyBindingManager = mockk<KeyBindingManager>()
+        // Catch-all: unrecognised trigger → null (silently dropped).
+        every { mockKeyBindingManager.resolve(any(), any()) } returns null
+        // Seed default VR bindings matching default_bindings.json.
+        fun vrStub(type: Int, commandId: String) {
+            every {
+                mockKeyBindingManager.resolve(InputTrigger.VrEvent(type), InputSurface.VR)
+            } returns commandId
+        }
+        vrStub(XrInputEventType.PAUSE_TOGGLE,     CommandId.PAUSE_PLAY)
+        vrStub(XrInputEventType.EXIT,             CommandId.EXIT)
+        vrStub(XrInputEventType.FILE_OPS,         CommandId.FILE_OPS)
+        vrStub(XrInputEventType.MENU,             CommandId.TOGGLE_CONTROLS)
+        vrStub(XrInputEventType.SEEK_FORWARD,     CommandId.SEEK_FORWARD_5S)
+        vrStub(XrInputEventType.SEEK_BACKWARD,    CommandId.SEEK_BACKWARD_5S)
+        vrStub(XrInputEventType.FILE_NEXT,        CommandId.NEXT_FILE)
+        vrStub(XrInputEventType.FILE_PREV,        CommandId.PREVIOUS_FILE)
+        vrStub(XrInputEventType.VOLUME_UP,        CommandId.VOLUME_UP)
+        vrStub(XrInputEventType.VOLUME_DOWN,      CommandId.VOLUME_DOWN)
+        vrStub(XrInputEventType.RECENTER,         CommandId.VR_RECENTER)
+        vrStub(XrInputEventType.TOGGLE_IMMERSIVE, CommandId.VR_TOGGLE_IMMERSIVE)
+        vrStub(XrInputEventType.CHEATSHEET,       CommandId.VR_CHEATSHEET)
+        vrStub(XrInputEventType.ZOOM_START,       CommandId.VR_ZOOM_START)
+        vrStub(XrInputEventType.ZOOM_DELTA,       CommandId.VR_ZOOM_GRIP)
+        vrStub(XrInputEventType.ZOOM_END,         CommandId.VR_ZOOM_END)
+        vrStub(XrInputEventType.ZOOM_RESET,       CommandId.ZOOM_RESET)
+        vrStub(XrInputEventType.SWIPE_LEFT,       CommandId.VR_SWIPE_LEFT)
+        vrStub(XrInputEventType.SWIPE_RIGHT,      CommandId.VR_SWIPE_RIGHT)
+        vrStub(XrInputEventType.SWIPE_UP,         CommandId.VR_SWIPE_UP)
+        vrStub(XrInputEventType.SWIPE_DOWN,       CommandId.VR_SWIPE_DOWN)
+        vrStub(XrInputEventType.DOUBLE_PINCH,     CommandId.VR_DOUBLE_PINCH)
+
         manager = VrControllerInputManager(
             mainHandler = handler,
+            keyBindingManager = mockKeyBindingManager,
             onCommand = { command, source ->
                 commands.add(command)
                 commandSources.add(source)
@@ -293,5 +331,44 @@ class VrControllerInputManagerTest {
         every { event.actionButton } returns MotionEvent.BUTTON_PRIMARY
         manager.onMotionEvent(event)
         assertEquals(listOf(PlaybackCommand.TogglePausePlay), commands)
+    }
+
+    // ── New Phase 05 tests ───────────────────────────────────────────────────
+
+    /** Override binding: PAUSE_TOGGLE remapped to EXIT fires Exit, not TogglePausePlay. */
+    @Test
+    fun xrOverrideBinding_pauseToggleRemappedToExit_firesExit() {
+        // Override the default stub: PAUSE_TOGGLE now resolves to EXIT.
+        every {
+            mockKeyBindingManager.resolve(InputTrigger.VrEvent(XrInputEventType.PAUSE_TOGGLE), InputSurface.VR)
+        } returns CommandId.EXIT
+
+        manager.onInputEvent(XrInputEventType.PAUSE_TOGGLE, 1, 0f, 0)
+
+        assertEquals(listOf(PlaybackCommand.Exit), commands)
+        assertTrue("TogglePausePlay must NOT fire", commands.none { it == PlaybackCommand.TogglePausePlay })
+    }
+
+    /** Volume rate-limiter: two VOLUME_UP events in rapid succession only emit once. */
+    @Test
+    fun xrVolumeRateLimit_rapidVolumeUpFiresOnlyOnce() {
+        // lastVolumeEventMs starts at -1 so first event passes; second within VOLUME_STEP_INTERVAL_MS is throttled.
+        manager.onInputEvent(XrInputEventType.VOLUME_UP, 0, 0f, 0)
+        manager.onInputEvent(XrInputEventType.VOLUME_UP, 0, 0f, 0) // rapid — same SystemClock.uptimeMillis() in JVM
+
+        assertEquals("Only one volume step should fire", 1, volumeSteps.size)
+        assertEquals(1, volumeSteps[0])
+    }
+
+    /** Unknown XrInputEventType code is silently dropped — no crash, no dispatch. */
+    @Test
+    fun xrUnknownEventType_isSilentlyDropped() {
+        val unknownType = 9999 // guaranteed not in XrInputEventType
+        // Resolver returns null for the unknown trigger (catch-all stub in setUp).
+
+        manager.onInputEvent(unknownType, 0, 0f, 0)
+
+        assertTrue("No command should be dispatched for unknown event type", commands.isEmpty())
+        assertTrue("No volume step should fire for unknown event type", volumeSteps.isEmpty())
     }
 }

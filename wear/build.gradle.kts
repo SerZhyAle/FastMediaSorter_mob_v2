@@ -1,5 +1,3 @@
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 plugins {
     id("com.android.application")
@@ -20,28 +18,11 @@ android {
         minSdk = 28  // Wear OS 2.0+ support
         // CRITICAL: Do not change - required for Wear OS Play Store compliance
         targetSdk = 35
-        // Use timestamp-based version code: yyMMddHH (same formula as main app)
-        versionCode = run {
-            val now = LocalDateTime.now()
-            Integer.parseInt(now.format(DateTimeFormatter.ofPattern("yyMMddHH")))
-        }
-        
-        // Version format: Y.YM.MDDH.Hmm (same formula as main app)
-        versionName = run {
-            val now = LocalDateTime.now()
-            val year = now.year.toString()
-            val month = now.monthValue
-            val day = now.dayOfMonth
-            val hour = now.hour
-            val minute = now.minute
-            val firstYearDigit = year[0]
-            val lastYearDigit = year.last()
-            val monthStr = month.toString().padStart(2, '0')
-            val dayStr = day.toString().padStart(2, '0')
-            val hourStr = hour.toString().padStart(2, '0')
-            val minuteStr = minute.toString().padStart(2, '0')
-            "$firstYearDigit.$lastYearDigit${monthStr[0]}.${monthStr[1]}$dayStr${hourStr[0]}.${hourStr[1]}$minuteStr"
-        }
+        // Version is kept in sync with app_v2 by build-with-version.ps1
+        // versionCode format: yyMMddHH (8 digits, same base as main app minus minute digit)
+        // versionName format: Y.YM.MDDH.Hmm (identical to main app)
+        versionCode = 26042504
+        versionName = "2.60.4250.454"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

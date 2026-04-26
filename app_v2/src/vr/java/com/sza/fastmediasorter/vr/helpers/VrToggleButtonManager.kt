@@ -5,10 +5,10 @@ import com.sza.fastmediasorter.R
 import timber.log.Timber
 
 /**
- * Manages the 3DVR toggle button state in the player command bar (VR flavor only).
+ * Manages the immersive toggle button state in the player command bar (VR flavor only).
  *
- * The button shows either "Watch in 3D VR" (panel mode → launch immersive)
- * or "Exit 3D VR" (immersive mode → return to panel), switching icon and
+ * The button shows either "Immersive view" (panel mode → launch immersive)
+ * or "Exit immersive" (immersive mode → return to panel), switching icon and
  * content description accordingly.
  *
  * Logic coupling: VrPlayerActivity calls [updateState] after a routing decision

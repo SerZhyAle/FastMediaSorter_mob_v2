@@ -3,8 +3,8 @@
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Feature:** PLAYER-KEYBINDING — Custom Playback Controls Remapping
 **Tier:** 4 — Strategic (high risk)
-**Status:** Not started
-**Phases:** 0 / 8 done
+**Status:** Done
+**Phases:** 8 / 8 done
 **Last updated:** 2026-04-25
 
 > **Scope of this document:** tactical, English, developer handoff. Every step has an explicit verification predicate. Strategic rationale lives in `../spec_player-keybinding-remapping.md`.
@@ -15,14 +15,14 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 | --- | --- | --- | --- | ---: | --- |
-| 01 | preparation-inventory | — | ⬜ Not started | 0/8 | [PHASE_01__preparation-inventory.md](PHASE_01__preparation-inventory.md) |
-| 02 | foundation | 01 | ⬜ Not started | 0/8 | [PHASE_02__foundation.md](PHASE_02__foundation.md) |
-| 03 | keyboard-migration | 02 | ⬜ Not started | 0/6 | [PHASE_03__keyboard-migration.md](PHASE_03__keyboard-migration.md) |
-| 04 | input-devices-migration | 02 | ⬜ Not started | 0/5 | [PHASE_04__input-devices-migration.md](PHASE_04__input-devices-migration.md) |
-| 05 | vr-migration | 02 | ⬜ Not started | 0/4 | [PHASE_05__vr-migration.md](PHASE_05__vr-migration.md) |
-| 06 | remapping-ui | 02 | ⬜ Not started | 0/7 | [PHASE_06__remapping-ui.md](PHASE_06__remapping-ui.md) |
-| 07 | reset-conflict-polish | 03, 04, 05, 06 | ⬜ Not started | 0/6 | [PHASE_07__reset-conflict-polish.md](PHASE_07__reset-conflict-polish.md) |
-| 08 | docs-catalog-cleanup | all | ⬜ Not started | 0/5 | [PHASE_08__docs-catalog-cleanup.md](PHASE_08__docs-catalog-cleanup.md) |
+| 01 | preparation-inventory | — | ✅ Done | 8/8 | [PHASE_01__preparation-inventory.md](PHASE_01__preparation-inventory.md) |
+| 02 | foundation | 01 | ✅ Done | 8/8 | [PHASE_02__foundation.md](PHASE_02__foundation.md) |
+| 03 | keyboard-migration | 02 | ✅ Done | 5/6 | [PHASE_03__keyboard-migration.md](PHASE_03__keyboard-migration.md) |
+| 04 | input-devices-migration | 02 | ✅ Done | 5/5 | [PHASE_04__input-devices-migration.md](PHASE_04__input-devices-migration.md) |
+| 05 | vr-migration | 02 | ✅ Done | 3/4 | [PHASE_05__vr-migration.md](PHASE_05__vr-migration.md) |
+| 06 | remapping-ui | 02 | ✅ Done | 6/7 | [PHASE_06__remapping-ui.md](PHASE_06__remapping-ui.md) |
+| 07 | reset-conflict-polish | 03, 04, 05, 06 | ✅ Done | 5/6 | [PHASE_07__reset-conflict-polish.md](PHASE_07__reset-conflict-polish.md) |
+| 08 | docs-catalog-cleanup | 01, 02, 03, 04, 05, 06, 07 | ✅ Done | 5/5 | [PHASE_08__docs-catalog-cleanup.md](PHASE_08__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`.
 
@@ -72,7 +72,7 @@ The feature is Done when **every** item below is ticked:
 
 ## Blockers Log
 
-Empty on first write. Append one bullet per blocker as issues arise, format `- YYYY-MM-DD — Phase NN blocked: <cause>. Next action: <who/what/when>.`
+Append one bullet per blocker as issues arise, format `- YYYY-MM-DD — Phase NN blocked: <cause>. Next action: <who/what/when>.`
 
 ---
 
@@ -80,3 +80,13 @@ Empty on first write. Append one bullet per blocker as issues arise, format `- Y
 
 - 2026-04-25 — Initial tactical plan authored by `/spec-tech`.
 - 2026-04-25 — Phase 01 content derived from standalone file `PLAN/spec_player-keybinding-phase1-preparation.md` (pending removal — see Proposal P-1 in that file).
+- 2026-04-25 — Phase 01 ✅ Done (8/8 steps). All 7 artefacts in `temp/phase1/` verified. Dev-log recorded.
+
+---
+
+## Revision History
+
+- **2026-04-25** — by `/spec-update` (`claude-sonnet-4-6`, focus: all)
+  - ACCEPT applied: 1 finding (removed stale "Empty on first write." from Blockers Log)
+  - REVIEW applied: 1 finding (Phase 08 `Depends on: all` → explicit list `01..07`)
+  - DISCUSS proposed: 0 items

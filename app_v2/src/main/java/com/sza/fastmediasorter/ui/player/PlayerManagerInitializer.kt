@@ -135,7 +135,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerKeyboardCallbackImpl(
                 activity = activity,
                 viewModel = activity.viewModel
-            )
+            ),
+            keyBindingManager = activity.keyBindingManager,
         )
 
         activity.uiStateCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator(

@@ -868,8 +868,8 @@
     <string name="save_frame_drm_error">Защищённый контент не может быть сохранён</string>
     <string name="save_frame_no_video">Видео не воспроизводится</string>
     <string name="vr_fullscreen_already_active">В VR уже активен полноэкранный режим</string>
-    <string name="vr_toggle_enter_description">Смотреть в 3D VR</string>
-    <string name="vr_toggle_exit_description">Выйти из 3D VR</string>
+    <string name="vr_toggle_enter_description">В иммерсив</string>
+    <string name="vr_toggle_exit_description">Из иммерсива</string>
     <string name="vr_save_frame_saved_to_pictures">Стереоснимок сохранён в Pictures</string>
     <string name="vr_save_frame_unavailable">Стереоснимок VR сейчас недоступен</string>
     <string name="vr_save_frame_timeout">Не удалось дождаться стереоснимка VR</string>
@@ -2402,6 +2402,11 @@
     <string name="delete_by_size_warning_no_trash">Внимание: корзина не поддерживается для этого ресурса. Удаление будет безвозвратным!</string>
     <string name="delete_by_size_confirm_btn">Удалить файлы</string>
     <string name="cd_resource_ops_menu">Меню операций с ресурсом</string>
+    <string name="cmd_camera_capture">Съёмка камерой</string>
+    <string name="camera_capture_filename_title">Сохранить как</string>
+    <string name="camera_capture_saved">Сохранено: %s</string>
+    <string name="camera_capture_error_save_generic">Не удалось сохранить снятый файл</string>
+    <string name="camera_capture_error_temp_file">Не удалось создать временный файл для съёмки</string>
     <string name="duplicate_detection_title">Дубликаты</string>
     <string name="duplicate_scan_start">Начать сканирование</string>
     <string name="duplicate_none_found">Дубликаты не найдены.</string>
@@ -2651,6 +2656,11 @@
     <string name="vr_hud_immersive_on">3D VR</string>
     <string name="vr_hud_immersive_off">Плоский экран</string>
 
+    <!-- Переходные HUD-баннеры — пока полноценные иммерсив-панели рисуются как Android view (spec_vr-immersive-hud-gl). -->
+    <string name="vr_hud_guard_file_ops">Панель файлов недоступна в иммерсиве. Выйди из иммерсива, чтобы воспользоваться ей.</string>
+    <string name="vr_hud_guard_controls">Диалог управления недоступен в иммерсиве. Выйди из иммерсива, чтобы открыть его.</string>
+    <string name="vr_hud_first_run_cheat">A пауза/плей · L стик перемотка · R стик файл/громкость · grip масштаб · Menu настройки</string>
+
     <!-- Управление в VR — панель файловых операций -->
     <string name="vr_fops_title">Операции с файлом</string>
     <string name="vr_fops_copy_to">Скопировать в..</string>
@@ -2709,4 +2719,161 @@
     <string name="vr_cheatsheet_mouse_buttons">ЛКМ — пауза / плей · ПКМ — настройки · СКМ — ре-центр · кнопка 4/5 — предыдущий / следующий файл</string>
     <string name="vr_cheatsheet_mouse_wheel">Колесо — громкость · Shift+колесо — перемотка ±10с</string>
     <string name="vr_cheatsheet_footer">Коснитесь в любом месте чтобы закрыть · долгое Y или F1 — открыть снова</string>
+
+    <!-- Camera Capture Settings -->
+    <string name="setting_disable_camera_capture">Отключить вызов фотоаппарата</string>
+    <string name="setting_disable_camera_capture_summary">Скрывает команду съёмки в Browse</string>
+    <string name="setting_skip_camera_filename_dialog">Не спрашивать имя файла</string>
+    <string name="setting_skip_camera_filename_dialog_summary">Использовать имя по времени съёмки без диалога</string>
+
+    <!-- Controls & Keybindings -->
+    <string name="settings_controls_keybindings_title">Управление и клавиши</string>
+    <string name="settings_controls_keybindings_desc">Переназначить клавиши и кнопки управления</string>
+    <string name="keybinding_remap_search_hint">Поиск команд..</string>
+    <string name="keybinding_remap_reset_all">Сбросить всё</string>
+    <string name="keybinding_remap_not_impl">Сброс всего — скоро</string>
+    <string name="keybinding_capture_title">Нажмите клавишу или кнопку..</string>
+    <string name="keybinding_capture_commit">Назначить</string>
+    <string name="keybinding_capture_cancel">Отмена</string>
+    <string name="keybinding_capture_countdown">%d с</string>
+    <string name="keybinding_capture_current">Захвачено: %s</string>
+    <string name="keybinding_row_no_binding">—</string>
+    <string name="keybinding_row_remap">Назначить</string>
+    <string name="keybinding_row_reset">Сбросить по умолчанию</string>
+    <!-- Modifier keys -->
+    <string name="keybinding_input_mod_ctrl">Ctrl</string>
+    <string name="keybinding_input_mod_shift">Shift</string>
+    <string name="keybinding_input_mod_alt">Alt</string>
+    <!-- Fallbacks -->
+    <string name="keycode_unknown_label">Клавиша %d</string>
+    <string name="keybinding_fmt_gamepad_unknown">Кнопка %d</string>
+    <string name="keybinding_fmt_mouse_unknown">Мышь %d</string>
+    <!-- Gamepad buttons -->
+    <string name="keybinding_input_gamepad_a">A</string>
+    <string name="keybinding_input_gamepad_b">B</string>
+    <string name="keybinding_input_gamepad_x">X</string>
+    <string name="keybinding_input_gamepad_y">Y</string>
+    <string name="keybinding_input_gamepad_l1">L1</string>
+    <string name="keybinding_input_gamepad_r1">R1</string>
+    <string name="keybinding_input_gamepad_l2">L2</string>
+    <string name="keybinding_input_gamepad_r2">R2</string>
+    <string name="keybinding_input_gamepad_thumbl">L3</string>
+    <string name="keybinding_input_gamepad_thumbr">R3</string>
+    <string name="keybinding_input_gamepad_start">Старт</string>
+    <string name="keybinding_input_gamepad_select">Выбор</string>
+    <string name="keybinding_input_gamepad_mode">Режим</string>
+    <string name="keybinding_input_gamepad_dpad_up">D-Вверх</string>
+    <string name="keybinding_input_gamepad_dpad_down">D-Вниз</string>
+    <string name="keybinding_input_gamepad_dpad_left">D-Влево</string>
+    <string name="keybinding_input_gamepad_dpad_right">D-Вправо</string>
+    <!-- Mouse buttons -->
+    <string name="keybinding_input_mouse_left">ЛКМ</string>
+    <string name="keybinding_input_mouse_right">ПКМ</string>
+    <string name="keybinding_input_mouse_middle">СКМ</string>
+    <string name="keybinding_input_mouse_back">Назад</string>
+    <string name="keybinding_input_mouse_forward">Вперёд</string>
+    <!-- Gamepad axes -->
+    <string name="keybinding_input_axis_left_x">Л стик X</string>
+    <string name="keybinding_input_axis_left_y">Л стик Y</string>
+    <string name="keybinding_input_axis_right_x">П стик X</string>
+    <string name="keybinding_input_axis_right_y">П стик Y</string>
+    <string name="keybinding_input_axis_hat_x">D-Pad X</string>
+    <string name="keybinding_input_axis_hat_y">D-Pad Y</string>
+    <string name="keybinding_input_axis_ltrigger">Л триггер</string>
+    <string name="keybinding_input_axis_rtrigger">П триггер</string>
+    <!-- Command group headers -->
+    <string name="keybinding_group_playback_core">Воспроизведение</string>
+    <string name="keybinding_group_navigation">Навигация</string>
+    <string name="keybinding_group_view_zoom">Вид и масштаб</string>
+    <string name="keybinding_group_audio_subtitles">Аудио и субтитры</string>
+    <string name="keybinding_group_system_ui">Системный интерфейс</string>
+    <string name="keybinding_group_sorting_actions">Сортировка</string>
+    <string name="keybinding_group_vr_only">Только VR</string>
+    <!-- Command labels: Playback -->
+    <string name="keybinding_label_playback_pause_play">Пауза / Воспр.</string>
+    <string name="keybinding_label_playback_play">Воспроизвести</string>
+    <string name="keybinding_label_playback_pause">Пауза</string>
+    <string name="keybinding_label_playback_stop">Стоп</string>
+    <string name="keybinding_label_playback_speed_up">Быстрее</string>
+    <string name="keybinding_label_playback_speed_down">Медленнее</string>
+    <string name="keybinding_label_playback_speed_reset">Сброс скорости</string>
+    <string name="keybinding_label_playback_repeat_mode">Режим повтора</string>
+    <string name="keybinding_label_playback_frame_step_forward">Кадр вперёд</string>
+    <string name="keybinding_label_playback_frame_step_backward">Кадр назад</string>
+    <string name="keybinding_label_playback_slideshow_toggle">Слайдшоу</string>
+    <!-- Command labels: Navigation -->
+    <string name="keybinding_label_navigation_seek_forward_5s">Вперёд 5 с</string>
+    <string name="keybinding_label_navigation_seek_backward_5s">Назад 5 с</string>
+    <string name="keybinding_label_navigation_seek_forward_30s">Вперёд 30 с</string>
+    <string name="keybinding_label_navigation_seek_backward_30s">Назад 30 с</string>
+    <string name="keybinding_label_navigation_seek_micro_forward">Микро вперёд</string>
+    <string name="keybinding_label_navigation_seek_micro_backward">Микро назад</string>
+    <string name="keybinding_label_navigation_seek_macro_forward">Макро вперёд</string>
+    <string name="keybinding_label_navigation_seek_macro_backward">Макро назад</string>
+    <string name="keybinding_label_navigation_next_file">Следующий файл</string>
+    <string name="keybinding_label_navigation_previous_file">Предыдущий файл</string>
+    <string name="keybinding_label_navigation_jump_start">В начало</string>
+    <string name="keybinding_label_navigation_jump_end">В конец</string>
+    <string name="keybinding_label_navigation_chapter_next">Следующая глава</string>
+    <string name="keybinding_label_navigation_chapter_prev">Предыдущая глава</string>
+    <!-- Command labels: View -->
+    <string name="keybinding_label_view_zoom_in">Увеличить</string>
+    <string name="keybinding_label_view_zoom_out">Уменьшить</string>
+    <string name="keybinding_label_view_zoom_reset">Сброс масштаба</string>
+    <string name="keybinding_label_view_rotate">Повернуть</string>
+    <string name="keybinding_label_view_fit_screen">По экрану</string>
+    <string name="keybinding_label_view_fullscreen">Полный экран</string>
+    <string name="keybinding_label_view_pan">Сдвиг</string>
+    <string name="keybinding_label_view_aspect_ratio">Соотношение сторон</string>
+    <!-- Command labels: Audio -->
+    <string name="keybinding_label_audio_volume_up">Громче</string>
+    <string name="keybinding_label_audio_volume_down">Тише</string>
+    <string name="keybinding_label_audio_mute">Без звука</string>
+    <string name="keybinding_label_audio_cycle_track">Переключить дорожку</string>
+    <string name="keybinding_label_audio_cycle_subtitle">Переключить субтитры</string>
+    <string name="keybinding_label_audio_subtitle_delay">Задержка субтитров</string>
+    <!-- Command labels: System UI -->
+    <string name="keybinding_label_system_toggle_controls">Панель управления</string>
+    <string name="keybinding_label_system_toggle_overlay">Переключить оверлей</string>
+    <string name="keybinding_label_system_toggle_info">Переключить инфо</string>
+    <string name="keybinding_label_system_screenshot">Скриншот</string>
+    <string name="keybinding_label_system_exit">Выход</string>
+    <string name="keybinding_label_system_show_help">Справка</string>
+    <string name="keybinding_label_system_search">Поиск</string>
+    <string name="keybinding_label_system_undo">Отменить</string>
+    <string name="keybinding_label_system_redo">Повторить</string>
+    <!-- Command labels: Sorting -->
+    <string name="keybinding_label_sorting_move">Переместить</string>
+    <string name="keybinding_label_sorting_copy">Копировать</string>
+    <string name="keybinding_label_sorting_delete">Удалить</string>
+    <string name="keybinding_label_sorting_rename">Переименовать</string>
+    <string name="keybinding_label_sorting_favourite">Избранное</string>
+    <string name="keybinding_label_sorting_file_ops">Операции с файлами</string>
+    <string name="keybinding_label_sorting_create_folder">Создать папку</string>
+    <string name="keybinding_label_sorting_paste">Вставить</string>
+    <string name="keybinding_label_sorting_save">Сохранить</string>
+    <!-- Command labels: VR -->
+    <string name="keybinding_label_vr_recenter">VR перецентровка</string>
+    <string name="keybinding_label_vr_toggle_immersive">Иммерсивный режим</string>
+    <string name="keybinding_label_vr_switch_projection">Смена проекции</string>
+    <string name="keybinding_label_vr_controller_ray">Луч контроллера</string>
+    <string name="keybinding_label_vr_cheatsheet">Шпаргалка</string>
+    <string name="keybinding_label_vr_zoom_grip">Масштаб (Grip)</string>
+    <string name="keybinding_label_vr_zoom_start">Начало зума</string>
+    <string name="keybinding_label_vr_zoom_end">Конец зума</string>
+    <string name="keybinding_label_vr_double_pinch">Двойной щипок</string>
+    <string name="keybinding_label_vr_swipe_left">Свайп влево</string>
+    <string name="keybinding_label_vr_swipe_right">Свайп вправо</string>
+    <string name="keybinding_label_vr_swipe_up">Свайп вверх</string>
+    <string name="keybinding_label_vr_swipe_down">Свайп вниз</string>
+
+    <!-- Keybinding reset confirmation dialog -->
+    <string name="reset_group_title">Сброс группы</string>
+    <string name="reset_group_body_fmt">Сбросить все назначения в группе «%s» до заводских?</string>
+    <string name="reset_all_title">Сброс всех клавиш</string>
+    <string name="reset_all_body">Сбросить все назначения до заводских? Это нельзя отменить.</string>
+    <string name="reset_confirm_button">Сбросить</string>
+    <string name="reset_cancel_button">Отмена</string>
+    <!-- Conflict label in capture dialog -->
+    <string name="keybinding_capture_conflict">Уже назначено: %s</string>
 </resources>

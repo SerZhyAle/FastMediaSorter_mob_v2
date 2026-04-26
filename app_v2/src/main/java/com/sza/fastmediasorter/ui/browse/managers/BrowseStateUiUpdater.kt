@@ -4,13 +4,17 @@ import android.app.Activity
 import android.view.View
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
 import timber.log.Timber
@@ -143,6 +147,23 @@ class BrowseStateUiUpdater(
                     onLaunchEditResource(stateResource.id)
                 }
             }
+        }
+    }
+
+    companion object {
+        internal fun isCameraCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
+            if (settings.disableCameraCapture) return false
+            val resource = state.resource ?: return false
+            val supportsImageOrVideo = resource.allFiles ||
+                resource.supportedMediaTypes.any {
+                    it == MediaType.IMAGE || it == MediaType.VIDEO || it == MediaType.GIF
+                }
+            if (!supportsImageOrVideo) return false
+            val path = resource.path
+            return !VirtualPathUtils.isVirtualPath(path) ||
+                path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO ||
+                path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
+                path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
         }
     }
 }

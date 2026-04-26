@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** none — this is the foundation phase
 **Blocks:** Phase 02, Phase 03, Phase 04, Phase 05, Phase 06, Phase 07
 **Steps done:** 0 / 5
@@ -58,7 +58,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `VR_UI_COMPOSITION_LAYER_ENABLED` anywhere else in `app_v2/build.gradle.kts` returns zero hits.
 - `/build` skill compiles the `vrDebug` variant without errors.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -86,7 +86,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `xrCreateSwapchain.*hudSwapchain` returns zero hits (invariant: no XR resource created yet).
 - `/build` skill compiles the `vrDebug` variant without errors.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -115,7 +115,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `xrCreateSwapchain` anywhere inside the four new entry points returns zero hits.
 - `/build` skill compiles `vrDebug` — native library links without unresolved JNI symbols.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -144,7 +144,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `external fun native` (case sensitive) returns the same number of hits as native methods declared — no orphan declarations.
 - `/build` skill compiles `vrDebug` — Kotlin compilation passes (JNI link resolves at runtime against Step 1.3 stubs).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -174,7 +174,7 @@ Check each before starting Step 1:
 - File length ≤ 550 LOC (projected +40 LOC net).
 - `/build` skill compiles `vrDebug` without errors.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

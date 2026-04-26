@@ -29,6 +29,7 @@ internal class VrRouteDecisionHelper {
         effectiveStereoMode: StereoMode,
         settings: AppSettings,
         userForcedImmersive: Boolean = false,
+        userForcedPanel: Boolean = false,
     ): VrRouteDecision {
         if (settings.disable3dVr) {
             return VrRouteDecision(
@@ -38,13 +39,28 @@ internal class VrRouteDecisionHelper {
             )
         }
 
+        // WHY: When the user explicitly requests panel mode (e.g. via the 3DVR toggle from
+        // immersive), honour it unconditionally — even for spherical/stereoscopic content that
+        // would otherwise be auto-routed to IMMERSIVE_VIDEO. Without this flag the panel toggle
+        // had no effect on VR180/360 files because the route decision always overrode the intent.
+        if (userForcedPanel) {
+            return VrRouteDecision(
+                route = VrLaunchRoute.STANDARD_PANEL_FALLBACK,
+                effectiveStereoMode = effectiveStereoMode,
+                logReason = "user-forced-panel",
+            )
+        }
+
         // When the user explicitly tapped "3DVR", bypass stereo-detection gate and force
         // immersive route for video. disable3dVr already bailed out above, so this is safe.
         if (userForcedImmersive && currentFile.type == MediaType.VIDEO) {
+            // WHY: for flat 2D content keep MONO — the cinema quad layer already provides
+            // an immersive viewing experience without faking SBS_FULL, which is unsupported
+            // in CINEMA rendering mode and causes DefaultVrLayerFactory to emit a warning.
             val forcedMode = if (effectiveStereoMode.isStereoscopic() || effectiveStereoMode.isSpherical()) {
                 effectiveStereoMode
             } else {
-                StereoMode.SBS_FULL // default to full SBS when content is flat 2D
+                StereoMode.MONO  // 2D content plays in the immersive cinema quad, not fake SBS
             }
             return VrRouteDecision(
                 route = VrLaunchRoute.IMMERSIVE_VIDEO,

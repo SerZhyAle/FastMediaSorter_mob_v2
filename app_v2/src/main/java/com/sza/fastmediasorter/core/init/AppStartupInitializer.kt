@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
+import com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -29,7 +30,8 @@ class AppStartupInitializer(
     private val resourceRepository: ResourceRepository,
     private val playbackPositionRepository: PlaybackPositionRepository,
     private val thumbnailCacheRepository: ThumbnailCacheRepository,
-    private val applicationScope: CoroutineScope
+    private val applicationScope: CoroutineScope,
+    private val renameVirtualResourcesUseCase: RenameVirtualResourcesUseCase
 ) {
     
     /**
@@ -41,6 +43,7 @@ class AppStartupInitializer(
         if (BuildConfig.DEBUG) logPermissionsStatus()
         fixCloudResourcesWritableFlag()
         fixLocalResourcesWritableFlag()
+        renameVirtualResourceNames()
         cleanupPlaybackPositions()
         migrateThumbnailCache()
         cleanupOldThumbnails()
@@ -272,6 +275,12 @@ class AppStartupInitializer(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to fix local resources isWritable flag")
             }
+        }
+    }
+
+    private fun renameVirtualResourceNames() {
+        applicationScope.launch {
+            renameVirtualResourcesUseCase()
         }
     }
 

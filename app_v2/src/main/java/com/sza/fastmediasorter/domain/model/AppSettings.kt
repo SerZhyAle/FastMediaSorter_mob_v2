@@ -112,7 +112,9 @@ data class AppSettings(
     val enableUndo: Boolean = true,
     val maxRecipients: Int = 10, // Maximum number of destination buttons (1-10)
     val enableFavorites: Boolean = true, // Enable "Favorites" feature (enabled by default)
-    
+    val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
+    val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
+
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,

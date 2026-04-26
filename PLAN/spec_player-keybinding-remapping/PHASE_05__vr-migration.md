@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 02, Phase 03 (BT-keyboard fallback), Phase 04 (BT-mouse fallback)
 **Blocks:** Phase 07
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 3 / 4
+**Started:** 2026-04-25
+**Completed:** 2026-04-25
 
 ---
 
@@ -58,7 +58,7 @@ Move the `XrInputEventType → PlaybackCommand` map from `VrControllerInputManag
 - `Grep "class VrEvent"` matches exactly once.
 - `Grep "vr:"` across `InputTrigger.kt` indicates both serialize + deserialize handle the `vr:` prefix.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -99,7 +99,7 @@ Move the `XrInputEventType → PlaybackCommand` map from `VrControllerInputManag
 - `Grep` for the volume rate-limit literal (from Phase 01 `debounce-literals.md`) still matches.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -122,7 +122,7 @@ Move the `XrInputEventType → PlaybackCommand` map from `VrControllerInputManag
 - `./gradlew.bat :app_v2:testVrDebugUnitTest --tests "*.VrControllerInputManagerTest"` exits 0.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -150,7 +150,7 @@ Move the `XrInputEventType → PlaybackCommand` map from `VrControllerInputManag
 - The seven checks above are each ticked in the developer's notes (pasted into Handoff Notes of this file).
 - No `⛔ Blocked` entry opens in `INDEX.md` for Phase 05.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 
@@ -168,6 +168,10 @@ Move the `XrInputEventType → PlaybackCommand` map from `VrControllerInputManag
 ---
 
 ## Handoff Notes to Next Phase
+
+SPEC-PATCH (05.2a): `InputSurface.VR_PLAYER` in spec → actual enum value is `InputSurface.VR`.
+SPEC-PATCH (05.2b): `POINTER_CLICK_DOWN/UP` are special-cased before the resolver; they feed `onPointerEvent` (UI layer), not the command bus — no `PlaybackCommand` equivalent exists.
+MANUAL-REQUIRED (05.4): On-device smoke test deferred — 7 checks listed in Step 05.4.
 
 - All five input engines (K, G, M, R, V) now consume `KeyBindingManager`. Phase 06 can build the UI with confidence that every written override propagates everywhere.
 - VR analog grip (`ZOOM_*`) remains a discrete per-event `CommandId` — not a generic axis. If Phase 06 ever surfaces "VR grip binding", the row carries `trigger = VrEvent(<zoom_*>)` with the three stages as separate `CommandId`s (already seeded by Phase 02's defaults JSON).

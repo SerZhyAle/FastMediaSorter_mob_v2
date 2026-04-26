@@ -220,6 +220,8 @@ class ImportSettingsUseCase @Inject constructor(
                                         rendererMigrationEnabled = data["rendererMigrationEnabled"]?.toBoolean() ?: false,
                                         enableSafeMode = data["enableSafeMode"]?.toBoolean() ?: true,
                                         enableFavorites = data["enableFavorites"]?.toBoolean() ?: false,
+                                        disableCameraCapture = data["disableCameraCapture"]?.toBoolean() ?: false,
+                                        skipCameraFilenameDialog = data["skipCameraFilenameDialog"]?.toBoolean() ?: false,
                                         enableScheduledOperations = data["enableScheduledOperations"]?.toBoolean() ?: true,
                                         enableCopying = data["enableCopying"]?.toBoolean() ?: true,
                                         goToNextAfterCopy = data["goToNextAfterCopy"]?.toBoolean() ?: true,

@@ -48,9 +48,11 @@ import com.sza.fastmediasorter.ui.player.helpers.startPositionSaving
 import com.sza.fastmediasorter.ui.player.helpers.stopPositionSaving
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
+import android.os.Debug
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -132,7 +134,12 @@ class VideoPlayerManager(
         internal const val CLOUD_BUFFER_FOR_PLAYBACK_MS = 8_000
         internal const val CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 12_000
 
-        internal const val POSITION_SAVE_INTERVAL_MS = 5_000L
+        internal const val POSITION_SAVE_INTERVAL_MS = 15_000L
+
+        // ExoPlayer reuse across track changes accumulates native codec/decoder allocations.
+        // Force a full recreation every N tracks or when native heap free falls below the threshold.
+        private const val PLAYER_RECREATE_INTERVAL = 4
+        private const val NATIVE_HEAP_RECREATE_THRESHOLD_BYTES = 15L * 1024 * 1024
         internal const val DEFAULT_BRIGHTNESS_PROGRESS = 50
 
         // Playback health-check — thresholds for detecting stuck / white-noise audio
@@ -191,6 +198,9 @@ class VideoPlayerManager(
 
     // Connection throttling — resource key of the currently streaming server
     internal var activeResourceKey: String? = null
+
+    // Counts track changes on the current ExoPlayer instance; triggers recreation at PLAYER_RECREATE_INTERVAL.
+    private var trackChangesSinceRecreate = 0
 
     // Adaptive pre-cache plan for the currently-loading session. Set by PlayerActivity
     // from PlayerViewModel.prefetchPlan before createPlayer/play*Video. When null, the
@@ -551,6 +561,17 @@ class VideoPlayerManager(
         lastSavedPosition = -1L
         stopPositionSaving()
 
+        // Recreate ExoPlayer periodically to release accumulated native codec/decoder allocations.
+        if (exoPlayer != null) {
+            trackChangesSinceRecreate++
+            val nativeFree = Debug.getNativeHeapFreeSize()
+            if (trackChangesSinceRecreate >= PLAYER_RECREATE_INTERVAL || nativeFree < NATIVE_HEAP_RECREATE_THRESHOLD_BYTES) {
+                Timber.i("VideoPlayerManager: recreating ExoPlayer — trackChanges=$trackChangesSinceRecreate, nativeFree=${nativeFree / 1024 / 1024}MB")
+                releasePlayer()
+                trackChangesSinceRecreate = 0
+            }
+        }
+
         managerScope.launch {
             try {
                 val savedPosition = playbackPositionRepository.getPosition(path)
@@ -796,6 +817,7 @@ class VideoPlayerManager(
         }.start()
 
         videoColorProcessor.release()
+        managerScope.cancel()
         lifecycle.removeObserver(this)
     }
 }

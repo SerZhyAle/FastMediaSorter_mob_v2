@@ -64,6 +64,11 @@ class ImagePreloadHelper(
     }
 
     fun preloadNextImageIfNeeded() {
+        val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
+        if (nativeHeapFree < 20) {
+            Timber.w("ImagePreloadHelper: Preload skipped — native heap low (${nativeHeapFree}MB free)")
+            return
+        }
         val adjacentFiles = callback.getAdjacentFiles()
         if (adjacentFiles.isEmpty()) {
             Timber.d("ImagePreloadHelper: Preload skipped - no adjacent files")

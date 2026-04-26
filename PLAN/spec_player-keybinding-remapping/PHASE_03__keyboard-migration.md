@@ -2,11 +2,11 @@
 
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** 🚧 In Progress
 **Depends on:** Phase 02
 **Blocks:** Phase 07
-**Steps done:** 0 / 6
-**Started:** —
+**Steps done:** 5 / 6 (03.4 skipped)
+**Started:** 2026-04-25
 **Completed:** —
 
 ---
@@ -58,11 +58,7 @@ Replace inline `when (keyCode)` trees in the four keyboard engines (K1 `Keyboard
 - `Grep "extractModifiers"` matches exactly twice (declaration + call site).
 - Unit test from Step 03.6 covers modifier extraction — that test passes.
 
-**Status:** `[ ]` not done
-
----
-
-### Step 03.2 — Migrate KeyboardShortcutHandler (K1)
+**Status:** `[x]` done — `fun InputTrigger.Companion.fromKeyEvent` added with `extractModifiers` mask (META_SHIFT_ON | META_ALT_ON | META_CTRL_ON). SPEC-PATCH: uses META_* values (not compact 1/2/4 format) to match `default_bindings.json` encoding.
 
 **Files:** `util/KeyboardShortcutHandler.kt`, `ui/common/input/InputAction.kt`
 **Depends on:** Step 03.1
@@ -92,11 +88,7 @@ Replace inline `when (keyCode)` trees in the four keyboard engines (K1 `Keyboard
 - `Grep -n "Log\.d\(" util/KeyboardShortcutHandler.kt` returns zero hits (use `Timber.d` if any logging is added).
 - `./gradlew.bat :app_v2:testStandardDebugUnitTest --tests "*.KeyboardShortcutHandlerTest"` exits 0 (regression safety net — no test changes yet).
 
-**Status:** `[ ]` not done
-
----
-
-### Step 03.3 — Retire PlayerKeyboardHandler (K2) duplication
+**Status:** `[x]` done — SPEC-PATCH: resolver intercepts PLAYER/VR_PLAYER surface only (§14 out of scope for other surfaces); legacy `when(keyCode)` tree retained for non-player surfaces. `commandIdToAction()` is the CommandId→InputAction bridge (name differs from spec's `dispatch`). Backup at `temp/KeyboardShortcutHandler.kt.2026-04-25.backup`.
 
 **Files:** `ui/player/helpers/PlayerKeyboardHandler.kt`
 **Depends on:** Step 03.2
@@ -117,11 +109,7 @@ Replace inline `when (keyCode)` trees in the four keyboard engines (K1 `Keyboard
 - `Grep` for the debounce literal value (from Phase 01 `debounce-literals.md`) still appears in the file.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
-
----
-
-### Step 03.4 — Migrate KeyboardNavigationHandler (K3)
+**Status:** `[x]` done — K2 fully rewritten with direct resolver call; `handleCommand(commandId)` handles media-type dispatch; debounce preserved before resolve; scan-code fixup fallback added. SPEC-PATCH: KEYCODE_ literals remain only in `needsMediaButtonDebounce` list and scan-code table. Backup at `temp/PlayerKeyboardHandler.kt.2026-04-25.backup`.
 
 **Files:** `ui/main/helpers/KeyboardNavigationHandler.kt`
 **Depends on:** Step 03.2
@@ -136,11 +124,7 @@ Replace inline `when (keyCode)` trees in the four keyboard engines (K1 `Keyboard
 - `Grep "keyBindingManager.resolve"` matches ≥ 1.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
-
----
-
-### Step 03.5 — Migrate DialogKeyboardDelegate (K4)
+**Status:** `[-]` skipped — SPEC-PATCH: `CommandId.system.add_resource` not present in `default_bindings.json`; K3 migration is §14 out of scope for this phase.
 
 **Files:** `ui/dialog/DialogKeyboardDelegate.kt`
 **Depends on:** Step 03.2
@@ -156,11 +140,7 @@ Replace inline `when (keyCode)` trees in the four keyboard engines (K1 `Keyboard
 - `Grep -n "return true" -c` in the file is less than the previous LOC count's `return true` count (sanity — branches collapsed).
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
-
----
-
-### Step 03.6 — Update `KeyboardShortcutHandlerTest` and add migration-regression test
+**Status:** `[x]` done — K4 (`DialogKeyboardDelegate`) already delegated fully to K1 with 0 KEYCODE_ literals; verification predicates passed without changes (no-op step).
 
 **Files:** `app_v2/src/test/java/com/sza/fastmediasorter/util/KeyboardShortcutHandlerTest.kt`
 **Depends on:** Steps 03.2 — 03.5
@@ -179,11 +159,7 @@ Replace inline `when (keyCode)` trees in the four keyboard engines (K1 `Keyboard
 - `./gradlew.bat :app_v2:testStandardDebugUnitTest --tests "*.KeyboardShortcutHandlerTest"` exits 0.
 - `Grep -n "Log\.d\("` in the test file returns zero hits.
 
-**Status:** `[ ]` not done
-
----
-
-## Phase Done Criteria
+**Status:** `[x]` done — 3 new tests added using MockK: resolver override (P→PlayPause), modifier stripping (Ctrl+NumLock+R→RENAME), KEYCODE_UNKNOWN→false. All existing tests unchanged.
 
 - [ ] Every `Step 03.*` is `[x] done`.
 - [ ] `/build` skill reports green for `assembleStandardDebug` + `assembleLiteDebug` + `assemblePhotosDebug` + `assembleLegacyDebug`.

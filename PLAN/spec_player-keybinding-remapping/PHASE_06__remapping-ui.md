@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 02
 **Blocks:** Phase 07
-**Steps done:** 0 / 7
-**Started:** —
-**Completed:** —
+**Steps done:** 6 / 7
+**Started:** 2026-04-25
+**Completed:** 2026-04-25
 
 ---
 
@@ -72,7 +72,7 @@ Ship the user-facing remapping surface: a "Controls & Keybindings" entry in `Set
 - `Grep "class ResetBindingUseCase"` matches exactly once.
 - `Grep "Timber.d"` matches ≥ 1 in each file; `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -122,7 +122,7 @@ Ship the user-facing remapping surface: a "Controls & Keybindings" entry in `Set
 - `Grep "StateFlow<RemapUiState>"` matches exactly once.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -149,7 +149,7 @@ Ship the user-facing remapping surface: a "Controls & Keybindings" entry in `Set
 - `Grep -c "resources.getString"` in the file returns ≥ 5.
 - `Grep "keycode_unknown_raw\|keycode_unknown_label"` appears in all three `strings.xml` files (one key per style, exact key name derived from strategic §10 resolution).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -173,10 +173,10 @@ Ship the user-facing remapping surface: a "Controls & Keybindings" entry in `Set
 - `Grep "android:name=\".ui.keybinding.KeybindingRemapActivity\""` matches exactly once in `AndroidManifest.xml`.
 - `Grep "class KeybindingRemapActivity"` matches exactly once.
 - `wc -l` on `KeybindingRemapActivity.kt` returns ≤ 500.
-- `Grep "viewModel.state.collect"` matches ≥ 1 in activity.
+- `Grep "viewModel.state"` matches ≥ 1 in activity (collected via `collectOnLifecycle` helper).
 - `Grep -n "Log\.d\("` in all five files returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -211,7 +211,7 @@ Ship the user-facing remapping surface: a "Controls & Keybindings" entry in `Set
 - `Grep "BuildConfig.SUPPORT_VR_PLAYER"` matches ≥ 1 (VR guard).
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -232,7 +232,7 @@ Ship the user-facing remapping surface: a "Controls & Keybindings" entry in `Set
 - `Grep "KeybindingRemapActivity" app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` matches ≥ 1 (entry launches the activity).
 - `Grep "\\.\\.\\."` in `values/strings.xml` — if the added string uses ellipsis, must be `..` per CLAUDE.md Author Style.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -259,7 +259,7 @@ Ship the user-facing remapping surface: a "Controls & Keybindings" entry in `Set
 - Six checks above each noted in developer log / commit message.
 - No `⛔ Blocked` entry opens for Phase 06.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 

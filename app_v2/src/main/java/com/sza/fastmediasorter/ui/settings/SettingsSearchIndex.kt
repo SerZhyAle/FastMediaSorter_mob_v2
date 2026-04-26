@@ -280,6 +280,22 @@ object SettingsSearchRegistry {
             viewId = R.id.etIconSize
         ),
         SettingsSearchIndex(
+            key = "setting_disable_camera_capture",
+            title = "Disable camera capture button",
+            keywords = listOf("camera", "capture", "photo", "video", "browse"),
+            sectionId = "playback",
+            destination = SettingsSearchDestination.PLAYBACK,
+            viewId = R.id.switchDisableCameraCapture
+        ),
+        SettingsSearchIndex(
+            key = "setting_skip_camera_filename_dialog",
+            title = "Skip camera filename dialog",
+            keywords = listOf("camera", "filename", "dialog", "rename", "auto"),
+            sectionId = "playback",
+            destination = SettingsSearchDestination.PLAYBACK,
+            viewId = R.id.switchSkipCameraFilenameDialog
+        ),
+        SettingsSearchIndex(
             key = "destinations.enable_copying",
             title = "Enable copying",
             keywords = listOf("copy", "destination", "transfer"),

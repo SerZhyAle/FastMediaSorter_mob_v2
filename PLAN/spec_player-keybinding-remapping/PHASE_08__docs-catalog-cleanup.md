@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** all prior phases
 **Blocks:** —
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-25
+**Completed:** 2026-04-25
 
 ---
 
@@ -63,7 +63,7 @@ Close the feature. Publish trilingual user-facing docs, regenerate the class cat
 - `Grep "Керування та клавіші" docs/FEATURES_UK.md` matches exactly once.
 - `Grep -R "\\.\\.\\." docs/FEATURES*.md` returns zero hits (no `...`; only `..`).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -113,7 +113,7 @@ Close the feature. Publish trilingual user-facing docs, regenerate the class cat
 - `Grep "\"role\":\"\"" dev/CATALOG/app_v2.jsonl` returns zero hits for any of the classes in the command list above.
 - `dev/CATALOG/app_v2.md` has been regenerated (modification timestamp newer than pre-phase).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -136,7 +136,7 @@ Close the feature. Publish trilingual user-facing docs, regenerate the class cat
 - For each file in the union of "Files Touched" tables across Phases 02 — 07, `Grep -c "<file>" dev/CHANGELOG.md` returns ≥ 1.
 - `Grep -c "docs/FEATURES" dev/CHANGELOG.md` returns ≥ 3 (EN + RU + UK entries).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -160,7 +160,7 @@ Close the feature. Publish trilingual user-facing docs, regenerate the class cat
 - `Grep "Status: Done" PLAN/spec_player-keybinding-remapping/INDEX.md` matches exactly once.
 - `Grep "Phases: 8 / 8 done" PLAN/spec_player-keybinding-remapping/INDEX.md` matches exactly once.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -187,7 +187,7 @@ Close the feature. Publish trilingual user-facing docs, regenerate the class cat
 
 **Verification (Option A):**
 
-- `Glob` — `PLAN/spec_player-keybinding-phase1-preparation.md` does not exist.
+- `Glob` — `PLAN/spec_player-keybinding-phase1-preparation.md` does not exist. ✅ (file absent — already removed in prior session)
 - Dev-log entry records the removal.
 
 **Verification (Option B):**
@@ -196,7 +196,7 @@ Close the feature. Publish trilingual user-facing docs, regenerate the class cat
 - File LOC ≤ 5.
 - Dev-log entry records the redirect.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done — file was already absent; no action needed.
 
 ---
 

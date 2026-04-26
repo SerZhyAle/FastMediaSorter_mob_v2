@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02, 03, 04, 05
-**Steps done:** 0 / 8
-**Started:** —
-**Completed:** —
+**Steps done:** 8 / 8
+**Started:** 2026-04-25
+**Completed:** 2026-04-25
 
 ---
 
@@ -28,7 +28,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 ## Files Touched
 
 | File | New / Modified | Line budget |
-|------|:--------------:|------------:|
+| ---- | :------------: | ----------: |
 | `temp/phase1/engine-paths-verified.txt` | New | ≤ 200 |
 | `temp/phase1/trigger-catalogue-raw.txt` | New | ≤ 2000 |
 | `temp/phase1/emitted-actions.txt` | New | ≤ 500 |
@@ -48,6 +48,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `temp/phase1/engine-paths-verified.txt` (new)
 **Depends on:** — start of phase
+**Status:** `[x]` done
 
 **Prompt for developer:**
 
@@ -63,7 +64,9 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - `Grep` — file contains 18 lines (17 engines + F1 spatial-nav component).
 - `Grep -c "MISSING"` in the file returns 0, OR every `MISSING` has an accompanying `# reason:` line.
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 3/3 PASS. Files: temp/phase1/engine-paths-verified.txt (+18 lines). All 18 engines OK.
 
 ---
 
@@ -71,6 +74,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `temp/phase1/trigger-catalogue-raw.txt` (new)
 **Depends on:** Step 01.1
+**Status:** `[x]` done
 
 **Prompt for developer:**
 
@@ -84,7 +88,9 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - `Grep -c "^V1\t"` returns ≥ 12 (VR OpenXR event types).
 - No line contains `KEYCODE_UNKNOWN` as a literal (that code must not be used for dispatch).
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 5/5 PASS. K1=139, G1=18, V1=79, KEYCODE_UNKNOWN=0. WARN: K2:178 uses KEYCODE_UNKNOWN as scan-code fixup detection (not dispatch) — excluded from catalogue, noted in file header. Files: temp/phase1/trigger-catalogue-raw.txt (+254 lines). Dev log entry recorded.
 
 ---
 
@@ -92,6 +98,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `temp/phase1/emitted-actions.txt` (new)
 **Depends on:** Step 01.2
+**Status:** `[x]` done
 
 **Prompt for developer:**
 
@@ -105,7 +112,9 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - `Grep` — every emitted variant is either declared in one of the four model files (cross-check), OR preceded by `NEEDS_PHASE_2_REVIEW:`.
 - `Grep -c "^NEEDS_PHASE_2_REVIEW:"` returns an integer; record that integer verbatim in the file's footer as `# unreviewed_count: N`.
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 4/4 PASS. NEEDS_PHASE_2_REVIEW=2 (ToggleOverlay never dispatched; FrameStep not in K2 handler). Files: temp/phase1/emitted-actions.txt. Dev log entry recorded.
 
 ---
 
@@ -113,6 +122,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `temp/phase1/debounce-literals.md` (new)
 **Depends on:** Step 01.1
+**Status:** `[x]` done
 
 **Prompt for developer:**
 
@@ -134,7 +144,9 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - `Grep -c "^| V1 "` returns ≥ 1.
 - `Grep` for `NOT FOUND` returns 0 rows, OR each `NOT FOUND` row has a Blockers Log entry.
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 5/5 PASS. G1=7 rows, K2=1, V1=2, NOT FOUND=0. NOTE: strategic §10 "±0.7 threshold" vs G1 DEADZONE=0.15f are different concepts; clarified in file header. Files: temp/phase1/debounce-literals.md (+20 lines). Dev log entry recorded.
 
 ---
 
@@ -142,6 +154,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `temp/phase1/new-engines-scan.txt` (new)
 **Depends on:** Step 01.1
+**Status:** `[x]` done
 
 **Prompt for developer:**
 
@@ -153,7 +166,9 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - If non-empty: `Grep -c "NEW_ENGINE"` returns ≥ 1 and `../spec_player-keybinding-remapping.md` has been updated with an addendum note under a `### Addendum: engines added after spec draft` header, OR each new engine is explicitly dismissed with `# dismissed: <reason>` in the file.
 - If empty: file contains a single line `# no new engines or XML wiring found — <YYYY-MM-DD>`.
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 2/2 PASS. No new engines (Wave 16/21 decompositions did not add input entry points). No XML wiring. Files: temp/phase1/new-engines-scan.txt. Dev log entry recorded.
 
 ---
 
@@ -161,6 +176,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `temp/phase1/commandid-candidates.md` (new)
 **Depends on:** Step 01.3
+**Status:** `[x]` done
 
 **Prompt for developer:**
 
@@ -176,7 +192,9 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - Every row's `CommandId` is lowercase kebab-or-dot; `Grep -E "^\| [A-Z]" temp/phase1/commandid-candidates.md` returns 0 rows.
 - Every candidate addition (no source model variant) has `feasibility:` populated.
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 4/5 PASS + 1 WARN. Predicate 1: file exists ✓. Predicate 2: `playback.*` count=11 ≥ 5 ✓. Predicate 3: `vr.*` count=13 ≥ 10 ✓. Predicate 4 WARN (false positive): `^\| [A-Z]` matched header row `| CommandId |`; all 63 data rows confirmed lowercase by content inspection. Predicate 5: all Source=— rows have `feasibility:` ✓. Files: temp/phase1/commandid-candidates.md (+84 lines). Dev log deferred to step 01.8.
 
 ---
 
@@ -184,6 +202,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `temp/phase1/defaults-seed.md` (new)
 **Depends on:** Step 01.6, Step 01.2
+**Status:** `[~]` in progress
 
 **Prompt for developer:**
 
@@ -198,7 +217,11 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - `Grep -c "\\?"` returns 0, OR every `?` cell has an adjacent `blocker:<name>` token in Notes.
 - `Grep -E "THRESHOLD=0\\.\\d+f"` returns ≥ 2 rows (analog axes).
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 4/4 PASS. Predicate 1: file exists ✓. Predicate 2: "^| " count=72 in both files (exact match) ✓. Predicate 3: no `?` cells ✓ (all §10 items resolved). Predicate 4: THRESHOLD=0.7f count=2 rows (audio.volume-up + audio.volume-down) ✓. Files: temp/phase1/defaults-seed.md (+82 lines). Dev log deferred to step 01.8.
+
+**Status:** `[x]` done
 
 ---
 
@@ -206,6 +229,7 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 
 **Files:** `dev/CHANGELOG.md` (appended via script)
 **Depends on:** Steps 01.1 — 01.7
+**Status:** `[~]` in progress
 
 **Prompt for developer:**
 
@@ -226,18 +250,22 @@ Produce a verified inventory of every input engine, command model, hardcoded tri
 - `Grep -c "spec-tech-phase1"` in `dev/CHANGELOG.md` returns ≥ 7.
 - Each artefact file name appears at least once in the tail of `dev/CHANGELOG.md`.
 
-**Status:** `[ ]` not done
+**Step Log:**
+
+- 2026-04-25 — applied, Verification 2/2 PASS. Predicate 1: spec-tech-phase1 count=7 ✓. Predicate 2: all 7 artefact names confirmed in CHANGELOG.md tail ✓. Files: dev/CHANGELOG.md (+7 entries). Script output confirmed for each file.
+
+**Status:** `[x]` done
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] All 8 steps above are `[x] done`.
-- [ ] No `Log.d(` invocations added to any file this phase touches (pure research — no code edits expected, so grep across `temp/phase1/` should return 0 Kotlin code hits).
-- [ ] Seven artefact files exist in `temp/phase1/` and each passes its step verification.
-- [ ] Strategic spec §10 Ambiguity Gate has at least the three Phase-02-blocking items resolved: **merge policy**, **max bindings per command**, **conflict policy**. Each line in §10's resolution column is non-empty and contains no `?` / `TBD` tokens.
-- [ ] Dev-log entries added for every artefact via `add_to_dev_log.ps1`.
-- [ ] No catalog regeneration needed — phase does not touch `app_v2/` source.
+- [x] All 8 steps above are `[x] done`.
+- [x] No `Log.d(` invocations added to any file this phase touches (pure research — no code edits expected, so grep across `temp/phase1/` should return 0 Kotlin code hits).
+- [x] Seven artefact files exist in `temp/phase1/` and each passes its step verification.
+- [x] Strategic spec §10 Ambiguity Gate has at least the three Phase-02-blocking items resolved: **merge policy**, **max bindings per command**, **conflict policy**. Each line in §10's resolution column is non-empty and contains no `?` / `TBD` tokens.
+- [x] Dev-log entries added for every artefact via `add_to_dev_log.ps1`.
+- [x] No catalog regeneration needed — phase does not touch `app_v2/` source.
 
 ---
 

@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../spec_player-keybinding-remapping.md`](../spec_player-keybinding-remapping.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 03, 04, 05, 06
 **Blocks:** Phase 08
-**Steps done:** 0 / 6
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 6
+**Started:** 2026-04-25
+**Completed:** 2026-04-25
 
 ---
 
@@ -70,7 +70,7 @@ Complete the user-facing surface:
 - `Grep "repo.clearAll"` in `ResetAllUseCase.kt` matches exactly once.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -93,7 +93,7 @@ Complete the user-facing surface:
 - `Grep -n "@Inject constructor"` matches exactly once (no dependencies besides empty constructor).
 - `Grep "repo" app_v2/src/main/java/com/sza/fastmediasorter/domain/input/usecase/DetectConflictsUseCase.kt` returns zero hits (pure — no repo).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -125,7 +125,7 @@ Complete the user-facing surface:
 - `Grep "DetectConflictsUseCase"` matches ≥ 1 (use case injected and called).
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -157,7 +157,7 @@ Complete the user-facing surface:
 - Author Style check: `Grep "\\.\\.\\." app_v2/src/main/res/values-ru/strings.xml` returns 0 (no `...` — only `..`).
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -182,7 +182,7 @@ Complete the user-facing surface:
 - `Grep "setEnabled\(false\)"` matches in "block" policy OR `visibility = View.VISIBLE` color guard matches in "flag" policy.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -213,7 +213,7 @@ Complete the user-facing surface:
 - Handoff Notes contains the skip rationale line.
 - This step's `Status:` is `[-] skipped` and `INDEX.md` `Phases: X/N done` counts Phase 07 as 5/6 complete with the phase still flipping to ✅ Done (strategic decision records the skip).
 
-**Status:** `[ ]` not done
+**Status:** `[-]` skipped — Undo snackbar skipped per §10 resolution — immediate commit.
 
 ---
 
@@ -232,6 +232,7 @@ Complete the user-facing surface:
 
 ## Handoff Notes to Next Phase
 
+- Undo snackbar skipped per §10 resolution — immediate commit.
 - User-facing feature is complete. Phase 08 handles docs (`docs/FEATURES.md` trilingual), catalog refresh, and final dev-log sweep.
 - Every resolved item from strategic §10 now has a concrete UI manifestation — audit that §10's resolution column matches the implemented behaviour and note any drift in the Change Log of `INDEX.md`.
 

@@ -121,6 +121,18 @@ Set-Content $buildGradlePath $content -NoNewline
 
 Write-Host "[RCS] Updated build.gradle.kts with version: $versionName" -ForegroundColor Green
 
+# Also update wear/build.gradle.kts to keep versions in sync
+# Wear uses 8-digit versionCode (yyMMddHH, no minute digit)
+$wearVersionCode = [Convert]::ToInt32($now.ToString("yyMMddHH"))
+$wearBuildGradlePath = "wear\build.gradle.kts"
+$wearContent = Get-Content $wearBuildGradlePath -Raw
+
+$wearContent = $wearContent -replace '(versionCode\s*=\s*)\d+', "`${1}$wearVersionCode"
+$wearContent = $wearContent -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
+
+Set-Content $wearBuildGradlePath $wearContent -NoNewline
+Write-Host "[RCS] Updated wear/build.gradle.kts with version: $versionName (code: $wearVersionCode)" -ForegroundColor Green
+
 # Run gradle build
 Write-Host "`nStarting Gradle build..." -ForegroundColor Cyan
 

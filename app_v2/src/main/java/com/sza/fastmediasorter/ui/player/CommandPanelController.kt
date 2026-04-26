@@ -358,7 +358,7 @@ class CommandPanelController(
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
             // Save Frame is a direct video-only command in the command panel.
             safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
-            // 3DVR toggle: VR flavor only, visible for video files.
+            // Immersive toggle: VR flavor only, visible for all video files including flat 2D.
             if (BuildConfig.SUPPORT_VR_PLAYER) {
                 safeViews.btn3dVrCmd.isVisible = currentFile.type == MediaType.VIDEO
             }

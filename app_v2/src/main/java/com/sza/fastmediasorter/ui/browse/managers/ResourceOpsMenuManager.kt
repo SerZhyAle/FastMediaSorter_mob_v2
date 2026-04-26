@@ -38,7 +38,9 @@ class ResourceOpsMenuManager @Inject constructor(
         onAutomateSource: (() -> Unit)? = null,
         onAddToDestinations: (() -> Unit)? = null,
         onArchive: (() -> Unit)? = null,
-        isDestinationsFull: Boolean = false
+        isDestinationsFull: Boolean = false,
+        onCameraCapture: (() -> Unit)? = null,
+        isCameraVisible: Boolean = false
     ) {
         val popup = PopupMenu(context, anchor)
         popup.inflate(R.menu.menu_resource_ops)
@@ -72,6 +74,8 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.menu.findItem(R.id.action_add_to_receivers)?.isVisible =
             resource != null && !resource.isReadOnly && !resource.isDestination &&
             !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
+
+        popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -110,6 +114,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_add_to_receivers -> {
                     onAddToDestinations?.invoke()
+                    true
+                }
+                R.id.action_camera_capture -> {
+                    onCameraCapture?.invoke()
                     true
                 }
                 else -> false

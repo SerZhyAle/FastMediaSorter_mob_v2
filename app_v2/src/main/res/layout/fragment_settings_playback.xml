@@ -95,6 +95,7 @@
                         </LinearLayout>
 
                     </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -347,11 +348,83 @@
 
                     </LinearLayout>
 
+                    <!-- Camera Capture: disable button globally -->
+                    <LinearLayout android:id="@+id/layoutDisableCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDisableCameraCapture" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Camera Capture: skip filename dialog (hidden when capture disabled) -->
+                    <LinearLayout android:id="@+id/rowSkipCameraFilename" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSkipCameraFilenameDialog" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_skip_camera_filename_dialog" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_skip_camera_filename_dialog_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton android:id="@+id/btnResetPlaybackSection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/reset_playback_section" style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <!-- Controls & Keybindings entry -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_small"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="2dp"
+            app:contentPadding="0dp">
+
+            <LinearLayout
+                android:id="@+id/rowControlsKeybindings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_controls_keybindings_title"
+                        android:textSize="@dimen/toggler_title_text_size" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_controls_keybindings_desc"
+                        android:textColor="@color/text_color_secondary"
+                        android:textSize="@dimen/toggler_desc_text_size" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:importantForAccessibility="no" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

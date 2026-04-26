@@ -17,12 +17,18 @@ import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.transfer.strategies.LocalToFtpStrategy
+import com.sza.fastmediasorter.data.transfer.strategies.LocalToSmbStrategy
+import com.sza.fastmediasorter.data.transfer.strategies.LocalToSftpStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.GamepadAction
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
@@ -39,6 +45,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private lateinit var passwordManager: ResourcePasswordManager
     private lateinit var initializer: BrowseManagerInitializer
     private lateinit var launcherManager: BrowseLauncherManager
+    private lateinit var cameraCaptureManager: BrowseCameraCaptureManager
 
     @Inject lateinit var googleDriveClient: GoogleDriveRestClient
     @Inject lateinit var resourceOpsMenuManager: com.sza.fastmediasorter.ui.browse.managers.ResourceOpsMenuManager
@@ -54,6 +61,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
     @Inject lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
     @Inject lateinit var gamepadInputManager: GamepadInputManager
+    @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
+    @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
+    @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -92,6 +102,28 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         })
+        val cloudStrategy = CloudOperationStrategy(this, googleDriveClient, dropboxClient, oneDriveClient)
+        cameraCaptureManager = BrowseCameraCaptureManager(
+            activity = this,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
+            onUploadFile = { tempFile, name, resource ->
+                val sourceUri = Uri.fromFile(tempFile)
+                val destUri = Uri.parse(resource.path.trimEnd('/') + '/' + Uri.encode(name))
+                when (resource.type) {
+                    ResourceType.FTP -> localToFtpStrategy.copy(sourceUri, destUri, true, null, null)
+                    ResourceType.SMB -> localToSmbStrategy.copy(sourceUri, destUri, true, null, null)
+                    ResourceType.SFTP -> localToSftpStrategy.copy(sourceUri, destUri, true, null, null)
+                    ResourceType.CLOUD -> cloudStrategy.copyFile(
+                        tempFile.absolutePath,
+                        resource.path.trimEnd('/') + '/' + name,
+                        true, null
+                    ).isSuccess
+                    else -> false
+                }
+            }
+        )
     }
 
     override fun getViewBinding(): ActivityBrowseBinding {
@@ -305,6 +337,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
         binding.rvMediaFiles.clearOnScrollListeners()
         super.onDestroy()
+    }
+
+    internal fun onCameraCaptureClicked() {
+        val resource = viewModel.state.value.resource ?: return
+        cameraCaptureManager.launch(resource)
+    }
+
+    private fun onCapturedFileSaved(fileName: String) {
+        viewModel.reloadFiles()
+        viewModel.scrollToFileAfterRefresh(fileName)
     }
 
     companion object {

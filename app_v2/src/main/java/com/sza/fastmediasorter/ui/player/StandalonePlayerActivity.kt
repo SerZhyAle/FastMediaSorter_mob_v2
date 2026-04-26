@@ -158,6 +158,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     @Inject lateinit var unifiedCache: UnifiedFileCache
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+    @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
 
     private lateinit var viewManager: StandaloneViewManager
     private var pipManager: PictureInPictureManager? = null
@@ -371,7 +372,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 override fun onPreviousFile() {}
                 override fun onToggleFavourite() = viewModel.toggleFavorite()
                 override fun onUndoOperation() {}
-            }
+            },
+            keyBindingManager = keyBindingManager,
         )
     }
 

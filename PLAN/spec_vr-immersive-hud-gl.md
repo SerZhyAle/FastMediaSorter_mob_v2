@@ -1,7 +1,8 @@
 # Стратегическая спецификация: Ad-hoc — VR Immersive HUD через отдельный композитный слой
 
-**Status:** Tactical
-**Tactical plan:** `PLAN/spec_vr-immersive-hud-gl/INDEX.md`
+**Status:** Partial
+**Audit:** see `PLAN/spec_vr-immersive-hud-gl__audit_2026-04-25.md`
+**Tactical plan:** `PLAN/spec_vr-immersive-hud-gl/INDEX.md` (all 7 phases ✅ Done; awaiting on-device acceptance + status-drift fix for Verified)
 **Date:** 2026-04-25
 **Tier:** 3 — Moderate (ad-hoc)
 **Roadmap entry:** Ad-hoc — запрос пользователя 2026-04-25 (тест Meta Quest 3, immersive-сеанс видео: не видно прогресса, seek-feedback, video controls; нажатие Y «замораживает» фильм, снять паузу нельзя).

@@ -181,7 +181,8 @@ object DefaultPlayerHelper {
         }
         grantReadPermissionToResolvers(context, intent, probe.first)
         return try {
-            fragment.startActivity(intent)
+            // createChooser forces the system picker so the app never opens itself with its own probe file
+            fragment.startActivity(Intent.createChooser(intent, null))
             true
         } catch (e: Exception) {
             Timber.w(e, "DefaultPlayerHelper: probe intent failed for %s", mimeType)
@@ -199,7 +200,8 @@ object DefaultPlayerHelper {
         }
         grantReadPermissionToResolvers(activity, intent, probe.first)
         return try {
-            activity.startActivity(intent)
+            // createChooser forces the system picker so the app never opens itself with its own probe file
+            activity.startActivity(Intent.createChooser(intent, null))
             true
         } catch (e: Exception) {
             Timber.w(e, "DefaultPlayerHelper: probe intent failed for %s", mimeType)

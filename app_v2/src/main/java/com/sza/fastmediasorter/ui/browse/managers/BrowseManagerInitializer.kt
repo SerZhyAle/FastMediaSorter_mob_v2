@@ -496,7 +496,11 @@ class BrowseManagerInitializer(
                     onRemoveResource = { activity.finish() }
                 )
             },
-            skipAvailabilityCheck = isSkipAvailabilityCheck
+            skipAvailabilityCheck = isSkipAvailabilityCheck,
+            onScrollToFile = { fileName ->
+                val idx = mediaFileAdapter.currentList.indexOfFirst { it.name == fileName }
+                if (idx >= 0) binding.rvMediaFiles.scrollToPosition(idx)
+            }
         )
 
         buttonSetupHelper = BrowseButtonSetupHelper(
@@ -564,6 +568,8 @@ class BrowseManagerInitializer(
                         Timber.w(e, "onResourceOpsClicked: failed to resolve isDestinationsFull — defaulting to false")
                         false
                     }
+                    val settings = settingsRepository.getSettings().first()
+                    val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings)
                     resourceOpsMenuManager.showMenu(
                         anchor = anchor,
                         viewModel = viewModel,
@@ -578,7 +584,9 @@ class BrowseManagerInitializer(
                         } else null,
                         onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
                         onArchive = { showArchiveDestinationPicker() },
-                        isDestinationsFull = isDestinationsFull
+                        isDestinationsFull = isDestinationsFull,
+                        onCameraCapture = { activity.onCameraCaptureClicked() },
+                        isCameraVisible = isCameraVisible
                     )
                 }
             }

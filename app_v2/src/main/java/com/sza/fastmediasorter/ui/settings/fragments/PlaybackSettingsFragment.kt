@@ -61,6 +61,10 @@ class PlaybackSettingsFragment : Fragment() {
     }
     
     private fun setupViews() {
+        binding.rowControlsKeybindings.setOnClickListener {
+            com.sza.fastmediasorter.ui.settings.SettingsActivity.openKeybindingRemap(requireContext())
+        }
+
         // Sort mode dropdown
         val sortModes = arrayOf(
             "Name (A-Z)", "Name (Z-A)", 
@@ -122,7 +126,19 @@ class PlaybackSettingsFragment : Fragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(allowDelete = isChecked))
         }
-        
+
+        binding.switchDisableCameraCapture.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(disableCameraCapture = isChecked))
+        }
+
+        binding.switchSkipCameraFilenameDialog.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(skipCameraFilenameDialog = isChecked))
+        }
+
         binding.switchConfirmDelete.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -323,6 +339,13 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.switchAllowDelete.isChecked != settings.allowDelete) {
                         binding.switchAllowDelete.isChecked = settings.allowDelete
                     }
+                    if (binding.switchDisableCameraCapture.isChecked != settings.disableCameraCapture) {
+                        binding.switchDisableCameraCapture.isChecked = settings.disableCameraCapture
+                    }
+                    if (binding.switchSkipCameraFilenameDialog.isChecked != settings.skipCameraFilenameDialog) {
+                        binding.switchSkipCameraFilenameDialog.isChecked = settings.skipCameraFilenameDialog
+                    }
+                    binding.rowSkipCameraFilename.isVisible = !settings.disableCameraCapture
                     if (binding.switchConfirmDelete.isChecked != settings.confirmDelete) {
                         binding.switchConfirmDelete.isChecked = settings.confirmDelete
                     }

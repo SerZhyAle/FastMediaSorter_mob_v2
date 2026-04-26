@@ -234,7 +234,7 @@ class EpubViewerManager(
         })
         
         // Initialize WebView with settings
-        webView = binding.epubWebView
+        webView = getOrCreateWebView()
         webView?.apply {
             settings.javaScriptEnabled = true // Enable JavaScript for scroll position detection
             settings.loadWithOverviewMode = true
@@ -1110,6 +1110,25 @@ class EpubViewerManager(
         Timber.d("EPUB: Exited fullscreen mode")
     }
     
+    /**
+     * Create WebView on first EPUB open and add it to the container FrameLayout.
+     * Deferred creation prevents Chromium from loading into native memory at layout inflation,
+     * avoiding native OOM on emulators and low-memory devices.
+     */
+    private fun getOrCreateWebView(): WebView {
+        webView?.let { return it }
+        return WebView(binding.epubWebView.context).also { wv ->
+            binding.epubWebView.addView(
+                wv,
+                android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
+            webView = wv
+        }
+    }
+
     /**
      * Close current EPUB and release resources
      */

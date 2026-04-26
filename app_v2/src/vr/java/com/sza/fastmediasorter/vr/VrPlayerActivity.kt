@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -43,6 +44,9 @@ import com.sza.fastmediasorter.vr.openxr.OpenXrNative
 import com.sza.fastmediasorter.vr.openxr.OpenXrSessionManager
 import com.sza.fastmediasorter.vr.openxr.XrHand
 import com.sza.fastmediasorter.vr.openxr.XrRenderCallback
+import com.sza.fastmediasorter.vr.render.VrHudRenderer
+import com.sza.fastmediasorter.vr.render.VrHudSceneComposer
+import com.sza.fastmediasorter.vr.render.VrHudSceneDriver
 import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
 import com.sza.fastmediasorter.vr.render.VrLayerFactory
 import com.sza.fastmediasorter.vr.render.VrPhotoSphereRenderer
@@ -57,7 +61,10 @@ import com.sza.fastmediasorter.vr.ui.VrControlOverlayManager
 import com.sza.fastmediasorter.vr.ui.VrFileOpsOverlayManager
 import com.sza.fastmediasorter.vr.ui.VrHandRayManager
 import com.sza.fastmediasorter.vr.ui.VrHudIndicatorManager
+import com.sza.fastmediasorter.vr.ui.VrHudSink
 import com.sza.fastmediasorter.vr.ui.VrZoomManager
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -102,7 +109,14 @@ class VrPlayerActivity : PlayerActivity() {
     // ── VR immersive controls (spec_vr-immersive-controls-tech) ──────────────
     private var vrInputManager: VrControllerInputManager? = null
     private var vrZoomManager: VrZoomManager? = null
-    private var vrHudManager: VrHudIndicatorManager? = null
+    // Active HUD backend. Phone fallback uses vrHudFallback (decorView Android view);
+    // immersive XR sessions swap in vrHudSceneDriver (OpenXR composition layer)
+    // for the lifetime of the session.
+    internal var vrHudManager: VrHudSink? = null
+    private var vrHudFallback: VrHudIndicatorManager? = null
+    private var vrHudRenderer: VrHudRenderer? = null
+    private var vrHudSceneDriver: VrHudSceneDriver? = null
+    private var vrHudProgressJob: Job? = null
     private var vrCheatsheetManager: VrCheatsheetOverlayManager? = null
     private var vrFileOpsManager: VrFileOpsOverlayManager? = null
     private var vrHandRayManager: VrHandRayManager? = null
@@ -138,6 +152,11 @@ class VrPlayerActivity : PlayerActivity() {
 
     // True when the user explicitly tapped "3DVR" from panel mode — bypasses stereo-detection gate.
     private var forceImmersiveThisLaunch = false
+    // True when the user explicitly tapped "3DVR" from immersive mode — forces panel route
+    // even for spherical/stereoscopic content that would otherwise auto-enter immersive.
+    private var forcePanelThisLaunch = false
+    // Throttle for onGenericMotionEvent → reportActivity() to avoid flooding HUD state machine.
+    private var lastActivityReportMs = 0L
     private var vrToggleButtonManager: VrToggleButtonManager? = null
 
     // Pending VR surface redirect: captured when the XR session becomes ready before ExoPlayer
@@ -206,14 +225,15 @@ class VrPlayerActivity : PlayerActivity() {
 
         forceImmersiveThisLaunch = intent.getBooleanExtra(EXTRA_FORCE_IMMERSIVE, false)
         Timber.i("VrPlayerActivity: forceImmersiveThisLaunch=%b", forceImmersiveThisLaunch)
+        forcePanelThisLaunch = intent.getBooleanExtra(EXTRA_FORCE_PANEL, false)
 
-        // Wire the 3DVR toggle button (VR flavor only — button is always in the layout but hidden in other flavors).
+        // Wire the immersive toggle button (VR flavor only — button is always in the layout but hidden in other flavors).
         vrToggleButtonManager = VrToggleButtonManager(
             button = safeViews.btn3dVrCmd,
             onSwitchToPanelRequested = { switchToPanelPreservingPosition() },
             onSwitchToImmersiveRequested = { switchToImmersivePreservingPosition() },
         )
-        // Initial button state: "Enter 3D VR". Only flip to "Exit" once the VR pipeline
+        // Initial button state: panel mode. Only flip to immersive once the VR pipeline
         // is actually rendering (see flushPendingVrSurfaceIfReady).
         vrToggleButtonManager?.updateState(false)
 
@@ -254,6 +274,7 @@ class VrPlayerActivity : PlayerActivity() {
         vrHandRayManager = handRay
         val inputManager = VrControllerInputManager(
             mainHandler = mainHandler,
+            keyBindingManager = keyBindingManager,
             onCommand = { command, source -> handleVrCommand(command, source) },
             onVolumeStep = ::onVolumeStep,
             onZoomGripDelta = ::onZoomGripDelta,
@@ -266,7 +287,8 @@ class VrPlayerActivity : PlayerActivity() {
             handRay.onPointerMove(hand, ndcX, ndcY)
         }
         vrInputManager = inputManager
-        vrHudManager = VrHudIndicatorManager(this)
+        vrHudFallback = VrHudIndicatorManager(this)
+        vrHudManager = vrHudFallback
         vrCheatsheetManager = VrCheatsheetOverlayManager(this)
         vrZoomManager = VrZoomManager { descriptor ->
             xrSessionManager?.updateLayerDescriptor(descriptor)
@@ -399,7 +421,49 @@ class VrPlayerActivity : PlayerActivity() {
         // The native session is now alive, so push the current layer choice again on the render thread.
         Timber.d("VrPlayerActivity: initializeVrRenderPipeline — refreshing layer descriptor")
         refreshLayerDescriptor("session-ready")
+
+        // Stand up the HUD composition pipeline (spec_vr-immersive-hud-gl). The renderer
+        // owns the HUD swapchain + reusable Bitmap; the scene driver becomes the active
+        // VrHudSink so all existing show*() callsites land in the OpenXR layer.
+        val sessionMgr = xrSessionManager
+        if (sessionMgr != null) {
+            val newRenderer = VrHudRenderer(sessionMgr)
+            if (newRenderer.ensureSwapchainCreated()) {
+                vrHudRenderer = newRenderer
+                val composer = VrHudSceneComposer(this)
+                val driver = VrHudSceneDriver(newRenderer, composer)
+                vrHudSceneDriver = driver
+                vrHudManager = driver
+                Timber.i("VrPlayerActivity: HUD scene driver active (immersive)")
+                startVrHudProgressTicker()
+            } else {
+                Timber.w("VrPlayerActivity: HUD swapchain unavailable — keeping Android-view fallback")
+            }
+        }
+
         Timber.i("VrPlayerActivity: initializeVrRenderPipeline COMPLETE")
+    }
+
+    /**
+     * 2 Hz ticker that pulls position / buffered / duration from the inherited
+     * ExoPlayer and feeds the HUD scene driver. Runs only while the OpenXR
+     * session is active; cancelled in [releaseVrRenderPipeline].
+     */
+    private fun startVrHudProgressTicker() {
+        vrHudProgressJob?.cancel()
+        vrHudProgressJob = lifecycleScope.launch {
+            while (isActive) {
+                val sink = vrHudSceneDriver
+                if (sink != null) {
+                    val player = videoPlayerManager.exoPlayer
+                    val pos = player?.currentPosition ?: -1L
+                    val buf = player?.bufferedPosition ?: -1L
+                    val dur = player?.duration ?: -1L
+                    sink.updateProgress(pos, buf, dur)
+                }
+                delay(500L)
+            }
+        }
     }
 
     /**
@@ -410,6 +474,15 @@ class VrPlayerActivity : PlayerActivity() {
         videoSurfaceBridge?.release()
         stereoRenderer?.release()
         photoSphereRenderer?.release()
+        // Tear down the HUD composition pipeline and revert to Android-view fallback
+        // so phone-layout (or a subsequent re-bring-up of the XR session) keeps a sink.
+        vrHudProgressJob?.cancel()
+        vrHudProgressJob = null
+        vrHudSceneDriver?.hideAll()
+        vrHudSceneDriver = null
+        vrHudRenderer?.release()
+        vrHudRenderer = null
+        vrHudManager = vrHudFallback
     }
 
     /**
@@ -674,7 +747,14 @@ class VrPlayerActivity : PlayerActivity() {
         // Release VR immersive controls managers.
         controlOverlay?.release()
         controlOverlay = null
-        vrHudManager?.release()
+        vrHudProgressJob?.cancel()
+        vrHudProgressJob = null
+        vrHudSceneDriver?.hideAll()
+        vrHudSceneDriver = null
+        vrHudRenderer?.release()
+        vrHudRenderer = null
+        vrHudFallback?.release()
+        vrHudFallback = null
         vrHudManager = null
         vrCheatsheetManager?.release()
         vrCheatsheetManager = null
@@ -733,6 +813,9 @@ class VrPlayerActivity : PlayerActivity() {
         // PlayerActivity.dispatchKeyEvent → GamepadInputManager so VR and phone players
         // share identical gamepad behaviour.
         if (event.action == KeyEvent.ACTION_UP) {
+            // WHY: any button press means the user is actively holding the controller;
+            // notify the HUD so it stays visible for the full 15 s idle-hide window.
+            vrHudManager?.reportActivity()
             when (event.keyCode) {
                 KeyEvent.KEYCODE_MENU -> {
                     // Left controller ≡ button — open the playback controls dialog (3D, volume, brightness..).
@@ -776,6 +859,13 @@ class VrPlayerActivity : PlayerActivity() {
     }
 
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        // WHY: thumbstick / trigger axis motion means the user is actively using the controller;
+        // throttle to 1 Hz to avoid flooding the HUD state machine with redundant updates.
+        val nowMotion = System.currentTimeMillis()
+        if (nowMotion - lastActivityReportMs > 1_000L) {
+            lastActivityReportMs = nowMotion
+            vrHudManager?.reportActivity()
+        }
         // Route BT mouse wheel / cursor motion through the VR input manager.
         if (vrInputManager?.onMotionEvent(event) == true) return true
         return super.onGenericMotionEvent(event)
@@ -799,12 +889,28 @@ class VrPlayerActivity : PlayerActivity() {
     }
 
     /**
+     * True while immersive rendering is active AND the spec_vr-ui-composition-layer
+     * (spec B) feature flag is still off. In that state, opening Android-view-backed
+     * panels (file ops, control dialog, cheatsheet) would create invisible overlays
+     * that pause playback without any way to dismiss them. The handlers route those
+     * commands to a HUD banner instead — see [handleVrCommand].
+     *
+     * When spec B lands and the BuildConfig flag flips to `true`, this helper returns
+     * `false` even in immersive — the panels then have a real composition target.
+     */
+    internal fun isImmersiveUiLocked(): Boolean =
+        vrRenderingActive && !BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED
+
+    /**
      * Dispatch a command from the VR overlay or controller input manager to the
      * inherited player. All UI feedback (HUD, haptic) is triggered here so every
      * input source (OpenXR / keyboard / mouse) produces identical feedback.
      */
     private fun handleVrCommand(command: PlaybackCommand, source: VrCommandSource = VrCommandSource.UI) {
         Timber.d("VrPlayerActivity: handling VR command $command")
+        // WHY: any mapped controller command means the user is actively using the controller;
+        // wake the HUD and reset the 15 s idle-hide timer.
+        vrHudManager?.reportActivity()
         when (command) {
             PlaybackCommand.Play -> {
                 viewModel.setPaused(false)
@@ -852,13 +958,49 @@ class VrPlayerActivity : PlayerActivity() {
                 showFileFeedback()
                 maybeTriggerHaptic(source, XrHand.RIGHT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
             }
-            PlaybackCommand.OpenControls -> dialogHelper.showPlaybackControlDialog()
+            PlaybackCommand.OpenControls -> {
+                if (isImmersiveUiLocked()) {
+                    vrHudManager?.showBannerText(getString(R.string.vr_hud_guard_controls))
+                } else {
+                    dialogHelper.showPlaybackControlDialog()
+                }
+            }
             PlaybackCommand.Exit -> exitVrAndStopPlayback("overlay-exit-command")
-            PlaybackCommand.OpenFileOps -> vrFileOpsManager?.show()
-            PlaybackCommand.CopyFile    -> vrFileOpsManager?.showAndCopy()
-            PlaybackCommand.MoveFile    -> vrFileOpsManager?.showAndMove()
-            PlaybackCommand.DeleteFile  -> vrFileOpsManager?.showAndDelete()
-            PlaybackCommand.RenameFile  -> vrFileOpsManager?.showAndRename()
+            PlaybackCommand.OpenFileOps -> {
+                if (isImmersiveUiLocked()) {
+                    vrHudManager?.showBannerText(getString(R.string.vr_hud_guard_file_ops))
+                } else {
+                    vrFileOpsManager?.show()
+                }
+            }
+            PlaybackCommand.CopyFile -> {
+                if (isImmersiveUiLocked()) {
+                    vrHudManager?.showBannerText(getString(R.string.vr_hud_guard_file_ops))
+                } else {
+                    vrFileOpsManager?.showAndCopy()
+                }
+            }
+            PlaybackCommand.MoveFile -> {
+                if (isImmersiveUiLocked()) {
+                    vrHudManager?.showBannerText(getString(R.string.vr_hud_guard_file_ops))
+                } else {
+                    vrFileOpsManager?.showAndMove()
+                }
+            }
+            PlaybackCommand.DeleteFile -> {
+                if (isImmersiveUiLocked()) {
+                    vrHudManager?.showBannerText(getString(R.string.vr_hud_guard_file_ops))
+                } else {
+                    vrFileOpsManager?.showAndDelete()
+                }
+            }
+            PlaybackCommand.RenameFile -> {
+                if (isImmersiveUiLocked()) {
+                    vrHudManager?.showBannerText(getString(R.string.vr_hud_guard_file_ops))
+                } else {
+                    vrFileOpsManager?.showAndRename()
+                }
+            }
             is PlaybackCommand.VolumeStep -> {
                 showVolumeFeedback()
             }
@@ -881,7 +1023,13 @@ class VrPlayerActivity : PlayerActivity() {
                 vrToggleButtonManager?.onToggleRequested()
                 vrHudManager?.showImmersiveModeChanged(immersive = !vrRenderingActive)
             }
-            PlaybackCommand.ShowCheatsheet -> vrCheatsheetManager?.toggleManual()
+            PlaybackCommand.ShowCheatsheet -> {
+                if (isImmersiveUiLocked()) {
+                    vrHudManager?.showBannerText(getString(R.string.vr_hud_first_run_cheat))
+                } else {
+                    vrCheatsheetManager?.toggleManual()
+                }
+            }
             PlaybackCommand.ToggleOverlay  -> controlOverlay?.toggle()
             PlaybackCommand.Mute -> toggleMute()
         }
@@ -1088,7 +1236,7 @@ class VrPlayerActivity : PlayerActivity() {
     ): VrRouteDecision {
         val settings = viewModel.getSettings()
         val effectiveMode = resolveLaunchStereoMode(currentFile, requestedStereoMode, settings.vrAutoDetectFormat)
-        val routeDecision = routeDecisionHelper.decide(currentFile, effectiveMode, settings, forceImmersiveThisLaunch)
+        val routeDecision = routeDecisionHelper.decide(currentFile, effectiveMode, settings, forceImmersiveThisLaunch, forcePanelThisLaunch)
         Timber.i(
             "VrPlayerActivity: route decision file=%s type=%s requested=%s effective=%s autoDetect=%b route=%s reason=%s",
             currentFile.path,
@@ -1297,6 +1445,24 @@ class VrPlayerActivity : PlayerActivity() {
         stereoRenderer?.setStereoMode(mode)
         photoSphereRenderer?.setStereoMode(mode)
         refreshLayerDescriptor(reason)
+        // Update the stereo-mode badge in the HUD so the user knows what is active.
+        vrHudManager?.showStereoModeLabel(mode.toHudLabel())
+    }
+
+    /** Maps a [StereoMode] to a short display label for the HUD badge, or null to hide it. */
+    private fun StereoMode.toHudLabel(): String? = when (this) {
+        StereoMode.MONO             -> "2D"
+        StereoMode.SBS_FULL         -> "3D SBS"
+        StereoMode.SBS_HALF         -> "3D SBS½"
+        StereoMode.OU               -> "3D O/U"
+        StereoMode.EQUIRECT_360_MONO -> "360° Mono"
+        StereoMode.EQUIRECT_360_SBS  -> "360° SBS"
+        StereoMode.EQUIRECT_360_OU   -> "360° O/U"
+        StereoMode.EQUIRECT_180_MONO -> "180° Mono"
+        StereoMode.EQUIRECT_180_SBS  -> "180° SBS"
+        StereoMode.VR180_FISHEYE_SBS -> "VR180°"
+        StereoMode.CYLINDER_180      -> "Cylinder"
+        StereoMode.AUTO, StereoMode.UNKNOWN -> null  // transient states, no badge needed
     }
 
     private fun refreshLayerDescriptor(reason: String) {
@@ -1392,6 +1558,10 @@ class VrPlayerActivity : PlayerActivity() {
         startActivity(Intent(intent).apply {
             setClass(this@VrPlayerActivity, VrPlayerActivity::class.java)
             putExtra(EXTRA_FORCE_IMMERSIVE, false)
+            // WHY: EXTRA_FORCE_PANEL=true tells VrRouteDecisionHelper to return STANDARD_PANEL_FALLBACK
+            // unconditionally, even for spherical/SBS content that would otherwise be re-routed
+            // back to immersive. Without this flag the toggle had no effect on VR180/360 files.
+            putExtra(EXTRA_FORCE_PANEL, true)
         })
         finish()
     }
@@ -1428,6 +1598,8 @@ class VrPlayerActivity : PlayerActivity() {
 
         /** When true, bypass stereo-detection gate and force immersive XR route for video. */
         const val EXTRA_FORCE_IMMERSIVE = "com.sza.fastmediasorter.EXTRA_FORCE_IMMERSIVE"
+        /** When true, force panel fallback route even for spherical/stereoscopic content. */
+        const val EXTRA_FORCE_PANEL = "com.sza.fastmediasorter.EXTRA_FORCE_PANEL"
 
         /** Cached XR runtime probe — avoids repeated loadLibrary calls. */
         private val xrAvailable: Boolean by lazy {

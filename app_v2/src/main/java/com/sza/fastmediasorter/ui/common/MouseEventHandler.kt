@@ -4,6 +4,10 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.CommandId
+import com.sza.fastmediasorter.domain.input.InputSurface as DomainInputSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.ui.common.input.InputAction
 import timber.log.Timber
 
@@ -15,14 +19,30 @@ import timber.log.Timber
  * Features covered:
  * - single / double left click
  * - right click with cursor coordinates (anchored context menus)
- * - middle click -> [InputAction.ToggleFavourite] where supported
- * - mouse wheel with Shift / Ctrl modifiers -> [InputAction.ScrollWheel]
+ * - middle click → [InputAction.ToggleFavourite] where supported
+ * - mouse wheel with Shift / Ctrl modifiers → [InputAction.ScrollWheel]
  * - hover enter / exit for tooltip-capable surfaces
  * - XButton1 / XButton2 (back / forward)
+ *
+ * Secondary, tertiary, back, and forward buttons are resolved through
+ * [keyBindingManager] so user bindings are respected. Left-click and
+ * scroll-wheel are not remappable in v1 (see spec §7 + §10).
+ *
+ * @param keyBindingManager Resolver for remappable mouse buttons. Null = legacy-only mode.
+ * @param surface Domain surface used when resolving (default: PLAYER).
  */
 class MouseEventHandler(
+    private val keyBindingManager: KeyBindingManager?,
+    private val surface: DomainInputSurface = DomainInputSurface.PLAYER,
     private val callbacks: MouseEventCallbacks,
 ) {
+
+    /** Legacy constructor for callers that have not yet migrated to the resolver path. */
+    constructor(callbacks: MouseEventCallbacks) : this(
+        keyBindingManager = null,
+        surface = DomainInputSurface.PLAYER,
+        callbacks = callbacks,
+    )
 
     interface MouseEventCallbacks {
         /** Single left click on [view]. */
@@ -110,35 +130,21 @@ class MouseEventHandler(
     }
 
     private fun handleMouseDown(view: View, event: MotionEvent): Boolean {
-        if (isRightClick(event)) {
-            Timber.d("%s: right-click at (%.1f,%.1f)", TAG, event.x, event.y)
-            callbacks.onRightClick(view, event.x, event.y)
-            callbacks.onInputAction(view, InputAction.ShowContextMenuAt(event.x, event.y))
-            return true
-        }
-        if (isMiddleClick(event)) {
-            Timber.d("%s: middle-click", TAG)
-            callbacks.onMiddleClick(view)
-            callbacks.onInputAction(view, InputAction.ToggleFavourite)
-            return true
-        }
-        if (isBackButton(event)) {
-            callbacks.onNavigateBack(view)
-            callbacks.onInputAction(view, InputAction.MouseNavigateBack)
-            return true
-        }
-        if (isForwardButton(event)) {
-            callbacks.onNavigateForward(view)
-            callbacks.onInputAction(view, InputAction.MouseNavigateForward)
-            return true
+        // ACTION_DOWN: actionButton == 0 for primary, non-zero for secondary buttons on some devices.
+        // Secondary buttons are reliably reported via ACTION_BUTTON_PRESS (API 23+); check here
+        // only as a fallback for devices that skip that event.
+        val button = event.actionButton
+        if (button != 0 && button != MotionEvent.BUTTON_PRIMARY) {
+            return dispatchSecondaryButton(view, event, button)
         }
         return false
     }
 
     private fun handleMouseUp(view: View, event: MotionEvent): Boolean {
-        if (isRightClick(event) || isMiddleClick(event) || isBackButton(event) || isForwardButton(event)) {
-            return false
-        }
+        // Skip UP for non-primary button releases.
+        val released = event.actionButton
+        if (released != 0 && released != MotionEvent.BUTTON_PRIMARY) return false
+        if (released == 0 && event.buttonState != 0) return false
         val now = System.currentTimeMillis()
         val since = now - lastClickTime
         val sameView = lastClickView == view
@@ -157,8 +163,48 @@ class MouseEventHandler(
     }
 
     private fun handleButtonPress(view: View, event: MotionEvent): Boolean {
-        // Some mice deliver wheel-only presses; fall back to generic handling.
-        return handleMouseDown(view, event)
+        val button = event.actionButton
+        if (button == 0 || button == MotionEvent.BUTTON_PRIMARY) return false
+        return dispatchSecondaryButton(view, event, button)
+    }
+
+    /**
+     * Dispatch a secondary button press via [keyBindingManager] (resolver path) or
+     * return false when no binding is found.
+     * Wheel is not remappable in v1 (see spec §7 + §10 "analog threshold UX" item).
+     */
+    private fun dispatchSecondaryButton(view: View, event: MotionEvent, button: Int): Boolean {
+        val manager = keyBindingManager ?: return false
+        val trigger = InputTrigger.MouseButton(button)
+        val commandId = manager.resolve(trigger, surface) ?: return false
+        Timber.d("%s: mouse button=%d resolved → %s", TAG, button, commandId)
+        return when (commandId) {
+            CommandId.NEXT_FILE -> {
+                callbacks.onNavigateForward(view)
+                callbacks.onInputAction(view, InputAction.MouseNavigateForward)
+                true
+            }
+            CommandId.PREVIOUS_FILE -> {
+                callbacks.onNavigateBack(view)
+                callbacks.onInputAction(view, InputAction.MouseNavigateBack)
+                true
+            }
+            CommandId.FAVOURITE -> {
+                callbacks.onMiddleClick(view)
+                callbacks.onInputAction(view, InputAction.ToggleFavourite)
+                true
+            }
+            CommandId.FILE_OPS -> {
+                callbacks.onRightClick(view, event.x, event.y)
+                callbacks.onInputAction(view, InputAction.ShowContextMenuAt(event.x, event.y))
+                true
+            }
+            else -> {
+                // Resolved but no specific legacy bridge — action consumed; callers may
+                // intercept via onInputAction(view, ShowContextMenu) for catch-all right-click.
+                true
+            }
+        }
     }
 
     private fun handleScroll(view: View, event: MotionEvent): Boolean {
@@ -169,6 +215,7 @@ class MouseEventHandler(
         val shift = (metaState and KeyEvent.META_SHIFT_ON) != 0
         val ctrl = (metaState and KeyEvent.META_CTRL_ON) != 0
         callbacks.onScrollWheel(view, vertical, horizontal, shift, ctrl)
+        // Wheel is not remappable in v1 (see spec §7 + §10 "analog threshold UX" item).
         return callbacks.onInputAction(
             view,
             InputAction.ScrollWheel(
@@ -179,18 +226,6 @@ class MouseEventHandler(
             ),
         ) || true
     }
-
-    private fun isRightClick(event: MotionEvent): Boolean =
-        (event.buttonState and MotionEvent.BUTTON_SECONDARY) != 0
-
-    private fun isMiddleClick(event: MotionEvent): Boolean =
-        (event.buttonState and MotionEvent.BUTTON_TERTIARY) != 0
-
-    private fun isBackButton(event: MotionEvent): Boolean =
-        (event.buttonState and MotionEvent.BUTTON_BACK) != 0
-
-    private fun isForwardButton(event: MotionEvent): Boolean =
-        (event.buttonState and MotionEvent.BUTTON_FORWARD) != 0
 
     /** Reset transient double-click state (call when view is recycled). */
     fun reset() {

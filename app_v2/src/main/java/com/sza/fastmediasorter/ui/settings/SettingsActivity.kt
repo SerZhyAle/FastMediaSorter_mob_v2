@@ -74,6 +74,12 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         const val EXTRA_INITIAL_TAB = "extra_initial_tab"
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
+
+        fun openKeybindingRemap(context: Context) {
+            context.startActivity(
+                android.content.Intent(context, com.sza.fastmediasorter.ui.keybinding.KeybindingRemapActivity::class.java)
+            )
+        }
     }
     
     override fun getViewBinding(): ActivitySettingsBinding {

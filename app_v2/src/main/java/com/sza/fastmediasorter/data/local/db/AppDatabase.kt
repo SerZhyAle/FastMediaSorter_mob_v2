@@ -5,6 +5,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.sza.fastmediasorter.data.input.InputBindingDao
+import com.sza.fastmediasorter.data.input.InputBindingEntity
 
 @Database(
     entities = [
@@ -20,9 +22,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PendingRevocationEntity::class,
         ScheduledOperationEntity::class,
         DuplicateHashCacheEntity::class,
-        StreamingCacheEntry::class
+        StreamingCacheEntry::class,
+        InputBindingEntity::class
     ],
-    version = 24,
+    version = 25,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -39,6 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun scheduledOperationDao(): ScheduledOperationDao
     abstract fun duplicateHashCacheDao(): DuplicateHashCacheDao
     abstract fun streamingCacheDao(): StreamingCacheDao
+    abstract fun inputBindingDao(): InputBindingDao
 
     companion object {
         /**
@@ -627,6 +631,23 @@ abstract class AppDatabase : RoomDatabase() {
                 )
             }
         }
+        val MIGRATION_24_25 = object : Migration(24, 25) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS input_bindings (
+                        command_id TEXT NOT NULL,
+                        device TEXT NOT NULL,
+                        slot INTEGER NOT NULL,
+                        trigger TEXT NOT NULL,
+                        updated_at INTEGER NOT NULL,
+                        PRIMARY KEY (command_id, device, slot)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
         private fun createFinalPendingRevocationsTable(db: SupportSQLiteDatabase) {
             db.execSQL(
                 """

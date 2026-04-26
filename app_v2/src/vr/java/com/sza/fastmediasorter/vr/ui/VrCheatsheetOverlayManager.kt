@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.vr.VrPlayerActivity
 import timber.log.Timber
 
 /**
@@ -38,12 +39,29 @@ class VrCheatsheetOverlayManager(private val activity: Activity) {
 
     fun showIfFirstTime() {
         if (prefs.getBoolean(KEY_SHOWN_ONCE, false)) return
-        Timber.i("VrCheatsheet: first-run auto-show")
         prefs.edit().putBoolean(KEY_SHOWN_ONCE, true).apply()
+        // In immersive (and while spec_vr-ui-composition-layer is not yet active) the
+        // full Android-view overlay would be invisible. Surface a brief HUD banner with
+        // the cheat summary instead, so the user actually sees something. The "shown
+        // once" flag is still flipped above so this path does not repeat next launch.
+        val vrActivity = activity as? VrPlayerActivity
+        if (vrActivity?.isImmersiveUiLocked() == true) {
+            Timber.i("VrCheatsheet: first-run HUD banner (immersive)")
+            vrActivity.vrHudManager?.showBannerText(activity.getString(R.string.vr_hud_first_run_cheat))
+            return
+        }
+        Timber.i("VrCheatsheet: first-run auto-show")
         show(durationMs = FIRST_RUN_DURATION_MS)
     }
 
     fun toggleManual() {
+        // Manual cheatsheet from immersive — also routed via HUD banner; the full Android
+        // panel will be unblocked once the composition layer is ready (spec B).
+        val vrActivity = activity as? VrPlayerActivity
+        if (vrActivity?.isImmersiveUiLocked() == true) {
+            vrActivity.vrHudManager?.showBannerText(activity.getString(R.string.vr_hud_first_run_cheat))
+            return
+        }
         if (isVisible()) hide() else show(durationMs = MANUAL_DURATION_MS)
     }
 

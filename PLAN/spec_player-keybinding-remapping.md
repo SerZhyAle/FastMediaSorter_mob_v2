@@ -1,6 +1,8 @@
 # Specification: PLAYER-KEYBINDING — Custom Playback Controls Remapping
 
-**Status:** Tactical (Strategic Level)
+**Status:** Verified
+**Implemented on:** 2026-04-25 (tactical plan: PLAN/spec_player-keybinding-remapping/INDEX.md)
+**Audit:** see `PLAN/spec_player-keybinding-remapping__audit_2026-04-25.md`
 **Date:** 2026-04-24
 **Tier:** 4 — Strategic (8h+, high risk)
 **Roadmap entry:** Ad-hoc — user request 2026-04-24. Full remapping of keyboard, mouse, gamepad and VR controller bindings for `PlayerActivity` and `VrPlayerActivity`.

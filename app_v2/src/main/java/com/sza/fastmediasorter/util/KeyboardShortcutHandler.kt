@@ -1,6 +1,11 @@
 package com.sza.fastmediasorter.util
 
 import android.view.KeyEvent
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.CommandId
+import com.sza.fastmediasorter.domain.input.InputSurface as DomainSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
+import com.sza.fastmediasorter.domain.input.fromKeyEvent
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputSurface
@@ -24,6 +29,9 @@ import timber.log.Timber
 class KeyboardShortcutHandler(
     private val surface: InputSurface,
     private val dispatcher: ActionDispatcher,
+    // Optional: when provided, PLAYER/VR_PLAYER surface resolves via the binding system.
+    // Pass null (default) for all other surfaces — they retain legacy inline mapping.
+    private val keyBindingManager: KeyBindingManager? = null,
 ) {
 
     /**
@@ -69,9 +77,70 @@ class KeyboardShortcutHandler(
      */
     fun handleKeyEvent(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action != KeyEvent.ACTION_DOWN) return false
+
+        // Player surfaces: try the binding system first so custom remappings take effect.
+        // Falls through to legacy mapToAction when resolver returns null (uncovered keys)
+        // or commandIdToAction returns null (surface-irrelevant commands like create_folder).
+        if (keyBindingManager != null && isPlayerSurface()) {
+            val domainSurface = if (surface == InputSurface.VR_PLAYER) DomainSurface.VR else DomainSurface.PLAYER
+            val commandId = keyBindingManager.resolve(InputTrigger.fromKeyEvent(event), domainSurface)
+            if (commandId != null) {
+                val action = commandIdToAction(commandId)
+                if (action != null) {
+                    Timber.v("KeyboardShortcutHandler[%s]: %s via binding", surface, action)
+                    return dispatcher.dispatch(action)
+                }
+            }
+        }
+
         val action = mapToAction(keyCode, event.metaState) ?: return false
         Timber.v("KeyboardShortcutHandler[%s]: %s", surface, action)
         return dispatcher.dispatch(action)
+    }
+
+    private fun isPlayerSurface() =
+        surface == InputSurface.PLAYER || surface == InputSurface.VR_PLAYER
+
+    /**
+     * Converts a [CommandId] string to the [InputAction] appropriate for the player surface.
+     * Returns null for commands that are irrelevant on this surface (e.g. create_folder),
+     * triggering a fallback to the legacy [mapToAction] path.
+     *
+     * Seek steps preserve pre-migration values: 5s commands map to ±10 s, 30s to ±60 s.
+     * These names reflect the intended future step sizes once the UI ships; existing
+     * behaviour is kept for this migration wave (Phase 03).
+     */
+    private fun commandIdToAction(commandId: String): InputAction? = when (commandId) {
+        CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE -> InputAction.PlayPause
+        CommandId.FRAME_STEP_FORWARD -> InputAction.FrameStep(forward = true)
+        CommandId.FRAME_STEP_BACKWARD -> InputAction.FrameStep(forward = false)
+        CommandId.SEEK_FORWARD_5S -> InputAction.SeekBy(+10)   // legacy step preserved
+        CommandId.SEEK_BACKWARD_5S -> InputAction.SeekBy(-10)
+        CommandId.SEEK_FORWARD_30S -> InputAction.SeekBy(+60)  // legacy step preserved
+        CommandId.SEEK_BACKWARD_30S -> InputAction.SeekBy(-60)
+        CommandId.NEXT_FILE -> InputAction.NextTrack
+        CommandId.PREVIOUS_FILE -> InputAction.PreviousTrack
+        CommandId.JUMP_START -> InputAction.MoveFocus(FocusDirection.FIRST)
+        CommandId.JUMP_END -> InputAction.MoveFocus(FocusDirection.LAST)
+        CommandId.FULLSCREEN -> InputAction.ToggleFullscreen
+        CommandId.VOLUME_UP -> InputAction.ChangeVolume(+1)
+        CommandId.VOLUME_DOWN -> InputAction.ChangeVolume(-1)
+        CommandId.MUTE -> InputAction.ToggleMute
+        CommandId.TOGGLE_CONTROLS -> InputAction.ShowPlaybackControls
+        CommandId.TOGGLE_INFO -> InputAction.ShowInfo
+        CommandId.EXIT -> InputAction.ExitSurface
+        CommandId.SHOW_HELP -> InputAction.ShowHelp
+        CommandId.SEARCH -> InputAction.SearchRequested
+        CommandId.UNDO -> InputAction.UndoRequested
+        CommandId.REDO -> InputAction.RedoRequested
+        CommandId.MOVE -> InputAction.MoveSelection
+        CommandId.COPY -> InputAction.CopySelection
+        CommandId.DELETE -> InputAction.DeleteSelection
+        CommandId.RENAME -> InputAction.RenameSelection
+        CommandId.FAVOURITE -> InputAction.ToggleFavourite
+        CommandId.FILE_OPS -> InputAction.ShowContextMenu
+        CommandId.SAVE -> InputAction.SaveCurrent
+        else -> null   // create_folder, paste, stop, speed_*, vr_* → fall through to legacy
     }
 
     /**

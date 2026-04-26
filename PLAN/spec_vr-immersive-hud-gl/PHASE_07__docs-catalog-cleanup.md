@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, Phase 02, Phase 03, Phase 04, Phase 05, Phase 06
 **Blocks:** none — final phase before `/spec-check`.
 **Steps done:** 0 / 5
@@ -60,7 +60,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `floating HUD` or `pop-up indicators` (author choice) in `docs/FEATURES.md` returns exactly one hit inside the VR section.
 - No duplicate VR Immersive Controls bullets.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -79,7 +79,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `...` (three dots) inside the block returns zero hits.
 - `Grep` — pattern `ё` or `Ё` in the block returns at least one hit if the Russian wording would normally contain `ё` (e.g., «всё», «ещё»).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -97,7 +97,7 @@ Check each before starting Step 1:
 - `Grep` — pattern (Ukrainian keyword the translator chose for "floating HUD", e.g. `спливаючий HUD`) in `docs/FEATURES_UK.md` returns exactly one hit.
 - `Grep` — pattern `...` inside the block returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -127,7 +127,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `"VrHudState"` returns exactly one hit.
 - `dev/CATALOG/app_v2.md` regenerated; diff is limited to the new entries (no spurious reordering).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -166,7 +166,7 @@ Check each before starting Step 1:
 - `Grep` on the latest block of `dev/CHANGELOG.md` — every file path from Phase 01..06 "Files Touched" tables appears at least once.
 - No direct edits to `dev/CHANGELOG.md` detected (`git diff` shows only script-appended lines).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

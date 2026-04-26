@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01
 **Blocks:** Phase 03, Phase 04, Phase 05, Phase 06, Phase 07
 **Steps done:** 0 / 5
@@ -53,7 +53,7 @@ Check each before starting Step 1:
 
 - `Glob` — `temp/OpenXrNative_phase02_*.cpp.bak` exists.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -82,7 +82,7 @@ Check each before starting Step 1:
 - `/build` skill compiles `vrDebug` without errors.
 - Device test: launching an immersive video session produces the new `HUD swapchain: ..` line in the log; existing video layer is unchanged.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -105,7 +105,7 @@ Check each before starting Step 1:
 - `/build` skill compiles `vrDebug` without errors.
 - Device test: exiting immersive logs `HUD swapchain destroyed`; subsequent re-entry logs a fresh `HUD swapchain: ..` line.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -139,7 +139,7 @@ Check each before starting Step 1:
 - `/build` skill compiles `vrDebug` without errors.
 - Device test: after Step 2.5 forces visibility on, a dark rectangle appears bottom-centre in immersive mode.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -170,7 +170,7 @@ Check each before starting Step 1:
 - `/build` skill compiles `vrDebug` without errors.
 - Device test: launch immersive video — a dark rectangle is visible in the lower-centre field of view, does not obstruct the video layer centre, and remains head-locked when the user turns the head. If the rectangle is not visible, revisit Step 2.4 (pose/orientation/size/space).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

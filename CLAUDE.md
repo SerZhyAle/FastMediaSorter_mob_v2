@@ -20,6 +20,7 @@ Non-negotiable — not typos.
 | Situation | Skill |
 |-----------|-------|
 | Creating/updating `PLAN/spec_*.md` | `/spec` |
+| Full spec pipeline (idea → verified implementation, unattended) | `/spec-all` |
 | UI/UX change touching layout, menus, visibility, orientation, empty/error states, overflow | `/ui-clarify` (blocks impl until ambiguities resolved) |
 | Editing `docs/FEATURES*.md` or other feature docs | `/doc-update` (EN/RU/UK mirrors) |
 | Analysing `logs/current.log` or logcat | `/log-reader` |

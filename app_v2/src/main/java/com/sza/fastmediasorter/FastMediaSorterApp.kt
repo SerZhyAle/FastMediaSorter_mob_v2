@@ -75,6 +75,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     
     @Inject
     lateinit var tempFileManager: com.sza.fastmediasorter.domain.transfer.TempFileManager
+
+    @Inject
+    lateinit var renameVirtualResourcesUseCase: com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
     
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -174,7 +177,8 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             resourceRepository = resourceRepository,
             playbackPositionRepository = playbackPositionRepository,
             thumbnailCacheRepository = thumbnailCacheRepository,
-            applicationScope = applicationScope
+            applicationScope = applicationScope,
+            renameVirtualResourcesUseCase = renameVirtualResourcesUseCase
         )
         startupInitializer.initialize()
         

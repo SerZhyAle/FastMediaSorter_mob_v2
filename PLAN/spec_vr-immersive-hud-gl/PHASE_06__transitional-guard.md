@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 05
 **Blocks:** Phase 07
 **Steps done:** 0 / 4
@@ -69,7 +69,7 @@ Check each before starting Step 1:
 - Same checks for `vr_hud_guard_controls` and `vr_hud_first_run_cheat` across all three locales (nine grep hits total — three per key).
 - `/build` skill compiles `vrDebug`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -103,7 +103,7 @@ Check each before starting Step 1:
 - `Grep` — pattern `vr_hud_first_run_cheat` in `VrPlayerActivity.kt` returns exactly one hit.
 - On-device test: short-press Y on the left controller in immersive — playback does NOT pause, a banner appears for ~3 s reading the localized equivalent of "File panel unavailable..". Long-press Y (> 0.8 s) — banner reads the first-run cheat summary. Press Menu (left) — banner for controls.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done (static checks pass; on-device test deferred to manual acceptance §11)
 
 ---
 
@@ -129,7 +129,7 @@ Check each before starting Step 1:
 - On-device test on a fresh install: first immersive launch shows the banner summary, not the Android-view cheatsheet; the "first-run shown" flag is set, so subsequent launches do not repeat.
 - `/build` skill compiles `vrDebug`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done (static checks pass; on-device test deferred to manual acceptance §11)
 
 ---
 

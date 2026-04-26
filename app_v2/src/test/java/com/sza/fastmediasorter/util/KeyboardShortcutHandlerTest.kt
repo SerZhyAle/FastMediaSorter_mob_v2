@@ -1,10 +1,17 @@
 package com.sza.fastmediasorter.util
 
 import android.view.KeyEvent
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.CommandId
+import com.sza.fastmediasorter.domain.input.InputSurface as DomainSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputSurface
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -300,5 +307,68 @@ class KeyboardShortcutHandlerTest {
     @Test
     fun `browse F8 still maps to delete`() {
         assertEquals(InputAction.DeleteSelection, parse(InputSurface.BROWSE, KeyEvent.KEYCODE_F8))
+    }
+
+    // ── Phase 3: resolver override tests ─────────────────────────────────────
+
+    @Test
+    fun `player resolver override dispatches PlayPause for P key`() {
+        val mockManager = mockk<KeyBindingManager>()
+        val mockEvent = mockk<KeyEvent>()
+        every { mockEvent.action } returns KeyEvent.ACTION_DOWN
+        every { mockEvent.keyCode } returns KeyEvent.KEYCODE_P
+        every { mockEvent.metaState } returns 0
+        every {
+            mockManager.resolve(InputTrigger.Key(KeyEvent.KEYCODE_P, 0), DomainSurface.PLAYER)
+        } returns CommandId.PAUSE_PLAY
+
+        var dispatched: InputAction? = null
+        val handler = KeyboardShortcutHandler(
+            InputSurface.PLAYER,
+            KeyboardShortcutHandler.ActionDispatcher { action -> dispatched = action; true },
+            mockManager,
+        )
+        handler.handleKeyEvent(KeyEvent.KEYCODE_P, mockEvent)
+        assertEquals(InputAction.PlayPause, dispatched)
+    }
+
+    @Test
+    fun `modifier mask strips NumLock so Ctrl+R resolves to rename`() {
+        val mockManager = mockk<KeyBindingManager>()
+        val mockEvent = mockk<KeyEvent>()
+        every { mockEvent.action } returns KeyEvent.ACTION_DOWN
+        every { mockEvent.keyCode } returns KeyEvent.KEYCODE_R
+        every { mockEvent.metaState } returns (KeyEvent.META_CTRL_ON or KeyEvent.META_NUM_LOCK_ON)
+        every {
+            mockManager.resolve(
+                InputTrigger.Key(KeyEvent.KEYCODE_R, KeyEvent.META_CTRL_ON),
+                DomainSurface.PLAYER,
+            )
+        } returns CommandId.RENAME
+
+        var dispatched: InputAction? = null
+        val handler = KeyboardShortcutHandler(
+            InputSurface.PLAYER,
+            KeyboardShortcutHandler.ActionDispatcher { action -> dispatched = action; true },
+            mockManager,
+        )
+        handler.handleKeyEvent(KeyEvent.KEYCODE_R, mockEvent)
+        assertEquals(InputAction.RenameSelection, dispatched)
+    }
+
+    @Test
+    fun `resolver returns null for KEYCODE_UNKNOWN, handler returns false`() {
+        val mockManager = mockk<KeyBindingManager>()
+        val mockEvent = mockk<KeyEvent>()
+        every { mockEvent.action } returns KeyEvent.ACTION_DOWN
+        every { mockEvent.keyCode } returns KeyEvent.KEYCODE_UNKNOWN
+        every { mockEvent.metaState } returns 0
+        every {
+            mockManager.resolve(InputTrigger.Key(KeyEvent.KEYCODE_UNKNOWN, 0), DomainSurface.PLAYER)
+        } returns null
+
+        val handler = KeyboardShortcutHandler(InputSurface.PLAYER, noop, mockManager)
+        val result = handler.handleKeyEvent(KeyEvent.KEYCODE_UNKNOWN, mockEvent)
+        assertFalse(result)
     }
 }

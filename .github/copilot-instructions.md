@@ -30,6 +30,12 @@ These prompt files MUST be used automatically — load them via the `/` slash co
 | Trigger | Prompt | Rule |
 |---------|--------|------|
 | Creating or updating any `PLAN/spec_*.md` file | `/spec` | **Mandatory** — enforces full project spec template including flavor scope, API-level analysis, architecture compliance, testing plan, accessibility, and ADRs |
+| Full spec pipeline from idea to verified implementation, unattended | `/spec-all` | **Mandatory** — chains spec → spec-update → spec-tech → spec-dev → spec-check → spec-fix in a single automated run; hard-stops only when human action is truly required |
+| Breaking an approved strategic spec into a tactical phase plan | `/spec-tech` | **Mandatory** — creates `PLAN/spec_<name>/INDEX.md` + phase files with atomic steps and verification predicates |
+| Reviewing and refining an existing spec file (strategic or tactical) | `/spec-update` | **Mandatory** — structured review pass with ACCEPT/REVIEW/DISCUSS classification; never modifies Status fields |
+| Executing a tactical spec step by step, implementing phases | `/spec-dev` | **Mandatory** — agentic implementation executor; verifies each step before marking done; hard-stops on ambiguity |
+| Auditing a spec against the actual codebase state | `/spec-check` | **Mandatory** — machine-verifiable audit; writes `PLAN/spec_<name>__audit_<date>.md`; sets Status to Verified/Partial/Broken |
+| Applying mechanical fixes after a spec-check audit | `/spec-fix` | **Mandatory** — consumes audit report; applies trivial fixes (dev log, trilingual gaps, catalog, Log.d → Timber, INDEX drift) |
 | User asks for user-facing UI/UX changes, or task touches layouts, command bars, menus, settings screens, button placement, portrait/landscape behavior, overflow rules, visibility conditions, empty/error states, or confirmation UX | `/ui-clarify` | **Mandatory** — before design or implementation, enumerate and resolve all UI ambiguities; implementation is blocked until placement, visibility, interaction, and fallback behavior are explicit or approved |
 | Updating documentation files (`docs/FEATURES*.md`, `docs/TECH_STACK.md`, or any feature/help docs) | `/doc-update` | **Mandatory** — ensures EN/RU/UK mirrors stay in sync and all doc categories are checked |
 | User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** — provides structured Android logcat analysis with the search-log.ps1 scripts |

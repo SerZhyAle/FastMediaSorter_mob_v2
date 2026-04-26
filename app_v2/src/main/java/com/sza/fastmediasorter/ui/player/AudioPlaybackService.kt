@@ -243,6 +243,26 @@ class AudioPlaybackService : MediaSessionService() {
     }
 
     /**
+     * R2 bridge: single entry point for all command-driven playback actions.
+     *
+     * Routes any [com.sza.fastmediasorter.domain.input.CommandId] value to the
+     * corresponding player operation. Called by Phase 06 settings UI (binding test)
+     * and externally triggered media actions so every entry point shares one code path.
+     */
+    fun dispatchCommand(commandId: String) {
+        val p = player ?: return
+        when (commandId) {
+            "playback.pause_play" -> if (p.isPlaying) p.pause() else p.play()
+            "playback.play"       -> p.play()
+            "playback.pause"      -> p.pause()
+            "playback.stop"       -> { p.pause(); p.seekTo(0) }
+            "navigation.next_file"     -> p.seekToNext()
+            "navigation.previous_file" -> p.seekToPrevious()
+            else -> Timber.d("AudioPlaybackService: dispatchCommand ignored commandId=%s", commandId)
+        }
+    }
+
+    /**
      * Prepares and starts playback of an audio file.
      * Called internally when the service is started with a media URI.
      */

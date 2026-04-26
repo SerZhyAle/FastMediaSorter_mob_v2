@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
+import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import java.util.Optional
@@ -324,6 +325,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     @Inject
     lateinit var okHttpClient: okhttp3.OkHttpClient
 
+    @Inject
+    lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+
     internal val hideControlsRunnable = Runnable {
         if (!isDestroyed && !isFinishing && !viewModel.state.value.isPaused) viewModel.toggleControls()
     }
@@ -539,8 +543,30 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     internal open fun saveCurrentFrame() = saveVideoFrameManager.saveCurrentFrame()
 
-    /** Called when user taps the 3DVR toggle button. Overridden in VrPlayerActivity. */
-    internal open fun handle3dVrToggleClicked() = Unit
+    /**
+     * Called when user taps the immersive toggle button. Overridden in VrPlayerActivity.
+     *
+     * WHY this base implementation exists: in the VR flavor, PlayerActivity may serve as
+     * a panel-mode fallback for non-stereo content. If the user taps "3DVR" they want to
+     * enter immersive XR mode. We relaunch using VrTaskTransition so the HorizonOS task
+     * affinity rules are satisfied (separate VR task). Class is resolved via
+     * BuildConfig.PLAYER_ACTIVITY_CLASS to avoid a layering dependency on VrPlayerActivity.
+     */
+    internal open fun handle3dVrToggleClicked() {
+        if (!BuildConfig.SUPPORT_VR_PLAYER) return
+        try {
+            val vrClass = Class.forName(BuildConfig.PLAYER_ACTIVITY_CLASS)
+            val vrIntent = Intent(intent).apply {
+                setClass(this@PlayerActivity, vrClass)
+                // VrPlayerActivity reads this flag to bypass stereo-detection and force
+                // immersive XR route. Key must stay in sync with VrPlayerActivity.EXTRA_FORCE_IMMERSIVE.
+                putExtra("com.sza.fastmediasorter.EXTRA_FORCE_IMMERSIVE", true)
+            }
+            VrTaskTransition.enterImmersive(this, vrIntent)
+        } catch (e: ClassNotFoundException) {
+            Timber.w("handle3dVrToggleClicked: VrPlayerActivity not found in this build (%s)", e.message)
+        }
+    }
 
     internal fun handleDeleteSuccess(deletedFilePath: String) = lifecycleManager.handleDeleteSuccess(deletedFilePath)
 

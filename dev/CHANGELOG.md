@@ -3698,3 +3698,244 @@ Format: | datetime | file | target | description |
 | 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_06__transitional-guard.md` | `spec-tech` | Phase 06: transitional-guard |
 | 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
 | 2026-04-25 02:41:44 | `PLAN/spec_vr-immersive-hud-gl.md` | `spec-tech` | Move strategic status to Tactical; link tactical plan |
+| 2026-04-25 03:06:57 | `app_v2/build.gradle.kts` | `spec-vr-immersive-hud-gl` | P01: VR_UI_COMPOSITION_LAYER_ENABLED BuildConfig flag for vr/vrUnlicensed flavors |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `spec-vr-immersive-hud-gl` | P01-03: HUD swapchain fields, JNI lifecycle stubs, viewSpace, XrCompositionLayerQuad, real bitmap upload via AndroidBitmap |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/cpp/CMakeLists.txt` | `spec-vr-immersive-hud-gl` | P03: link jnigraphics for AndroidBitmap_lockPixels |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrNative.kt` | `spec-vr-immersive-hud-gl` | P01: external decls for HUD swapchain lifecycle + bitmap upload |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `spec-vr-immersive-hud-gl` | P01: HUD swapchain pass-throughs |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudRenderer.kt` | `spec-vr-immersive-hud-gl` | P03: VrHudRenderer (new) |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudState.kt` | `spec-vr-immersive-hud-gl` | P04: VrHudState + RepeatMode + ActionBadge (new) |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt` | `spec-vr-immersive-hud-gl` | P04: VrHudSceneComposer Canvas painter (new) |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `spec-vr-immersive-hud-gl` | P05: VrHudSceneDriver GL backend of VrHudSink (new) |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudSink.kt` | `spec-vr-immersive-hud-gl` | P05: VrHudSink interface (new) |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudIndicatorManager.kt` | `spec-vr-immersive-hud-gl` | P05: implement VrHudSink; add showActionBadge/showRepeatMode/showBannerText/updateProgress |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrCheatsheetOverlayManager.kt` | `spec-vr-immersive-hud-gl` | P06: route first-run cheatsheet through HUD banner when immersive UI is locked |
+| 2026-04-25 03:06:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `spec-vr-immersive-hud-gl` | P05-06: HUD pipeline wiring + 2 Hz progress ticker + isImmersiveUiLocked guard |
+| 2026-04-25 03:06:57 | `app_v2/src/main/res/values/strings.xml` | `spec-vr-immersive-hud-gl` | P06: vr_hud_guard_file_ops, vr_hud_guard_controls, vr_hud_first_run_cheat (EN) |
+| 2026-04-25 03:06:57 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-vr-immersive-hud-gl` | P06: vr_hud_guard_* + first_run_cheat (RU) |
+| 2026-04-25 03:06:57 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-vr-immersive-hud-gl` | P06: vr_hud_guard_* + first_run_cheat (UK) |
+| 2026-04-25 03:06:57 | `docs/FEATURES.md` | `spec-vr-immersive-hud-gl` | P07: VR Immersive HUD bullet |
+| 2026-04-25 03:06:57 | `docs/FEATURES_RU.md` | `spec-vr-immersive-hud-gl` | P07: пункт «Иммерсивный HUD» |
+| 2026-04-25 03:06:57 | `docs/FEATURES_UK.md` | `spec-vr-immersive-hud-gl` | P07: пункт «Іммерсивний HUD» |
+| 2026-04-25 03:06:57 | `dev/CATALOG/app_v2.jsonl` | `spec-vr-immersive-hud-gl` | P07: regen via scan.ps1 (VR src/vr/* not covered by scanner — main only) |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl__audit_2026-04-25.md` | `spec-check` | Audit vr-immersive-hud-gl: Partial (31 PASS / 9 WARN / 0 FAIL / 7 MANUAL) |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl.md` | `spec-check` | Advance status to Partial; link audit report |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl/PHASE_01__foundations.md` | `spec-check` | Flip phase header to Done |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl/PHASE_02__composition-layer.md` | `spec-check` | Flip phase header to Done |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl/PHASE_03__bitmap-upload.md` | `spec-check` | Flip phase header to Done |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl/PHASE_04__scene-composer.md` | `spec-check` | Flip phase header to Done |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl/PHASE_05__event-routing.md` | `spec-check` | Flip phase header to Done |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl/PHASE_06__transitional-guard.md` | `spec-check` | Flip phase header to Done |
+| 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl/PHASE_07__docs-catalog-cleanup.md` | `spec-check` | Flip phase header to Done |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl__fix_2026-04-25.md` | `spec-fix` | Fix-up run for vr-immersive-hud-gl: 7 auto / 8 manual follow-ups |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl__audit_2026-04-25.md` | `spec-fix` | Annotate audit with FIXED / FOLLOW-UP tags |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl/PHASE_01__foundations.md` | `spec-fix` | Flip 5 step Status to done |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl/PHASE_02__composition-layer.md` | `spec-fix` | Flip 5 step Status to done |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl/PHASE_03__bitmap-upload.md` | `spec-fix` | Flip 4 step Status to done |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl/PHASE_04__scene-composer.md` | `spec-fix` | Flip steps 4.1 and 4.2 to done; 4.3 / 4.4 left as EXEMPT |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl/PHASE_05__event-routing.md` | `spec-fix` | Flip 5 step Status to done |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl/PHASE_06__transitional-guard.md` | `spec-fix` | Flip steps 6.1 / 6.2 / 6.3 to done; 6.4 left MANUAL |
+| 2026-04-25 03:18:52 | `PLAN/spec_vr-immersive-hud-gl/PHASE_07__docs-catalog-cleanup.md` | `spec-fix` | Flip 5 step Status to done |
+| 2026-04-25 03:59:06 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudRenderer.kt` | `VrHudRenderer` | Added throttled HUD visibility/upload diagnostics for immersive VR troubleshooting |
+| 2026-04-25 04:12:59 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative HUD layer` | Fixed immersive HUD to present the actual uploaded swapchain image instead of hardcoded index 0 |
+| 2026-04-25 04:14:08 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative HUD layer` | Removed accidental compile-breaking insertion from stereo snapshot glReadPixels while keeping HUD swapchain index fix |
+| 2026-04-25 04:23:53 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative HUD layer` | Reverted invalid HUD imageArrayIndex change that caused xrEndFrame failures, frozen video, and stuck VR exit flow |
+| 2026-04-25 04:53:25 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `VR HUD` | Fix HUD invisible: move glTexSubImage2D to render thread via hudPendingPixels staging buffer; nativeUploadHudBitmap now only memcpy+sets flag, renderFrame drains on GL-owning thread |
+| 2026-04-25 04:53:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `VR 3D toggle` | Fix 3D toggle button in panel mode: handle3dVrToggleClicked() now relaunches VrPlayerActivity via VrTaskTransition with EXTRA_FORCE_IMMERSIVE=true |
+| 2026-04-25 05:00:40 | `app_v2/build.gradle.kts` | `defaultConfig` | Fix versionName typo: 2.65.4250.454 -> 2.60.4250.454 (April=04, YM must be 60 not 65) |
+| 2026-04-25 05:00:40 | `wear/build.gradle.kts` | `defaultConfig` | Replace dynamic LocalDateTime version computation with hardcoded values; remove unused time imports; sync version with app_v2 (2.60.4250.454, code 26042504) |
+| 2026-04-25 05:00:40 | `dev/build-with-version.ps1` | `Invoke-VersionedBuild` | Add wear/build.gradle.kts update step so both app_v2 and wear get the same version on every versioned build |
+| 2026-04-25 05:00:50 | `app_v2/build.gradle.kts` | `defaultConfig` | Fix versionName typo: 2.65.4250.454 -> 2.60.4250.454 (April=04, YM must be 60 not 65) |
+| 2026-04-25 05:00:58 | `wear/build.gradle.kts` | `defaultConfig` | Replace dynamic LocalDateTime version computation with hardcoded values matching app_v2; remove unused java.time imports; versionCode=26042504, versionName=2.60.4250.454 |
+| 2026-04-25 05:00:58 | `dev/build-with-version.ps1` | `version update block` | Add wear/build.gradle.kts sync step: both app_v2 and wear now receive the same versionName; wear uses 8-digit code (yyMMddHH) |
+| 2026-04-25 05:01:14 | `dev/build-with-version.ps1` | `version update block` | Add wear/build.gradle.kts sync step: both app_v2 and wear now receive the same versionName; wear uses 8-digit code (yyMMddHH) |
+| 2026-04-25 05:21:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt` | `draw()` | Fix HUD upside-down: wrap all draw calls in canvas.save()+scale(1f,-1f) to correct GL texture Y-axis flip; add drawStereoModeLabel() |
+| 2026-04-25 05:21:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudState.kt` | `stereoModeLabel` | Add stereoModeLabel: String? = null field for stereo-mode HUD badge (2D, 360 SBS, VR180, etc.) |
+| 2026-04-25 05:21:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudSink.kt` | `reportActivity/showStereoModeLabel` | Add reportActivity() and showStereoModeLabel(label) to VrHudSink interface |
+| 2026-04-25 05:21:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudIndicatorManager.kt` | `reportActivity/showStereoModeLabel` | Add no-op stubs for reportActivity() and showStereoModeLabel() in view-overlay fallback |
+| 2026-04-25 05:21:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `auto-hide/reportActivity` | Auto-hide HUD after 15s idle: fix anySlotActive (isPaused==true only), remove updateProgress visibilityWindow extension, add reportActivity() with 15s delayed clear, add showStereoModeLabel(), add persistedIsPaused tracking |
+| 2026-04-25 05:21:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelper.kt` | `userForcedPanel/SBS_FULL fix` | Add userForcedPanel param: returns STANDARD_PANEL_FALLBACK for spherical/SBS content when user taps panel toggle; fix SBS_FULL bug: forced-immersive on 2D content now uses MONO not SBS_FULL |
+| 2026-04-25 05:21:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `EXTRA_FORCE_PANEL/reportActivity/stereoLabel` | Add EXTRA_FORCE_PANEL const, forcePanelThisLaunch field, pass to routeDecisionHelper; add reportActivity() on key ACTION_UP and handleVrCommand(); throttled reportActivity() in onGenericMotionEvent (1Hz); add applyStereoModeToVrRenderers call to showStereoModeLabel with StereoMode.toHudLabel() mapping |
+| 2026-04-25 05:21:17 | `app_v2/src/vr/.../VrHudSceneComposer.kt` | `draw()` | Fix HUD upside-down: canvas Y-flip via save/scale(1f,-1f)/restore; add drawStereoModeLabel() |
+| 2026-04-25 05:21:17 | `app_v2/src/vr/.../VrHudState.kt` | `data class` | Add stereoModeLabel: String? = null field |
+| 2026-04-25 05:21:17 | `app_v2/src/vr/.../VrHudSink.kt` | `interface` | Add reportActivity() and showStereoModeLabel() to interface |
+| 2026-04-25 05:21:17 | `app_v2/src/vr/.../VrHudIndicatorManager.kt` | `impl` | Add no-op stubs for reportActivity() and showStereoModeLabel() |
+| 2026-04-25 05:21:17 | `app_v2/src/vr/.../VrHudSceneDriver.kt` | `auto-hide` | 15s idle auto-hide: fix anySlotActive, remove updateProgress visibility extension, add reportActivity/showStereoModeLabel/persistedIsPaused |
+| 2026-04-25 05:21:17 | `app_v2/src/vr/.../VrRouteDecisionHelper.kt` | `decide()` | Add userForcedPanel param; fix forced-immersive SBS_FULL bug (use MONO for 2D content) |
+| 2026-04-25 05:21:17 | `app_v2/src/vr/.../VrPlayerActivity.kt` | `multiple` | EXTRA_FORCE_PANEL const+field; pass to decide(); reportActivity on key/command/motion; showStereoModeLabel on mode change; StereoMode.toHudLabel() mapping |
+| 2026-04-25 05:21:21 | `VrHudSceneComposer.kt` | `draw` | Fix HUD Y-flip via canvas scale; add drawStereoModeLabel |
+| 2026-04-25 05:21:27 | `VrHudState.kt` | `data class` | Add stereoModeLabel: String? = null field for HUD badge |
+| 2026-04-25 05:21:27 | `VrHudSink.kt` | `interface` | Add reportActivity() and showStereoModeLabel() to interface |
+| 2026-04-25 05:21:27 | `VrHudIndicatorManager.kt` | `overrides` | Add no-op stubs: reportActivity, showStereoModeLabel |
+| 2026-04-25 05:21:27 | `VrHudSceneDriver.kt` | `auto-hide` | 15s idle auto-hide: fix anySlotActive, remove updateProgress window extension, add reportActivity/showStereoModeLabel/persistedIsPaused |
+| 2026-04-25 05:21:27 | `VrRouteDecisionHelper.kt` | `decide` | Add userForcedPanel param; fix forced-immersive SBS_FULL bug (use MONO for 2D) |
+| 2026-04-25 05:21:27 | `VrPlayerActivity.kt` | `multiple` | EXTRA_FORCE_PANEL; reportActivity on key/command/motion; showStereoModeLabel on mode change; toHudLabel() mapping |
+| 2026-04-25 05:21:35 | `VrHudState.kt` | `stereoModeLabel` | Add stereoModeLabel: String? = null field for HUD badge |
+| 2026-04-25 05:21:35 | `VrHudSink.kt` | `interface` | Add reportActivity() and showStereoModeLabel() |
+| 2026-04-25 05:21:35 | `VrHudIndicatorManager.kt` | `stubs` | No-op stubs for reportActivity and showStereoModeLabel |
+| 2026-04-25 05:21:35 | `VrHudSceneDriver.kt` | `auto-hide` | 15s idle auto-hide + reportActivity + showStereoModeLabel + persistedIsPaused |
+| 2026-04-25 05:21:35 | `VrRouteDecisionHelper.kt` | `decide` | userForcedPanel param + fix SBS_FULL->MONO for forced-immersive 2D |
+| 2026-04-25 05:21:35 | `VrPlayerActivity.kt` | `multi` | EXTRA_FORCE_PANEL + reportActivity on events + showStereoModeLabel + toHudLabel() |
+| 2026-04-25 12:01:32 | `PLAN/spec_vr-immersive-toggle.md` | `spec` | Add strategic specification for ad-hoc vr-immersive-toggle |
+| 2026-04-25 12:07:21 | `PLAN/spec_vr-immersive-toggle/INDEX.md` | `spec-tech` | Create tactical plan for vr-immersive-toggle |
+| 2026-04-25 12:07:21 | `PLAN/spec_vr-immersive-toggle/PHASE_01__resource-rename.md` | `spec-tech` | Phase 01: resource-rename |
+| 2026-04-25 12:07:21 | `PLAN/spec_vr-immersive-toggle/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-04-25 12:07:21 | `PLAN/spec_vr-immersive-toggle.md` | `spec-tech` | Move strategic status to Tactical; link tactical plan |
+| 2026-04-25 12:12:05 | `app_v2/src/main/res/drawable/ic_vr_3d.xml` | `vr-immersive-toggle` | Replace 3D glyph with enter-arrow in ic_vr_3d |
+| 2026-04-25 12:13:24 | `app_v2/src/main/res/values/strings.xml` | `vr-immersive-toggle` | Rename vr_toggle_enter/exit_description: Watch in 3D VR -> Immersive view / Exit 3D VR -> Exit immersive |
+| 2026-04-25 12:13:24 | `app_v2/src/main/res/values-ru/strings.xml` | `vr-immersive-toggle` | RU: rename vr_toggle strings to В иммерсив / Из иммерсива |
+| 2026-04-25 12:13:24 | `app_v2/src/main/res/values-uk/strings.xml` | `vr-immersive-toggle` | UK: rename vr_toggle strings to В іммерсив / З іммерсиву |
+| 2026-04-25 12:14:56 | `PLAN/spec_player-keybinding-remapping/INDEX.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all) |
+| 2026-04-25 12:28:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `vr-immersive-toggle` | Update comment: 3DVR toggle -> immersive toggle |
+| 2026-04-25 12:28:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrToggleButtonManager.kt` | `vr-immersive-toggle` | Update KDoc: Watch in 3D VR -> Immersive view |
+| 2026-04-25 12:28:43 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `vr-immersive-toggle` | Update comments: 3DVR toggle button -> immersive toggle button |
+| 2026-04-25 12:29:39 | `docs/FEATURES.md` | `vr-immersive-toggle` | Update VR Edition: 3DVR toggle button -> Immersive mode toggle, note 2D support |
+| 2026-04-25 12:29:43 | `docs/FEATURES_RU.md` | `vr-immersive-toggle` | RU: Update VR Edition immersive toggle description |
+| 2026-04-25 12:29:43 | `docs/FEATURES_UK.md` | `vr-immersive-toggle` | UK: Update VR Edition immersive toggle description |
+| 2026-04-25 12:29:48 | `PLAN/spec_vr-immersive-toggle.md` | `vr-immersive-toggle` | Move strategic status to Tactical; link tactical plan |
+| 2026-04-25 12:30:48 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrToggleButtonManager.kt` | `vr-immersive-toggle` | Update KDoc first line: 3DVR toggle button -> immersive toggle button |
+| 2026-04-25 12:30:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `vr-immersive-toggle` | Update KDoc: 3DVR toggle button -> immersive toggle button |
+| 2026-04-25 12:35:48 | `PLAN/spec_vr-immersive-toggle__audit_2026-04-25.md` | `spec-check` | Audit vr-immersive-toggle |
+| 2026-04-25 12:35:48 | `PLAN/spec_vr-immersive-toggle.md` | `spec-check` | Advance status to Verified |
+| 2026-04-25 12:35:48 | `PLAN/spec_vr-immersive-toggle/INDEX.md` | `spec-check` | Audit complete — all phases Verified |
+| 2026-04-25 12:35:49 | `PLAN/spec_vr-immersive-toggle/PHASE_02__docs-catalog-cleanup.md` | `spec-check` | Tick Phase Done Criteria checkboxes |
+| 2026-04-25 12:47:10 | `temp/phase1/engine-paths-verified.txt` | `spec-tech-phase1` | Phase 1 artefact: engine path verification |
+| 2026-04-25 12:47:10 | `temp/phase1/trigger-catalogue-raw.txt` | `spec-tech-phase1` | Phase 1 artefact: trigger catalogue raw grep |
+| 2026-04-25 12:47:10 | `temp/phase1/emitted-actions.txt` | `spec-tech-phase1` | Phase 1 artefact: emitted action inventory |
+| 2026-04-25 12:47:10 | `temp/phase1/debounce-literals.md` | `spec-tech-phase1` | Phase 1 artefact: debounce / deadzone literals |
+| 2026-04-25 12:47:10 | `temp/phase1/new-engines-scan.txt` | `spec-tech-phase1` | Phase 1 artefact: new-engines scan |
+| 2026-04-25 12:47:10 | `temp/phase1/commandid-candidates.md` | `spec-tech-phase1` | Phase 1 artefact: CommandId candidate list |
+| 2026-04-25 12:47:10 | `temp/phase1/defaults-seed.md` | `spec-tech-phase1` | Phase 1 artefact: default-binding seed table |
+| 2026-04-25 12:50:23 | `.claude/commands/spec-all.md` | `skill` | Add /spec-all full pipeline orchestrator skill |
+| 2026-04-25 13:00:33 | `app_v2/src/main/assets/input/default_bindings.json` | `spec-dev 02.2` | Create Defaults Map File asset: 70 binding entries, schema_version=1, keyboard/gamepad/mouse/vr triggers per command |
+| 2026-04-25 13:12:37 | `PLAN/spec_player-keybinding-remapping/PHASE_02__foundation.md` | `spec-update` | Fix path data/db->data/local/db (5 occurrences), CommandId type->String in Steps 02.5/02.6, N+1 template->24_25 in Step 02.3 Verification |
+| 2026-04-25 13:15:02 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingEntity.kt` | `spec-dev 02.3` | Create Room entity for input_bindings table (PK: command_id+device+slot) |
+| 2026-04-25 13:15:02 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingDao.kt` | `spec-dev 02.3` | Create Room DAO for input_bindings: observeAll/upsert/deleteByCommand/deleteAll |
+| 2026-04-25 13:15:02 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `spec-dev 02.3` | Bump DB version 24->25, add InputBindingEntity to entities, add inputBindingDao accessor, add MIGRATION_24_25 |
+| 2026-04-25 13:15:02 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt` | `spec-dev 02.3` | Register MIGRATION_24_25 in Room.databaseBuilder |
+| 2026-04-25 13:16:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/DefaultsMapLoader.kt` | `spec-dev 02.4` | Create DefaultsMapLoader: reads assets/input/default_bindings.json, deserializes triggers, returns List<InputBinding> (synchronous) |
+| 2026-04-25 13:17:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingRepository.kt` | `spec-dev 02.5` | Create InputBindingRepository: observeResolvedBindings (merge defaults+overrides), setOverride, clearOverride, clearAll |
+| 2026-04-25 13:17:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingDao.kt` | `spec-dev 02.5` | Add deleteByCommandAndDevice query (needed by clearOverride) |
+| 2026-04-25 13:18:21 | `.claude/commands/spec-all.md` | `spec-all` | Add forward-bias rules: spec self-correction, out-of-scope side-specs, revised hard-stop table |
+| 2026-04-25 13:18:27 | `app_v2/src/main/java/com/sza/fastmediasorter/core/input/KeyBindingManager.kt` | `spec-dev 02.6` | Create KeyBindingManager: @Volatile indexes, resolve()/resolveKeyAction(), @ApplicationScope launchIn, O(1) hot path |
+| 2026-04-25 13:19:37 | `app_v2/src/main/java/com/sza/fastmediasorter/di/InputBindingModule.kt` | `spec-dev 02.7` | Create Hilt module: provides InputBindingDao from AppDatabase (other classes use @Inject constructor) |
+| 2026-04-25 13:21:01 | `app_v2/src/test/java/com/sza/fastmediasorter/core/input/KeyBindingManagerTest.kt` | `spec-dev 02.8` | Create unit test: 3 test cases for resolve() — override/default/unknown trigger, MockK + UnconfinedTestDispatcher |
+| 2026-04-25 14:04:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `camera-capture-command` | Add disableCameraCapture + skipCameraFilenameDialog settings fields |
+| 2026-04-25 14:05:31 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `camera-capture-command` | Add KEY_DISABLE_CAMERA_CAPTURE + KEY_SKIP_CAMERA_FILENAME_DIALOG DataStore keys |
+| 2026-04-25 14:06:01 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `camera-capture-command` | Add disableCameraCapture + skipCameraFilenameDialog to BackupData |
+| 2026-04-25 14:06:33 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `camera-capture-command` | Add disableCameraCapture + skipCameraFilenameDialog to BackupMapper |
+| 2026-04-25 14:06:56 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt` | `camera-capture-command` | Export disableCameraCapture + skipCameraFilenameDialog in XML backup |
+| 2026-04-25 14:07:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `camera-capture-command` | Import disableCameraCapture + skipCameraFilenameDialog from XML backup |
+| 2026-04-25 14:07:48 | `app_v2/src/main/res/drawable/ic_camera_capture.xml` | `camera-capture-command` | Add camera capture icon (photo_camera Material vector) |
+| 2026-04-25 14:08:15 | `app_v2/src/main/res/layout/activity_browse.xml` | `camera-capture-command` | Add btnCameraCapture button to Browse top command bar (visibility=gone initially) |
+| 2026-04-25 14:08:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt` | `camera-capture-command` | Add onCameraCaptureClicked callback + click listener for btnCameraCapture |
+| 2026-04-25 14:14:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseStateUiUpdater.kt` | `spec-dev` | Step 02.4: add isCameraCaptureVisible companion helper + updateCameraCaptureVisibility instance method |
+| 2026-04-25 14:15:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt` | `spec-dev` | Step 02.5: add observeCameraCaptureVisibility() combining settings+state → sets btnCameraCapture visibility |
+| 2026-04-25 14:20:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `spec-dev` | Phase 03: create BrowseCameraCaptureManager — launcher registration, temp file, filename dialog, save routing (DCIM/local), upload fallback TODO |
+| 2026-04-25 14:29:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `spec-dev` | Phase 04: add cameraCaptureManager init, onCameraCaptureClicked(), onCapturedFileSaved() delegates |
+| 2026-04-25 14:29:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseEvent.kt` | `spec-dev` | Phase 04: add ScrollToFile event |
+| 2026-04-25 14:29:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `spec-dev` | Phase 04: add scrollToFileAfterRefresh() — waits for file in state then emits ScrollToFile event |
+| 2026-04-25 14:29:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `spec-dev` | Phase 04: add onScrollToFile callback + handle ScrollToFile event |
+| 2026-04-25 14:29:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `spec-dev` | Phase 04: wire onScrollToFile lambda in BrowseEventHandler + update onCameraCaptureClicked stub |
+| 2026-04-25 14:37:35 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `camera-capture-command` | Phase 05: add switchDisableCameraCapture + rowSkipCameraFilename switch rows after containerDeleteConfirm |
+| 2026-04-25 14:37:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `camera-capture-command` | Phase 05: wire switchDisableCameraCapture + switchSkipCameraFilenameDialog listeners and observer with rowSkipCameraFilename subordination |
+| 2026-04-25 14:37:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchIndex.kt` | `camera-capture-command` | Phase 05: add setting_disable_camera_capture + setting_skip_camera_filename_dialog entries to SettingsSearchRegistry |
+| 2026-04-25 14:40:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `camera-capture-command` | Add BrowseCameraCaptureManager: camera capture button in Browse, saves to resource root or DCIM, filename dialog, 2 settings |
+| 2026-04-25 14:51:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseStateUiUpdater.kt` | `camera-capture-command` | Phase 02: add isCameraCaptureVisible companion + updateCameraCaptureVisibility for btnCameraCapture visibility logic |
+| 2026-04-25 14:51:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt` | `camera-capture-command` | Phase 02: add observeCameraCaptureVisibility() combining settings+state to drive btnCameraCapture visibility |
+| 2026-04-25 14:51:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `camera-capture-command` | Phase 04: add cameraCaptureManager field + onCameraCaptureClicked + onCapturedFileSaved |
+| 2026-04-25 14:51:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `camera-capture-command` | Phase 04: handle BrowseEvent.ScrollToFile via onScrollToFile lambda wired in BrowseManagerInitializer |
+| 2026-04-25 14:51:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseEvent.kt` | `camera-capture-command` | Phase 04: add ScrollToFile(fileName) event for post-capture scroll-to-position |
+| 2026-04-25 14:51:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `camera-capture-command` | Phase 04: add scrollToFileAfterRefresh — waits for file in state then emits BrowseEvent.ScrollToFile |
+| 2026-04-25 14:51:52 | `app_v2/src/main/res/values/strings.xml` | `camera-capture-command` | Phase 06: add setting_disable_camera_capture + setting_skip_camera_filename_dialog EN strings |
+| 2026-04-25 14:51:52 | `app_v2/src/main/res/values-ru/strings.xml` | `camera-capture-command` | Phase 06: add setting_disable_camera_capture + setting_skip_camera_filename_dialog RU strings |
+| 2026-04-25 14:51:52 | `app_v2/src/main/res/values-uk/strings.xml` | `camera-capture-command` | Phase 06: add setting_disable_camera_capture + setting_skip_camera_filename_dialog UK strings |
+| 2026-04-25 14:51:52 | `docs/FEATURES.md` | `camera-capture-command` | Phase 06: add Camera capture bullet to Section 3 File Operations |
+| 2026-04-25 14:51:52 | `docs/FEATURES_RU.md` | `camera-capture-command` | Phase 06: add Съёмка с камеры bullet to Section 3 |
+| 2026-04-25 14:51:52 | `docs/FEATURES_UK.md` | `camera-capture-command` | Phase 06: add Зйомка з камери bullet to Section 3 |
+| 2026-04-25 14:52:22 | `PLAN/spec_camera-capture-command__audit_2026-04-25.md` | `spec-check` | Audit camera-capture-command: 38 PASS, 3 WARN (bookkeeping), 14 MANUAL — Verified after fix |
+| 2026-04-25 14:52:22 | `PLAN/spec_camera-capture-command.md` | `spec-check` | Advance status to Verified |
+| 2026-04-25 14:52:22 | `PLAN/spec_camera-capture-command/INDEX.md` | `spec-check` | Flip INDEX status to Done, all 6 phases confirmed |
+| 2026-04-25 14:52:22 | `PLAN/spec_camera-capture-command/PHASE_01__data-model.md` | `spec-check` | Fix phase header to Done + tick all Done Criteria (bookkeeping gap from original spec-dev run) |
+| 2026-04-25 14:52:28 | `PLAN/spec-all_camera-capture-command_2026-04-25.md` | `spec-all` | Full pipeline completed: camera-capture-command → Verified |
+| 2026-04-25 15:11:50 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/input/InputTrigger.kt` | `InputTrigger` | Add fromKeyEvent companion extension + extractModifiers helper (Phase 03 Step 03.1) |
+| 2026-04-25 15:12:00 | `app_v2/src/main/java/com/sza/fastmediasorter/util/KeyboardShortcutHandler.kt` | `KeyboardShortcutHandler` | Migrate K1: resolver intercept for PLAYER/VR_PLAYER surfaces; commandIdToAction bridge; optional KeyBindingManager param (Phase 03 Step 03.2) |
+| 2026-04-25 15:12:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerKeyboardHandler.kt` | `PlayerKeyboardHandler` | Migrate K2: full resolver-first rewrite; handleCommand media-type dispatch; scan-code fallback; debounce preserved (Phase 03 Step 03.3) |
+| 2026-04-25 15:12:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Add @Inject keyBindingManager field for K2 resolver (Phase 03) |
+| 2026-04-25 15:12:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Pass keyBindingManager to PlayerKeyboardHandler constructor (Phase 03) |
+| 2026-04-25 15:12:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Add @Inject keyBindingManager; pass to PlayerKeyboardHandler (Phase 03) |
+| 2026-04-25 15:12:25 | `app_v2/src/test/java/com/sza/fastmediasorter/util/KeyboardShortcutHandlerTest.kt` | `KeyboardShortcutHandlerTest` | Add 3 resolver-override regression tests: PlayPause override, NumLock modifier strip, KEYCODE_UNKNOWN→false (Phase 03 Step 03.6) |
+| 2026-04-25 15:12:37 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add missing camera-capture strings (cmd_camera_capture, camera_capture_*) — OOS fix for incomplete spec_camera-capture-command |
+| 2026-04-25 15:12:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | Implement onCameraCaptureClicked stub — OOS fix for incomplete spec_camera-capture-command |
+| 2026-04-25 15:33:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/input/InputTrigger.kt` | `InputTrigger` | Add fromGamepadButton and fromGamepadAxis companion helpers (Phase 04) |
+| 2026-04-25 15:33:57 | `app_v2/src/main/java/com/sza/fastmediasorter/core/input/GamepadInputManager.kt` | `GamepadInputManager` | Migrate to KeyBindingManager resolver; keep BROWSER legacy; preserve rate-limiters (Phase 04) |
+| 2026-04-25 15:34:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MouseEventHandler.kt` | `MouseEventHandler` | Inject KeyBindingManager; resolve secondary/back/forward buttons; remove BUTTON_* constants (Phase 04) |
+| 2026-04-25 15:34:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerKeyboardHandler.kt` | `PlayerKeyboardHandler` | Pass keyBindingManager and DomainSurface.PLAYER to MouseEventHandler constructor (Phase 04) |
+| 2026-04-25 15:34:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/MediaButtonRestartReceiver.kt` | `MediaButtonRestartReceiver` | R1 migration: replace KEYCODE_MEDIA_* whitelist with KeyBindingManager resolver; add @AndroidEntryPoint (Phase 04) |
+| 2026-04-25 15:34:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `AudioPlaybackService` | R2 bridge: add dispatchCommand(commandId) single entry point for all playback actions (Phase 04) |
+| 2026-04-25 15:34:09 | `app_v2/src/test/java/com/sza/fastmediasorter/core/input/GamepadInputManagerTest.kt` | `GamepadInputManagerTest` | New: 5 resolver-path unit tests; BUTTON_A, AXIS_Y deadzone, rate-limit, BROWSER legacy (Phase 04) |
+| 2026-04-25 15:48:48 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/input/InputTrigger.kt` | `InputTrigger` | Phase 05: add fromXrInputEvent helper + KDoc on VrEvent subclass |
+| 2026-04-25 15:48:58 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `VrControllerInputManager` | Phase 05: migrate XR event dispatch to KeyBindingManager resolver; add dispatchVrCommand |
+| 2026-04-25 15:48:58 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Phase 05: pass inherited keyBindingManager to VrControllerInputManager constructor |
+| 2026-04-25 15:48:58 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManagerTest.kt` | `VrControllerInputManagerTest` | Phase 05: seed KeyBindingManager mock; add 3 new tests for override binding, rate-limit, unknown event |
+| 2026-04-25 16:28:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/input/usecase/ResetGroupUseCase.kt` | `ResetGroupUseCase` | Phase 07: group-level reset use case |
+| 2026-04-25 16:28:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/input/usecase/ResetAllUseCase.kt` | `ResetAllUseCase` | Phase 07: global reset use case |
+| 2026-04-25 16:28:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/input/usecase/DetectConflictsUseCase.kt` | `DetectConflictsUseCase` | Phase 07: conflict detection pure function |
+| 2026-04-25 16:28:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/helpers/ResetConfirmationDialog.kt` | `ResetConfirmationDialog` | Phase 07: reset confirmation AlertDialog wrapper |
+| 2026-04-25 16:28:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/KeybindingRemapViewModel.kt` | `KeybindingRemapViewModel` | Phase 07: add conflicts map, PendingConfirmation, reset intent handlers |
+| 2026-04-25 16:28:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/KeybindingListAdapter.kt` | `KeybindingListAdapter` | Phase 07: add group reset icon to HeaderViewHolder |
+| 2026-04-25 16:28:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/KeybindingRemapActivity.kt` | `KeybindingRemapActivity` | Phase 07: wire group/global reset confirmation dialogs |
+| 2026-04-25 16:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/CaptureDialogFragment.kt` | `CaptureDialogFragment` | Phase 07: add conflict block policy, tvConflict label |
+| 2026-04-25 16:28:48 | `app_v2/src/main/res/layout/dialog_capture_keybinding.xml` | `dialog_capture_keybinding` | Phase 07: add tvConflict red label for conflict block policy |
+| 2026-04-25 16:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingDao.kt` | `InputBindingDao` | Phase 07: add deleteByCommandPrefix for group-level reset |
+| 2026-04-25 16:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingRepository.kt` | `InputBindingRepository` | Phase 07: add clearAllOverridesForGroup delegating to deleteByCommandPrefix |
+| 2026-04-25 16:28:57 | `docs/FEATURES.md` | `FEATURES` | Phase 08: add Remappable controls bullet to Section 7 |
+| 2026-04-25 16:28:57 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 08: add Переназначаемое управление bullet to Section 7 |
+| 2026-04-25 16:28:57 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 08: add Перепризначуване керування bullet to Section 7 |
+| 2026-04-25 16:28:57 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Phase 08: regenerated catalog + annotated 20 keybinding classes |
+| 2026-04-25 16:35:43 | `PLAN/spec_player-keybinding-remapping__audit_2026-04-25.md` | `spec-check` | Audit player-keybinding-remapping — Verified |
+| 2026-04-25 16:35:43 | `PLAN/spec_player-keybinding-remapping.md` | `spec-check` | Advance status to Verified |
+| 2026-04-25 16:35:43 | `PLAN/spec_player-keybinding-remapping/INDEX.md` | `spec-check` | Completion Gate confirmed — Phases 8/8 done |
+| 2026-04-25 16:36:01 | `PLAN/spec-all_player-keybinding-remapping_2026-04-25.md` | `spec-all` | Full pipeline completed: player-keybinding-remapping → Verified |
+| 2026-04-25 17:23:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `DefaultPlayerHelper` | Fix: wrap tryOpenProbeChooser startActivity in Intent.createChooser() in both Fragment and Activity overloads — without it the app resolves its own probe intent and opens StandalonePlayerActivity with a 1-byte garbage file, producing a black screen |
+| 2026-04-25 19:57:32 | `app_v2/src/main/res/layout-land/activity_browse.xml` | `camera-capture-command` | Add btnCameraCapture to landscape layout (missed during Phase 02) |
+| 2026-04-25 20:12:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/KeybindingRemapActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/keybinding/KeybindingListAdapter.kt` | `keybinding remap screen` | Two-column layout in landscape: GridLayoutManager(spanCount=2) with SpanSizeLookup that stretches group headers to full width |
+| 2026-04-25 20:15:13 | `app_v2/src/main/res/menu/menu_resource_ops.xml` | `menu_resource_ops` | Add action_camera_capture item |
+| 2026-04-25 20:15:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManager.kt` | `ResourceOpsMenuManager` | Add onCameraCapture/isCameraVisible params and handler to showMenu() |
+| 2026-04-25 20:15:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | Route camera capture through ResourceOpsMenuManager; remove onCameraCaptureClicked callback |
+| 2026-04-25 20:15:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt` | `BrowseButtonSetupHelper` | Remove onCameraCaptureClicked from ButtonCallbacks and setupAllButtons |
+| 2026-04-25 20:15:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseStateUiUpdater.kt` | `BrowseStateUiUpdater` | Remove updateCameraCaptureVisibility instance method |
+| 2026-04-25 20:15:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt` | `BrowseObserverManager` | Remove observeCameraCaptureVisibility (visibility now handled by ResourceOpsMenuManager) |
+| 2026-04-25 20:15:13 | `app_v2/src/main/res/layout/activity_browse.xml` | `activity_browse` | Remove btnCameraCapture from command bar |
+| 2026-04-25 20:15:13 | `app_v2/src/main/res/layout-land/activity_browse.xml` | `activity_browse (land)` | Remove btnCameraCapture from landscape command bar |
+| 2026-04-25 20:21:18 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback` | Move camera capture settings from File Operations to Behaviour section |
+| 2026-04-25 23:37:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Periodic ExoPlayer recreation every 4 tracks + native heap guard (15MB) to prevent native OOM on long sessions; managerScope.cancel() in onDestroy; position save interval 5s→15s |
+| 2026-04-25 23:37:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioCoverArtLoader.kt` | `AudioCoverArtLoader` | Clear Glide target before setImageBitmap to recycle previous Glide-managed drawable |
+| 2026-04-25 23:54:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `BrowseCameraCaptureManager` | Replace stub network/cloud upload with onUploadFile callback; remove uploadNetwork/uploadCloud stubs |
+| 2026-04-25 23:54:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Inject LocalToFtp/Smb/SftpStrategy; wire onUploadFile callback with real transfer strategies and CloudOperationStrategy |
+| 2026-04-25 23:54:31 | `app_v2/src/main/res/values/strings.xml` | `strings` | Remove dead string camera_capture_upload_not_supported (EN) |
+| 2026-04-25 23:54:31 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Remove dead string camera_capture_upload_not_supported (RU) |
+| 2026-04-25 23:54:31 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Remove dead string camera_capture_upload_not_supported (UK) |
+| 2026-04-26 00:15:37 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `PlayerActivity layout` | Replace <WebView id=epubWebView> with <FrameLayout> container to prevent Chromium native heap loading at layout inflation |
+| 2026-04-26 00:15:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | Add getOrCreateWebView(): create WebView programmatically on first EPUB open instead of reading from binding; fixes native OOM on emulator and low-memory devices |
+| 2026-04-26 00:15:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt` | `ImagePreloadHelper` | Add native heap guard: skip preload when free native memory < 20MB to prevent OOM kill |
+| 2026-04-26 03:34:23 | `PLAN/spec_virtual-resource-lang-rename/INDEX.md` | `spec-tech` | Create tactical plan for virtual-resource-lang-rename |
+| 2026-04-26 03:34:23 | `PLAN/spec_virtual-resource-lang-rename/PHASE_01__domain-rename.md` | `spec-tech` | Phase 01: domain-rename (VirtualResourceDefaultNames + RenameVirtualResourcesUseCase) |
+| 2026-04-26 03:34:23 | `PLAN/spec_virtual-resource-lang-rename/PHASE_02__startup-wiring.md` | `spec-tech` | Phase 02: startup-wiring (AppStartupInitializer + FastMediaSorterApp) |
+| 2026-04-26 03:34:23 | `PLAN/spec_virtual-resource-lang-rename/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-04-26 03:34:23 | `PLAN/spec_virtual-resource-lang-rename.md` | `spec-tech` | Move strategic status to Tactical; link tactical plan |
+| 2026-04-26 04:36:52 | `PLAN/spec_virtual-resource-lang-rename/PHASE_01__domain-rename.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all six) |
+| 2026-04-26 04:36:52 | `PLAN/spec_virtual-resource-lang-rename/PHASE_02__startup-wiring.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all six) |
+| 2026-04-26 04:36:52 | `PLAN/spec_virtual-resource-lang-rename/PHASE_03__docs-catalog-cleanup.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all six) |
+| 2026-04-26 04:36:52 | `PLAN/spec_virtual-resource-lang-rename/INDEX.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all six) |
+| 2026-04-26 04:42:34 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `EpubViewerManager` | Fix epubWebView type mismatch: WebView -> FrameLayout (landscape) to match portrait layout; resolves View binding addView unresolved reference |
+| 2026-04-26 04:42:34 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/VirtualResourceDefaultNames.kt` | `VirtualResourceDefaultNames` | Add hardcoded default-names table for virtual resource auto-rename |
+| 2026-04-26 04:42:34 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RenameVirtualResourcesUseCase.kt` | `RenameVirtualResourcesUseCase` | Add use-case: auto-rename virtual resources on language change |
+| 2026-04-26 04:47:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `AppStartupInitializer` | Add RenameVirtualResourcesUseCase parameter; call renameVirtualResourceNames() at startup |
+| 2026-04-26 04:47:45 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | Inject RenameVirtualResourcesUseCase; pass to AppStartupInitializer |
+| 2026-04-26 04:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/VirtualResourceDefaultNames.kt` | `VirtualResourceDefaultNames` | New: hardcoded default-names table for virtual resource auto-rename |
+| 2026-04-26 04:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RenameVirtualResourcesUseCase.kt` | `RenameVirtualResourcesUseCase` | New: auto-rename virtual resources on language change at startup |
+| 2026-04-26 04:51:00 | `docs/FEATURES.md` | `FEATURES` | Add virtual resource language sync bullet (EN) |
+| 2026-04-26 04:51:00 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add virtual resource language sync bullet (RU) |
+| 2026-04-26 04:51:00 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add virtual resource language sync bullet (UK) |
+| 2026-04-26 04:52:57 | `PLAN/spec-all_virtual-resource-lang-rename_2026-04-26.md` | `spec-all` | Full pipeline completed: virtual-resource-lang-rename -> Verified |

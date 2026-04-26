@@ -39,4 +39,6 @@ sealed class BrowseEvent {
     data class ExtractionFailed(val message: String) : BrowseEvent()
     /** Fired after the current resource was successfully added as a Quick Sort destination. */
     data class ResourceAddedAsDestination(val resourceId: Long) : BrowseEvent()
+    /** Scroll the Browse list to the file with this name (emitted after camera capture save). */
+    data class ScrollToFile(val fileName: String) : BrowseEvent()
 }

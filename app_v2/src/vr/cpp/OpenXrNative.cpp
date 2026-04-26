@@ -9,6 +9,8 @@
 #include <android/log.h>
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
+// AndroidBitmap_lockPixels / unlockPixels / getInfo for HUD upload (spec_vr-immersive-hud-gl).
+#include <android/bitmap.h>
 
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
@@ -198,17 +200,27 @@ static void nativeLogEmit(int androidPrio, const char *fmt, ...)
     char prioChar;
     switch (androidPrio)
     {
-    case ANDROID_LOG_ERROR: prioChar = 'E'; break;
-    case ANDROID_LOG_WARN:  prioChar = 'W'; break;
-    case ANDROID_LOG_INFO:  prioChar = 'I'; break;
-    case ANDROID_LOG_DEBUG: prioChar = 'D'; break;
-    default:                prioChar = 'V'; break;
+    case ANDROID_LOG_ERROR:
+        prioChar = 'E';
+        break;
+    case ANDROID_LOG_WARN:
+        prioChar = 'W';
+        break;
+    case ANDROID_LOG_INFO:
+        prioChar = 'I';
+        break;
+    case ANDROID_LOG_DEBUG:
+        prioChar = 'D';
+        break;
+    default:
+        prioChar = 'V';
+        break;
     }
     nativeLogBufferAppend(prioChar, buf);
 }
 
-#define LOGI(...) nativeLogEmit(ANDROID_LOG_INFO,  __VA_ARGS__)
-#define LOGW(...) nativeLogEmit(ANDROID_LOG_WARN,  __VA_ARGS__)
+#define LOGI(...) nativeLogEmit(ANDROID_LOG_INFO, __VA_ARGS__)
+#define LOGW(...) nativeLogEmit(ANDROID_LOG_WARN, __VA_ARGS__)
 #define LOGE(...) nativeLogEmit(ANDROID_LOG_ERROR, __VA_ARGS__)
 #define LOGD(...) nativeLogEmit(ANDROID_LOG_DEBUG, __VA_ARGS__)
 
@@ -315,6 +327,9 @@ namespace
         XrSystemId systemId = XR_NULL_SYSTEM_ID;
         XrSession session = XR_NULL_HANDLE;
         XrSpace appSpace = XR_NULL_HANDLE;
+        // Head-locked reference space — owns the HUD quad pose so the HUD travels with the
+        // user's head independently of the LOCAL/STAGE-anchored video layer.
+        XrSpace viewSpace = XR_NULL_HANDLE;
 
         XrSessionState sessionState = XR_SESSION_STATE_UNKNOWN;
         bool sessionRunning = false;
@@ -448,6 +463,27 @@ namespace
             uint32_t height = 0;
             std::vector<jint> eyePixels[kViewCount];
         } stereoSnapshot;
+
+        // HUD composition layer (spec_vr-immersive-hud-gl).
+        // Phase 01 declares fields only; Phase 02 wires xrCreateSwapchain +
+        // XrCompositionLayerQuad in xrEndFrame; Phase 03 fills the texture from
+        // an Android Bitmap. While hudLayerVisible is false the layer is omitted
+        // from xrEndFrame for zero overdraw.
+        XrSwapchain hudSwapchain = XR_NULL_HANDLE;
+        uint32_t hudSwapchainWidth = 0;
+        uint32_t hudSwapchainHeight = 0;
+        std::atomic<bool> hudLayerVisible{false};
+        std::vector<SwapchainImage> hudSwapchainImages;
+        // The runtime requires exactly one xrAcquire/xrRelease pair per swapchain
+        // per frame. The render-thread drain block sets this true after each GL upload;
+        // the HUD pump reads and clears it to decide whether a dummy cycle is needed.
+        std::atomic<bool> hudFrameUploaded{false};
+        // WHY: glTexSubImage2D must run on the EGL-owning render thread. nativeUploadHudBitmap
+        // is called from the Kotlin main thread (no EGL context there), so it copies pixel data
+        // into this staging buffer. renderFrame reads it on the correct thread and does the
+        // actual GL upload. Access to both fields is serialised by g_ctxMutex.
+        std::vector<uint8_t> hudPendingPixels;
+        std::atomic<bool> hudBitmapPending{false};
     };
 
     // Single process-wide context. The vr flavor only ever runs one XR session.
@@ -466,6 +502,10 @@ namespace
     bool initHandTracking();
     void syncHandTracking(JNIEnv *env);
     void destroyHandTracking();
+
+    // HUD composition layer (spec_vr-immersive-hud-gl).
+    bool createHudSwapchainImpl(uint32_t requestedWidth, uint32_t requestedHeight);
+    void destroyHudSwapchainImpl();
 
     // Event source identifiers — lockstep with Kotlin `XrInputSource`.
     constexpr int32_t XR_SRC_CONTROLLER = 0;
@@ -844,6 +884,27 @@ namespace
         LOGI("xrCreateReferenceSpace: appSpace=0x%llx  type=LOCAL",
              static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(g_ctx.appSpace)));
 
+        // VIEW reference space — head-locked. Used by the HUD composition layer so the
+        // HUD always sits in the user's view, independent of the video layer's anchor.
+        {
+            XrReferenceSpaceCreateInfo viewRsci{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
+            viewRsci.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
+            viewRsci.poseInReferenceSpace.orientation.w = 1.0f;
+            XrResult viewSpaceResult =
+                xrCreateReferenceSpace(g_ctx.session, &viewRsci, &g_ctx.viewSpace);
+            if (XR_FAILED(viewSpaceResult))
+            {
+                LOGW("xrCreateReferenceSpace(VIEW) failed: %d — HUD layer will be disabled",
+                     static_cast<int>(viewSpaceResult));
+                g_ctx.viewSpace = XR_NULL_HANDLE;
+            }
+            else
+            {
+                LOGI("xrCreateReferenceSpace: viewSpace=0x%llx  type=VIEW",
+                     static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(g_ctx.viewSpace)));
+            }
+        }
+
         // View configuration views — gives us recommended swapchain dimensions per eye.
         uint32_t viewCount = 0;
         XR_CHECK(xrEnumerateViewConfigurationViews(
@@ -946,6 +1007,22 @@ namespace
             LOGI("createSessionAndSwapchains: hand tracking disabled — continuing with controllers only");
         }
 
+        // HUD composition layer (spec_vr-immersive-hud-gl). Auto-create with default
+        // dimensions if Kotlin did not pre-allocate via nativeCreateHudSwapchain.
+        // Failure is non-fatal — video rendering must continue without HUD.
+        {
+            const uint32_t hudW = g_ctx.hudSwapchainWidth != 0
+                                      ? g_ctx.hudSwapchainWidth
+                                      : 1024u;
+            const uint32_t hudH = g_ctx.hudSwapchainHeight != 0
+                                      ? g_ctx.hudSwapchainHeight
+                                      : 256u;
+            if (!createHudSwapchainImpl(hudW, hudH))
+            {
+                LOGW("createSessionAndSwapchains: HUD swapchain creation failed — HUD disabled");
+            }
+        }
+
         LOGI("createSessionAndSwapchains: complete — session ready for runtime events");
         return true;
     }
@@ -996,6 +1073,138 @@ namespace
             LOGD("Session state %s — no action needed", xrSessionStateName(e->state));
             break;
         }
+    }
+
+    // ── HUD swapchain helpers (spec_vr-immersive-hud-gl) ────────────────────
+
+    bool createHudSwapchainImpl(uint32_t requestedWidth, uint32_t requestedHeight)
+    {
+        if (g_ctx.session == XR_NULL_HANDLE)
+        {
+            LOGW("createHudSwapchainImpl: session is null — skipped");
+            return false;
+        }
+        if (g_ctx.hudSwapchain != XR_NULL_HANDLE)
+        {
+            // Already created. Treat as idempotent success when dimensions match.
+            if (g_ctx.hudSwapchainWidth == requestedWidth &&
+                g_ctx.hudSwapchainHeight == requestedHeight)
+            {
+                return true;
+            }
+            destroyHudSwapchainImpl();
+        }
+
+        XrSwapchainCreateInfo sc{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+        sc.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
+        // GL_RGBA8 (0x8058) — non-sRGB so Canvas premultiplied alpha colours land linearly.
+        // Phase 03 uploads via glTexSubImage2D with GL_RGBA / GL_UNSIGNED_BYTE.
+        sc.format = 0x8058;
+        sc.sampleCount = 1;
+        sc.width = requestedWidth;
+        sc.height = requestedHeight;
+        sc.faceCount = 1;
+        sc.arraySize = 1;
+        sc.mipCount = 1;
+
+        XrResult r = xrCreateSwapchain(g_ctx.session, &sc, &g_ctx.hudSwapchain);
+        if (XR_FAILED(r))
+        {
+            LOGE("HUD swapchain xrCreateSwapchain failed: %d", static_cast<int>(r));
+            g_ctx.hudSwapchain = XR_NULL_HANDLE;
+            return false;
+        }
+        g_ctx.hudSwapchainWidth = requestedWidth;
+        g_ctx.hudSwapchainHeight = requestedHeight;
+        // Pre-allocate staging buffer so nativeUploadHudBitmap can memcpy without
+        // reallocating on every frame. Size = RGBA_8888 = 4 bytes per pixel.
+        g_ctx.hudPendingPixels.assign(
+            static_cast<size_t>(requestedWidth) * requestedHeight * 4u, 0u);
+        g_ctx.hudBitmapPending.store(false);
+
+        uint32_t imgCount = 0;
+        r = xrEnumerateSwapchainImages(g_ctx.hudSwapchain, 0, &imgCount, nullptr);
+        if (XR_FAILED(r) || imgCount == 0)
+        {
+            LOGE("HUD xrEnumerateSwapchainImages(count) failed: %d count=%u",
+                 static_cast<int>(r), imgCount);
+            destroyHudSwapchainImpl();
+            return false;
+        }
+        std::vector<XrSwapchainImageOpenGLESKHR> xrImages(
+            imgCount, {XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR});
+        r = xrEnumerateSwapchainImages(
+            g_ctx.hudSwapchain,
+            imgCount,
+            &imgCount,
+            reinterpret_cast<XrSwapchainImageBaseHeader *>(xrImages.data()));
+        if (XR_FAILED(r))
+        {
+            LOGE("HUD xrEnumerateSwapchainImages(data) failed: %d", static_cast<int>(r));
+            destroyHudSwapchainImpl();
+            return false;
+        }
+
+        g_ctx.hudSwapchainImages.resize(imgCount);
+        for (uint32_t i = 0; i < imgCount; ++i)
+        {
+            g_ctx.hudSwapchainImages[i].imageId = xrImages[i].image;
+            // Build a matching FBO so any future GL render-to-HUD path works without
+            // additional setup. Phase 03's glTexSubImage2D path does not need the FBO,
+            // but keeping it parity with eye swapchains keeps the door open.
+            GLuint fbo = 0;
+            glGenFramebuffers(1, &fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                   GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D,
+                                   xrImages[i].image,
+                                   0);
+            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status != GL_FRAMEBUFFER_COMPLETE)
+            {
+                LOGW("HUD FBO incomplete idx=%u status=0x%x", i, status);
+            }
+            g_ctx.hudSwapchainImages[i].fbo = fbo;
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        LOGI("HUD swapchain: %ux%u, %u images  handle=0x%llx",
+             requestedWidth, requestedHeight, imgCount,
+             static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(g_ctx.hudSwapchain)));
+        return true;
+    }
+
+    void destroyHudSwapchainImpl()
+    {
+        for (auto &img : g_ctx.hudSwapchainImages)
+        {
+            if (img.fbo)
+            {
+                GLuint f = img.fbo;
+                glDeleteFramebuffers(1, &f);
+                img.fbo = 0;
+            }
+        }
+        g_ctx.hudSwapchainImages.clear();
+        if (g_ctx.hudSwapchain != XR_NULL_HANDLE)
+        {
+            XrResult r = xrDestroySwapchain(g_ctx.hudSwapchain);
+            if (XR_FAILED(r))
+            {
+                LOGW("HUD swapchain destroy failed: %d", static_cast<int>(r));
+            }
+            else
+            {
+                LOGI("HUD swapchain destroyed");
+            }
+            g_ctx.hudSwapchain = XR_NULL_HANDLE;
+        }
+        g_ctx.hudSwapchainWidth = 0;
+        g_ctx.hudSwapchainHeight = 0;
+        g_ctx.hudLayerVisible.store(false);
+        g_ctx.hudPendingPixels.clear();
+        g_ctx.hudBitmapPending.store(false);
     }
 
     bool pollEvents()
@@ -2140,6 +2349,103 @@ namespace
             }
         }
 
+        // ── HUD staging-buffer drain (render-thread GL upload) ──────────────
+        // WHY: nativeUploadHudBitmap cannot call glTexSubImage2D because the EGL context
+        // is only current on this render thread. It copies pixel data to hudPendingPixels
+        // instead. Here (on the render thread, inside g_ctxMutex) we pick up the pending
+        // data and do the real GL upload before the frame is submitted.
+        if (g_ctx.hudBitmapPending.exchange(false) &&
+            g_ctx.hudSwapchain != XR_NULL_HANDLE &&
+            !g_ctx.hudPendingPixels.empty())
+        {
+            uint32_t uploadImgIdx = 0;
+            XrSwapchainImageAcquireInfo uploadAcqInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
+            XrResult uploadR = xrAcquireSwapchainImage(
+                g_ctx.hudSwapchain, &uploadAcqInfo, &uploadImgIdx);
+            if (XR_SUCCEEDED(uploadR))
+            {
+                XrSwapchainImageWaitInfo uploadWait{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
+                uploadWait.timeout = XR_INFINITE_DURATION;
+                uploadR = xrWaitSwapchainImage(g_ctx.hudSwapchain, &uploadWait);
+                if (XR_SUCCEEDED(uploadR) &&
+                    uploadImgIdx < g_ctx.hudSwapchainImages.size())
+                {
+                    const uint32_t texId = g_ctx.hudSwapchainImages[uploadImgIdx].imageId;
+                    glBindTexture(GL_TEXTURE_2D, texId);
+                    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                                    static_cast<GLsizei>(g_ctx.hudSwapchainWidth),
+                                    static_cast<GLsizei>(g_ctx.hudSwapchainHeight),
+                                    GL_RGBA, GL_UNSIGNED_BYTE,
+                                    g_ctx.hudPendingPixels.data());
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
+                XrSwapchainImageReleaseInfo uploadRelInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+                xrReleaseSwapchainImage(g_ctx.hudSwapchain, &uploadRelInfo);
+                // Signal that a fresh texture was uploaded this interval so the pump
+                // below skips the dummy acquire/release cycle.
+                if (XR_SUCCEEDED(uploadR))
+                {
+                    g_ctx.hudFrameUploaded.store(true);
+                }
+            }
+        }
+
+        // ── HUD composition layer (spec_vr-immersive-hud-gl §5.1.1) ────────
+        // Head-locked quad rendered on top of the video layer.
+        // Runtime demands exactly one acquire/release per swapchain per frame.
+        // nativeUploadHudBitmap stages pixels; the drain block above does the real upload.
+        // The flag below prevents a second acquire/release in the same frame.
+        XrCompositionLayerQuad hudLayer{XR_TYPE_COMPOSITION_LAYER_QUAD};
+        const bool hudActive = g_ctx.hudLayerVisible.load() &&
+                               g_ctx.hudSwapchain != XR_NULL_HANDLE &&
+                               g_ctx.viewSpace != XR_NULL_HANDLE;
+        const bool hudUploadedThisInterval = g_ctx.hudFrameUploaded.exchange(false);
+        if (hudActive && !hudUploadedThisInterval)
+        {
+            // No upload happened — pump the swapchain so the index advances and the
+            // compositor reuses the previously-uploaded image (or zeros on the very
+            // first frame).
+            uint32_t hudImgIdx = 0;
+            XrSwapchainImageAcquireInfo acqInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
+            XrResult acqR = xrAcquireSwapchainImage(g_ctx.hudSwapchain, &acqInfo, &hudImgIdx);
+            if (XR_SUCCEEDED(acqR))
+            {
+                XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
+                waitInfo.timeout = XR_INFINITE_DURATION;
+                XrResult waitR = xrWaitSwapchainImage(g_ctx.hudSwapchain, &waitInfo);
+                if (XR_SUCCEEDED(waitR))
+                {
+                    XrSwapchainImageReleaseInfo relInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+                    xrReleaseSwapchainImage(g_ctx.hudSwapchain, &relInfo);
+                }
+            }
+        }
+        if (hudActive)
+        {
+
+            hudLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            hudLayer.space = g_ctx.viewSpace;
+            hudLayer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+            hudLayer.subImage.swapchain = g_ctx.hudSwapchain;
+            hudLayer.subImage.imageRect.offset = {0, 0};
+            hudLayer.subImage.imageRect.extent = {
+                static_cast<int32_t>(g_ctx.hudSwapchainWidth),
+                static_cast<int32_t>(g_ctx.hudSwapchainHeight),
+            };
+            // WHY: arraySize=1 for this HUD swapchain, so imageArrayIndex must stay 0.
+            // The runtime picks the currently released swapchain image internally.
+            hudLayer.subImage.imageArrayIndex = 0;
+            // Pose: head-locked, 1.5 m forward, ~20° below gaze. Half-angle for the
+            // X-axis quaternion gives downward tilt: qx = sin(-10°), qw = cos(-10°).
+            // sin(-10°) = -0.17365, cos(-10°) = 0.98481.
+            hudLayer.pose.orientation = {-0.17365f, 0.0f, 0.0f, 0.98481f};
+            hudLayer.pose.position = {0.0f, 0.0f, -1.5f};
+            // Size: 1.0 m wide × 0.3 m tall (strategic §6.4 start-default).
+            hudLayer.size = {1.0f, 0.3f};
+            layers.push_back(reinterpret_cast<const XrCompositionLayerBaseHeader *>(&hudLayer));
+        }
+
         XrFrameEndInfo endInfo{XR_TYPE_FRAME_END_INFO};
         endInfo.displayTime = frameState.predictedDisplayTime;
         endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
@@ -2185,6 +2491,9 @@ namespace
         // Destroy OpenXR input handles before swapchains/session so xrDestroyActionSet
         // runs while the session/instance handles are still valid.
         destroyInputHandles();
+        // HUD composition layer (spec_vr-immersive-hud-gl). Destroy before the eye
+        // swapchains so the runtime sees layers torn down in reverse-creation order.
+        destroyHudSwapchainImpl();
         for (auto &eye : g_ctx.eyes)
         {
             for (auto &img : eye.images)
@@ -2207,6 +2516,11 @@ namespace
         {
             xrDestroySpace(g_ctx.appSpace);
             g_ctx.appSpace = XR_NULL_HANDLE;
+        }
+        if (g_ctx.viewSpace != XR_NULL_HANDLE)
+        {
+            xrDestroySpace(g_ctx.viewSpace);
+            g_ctx.viewSpace = XR_NULL_HANDLE;
         }
         if (g_ctx.session != XR_NULL_HANDLE)
         {
@@ -2590,4 +2904,127 @@ Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeDrainLog(JNIEnv *env, 
     }
     env->DeleteLocalRef(stringCls);
     return arr;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HUD composition layer JNI bridge (spec_vr-immersive-hud-gl).
+// Phase 01: stubs only. Phase 02 fills in xrCreateSwapchain + xrEndFrame
+// composition; Phase 03 turns nativeUploadHudBitmap into a real GL upload.
+// ═══════════════════════════════════════════════════════════════════════════
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeCreateHudSwapchain(
+    JNIEnv *, jclass, jint width, jint height)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    if (g_ctx.session == XR_NULL_HANDLE)
+    {
+        // Session not yet up. Store the requested dimensions so createSessionAndSwapchains
+        // picks them up on session bring-up. Caller will need to invoke this again after
+        // session ready to receive a meaningful boolean status.
+        g_ctx.hudSwapchainWidth = static_cast<uint32_t>(width);
+        g_ctx.hudSwapchainHeight = static_cast<uint32_t>(height);
+        LOGI("nativeCreateHudSwapchain: %dx%d stored — session not yet up", width, height);
+        return JNI_FALSE;
+    }
+    return createHudSwapchainImpl(static_cast<uint32_t>(width),
+                                  static_cast<uint32_t>(height))
+               ? JNI_TRUE
+               : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeDestroyHudSwapchain(
+    JNIEnv *, jclass)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    destroyHudSwapchainImpl();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeSetHudLayerVisible(
+    JNIEnv *, jclass, jboolean visible)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    g_ctx.hudLayerVisible.store(visible == JNI_TRUE);
+    LOGD("nativeSetHudLayerVisible: visible=%d", visible == JNI_TRUE ? 1 : 0);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeUploadHudBitmap(
+    JNIEnv *env, jclass, jobject bitmap)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    if (bitmap == nullptr)
+    {
+        return JNI_FALSE;
+    }
+    if (g_ctx.hudSwapchain == XR_NULL_HANDLE || !g_ctx.sessionRunning)
+    {
+        return JNI_FALSE;
+    }
+
+    AndroidBitmapInfo info{};
+    int infoR = AndroidBitmap_getInfo(env, bitmap, &info);
+    if (infoR != ANDROID_BITMAP_RESULT_SUCCESS)
+    {
+        static bool s_warnedInfo = false;
+        if (!s_warnedInfo)
+        {
+            LOGW("nativeUploadHudBitmap: AndroidBitmap_getInfo failed: %d", infoR);
+            s_warnedInfo = true;
+        }
+        return JNI_FALSE;
+    }
+    if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888)
+    {
+        static bool s_warnedFormat = false;
+        if (!s_warnedFormat)
+        {
+            LOGW("nativeUploadHudBitmap: unsupported bitmap format=%d (need RGBA_8888)",
+                 static_cast<int>(info.format));
+            s_warnedFormat = true;
+        }
+        return JNI_FALSE;
+    }
+    if (info.width != g_ctx.hudSwapchainWidth || info.height != g_ctx.hudSwapchainHeight)
+    {
+        static bool s_warnedDims = false;
+        if (!s_warnedDims)
+        {
+            LOGW("nativeUploadHudBitmap: dimension mismatch %ux%u vs swapchain %ux%u",
+                 info.width, info.height,
+                 g_ctx.hudSwapchainWidth, g_ctx.hudSwapchainHeight);
+            s_warnedDims = true;
+        }
+        return JNI_FALSE;
+    }
+
+    void *pixels = nullptr;
+    int lockR = AndroidBitmap_lockPixels(env, bitmap, &pixels);
+    if (lockR != ANDROID_BITMAP_RESULT_SUCCESS || pixels == nullptr)
+    {
+        static bool s_warnedLock = false;
+        if (!s_warnedLock)
+        {
+            LOGW("nativeUploadHudBitmap: lockPixels failed: %d", lockR);
+            s_warnedLock = true;
+        }
+        return JNI_FALSE;
+    }
+
+    // WHY: GL upload (glTexSubImage2D + xrAcquire/Release) must happen on the EGL-owning
+    // render thread. This function is called from the Kotlin main thread which has no EGL
+    // context — calling GL here silently does nothing, leaving the texture all-zeros.
+    // Solution: copy pixel data to the pre-allocated staging buffer and set hudBitmapPending.
+    // renderFrame() reads the flag on the correct thread and does the actual GL upload.
+    if (!g_ctx.hudPendingPixels.empty())
+    {
+        std::memcpy(g_ctx.hudPendingPixels.data(), pixels, g_ctx.hudPendingPixels.size());
+        g_ctx.hudBitmapPending.store(true);
+    }
+    AndroidBitmap_unlockPixels(env, bitmap);
+    // Return true so Kotlin-side logging is consistent (real success/failure is visible
+    // from the render-thread upload path via Timber in the HUD pump).
+    return JNI_TRUE;
 }

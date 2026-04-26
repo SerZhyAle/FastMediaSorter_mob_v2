@@ -3,8 +3,8 @@
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Feature:** VR Immersive HUD через отдельный композитный слой OpenXR
 **Tier:** 3 — Moderate (ad-hoc)
-**Status:** Not started
-**Phases:** 0 / 7 done
+**Status:** Done
+**Phases:** 7 / 7 done
 **Last updated:** 2026-04-25
 
 > **Scope of this document:** tactical, English, developer handoff. Every step has an explicit verification predicate. Strategic rationale lives in `../spec_vr-immersive-hud-gl.md`.
@@ -14,14 +14,14 @@
 ## Phase Overview
 
 | # | Phase | Depends on | Status | Steps | File |
-|---|-------|------------|--------|------:|------|
-| 01 | foundations | — | ⬜ Not started | 0/5 | [PHASE_01__foundations.md](PHASE_01__foundations.md) |
-| 02 | composition-layer | 01 | ⬜ Not started | 0/5 | [PHASE_02__composition-layer.md](PHASE_02__composition-layer.md) |
-| 03 | bitmap-upload | 02 | ⬜ Not started | 0/4 | [PHASE_03__bitmap-upload.md](PHASE_03__bitmap-upload.md) |
-| 04 | scene-composer | 03 | ⬜ Not started | 0/4 | [PHASE_04__scene-composer.md](PHASE_04__scene-composer.md) |
-| 05 | event-routing | 04 | ⬜ Not started | 0/5 | [PHASE_05__event-routing.md](PHASE_05__event-routing.md) |
-| 06 | transitional-guard | 05 | ⬜ Not started | 0/4 | [PHASE_06__transitional-guard.md](PHASE_06__transitional-guard.md) |
-| 07 | docs-catalog-cleanup | 01..06 | ⬜ Not started | 0/5 | [PHASE_07__docs-catalog-cleanup.md](PHASE_07__docs-catalog-cleanup.md) |
+| - | ----- | ---------- | ------ | -----: | ---- |
+| 01 | foundations | — | ✅ Done | 5/5 | [PHASE_01__foundations.md](PHASE_01__foundations.md) |
+| 02 | composition-layer | 01 | ✅ Done | 5/5 | [PHASE_02__composition-layer.md](PHASE_02__composition-layer.md) |
+| 03 | bitmap-upload | 02 | ✅ Done | 4/4 | [PHASE_03__bitmap-upload.md](PHASE_03__bitmap-upload.md) |
+| 04 | scene-composer | 03 | ✅ Done | 4/4 | [PHASE_04__scene-composer.md](PHASE_04__scene-composer.md) |
+| 05 | event-routing | 04 | ✅ Done | 5/5 | [PHASE_05__event-routing.md](PHASE_05__event-routing.md) |
+| 06 | transitional-guard | 05 | ✅ Done | 4/4 | [PHASE_06__transitional-guard.md](PHASE_06__transitional-guard.md) |
+| 07 | docs-catalog-cleanup | 01..06 | ✅ Done | 5/5 | [PHASE_07__docs-catalog-cleanup.md](PHASE_07__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`.
 

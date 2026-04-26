@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../spec_vr-immersive-hud-gl.md`](../spec_vr-immersive-hud-gl.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 03
 **Blocks:** Phase 05, Phase 06, Phase 07
 **Steps done:** 0 / 4
@@ -73,7 +73,7 @@ Check each before starting Step 1:
 - File ≤ 150 LOC.
 - `/build` skill compiles `vrDebug`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -118,7 +118,7 @@ Check each before starting Step 1:
 - File ≤ 450 LOC.
 - `/build` skill compiles `vrDebug`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

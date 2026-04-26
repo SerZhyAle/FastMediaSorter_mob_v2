@@ -110,6 +110,7 @@ class AudioCoverArtLoader(
                     if (bitmap != null) {
                         Timber.d("ExoPlayer embedded artwork decoded (${artworkData?.size} bytes), displaying")
                         audioEmptyStateController?.hide()
+                        Glide.with(binding.audioCoverArtView.context).clear(binding.audioCoverArtView)
                         binding.audioCoverArtView.setImageBitmap(bitmap)
                         binding.audioCoverArtView.isVisible = true
                         coverArtDisplayedForPath = file.path
@@ -184,6 +185,7 @@ class AudioCoverArtLoader(
                     if (coverBitmap != null) {
                         Timber.d("loadAudioCoverArt[$callId]: EMBEDDED cover found, displaying")
                         audioEmptyStateController?.hide()
+                        Glide.with(binding.audioCoverArtView.context).clear(binding.audioCoverArtView)
                         binding.audioCoverArtView.setImageBitmap(coverBitmap)
                         binding.audioCoverArtView.isVisible = true
                         coverArtDisplayedForPath = file.path

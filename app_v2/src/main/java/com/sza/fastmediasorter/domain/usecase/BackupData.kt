@@ -122,6 +122,8 @@ data class BackupSettings(
     val enableUndo: Boolean = true,
     val maxRecipients: Int = 10,
     val enableFavorites: Boolean = true,
+    val disableCameraCapture: Boolean = false,
+    val skipCameraFilenameDialog: Boolean = false,
     // Player UI
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,

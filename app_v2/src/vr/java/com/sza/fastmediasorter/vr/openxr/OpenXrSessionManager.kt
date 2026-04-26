@@ -316,6 +316,34 @@ class OpenXrSessionManager(
     fun eyeWidth(eye: Int): Int = OpenXrNative.nativeGetEyeWidth(eye)
     fun eyeHeight(eye: Int): Int = OpenXrNative.nativeGetEyeHeight(eye)
 
+    // ── HUD composition layer (spec_vr-immersive-hud-gl) ────────────────────
+    // Pass-through to native. Native phase-01 implementation is a stub; phase 02
+    // creates the real XrSwapchain and includes the layer in xrEndFrame.
+
+    /** Allocate (or re-allocate) the HUD swapchain. No-op when session is not running. */
+    fun createHudSwapchain(width: Int, height: Int): Boolean {
+        if (!running.get()) return false
+        return OpenXrNative.nativeCreateHudSwapchain(width, height)
+    }
+
+    /** Release HUD swapchain resources. Safe even when the session has stopped. */
+    fun destroyHudSwapchain() {
+        if (running.get() || starting.get()) {
+            OpenXrNative.nativeDestroyHudSwapchain()
+        }
+    }
+
+    /** Toggle the HUD quad layer's inclusion in the next xrEndFrame. */
+    fun setHudLayerVisible(visible: Boolean) {
+        OpenXrNative.nativeSetHudLayerVisible(visible)
+    }
+
+    /** Upload a premultiplied ARGB_8888 [bitmap] to the HUD swapchain. */
+    fun uploadHudBitmap(bitmap: android.graphics.Bitmap): Boolean {
+        if (!running.get()) return false
+        return OpenXrNative.nativeUploadHudBitmap(bitmap)
+    }
+
     fun requestStereoSnapshot(): Boolean {
         if (!running.get()) return false
         return try {

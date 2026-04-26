@@ -132,6 +132,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ENABLE_UNDO = booleanPreferencesKey("enable_undo")
         private val KEY_MAX_RECIPIENTS = intPreferencesKey("max_recipients")
         private val KEY_ENABLE_FAVORITES = booleanPreferencesKey("enable_favorites")
+        private val KEY_DISABLE_CAMERA_CAPTURE = booleanPreferencesKey("disable_camera_capture")
+        private val KEY_SKIP_CAMERA_FILENAME_DIALOG = booleanPreferencesKey("skip_camera_filename_dialog")
         private val KEY_IS_PLAYER_FIRST_RUN = booleanPreferencesKey("is_player_first_run")
         
         // Per-type touch zone hint tracking keys (Task 6)
@@ -361,7 +363,9 @@ class SettingsRepositoryImpl @Inject constructor(
                         value.coerceIn(1, 10)
                     },
                     enableFavorites = preferences[KEY_ENABLE_FAVORITES] ?: true,
-                    
+                    disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
+                    skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
+
                     // Player UI
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
@@ -573,7 +577,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_UNDO] = settings.enableUndo
             preferences[KEY_MAX_RECIPIENTS] = settings.maxRecipients.coerceIn(1, 10)
             preferences[KEY_ENABLE_FAVORITES] = settings.enableFavorites
-            
+            preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
+            preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
+
             // Player UI
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
             preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed

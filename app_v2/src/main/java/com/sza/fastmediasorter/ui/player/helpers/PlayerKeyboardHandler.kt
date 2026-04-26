@@ -5,11 +5,14 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.media3.common.Player
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.CommandId
+import com.sza.fastmediasorter.domain.input.InputSurface as DomainSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
+import com.sza.fastmediasorter.domain.input.fromKeyEvent
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.common.MouseEventHandler
-import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputSurface
-import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 import com.sza.fastmediasorter.utils.UserActionLogger
 import timber.log.Timber
 
@@ -17,14 +20,15 @@ import timber.log.Timber
  * Keyboard and mouse-wheel handler for [PlayerActivity] and [StandalonePlayerActivity].
  * Single host-agnostic parser — each host supplies its own [PlayerKeyboardCallback].
  *
- * Flow: raw [KeyEvent] → [KeyboardShortcutHandler] (PLAYER profile) → [InputAction] →
- * [PlayerKeyboardCallback] → existing manager / ViewModel call.
+ * Flow: raw [KeyEvent] → [KeyBindingManager] resolver → [CommandId] →
+ * [handleCommand] (media-type-aware) → [PlayerKeyboardCallback] → ViewModel call.
  * Legacy raw-key handling (media-button debouncing, scan-code fixup) stays in the
- * secondary switch below.
+ * preamble of [handleKeyDown].
  */
 class PlayerKeyboardHandler(
     // Exposed so gamepad dispatch in PlayerActivity can reuse the same callback routes.
     internal val callback: PlayerKeyboardCallback,
+    private val keyBindingManager: KeyBindingManager,
 ) {
     /** Debounce window for media button events to prevent double-trigger (Activity + MediaSession). */
     private var lastMediaButtonTimeMs = 0L
@@ -85,14 +89,11 @@ class PlayerKeyboardHandler(
         fun canMoveCurrent(): Boolean = false
     }
 
-    // ── shared keyboard parser ────────────────────────────────────────────────
-
-    private val shortcutHandler = KeyboardShortcutHandler(
-        surface = InputSurface.PLAYER,
-        dispatcher = KeyboardShortcutHandler.ActionDispatcher { action -> dispatchAction(action) },
-    )
+    // ── pointer / wheel input ────────────────────────────────────────────────
 
     private val mouseHandler = MouseEventHandler(
+        keyBindingManager = keyBindingManager,
+        surface = DomainSurface.PLAYER,
         callbacks = object : MouseEventHandler.MouseEventCallbacks {
             override fun onRightClick(view: View, x: Float, y: Float) {
                 callback.onShowContextMenu()
@@ -122,54 +123,14 @@ class PlayerKeyboardHandler(
         }
     )
 
-    private fun dispatchAction(action: InputAction): Boolean {
-        return when (action) {
-            InputAction.ShowHelp -> { callback.onShowHelp(); true }
-            InputAction.ExitSurface -> { callback.onExitPlayer(); true }
-            InputAction.RenameSelection -> { callback.onShowRenameDialog(); true }
-            InputAction.ShowInfo -> { callback.onShowFileInfo(); true }
-            InputAction.DeleteSelection -> { callback.onDeleteFile(); true }
-            InputAction.CopySelection -> if (callback.canCopyCurrent()) {
-                callback.onToggleCopyPanel(); true
-            } else {
-                false
-            }
-            InputAction.MoveSelection -> if (callback.canMoveCurrent()) {
-                callback.onToggleMovePanel(); true
-            } else {
-                false
-            }
-            InputAction.EditCurrent -> { callback.onShowEditDialog(); true }
-            InputAction.ShowContextMenu -> { callback.onShowContextMenu(); true }
-            InputAction.SaveCurrent -> { callback.onSaveCurrent(); true }
-            InputAction.ToggleFavourite -> { callback.onToggleFavourite(); true }
-            InputAction.PlayPause -> { handlePlayPause(); true }
-            InputAction.ToggleMute -> { callback.onToggleMute(); true }
-            InputAction.ToggleFullscreen -> { callback.onToggleFullscreen(); true }
-            InputAction.ShowPlaybackControls -> { callback.onToggleCommandPanel(); true }
-            is InputAction.ChangeVolume -> { callback.onChangeVolume(action.delta); true }
-            is InputAction.SeekBy -> {
-                if (action.seconds >= 0) callback.onSeekForward(action.seconds)
-                else callback.onSeekBackward(-action.seconds)
-                true
-            }
-            InputAction.NextTrack -> { callback.onNextFile(); true }
-            InputAction.PreviousTrack -> { callback.onPreviousFile(); true }
-            InputAction.RefreshCurrent -> true  // no-op in player
-            InputAction.UndoRequested -> { callback.onUndoOperation(); true }
-            InputAction.SearchRequested -> if (supportsDocumentSearch(callback.getCurrentMediaType())) {
-                callback.onDocumentSearch(); true
-            } else {
-                false
-            }
-            else -> false
-        }
-    }
-
     // ── entry point ───────────────────────────────────────────────────────────
 
     /**
      * Process keyboard event. Returns true if handled.
+     *
+     * Flow: scan-code fixup → debounce → resolver → [handleCommand].
+     * Scan-code-fixed keys that produce KEYCODE_UNKNOWN in the event object
+     * are dispatched via [scanCodeToCommandId] after a resolver miss.
      */
     fun handleKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         val currentType = callback.getCurrentMediaType()
@@ -198,113 +159,98 @@ class PlayerKeyboardHandler(
             return true
         }
 
-        // Shared semantic parser first (handles F-keys, letter shortcuts, color keys, …).
-        if (event != null && shortcutHandler.handleKeyEvent(effectiveKeyCode, event)) return true
+        if (event == null) return false
 
-        // Legacy raw-key path retained for media-hardware-button debouncing and
-        // document-viewer page navigation that depends on media type at call time.
-        when (effectiveKeyCode) {
-            KeyEvent.KEYCODE_PAGE_UP -> {
-                when (currentType) {
-                    MediaType.PDF -> { callback.onPdfPreviousPage(); return true }
-                    MediaType.TEXT, MediaType.EPUB -> return false
-                    else -> { callback.onPreviousFile(); return true }
-                }
-            }
-            KeyEvent.KEYCODE_PAGE_DOWN -> {
-                when (currentType) {
-                    MediaType.PDF -> { callback.onPdfNextPage(); return true }
-                    MediaType.TEXT, MediaType.EPUB -> return false
-                    else -> { callback.onNextFile(); return true }
-                }
-            }
-            KeyEvent.KEYCODE_MOVE_HOME -> {
-                when (currentType) {
-                    MediaType.PDF -> { callback.onPdfHome(); return true }
-                    MediaType.EPUB -> { callback.onEpubHome(); return true }
-                    MediaType.TEXT -> { callback.onTextHome(); return true }
-                    else -> {}
-                }
-            }
-            KeyEvent.KEYCODE_MOVE_END -> {
-                when (currentType) {
-                    MediaType.PDF -> { callback.onPdfEnd(); return true }
-                    MediaType.EPUB -> { callback.onEpubEnd(); return true }
-                    MediaType.TEXT -> { callback.onTextEnd(); return true }
-                    else -> {}
-                }
-            }
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                Timber.d("PlayerKeyboardHandler: Left — previous file")
-                callback.onPreviousFile()
-                return true
-            }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                Timber.d("PlayerKeyboardHandler: Right — next file")
-                callback.onNextFile()
-                return true
-            }
-            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK -> {
-                if (isMediaButtonDebounced(event)) return true
-                handlePlayPause()
-                return true
-            }
-            KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                if (isMediaButtonDebounced(event)) return true
-                handlePlay()
-                return true
-            }
-            KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> {
-                if (isMediaButtonDebounced(event)) return true
-                handlePause()
-                return true
-            }
-            KeyEvent.KEYCODE_MEDIA_NEXT -> {
-                if (isMediaButtonDebounced(event)) return true
-                callback.onNextFile()
-                return true
-            }
-            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
-                if (isMediaButtonDebounced(event)) return true
-                callback.onPreviousFile()
-                return true
-            }
-            KeyEvent.KEYCODE_SPACE -> { handlePlayPause(); return true }
-            KeyEvent.KEYCODE_DPAD_CENTER -> { handlePlayPause(); return true }
-            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
-                if (isMediaButtonDebounced(event)) return true
-                handleSeekForward()
-                return true
-            }
-            KeyEvent.KEYCODE_MEDIA_REWIND -> {
-                if (isMediaButtonDebounced(event)) return true
-                handleSeekBackward()
-                return true
-            }
-            KeyEvent.KEYCODE_RIGHT_BRACKET -> { handleSeekForward(); return true }
-            KeyEvent.KEYCODE_LEFT_BRACKET -> { handleSeekBackward(); return true }
-            KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD -> {
-                if (isMediaButtonDebounced(event)) return true
-                callback.onNextFile()
-                return true
-            }
-            KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD -> {
-                if (isMediaButtonDebounced(event)) return true
-                callback.onPreviousFile()
-                return true
-            }
-            KeyEvent.KEYCODE_CHANNEL_UP -> { callback.onNextFile(); return true }
-            KeyEvent.KEYCODE_CHANNEL_DOWN -> { callback.onPreviousFile(); return true }
-            KeyEvent.KEYCODE_BOOKMARK -> { callback.onToggleFavourite(); return true }
-            KeyEvent.KEYCODE_Z -> {
-                if (event?.isCtrlPressed == true) {
-                    callback.onUndoOperation()
-                    return true
-                }
-            }
+        // Primary path: resolve trigger → commandId → handleCommand.
+        val commandId = keyBindingManager.resolve(InputTrigger.fromKeyEvent(event), DomainSurface.PLAYER)
+        if (commandId != null) {
+            Timber.v("PlayerKeyboardHandler: commandId=%s type=%s", commandId, currentType)
+            return handleCommand(commandId)
+        }
+
+        // Scan-code fallback: KEYCODE_UNKNOWN events have effectiveKeyCode from scan-code table.
+        // The resolver cannot find them because event.keyCode is still KEYCODE_UNKNOWN.
+        if (keyCode == KeyEvent.KEYCODE_UNKNOWN && effectiveKeyCode != KeyEvent.KEYCODE_UNKNOWN) {
+            val fixedCommandId = scanCodeToCommandId(effectiveKeyCode) ?: return false
+            return handleCommand(fixedCommandId)
         }
 
         return false
+    }
+
+    /**
+     * Dispatches a resolved [CommandId] to the appropriate callback, applying
+     * media-type-aware routing for navigation commands (PDF / EPUB / TEXT).
+     *
+     * Seek steps preserve pre-migration values: seek_forward_5s → 10 s,
+     * seek_forward_30s → 60 s (legacy step preserved for Phase 03).
+     */
+    internal fun handleCommand(commandId: String): Boolean {
+        val currentType = callback.getCurrentMediaType()
+        return when (commandId) {
+            CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE -> { handlePlayPause(); true }
+            CommandId.STOP -> {
+                val t = callback.getCurrentMediaType()
+                if (t == MediaType.VIDEO || t == MediaType.AUDIO) {
+                    callback.getActivePlayer()?.let { if (it.isPlaying) it.pause() }
+                }
+                true
+            }
+            CommandId.SEEK_FORWARD_5S -> { callback.onSeekForward(SEEK_INCREMENT_SECONDS); true }
+            CommandId.SEEK_BACKWARD_5S -> { callback.onSeekBackward(SEEK_INCREMENT_SECONDS); true }
+            CommandId.SEEK_FORWARD_30S -> { callback.onSeekForward(60); true }
+            CommandId.SEEK_BACKWARD_30S -> { callback.onSeekBackward(60); true }
+            CommandId.FRAME_STEP_FORWARD, CommandId.FRAME_STEP_BACKWARD -> false
+            CommandId.NEXT_FILE -> when (currentType) {
+                MediaType.PDF -> { callback.onPdfNextPage(); true }
+                MediaType.TEXT, MediaType.EPUB -> false
+                else -> { callback.onNextFile(); true }
+            }
+            CommandId.PREVIOUS_FILE -> when (currentType) {
+                MediaType.PDF -> { callback.onPdfPreviousPage(); true }
+                MediaType.TEXT, MediaType.EPUB -> false
+                else -> { callback.onPreviousFile(); true }
+            }
+            CommandId.JUMP_START -> when (currentType) {
+                MediaType.PDF -> { callback.onPdfHome(); true }
+                MediaType.EPUB -> { callback.onEpubHome(); true }
+                MediaType.TEXT -> { callback.onTextHome(); true }
+                else -> false
+            }
+            CommandId.JUMP_END -> when (currentType) {
+                MediaType.PDF -> { callback.onPdfEnd(); true }
+                MediaType.EPUB -> { callback.onEpubEnd(); true }
+                MediaType.TEXT -> { callback.onTextEnd(); true }
+                else -> false
+            }
+            CommandId.FULLSCREEN -> { callback.onToggleFullscreen(); true }
+            CommandId.VOLUME_UP -> { callback.onChangeVolume(+1); true }
+            CommandId.VOLUME_DOWN -> { callback.onChangeVolume(-1); true }
+            CommandId.MUTE -> { callback.onToggleMute(); true }
+            CommandId.TOGGLE_CONTROLS -> { callback.onToggleCommandPanel(); true }
+            CommandId.TOGGLE_INFO -> { callback.onShowFileInfo(); true }
+            CommandId.EXIT -> { callback.onExitPlayer(); true }
+            CommandId.SHOW_HELP -> { callback.onShowHelp(); true }
+            CommandId.SEARCH -> if (supportsDocumentSearch(currentType)) {
+                callback.onDocumentSearch(); true
+            } else {
+                false
+            }
+            CommandId.UNDO -> { callback.onUndoOperation(); true }
+            CommandId.REDO -> false   // no redo in player
+            CommandId.MOVE -> if (callback.canMoveCurrent()) {
+                callback.onToggleMovePanel(); true
+            } else false
+            CommandId.COPY -> if (callback.canCopyCurrent()) {
+                callback.onToggleCopyPanel(); true
+            } else false
+            CommandId.DELETE -> { callback.onDeleteFile(); true }
+            CommandId.RENAME -> { callback.onShowRenameDialog(); true }
+            CommandId.FAVOURITE -> { callback.onToggleFavourite(); true }
+            CommandId.FILE_OPS -> { callback.onShowContextMenu(); true }
+            CommandId.SAVE -> { callback.onSaveCurrent(); true }
+            else -> false
+        }
     }
 
     // ── pointer / wheel input ────────────────────────────────────────────────
@@ -341,6 +287,16 @@ class PlayerKeyboardHandler(
     private fun supportsDocumentSearch(mediaType: MediaType?): Boolean = when (mediaType) {
         MediaType.PDF, MediaType.TEXT, MediaType.EPUB -> true
         else -> false
+    }
+
+    // ── scan-code table (KEYCODE_UNKNOWN fixup) ──────────────────────────────
+
+    private fun scanCodeToCommandId(effectiveKeyCode: Int): String? = when (effectiveKeyCode) {
+        KeyEvent.KEYCODE_PAGE_UP -> CommandId.PREVIOUS_FILE
+        KeyEvent.KEYCODE_PAGE_DOWN -> CommandId.NEXT_FILE
+        KeyEvent.KEYCODE_MOVE_HOME -> CommandId.JUMP_START
+        KeyEvent.KEYCODE_MOVE_END -> CommandId.JUMP_END
+        else -> null
     }
 
     // ── media button helpers ──────────────────────────────────────────────────
@@ -382,32 +338,6 @@ class PlayerKeyboardHandler(
                 if (player.isPlaying) player.pause() else player.play()
                 Timber.d("PlayerKeyboardHandler: play/pause toggled")
             }
-        }
-    }
-
-    private fun handlePlay() {
-        val currentType = callback.getCurrentMediaType()
-        if (currentType == MediaType.VIDEO || currentType == MediaType.AUDIO) {
-            callback.getActivePlayer()?.let { if (!it.isPlaying) it.play() }
-        }
-    }
-
-    private fun handlePause() {
-        val currentType = callback.getCurrentMediaType()
-        if (currentType == MediaType.VIDEO || currentType == MediaType.AUDIO) {
-            callback.getActivePlayer()?.let { if (it.isPlaying) it.pause() }
-        }
-    }
-
-    private fun handleSeekForward() {
-        if (callback.getCurrentMediaType().let { it == MediaType.VIDEO || it == MediaType.AUDIO }) {
-            callback.onSeekForward(SEEK_INCREMENT_SECONDS)
-        }
-    }
-
-    private fun handleSeekBackward() {
-        if (callback.getCurrentMediaType().let { it == MediaType.VIDEO || it == MediaType.AUDIO }) {
-            callback.onSeekBackward(SEEK_INCREMENT_SECONDS)
         }
     }
 }

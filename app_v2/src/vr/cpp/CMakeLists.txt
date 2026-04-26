@@ -47,6 +47,9 @@ if(ENABLE_OPENXR)
         log
         EGL
         GLESv3
+        # AndroidBitmap_lockPixels / unlockPixels / getInfo for HUD bitmap upload
+        # (spec_vr-immersive-hud-gl Phase 03).
+        jnigraphics
     )
 
     # 16 KB page size compliance (Google Play requirement for Android 15+ targets since Nov 2025).

@@ -4,6 +4,11 @@ import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import com.sza.fastmediasorter.domain.input.CommandId
+import com.sza.fastmediasorter.domain.input.InputSurface as DomainSurface
+import com.sza.fastmediasorter.domain.input.InputTrigger
+import com.sza.fastmediasorter.domain.input.fromGamepadAxis
+import com.sza.fastmediasorter.domain.input.fromGamepadButton
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,21 +23,20 @@ import javax.inject.Singleton
  * *how* the raw `KEYCODE_BUTTON_*` / `AXIS_*` events translate.
  *
  * Behaviour:
- * - [handleKeyEvent] returns a [GamepadAction] for button presses on
- *   [InputDevice.SOURCE_GAMEPAD] / [InputDevice.SOURCE_JOYSTICK] only. Events
- *   from BT keyboards / mice are ignored (they have their own handlers).
- *   Consumed on [KeyEvent.ACTION_DOWN] to match Android gamepad conventions,
- *   with repeat-press throttling for analog triggers.
- * - [handleMotionEvent] processes analog sticks (AXIS_Y, AXIS_RZ/AXIS_Z) with a
- *   hard [DEADZONE] and rate-limits continuous events so volume / seek do not
- *   flood from stick jitter.
+ * - [handleKeyEvent]: PLAYER surface routes through [KeyBindingManager]; BROWSER
+ *   uses the legacy literal tree in [mapBrowserButton] (browser remapping is
+ *   out of scope for this feature).
+ * - [handleMotionEvent]: iterates [TRACKED_AXES], resolves each through the
+ *   manager, preserves rate-limiting and deadzone filtering.
  */
 @Singleton
-class GamepadInputManager @Inject constructor() {
+class GamepadInputManager @Inject constructor(
+    private val keyBindingManager: KeyBindingManager,
+) {
 
-    @Volatile private var lastAnalogSeekMs = 0L
-    @Volatile private var lastAnalogVolumeMs = 0L
-    @Volatile private var lastTriggerSeekMs = 0L
+    @Volatile private var lastAnalogSeekMs = -(ANALOG_SEEK_INTERVAL_MS + 1)
+    @Volatile private var lastAnalogVolumeMs = -(ANALOG_VOLUME_INTERVAL_MS + 1)
+    @Volatile private var lastTriggerSeekMs = -(TRIGGER_SEEK_INTERVAL_MS + 1)
 
     /**
      * Host surface hint — lets the manager return the right sub-tree for ambiguous buttons
@@ -45,7 +49,11 @@ class GamepadInputManager @Inject constructor() {
         // Consume on ACTION_DOWN — matches platform guidance for gamepad buttons.
         if (event.action != KeyEvent.ACTION_DOWN) return null
         return when (surface) {
-            Surface.PLAYER -> mapPlayerButton(event)
+            Surface.PLAYER -> {
+                val trigger = InputTrigger.fromGamepadButton(event.keyCode)
+                val commandId = keyBindingManager.resolve(trigger, DomainSurface.PLAYER) ?: return null
+                mapCommandToGamepadAction(commandId, Surface.PLAYER, trigger, axisValue = null)
+            }
             Surface.BROWSER -> mapBrowserButton(event)
         }
     }
@@ -53,23 +61,20 @@ class GamepadInputManager @Inject constructor() {
     fun handleMotionEvent(event: MotionEvent, surface: Surface): GamepadAction? {
         if (!event.isFromGamepad()) return null
         if (event.action != MotionEvent.ACTION_MOVE) return null
-        return when (surface) {
-            Surface.PLAYER -> mapPlayerMotion(event)
-            Surface.BROWSER -> mapBrowserMotion(event)
+        val domainSurface = if (surface == Surface.PLAYER) DomainSurface.PLAYER else DomainSurface.BROWSER
+        for (axis in TRACKED_AXES) {
+            val rawValue = event.getAxisValue(axis)
+            // Invert AXIS_Y: Android reports stick-up as negative; we want up = positive direction.
+            val value = if (axis == MotionEvent.AXIS_Y) -rawValue else rawValue
+            val trigger = InputTrigger.fromGamepadAxis(axis, value, DEADZONE) ?: continue
+            val commandId = keyBindingManager.resolve(trigger, domainSurface) ?: continue
+            val action = mapCommandToGamepadAction(commandId, surface, trigger, axisValue = kotlin.math.abs(rawValue))
+            if (action != null) return action
         }
+        return null
     }
 
-    private fun mapPlayerButton(event: KeyEvent): GamepadAction? = when (event.keyCode) {
-        KeyEvent.KEYCODE_BUTTON_A -> GamepadAction.PlayerAction.PlayPause
-        KeyEvent.KEYCODE_BUTTON_B -> GamepadAction.PlayerAction.Exit
-        KeyEvent.KEYCODE_BUTTON_X -> GamepadAction.PlayerAction.Next
-        KeyEvent.KEYCODE_BUTTON_Y -> GamepadAction.PlayerAction.Prev
-        KeyEvent.KEYCODE_BUTTON_L1 -> rateLimitedTriggerSeek(forward = false)
-        KeyEvent.KEYCODE_BUTTON_R1 -> rateLimitedTriggerSeek(forward = true)
-        KeyEvent.KEYCODE_BUTTON_START -> GamepadAction.PlayerAction.ToggleHud
-        KeyEvent.KEYCODE_BUTTON_SELECT -> GamepadAction.PlayerAction.ToggleHints
-        else -> null
-    }
+    // ── Browser: legacy literal tree (browser remapping is out-of-scope for player-keybinding) ─
 
     private fun mapBrowserButton(event: KeyEvent): GamepadAction? = when (event.keyCode) {
         KeyEvent.KEYCODE_BUTTON_A -> GamepadAction.BrowserAction.Select
@@ -82,26 +87,47 @@ class GamepadInputManager @Inject constructor() {
         else -> null
     }
 
-    private fun mapPlayerMotion(event: MotionEvent): GamepadAction? {
-        val leftY = event.getCenteredAxis(MotionEvent.AXIS_Y)
-        val rightY = event.getCenteredAxis(MotionEvent.AXIS_RZ, fallback = MotionEvent.AXIS_Z)
-        // Volume on left stick — up = positive Y inverted (Android reports up as negative).
-        if (leftY.isOutsideDeadzone()) {
-            return rateLimitedVolume(up = leftY < 0f)
+    // ── Command → GamepadAction mapping with rate-limiting ──────────────────────────────────────
+
+    private fun mapCommandToGamepadAction(
+        commandId: String,
+        surface: Surface,
+        trigger: InputTrigger,
+        axisValue: Float?,
+    ): GamepadAction? = when (commandId) {
+        CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE ->
+            GamepadAction.PlayerAction.PlayPause
+        CommandId.EXIT ->
+            GamepadAction.PlayerAction.Exit
+        CommandId.NEXT_FILE -> when (surface) {
+            Surface.PLAYER -> GamepadAction.PlayerAction.Next
+            Surface.BROWSER -> GamepadAction.BrowserAction.SwitchTab(forward = true)
         }
-        // Seek on right stick — deflection scales the seek amount.
-        if (rightY.isOutsideDeadzone()) {
-            return rateLimitedAnalogSeek(rightY)
+        CommandId.PREVIOUS_FILE -> when (surface) {
+            Surface.PLAYER -> GamepadAction.PlayerAction.Prev
+            Surface.BROWSER -> GamepadAction.BrowserAction.SwitchTab(forward = false)
         }
-        return null
+        CommandId.SEEK_FORWARD_5S, CommandId.SEEK_FORWARD_30S,
+        CommandId.SEEK_MACRO_FORWARD, CommandId.SEEK_MICRO_FORWARD -> when {
+            trigger is InputTrigger.GamepadAxis && axisValue != null ->
+                rateLimitedAnalogSeek(-axisValue) // negative = forward
+            else -> rateLimitedTriggerSeek(forward = true)
+        }
+        CommandId.SEEK_BACKWARD_5S, CommandId.SEEK_BACKWARD_30S,
+        CommandId.SEEK_MACRO_BACKWARD, CommandId.SEEK_MICRO_BACKWARD -> when {
+            trigger is InputTrigger.GamepadAxis && axisValue != null ->
+                rateLimitedAnalogSeek(axisValue) // positive = backward
+            else -> rateLimitedTriggerSeek(forward = false)
+        }
+        CommandId.VOLUME_UP -> rateLimitedVolume(up = true)
+        CommandId.VOLUME_DOWN -> rateLimitedVolume(up = false)
+        CommandId.TOGGLE_CONTROLS -> GamepadAction.PlayerAction.ToggleHud
+        CommandId.SHOW_HELP -> GamepadAction.PlayerAction.ToggleHints
+        CommandId.SEARCH -> GamepadAction.BrowserAction.Search
+        else -> null
     }
 
-    private fun mapBrowserMotion(event: MotionEvent): GamepadAction? {
-        // D-pad-equivalent navigation from the left stick is delegated to Android's
-        // built-in focus search — returning null lets the Activity call super.
-        // We do NOT emit BrowserAction.Select here; analog sticks only drive focus.
-        return null
-    }
+    // ── Rate-limiters (constants from temp/phase1/debounce-literals.md) ─────────────────────────
 
     private fun rateLimitedTriggerSeek(forward: Boolean): GamepadAction.PlayerAction.Seek? {
         val now = SystemClock.uptimeMillis()
@@ -122,12 +148,14 @@ class GamepadInputManager @Inject constructor() {
         val now = SystemClock.uptimeMillis()
         if (now - lastAnalogSeekMs < ANALOG_SEEK_INTERVAL_MS) return null
         lastAnalogSeekMs = now
-        // Scale seek by how far the stick is deflected beyond the deadzone, then
-        // invert — pushing the stick up (negative Y) should seek forward.
+        // Scale seek by how far the stick is deflected beyond the deadzone, then use
+        // sign of deflection: negative = forward, positive = backward.
         val magnitude = (kotlin.math.abs(deflection) - DEADZONE) / (1f - DEADZONE)
         val ms = (MAX_ANALOG_SEEK_MS * magnitude).toLong().coerceAtLeast(MIN_ANALOG_SEEK_MS)
         return GamepadAction.PlayerAction.Seek(if (deflection < 0f) ms else -ms)
     }
+
+    // ── Source type checks ───────────────────────────────────────────────────────────────────────
 
     private fun KeyEvent.isFromGamepad(): Boolean =
         (source and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
@@ -136,17 +164,6 @@ class GamepadInputManager @Inject constructor() {
     private fun MotionEvent.isFromGamepad(): Boolean =
         (source and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
             (source and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-
-    private fun MotionEvent.getCenteredAxis(axis: Int, fallback: Int? = null): Float {
-        val device = device ?: return 0f
-        val range = device.getMotionRange(axis, source)
-            ?: fallback?.let { device.getMotionRange(it, source) }
-            ?: return 0f
-        val value = if (range.axis == axis) getAxisValue(axis) else getAxisValue(range.axis)
-        return if (kotlin.math.abs(value) < range.flat) 0f else value
-    }
-
-    private fun Float.isOutsideDeadzone(): Boolean = kotlin.math.abs(this) >= DEADZONE
 
     companion object {
         /** Hard deadzone for analog sticks to ignore rest-position jitter. */
@@ -163,5 +180,12 @@ class GamepadInputManager @Inject constructor() {
         const val MAX_ANALOG_SEEK_MS = 5_000L
         /** Minimum analog seek magnitude when stick is just past the deadzone. */
         const val MIN_ANALOG_SEEK_MS = 250L
+
+        /** Axes iterated in [handleMotionEvent]. Private list — literals acceptable here. */
+        private val TRACKED_AXES = intArrayOf(
+            MotionEvent.AXIS_X, MotionEvent.AXIS_Y,
+            MotionEvent.AXIS_Z, MotionEvent.AXIS_RZ,
+            MotionEvent.AXIS_HAT_X, MotionEvent.AXIS_HAT_Y,
+        )
     }
 }

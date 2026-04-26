@@ -13,6 +13,8 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.vr.render.ActionBadge
+import com.sza.fastmediasorter.vr.render.RepeatMode
 import timber.log.Timber
 
 /**
@@ -32,7 +34,7 @@ import timber.log.Timber
  * Each slot has its own timer, so a volume change does not interrupt a file-name
  * indicator that is still auto-dismissing.
  */
-class VrHudIndicatorManager(private val activity: Activity) {
+class VrHudIndicatorManager(private val activity: Activity) : VrHudSink {
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -47,17 +49,17 @@ class VrHudIndicatorManager(private val activity: Activity) {
     private val rightHideRunnable  = Runnable { rightSlot.visibility  = View.GONE }
     private val topRightHideRunnable = Runnable { topRightSlot.visibility = View.GONE }
 
-    fun showPauseIndicator(paused: Boolean) {
+    override fun showPauseIndicator(paused: Boolean) {
         val txt = if (paused) PAUSE_ICON else PLAY_ICON
         showCenter(txt, durationMs = DURATION_PAUSE_MS)
     }
 
-    fun showVolumeIndicator(percent: Int) {
+    override fun showVolumeIndicator(percent: Int) {
         val clamped = percent.coerceIn(0, 100)
         showRight(activity.getString(R.string.vr_hud_volume_percent, clamped), durationMs = DURATION_VOLUME_MS)
     }
 
-    fun showSeekIndicator(deltaSeconds: Int, positionMs: Long, totalMs: Long) {
+    override fun showSeekIndicator(deltaSeconds: Int, positionMs: Long, totalMs: Long) {
         val forward = deltaSeconds >= 0
         val arrow = if (forward) "▶▶" else "◀◀"
         val prefix = if (forward) "+" else ""
@@ -67,38 +69,80 @@ class VrHudIndicatorManager(private val activity: Activity) {
         showBottom(text, durationMs = DURATION_SEEK_MS)
     }
 
-    fun showFileIndicator(name: String, index: Int, total: Int) {
+    override fun showFileIndicator(name: String, index: Int, total: Int) {
         val shortened = if (name.length > 40) name.take(37) + ".." else name
         val text = "$shortened  $index / $total"
         showTopRight(text, durationMs = DURATION_FILE_MS)
     }
 
-    fun showZoomIndicator(factor: Float) {
+    override fun showZoomIndicator(factor: Float) {
         val text = activity.getString(R.string.vr_hud_zoom_factor, factor)
         showCenter(text, durationMs = DURATION_ZOOM_MS)
     }
 
-    fun showRecenterFlash() {
+    override fun showRecenterFlash() {
         // Minimal visual: brief "✦ recentered" center toast. A full frame-border flash
         // would require a dedicated View; deferred per ADR-2 to the composition-layer iteration.
         showCenter(activity.getString(R.string.vr_hud_recenter_done), durationMs = DURATION_RECENTER_MS)
     }
 
-    fun showBoundaryMessage(isFirst: Boolean) {
+    override fun showBoundaryMessage(isFirst: Boolean) {
         val resId = if (isFirst) R.string.vr_hud_first_file else R.string.vr_hud_last_file
         showTopRight(activity.getString(resId), durationMs = DURATION_BOUNDARY_MS)
     }
 
-    fun showErrorMessage(message: String) {
+    override fun showErrorMessage(message: String) {
         showCenter(message, durationMs = DURATION_ERROR_MS)
     }
 
-    fun showImmersiveModeChanged(immersive: Boolean) {
+    override fun showImmersiveModeChanged(immersive: Boolean) {
         val resId = if (immersive) R.string.vr_hud_immersive_on else R.string.vr_hud_immersive_off
         showCenter(activity.getString(resId), durationMs = DURATION_IMMERSIVE_MS)
     }
 
-    fun hideAll() {
+    override fun showActionBadge(badge: ActionBadge) {
+        val glyph = when (badge) {
+            ActionBadge.PREV_FILE -> "⏮ prev"
+            ActionBadge.NEXT_FILE -> "⏭ next"
+            ActionBadge.REWIND -> "⏪ -10s"
+            ActionBadge.FORWARD -> "⏩ +30s"
+            ActionBadge.OPEN_CONTROLS -> "☰"
+            ActionBadge.REPEAT_TOGGLE -> "↻"
+        }
+        showCenter(glyph, durationMs = DURATION_PAUSE_MS)
+    }
+
+    override fun showRepeatMode(mode: RepeatMode?) {
+        if (mode == null) return
+        val text = when (mode) {
+            RepeatMode.OFF -> "↻ OFF"
+            RepeatMode.ONE -> "↻ 1"
+            RepeatMode.ALL -> "↻ ALL"
+        }
+        showTopRight(text, durationMs = DURATION_BOUNDARY_MS)
+    }
+
+    override fun showBannerText(text: String?) {
+        if (text == null) {
+            mainHandler.removeCallbacks(centerHideRunnable)
+            centerSlot.visibility = View.GONE
+        } else {
+            showCenter(text, durationMs = DURATION_BANNER_MS)
+        }
+    }
+
+    override fun updateProgress(positionMs: Long, bufferedMs: Long, totalMs: Long) {
+        // Android-view fallback never showed a live progress bar; keep no-op
+        // so phone-fallback visuals are unchanged.
+    }
+
+    // WHY: reportActivity() and showStereoModeLabel() are used only by the OpenXR composition-
+    // layer backend (VrHudSceneDriver). The view-overlay fallback has no idle-hide timer and
+    // no stereo mode badge, so both are intentional no-ops here.
+    override fun reportActivity() = Unit
+    override fun showStereoModeLabel(label: String?) = Unit
+
+    override fun hideAll() {
         listOf(centerSlot, bottomSlot, rightSlot, topRightSlot).forEach { it.visibility = View.GONE }
         mainHandler.removeCallbacks(centerHideRunnable)
         mainHandler.removeCallbacks(bottomHideRunnable)
@@ -210,6 +254,7 @@ class VrHudIndicatorManager(private val activity: Activity) {
         private const val DURATION_BOUNDARY_MS = 1500L
         private const val DURATION_IMMERSIVE_MS = 1200L
         private const val DURATION_ERROR_MS    = 3000L
+        private const val DURATION_BANNER_MS   = 3000L
 
         // Suppress unused param warning while we keep a single dependency hook.
         @Suppress("unused")
