@@ -29,13 +29,20 @@ class VrStereoRenderer {
 
     private var currentStereoMode: StereoMode = StereoMode.MONO
 
-    // GL shader program and attribute/uniform locations — valid after initGl()
+    // Standard UV-crop program — valid after initGl()
     private var shaderProgram: Int = 0
     private var aPositionLoc: Int = -1
     private var aTexCoordLoc: Int = -1
     private var uTextureLoc: Int = -1
     private var uUvOffsetLoc: Int = -1
     private var uUvScaleLoc: Int = -1
+
+    // Fisheye undistortion program — equidistant inverse projection for VR180_FISHEYE_SBS
+    private var fisheyeProgram: Int = 0
+    private var fAPositionLoc: Int = -1
+    private var fATexCoordLoc: Int = -1
+    private var fUTextureLoc: Int = -1
+    private var fUFisheyeUOffsetLoc: Int = -1
 
     private var quadVbo: Int = 0
     private var isGlInitialized = false
@@ -115,6 +122,73 @@ class VrStereoRenderer {
         GLES20.glDeleteShader(vertexShader)
         GLES20.glDeleteShader(fragmentShader)
 
+        // ── Fisheye undistortion program (VR180_FISHEYE_SBS) ─────────────
+        // Vertex shader passes raw [0,1]×[0,1] texcoords — no UV pre-offset.
+        val fisheyeVertSrc = """
+            attribute vec4 aPosition;
+            attribute vec2 aTexCoord;
+            varying vec2 vTexCoord;
+            void main() {
+                gl_Position = aPosition;
+                vTexCoord = aTexCoord;
+            }
+        """.trimIndent()
+
+        // Fragment shader: inverse equidistant fisheye → equirect half-sphere sample.
+        // uFisheyeUOffset selects the SBS eye half: 0.0 = left, 0.5 = right.
+        val fisheyeFragSrc = """
+            #extension GL_OES_EGL_image_external : require
+            precision mediump float;
+            varying vec2 vTexCoord;
+            uniform samplerExternalOES uTexture;
+            uniform float uFisheyeUOffset;
+            const float PI = 3.14159265359;
+            void main() {
+                float theta = (vTexCoord.x - 0.5) * PI;
+                float phi   = (0.5 - vTexCoord.y) * PI;
+                float dx = sin(theta) * cos(phi);
+                float dy = sin(phi);
+                float dz = cos(theta) * cos(phi);
+                float rho = acos(clamp(dz, -1.0, 1.0));
+                if (rho > PI * 0.5) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                    return;
+                }
+                float r  = rho / (PI * 0.5);
+                float az = atan(dy, dx);
+                float uLens = 0.5 + 0.5 * r * cos(az);
+                float vLens = 0.5 + 0.5 * r * sin(az);
+                gl_FragColor = texture2D(uTexture,
+                    vec2(uFisheyeUOffset + uLens * 0.5, vLens));
+            }
+        """.trimIndent()
+
+        val fisheyeVert = compileShader(GLES20.GL_VERTEX_SHADER, fisheyeVertSrc)
+        val fisheyeFrag = compileShader(GLES20.GL_FRAGMENT_SHADER, fisheyeFragSrc)
+        if (fisheyeVert != 0 && fisheyeFrag != 0) {
+            fisheyeProgram = GLES20.glCreateProgram()
+            GLES20.glAttachShader(fisheyeProgram, fisheyeVert)
+            GLES20.glAttachShader(fisheyeProgram, fisheyeFrag)
+            GLES20.glLinkProgram(fisheyeProgram)
+            val fisheyeLinkStatus = IntArray(1)
+            GLES20.glGetProgramiv(fisheyeProgram, GLES20.GL_LINK_STATUS, fisheyeLinkStatus, 0)
+            if (fisheyeLinkStatus[0] == 0) {
+                Timber.e("VrStereoRenderer: fisheye program link failed: %s",
+                    GLES20.glGetProgramInfoLog(fisheyeProgram))
+                GLES20.glDeleteProgram(fisheyeProgram)
+                fisheyeProgram = 0
+            } else {
+                fAPositionLoc       = GLES20.glGetAttribLocation(fisheyeProgram, "aPosition")
+                fATexCoordLoc       = GLES20.glGetAttribLocation(fisheyeProgram, "aTexCoord")
+                fUTextureLoc        = GLES20.glGetUniformLocation(fisheyeProgram, "uTexture")
+                fUFisheyeUOffsetLoc = GLES20.glGetUniformLocation(fisheyeProgram, "uFisheyeUOffset")
+                Timber.i("VrStereoRenderer: fisheye GL program initialized  program=%d", fisheyeProgram)
+            }
+            GLES20.glDeleteShader(fisheyeVert)
+            GLES20.glDeleteShader(fisheyeFrag)
+        }
+        // ─────────────────────────────────────────────────────────────────
+
         // Resolve attribute and uniform locations
         aPositionLoc = GLES20.glGetAttribLocation(shaderProgram, "aPosition")
         aTexCoordLoc = GLES20.glGetAttribLocation(shaderProgram, "aTexCoord")
@@ -177,18 +251,28 @@ class VrStereoRenderer {
                     oesTextureId, context.targetWidthPx, context.targetHeightPx)
             }
         }
-        val plan = planner.buildRenderPlan(context, descriptor)
-        renderQuad(
-            oesTextureId = oesTextureId,
-            uOffset = plan.uv.uOffset,
-            vOffset = plan.uv.vOffset,
-            uScale = plan.uv.uScale,
-            vScale = plan.uv.vScale,
-            viewport = plan.viewport,
-            targetWidthPx = context.targetWidthPx,
-            targetHeightPx = context.targetHeightPx,
-            swapchainImageIndex = context.swapchainImageIndex,
-        )
+        if (context.stereoMode == StereoMode.VR180_FISHEYE_SBS) {
+            val fisheyeUOffset = if (context.eye == VrEye.LEFT) 0f else 0.5f
+            renderFisheyeQuad(
+                oesTextureId = oesTextureId,
+                fisheyeUOffset = fisheyeUOffset,
+                targetWidthPx = context.targetWidthPx,
+                targetHeightPx = context.targetHeightPx,
+            )
+        } else {
+            val plan = planner.buildRenderPlan(context, descriptor)
+            renderQuad(
+                oesTextureId = oesTextureId,
+                uOffset = plan.uv.uOffset,
+                vOffset = plan.uv.vOffset,
+                uScale = plan.uv.uScale,
+                vScale = plan.uv.vScale,
+                viewport = plan.viewport,
+                targetWidthPx = context.targetWidthPx,
+                targetHeightPx = context.targetHeightPx,
+                swapchainImageIndex = context.swapchainImageIndex,
+            )
+        }
     }
 
     /**
@@ -292,11 +376,56 @@ class VrStereoRenderer {
             GLES20.glDeleteProgram(shaderProgram)
             shaderProgram = 0
         }
+        if (fisheyeProgram != 0) {
+            GLES20.glDeleteProgram(fisheyeProgram)
+            fisheyeProgram = 0
+        }
         if (quadVbo != 0) {
             GLES20.glDeleteBuffers(1, intArrayOf(quadVbo), 0)
             quadVbo = 0
         }
         isGlInitialized = false
+    }
+
+    /**
+     * Draw a full-viewport quad applying equidistant fisheye → equirect undistortion.
+     *
+     * @param fisheyeUOffset U-coordinate origin in the SBS source: 0.0 = left eye, 0.5 = right eye.
+     */
+    private fun renderFisheyeQuad(
+        oesTextureId: Int,
+        fisheyeUOffset: Float,
+        targetWidthPx: Int,
+        targetHeightPx: Int,
+    ) {
+        if (!isGlInitialized || fisheyeProgram == 0) {
+            Timber.w("VrStereoRenderer: fisheye program not ready, skipping renderFisheyeQuad")
+            return
+        }
+
+        GLES20.glViewport(0, 0, targetWidthPx, targetHeightPx)
+        GLES20.glUseProgram(fisheyeProgram)
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, oesTextureId)
+        GLES20.glUniform1i(fUTextureLoc, 0)
+        GLES20.glUniform1f(fUFisheyeUOffsetLoc, fisheyeUOffset)
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, quadVbo)
+
+        GLES20.glEnableVertexAttribArray(fAPositionLoc)
+        GLES20.glVertexAttribPointer(fAPositionLoc, 2, GLES20.GL_FLOAT, false, STRIDE, 0)
+
+        GLES20.glEnableVertexAttribArray(fATexCoordLoc)
+        GLES20.glVertexAttribPointer(fATexCoordLoc, 2, GLES20.GL_FLOAT, false, STRIDE, 2 * FLOAT_BYTES)
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+
+        GLES20.glDisableVertexAttribArray(fAPositionLoc)
+        GLES20.glDisableVertexAttribArray(fATexCoordLoc)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
+        GLES20.glUseProgram(0)
     }
 
     // ── Private helpers ─────────────────────────────────────────────────

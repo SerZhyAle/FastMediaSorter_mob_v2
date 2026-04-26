@@ -115,6 +115,13 @@ internal object OpenXrNative {
      */
     @JvmStatic external fun nativeTriggerHaptic(hand: Int, durationNs: Long, amplitude: Float): Boolean
 
+    /**
+     * Enable or disable the GL ray line primitive drawn along the controller aim direction.
+     * NDC events via [XrInputCallback.onControllerPointerMove] are emitted regardless of
+     * this flag — only the visual ray is toggled.
+     */
+    @JvmStatic external fun nativeSetControllerRayEnabled(enabled: Boolean)
+
     // ═══════════════════════════════════════════════════════════════════════
     // HUD composition layer (spec_vr-immersive-hud-gl).
     // Phase 01: stubs only. Phase 02 wires the real XrSwapchain + xrEndFrame.
@@ -132,4 +139,18 @@ internal object OpenXrNative {
 
     /** Upload a premultiplied ARGB_8888 [bitmap] into the next HUD swapchain image. */
     @JvmStatic external fun nativeUploadHudBitmap(bitmap: android.graphics.Bitmap): Boolean
+
+    // ── Interactive panel swapchain (spec_vr-immersive-controls-panel Phase 03) ──
+
+    /** Reserve dimensions for the interactive panel quad swapchain. Returns true on success. */
+    @JvmStatic external fun nativeCreatePanelSwapchain(width: Int, height: Int): Boolean
+
+    /** Release panel swapchain resources and force the layer hidden. */
+    @JvmStatic external fun nativeDestroyPanelSwapchain()
+
+    /** Toggle inclusion of the panel quad layer in xrEndFrame composition. */
+    @JvmStatic external fun nativeSetPanelLayerVisible(visible: Boolean)
+
+    /** Upload a premultiplied ARGB_8888 [bitmap] into the next panel swapchain image. */
+    @JvmStatic external fun nativeUploadPanelBitmap(bitmap: android.graphics.Bitmap): Boolean
 }

@@ -157,7 +157,7 @@ class CommandPanelLayoutPlanner {
             if (canWrite && state.allowRename) add(PlayerCommand.RENAME)
             if ((isImage && canWrite) || isVideo || isPdf) add(PlayerCommand.EDIT)
             if (state.lastOperation != null && canWrite) add(PlayerCommand.UNDO)
-            if ((isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
+            if (BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
             if (isAudio) add(PlayerCommand.LYRICS)
             if (isAudio) add(PlayerCommand.SEARCH_YOUTUBE_MUSIC)
 

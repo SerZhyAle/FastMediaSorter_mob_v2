@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -465,9 +466,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // Observe stereoMode StateFlow and apply GL effects to the player whenever it changes.
         // Runs on Main dispatcher (lifecycleScope default) — safe for ExoPlayer.setVideoEffects().
         activity.lifecycleScope.launch {
-            activity.viewModel.stereoMode.collect { mode ->
-                activity.videoPlayerManager.applyStereoEffect(mode)
-            }
+            activity.viewModel.stereoMode
+                .filter { it != StereoMode.AUTO }
+                .collect { mode ->
+                    activity.videoPlayerManager.applyStereoEffect(mode)
+                }
         }
 
         // Observe stereoMode changes for image stereo crop (3D tab mode switch while viewing an image).

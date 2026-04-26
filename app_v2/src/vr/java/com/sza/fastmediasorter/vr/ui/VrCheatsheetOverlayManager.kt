@@ -155,6 +155,11 @@ class VrCheatsheetOverlayManager(private val activity: Activity) {
         sb.append(activity.getString(R.string.vr_cheatsheet_mouse_buttons)).append('\n')
         sb.append(activity.getString(R.string.vr_cheatsheet_mouse_wheel)).append('\n')
         sb.append('\n')
+        sb.append(activity.getString(R.string.vr_cheatsheet_section_hands)).append('\n')
+        sb.append(activity.getString(R.string.vr_cheatsheet_hands_ray)).append('\n')
+        sb.append(activity.getString(R.string.vr_cheatsheet_hands_swipe)).append('\n')
+        sb.append(activity.getString(R.string.vr_cheatsheet_hands_double_pinch)).append('\n')
+        sb.append('\n')
         sb.append(activity.getString(R.string.vr_cheatsheet_footer))
         return sb.toString()
     }

@@ -353,7 +353,7 @@ class CommandPanelController(
             safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
             safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
-            safeViews.btnCastCmd.isVisible = (isImage || isVideo) && isWifiConnected(binding.root.context)
+            safeViews.btnCastCmd.isVisible = BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected(binding.root.context)
             // Edit is visible for images (if writable) OR video (always, as it's controls)
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
             // Save Frame is a direct video-only command in the command panel.

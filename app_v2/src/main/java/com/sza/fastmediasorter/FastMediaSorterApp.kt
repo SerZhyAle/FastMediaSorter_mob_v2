@@ -152,12 +152,14 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         }
         
         // Initialise Cast SDK early so device discovery begins before PlayerActivity opens.
-        // Wrapped in try/catch: fails gracefully on devices without Google Play Services.
-        try {
-            com.google.android.gms.cast.framework.CastContext.getSharedInstance(this)
-            Timber.d("FastMediaSorterApp: Cast SDK initialized")
-        } catch (e: Exception) {
-            Timber.w("FastMediaSorterApp: Cast SDK not available — ${e.message}")
+        // Skipped on flavors without Cast support (VR — Horizon OS has no Google Play Services Cast module).
+        if (BuildConfig.SUPPORT_CAST) {
+            try {
+                com.google.android.gms.cast.framework.CastContext.getSharedInstance(this)
+                Timber.d("FastMediaSorterApp: Cast SDK initialized")
+            } catch (e: Exception) {
+                Timber.w("FastMediaSorterApp: Cast SDK not available — ${e.message}")
+            }
         }
 
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")

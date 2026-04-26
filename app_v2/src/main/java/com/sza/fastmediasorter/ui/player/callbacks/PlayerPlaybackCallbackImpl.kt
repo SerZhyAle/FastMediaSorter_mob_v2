@@ -118,9 +118,9 @@ class PlayerPlaybackCallbackImpl(
     // Resets in onBeforeVideoLoad() so each new file gets one toast chance.
     private var stereoToastShownForCurrentFile = false
 
-    override fun onStereoDetected(mode: StereoMode) {
+    override fun onStereoDetected(mode: StereoMode, forFilePath: String) {
         // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO.
-        viewModel.setAutoDetectedStereoMode(mode)
+        viewModel.setAutoDetectedStereoMode(mode, forFilePath)
 
         // Show VR CTA for actual flat 3D content (SBS/OU), not for MONO/AUTO/UNKNOWN.
         val is3d = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU

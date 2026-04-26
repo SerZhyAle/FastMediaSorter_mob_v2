@@ -10,9 +10,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// android.newDsl=false is intentionally set in gradle.properties (kapt compat — see builtInKotlin=false note).
-// Remove @Suppress once kapt → KSP migration is complete.
-@Suppress("DEPRECATION")
+// android.newDsl=false is intentionally set in gradle.properties (kapt compat).
+// Remove once kapt → KSP migration is complete.
 android {
     val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
@@ -41,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260426045
-        versionName = "2.65.7260.457"
+        versionCode = 260427002
+        versionName = "2.60.4270.025"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -129,8 +128,9 @@ android {
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             // 16 KB compatible — safe for Google Play.
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
+            buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
-        
+
         // ===== LITE (Lightweight, Local Files Only) =====
         create("lite") {
             dimension = "version"
@@ -153,6 +153,7 @@ android {
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in lite
+            buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -177,6 +178,7 @@ android {
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "false")  // No audio playback in photos
+            buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -205,6 +207,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
+            buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
@@ -261,6 +264,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
+            buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
         }
 
         // ===== VR-UNLICENSED (ADB sideload only, always includes DTS) =====
@@ -307,6 +311,7 @@ android {
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")  // Always true — no store restrictions
+            buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
         }
     }
     
@@ -438,20 +443,6 @@ android {
         }
     }
 
-    applicationVariants.all {
-        outputs.all {
-            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            val buildTypeName = buildType.name
-            val flavorName = flavorName
-            
-            output.outputFileName = if (buildTypeName == "release") {
-                "FastMediaSorter_${flavorName}_v${versionName}.apk"
-            } else {
-                "FastMediaSorter_${flavorName}_${buildTypeName}_v${versionName}.apk"
-            }
-        }
-    }
-
     compileOptions {
         // Required for java.time.* on API 23-25 (legacy flavor). API 26+ has native support.
         isCoreLibraryDesugaringEnabled = true
@@ -534,6 +525,24 @@ android {
         htmlOutput = file("build/reports/lint-results.html")
         xmlReport = true
         xmlOutput = file("build/reports/lint-results.xml")
+    }
+}
+
+// Replaces the legacy applicationVariants.all { } block (removed in AGP 10.0).
+// outputFileName wired lazily so versionName resolves after all variant merges.
+androidComponents {
+    onVariants { variant ->
+        val buildType = variant.buildType ?: ""
+        val flavorName = variant.flavorName ?: ""
+        variant.outputs.forEach { output ->
+            output.outputFileName.set(
+                output.versionName.map { vn ->
+                    val v = vn ?: "unknown"
+                    if (buildType == "release") "FastMediaSorter_${flavorName}_v${v}.apk"
+                    else "FastMediaSorter_${flavorName}_${buildType}_v${v}.apk"
+                }
+            )
+        }
     }
 }
 

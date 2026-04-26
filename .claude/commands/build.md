@@ -1,5 +1,10 @@
 # Build Guide
 
+> **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
+> 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
+> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
+> 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
+
 Answer questions about the build system, scripts, versioning, flavors, and deployment for FastMediaSorter v2.
 
 ## Usage
@@ -230,3 +235,4 @@ This appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` 
 - File size limit: 1000 lines max. Files >500 lines need a timestamped backup in `temp/` before modification.
 - Never use `Log.d()` — use `Timber` only.
 - Activity/Fragment logic must be delegated to `helpers/*Manager.kt` classes.
+

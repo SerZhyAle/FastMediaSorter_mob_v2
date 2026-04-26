@@ -7,6 +7,24 @@ import java.net.SocketTimeoutException
 import timber.log.Timber
 
 /**
+ * Categories for SMB playback-path failures. Used to enrich log output so
+ * post-mortem analysis can distinguish failure types without device access.
+ *
+ * STALE_POOL_CONNECTION  — watchdog fired on a VALIDATED connection (TCP was silently dropped)
+ * NEW_CONNECTION_TIMEOUT — watchdog fired on a FRESH connection (network loss or very slow NAS)
+ * TRANSPORT_FAILURE      — broken-pipe / socket error on openFile (stale SMBJ cache entry)
+ * AUTH_CONFIG            — authentication, access-denied, or share-not-found error
+ * UNKNOWN                — unclassified
+ */
+enum class SmbPlaybackErrorCategory {
+    STALE_POOL_CONNECTION,
+    NEW_CONNECTION_TIMEOUT,
+    TRANSPORT_FAILURE,
+    AUTH_CONFIG,
+    UNKNOWN
+}
+
+/**
  * Pure helpers for SmbConnectionManager: classify exceptions into retry/non-retry buckets,
  * detect transport-level socket failures, and produce user-friendly error messages.
  *

@@ -166,12 +166,32 @@ class StereoDetectorTest {
         assertEquals(StereoMode.SBS_FULL, detector.detectFromFormat(format))
     }
 
-    // ── Matroska metadata — OU tag ───────────────────────────────────────
+    // ── Matroska metadata — OU tags ──────────────────────────────────────
 
     @Test
-    fun `detectFromFormat returns OU when Matroska tag is 3 (OU top-first)`() {
+    fun `detectFromFormat returns OU when Matroska tag is 3 (OU left-eye-top)`() {
         val format = buildFormatWithTag("3", 1920, 1080)
         assertEquals(StereoMode.OU, detector.detectFromFormat(format))
+    }
+
+    @Test
+    fun `detectFromFormat returns OU when Matroska tag is 2 (OU right-eye-top)`() {
+        val format = buildFormatWithTag("2", 1920, 1080)
+        assertEquals(StereoMode.OU, detector.detectFromFormat(format))
+    }
+
+    // ── Matroska metadata — MVC packed ───────────────────────────────────
+
+    @Test
+    fun `detectFromFormat returns SBS_HALF when Matroska tag is 13 (MVC left-first)`() {
+        val format = buildFormatWithTag("13", 1920, 1080)
+        assertEquals(StereoMode.SBS_HALF, detector.detectFromFormat(format))
+    }
+
+    @Test
+    fun `detectFromFormat returns SBS_HALF when Matroska tag is 14 (MVC right-first)`() {
+        val format = buildFormatWithTag("14", 1920, 1080)
+        assertEquals(StereoMode.SBS_HALF, detector.detectFromFormat(format))
     }
 
     // ── Matroska metadata priority over AR heuristic ─────────────────────
@@ -238,10 +258,46 @@ class StereoDetectorTest {
     }
 
     @Test
+    fun `detectFromFilename SBS_HALF for Half-SBS marker`() {
+        // Blu-ray 3D rips: "Half-SBS" with separator between tokens
+        assertEquals(StereoMode.SBS_HALF, detector.detectFromFilename("Ghostbusters.2016.Half-SBS.mkv"))
+        assertEquals(StereoMode.SBS_HALF, detector.detectFromFilename("movie.half_sbs.mkv"))
+        assertEquals(StereoMode.SBS_HALF, detector.detectFromFilename("movie half sbs.mkv"))
+    }
+
+    @Test
+    fun `detectFromFilename SBS_FULL for FullSBS marker`() {
+        // "FullSBS3D" — token boundary fails on digit after "sbs", handled via contains()
+        assertEquals(StereoMode.SBS_FULL, detector.detectFromFilename("Blade Runner (1080p24fpsH264FullSBS3D).mkv"))
+        assertEquals(StereoMode.SBS_FULL, detector.detectFromFilename("movie_fullsbs.mkv"))
+    }
+
+    @Test
+    fun `detectFromFilename SBS_FULL for RL reversed-SBS marker`() {
+        assertEquals(StereoMode.SBS_FULL, detector.detectFromFilename("movie_rl.mp4"))
+        assertEquals(StereoMode.SBS_FULL, detector.detectFromFilename("scene-rl-stereo.mkv"))
+    }
+
+    @Test
     fun `detectFromFilename OU for explicit ou marker`() {
         assertEquals(StereoMode.OU, detector.detectFromFilename("movie_ou.mp4"))
         assertEquals(StereoMode.OU, detector.detectFromFilename("movie_tb.mkv"))
         assertEquals(StereoMode.OU, detector.detectFromFilename("movie_3dv.mp4"))
+    }
+
+    @Test
+    fun `detectFromFilename OU for hOU marker`() {
+        // Real-world 3D Blu-ray rips use "3D-hOU" (half Over-Under, anamorphic)
+        assertEquals(StereoMode.OU, detector.detectFromFilename("BlackWidow(2021)3D-hOU(Ash61)iTunes.mkv"))
+        assertEquals(StereoMode.OU, detector.detectFromFilename("DeadpoolAndWolverine(2024)3D-hOU(Ash61).mkv"))
+        assertEquals(StereoMode.OU, detector.detectFromFilename("movie_hou.mkv"))
+    }
+
+    @Test
+    fun `detectFromFilename OU for TAB marker`() {
+        // TAB = Top-And-Bottom, used by Meta Quest Store and YouTube VR
+        assertEquals(StereoMode.OU, detector.detectFromFilename("movie_tab.mp4"))
+        assertEquals(StereoMode.OU, detector.detectFromFilename("scene-TAB-stereo.mkv"))
     }
 
     @Test
@@ -331,6 +387,29 @@ class StereoDetectorTest {
         val format = buildFormatWithoutTag(1920, 1080)
 
         assertEquals(StereoMode.EQUIRECT_360_OU, detector.detectForVideo(file.absolutePath, format))
+    }
+
+    @Test
+    fun `detectForVideo reads st3d mode 3 as VR180_FISHEYE_SBS`() {
+        val file = createMp4WithSpatialMetadata(
+            filenameSuffix = "_vr180",
+            st3dLayout = 3,
+            projectionBox = "equi"
+        )
+        val format = buildFormatWithoutTag(7168, 3584)
+        assertEquals(StereoMode.VR180_FISHEYE_SBS, detector.detectForVideo(file.absolutePath, format))
+    }
+
+    @Test
+    fun `detectForVideo reads st3d mode 4 as EQUIRECT_360_SBS`() {
+        // mode 4 = right-left reversed SBS — same rendering as left-right SBS
+        val file = createMp4WithSpatialMetadata(
+            filenameSuffix = "_360",
+            st3dLayout = 4,
+            projectionBox = "equi"
+        )
+        val format = buildFormatWithoutTag(7680, 1920)
+        assertEquals(StereoMode.EQUIRECT_360_SBS, detector.detectForVideo(file.absolutePath, format))
     }
 
     @Test

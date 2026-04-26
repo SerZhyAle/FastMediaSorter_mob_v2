@@ -174,7 +174,8 @@ class PlayerViewModel @Inject constructor(
     )
 
     fun setStereoMode(mode: StereoMode) = stereoCoordinator.setStereoMode(mode)
-    fun setAutoDetectedStereoMode(mode: StereoMode) = stereoCoordinator.setAutoDetectedStereoMode(mode)
+    fun setAutoDetectedStereoMode(mode: StereoMode, forFilePath: String = "") =
+        stereoCoordinator.setAutoDetectedStereoMode(mode, forFilePath)
     fun resetStereoModeForNewFile(filePath: String? = state.value.currentFile?.path) =
         stereoCoordinator.resetStereoModeForNewFile(filePath)
     fun rememberStereoModeIfEnabled(mode: StereoMode) = stereoCoordinator.rememberStereoModeIfEnabled(mode)

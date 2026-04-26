@@ -83,8 +83,15 @@ class PlayerStereoModeCoordinator(
      * Always updates the detected-mode cache so the dialog can return to AUTO immediately.
      * Only applies to the effective mode when the user has not picked a manual override.
      */
-    fun setAutoDetectedStereoMode(mode: StereoMode) {
+    fun setAutoDetectedStereoMode(mode: StereoMode, forFilePath: String = "") {
         if (mode == StereoMode.UNKNOWN || mode == StereoMode.AUTO) return
+        if (forFilePath.isNotEmpty() && forFilePath != currentStereoOverridePath) {
+            Timber.w(
+                "PlayerStereoModeCoordinator: discarding stale detection mode=$mode " +
+                    "for=$forFilePath current=$currentStereoOverridePath"
+            )
+            return
+        }
         _detectedStereoMode.value = mode
 
         if (hasManualStereoSelection) return

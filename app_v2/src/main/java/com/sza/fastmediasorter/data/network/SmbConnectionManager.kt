@@ -54,7 +54,8 @@ interface SmbResetCallback {
  */
 @Singleton
 class SmbConnectionManager @Inject constructor(
-    private val networkStateMonitor: NetworkStateMonitor
+    private val networkStateMonitor: NetworkStateMonitor,
+    private val playbackTracker: SmbPlaybackConnectionTracker
 ) {
     
     init {
@@ -828,6 +829,7 @@ class SmbConnectionManager @Inject constructor(
         closeAllConnections()
         resetClients()
         ConnectionThrottleManager.resetAllSmbStates()
+        playbackTracker.clearAll()
         consecutiveTimeouts = 0
         lastSuccessfulOperation = System.currentTimeMillis()
         lastAutoResetTime = System.currentTimeMillis() // Update to prevent immediate auto-reset after manual
@@ -974,8 +976,7 @@ class SmbConnectionManager @Inject constructor(
     private fun handleNetworkReconnect() {
         Timber.w("SmbConnectionManager: Network reconnected - invalidating all SMB connections")
         closeAllConnections()
-        // Don't reset clients - they will work with new network
-        // Just clear the pool so new connections will be created
+        playbackTracker.clearAll()
         consecutiveTimeouts = 0
         lastSuccessfulOperation = System.currentTimeMillis()
     }
@@ -989,10 +990,7 @@ class SmbConnectionManager @Inject constructor(
         closeAllConnections()
     }
     
-    /**eanupScope.coroutineContext.cancel()  // Cancel any pending cleanup tasks (ML-009)
-        cl
-     * Close all resources and cleanup.
-     */
+    /** Close all resources and cleanup. */
     fun close() {
         closeAllConnections()
         resetClients()

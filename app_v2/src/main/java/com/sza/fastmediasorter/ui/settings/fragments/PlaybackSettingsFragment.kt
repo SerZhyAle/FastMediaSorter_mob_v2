@@ -139,6 +139,14 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(skipCameraFilenameDialog = isChecked))
         }
 
+        binding.iconHelpCameraCapture.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_camera_capture_title,
+                R.string.tooltip_camera_capture_message
+            )
+        }
+
         binding.switchConfirmDelete.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -345,7 +353,7 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.switchSkipCameraFilenameDialog.isChecked != settings.skipCameraFilenameDialog) {
                         binding.switchSkipCameraFilenameDialog.isChecked = settings.skipCameraFilenameDialog
                     }
-                    binding.rowSkipCameraFilename.isVisible = !settings.disableCameraCapture
+                    binding.layoutSkipCameraFilename.isVisible = !settings.disableCameraCapture
                     if (binding.switchConfirmDelete.isChecked != settings.confirmDelete) {
                         binding.switchConfirmDelete.isChecked = settings.confirmDelete
                     }

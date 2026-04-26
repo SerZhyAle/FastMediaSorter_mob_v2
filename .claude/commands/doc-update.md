@@ -1,227 +1,210 @@
 # Documentation Update
 
-Review the current change and update **all** documentation files that are affected.
+Review the current change and update all affected documentation files.
 
 ## Usage
 
-```
-/doc-update [optional: brief description of what was just implemented]
+```text
+/doc-update [optional: brief description of what was implemented]
 ```
 
-Example:
 - `/doc-update Chromecast cast integration`
-- `/doc-update background thumbnail preload worker`
-- `/doc-update` (no argument — infer scope from recent git diff)
+- `/doc-update` — infer scope from `git diff --name-only HEAD~1 HEAD`
 
 ---
 
 ## Process
 
-When this command is invoked with `$ARGUMENTS`:
+**1 — Determine scope.**
 
-**Step 1 — Determine scope.**
-- If `$ARGUMENTS` is provided, use it as the feature/change description.
-- Otherwise run `git diff --name-only HEAD~1 HEAD` to identify what changed.
-- Read the changed files briefly to understand what was modified.
+Use `$ARGUMENTS` as the feature/change description, or run `git diff --name-only HEAD~1 HEAD` and read changed files briefly.
 
-**Step 2 — Work through the checklist below in order.**
-For each documentation point, decide: *affected / not affected*. Apply every affected update. Skip with a reason for every non-affected item.
+**2 — Work through the checklist below in order.**
 
-**Step 3 — Run the dev log command for every file you modify** (mandatory):
+Decide per item: *affected* or *not affected*. Apply every affected update. Skip non-affected items silently.
+
+**3 — Run dev log for every file modified** (mandatory):
+
 ```powershell
 .\scripts\add_to_dev_log.ps1 "<relative_path>" "<class_or_target>" "<short_description>"
 ```
 
-**Step 4 — Output a summary table** of every document: `Updated / Skipped (reason)`.
+**Chat output:** table of every document — `Updated` or `Skipped (reason)`.
 
 ---
 
 ## Documentation Checklist
 
-### A — Always Required (every code change)
+### A — Always Required
 
 #### A1. `dev/CHANGELOG.md`
+
 **When:** After every code or config change — no exceptions.
-**How:** Run the script (do NOT edit the file directly):
+**How:** Run the script once per modified file. Never edit directly.
+
 ```powershell
 .\scripts\add_to_dev_log.ps1 "<relative_path>" "<ClassName or target>" "<one-line description>"
 ```
-Call the script once per modified file. Use the file's package-relative path (e.g. `app_v2/src/main/java/...`).
 
 ---
 
-### B — User-Facing Features (when a new capability is visible to the user)
+### B — User-Facing Features
 
 A change is "user-facing" if it adds, removes, or materially alters something the end user can see or do.
 
 #### B1. `docs/FEATURES.md` (English)
-**When:** Any new or changed user-facing feature.
-**How:** Add or update a bullet inside the relevant numbered section (1–22). Match the existing bullet style: start with `**Feature name**:` followed by a plain-English description of what it does and why it is useful. Do not add a new top-level section unless a genuinely new feature area is introduced; extend an existing section instead.
 
-#### B2. `docs/FEATURES_RU.md` (Russian)
-**When:** Same trigger as B1.
-**How:** Mirror the B1 change in Russian. Keep section numbers and bullet layout identical to the EN file.
+Add or update a bullet in the relevant numbered section. Style: `**Feature name**: plain-English description.`
 
-#### B3. `docs/FEATURES_UK.md` (Ukrainian)
-**When:** Same trigger as B1.
-**How:** Mirror the B1 change in Ukrainian. Keep section numbers and bullet layout identical to the EN file.
+#### B2. `docs/FEATURES_RU.md` (Russian) · B3. `docs/FEATURES_UK.md` (Ukrainian)
+
+Mirror the B1 change. Identical section numbers and bullet layout.
 
 ---
 
-### C — String Resources (when new UI text is added)
+### C — String Resources
 
 #### C1. `app_v2/src/main/res/values/strings.xml` (English)
-**When:** Any new string key referenced from code or layouts.
-**How:** Add the `<string name="key">value</string>` entry in alphabetical or logical grouping order. Never hard-code UI strings in Kotlin/XML.
 
-#### C2. `app_v2/src/main/res/values-ru/strings.xml` (Russian)
-**When:** Same trigger as C1.
-**How:** Add the same key with the Russian translation.
+Add `<string name="key">value</string>` in alphabetical or logical grouping order.
 
-#### C3. `app_v2/src/main/res/values-uk/strings.xml` (Ukrainian)
-**When:** Same trigger as C1.
-**How:** Add the same key with the Ukrainian translation.
+#### C2. `values-ru/strings.xml` (Russian) · C3. `values-uk/strings.xml` (Ukrainian)
+
+Add same key with translation. All three files are mandatory on every new string.
 
 ---
 
-### D — Architecture & Tech Docs (when structure or dependencies change)
+### D — Architecture & Tech Docs
 
 #### D1. `docs/ARCHITECTURE.md`
-**When:** A new layer, module, major class, or data-flow path is introduced (e.g. new UseCase chain, new Repository, new background service). Minor fixes or internal refactors do not require this update.
-**How:** Update the relevant diagram or section. Keep the C4 level of detail — components and their responsibilities, not method signatures.
+
+**When:** New layer, module, major class, or data-flow path. Not for minor fixes or internal refactors.
+**How:** Update relevant diagram/section at C4 level — components and responsibilities, not signatures.
 
 #### D2. `docs/TECH_STACK.md`
-**When:** A new third-party library is added or an existing one is upgraded to a new major version.
-**How:** Add or update the library entry: name, version, purpose, and any integration notes.
+
+**When:** New third-party library or major version bump.
+**How:** Add/update entry: name, version, purpose, integration notes.
 
 #### D3. `dev/TECH_REQUIREMENTS.md`
-**When:** Same trigger as D2, or when platform constraints change (minSdk, compileSdk, Java version, Kotlin version).
-**How:** Update the relevant table row or constraint note. Keep the "last updated" date current.
+
+**When:** Same as D2, or when platform constraints change (minSdk, compileSdk, Java, Kotlin).
 
 #### D4. `dev/PROJECT_OPERATIONS_INDEX.md`
-**When:** A new module is created, a new top-level feature path is established, or a new fast-command is added.
-**How:** Add or update the relevant section (Workspace Topology, Source Layout, Fast Commands, Feature-to-Path Map). Keep entries concise — one line per item.
+
+**When:** New module, new feature path, or new fast-command.
+**How:** Add/update relevant section. One line per item.
 
 #### D5. `app_v2/build.gradle.kts`
-**When:** Adding dependencies, changing SDK versions, adding/modifying product flavors, or adding new `BuildConfig` fields.
-**How:** Edit the relevant block. Increment Room's `schemaVersion` (see D6) whenever the DB schema changes. Confirm the new dependency appears in `gradle/libs.versions.toml` first; add it there if absent.
 
-#### D6. `app_v2/src/main/java/com/sza/fastmediasorter/data/db/AppDatabase.kt` (schema version)
-**When:** Any Room entity is added, removed, or has a column change.
-**How:** Increment the `version` number in `@Database`. Add a corresponding `Migration` object. Do not rename the old migration — append a new one.
+**When:** Adding dependencies, SDK version changes, new flavors, new `BuildConfig` fields.
+**How:** Edit relevant block. New dependencies must appear in `gradle/libs.versions.toml` first.
+
+#### D6. `AppDatabase.kt` (Room schema version)
+
+**When:** Any Room entity added, removed, or column changed.
+**How:** Increment `version` in `@Database`. Add `Migration` object. Never rename old migrations.
 
 ---
 
-### E — Spec Files (before or during implementation)
+### E — Spec Files
 
 #### E1. `PLAN/spec_<name>.md`
-**When:** Before implementing any non-trivial feature (Tier 2+). The spec must exist and be in `Status: Approved` before code is written.
-**How:** Use the `/spec` command — never write spec files manually. After implementation, update the spec's `Status` field from `Approved` → `Implemented` and note the completion date.
+
+**When:** Before implementing any non-trivial feature (Tier 2+).
+**How:** Use `/spec` — never write manually. After implementation, advance `Status` to `Implemented`.
 
 ---
 
-### F — User Help Docs (when the feature changes what the user sees or how they interact)
+### F — User Help Docs
 
-Update only the sections directly relevant to the change. Do not rewrite entire files.
+Update only sections directly relevant to the change.
 
-#### F1. `docs/HOW_TO.md` + `docs/HOW_TO_RU.md` + `docs/HOW_TO_UK.md`
-**When:** A new multi-step workflow is available to the user (e.g. "how to cast to Chromecast", "how to set up scheduled sync").
-**How:** Add a new numbered how-to section in the same style as existing entries. Add it to all three language files.
+#### F1. `docs/HOW_TO.md` + `_RU` + `_UK`
 
-#### F2. `docs/FAQ.md` + `docs/FAQ_RU.md` + `docs/FAQ_UK.md`
-**When:** The feature is likely to generate user questions ("Why does X happen?", "Where is setting Y?").
-**How:** Add one or more Q&A pairs in all three files. Keep answers concise and link to HOW_TO if a full walkthrough exists.
+**When:** New multi-step workflow available to the user.
 
-#### F3. `docs/TROUBLESHOOTING.md` + `docs/TROUBLESHOOTING_RU.md` + `docs/TROUBLESHOOTING_UK.md`
-**When:** A new known failure mode is introduced or resolved; or a bug fix addresses a previously documented issue.
-**How:** Add the symptom, cause, and resolution as a bullet or numbered item. Remove or mark resolved any entries that no longer apply.
+#### F2. `docs/FAQ.md` + `_RU` + `_UK`
 
-#### F4. `docs/LIMITATIONS.md` + `docs/LIMITATIONS_RU.md` + `docs/LIMITATIONS_UK.md`
-**When:** The feature has a known constraint the user should be aware of (e.g. "cast only works on Standard flavor", "max 500 files per batch").
-**How:** Add a concise limitation bullet in all three files under the most relevant section.
+**When:** Feature likely to generate user questions.
 
-#### F5. `docs/QUICK_START.md` + `docs/QUICK_START_RU.md` + `docs/QUICK_START_UK.md`
-**When:** The initial setup or onboarding flow changes (new required step, removed step, changed screen).
-**How:** Update the affected numbered step or add a new one. Keep entries short — Quick Start is not a full manual.
+#### F3. `docs/TROUBLESHOOTING.md` + `_RU` + `_UK`
 
-#### F6. `README.md` (root, GitHub-facing)
-**When:** A major new feature is added that changes the app's top-level value proposition, or a key capability is removed.
-**How:** Update the feature list or description section. This file is what developers/contributors see first on GitHub — keep it accurate and concise.
+**When:** New known failure mode introduced, or bug fix addresses a previously documented issue.
 
-#### F7. `docs/README.md` + `docs/README_RU.md` + `docs/README_UK.md`
-**When:** Same trigger as F6, or when the user-facing overview needs updating (download links, screenshots referenced, supported versions).
-**How:** Add a one-line entry to the feature summary list. Mirror the change in all three language files.
+#### F4. `docs/LIMITATIONS.md` + `_RU` + `_UK`
 
----
+**When:** Feature has a known user-facing constraint.
 
-### G — Website / Landing Pages (when a significant user-visible feature is added or removed)
+#### F5. `docs/QUICK_START.md` + `_RU` + `_UK`
 
-The root HTML files are the public GitHub Pages website. They contain a key features list, usage scenarios, and download links visible to all visitors.
+**When:** Initial setup or onboarding flow changes.
 
-#### G1. `index.html` (English landing page)
-**When:** A new major feature is added that belongs in the "Key Features" `<ul>` list, or an existing feature is removed/renamed; or a new usage scenario card is warranted.
-**How:** Add a `<li>` entry to the features list inside `<div class="feature-list">`, or add/update a scenario `<div class="card">`. Keep wording short (≤ 10 words for list items). Do not change layout, CSS, or SEO meta tags unless the product's name or description fundamentally changes.
+#### F6. `README.md` (root)
 
-#### G2. `index-ru.html` (Russian landing page)
-**When:** Same trigger as G1.
-**How:** Mirror the G1 change in Russian inside the same HTML structure.
+**When:** Major new feature changes top-level value proposition, or key capability removed.
 
-#### G3. `index-uk.html` (Ukrainian landing page)
-**When:** Same trigger as G1.
-**How:** Mirror the G1 change in Ukrainian inside the same HTML structure.
+#### F7. `docs/README.md` + `_RU` + `_UK`
+
+**When:** Same as F6, or user-facing overview needs updating.
 
 ---
 
-### H — Wear OS Companion (when wear/ module is touched)
+### G — Website / Landing Pages
+
+#### G1. `index.html` · G2. `index-ru.html` · G3. `index-uk.html`
+
+**When:** New major feature added to "Key Features" list, or existing removed/renamed.
+**How:** Add `<li>` entry (≤10 words). Mirror in all three files. Do not change layout or SEO meta.
+
+---
+
+### H — Wear OS
 
 #### H1. `docs/WEAR_OS_STATUS.md`
-**When:** Any change to the `wear/` module.
-**How:** Update the validation status row for the affected feature area.
+
+**When:** Any change to the `wear/` module. Update validation status row.
 
 #### H2. `docs/WEAR_OS_ROADMAP.md`
-**When:** A planned Wear OS feature is implemented or a new one is planned.
-**How:** Move the item from "Planned" to "Implemented" (or add a new planned item).
+
+**When:** Planned Wear feature implemented or new one planned.
 
 ---
 
-### I — Documentation Map (when new doc files are created)
+### I — Documentation Map
 
 #### I1. `docs/DOCS_MAP.md`
-**When:** Any new `.md` documentation file is created anywhere in the project.
-**How:** Add a row to the appropriate table section with: link, one-line description, and today's date. If no existing section fits, add a new section.
+
+**When:** Any new `.md` documentation file created. Add row: link, one-line description, date.
 
 ---
 
-## Decision Matrix (quick reference)
+## Decision Matrix
 
 | What changed | Updates required |
-|---|---|
-| Bug fix, no UI/feature change | A1 only |
-| Internal refactor (same behavior) | A1 only |
-| New dependency added | A1, D2, D3, D5 |
+| --- | --- |
+| Bug fix, no UI/feature change | A1 |
+| Internal refactor | A1 |
+| New dependency | A1, D2, D3, D5 |
 | SDK / platform version change | A1, D3, D4, D5 |
 | Room schema change | A1, D5, D6 |
 | New string resource | A1, C1, C2, C3 |
-| New user-facing feature | A1, B1–B3, F6, F7 + relevant F docs + G1–G3 |
-| New user-facing feature + new strings | A1, B1–B3, C1–C3, F6, F7 + relevant F docs + G1–G3 |
+| New user-facing feature | A1, B1–B3, F6, F7 + relevant F + G1–G3 |
+| New feature + new strings | A1, B1–B3, C1–C3, F6, F7 + relevant F + G1–G3 |
 | New architectural component | A1, D1, D4 |
-| New spec created | E1 (via `/spec`) |
-| Spec implemented | E1 (status → Implemented) |
 | Wear module change | A1, H1, H2 |
 | New doc file created | I1 |
-| Initial setup flow changes | A1, F5 (all 3 languages) |
-| New workflow for users | A1, F1 (all 3 languages) |
-| Known limitation discovered | A1, F4 (all 3 languages) |
-| Root README or website outdated | F6, F7, G1–G3 |
+| Initial setup flow changes | A1, F5 (all 3) |
+| New user workflow | A1, F1 (all 3) |
+| Known limitation discovered | A1, F4 (all 3) |
 
 ---
 
-## Quality Rules
+## Constraints
 
-- Never update `CHANGELOG.md` manually — always use the script.
-- Never skip RU/UK when updating EN user-facing docs (B, C, F groups). Trilingual consistency is mandatory.
-- Do not rewrite documentation sections you are not updating — only touch the affected parts.
-- Do not create new documentation files outside `docs/` or `dev/` unless explicitly instructed.
-- When in doubt whether a change is "user-facing", apply the rule: *if a user would notice the difference in normal use, it is user-facing.*
-- If a file in group F does not yet have a relevant section, add one rather than skipping the update.
-- Keep `docs/DOCS_MAP.md` in sync — any new file added in this session must appear there.
+- Never edit `CHANGELOG.md` manually — always use the script.
+- Never skip RU/UK when updating EN user-facing docs (B, C, F groups).
+- Do not rewrite sections you are not updating — only touch affected parts.
+- Do not create new doc files outside `docs/` or `dev/` unless explicitly instructed.
+- "User-facing" rule: if a user would notice the difference in normal use, it is user-facing.
+- Keep `docs/DOCS_MAP.md` in sync — any new file added must appear there.

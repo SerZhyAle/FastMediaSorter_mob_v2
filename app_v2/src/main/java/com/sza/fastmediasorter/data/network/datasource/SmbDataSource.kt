@@ -8,14 +8,12 @@ import androidx.media3.datasource.DataSpec
 import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
-import com.hierynomus.smbj.auth.AuthenticationContext
-import com.hierynomus.smbj.SMBClient
-import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.smbj.share.File
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.network.SmbConnectionManager
+import com.sza.fastmediasorter.data.network.SmbErrorClassifier
+import com.sza.fastmediasorter.data.network.model.ConnectionKey
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import timber.log.Timber
 import java.io.EOFException
@@ -68,29 +66,6 @@ class SmbDataSource(
             Thread(r, "SmbDataSource-Watchdog").apply { isDaemon = true }
         }
 
-        /**
-         * Returns true if [e] is a broken-pipe or transport-level socket failure.
-         * SMBJ's isConnected flag does not detect TCP-level silent drops; only an actual
-         * write attempt (like openFile) reveals the dead socket as a SocketException/TransportException.
-         * Used to decide whether to invalidate the stale pooled connection and retry once.
-         */
-        private fun isTransportOrBrokenPipe(e: Exception): Boolean {
-            var current: Throwable? = e
-            var depth = 0
-            while (current != null && depth < 5) {
-                if (current is java.net.SocketException ||
-                    current is com.hierynomus.protocol.transport.TransportException) {
-                    return true
-                }
-                val msg = current.message?.lowercase() ?: ""
-                if (msg.contains("broken pipe") || msg.contains("connection reset")) {
-                    return true
-                }
-                current = current.cause
-                depth++
-            }
-            return false
-        }
     }
 
     /**
@@ -120,11 +95,6 @@ class SmbDataSource(
         return false
     }
     
-    // Keep old name for backward compatibility
-    private fun isInterruption(error: Throwable?): Boolean = isInterruptionOrTimeout(error)
-    
-    private var connection: com.hierynomus.smbj.connection.Connection? = null
-    private var session: com.hierynomus.smbj.session.Session? = null
     private var share: DiskShare? = null
     private var file: File? = null
     private var currentPosition: Long = 0
@@ -141,6 +111,16 @@ class SmbDataSource(
     private var internalBufferValidBytes = 0
 
     override fun open(dataSpec: DataSpec): Long {
+        val key = connectionKey()
+        val tracker = smbClient.playbackConnectionTracker
+        // Fail-fast: if a watchdog fired on the previous attempt for this server/share,
+        // skip the 12 s hang and surface the error immediately. ExoPlayer will then
+        // propagate onPlayerError instead of spinning through another full timeout.
+        if (tracker.isRecentWatchdog(key)) {
+            Timber.e("[SMB-PLAY] fail-fast: recent watchdog for ${connectionInfo.server} — aborting retry")
+            throw IOException("SMB playback fail-fast: watchdog timeout on previous attempt")
+        }
+        tracker.onConnectionCreated(key)
         // Run the blocking open logic on a worker thread and wait with a hard deadline.
         // If the SMB server silently dropped the pooled connection's TCP socket, the
         // openFile() call inside openInternal blocks at the OS level far longer than any
@@ -151,9 +131,10 @@ class SmbDataSource(
         return try {
             future.get(OPEN_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         } catch (te: TimeoutException) {
+            tracker.recordWatchdog(key)
             Timber.e(
-                "SmbDataSource.open: watchdog timeout after ${OPEN_WATCHDOG_TIMEOUT_MS}ms — " +
-                "invalidating ExoPlayer pooled connection for ${connectionInfo.server}"
+                "[SMB-PLAY] open watchdog after ${OPEN_WATCHDOG_TIMEOUT_MS}ms — " +
+                "state=${tracker.getStateName(key)}, server=${connectionInfo.server}"
             )
             try {
                 smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
@@ -178,34 +159,8 @@ class SmbDataSource(
         try {
             val uri = dataSpec.uri
             this.uri = uri
-            // Expected format: smb://server/share/path/to/file or smb://server/path/to/file (if share inferred)
-            // Use encodedPath to avoid double-decoding: uri.path already returns a decoded string,
-            // so calling Uri.decode() on it would double-decode any % sequences in filenames.
-            val path = uri.encodedPath ?: throw IOException("Invalid SMB path: ${uri}")
-            
-            // Decode path segments (single round-trip: encodedPath → Uri.decode per segment)
-            val decodedPath = path.trim('/').split("/").joinToString("/") { 
-                Uri.decode(it) 
-            }
-            
-            Timber.d("SmbDataSource.open: Decoded path=$decodedPath, Share from ConnectionInfo=${connectionInfo.shareName}")
-
-            // If the connection info already has a share name, we must be careful.
-            // VideoPlayerManager now passes /ShareName/Path/To/File as the URI path.
-            // SmbConnectionInfo also has the share name.
-            
-            val finalPath = if (decodedPath.startsWith("${connectionInfo.shareName}/", ignoreCase = true)) {
-                // If path starts with share name, strip it to get relative path
-                decodedPath.substring(connectionInfo.shareName.length + 1)
-            } else if (decodedPath.equals(connectionInfo.shareName, ignoreCase = true)) {
-                // Path IS the share name (root)
-                ""
-            } else {
-                // Path doesn't start with share name, assume it's already relative
-                decodedPath
-            }
-            
-            Timber.d("SmbDataSource.open: Opening file relative to share '${connectionInfo.shareName}': '$finalPath'")
+            val finalPath = resolveSmbPath(uri)
+            Timber.d("SmbDataSource.open: Opening '$finalPath' relative to share '${connectionInfo.shareName}'")
             
             // Get pooled connection (blocking)
             var pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
@@ -234,7 +189,7 @@ class SmbDataSource(
                     null
                 )
             } catch (e: Exception) {
-                if (isTransportOrBrokenPipe(e)) {
+                if (SmbErrorClassifier.isTransportOrBrokenPipe(e)) {
                     Timber.w("SmbDataSource.open: Stale share detected on openFile (${e.javaClass.simpleName}: ${e.message}) — invalidating and retrying")
                     smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
                     pooledConnection = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
@@ -308,6 +263,10 @@ class SmbDataSource(
                 "SmbDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength"
             )
 
+            val key = connectionKey()
+            smbClient.playbackConnectionTracker.clearWatchdog(key)
+            smbClient.playbackConnectionTracker.onConnectionValidated(key)
+
             return if (bytesRemaining == C.LENGTH_UNSET.toLong()) {
                 fileLength
             } else {
@@ -341,9 +300,11 @@ class SmbDataSource(
         return try {
             future.get(READ_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         } catch (te: TimeoutException) {
+            val key = connectionKey()
+            smbClient.playbackConnectionTracker.recordWatchdog(key)
             Timber.e(
-                "SmbDataSource.read: watchdog timeout after ${READ_WATCHDOG_TIMEOUT_MS}ms at position=$currentPosition " +
-                "— invalidating ExoPlayer pooled connection for ${connectionInfo.server}"
+                "[SMB-PLAY] read watchdog after ${READ_WATCHDOG_TIMEOUT_MS}ms at position=$currentPosition " +
+                "— state=${smbClient.playbackConnectionTracker.getStateName(key)}, server=${connectionInfo.server}"
             )
             try {
                 smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
@@ -538,91 +499,54 @@ class SmbDataSource(
     }
 
     /**
-     * Attempt to reopen the SMB connection and file at the current position.
-     * Used for recovery from network interruptions during streaming.
+     * Reopen the SMB file at [currentPosition] via the pool manager.
+     * Used for recovery from EOF / protocol errors during streaming.
+     * Invalidates the stale pool entry so the manager creates a fresh TCP socket.
      */
     private fun reopenConnection() {
-        Timber.i("SmbDataSource: Reopening connection - file=${uri?.lastPathSegment}, position=$currentPosition")
-        
-        // Close existing resources
-        try {
-            file?.close()
-        } catch (e: Exception) {
-            Timber.d("Error closing file during reconnect: ${e.message}")
-        }
+        Timber.i("[SMB-PLAY] reopenConnection: file=${uri?.lastPathSegment}, position=$currentPosition")
+        try { file?.close() } catch (_: Exception) {}
         file = null
-
-        try {
-            share?.close()
-        } catch (e: Exception) {
-            Timber.d("Error closing share during reconnect: ${e.message}")
-        }
+        // share is pool-managed — do not close it here.
+        // Invalidate via the manager so it evicts and purges SMBJ's internal cache.
         share = null
 
-        try {
-            session?.close()
-        } catch (e: Exception) {
-            Timber.d("Error closing session during reconnect: ${e.message}")
-        }
-        session = null
+        smbClient.connectionManager.invalidateExoPlayerConnection(connectionInfo)
+        val pooled = smbClient.connectionManager.getConnectionForExoPlayer(connectionInfo)
+        share = pooled.share
 
-        try {
-            connection?.close()
-        } catch (e: Exception) {
-            Timber.d("Error closing connection during reconnect: ${e.message}")
-        }
-        connection = null
-
-        // Reestablish connection with timeouts optimized for video streaming
-        val config = SmbConfig.builder()
-            .withTimeout(10000, TimeUnit.MILLISECONDS) // 10s connect timeout
-            .withSoTimeout(60000, TimeUnit.MILLISECONDS) // 60s read timeout for video buffering
-            .withMultiProtocolNegotiate(true)
-            .build()
-        
-        val client = SMBClient(config)
-        connection = client.connect(connectionInfo.server, connectionInfo.port)
-        
-        val finalDomain = connectionInfo.domain.trim().ifEmpty { null }
-        val authContext = if (connectionInfo.username.isNotEmpty()) {
-            AuthenticationContext(
-                connectionInfo.username,
-                connectionInfo.password.toCharArray(),
-                finalDomain
-            )
-        } else {
-            AuthenticationContext.anonymous()
-        }
-        
-        session = connection?.authenticate(authContext)
-        share = session?.connectShare(connectionInfo.shareName) as? DiskShare
-            ?: throw IOException("Failed to reconnect to share: ${connectionInfo.shareName}")
-
-        // Reopen file
-        val remotePath = uri?.encodedPath ?: throw IOException("Invalid URI path")
-        val decodedPath = Uri.decode(remotePath)
-        val pathWithoutLeadingSlash = decodedPath.removePrefix("/")
-        val sharePrefix = "${connectionInfo.shareName}/"
-        val smbPath = if (pathWithoutLeadingSlash.startsWith(sharePrefix)) {
-            pathWithoutLeadingSlash.substring(sharePrefix.length)
-        } else {
-            pathWithoutLeadingSlash
-        }
-
+        val finalPath = resolveSmbPath(uri ?: throw IOException("Invalid URI after reconnect"))
         file = share?.openFile(
-            smbPath,
+            finalPath,
             EnumSet.of(AccessMask.GENERIC_READ),
             null,
             SMB2ShareAccess.ALL,
             SMB2CreateDisposition.FILE_OPEN,
             null
-        ) ?: throw IOException("Failed to reopen file: $smbPath")
-        
-        // Invalidate internal buffer after reconnection
+        ) ?: throw IOException("Failed to reopen file after reconnect: $finalPath")
+
         internalBufferPosition = 0
         internalBufferValidBytes = 0
+        Timber.i("[SMB-PLAY] reopenConnection succeeded for ${uri?.lastPathSegment}")
+    }
 
-        Timber.i("SmbDataSource: Reconnection successful")
+    private fun connectionKey() = ConnectionKey(
+        server = connectionInfo.server,
+        port = connectionInfo.port,
+        shareName = connectionInfo.shareName,
+        username = connectionInfo.username,
+        domain = connectionInfo.domain
+    )
+
+    private fun resolveSmbPath(uri: Uri): String {
+        val path = uri.encodedPath ?: throw IOException("Invalid SMB URI path: $uri")
+        val decoded = path.trim('/').split("/").joinToString("/") { Uri.decode(it) }
+        return when {
+            decoded.startsWith("${connectionInfo.shareName}/", ignoreCase = true) ->
+                decoded.substring(connectionInfo.shareName.length + 1)
+            decoded.equals(connectionInfo.shareName, ignoreCase = true) -> ""
+            else -> decoded
+        }
     }
     
     /**
@@ -633,10 +557,8 @@ class SmbDataSource(
         try { file?.close() } catch (_: Exception) {}
         file = null
         
-        // DO NOT close share/session/connection - they are managed by SmbConnectionManager pool
+        // share is managed by SmbConnectionManager pool — only clear the reference
         share = null
-        session = null
-        connection = null
     }
 
     override fun getUri(): Uri? = uri
@@ -657,11 +579,8 @@ class SmbDataSource(
             file = null
         }
 
-        // DO NOT close share/session/connection - they are managed by SmbConnectionManager pool
-        // Just clear references to avoid accidental reuse
+        // share is managed by SmbConnectionManager pool — only clear the reference
         share = null
-        session = null
-        connection = null
 
         if (opened) {
             opened = false

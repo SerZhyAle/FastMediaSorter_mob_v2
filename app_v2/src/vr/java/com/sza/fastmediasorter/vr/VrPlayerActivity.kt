@@ -47,6 +47,9 @@ import com.sza.fastmediasorter.vr.openxr.XrRenderCallback
 import com.sza.fastmediasorter.vr.render.VrHudRenderer
 import com.sza.fastmediasorter.vr.render.VrHudSceneComposer
 import com.sza.fastmediasorter.vr.render.VrHudSceneDriver
+import com.sza.fastmediasorter.vr.render.VrInteractivePanelComposer
+import com.sza.fastmediasorter.vr.render.VrInteractivePanelDriver
+import com.sza.fastmediasorter.vr.render.VrInteractivePanelRenderer
 import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
 import com.sza.fastmediasorter.vr.render.VrLayerFactory
 import com.sza.fastmediasorter.vr.render.VrPhotoSphereRenderer
@@ -59,7 +62,10 @@ import com.sza.fastmediasorter.vr.render.VrVideoSurfaceTextureBridge
 import com.sza.fastmediasorter.vr.ui.VrCheatsheetOverlayManager
 import com.sza.fastmediasorter.vr.ui.VrControlOverlayManager
 import com.sza.fastmediasorter.vr.ui.VrFileOpsOverlayManager
+import com.sza.fastmediasorter.vr.ui.VrControllerRayManager
 import com.sza.fastmediasorter.vr.ui.VrHandRayManager
+import com.sza.fastmediasorter.vr.ui.VrPanelHitZoneResolver
+import com.sza.fastmediasorter.vr.ui.VrRayPanelHitTester
 import com.sza.fastmediasorter.vr.ui.VrHudIndicatorManager
 import com.sza.fastmediasorter.vr.ui.VrHudSink
 import com.sza.fastmediasorter.vr.ui.VrZoomManager
@@ -116,10 +122,15 @@ class VrPlayerActivity : PlayerActivity() {
     private var vrHudFallback: VrHudIndicatorManager? = null
     private var vrHudRenderer: VrHudRenderer? = null
     private var vrHudSceneDriver: VrHudSceneDriver? = null
+    private var vrInteractivePanelDriver: VrInteractivePanelDriver? = null
+    private var lastHoveredZoneId = -1
+    private var currentPanelSpeed = 1.0f
+    private var lastSeekDragFraction = -1f
     private var vrHudProgressJob: Job? = null
     private var vrCheatsheetManager: VrCheatsheetOverlayManager? = null
     private var vrFileOpsManager: VrFileOpsOverlayManager? = null
     private var vrHandRayManager: VrHandRayManager? = null
+    private var vrControllerRayManager: VrControllerRayManager? = null
     private var audioManager: AudioManager? = null
     private var cheatsheetAutoShown = false
 
@@ -175,6 +186,8 @@ class VrPlayerActivity : PlayerActivity() {
     /** Throttle counter for per-frame render debug logs — not persisted across sessions. */
     @Volatile
     private var dbgRenderFrameCount = 0L
+
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     // WHY: the XR callback runs on xr-render-thread, but Media3 requires all ExoPlayer access
     // on the application's main looper. Keep render-time aspect data in a volatile cache instead.
@@ -266,7 +279,6 @@ class VrPlayerActivity : PlayerActivity() {
         // Build the VR immersive controls pipeline BEFORE OpenXrSessionManager so we can
         // pass the input callback straight into the session constructor.
         audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager
-        val mainHandler = Handler(Looper.getMainLooper())
         // Layer E: hand-tracking ray manager. Constructed early so it can be wired
         // into VrControllerInputManager before the input callback reaches the XR
         // runtime. release() is called alongside the other managers in onDestroy.
@@ -285,6 +297,13 @@ class VrPlayerActivity : PlayerActivity() {
         // ray manager; the sink is volatile so the render-thread doesn't need a lock.
         inputManager.pointerMoveSink = { hand, ndcX, ndcY ->
             handRay.onPointerMove(hand, ndcX, ndcY)
+        }
+        // Layer A controller aim-ray (spec_vr-immersive-controls-panel Phase 02).
+        // VrControllerRayManager handles throttle + MotionEvent dispatch internally.
+        val controllerRay = VrControllerRayManager(this)
+        vrControllerRayManager = controllerRay
+        inputManager.controllerPointerMoveSink = { hand, ndcX, ndcY ->
+            controllerRay.onControllerPointerMove(hand, ndcX, ndcY)
         }
         vrInputManager = inputManager
         vrHudFallback = VrHudIndicatorManager(this)
@@ -441,6 +460,47 @@ class VrPlayerActivity : PlayerActivity() {
             }
         }
 
+        // Stand up the interactive GL panel pipeline (spec_vr-immersive-controls-panel Phase 03).
+        if (sessionMgr != null) {
+            val panelRenderer = VrInteractivePanelRenderer(sessionMgr)
+            if (panelRenderer.ensureSwapchainCreated()) {
+                val panelComposer = VrInteractivePanelComposer(this)
+                val panelDriver = VrInteractivePanelDriver(panelRenderer, panelComposer)
+                vrInteractivePanelDriver = panelDriver
+                controlOverlay = VrControlOverlayManager(
+                    activity = this,
+                    onCommand = { command -> handleVrCommand(command, VrCommandSource.UI) },
+                    panelDriver = panelDriver,
+                )
+                Timber.i("VrPlayerActivity: interactive panel driver active")
+
+                // Phase 04: wire hit-test → hover zone → panel driver.
+                val hitTester = VrRayPanelHitTester()
+                val hitResolver = VrPanelHitZoneResolver(panelComposer)
+                sessionMgr.attachHitTester(hitTester, hitResolver)
+                val localInputManager = vrInputManager
+                if (localInputManager != null) {
+                    localInputManager.panelVisibleProvider = { panelDriver.isPanelVisible() }
+                    localInputManager.panelHoverSink = { _, zoneId, seekFrac ->
+                        lastHoveredZoneId = zoneId
+                        panelDriver.updateHoverZone(zoneId)
+                        if (seekFrac >= 0f) {
+                            panelDriver.updateSeekDrag(seekFrac)
+                            scheduleSeekDrag(seekFrac, panelDriver)
+                        } else if (lastSeekDragFraction >= 0f) {
+                            commitSeekDrag(lastSeekDragFraction, panelDriver)
+                        }
+                        lastSeekDragFraction = seekFrac
+                    }
+                    localInputManager.panelClickSink = {
+                        dispatchPanelZoneClick(lastHoveredZoneId)
+                    }
+                }
+            } else {
+                Timber.w("VrPlayerActivity: panel swapchain unavailable — keeping 2D overlay fallback")
+            }
+        }
+
         Timber.i("VrPlayerActivity: initializeVrRenderPipeline COMPLETE")
     }
 
@@ -453,14 +513,12 @@ class VrPlayerActivity : PlayerActivity() {
         vrHudProgressJob?.cancel()
         vrHudProgressJob = lifecycleScope.launch {
             while (isActive) {
-                val sink = vrHudSceneDriver
-                if (sink != null) {
-                    val player = videoPlayerManager.exoPlayer
-                    val pos = player?.currentPosition ?: -1L
-                    val buf = player?.bufferedPosition ?: -1L
-                    val dur = player?.duration ?: -1L
-                    sink.updateProgress(pos, buf, dur)
-                }
+                val player = videoPlayerManager.exoPlayer
+                val pos = player?.currentPosition ?: -1L
+                val buf = player?.bufferedPosition ?: -1L
+                val dur = player?.duration ?: -1L
+                vrHudSceneDriver?.updateProgress(pos, buf, dur)
+                vrInteractivePanelDriver?.updateProgress(pos, buf, dur)
                 delay(500L)
             }
         }
@@ -483,6 +541,11 @@ class VrPlayerActivity : PlayerActivity() {
         vrHudRenderer?.release()
         vrHudRenderer = null
         vrHudManager = vrHudFallback
+        vrInteractivePanelDriver?.release()
+        vrInteractivePanelDriver = null
+        vrInputManager?.panelVisibleProvider = null
+        vrInputManager?.panelHoverSink = null
+        vrInputManager?.panelClickSink = null
     }
 
     /**
@@ -761,12 +824,15 @@ class VrPlayerActivity : PlayerActivity() {
         vrFileOpsManager?.release()
         vrFileOpsManager = null
         vrZoomManager = null
-        // Detach the pointer stream BEFORE releasing the hand-ray manager — otherwise
+        // Detach the pointer streams BEFORE releasing ray managers — otherwise
         // a queued main-thread Runnable from the xr-render-thread could resurrect the
         // decor overlay after release() has already torn it down.
         vrInputManager?.pointerMoveSink = null
+        vrInputManager?.controllerPointerMoveSink = null
         vrHandRayManager?.release()
         vrHandRayManager = null
+        vrControllerRayManager?.release()
+        vrControllerRayManager = null
         vrInputManager = null
         xrSessionManager?.release()
         xrSessionManager = null
@@ -906,6 +972,68 @@ class VrPlayerActivity : PlayerActivity() {
      * inherited player. All UI feedback (HUD, haptic) is triggered here so every
      * input source (OpenXR / keyboard / mouse) produces identical feedback.
      */
+    /**
+     * Dispatch a panel zone click to the appropriate [PlaybackCommand].
+     * Called on the main thread when the trigger fires while the GL panel is visible.
+     * Phase 05 will expand the full dispatch table; only ZONE_EXIT is fully wired here.
+     */
+    private fun dispatchPanelZoneClick(zoneId: Int) {
+        val cmd = when (zoneId) {
+            VrInteractivePanelComposer.ZONE_PREV        -> PlaybackCommand.PreviousFile
+            VrInteractivePanelComposer.ZONE_NEXT        -> PlaybackCommand.NextFile
+            VrInteractivePanelComposer.ZONE_PLAY_PAUSE  -> PlaybackCommand.TogglePausePlay
+            VrInteractivePanelComposer.ZONE_SEEK_BACK   -> PlaybackCommand.SeekBackward
+            VrInteractivePanelComposer.ZONE_SEEK_FWD    -> PlaybackCommand.SeekForward
+            VrInteractivePanelComposer.ZONE_SEEK_SLIDER -> null // handled via drag
+            VrInteractivePanelComposer.ZONE_VOL_DOWN    -> PlaybackCommand.VolumeDown
+            VrInteractivePanelComposer.ZONE_VOL_UP      -> PlaybackCommand.VolumeUp
+            VrInteractivePanelComposer.ZONE_BRIGHT_DOWN -> PlaybackCommand.BrightnessDown
+            VrInteractivePanelComposer.ZONE_BRIGHT_UP   -> PlaybackCommand.BrightnessUp
+            VrInteractivePanelComposer.ZONE_SPEED       ->
+                PlaybackCommand.SetPlaybackSpeed(nextPanelSpeed())
+            VrInteractivePanelComposer.ZONE_TRACK       -> PlaybackCommand.CycleAudioTrack
+            VrInteractivePanelComposer.ZONE_FORMAT      -> PlaybackCommand.CycleStereoFormat
+            VrInteractivePanelComposer.ZONE_EXIT        -> PlaybackCommand.Exit
+            -1 -> null
+            else -> null.also {
+                Timber.w("VrPlayerActivity: unknown zone %d — ignored", zoneId)
+            }
+        }
+        if (cmd != null) {
+            handleVrCommand(cmd, VrCommandSource.CONTROLLER)
+            vrInteractivePanelDriver?.scheduleAutoHide()
+        }
+    }
+
+    private fun scheduleSeekDrag(fraction: Float, panelDriver: VrInteractivePanelDriver) {
+        mainHandler.removeCallbacks(seekDragRunnable)
+        seekDragTargetFraction = fraction
+        mainHandler.postDelayed(seekDragRunnable, SEEK_DEBOUNCE_MS)
+    }
+
+    private fun commitSeekDrag(fraction: Float, panelDriver: VrInteractivePanelDriver) {
+        mainHandler.removeCallbacks(seekDragRunnable)
+        val totalMs = videoPlayerManager.exoPlayer?.duration ?: return
+        if (totalMs <= 0L) return
+        val positionMs = (fraction * totalMs).toLong().coerceIn(0L, totalMs)
+        handleVrCommand(PlaybackCommand.SeekTo(positionMs), VrCommandSource.CONTROLLER)
+        panelDriver.updateSeekDrag(-1f)
+    }
+
+    private var seekDragTargetFraction = -1f
+    private val seekDragRunnable = Runnable {
+        val pd = vrInteractivePanelDriver ?: return@Runnable
+        commitSeekDrag(seekDragTargetFraction, pd)
+    }
+
+    private fun nextPanelSpeed(): Float {
+        val speeds = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
+        val idx = speeds.indexOfFirst { it == currentPanelSpeed }
+        currentPanelSpeed = speeds[(idx + 1) % speeds.size]
+        vrInteractivePanelDriver?.updateSpeed(currentPanelSpeed)
+        return currentPanelSpeed
+    }
+
     private fun handleVrCommand(command: PlaybackCommand, source: VrCommandSource = VrCommandSource.UI) {
         Timber.d("VrPlayerActivity: handling VR command $command")
         // WHY: any mapped controller command means the user is actively using the controller;
@@ -1032,6 +1160,14 @@ class VrPlayerActivity : PlayerActivity() {
             }
             PlaybackCommand.ToggleOverlay  -> controlOverlay?.toggle()
             PlaybackCommand.Mute -> toggleMute()
+            // Panel commands (spec_vr-immersive-controls-panel) — minimal wiring; full UX in that spec.
+            PlaybackCommand.VolumeUp -> onVolumeStep(+1)
+            PlaybackCommand.VolumeDown -> onVolumeStep(-1)
+            PlaybackCommand.BrightnessUp, PlaybackCommand.BrightnessDown -> Unit
+            is PlaybackCommand.SetPlaybackSpeed -> videoPlayerManager.setPlaybackSpeed(command.speed)
+            PlaybackCommand.CycleAudioTrack -> cycleAudioTrackAndUpdatePanel()
+            PlaybackCommand.CycleStereoFormat -> Unit
+            is PlaybackCommand.SeekTo -> vrPlaybackEngine.seekTo(command.positionMs)
         }
     }
 
@@ -1048,12 +1184,22 @@ class VrPlayerActivity : PlayerActivity() {
         showVolumeFeedback()
     }
 
+    private fun cycleAudioTrackAndUpdatePanel() {
+        val tracks = videoPlayerManager.getAvailableAudioTracks()
+        if (tracks.size < 2) return
+        val currentIdx = tracks.indexOfFirst { it.isSelected }.coerceAtLeast(0)
+        val next = tracks[(currentIdx + 1) % tracks.size]
+        videoPlayerManager.selectAudioTrack(next.groupIndex, next.trackIndex)
+        vrInteractivePanelDriver?.updatePanelTrackLabel(next.label)
+    }
+
     private fun showVolumeFeedback() {
         val am = audioManager ?: return
         val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
         val current = am.getStreamVolume(AudioManager.STREAM_MUSIC)
         val percent = (current * 100 / max).coerceIn(0, 100)
         vrHudManager?.showVolumeIndicator(percent)
+        vrInteractivePanelDriver?.updatePanelVolume(percent)
     }
 
     private fun onZoomGripDelta(delta: Float) {
@@ -1216,11 +1362,14 @@ class VrPlayerActivity : PlayerActivity() {
                     launchStandardPlayerFallback(currentFile, reason)
                 }
 
+                VrLaunchRoute.CINEMA_IMMERSIVE,
                 VrLaunchRoute.IMMERSIVE_VIDEO,
                 VrLaunchRoute.IMMERSIVE_STATIC_IMAGE -> {
                     if (!xrInitializationRequested) {
                         startXrInitialization(reason, routeDecision)
                     }
+                    // applyStereoModeToVrRenderers already called above with MONO (CINEMA_IMMERSIVE)
+                    // or the file's effective stereo mode — descriptor update is automatic.
                 }
 
                 VrLaunchRoute.UNSUPPORTED_IMMERSIVE_WITH_MESSAGE -> {
@@ -1588,6 +1737,9 @@ class VrPlayerActivity : PlayerActivity() {
         /** Ctrl+arrow macro-seek increment (seconds). */
         private const val VR_SEEK_MACRO = 60
         private const val VR_FALLBACK_ERROR_DELAY_MS = 350L
+
+        /** Debounce window for seek-drag SeekTo dispatch (ms). 300 ms guards against SMB latency. */
+        private const val SEEK_DEBOUNCE_MS = 300L
 
         /** Short haptic pulse (~20 ms). */
         private const val HAPTIC_SHORT_NS = 20_000_000L

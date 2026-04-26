@@ -38,4 +38,14 @@ interface VrHudSink {
     fun showStereoModeLabel(label: String?)
     fun updateProgress(positionMs: Long, bufferedMs: Long, totalMs: Long)
     fun hideAll()
+
+    // ── Interactive GL panel feed (spec_vr-immersive-controls-panel Phase 05) ──
+    fun updatePanelVolume(percent: Int) {}
+    fun updatePanelBrightness(percent: Int) {}
+    fun updatePanelSpeed(speed: Float) {}
+    fun updatePanelTrackLabel(label: String) {}
+    fun updatePanelFormatLabel(label: String) {}
+    fun showPanel() {}
+    fun hidePanel() {}
+    fun togglePanel() {}
 }

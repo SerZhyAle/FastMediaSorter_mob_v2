@@ -40,4 +40,26 @@ interface XrInputCallback {
      * @param ndcY vertical position ∈ [-1, 1], or outside when the ray misses the plane.
      */
     fun onPointerMove(hand: Int, ndcX: Float, ndcY: Float) {}
+
+    /**
+     * Controller aim-ray hit-test result against the UI composition plane.
+     * Emitted every frame while Touch controllers are the active input source.
+     * NDC semantics identical to [onPointerMove] for hands.
+     *
+     * @param hand one of [XrHand] constants.
+     * @param ndcX horizontal NDC ∈ [-1,1] or outside when ray misses the plane.
+     * @param ndcY vertical NDC ∈ [-1,1] or outside when ray misses the plane.
+     */
+    fun onControllerPointerMove(hand: Int, ndcX: Float, ndcY: Float) {}
+
+    /**
+     * Resolved interactive-panel hit zone under the controller aim ray.
+     * Emitted every frame while the panel is visible (Phase 04).
+     *
+     * @param hand one of [XrHand] constants.
+     * @param zoneId hit zone ID from [com.sza.fastmediasorter.vr.render.VrInteractivePanelComposer]
+     *               constants, or -1 on miss.
+     * @param seekFraction fractional seek position if hovering ZONE_SEEK_SLIDER, else -1f.
+     */
+    fun onControllerPanelHover(hand: Int, zoneId: Int, seekFraction: Float) {}
 }

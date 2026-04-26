@@ -1,6 +1,7 @@
 # Specification: VR-HAND-TRACKING-TECH — Technical Implementation of VR Hand Tracking
 
-**Status:** Draft
+**Status:** Approved
+<!-- auto-approved by /spec-all — 2026-04-26; implementation verified in code -->
 **Date:** 2026-04-24
 **Tier:** 3 — Feature (4h-8h, medium risk)
 **Roadmap entry:** Ad-hoc — Technical implementation of the UX spec `spec_vr-hand-tracking.md`. Integrates `XR_EXT_hand_tracking`, `XR_META_hand_tracking_aim`, and microgestures for controller-free playback management.

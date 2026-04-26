@@ -8,6 +8,8 @@ package com.sza.fastmediasorter.vr
  */
 internal enum class VrLaunchRoute {
     STANDARD_PANEL_FALLBACK,
+    /** 2D video played in QUAD_CINEMA layer; XR session stays alive. */
+    CINEMA_IMMERSIVE,
     IMMERSIVE_VIDEO,
     IMMERSIVE_STATIC_IMAGE,
     UNSUPPORTED_IMMERSIVE_WITH_MESSAGE,

@@ -335,6 +335,10 @@ class OpenXrSessionManager(
 
     /** Toggle the HUD quad layer's inclusion in the next xrEndFrame. */
     fun setHudLayerVisible(visible: Boolean) {
+        if (!running.get()) {
+            Timber.d("OpenXrSessionManager: setHudLayerVisible(%s) ignored — session not running", visible)
+            return
+        }
         OpenXrNative.nativeSetHudLayerVisible(visible)
     }
 
@@ -342,6 +346,53 @@ class OpenXrSessionManager(
     fun uploadHudBitmap(bitmap: android.graphics.Bitmap): Boolean {
         if (!running.get()) return false
         return OpenXrNative.nativeUploadHudBitmap(bitmap)
+    }
+
+    // ── Controller ray (spec_vr-immersive-controls-panel Phase 02) ───────────
+
+    /** Toggle GL ray line rendering. NDC events are always emitted regardless. */
+    fun setControllerRayEnabled(enabled: Boolean) {
+        OpenXrNative.nativeSetControllerRayEnabled(enabled)
+    }
+
+    // ── Interactive panel swapchain (spec_vr-immersive-controls-panel Phase 03) ──
+
+    /** Allocate (or re-allocate) the interactive panel swapchain. */
+    fun createPanelSwapchain(width: Int, height: Int): Boolean {
+        if (!running.get()) return false
+        return OpenXrNative.nativeCreatePanelSwapchain(width, height)
+    }
+
+    /** Release panel swapchain resources. */
+    fun destroyPanelSwapchain() {
+        if (running.get() || starting.get()) {
+            OpenXrNative.nativeDestroyPanelSwapchain()
+        }
+    }
+
+    /** Toggle the panel quad layer's inclusion in the next xrEndFrame. */
+    fun setPanelLayerVisible(visible: Boolean) {
+        if (!running.get()) return
+        OpenXrNative.nativeSetPanelLayerVisible(visible)
+    }
+
+    /** Upload a premultiplied ARGB_8888 [bitmap] to the panel swapchain. */
+    fun uploadPanelBitmap(bitmap: android.graphics.Bitmap): Boolean {
+        if (!running.get()) return false
+        return OpenXrNative.nativeUploadPanelBitmap(bitmap)
+    }
+
+    /**
+     * Attach hit-test infrastructure to the input callback (Phase 04).
+     * Delegates to [VrControllerInputManager.attachHitTester] if the registered
+     * [inputCallback] is a [com.sza.fastmediasorter.vr.helpers.VrControllerInputManager].
+     */
+    fun attachHitTester(
+        hitTester: com.sza.fastmediasorter.vr.ui.VrRayPanelHitTester,
+        resolver: com.sza.fastmediasorter.vr.ui.VrPanelHitZoneResolver,
+    ) {
+        (inputCallback as? com.sza.fastmediasorter.vr.helpers.VrControllerInputManager)
+            ?.attachHitTester(hitTester, resolver)
     }
 
     fun requestStereoSnapshot(): Boolean {

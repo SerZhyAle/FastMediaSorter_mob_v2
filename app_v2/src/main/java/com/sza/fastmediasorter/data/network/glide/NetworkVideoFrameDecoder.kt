@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
+import com.sza.fastmediasorter.utils.GlideCacheStats
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
@@ -195,6 +196,7 @@ class NetworkVideoFrameDecoder(
         return try {
             val bitmap = BitmapFactory.decodeFile(cached.absolutePath)
             if (bitmap != null) {
+                GlideCacheStats.recordThumbnailRepoHit()
                 val drawable = BitmapDrawable(FastMediaSorterApp.appContext.resources, bitmap)
                 BitmapDrawableResource(drawable, bitmapPool)
             } else {

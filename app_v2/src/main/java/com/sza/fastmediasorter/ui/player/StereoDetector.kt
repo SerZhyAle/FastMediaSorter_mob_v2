@@ -59,10 +59,13 @@ class StereoDetector @javax.inject.Inject constructor() {
 
         // Matroska StereoMode values (EBML element 0x53B8)
         // https://www.matroska.org/technical/elements.html#StereoMode
-        private const val MATROSKA_STEREO_MONO      = "0"
-        private const val MATROSKA_STEREO_SBS_LEFT  = "1"
-        private const val MATROSKA_STEREO_OU_TOP    = "3"
-        private const val MATROSKA_STEREO_SBS_RIGHT = "11"
+        private const val MATROSKA_STEREO_MONO       = "0"
+        private const val MATROSKA_STEREO_SBS_LEFT   = "1"   // left-eye first
+        private const val MATROSKA_STEREO_OU_RIGHT   = "2"   // top-bottom, right-eye on top
+        private const val MATROSKA_STEREO_OU_TOP     = "3"   // top-bottom, left-eye on top
+        private const val MATROSKA_STEREO_SBS_RIGHT  = "11"  // right-eye first
+        private const val MATROSKA_STEREO_MVC_LEFT   = "13"  // both eyes laced, left-first (MVC)
+        private const val MATROSKA_STEREO_MVC_RIGHT  = "14"  // both eyes laced, right-first (MVC)
 
         // Shared-data key written by MatroskaExtractor in Media3 for the StereoMode EBML tag.
         // Access is best-effort because Media3 API exposure differs across versions/builds.
@@ -79,17 +82,19 @@ class StereoDetector @javax.inject.Inject constructor() {
      * **Spherical / panoramic** (checked first — wins over flat markers when present):
      *  - `cylinder`, `cylinder180`  → [StereoMode.CYLINDER_180]
      *  - `vr180`, `180x180`         → [StereoMode.VR180_FISHEYE_SBS]
+     *  - `180` + `stereo`            → [StereoMode.EQUIRECT_180_SBS]
      *  - `180` + `sbs`              → [StereoMode.EQUIRECT_180_SBS]
      *  - `180` (alone, or with `ou`) → [StereoMode.EQUIRECT_180_MONO]
+     *  - `360` + `stereo`            → [StereoMode.EQUIRECT_360_SBS]
      *  - `360` + `sbs`              → [StereoMode.EQUIRECT_360_SBS]
      *  - `360` + `ou`/`tb`          → [StereoMode.EQUIRECT_360_OU]
      *  - `360`, `equirect`          → [StereoMode.EQUIRECT_360_MONO]
      *  - `cubemap`                  → [StereoMode.UNKNOWN] (unsupported projection)
      *
      * **Flat stereo** (fallback when no spherical marker matches):
-     *  - `_3dh`, `_sbs`, `_lr`      → [StereoMode.SBS_FULL]
-     *  - `_3dv`, `_ou`, `_tb`       → [StereoMode.OU]
-     *  - `_hsbs`, `_halfsbs`        → [StereoMode.SBS_HALF]
+     *  - `_3dh`, `_sbs`, `_lr`, `_rl`, `FullSBS*` → [StereoMode.SBS_FULL]
+     *  - `_3dv`, `_ou`, `_tb`, `_hou`, `_tab`    → [StereoMode.OU]
+     *  - `_hsbs`, `_halfsbs`, `Half-SBS`, `half sbs` → [StereoMode.SBS_HALF]
      *
      * Should be called BEFORE [detectFromFormat] — explicit filename markers from the
      * content creator are more reliable than heuristics on MP4 track metadata.
@@ -114,20 +119,34 @@ class StereoDetector @javax.inject.Inject constructor() {
         val hasVr180 = containsToken(stem, "vr180") || stem.contains("180x180")
         val has180 = containsToken(stem, "180") || stem.contains("equirect180") || hasVr180
         val has360 = containsToken(stem, "360") || stem.contains("equirect360") || containsToken(stem, "equirect")
+        // `fullsbs` uses contains() — token boundary fails when digit follows (e.g. "FullSBS3D")
         val hasSbs = containsToken(stem, "sbs") || containsToken(stem, "3dh") || containsToken(stem, "lr")
+                  || containsToken(stem, "rl") || stem.contains("fullsbs")
+        // `hou` requires explicit token — `containsToken("hou","ou")` fails because "h" is alphanumeric boundary
         val hasOu = containsToken(stem, "ou") || containsToken(stem, "tb") || containsToken(stem, "3dv")
-        val hasHalfSbs = containsToken(stem, "hsbs") || containsToken(stem, "halfsbs")
+                 || containsToken(stem, "hou") || containsToken(stem, "tab")
+        // `half-sbs` (with separator) is not caught by `halfsbs` — add compound check
+        val hasHalfSbs = containsToken(stem, "hsbs") || stem.contains("halfsbs")
+                      || (containsToken(stem, "half") && containsToken(stem, "sbs"))
         val hasCubemap = containsToken(stem, "cubemap")
+        val hasStereo = containsToken(stem, "stereo")
+        val hasMono   = containsToken(stem, "mono")
 
         return when {
+            hasStereo && hasMono -> {
+                Timber.w("$TAG: filename conflict stereo+mono — mono wins for stem='$stem'")
+                logMatch("MONO", StereoMode.MONO)
+            }
             // ─── Spherical / panoramic (priority over flat) ───
             hasCylinder -> logMatch("CYLINDER_180", StereoMode.CYLINDER_180)
             hasVr180    -> logMatch("VR180_FISHEYE_SBS", StereoMode.VR180_FISHEYE_SBS)
+            has180 && hasStereo -> logMatch("EQUIRECT_180_SBS", StereoMode.EQUIRECT_180_SBS)
             has180 && hasSbs -> logMatch("EQUIRECT_180_SBS", StereoMode.EQUIRECT_180_SBS)
             // 180° + OU or plain 180° → mono (EQUIRECT_180_OU intentionally not modelled;
             // 180° OU content is rare and renders acceptably as mono half-sphere).
             has180 -> logMatch("EQUIRECT_180_MONO", StereoMode.EQUIRECT_180_MONO)
             has360 && hasSbs -> logMatch("EQUIRECT_360_SBS", StereoMode.EQUIRECT_360_SBS)
+            has360 && hasStereo -> logMatch("EQUIRECT_360_SBS", StereoMode.EQUIRECT_360_SBS)
             has360 && hasOu  -> logMatch("EQUIRECT_360_OU",  StereoMode.EQUIRECT_360_OU)
             has360 -> logMatch("EQUIRECT_360_MONO", StereoMode.EQUIRECT_360_MONO)
             hasCubemap -> {
@@ -250,10 +269,13 @@ class StereoDetector @javax.inject.Inject constructor() {
         val stereoTag = customData.getString(FORMAT_CUSTOM_DATA_KEY) ?: return StereoMode.UNKNOWN
 
         return when (stereoTag) {
-            MATROSKA_STEREO_MONO      -> StereoMode.MONO
+            MATROSKA_STEREO_MONO                      -> StereoMode.MONO
             MATROSKA_STEREO_SBS_LEFT,
-            MATROSKA_STEREO_SBS_RIGHT -> StereoMode.SBS_FULL
-            MATROSKA_STEREO_OU_TOP    -> StereoMode.OU
+            MATROSKA_STEREO_SBS_RIGHT                 -> StereoMode.SBS_FULL
+            MATROSKA_STEREO_OU_RIGHT,
+            MATROSKA_STEREO_OU_TOP                    -> StereoMode.OU
+            MATROSKA_STEREO_MVC_LEFT,
+            MATROSKA_STEREO_MVC_RIGHT                 -> StereoMode.SBS_HALF
             else -> {
                 Timber.w("$TAG: Unknown Matroska StereoMode tag value: '$stereoTag'")
                 StereoMode.UNKNOWN

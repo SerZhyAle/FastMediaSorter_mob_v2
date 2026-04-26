@@ -127,15 +127,37 @@ class NetworkFileDataFetcher(
             }
         )
         private const val MAX_FAILED_CACHE = 5000
-        
+
+        @Volatile private var persistenceInitialized = false
+
+        private fun ensurePersistenceLoaded() {
+            if (persistenceInitialized) return
+            synchronized(failedVideos) {
+                if (persistenceInitialized) return
+                try {
+                    val persisted = VideoExtractionFailurePersistence.loadAll()
+                    for ((path, _) in persisted) {
+                        if (!failedVideos.containsKey(path)) {
+                            failedVideos[path] = true
+                        }
+                    }
+                    Timber.d("Loaded ${persisted.size} persisted failure entries into in-memory cache")
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to load persisted failure cache — continuing with empty in-memory cache")
+                }
+                persistenceInitialized = true
+            }
+        }
+
         /**
          * Check if video file is in failed cache.
          * PUBLIC API for NetworkVideoFrameDecoder.
          */
         fun isVideoFailed(path: String): Boolean {
+            ensurePersistenceLoaded()
             return failedVideos.containsKey(path)
         }
-        
+
         /**
          * Mark video file as failed (thumbnail extraction failed).
          * PUBLIC API for NetworkVideoFrameDecoder.
@@ -143,28 +165,40 @@ class NetworkFileDataFetcher(
         fun markVideoAsFailed(path: String) {
             failedVideos[path] = true
             Timber.d("Added to failed video cache (${failedVideos.size}/$MAX_FAILED_CACHE): ${path.substringAfterLast('/')}")
+            try {
+                VideoExtractionFailurePersistence.persistFailure(path)
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to persist video failure entry for: ${path.substringAfterLast('/')}")
+            }
         }
-        
+
         /**
-         * Clear all failed video cache entries.
+         * Clear all failed video cache entries (in-memory and persistent).
          * PUBLIC API for Settings -> Clear Cache.
          */
         fun clearFailedVideoCache() {
             synchronized(failedVideos) {
                 val count = failedVideos.size
                 failedVideos.clear()
+                persistenceInitialized = false
                 Timber.i("Cleared failed video cache: $count entries removed")
             }
+            try {
+                VideoExtractionFailurePersistence.clearAll()
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to clear persisted failure cache")
+            }
         }
-        
+
         /**
          * Check if thumbnail is marked as failed (generic, works for all media types).
          * PUBLIC API for MediaFileAdapter.
          */
         fun isThumbnailFailed(path: String): Boolean {
+            ensurePersistenceLoaded()
             return failedVideos.containsKey(path)
         }
-        
+
         /**
          * Mark thumbnail as failed (generic, works for all media types).
          * PUBLIC API for MediaFileAdapter and decoders.
@@ -172,6 +206,11 @@ class NetworkFileDataFetcher(
         fun markThumbnailAsFailed(path: String) {
             failedVideos[path] = true
             Timber.d("Added to failed thumbnail cache (${failedVideos.size}/$MAX_FAILED_CACHE): ${path.substringAfterLast('/')}")
+            try {
+                VideoExtractionFailurePersistence.persistFailure(path)
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to persist thumbnail failure entry for: ${path.substringAfterLast('/')}")
+            }
         }
     }
     

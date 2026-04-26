@@ -1,5 +1,10 @@
 # Log Reader — Android Logcat Analyst
 
+> **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
+> 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
+> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
+> 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
+
 Analyse FastMediaSorter Android logcat files for patterns, errors, warnings, and behaviour flows.
 
 ## Usage
@@ -371,3 +376,4 @@ Available log locations:
 - `logs/current.log` — most recent session (primary)
 - `temp/current.log` — fallback copy
 - `temp/fastmediasorter_YYYYMMDD_HHmmss.log` — timestamped archives
+

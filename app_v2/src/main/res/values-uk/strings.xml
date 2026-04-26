@@ -2658,6 +2658,15 @@
     <string name="vr_overlay_btn_play_pause">Плей / Пауза</string>
     <string name="vr_overlay_btn_settings">Налаштування</string>
     <string name="vr_overlay_btn_exit">Вихід</string>
+    <string name="vr_overlay_btn_vol_up">Гучн +</string>
+    <string name="vr_overlay_btn_vol_down">Гучн −</string>
+    <string name="vr_overlay_btn_bright_up">Ярк +</string>
+    <string name="vr_overlay_btn_bright_down">Ярк −</string>
+    <string name="vr_overlay_btn_speed">Швид.</string>
+    <string name="vr_overlay_btn_track">Доріжка</string>
+    <string name="vr_overlay_btn_format">Формат</string>
+    <string name="vr_overlay_speed_label">Швид.: %sx</string>
+    <string name="vr_overlay_format_label">%s</string>
 
     <!-- Керування у VR — вміст шпаргалки -->
     <string name="vr_cheatsheet_title">Керування у VR</string>
@@ -2678,6 +2687,10 @@
     <string name="vr_cheatsheet_section_mouse">Bluetooth-миша:</string>
     <string name="vr_cheatsheet_mouse_buttons">ЛКМ — пауза / плей · ПКМ — налаштування · СКМ — ре-центр · кнопка 4/5 — попередній / наступний файл</string>
     <string name="vr_cheatsheet_mouse_wheel">Колесо — гучність · Shift+колесо — перемотка ±10с</string>
+    <string name="vr_cheatsheet_section_hands">Відстеження рук (без контролерів):</string>
+    <string name="vr_cheatsheet_hands_ray">Направити руку — промінь прицілу · щипок — клік</string>
+    <string name="vr_cheatsheet_hands_swipe">Свайп великим пальцем ←→ — перемотка ±10с · ↑↓ — гучність</string>
+    <string name="vr_cheatsheet_hands_double_pinch">Подвійний щипок — пауза / плей</string>
     <string name="vr_cheatsheet_footer">Торкніться будь-де щоб закрити · тривале Y або F1 — відкрити знову</string>
 
     <!-- Camera Capture Settings -->
@@ -2685,6 +2698,8 @@
     <string name="setting_disable_camera_capture_summary">Приховує команду зйомки у Browse</string>
     <string name="setting_skip_camera_filename_dialog">Не питати ім\'я файлу</string>
     <string name="setting_skip_camera_filename_dialog_summary">Використовувати ім\'я за часом зйомки без діалогу</string>
+    <string name="tooltip_camera_capture_title">Зйомка камерою</string>
+    <string name="tooltip_camera_capture_message">Кнопка камери у Browse дозволяє зняти фото або відео, не виходячи з застосунку. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
 
     <!-- Controls & Keybindings -->
     <string name="settings_controls_keybindings_title">Керування та клавіші</string>

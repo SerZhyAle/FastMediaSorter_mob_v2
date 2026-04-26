@@ -334,6 +334,8 @@ namespace
         XrSessionState sessionState = XR_SESSION_STATE_UNKNOWN;
         bool sessionRunning = false;
         std::atomic<bool> exitRequested{false};
+        // Cached from xrWaitFrame; read by syncControllerAimRay on the next frame.
+        XrTime lastPredictedDisplayTime = 0;
 
         // Shared EGL (created by Kotlin GL thread before initialize()).
         EGLDisplay eglDisplay = EGL_NO_DISPLAY;
@@ -395,6 +397,17 @@ namespace
             jobject inputCallbackRef = nullptr;
             jmethodID onInputEventMethod = nullptr;
             jmethodID onPointerMoveMethod = nullptr;
+            // spec_vr-immersive-controls-panel Phase 02: controller aim ray.
+            jmethodID onControllerPointerMoveMethod = nullptr;
+
+            // Controller aim spaces (one per hand) — created after session init.
+            XrAction aimPoseL = XR_NULL_HANDLE;
+            XrAction aimPoseR = XR_NULL_HANDLE;
+            XrSpace  aimSpaceL = XR_NULL_HANDLE;
+            XrSpace  aimSpaceR = XR_NULL_HANDLE;
+            // Trigger actions — used to detect trigger hold for seek-drag (Phase 05).
+            XrAction triggerL = XR_NULL_HANDLE;
+            XrAction triggerR = XR_NULL_HANDLE;
 
             // Last controller-edge emission timestamp (monotonic ns). Drives the
             // modality gate: while controllers are active (events within 2 s),
@@ -403,6 +416,10 @@ namespace
 
             bool initialized = false;
         } input;
+
+        // Controller ray visibility flag (spec_vr-immersive-controls-panel Phase 02).
+        // When false the GL ray primitive is skipped but NDC is still emitted.
+        std::atomic<bool> controllerRayEnabled{true};
 
         // ═════════════════════════════════════════════════════════════════
         // Hand-tracking subsystem (spec_vr-hand-tracking-tech §5).
@@ -484,6 +501,17 @@ namespace
         // actual GL upload. Access to both fields is serialised by g_ctxMutex.
         std::vector<uint8_t> hudPendingPixels;
         std::atomic<bool> hudBitmapPending{false};
+
+        // Interactive GL panel swapchain (spec_vr-immersive-controls-panel Phase 03).
+        // Mirrors the HUD swapchain pattern with identical upload/drain/pump logic.
+        XrSwapchain panelSwapchain = XR_NULL_HANDLE;
+        uint32_t panelSwapchainWidth = 0;
+        uint32_t panelSwapchainHeight = 0;
+        std::atomic<bool> panelLayerVisible{false};
+        std::vector<SwapchainImage> panelSwapchainImages;
+        std::atomic<bool> panelFrameUploaded{false};
+        std::vector<uint8_t> panelPendingPixels;
+        std::atomic<bool> panelBitmapPending{false};
     };
 
     // Single process-wide context. The vr flavor only ever runs one XR session.
@@ -499,6 +527,9 @@ namespace
     XrResult triggerHapticImpl(int hand, int64_t durationNs, float amplitude);
     void emitInputEvent(JNIEnv *env, int32_t type, int32_t hand, float value, int32_t source);
     void emitPointerMove(JNIEnv *env, int32_t hand, float ndcX, float ndcY);
+    void emitControllerPointerMove(JNIEnv *env, int32_t hand, float ndcX, float ndcY);
+    bool createControllerAimSpaces();
+    void syncControllerAimRay(JNIEnv *env);
     bool initHandTracking();
     void syncHandTracking(JNIEnv *env);
     void destroyHandTracking();
@@ -506,6 +537,10 @@ namespace
     // HUD composition layer (spec_vr-immersive-hud-gl).
     bool createHudSwapchainImpl(uint32_t requestedWidth, uint32_t requestedHeight);
     void destroyHudSwapchainImpl();
+
+    // Interactive panel composition layer (spec_vr-immersive-controls-panel Phase 03).
+    bool createPanelSwapchainImpl(uint32_t requestedWidth, uint32_t requestedHeight);
+    void destroyPanelSwapchainImpl();
 
     // Event source identifiers — lockstep with Kotlin `XrInputSource`.
     constexpr int32_t XR_SRC_CONTROLLER = 0;
@@ -1207,6 +1242,93 @@ namespace
         g_ctx.hudBitmapPending.store(false);
     }
 
+    // ── Interactive panel swapchain helpers (spec_vr-immersive-controls-panel §5) ──
+
+    bool createPanelSwapchainImpl(uint32_t requestedWidth, uint32_t requestedHeight)
+    {
+        if (g_ctx.session == XR_NULL_HANDLE)
+        {
+            LOGW("createPanelSwapchainImpl: session is null — skipped");
+            return false;
+        }
+        if (g_ctx.panelSwapchain != XR_NULL_HANDLE)
+        {
+            if (g_ctx.panelSwapchainWidth == requestedWidth &&
+                g_ctx.panelSwapchainHeight == requestedHeight)
+                return true;
+            destroyPanelSwapchainImpl();
+        }
+
+        XrSwapchainCreateInfo sc{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+        sc.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
+        sc.format = GL_RGBA8;
+        sc.width = requestedWidth;
+        sc.height = requestedHeight;
+        sc.faceCount = 1;
+        sc.arraySize = 1;
+        sc.mipCount = 1;
+
+        XrResult r = xrCreateSwapchain(g_ctx.session, &sc, &g_ctx.panelSwapchain);
+        if (XR_FAILED(r))
+        {
+            LOGE("Panel swapchain xrCreateSwapchain failed: %d", static_cast<int>(r));
+            g_ctx.panelSwapchain = XR_NULL_HANDLE;
+            return false;
+        }
+        g_ctx.panelSwapchainWidth = requestedWidth;
+        g_ctx.panelSwapchainHeight = requestedHeight;
+        g_ctx.panelPendingPixels.assign(
+            static_cast<size_t>(requestedWidth) * requestedHeight * 4u, 0u);
+
+        uint32_t imgCount = 0;
+        r = xrEnumerateSwapchainImages(g_ctx.panelSwapchain, 0, &imgCount, nullptr);
+        if (XR_FAILED(r))
+        {
+            LOGE("Panel xrEnumerateSwapchainImages(count) failed: %d count=%u",
+                 static_cast<int>(r), imgCount);
+            destroyPanelSwapchainImpl();
+            return false;
+        }
+        std::vector<XrSwapchainImageOpenGLESKHR> imgs(imgCount);
+        for (auto &img : imgs)
+            img.type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
+        r = xrEnumerateSwapchainImages(
+            g_ctx.panelSwapchain, imgCount, &imgCount,
+            reinterpret_cast<XrSwapchainImageBaseHeader *>(imgs.data()));
+        if (XR_FAILED(r))
+        {
+            LOGE("Panel xrEnumerateSwapchainImages(data) failed: %d", static_cast<int>(r));
+            destroyPanelSwapchainImpl();
+            return false;
+        }
+        g_ctx.panelSwapchainImages.resize(imgCount);
+        for (uint32_t i = 0; i < imgCount; ++i)
+            g_ctx.panelSwapchainImages[i].imageId = imgs[i].image;
+
+        LOGI("createPanelSwapchainImpl: %ux%u swapchain created imgCount=%u",
+             requestedWidth, requestedHeight, imgCount);
+        return true;
+    }
+
+    void destroyPanelSwapchainImpl()
+    {
+        g_ctx.panelSwapchainImages.clear();
+        if (g_ctx.panelSwapchain != XR_NULL_HANDLE)
+        {
+            XrResult r = xrDestroySwapchain(g_ctx.panelSwapchain);
+            if (XR_FAILED(r))
+                LOGW("Panel swapchain destroy failed: %d", static_cast<int>(r));
+            else
+                LOGI("Panel swapchain destroyed");
+            g_ctx.panelSwapchain = XR_NULL_HANDLE;
+        }
+        g_ctx.panelSwapchainWidth = 0;
+        g_ctx.panelSwapchainHeight = 0;
+        g_ctx.panelLayerVisible.store(false);
+        g_ctx.panelPendingPixels.clear();
+        g_ctx.panelBitmapPending.store(false);
+    }
+
     bool pollEvents()
     {
         XrEventDataBuffer evt{XR_TYPE_EVENT_DATA_BUFFER};
@@ -1224,6 +1346,27 @@ namespace
                 LOGW("pollEvents: INSTANCE_LOSS_PENDING — stopping render loop");
                 g_ctx.exitRequested = true;
                 return false;
+            case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
+            {
+                LOGD("pollEvents: interaction profile changed — querying active profiles");
+                const char *topLevelPaths[] = {"/user/hand/left", "/user/hand/right"};
+                for (const auto *path : topLevelPaths)
+                {
+                    XrPath topLevel = XR_NULL_PATH;
+                    xrStringToPath(g_ctx.instance, path, &topLevel);
+                    XrInteractionProfileState state{XR_TYPE_INTERACTION_PROFILE_STATE};
+                    XrResult res = xrGetCurrentInteractionProfile(g_ctx.session, topLevel, &state);
+                    if (XR_SUCCEEDED(res) && state.interactionProfile != XR_NULL_PATH)
+                    {
+                        uint32_t len = 0;
+                        char profileName[256] = {};
+                        xrPathToString(g_ctx.instance, state.interactionProfile,
+                                       sizeof(profileName), &len, profileName);
+                        LOGD("pollEvents: active profile for %s = %s", path, profileName);
+                    }
+                }
+                break;
+            }
             default:
                 LOGD("pollEvents: unhandled event type=%d", static_cast<int>(evt.type));
                 break;
@@ -1429,9 +1572,15 @@ namespace
         io.stickR = makeAction("stick_r", "File / volume (R stick)", XR_ACTION_TYPE_VECTOR2F_INPUT, handRight);
         io.hapticL = makeAction("haptic_l", "Haptic (L)", XR_ACTION_TYPE_VIBRATION_OUTPUT, handLeft);
         io.hapticR = makeAction("haptic_r", "Haptic (R)", XR_ACTION_TYPE_VIBRATION_OUTPUT, handRight);
+        // spec_vr-immersive-controls-panel Phase 02: aim pose + trigger for controller ray.
+        io.aimPoseL = makeAction("aim_l", "Aim pose (L)", XR_ACTION_TYPE_POSE_INPUT, handLeft);
+        io.aimPoseR = makeAction("aim_r", "Aim pose (R)", XR_ACTION_TYPE_POSE_INPUT, handRight);
+        io.triggerL = makeAction("trigger_l", "Trigger (L)", XR_ACTION_TYPE_FLOAT_INPUT, handLeft);
+        io.triggerR = makeAction("trigger_r", "Trigger (R)", XR_ACTION_TYPE_FLOAT_INPUT, handRight);
 
         XrPath pLeftX, pLeftY, pLeftMenu, pLeftThumb, pLeftThumbClk, pLeftGrip, pLeftHaptic;
         XrPath pRightA, pRightB, pRightThumb, pRightThumbClk, pRightGrip, pRightHaptic;
+        XrPath pLeftAim, pRightAim, pLeftTrigger, pRightTrigger;
         xrStringToPath(g_ctx.instance, "/user/hand/left/input/x/click", &pLeftX);
         xrStringToPath(g_ctx.instance, "/user/hand/left/input/y/click", &pLeftY);
         xrStringToPath(g_ctx.instance, "/user/hand/left/input/menu/click", &pLeftMenu);
@@ -1445,6 +1594,10 @@ namespace
         xrStringToPath(g_ctx.instance, "/user/hand/right/input/thumbstick/click", &pRightThumbClk);
         xrStringToPath(g_ctx.instance, "/user/hand/right/input/squeeze/value", &pRightGrip);
         xrStringToPath(g_ctx.instance, "/user/hand/right/output/haptic", &pRightHaptic);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/aim/pose", &pLeftAim);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/input/aim/pose", &pRightAim);
+        xrStringToPath(g_ctx.instance, "/user/hand/left/input/trigger/value", &pLeftTrigger);
+        xrStringToPath(g_ctx.instance, "/user/hand/right/input/trigger/value", &pRightTrigger);
 
         std::vector<XrActionSuggestedBinding> bindings = {
             {io.aPauseToggle, pRightA},
@@ -1460,6 +1613,10 @@ namespace
             {io.stickR, pRightThumb},
             {io.hapticL, pLeftHaptic},
             {io.hapticR, pRightHaptic},
+            {io.aimPoseL, pLeftAim},
+            {io.aimPoseR, pRightAim},
+            {io.triggerL, pLeftTrigger},
+            {io.triggerR, pRightTrigger},
         };
 
         auto suggestProfile = [&](const char *profileStr)
@@ -1473,7 +1630,7 @@ namespace
             XrResult sr = xrSuggestInteractionProfileBindings(g_ctx.instance, &sugg);
             if (XR_FAILED(sr))
             {
-                LOGW("setupActionSet: suggest %s failed: %d (non-fatal if profile unsupported)",
+                LOGD("setupActionSet: suggest %s failed: %d (non-fatal if profile unsupported)",
                      profileStr, static_cast<int>(sr));
             }
             else
@@ -1481,8 +1638,9 @@ namespace
                 LOGI("setupActionSet: suggested bindings for %s (%zu)", profileStr, bindings.size());
             }
         };
-        suggestProfile("/interaction_profiles/oculus/touch_controller");     // Quest 2 / 3
-        suggestProfile("/interaction_profiles/oculus/touch_pro_controller"); // Quest Pro
+        suggestProfile("/interaction_profiles/oculus/touch_controller");      // Quest 2 / 3
+        suggestProfile("/interaction_profiles/oculus/touch_pro_controller");  // Quest Pro
+        suggestProfile("/interaction_profiles/meta/touch_plus_controller");   // Quest 3 Touch Plus
 
         XrSessionActionSetsAttachInfo asai{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
         asai.countActionSets = 1;
@@ -1495,8 +1653,37 @@ namespace
         }
 
         io.initialized = true;
-        LOGI("setupActionSet: input system ready (13 actions, 2 profiles attached)");
+        // Create aim pose action spaces for controller ray NDC projection.
+        createControllerAimSpaces();
+        LOGI("setupActionSet: input system ready (17 actions, 3 profiles attached)");
         return true;
+    }
+
+    // Create XrActionSpace for each hand's aim pose action.
+    // Called after xrAttachSessionActionSets when session + action set are both ready.
+    bool createControllerAimSpaces()
+    {
+        auto &io = g_ctx.input;
+        auto createSpace = [&](XrAction act, XrSpace &space) -> bool
+        {
+            if (act == XR_NULL_HANDLE) return false;
+            XrActionSpaceCreateInfo asci{XR_TYPE_ACTION_SPACE_CREATE_INFO};
+            asci.action = act;
+            asci.subactionPath = XR_NULL_PATH;
+            asci.poseInActionSpace.orientation = {0.0f, 0.0f, 0.0f, 1.0f};
+            asci.poseInActionSpace.position    = {0.0f, 0.0f, 0.0f};
+            XrResult r = xrCreateActionSpace(g_ctx.session, &asci, &space);
+            if (XR_FAILED(r))
+            {
+                LOGW("createControllerAimSpaces: xrCreateActionSpace failed: %d", static_cast<int>(r));
+                return false;
+            }
+            return true;
+        };
+        bool okL = createSpace(io.aimPoseL, io.aimSpaceL);
+        bool okR = createSpace(io.aimPoseR, io.aimSpaceR);
+        LOGI("createControllerAimSpaces: L=%d R=%d", static_cast<int>(okL), static_cast<int>(okR));
+        return okL && okR;
     }
 
     // Per-frame: xrSyncActions, read each action state, detect edges, emit events.
@@ -1705,6 +1892,11 @@ namespace
         io.gripL = io.gripR = XR_NULL_HANDLE;
         io.stickL = io.stickR = XR_NULL_HANDLE;
         io.hapticL = io.hapticR = XR_NULL_HANDLE;
+        // Controller aim spaces (Phase 02).
+        if (io.aimSpaceL != XR_NULL_HANDLE) { xrDestroySpace(io.aimSpaceL); io.aimSpaceL = XR_NULL_HANDLE; }
+        if (io.aimSpaceR != XR_NULL_HANDLE) { xrDestroySpace(io.aimSpaceR); io.aimSpaceR = XR_NULL_HANDLE; }
+        io.aimPoseL = io.aimPoseR = XR_NULL_HANDLE;
+        io.triggerL = io.triggerR = XR_NULL_HANDLE;
         io.initialized = false;
         io.prevA = io.prevB = io.prevX = io.prevY = false;
         io.prevMenu = io.prevThumbL = io.prevThumbR = false;
@@ -1726,6 +1918,7 @@ namespace
         io.inputCallbackRef = nullptr;
         io.onInputEventMethod = nullptr;
         io.onPointerMoveMethod = nullptr;
+        io.onControllerPointerMoveMethod = nullptr;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -1827,6 +2020,99 @@ namespace
         h.aimFrozenL = h.aimFrozenR = false;
         h.prevGesturesL = h.prevGesturesR = 0;
         h.initialized = false;
+    }
+
+    void emitControllerPointerMove(JNIEnv *env, int32_t hand, float ndcX, float ndcY)
+    {
+        auto &io = g_ctx.input;
+        if (!io.inputCallbackRef || !io.onControllerPointerMoveMethod || !env)
+            return;
+        env->CallVoidMethod(io.inputCallbackRef, io.onControllerPointerMoveMethod,
+                            static_cast<jint>(hand),
+                            static_cast<jfloat>(ndcX),
+                            static_cast<jfloat>(ndcY));
+    }
+
+    // Project controller aim pose onto the UI plane and emit NDC.
+    // UI plane: flat quad at g_uiPlaneDistance m forward in local space (same as hand ray).
+    void syncControllerAimRay(JNIEnv *env)
+    {
+        auto &io = g_ctx.input;
+        if (!io.initialized || !g_ctx.sessionRunning || !g_ctx.viewSpace)
+            return;
+        // WHY: use the most recent predicted display time cached by renderFrame.
+        // Aim space location must be queried with the frame's predicted time for low latency.
+        XrTime t = g_ctx.lastPredictedDisplayTime;
+        if (t == 0) return;
+
+        // UI plane distance in metres — must match the value used for hand tracking NDC.
+        constexpr float kPlaneDistance = 1.5f;
+
+        auto processHand = [&](XrSpace aimSpace, int handIdx)
+        {
+            if (aimSpace == XR_NULL_HANDLE)
+            {
+                emitControllerPointerMove(env, handIdx, 2.0f, 2.0f);
+                return;
+            }
+            XrSpaceLocation loc{XR_TYPE_SPACE_LOCATION};
+            if (XR_FAILED(xrLocateSpace(aimSpace, g_ctx.viewSpace, t, &loc)))
+            {
+                emitControllerPointerMove(env, handIdx, 2.0f, 2.0f);
+                return;
+            }
+            const bool valid =
+                (loc.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) &&
+                (loc.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT);
+            if (!valid)
+            {
+                emitControllerPointerMove(env, handIdx, 2.0f, 2.0f);
+                return;
+            }
+            // Build ray direction from aim quaternion.
+            const XrQuaternionf &q = loc.pose.orientation;
+            // OpenXR aim: forward = -Z in aim space, transform to view space.
+            // Ray dir = rotate (0,0,-1) by aim quaternion.
+            float rx = 2.0f * (q.x * q.z - q.w * q.y);
+            float ry = 2.0f * (q.y * q.z + q.w * q.x);
+            float rz = -(1.0f - 2.0f * (q.x * q.x + q.y * q.y));
+
+            // Ray origin = aim pose position.
+            const XrVector3f &origin = loc.pose.position;
+
+            // Intersect with plane z = -kPlaneDistance (in view/head space).
+            // Solve: origin.z + t*rz = -kPlaneDistance → t = (-kPlaneDistance - origin.z) / rz
+            if (fabsf(rz) < 1e-6f)
+            {
+                emitControllerPointerMove(env, handIdx, 2.0f, 2.0f);
+                return;
+            }
+            float hitT = (-kPlaneDistance - origin.z) / rz;
+            if (hitT < 0.0f)
+            {
+                emitControllerPointerMove(env, handIdx, 2.0f, 2.0f);
+                return;
+            }
+            float hitX = origin.x + hitT * rx;
+            float hitY = origin.y + hitT * ry;
+
+            // Normalise to NDC: the HUD quad is 1.0 m × 0.3 m centred at (0, -0.35, -1.5).
+            // Map hit position relative to quad centre to NDC [-1,1].
+            constexpr float kHudHalfW = 0.5f;   // half of 1.0 m width
+            constexpr float kHudHalfH = 0.15f;  // half of 0.3 m height
+            constexpr float kHudCentreY = -0.35f;
+            float ndcX = hitX / kHudHalfW;
+            float ndcY = (hitY - kHudCentreY) / kHudHalfH;
+            emitControllerPointerMove(env, handIdx, ndcX, ndcY);
+
+            // TODO(Phase 03): draw a visual ray using a GLES3 VBO + passthrough shader.
+            // GLES3 has no fixed-function pipeline; a proper vertex+fragment program is
+            // required. Deferred — NDC emission above is the Phase 02 deliverable.
+            (void)g_ctx.controllerRayEnabled.load(); // suppress unused-read warning
+        };
+
+        processHand(io.aimSpaceL, 0);
+        processHand(io.aimSpaceR, 1);
     }
 
     // Per-frame hand polling. Runs AFTER syncInputActions so the controller modality
@@ -2103,6 +2389,7 @@ namespace
         // controller edge timestamps updated by the previous call to enforce the
         // strict priority (§3.3): controllers always override hands.
         syncHandTracking(env);
+        syncControllerAimRay(env);
 
         XrFrameWaitInfo waitInfo{XR_TYPE_FRAME_WAIT_INFO};
         XrFrameState frameState{XR_TYPE_FRAME_STATE};
@@ -2114,6 +2401,7 @@ namespace
                  static_cast<unsigned long long>(s_frameCount));
             return;
         }
+        g_ctx.lastPredictedDisplayTime = frameState.predictedDisplayTime;
 
         XrFrameBeginInfo beginInfo{XR_TYPE_FRAME_BEGIN_INFO};
         XrResult beginResult = xrBeginFrame(g_ctx.session, &beginInfo);
@@ -2446,6 +2734,82 @@ namespace
             layers.push_back(reinterpret_cast<const XrCompositionLayerBaseHeader *>(&hudLayer));
         }
 
+        // ── Panel staging-buffer drain (render-thread GL upload) ────────────
+        if (g_ctx.panelBitmapPending.exchange(false) &&
+            g_ctx.panelSwapchain != XR_NULL_HANDLE &&
+            !g_ctx.panelPendingPixels.empty())
+        {
+            uint32_t uploadImgIdx = 0;
+            XrSwapchainImageAcquireInfo uploadAcqInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
+            XrResult uploadR = xrAcquireSwapchainImage(
+                g_ctx.panelSwapchain, &uploadAcqInfo, &uploadImgIdx);
+            if (XR_SUCCEEDED(uploadR))
+            {
+                XrSwapchainImageWaitInfo uploadWait{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
+                uploadWait.timeout = XR_INFINITE_DURATION;
+                uploadR = xrWaitSwapchainImage(g_ctx.panelSwapchain, &uploadWait);
+                if (XR_SUCCEEDED(uploadR) &&
+                    uploadImgIdx < g_ctx.panelSwapchainImages.size())
+                {
+                    const uint32_t texId = g_ctx.panelSwapchainImages[uploadImgIdx].imageId;
+                    glBindTexture(GL_TEXTURE_2D, texId);
+                    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                                    static_cast<GLsizei>(g_ctx.panelSwapchainWidth),
+                                    static_cast<GLsizei>(g_ctx.panelSwapchainHeight),
+                                    GL_RGBA, GL_UNSIGNED_BYTE,
+                                    g_ctx.panelPendingPixels.data());
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
+                XrSwapchainImageReleaseInfo uploadRelInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+                xrReleaseSwapchainImage(g_ctx.panelSwapchain, &uploadRelInfo);
+                if (XR_SUCCEEDED(uploadR))
+                    g_ctx.panelFrameUploaded.store(true);
+            }
+        }
+
+        // ── Interactive panel composition layer ──────────────────────────────
+        XrCompositionLayerQuad panelLayer{XR_TYPE_COMPOSITION_LAYER_QUAD};
+        const bool panelActive = g_ctx.panelLayerVisible.load() &&
+                                 g_ctx.panelSwapchain != XR_NULL_HANDLE &&
+                                 g_ctx.viewSpace != XR_NULL_HANDLE;
+        const bool panelUploadedThisInterval = g_ctx.panelFrameUploaded.exchange(false);
+        if (panelActive && !panelUploadedThisInterval)
+        {
+            uint32_t panImgIdx = 0;
+            XrSwapchainImageAcquireInfo acqInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
+            if (XR_SUCCEEDED(xrAcquireSwapchainImage(g_ctx.panelSwapchain, &acqInfo, &panImgIdx)))
+            {
+                XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
+                waitInfo.timeout = XR_INFINITE_DURATION;
+                if (XR_SUCCEEDED(xrWaitSwapchainImage(g_ctx.panelSwapchain, &waitInfo)))
+                {
+                    XrSwapchainImageReleaseInfo relInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+                    xrReleaseSwapchainImage(g_ctx.panelSwapchain, &relInfo);
+                }
+            }
+        }
+        if (panelActive)
+        {
+            panelLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            panelLayer.space = g_ctx.viewSpace;
+            panelLayer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+            panelLayer.subImage.swapchain = g_ctx.panelSwapchain;
+            panelLayer.subImage.imageRect.offset = {0, 0};
+            panelLayer.subImage.imageRect.extent = {
+                static_cast<int32_t>(g_ctx.panelSwapchainWidth),
+                static_cast<int32_t>(g_ctx.panelSwapchainHeight),
+            };
+            panelLayer.subImage.imageArrayIndex = 0;
+            // Same pose as HUD (head-locked, 1.5 m forward, 10° downward tilt).
+            // Wider aspect to accommodate the multi-row controls layout.
+            panelLayer.pose.orientation = {-0.17365f, 0.0f, 0.0f, 0.98481f};
+            panelLayer.pose.position = {0.0f, -0.35f, -1.5f};
+            // 1.0 m × 0.5 m — 2:1 aspect for 1024×512 swapchain.
+            panelLayer.size = {1.0f, 0.5f};
+            layers.push_back(reinterpret_cast<const XrCompositionLayerBaseHeader *>(&panelLayer));
+        }
+
         XrFrameEndInfo endInfo{XR_TYPE_FRAME_END_INFO};
         endInfo.displayTime = frameState.predictedDisplayTime;
         endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
@@ -2491,9 +2855,10 @@ namespace
         // Destroy OpenXR input handles before swapchains/session so xrDestroyActionSet
         // runs while the session/instance handles are still valid.
         destroyInputHandles();
-        // HUD composition layer (spec_vr-immersive-hud-gl). Destroy before the eye
-        // swapchains so the runtime sees layers torn down in reverse-creation order.
+        // HUD + panel composition layers. Destroy before the eye swapchains so the
+        // runtime sees layers torn down in reverse-creation order.
         destroyHudSwapchainImpl();
+        destroyPanelSwapchainImpl();
         for (auto &eye : g_ctx.eyes)
         {
             for (auto &img : eye.images)
@@ -2843,12 +3208,20 @@ Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeSetInputCallback(
         // Not fatal: leave io.onPointerMoveMethod null so emitPointerMove short-circuits.
         env->ExceptionClear();
     }
+    // XrInputCallback.onControllerPointerMove(I, F, F)V — hand, ndcX, ndcY. Optional.
+    io.onControllerPointerMoveMethod = env->GetMethodID(cls, "onControllerPointerMove", "(IFF)V");
+    if (!io.onControllerPointerMoveMethod)
+    {
+        LOGW("nativeSetInputCallback: onControllerPointerMove(IFF)V not found — controller ray NDC disabled");
+        env->ExceptionClear();
+    }
     io.inputCallbackRef = env->NewGlobalRef(callback);
     env->DeleteLocalRef(cls);
-    LOGI("nativeSetInputCallback: callback registered  ref=%p input=%p pointer=%p",
+    LOGI("nativeSetInputCallback: callback registered  ref=%p input=%p pointer=%p ctrl=%p",
          static_cast<void *>(io.inputCallbackRef),
          static_cast<void *>(io.onInputEventMethod),
-         static_cast<void *>(io.onPointerMoveMethod));
+         static_cast<void *>(io.onPointerMoveMethod),
+         static_cast<void *>(io.onControllerPointerMoveMethod));
 }
 
 // Trigger haptic vibration on the specified hand (0 = left, 1 = right).
@@ -2868,6 +3241,16 @@ Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeTriggerHaptic(
         return JNI_FALSE;
     }
     return JNI_TRUE;
+}
+
+// Enable / disable the GL ray line rendered along the controller aim direction.
+// NDC is emitted regardless; only the visual primitive is gated.
+extern "C" JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeSetControllerRayEnabled(
+    JNIEnv *, jclass, jboolean enabled)
+{
+    g_ctx.controllerRayEnabled.store(static_cast<bool>(enabled));
+    LOGI("nativeSetControllerRayEnabled: %s", enabled ? "true" : "false");
 }
 
 // Drain buffered native log entries (each prefixed with "X|" where X is the
@@ -3026,5 +3409,73 @@ Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeUploadHudBitmap(
     AndroidBitmap_unlockPixels(env, bitmap);
     // Return true so Kotlin-side logging is consistent (real success/failure is visible
     // from the render-thread upload path via Timber in the HUD pump).
+    return JNI_TRUE;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Interactive panel JNI bridge (spec_vr-immersive-controls-panel Phase 03).
+// ═══════════════════════════════════════════════════════════════════════════
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeCreatePanelSwapchain(
+    JNIEnv *, jclass, jint width, jint height)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    if (!g_ctx.sessionRunning)
+    {
+        g_ctx.panelSwapchainWidth = static_cast<uint32_t>(width);
+        g_ctx.panelSwapchainHeight = static_cast<uint32_t>(height);
+        LOGI("nativeCreatePanelSwapchain: %dx%d stored — session not yet up", width, height);
+        return JNI_FALSE;
+    }
+    return createPanelSwapchainImpl(static_cast<uint32_t>(width),
+                                    static_cast<uint32_t>(height))
+               ? JNI_TRUE
+               : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeDestroyPanelSwapchain(
+    JNIEnv *, jclass)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    destroyPanelSwapchainImpl();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeSetPanelLayerVisible(
+    JNIEnv *, jclass, jboolean visible)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    g_ctx.panelLayerVisible.store(visible == JNI_TRUE);
+    LOGD("nativeSetPanelLayerVisible: visible=%d", visible == JNI_TRUE ? 1 : 0);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeUploadPanelBitmap(
+    JNIEnv *env, jclass, jobject bitmap)
+{
+    std::lock_guard<std::mutex> lock(g_ctxMutex);
+    if (bitmap == nullptr) return JNI_FALSE;
+    if (g_ctx.panelSwapchain == XR_NULL_HANDLE || !g_ctx.sessionRunning) return JNI_FALSE;
+
+    AndroidBitmapInfo info{};
+    if (AndroidBitmap_getInfo(env, bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS)
+        return JNI_FALSE;
+    if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) return JNI_FALSE;
+    if (info.width != g_ctx.panelSwapchainWidth || info.height != g_ctx.panelSwapchainHeight)
+        return JNI_FALSE;
+
+    void *pixels = nullptr;
+    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS ||
+        pixels == nullptr)
+        return JNI_FALSE;
+
+    if (!g_ctx.panelPendingPixels.empty())
+    {
+        std::memcpy(g_ctx.panelPendingPixels.data(), pixels, g_ctx.panelPendingPixels.size());
+        g_ctx.panelBitmapPending.store(true);
+    }
+    AndroidBitmap_unlockPixels(env, bitmap);
     return JNI_TRUE;
 }

@@ -530,6 +530,11 @@ class AdapterThumbnailLoader(
                     showGeneratedPlaceholder(imageView, file)
                     return
                 }
+                if (NetworkFileDataFetcher.isVideoFailed(file.path)) {
+                    Timber.v("Skipping video thumbnail load for ${file.name} (cached as failed)")
+                    showGeneratedPlaceholder(imageView, file)
+                    return
+                }
                 Glide.with(context)
                     .load(NetworkFileData(
                         path = file.path,
@@ -579,8 +584,7 @@ class AdapterThumbnailLoader(
                     .load(data)
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .priority(Priority.NORMAL)
-                    // List: RESOURCE (decoded bitmap), Grid: DATA — preserve original behaviour
-                    .diskCacheStrategy(if (isListMode) DiskCacheStrategy.RESOURCE else DiskCacheStrategy.DATA)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
                             if (isListMode) applyPlaceholderStyle(imageView, file.type)

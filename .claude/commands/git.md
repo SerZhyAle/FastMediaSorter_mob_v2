@@ -1,5 +1,10 @@
 # Git Guide
 
+> **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
+> 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
+> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
+> 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
+
 Git workflow for FastMediaSorter v2 — staging, committing, pushing, and diff research.
 
 ## Usage
@@ -232,3 +237,4 @@ git commit -m "chore: update dependencies and build config"
 | File history | `git log --oneline -- path/to/file` |
 | Line-by-line blame | `git blame path/to/file` |
 | Diff two commits | `git diff HASH1..HASH2` |
+

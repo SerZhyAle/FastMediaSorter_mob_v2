@@ -2765,6 +2765,15 @@
     <string name="vr_overlay_btn_play_pause">Play / Pause</string>
     <string name="vr_overlay_btn_settings">Settings</string>
     <string name="vr_overlay_btn_exit">Exit</string>
+    <string name="vr_overlay_btn_vol_up">Vol +</string>
+    <string name="vr_overlay_btn_vol_down">Vol -</string>
+    <string name="vr_overlay_btn_bright_up">Bright +</string>
+    <string name="vr_overlay_btn_bright_down">Bright -</string>
+    <string name="vr_overlay_btn_speed">Speed</string>
+    <string name="vr_overlay_btn_track">Track</string>
+    <string name="vr_overlay_btn_format">Format</string>
+    <string name="vr_overlay_speed_label">Speed: %sx</string>
+    <string name="vr_overlay_format_label">%s</string>
 
     <!-- VR immersive controls — cheatsheet content -->
     <string name="vr_cheatsheet_title">VR controls</string>
@@ -2785,6 +2794,10 @@
     <string name="vr_cheatsheet_section_mouse">Bluetooth mouse:</string>
     <string name="vr_cheatsheet_mouse_buttons">LMB — pause / play · RMB — settings · MMB — recenter · button 4/5 — prev/next file</string>
     <string name="vr_cheatsheet_mouse_wheel">Wheel — volume · Shift+wheel — seek ±10s</string>
+    <string name="vr_cheatsheet_section_hands">Hand tracking (controllers set aside):</string>
+    <string name="vr_cheatsheet_hands_ray">Point hand — aim ray · pinch — click UI</string>
+    <string name="vr_cheatsheet_hands_swipe">Thumb swipe ←→ — seek ±10s · ↑↓ — volume</string>
+    <string name="vr_cheatsheet_hands_double_pinch">Double pinch — Pause / Play</string>
     <string name="vr_cheatsheet_footer">Tap anywhere to close · long-press Y or F1 to re-open</string>
 
     <!-- Camera Capture Settings -->
@@ -2792,6 +2805,8 @@
     <string name="setting_disable_camera_capture_summary">Hides the camera capture command in Browse</string>
     <string name="setting_skip_camera_filename_dialog">Don\'t ask for filename</string>
     <string name="setting_skip_camera_filename_dialog_summary">Use timestamp filename without prompting after capture</string>
+    <string name="tooltip_camera_capture_title">Camera capture</string>
+    <string name="tooltip_camera_capture_message">The camera button in Browse lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
 
     <!-- Controls & Keybindings -->
     <string name="settings_controls_keybindings_title">Controls &amp; Keybindings</string>

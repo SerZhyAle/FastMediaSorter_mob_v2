@@ -49,6 +49,7 @@ import com.sza.fastmediasorter.ui.player.helpers.stopPositionSaving
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import android.os.Debug
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -103,7 +104,7 @@ class VideoPlayerManager(
         /** Fired before a new video starts loading so session-only 3D state can reset per file. */
         fun onBeforeVideoLoad(path: String) {}
         /** Fired once per video load when a stereo format is detected. Default no-op. */
-        fun onStereoDetected(mode: StereoMode) {}
+        fun onStereoDetected(mode: StereoMode, forFilePath: String) {}
     }
 
     /** Audio format information exposed via [getAudioFormat]. */
@@ -421,15 +422,15 @@ class VideoPlayerManager(
                 .firstOrNull { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }
                 ?.getTrackFormat(0)
             if (videoFormat != null) {
-                val requestedPath = currentFilePath
+                val detectionPath = currentFilePath ?: return
                 managerScope.launch {
                     // MP4 spatial metadata can live in moov at EOF, so detection cannot block main.
                     val detected = withContext(Dispatchers.IO) {
-                        stereoDetector.detectForVideo(requestedPath, videoFormat)
+                        stereoDetector.detectForVideo(detectionPath, videoFormat)
                     }
-                    if (requestedPath == currentFilePath && detected != StereoMode.UNKNOWN) {
-                        Timber.d("VideoPlayerManager: onTracksChanged → detected stereo=$detected")
-                        playerCallback.onStereoDetected(detected)
+                    if (detectionPath == currentFilePath && detected != StereoMode.UNKNOWN) {
+                        Timber.d("VideoPlayerManager: onTracksChanged → detected stereo=$detected path=$detectionPath")
+                        playerCallback.onStereoDetected(detected, detectionPath)
                     }
                 }
             }
@@ -613,6 +614,11 @@ class VideoPlayerManager(
 
                 startPositionSaving()
                 onComplete()
+            } catch (e: CancellationException) {
+                // Lifecycle/scope cancel (activity destroy, file switch, player release) — not a playback failure.
+                Timber.d("VideoPlayerManager: playVideo cancelled (lifecycle/scope cancel) — path=%s", path)
+                playerCallback.onBuffering(false)
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "VideoPlayerManager: Failed to play video")
                 playerCallback.onBuffering(false)

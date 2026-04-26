@@ -6,16 +6,16 @@ Write-Host "Features: Full standard + OpenXR VR rendering" -ForegroundColor Yell
 
 # Generate version
 $now = Get-Date
-$yy = $now.ToString("yy")
-$MM = $now.ToString("MM")
-$dd = $now.ToString("dd")
-$HH = $now.ToString("HH")
-$mm = $now.ToString("mm")
+$yy  = $now.ToString("yy")
+$mon = $now.ToString("MM")   # "mon" avoids PowerShell case-insensitive clash with $mm
+$dd  = $now.ToString("dd")
+$HH  = $now.ToString("HH")
+$mm  = $now.ToString("mm")
 
 # versionCode: YYMMDDHHm (9 digits, first digit of minutes — avoids Int32 overflow)
 $versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
-# versionName: Y.YM.MDDH.Hmm  e.g. 2.60.4220.247
-$versionName = "$($yy[0]).$($yy[1])$($MM[0]).$($MM[1])$dd$($HH[0]).$($HH[1])$mm"
+# versionName: Y.YM.MDDH.Hmm  e.g. 2.60.4260.457
+$versionName = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"
 
 Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
 

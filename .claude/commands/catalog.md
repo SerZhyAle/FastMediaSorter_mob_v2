@@ -1,5 +1,10 @@
 # Catalog Guide — File/Class Database
 
+> **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
+> 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
+> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
+> 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
+
 Fast index of every Kotlin class in the project. Use it to locate
 functionality before grepping, and to keep class-level metadata fresh after
 changes.
@@ -191,3 +196,4 @@ Follow the project author-style rules from CLAUDE.md:
 
 **Good:** "Refreshes recent-resource app shortcuts on Android launcher."
 **Bad:** "This is a manager class that is responsible for..."
+

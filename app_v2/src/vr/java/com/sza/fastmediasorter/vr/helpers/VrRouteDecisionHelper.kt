@@ -75,6 +75,13 @@ internal class VrRouteDecisionHelper {
         // to the panel player.
         val requestsImmersive = effectiveStereoMode.isSpherical() || effectiveStereoMode.isStereoscopic()
         if (!requestsImmersive) {
+            if (currentFile.type == MediaType.VIDEO) {
+                return VrRouteDecision(
+                    route = VrLaunchRoute.CINEMA_IMMERSIVE,
+                    effectiveStereoMode = StereoMode.MONO,
+                    logReason = "plain-2d-video-cinema",
+                )
+            }
             return VrRouteDecision(
                 route = VrLaunchRoute.STANDARD_PANEL_FALLBACK,
                 effectiveStereoMode = effectiveStereoMode,

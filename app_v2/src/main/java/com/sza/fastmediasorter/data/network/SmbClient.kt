@@ -62,7 +62,8 @@ import kotlinx.coroutines.ensureActive
 @Singleton
 class SmbClient @Inject constructor(
     internal val connectionManager: SmbConnectionManager, // Internal for SmbDataSource access
-    private val fileOperations: SmbFileOperations
+    private val fileOperations: SmbFileOperations,
+    internal val playbackConnectionTracker: SmbPlaybackConnectionTracker
 ) {
     
     companion object {

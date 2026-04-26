@@ -64,6 +64,20 @@ data class VrHudState(
      * of the *UntilMs fields.
      */
     val visibleUntilMs: Long = 0L,
+
+    // ── Interactive GL panel fields (spec_vr-immersive-controls-panel Phase 03) ──
+    /** Current brightness 0–100. Null = not shown. */
+    val brightnessPercent: Int? = null,
+    /** Current playback speed (e.g. 0.5, 1.0, 1.5, 2.0). Null = not shown. */
+    val playbackSpeed: Float? = null,
+    /** Current audio track label (e.g. "Track 1 | RUS"). Null = not shown. */
+    val audioTrackLabel: String? = null,
+    /** Whether the interactive GL panel is shown. Drives VrInteractivePanelDriver. */
+    val panelVisible: Boolean = false,
+    /** ID of the hit zone currently under the ray cursor. -1 = none. */
+    val hoveredZoneId: Int = -1,
+    /** Fractional seek position 0f–1f while trigger is held on the seek slider. -1f = not dragging. */
+    val seekDragFraction: Float = -1f,
 ) {
     companion object {
         val OFF = VrHudState()

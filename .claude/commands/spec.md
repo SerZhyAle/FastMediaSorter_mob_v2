@@ -1,6 +1,6 @@
 # Strategic Specification Writer
 
-Write a **strategic specification** for a roadmap item or ad-hoc feature. Strategic specs answer *what* and *why* in Russian, at a level that stakeholders can review without reading code. Class names, file paths, line budgets, Hilt modules and step-by-step sequencing belong in the **tactical** spec — see `/spec-tech`.
+Write a strategic specification: product-level *what* and *why*, in Russian, without class names, file paths, line budgets, or Hilt/Room details (those go in `/spec-tech`).
 
 ## Usage
 
@@ -8,109 +8,84 @@ Write a **strategic specification** for a roadmap item or ad-hoc feature. Strate
 /spec <roadmap-id> <short-name>
 ```
 
-Examples:
-
 - `/spec X.11 background-thumbnail-preload`
 - `/spec III.12 standalone-player-playlist`
-- `/spec ad-hoc player-keybinding-remapping` (when no roadmap ID exists — use `ad-hoc` as the ID).
+- `/spec ad-hoc player-keybinding-remapping`
 
-The `short-name` becomes the filename: `PLAN/spec_<short-name>.md`.
-
-A tactical spec for the same feature lives at `PLAN/spec_<short-name>/` (directory) and is created separately by `/spec-tech`.
-
----
-
-## Language & Audience
-
-- **Body language:** Russian (the spec is a product/architectural document for the owner, not a developer handoff).
-- **Author style:** `..` not `...`; always use `ё`/`Ё` where grammatically correct.
-- **Reading level:** any stakeholder — product, QA, architect. A developer should also read it, but for execution they open the tactical spec.
-- **Content discipline:** describe goals, constraints, open questions. Do **not** propose concrete class names, file paths, function signatures, line budgets, Hilt modules, Room schema versions — those all belong in `/spec-tech`. If you are tempted to name a class, rewrite the sentence at one level higher ("компонент диспетчеризации ввода" вместо "KeyEventDispatcher").
+Output file: `PLAN/spec_<short-name>.md`. Tactical folder created separately by `/spec-tech`.
 
 ---
 
 ## Process
 
-When this command is invoked with `$ARGUMENTS`:
+**1 — Parse arguments.** Extract ID (`X.11` or `ad-hoc`) and short name.
 
-**Step 1 — Parse arguments.**
-Extract the roadmap ID (e.g. `X.11`, or `ad-hoc`) and short name. Output filename: `PLAN/spec_<short-name>.md`.
+**2 — Read context.**
 
-**Step 2 — Read context.**
+- `PLAN/IMPROVEMENT_ROADMAP.md` (if not ad-hoc)
+- `dev/PROJECT_OPERATIONS_INDEX.md`
+- `docs/ARCHITECTURE.md`
+- `app_v2/build.gradle.kts`
+- `docs/FEATURES.md`
+- Relevant `dev/CATALOG/` files for affected area.
 
-- `PLAN/IMPROVEMENT_ROADMAP.md` — roadmap entry (tier, description, risk factor) if the ID is not `ad-hoc`.
-- `dev/PROJECT_OPERATIONS_INDEX.md` — Feature-to-Path Map + module boundaries.
-- `docs/ARCHITECTURE.md` — current data-flow and layer topology.
-- `app_v2/build.gradle.kts` — flavor set, `BuildConfig` flags, minSdk/targetSdk.
-- `docs/FEATURES.md` — existing feature inventory (avoid duplication).
-- For features touching player/settings/wear: skim the relevant catalog file under `dev/CATALOG/`.
+**3 — Determine Tier.**
 
-**Step 3 — Determine the Tier label.**
-Map the roadmap tier to the spec header string:
+| Roadmap tier | Header label |
+| --- | --- |
+| TIER 0 | `0 — Security/Compliance (urgent)` |
+| TIER 1 | `1 — Quick Win` |
+| TIER 2 | `2 — Easy` |
+| TIER 3 | `3 — Moderate` |
+| TIER 4 | `4 — Strategic` |
 
-- TIER 0 → `0 — Security/Compliance (urgent)`
-- TIER 1 → `1 — Quick Win (1–2h, zero risk)`
-- TIER 2 → `2 — Easy (2–4h, low risk)`
-- TIER 3 → `3 — Moderate (4–8h, medium risk)`
-- TIER 4 → `4 — Strategic (8h+, high risk)`
+For ad-hoc: estimate from scope, note "ad-hoc" alongside.
 
-If the feature is `ad-hoc`, estimate the tier from scope and note "ad-hoc" alongside.
+**4 — Write `PLAN/spec_<short-name>.md`** using the template below.
 
-**Step 4 — Write the spec file** to `PLAN/spec_<short-name>.md` using the exact template below.
-
-**Status lifecycle:**
-
-- `Draft` — just written, not yet agreed.
-- `Approved` — aligned with user, ready for tactical breakdown.
-- `Tactical` — tactical spec folder exists and is populated by `/spec-tech`.
-- `In Progress` — implementation started against the tactical plan.
-- `Implemented` — every tactical phase marked Done; awaits `/spec-check`.
-- `Verified` — `/spec-check` ran on strategic + tactical and every criterion passed.
-- `Partial` — `/spec-check` found soft gaps; see audit report.
-- `Broken` — `/spec-check` found hard failures; see audit report.
-
-**Step 5 — Run the dev log command** (mandatory after every file change):
+**5 — Run dev log.**
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec" "Add strategic specification for <roadmap-id>"
+.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec" "Add strategic spec for <id>"
 ```
 
-**Step 6 — Recommend `/spec-tech`.**
-At the end of the chat response, remind the user that the tactical breakdown is authored separately via `/spec-tech <short-name>`. Do **not** invoke it automatically — strategic spec should be reviewed/approved first.
+**Chat output:** `PLAN/spec_<short-name>.md — Tier N. Next: /spec-tech <short-name>`
 
 ---
 
-## Strategic Spec Template
+## Status Lifecycle
 
-Use this exact structure. Body text in Russian. Do not skip sections. Fill every section with real content derived from the code/docs you read — no placeholders.
+`Draft` → `Approved` → `Tactical` → `In Progress` → `Implemented` → `Verified` / `Partial` / `Broken`
+
+---
+
+## Template
 
 ```markdown
 # Стратегическая спецификация: <ID> — <Название фичи>
 
 **Status:** Draft
-**Date:** <сегодняшняя дата YYYY-MM-DD>
-**Tier:** <метка tier из шага 3>
-**Roadmap entry:** <точный текст описания из IMPROVEMENT_ROADMAP.md или «Ad-hoc — запрос пользователя <дата>»>
+**Date:** <YYYY-MM-DD>
+**Tier:** <метка>
+**Roadmap entry:** <текст из роадмапа или «Ad-hoc — запрос <дата>»>
 **Tactical spec:** `PLAN/spec_<short-name>/` (будет создан через `/spec-tech`)
 
-> **Scope of this document:** STRATEGIC. Цели, пожелания, открытые вопросы и ограничения. Без имён классов, путей к файлам, лимитов строк, миграций Room, модулей Hilt — это всё в тактической спецификации.
+> **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
 
 ---
 
 ## 1. Проблема
 
-<2–4 предложения. Что сломано или чего не хватает? Какой эффект на пользователя? Укажи область кода (модуль/feature-path), где существует разрыв, без называния конкретных классов.>
+<2–4 предложения. Что сломано или чего не хватает? Эффект на пользователя. Область — модуль/feature-path без имён классов.>
 
 ---
 
 ## 2. Цели
 
-<Нумерованный список. Каждая цель — одно наблюдаемое пользователем или архитектурное улучшение. Фраза «что станет возможным / что перестанет происходить», а не «какой класс будет создан».>
+<Нумерованный список наблюдаемых улучшений. «Что станет возможным / что перестанет происходить».>
 
-Non-goals:
-
-- <что явно вне объёма — чтобы тактическая спека не раздулась>
-- <..>
+**Non-goals:**
+- <что явно вне объёма>
 
 ---
 
@@ -118,61 +93,53 @@ Non-goals:
 
 ### 3.1 Пожелания владельца
 
-<Нумерованный список. То, что хочется получить в идеале, но не обязательно к первой итерации. Эти пункты подпитывают «Out of Scope» в тактической спеке.>
+<Нумерованный список желаемого, но необязательного к первой итерации.>
 
 ### 3.2 Жёсткие ограничения
 
-- **Flavor:** <какие варианты сборки затронуты: `standard` / `lite` / `photos` / `legacy` — или «все»; одна фраза о `BuildConfig` gating без указания флага>
-- **API level:** <минимальный релевантный уровень Android; «без API-специфики» если не применимо>
+- **Flavor:** <затронутые варианты сборки>
+- **API level:** <минимальный уровень Android или «без API-специфики»>
 - **Wear OS:** <затрагивается или нет>
-- **Производительность:** <бюджет по CPU/памяти/батарее, если критично>
-- **Совместимость данных:** <если нужна миграция — один абзац про форму; без номера версии Room>
-- **Локализация:** <EN/RU/UK — всегда обязательно, или уточнение>
-- **Доступность:** <если фича визуальная — требования по TalkBack / touch target / не-цветовому отличию>
+- **Производительность:** <бюджет CPU/память/батарея, если критично>
+- **Совместимость данных:** <форма миграции без номера версии Room>
+- **Локализация:** EN/RU/UK — всегда обязательно, или уточнение.
+- **Доступность:** <TalkBack, touch target, не-цветовое отличие — если фича визуальная>
 
 ---
 
 ## 4. Контекст текущей архитектуры
 
-<Один-два абзаца прозой. Какие слои / компоненты на сегодня отвечают за затронутую область. Какие у них ограничения, из-за которых сейчас нельзя решить проблему из §1. Без перечисления классов — описывай роль («менеджер жестов в плеере», «репозиторий загрузок облачных папок»).>
+<1–2 абзаца. Какие слои/компоненты отвечают за затронутую область. Почему сейчас нельзя решить проблему из §1. Без перечисления классов.>
 
 ---
 
 ## 5. Предлагаемый подход
 
-<Основная часть. Описывает, как архитектурно будет решена проблема, на уровне концепций:
-
-- Какие новые **роли** появятся (например: «каталог сопоставлений клавиш», «диспетчер ввода с пре-фильтрацией»).
-- Откуда эти роли читают и куда пишут.
-- Какие существующие роли меняют ответственность.
-
-Используй эскизные блоки / ASCII только для концептуального потока данных. Имена классов, файлов, методов — запрещены.>
+<Архитектурный уровень: какие роли появятся, откуда читают / куда пишут, что меняет ответственность. Имена классов, файлов, методов — запрещены.>
 
 ### 5.1 Основные столпы / модули
 
-<Крупные логические блоки. Каждый столп — одна подглава с описанием цели и требований.>
+<Крупные логические блоки. Каждый — подглава с целью и требованиями.>
 
 ### 5.2 Потоки данных и событий
 
-<Высокоуровневая диаграмма/описание. «UI → слой применения настроек → кэш в памяти → ..». Без имён методов.>
+<Высокоуровневая схема. «UI → слой применения → кэш → ..». Без имён методов.>
 
 ### 5.3 Точки расширяемости
 
-<Что должно остаться открытым к расширению в будущем (новые устройства ввода, новые типы медиа и т.д.), чтобы тактическая спека заложила правильные абстракции.>
+<Что должно остаться открытым к расширению.>
 
 ---
 
 ## 6. Открытые вопросы / Research items
 
-<Нумерованный список. Каждый пункт — вопрос, на который нужно ответить ДО написания тактической спеки или параллельно с ней. Формат:>
-
-1. **<Короткий заголовок вопроса>**
+1. **<Заголовок>**
    - **Вопрос:** <формулировка>
-   - **Варианты:** <если уже понятны>
-   - **Нужно выяснить:** <что конкретно проверить — документация SDK, поведение на конкретном API level, опыт других приложений, измерение на устройстве>
-   - **Статус:** Open / Resolved (<ссылка на ADR или результат>)
+   - **Варианты:** <если известны>
+   - **Нужно выяснить:** <что проверить>
+   - **Статус:** Open / Resolved
 
-<Если вопросов нет, напиши «Открытых вопросов нет — подход достаточно определён для тактической спеки.»>
+<Если вопросов нет — «Открытых вопросов нет.»>
 
 ---
 
@@ -180,73 +147,51 @@ Non-goals:
 
 | Риск | Вероятность | Последствия | Митигация |
 |------|:-----------:|-------------|-----------|
-| <описание> | Низкая / Средняя / Высокая | <что сломается / кого затронет> | <как предотвратить или восстановить> |
+| <описание> | Низкая / Средняя / Высокая | <что сломается> | <как предотвратить> |
 
 ---
 
 ## 8. Влияние на пользователя (docs/FEATURES)
 
-<Если фича видима пользователю — сформулируй одно предложение, которое потом попадёт в `docs/FEATURES.md` + `_RU` + `_UK` после реализации. Без технических деталей.
-
-Если фича невидима — напиши «Без изменений в docs/FEATURES.» и обоснуй.>
+<Одно предложение для `docs/FEATURES.md` + `_RU` + `_UK` после реализации. Если невидима — «Без изменений в docs/FEATURES.» с обоснованием.>
 
 ---
 
 ## 9. Архитектурные решения (ADR)
 
-<Список нетривиальных решений, принятых в этой спеке. Формат:>
-
-**ADR-1: <Заголовок решения>**
-
+**ADR-1: <Заголовок>**
 - **Решение:** <что решено>
-- **Альтернативы:** <что ещё рассматривалось>
-- **Почему так:** <обоснование выбора>
+- **Альтернативы:** <что рассматривалось>
+- **Почему:** <обоснование>
 
-<Добавляй по одному ADR на значимый trade-off. Если значимых нет — «ADR нет — решение идёт по устоявшимся паттернам проекта.»>
+<Если нет — «ADR нет — решение по устоявшимся паттернам проекта.»>
 
 ---
 
 ## 10. Связи с другими спеками
 
-<Список:
-
-- Другие стратегические спеки, которые связаны / блокируют / блокируются этой.
-- Спеки, с которыми делим инфраструктуру (например, общий каталог бинарей).
-- Out-of-scope пункты из §3.1 — потенциальные будущие спеки.
-
-Если связей нет — «Связей с другими спеками нет.»>
+<Список связей или «Связей нет.»>
 
 ---
 
 ## 11. Критерии готовности (strategic-level)
 
-<Нумерованный список наблюдаемых на высоком уровне результатов. Это НЕ проверочные инварианты для `/spec-check` (те живут в тактической спеке), а критерии, по которым владелец/стейкхолдер скажет «задача решена». Пример:
-
-1. Пользователь может переназначить любую кнопку в плеере через UI настроек.
-2. Сброс к заводским значениям доступен на трёх уровнях: команда / группа / всё.
-3. Нераспознанные устройства ввода не блокируют связывание — их можно «записать» жестом нажатия.
-
-Каждый критерий детализируется в фазы тактической спеки.>
+<Нумерованный список. Наблюдаемые результаты, не архитектурные утверждения. «Пользователь видит X» или «Batch завершается за N минут».>
 
 ---
 
 ## 12. Ссылка на тактическую спецификацию
 
-После утверждения этой страницы — перейди к `/spec-tech <short-name>`, она создаст папку `PLAN/spec_<short-name>/` с фазами реализации. Тактическая спека — строгая, нумерованная, на английском, с промптами разработчику и верификацией на каждый шаг.
+Следующий шаг: `/spec-tech <short-name>` — создаст `PLAN/spec_<short-name>/` с фазами.
 ```
 
 ---
 
-## Quality Rules
+## Constraints
 
-- **Язык тела спеки — русский. Без исключений.** Единственное, что остаётся английским — frontmatter-поля (`Status`, `Date`, `Tier`), имена разделов из кода (`BuildConfig`, `minSdk`), пути к файлам.
-- **Никаких имён классов, методов, файлов в §5.** Если появилось желание написать `KeyEventDispatcher` — это сигнал, что ты уходишь в тактику. Переформулируй на уровне роли.
-- **Никаких бюджетов строк, версий Room, названий Hilt-модулей, имён миграций.** Всё это — в `/spec-tech`.
-- **Секции 6 и 7 обязательны даже если ответ тривиален.** Пустая секция = «всё понятно и без рисков» должно быть явно написано словами.
-- **§11 должен быть наблюдаемым.** «Архитектурная чистота» — плохой критерий. «Пользователь видит X» или «Batch job завершается за N минут» — хорошие.
-- **§8 синхронизирован с `docs/FEATURES.md` только после реализации**, но формулировка должна быть готова уже в спеке.
-- **Ссылки на read-only зоны запрещены:** `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- **Автор-стиль обязателен:** `..` вместо `...`, `ё`/`Ё` всегда.
-- **Не дублируй FEATURES.md.** Перед написанием §1 и §2 убедись, что такой фичи или её части ещё нет.
-- **Не смешивай стратегию с роадмапом.** Roadmap говорит «что делать», стратегическая спека — «как мы к этому подойдём и зачем именно так».
-- **Когда спека утверждена** — двигай `Status:` на `Approved` и зови `/spec-tech`. До `Approved` тактика не пишется.
+- Body: Russian. Frontmatter, code identifiers, file paths: English. `..` not `...`. Always `ё`/`Ё`.
+- §5: no class names, file paths, line budgets, Room versions, Hilt modules — architectural roles only.
+- §11: observable outcomes only, no internal architecture claims.
+- §6 and §7: mandatory even if trivial — write explicit "нет" rather than skipping.
+- Do not duplicate existing `docs/FEATURES.md` entries.
+- Read-only zones never referenced: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.

@@ -9,6 +9,9 @@ class DefaultVrLayerFactory @Inject constructor() : VrLayerFactory {
     override fun describe(stereo: StereoMode, renderingMode: VrRenderingMode): VrLayerDescriptor {
         return when {
             stereo == StereoMode.MONO && renderingMode == VrRenderingMode.CINEMA -> quadCinemaDescriptor()
+            // OU is inherently stereoscopic — route to projection regardless of renderingMode.
+            // Previously fell through to QUAD_CINEMA when renderingMode == CINEMA.
+            stereo == StereoMode.OU -> projectionDescriptor(stereo)
             stereo in PROJECTION_STEREO_MODES && renderingMode == VrRenderingMode.FULL_STEREO -> {
                 projectionDescriptor(stereo)
             }
@@ -100,7 +103,7 @@ class DefaultVrLayerFactory @Inject constructor() : VrLayerFactory {
         val PROJECTION_STEREO_MODES = setOf(
             StereoMode.SBS_FULL,
             StereoMode.SBS_HALF,
-            StereoMode.OU,
+            // OU handled by its own mode-independent branch in describe()
         )
         val EQUIRECT_360_MODES = setOf(
             StereoMode.EQUIRECT_360_MONO,

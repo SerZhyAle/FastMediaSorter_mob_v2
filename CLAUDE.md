@@ -26,12 +26,15 @@ Non-negotiable — not typos.
 | Analysing `logs/current.log` or logcat | `/log-reader` |
 | Build questions or triggering a build | `/build` (do NOT invoke gradle directly) |
 | Git questions (commit/stage/push/diff/history) | `/git` |
-| "Where does X happen?" / auditing code / planning a refactor / adding a class | `/catalog` (query first, update after) |
+| "Where does X happen?" / "find file Foo.kt" / auditing code / planning a refactor / adding a class | `/catalog` (query first, update after) |
 
 ## Research Order (before changes)
 
 1. `dev/PROJECT_OPERATIONS_INDEX.md` — workspace routing + **Feature-to-Path Map** (use before any global search).
-2. `dev/CATALOG/<module>.md` (or `query.ps1`) — class-level catalogue with role, status, side effects, DI graph. Query before `Grep`.
+2. **`dev/CATALOG/<module>.md` (or `query.ps1`) — MANDATORY first stop for any class/file lookup.**
+   - Run `query.ps1` before any `Grep`, `Glob`, or shell `find`. These are fallbacks only when the catalogue yields nothing.
+   - Locating a `.kt` file by name? → `-ClassMatches "*Name*"`. Finding what touches a feature? → `-PathMatches` or `-Role`. Who injects a type? → `-Injected <Type>`.
+   - **Never use `find`/`Glob` to locate a Kotlin class — the catalogue already knows the path.**
 3. Domain doc per task type:
    - Architecture → `docs/ARCHITECTURE.md`
    - Build/flags → `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`
@@ -92,8 +95,9 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
    `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`
    (never edit `dev/CHANGELOG.md` directly).
 2. **Feature docs** after any new user-facing feature — update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet.
-3. **Catalogue sync** after any change to a file's public API (added/removed/renamed classes or functions, changed constructor injection, moved between layers):
+3. **Catalogue sync** — run after **every** `.kt` file change (not only API changes):
    - `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>` — refreshes auto-fields; manual fields are preserved.
+   - `pwsh -File dev/CATALOG/scripts/render.ps1 -Module <app_v2|wear>` — regenerates the human-readable `.md`.
    - For new classes, fill `role` + `status` via `set.ps1` (see `dev/CATALOG/README.md`).
    - Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
 

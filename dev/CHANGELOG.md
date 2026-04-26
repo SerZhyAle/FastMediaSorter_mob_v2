@@ -3939,3 +3939,211 @@ Format: | datetime | file | target | description |
 | 2026-04-26 04:51:00 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add virtual resource language sync bullet (RU) |
 | 2026-04-26 04:51:00 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add virtual resource language sync bullet (UK) |
 | 2026-04-26 04:52:57 | `PLAN/spec-all_virtual-resource-lang-rename_2026-04-26.md` | `spec-all` | Full pipeline completed: virtual-resource-lang-rename -> Verified |
+| 2026-04-26 05:05:41 | `app_v2/build.gradle.kts` | `build` | Migrate applicationVariants.all to androidComponents.onVariants — eliminates 3 obsolete-API Gradle warnings (applicationVariants, testVariants, unitTestVariants) |
+| 2026-04-26 05:11:40 | `app_v2/src/main/res/layout/fragment_settings_playback.xml, app_v2/src/main/java/.../PlaybackSettingsFragment.kt, values*/strings.xml` | `Settings > Playback` | Merged camera-capture and skip-filename rows into one horizontal row; added help ImageButton with TooltipDialog (EN/RU/UK) describing the camera capture mechanism |
+| 2026-04-26 05:32:24 | `dev/spec-list-vr-problems.md` | `VR/Quest 3 analysis` | Created VR problem list from session log 2026-04-26: 14 issues across P1-P4 (fisheye rendering, OU unsupported, no rays, empty HUD, stereo leaks, FALLBACK, haptic, debounce) |
+| 2026-04-26 05:49:34 | `PLAN/spec_vr-stereo-formats.md` | `spec` | Add strategic specification for ad-hoc VR stereo formats (VR180 Fisheye + OU/TAB rendering) |
+| 2026-04-26 05:49:37 | `PLAN/spec_vr-immersive-controls-panel.md` | `spec` | Add strategic specification for ad-hoc VR immersive controls panel (rays, interactive HUD, seek) |
+| 2026-04-26 05:49:40 | `PLAN/spec_vr-stereo-state.md` | `spec` | Add strategic specification for ad-hoc VR stereo state isolation and detection reliability |
+| 2026-04-26 05:49:40 | `PLAN/spec_vr-input-reliability.md` | `spec` | Add strategic specification for ad-hoc VR input reliability (Cinema fallback, debounce, haptic, race conditions) |
+| 2026-04-26 06:06:39 | `PLAN/spec_vr-immersive-controls-panel.md` | `spec-update` | Refinement pass by claude-sonnet-4-6: typos, class names → role descriptions, Столп Г removed, яркость added to §8 |
+| 2026-04-26 06:13:50 | `PLAN/spec_vr-immersive-controls-panel.md` | `spec-update` | Refinement pass 2 by claude-sonnet-4-6: R1 applied (Q1 resolved, renumbered), яркость in §2/§11, 2 DISCUSS proposals added |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel/INDEX.md` | `spec-tech` | Create tactical plan for vr-immersive-controls-panel |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel/PHASE_01__overlay-controls-extension.md` | `spec-tech` | Phase 01: overlay-controls-extension |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel/PHASE_02__controller-ray-native.md` | `spec-tech` | Phase 02: controller-ray-native |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel/PHASE_03__interactive-panel-gl.md` | `spec-tech` | Phase 03: interactive-panel-gl |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel/PHASE_04__ray-hud-hit-test.md` | `spec-tech` | Phase 04: ray-hud-hit-test |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel/PHASE_05__player-command-integration.md` | `spec-tech` | Phase 05: player-command-integration |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-04-26 06:36:10 | `PLAN/spec_vr-immersive-controls-panel.md` | `spec-tech` | Move strategic status to Tactical; link tactical plan |
+| 2026-04-26 12:47:01 | `PLAN/spec_vr-stereo-formats.md` | `spec-update` | Refinement pass by Gemini 3.1 Pro (focus: language, structure, verifiability, consistency, completeness, style) |
+| 2026-04-26 12:50:10 | `PLAN/spec_vr-input-reliability.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all) — 11 ACCEPT applied, 2 REVIEW proposed (P-1 class names, P-2 Tier time estimate) |
+| 2026-04-26 12:58:42 | `.claude/commands/spec-update.md` | `spec-update` | Updated rules to auto-apply straightforward fixes (ACCEPT) to avoid bureaucratic stops |
+| 2026-04-26 12:59:32 | `PLAN/spec_vr-immersive-controls-panel/INDEX.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all, --tactical --apply-all) |
+| 2026-04-26 12:59:37 | `PLAN/spec_vr-immersive-controls-panel/PHASE_01__overlay-controls-extension.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all, --tactical --apply-all) |
+| 2026-04-26 12:59:43 | `PLAN/spec_vr-immersive-controls-panel/PHASE_02__controller-ray-native.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all, --tactical --apply-all) |
+| 2026-04-26 12:59:43 | `PLAN/spec_vr-immersive-controls-panel/PHASE_03__interactive-panel-gl.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all, --tactical --apply-all) |
+| 2026-04-26 12:59:43 | `PLAN/spec_vr-immersive-controls-panel/PHASE_04__ray-hud-hit-test.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all, --tactical --apply-all) |
+| 2026-04-26 12:59:43 | `PLAN/spec_vr-immersive-controls-panel/PHASE_05__player-command-integration.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all, --tactical --apply-all) |
+| 2026-04-26 12:59:43 | `PLAN/spec_vr-immersive-controls-panel/PHASE_06__docs-catalog-cleanup.md` | `spec-update` | Refinement pass by claude-sonnet-4-6 (focus: all, --tactical --apply-all) |
+| 2026-04-26 13:01:41 | `PLAN/spec_vr-stereo-state.md` | `spec-update` | Auto-applied ACCEPT fixes: replaced class names with architectural terms, added Revision History |
+| 2026-04-26 13:04:49 | `.claude/commands/spec-update.md` | `spec-update` | Rewrite skill: removed REVIEW category, all non-structural fixes are now auto-applied (FIX), only structural changes go to DISCUSS |
+| 2026-04-26 13:09:03 | `.claude/commands/*.md` | `skills-refactoring` | Injected global ANTI-BUREAUCRACY execution directives into all 12 skills and replaced verbose reporting steps with terse output rules. |
+| 2026-04-26 13:24:05 | `PLAN/spec_network-smb-pooling.md` | `spec` | Add strategic specification for ad-hoc SMB playback reliability and pooling recovery |
+| 2026-04-26 13:24:05 | `PLAN/spec_vr-xr-cold-start.md` | `spec` | Add strategic specification for ad-hoc VR XR cold-start latency tracking |
+| 2026-04-26 13:26:27 | `.claude/commands/spec.md` | `spec` | Rewrite: remove Language section, condense Quality Rules to Constraints block |
+| 2026-04-26 13:26:27 | `.claude/commands/spec-update.md` | `spec-update` | Rewrite: remove Cross-model Workflow, Failure Modes; REVIEW auto-applies; output 1-line |
+| 2026-04-26 13:26:27 | `.claude/commands/spec-tech.md` | `spec-tech` | Rewrite: remove Language section, condense process steps and Quality Rules |
+| 2026-04-26 13:26:27 | `.claude/commands/spec-fix.md` | `spec-fix` | Rewrite: remove pre-apply table (unless --dry-run), Failure Modes; output 1-line |
+| 2026-04-26 13:26:27 | `.claude/commands/spec-check.md` | `spec-check` | Rewrite: remove Failure Modes, condense Quality Rules; output 1-line |
+| 2026-04-26 13:26:27 | `.claude/commands/spec-dev.md` | `spec-dev` | Rewrite: remove mandatory preview, Will Never Do, Failure Modes; output 1-line |
+| 2026-04-26 13:26:27 | `.claude/commands/spec-all.md` | `spec-all` | Rewrite: compact Stage 8 report, remove Constants table and Pipeline art |
+| 2026-04-26 13:26:27 | `.claude/commands/doc-update.md` | `doc-update` | Rewrite: remove verbose Step 4 summary table, condense Quality Rules |
+| 2026-04-26 13:33:52 | `PLAN/spec_vr-cast-availability-guard.md` | `spec` | Add strategic specification for Quest VR Cast availability guard and spam suppression |
+| 2026-04-26 13:33:52 | `PLAN/spec_browse-thumbnail-reliability.md` | `spec` | Add strategic specification for browse thumbnail cache and frame extraction reliability |
+| 2026-04-26 13:33:52 | `PLAN/spec_player-lifecycle-cancellation.md` | `spec` | Add strategic specification for player lifecycle cancellation resilience |
+| 2026-04-26 13:36:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrLaunchRoute.kt` | `VrLaunchRoute` | Add CINEMA_IMMERSIVE route for 2D video in VR (spec_vr-input-reliability Phase 01) |
+| 2026-04-26 13:36:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelper.kt` | `VrRouteDecisionHelper` | Route plain 2D VIDEO to CINEMA_IMMERSIVE instead of STANDARD_PANEL_FALLBACK |
+| 2026-04-26 13:36:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Handle CINEMA_IMMERSIVE route in resolvePlaybackRoute() |
+| 2026-04-26 13:36:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrCommandDebouncer.kt` | `VrCommandDebouncer` | New: centralized VR command debouncer (500ms toggle, 300ms nav windows) |
+| 2026-04-26 13:36:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `VrControllerInputManager` | Integrate VrCommandDebouncer in dispatchCommand() for CONTROLLER source |
+| 2026-04-26 13:36:22 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Add meta/touch_plus_controller profile, downgrade touch_pro LOGW to LOGD, handle XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED |
+| 2026-04-26 13:36:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | Guard setHudLayerVisible() with running.get() to prevent post-release native call |
+| 2026-04-26 13:36:22 | `PLAN/spec_vr-input-reliability.md` | `spec-all` | Full pipeline vr-input-reliability: 4 phases implemented, vr-debug PASS |
+| 2026-04-26 13:37:07 | `PLAN/SPECS_CATALOG.md` | `spec-catalog` | Add PLAN catalog of specifications and their current states |
+| 2026-04-26 13:39:54 | `PLAN/spec_vr-input-reliability__audit_2026-04-26.md` | `spec-check` | Audit vr-input-reliability: Partial (0 FAIL, 3 WARN §6 open items, 6 MANUAL) |
+| 2026-04-26 13:39:54 | `PLAN/spec_vr-input-reliability.md` | `spec-check` | Status → Partial |
+| 2026-04-26 13:41:40 | `PLAN/spec_vr-input-reliability.md` | `spec-check` | Status → Verified (§6 items closed, all tactical checks PASS) |
+| 2026-04-26 13:41:40 | `PLAN/spec-all_vr-input-reliability_2026-04-26.md` | `spec-all` | Pipeline complete: vr-input-reliability → Verified |
+| 2026-04-26 20:46:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `spec-dev` | Phase 01: unify local video DiskCacheStrategy to RESOURCE; add network video failed-cache pre-check |
+| 2026-04-26 20:47:19 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/GlideCacheStats.kt` | `spec-dev` | Phase 02: add thumbnailRepoCacheHits counter; fix misleading zero-disk-cache warning |
+| 2026-04-26 20:47:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `spec-dev` | Phase 02: wire GlideCacheStats.recordThumbnailRepoHit() on ThumbnailCache hit |
+| 2026-04-26 20:48:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/VideoExtractionFailurePersistence.kt` | `spec-dev` | Phase 03: new persistent failure cache for video extraction (SharedPrefs, TTL 7d, max 500) |
+| 2026-04-26 20:48:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `spec-dev` | Phase 03: wire VideoExtractionFailurePersistence into markVideoAsFailed / isVideoFailed |
+| 2026-04-26 20:49:38 | `PLAN/spec_browse-thumbnail-reliability.md` | `spec-all` | Strategic spec: Status -> Tactical (browse-thumbnail-reliability) |
+| 2026-04-26 20:49:38 | `PLAN/spec_browse-thumbnail-reliability/INDEX.md` | `spec-all` | Tactical plan created: browse-thumbnail-reliability (4 phases) |
+| 2026-04-26 20:49:38 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Catalog: add VideoExtractionFailurePersistence |
+| 2026-04-26 20:53:57 | `PLAN/spec_browse-thumbnail-reliability__audit_2026-04-26.md` | `spec-check` | Audit browse-thumbnail-reliability: Partial (0 FAIL, 3 WARN — tracking only) |
+| 2026-04-26 20:53:57 | `PLAN/spec_browse-thumbnail-reliability.md` | `spec-check` | Status -> Partial |
+| 2026-04-26 20:57:11 | `PLAN/spec_browse-thumbnail-reliability__fix_2026-04-26.md` | `spec-fix` | Fix-up run: browse-thumbnail-reliability (3 auto-fixed, 0 follow-ups) |
+| 2026-04-26 20:57:11 | `PLAN/spec_browse-thumbnail-reliability__audit_2026-04-26.md` | `spec-fix` | Annotate audit: all 3 WARNs marked FIXED |
+| 2026-04-26 21:00:35 | `PLAN/spec_browse-thumbnail-reliability__audit_2026-04-26_2.md` | `spec-check` | Audit browse-thumbnail-reliability — iter 2, Outcome: Verified |
+| 2026-04-26 21:00:35 | `PLAN/spec_browse-thumbnail-reliability.md` | `spec-check` | Status → Verified |
+| 2026-04-26 21:00:35 | `PLAN/spec_browse-thumbnail-reliability/INDEX.md` | `spec-check` | Completion Gate closed — all 6 criteria done |
+| 2026-04-26 21:00:35 | `PLAN/spec-all_browse-thumbnail-reliability_2026-04-26.md` | `spec-all` | Pipeline Verified: browse-thumbnail-reliability |
+| 2026-04-26 21:04:10 | `PLAN/SPECS_CATALOG.md` | `catalog` | Update: browse-thumbnail-reliability Verified; add new audits/fix/pipeline artifacts |
+| 2026-04-26 21:25:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbPlaybackConnectionTracker.kt` | `SmbPlaybackConnectionTracker` | Create: PLAYER connection lifecycle state + watchdog timestamp tracking singleton |
+| 2026-04-26 21:25:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | Inject SmbPlaybackConnectionTracker; clearAll on reset/network-reconnect; fix garbled close() KDoc |
+| 2026-04-26 21:25:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbClient.kt` | `SmbClient` | Add playbackConnectionTracker field for SmbDataSource access |
+| 2026-04-26 21:25:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `SmbDataSource` | Fail-fast on double watchdog; fix reopenConnection to use pool manager; extract resolveSmbPath; remove dead fields |
+| 2026-04-26 21:25:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbErrorClassifier.kt` | `SmbErrorClassifier` | Add SmbPlaybackErrorCategory enum for structured playback error classification |
+| 2026-04-26 21:25:59 | `PLAN/spec_network-smb-pooling__audit_2026-04-26.md` | `spec-check` | Audit network-smb-pooling: Verified (26 PASS, 2 MANUAL, 0 FAIL) |
+| 2026-04-26 21:25:59 | `PLAN/spec_network-smb-pooling.md` | `spec-check` | Status → Verified |
+| 2026-04-26 21:25:59 | `PLAN/spec-all_network-smb-pooling_2026-04-26.md` | `spec-all` | Pipeline Verified: network-smb-pooling |
+| 2026-04-26 21:27:01 | `dev/CATALOG/app_v2.jsonl` | `Catalog` | Sync after network-smb-pooling: new SmbPlaybackConnectionTracker, updated SmbDataSource/SmbConnectionManager/SmbClient/SmbErrorClassifier |
+| 2026-04-26 21:37:04 | `PLAN/spec_player-lifecycle-cancellation.md` | `spec-all` | Strategic spec approved: player-lifecycle-cancellation |
+| 2026-04-26 21:37:56 | `PLAN/spec_player-lifecycle-cancellation/INDEX.md` | `spec-all` | Tactical spec created: player-lifecycle-cancellation (1 phase) |
+| 2026-04-26 21:40:30 | `PLAN/spec_player-lifecycle-cancellation__audit_2026-04-26.md` | `spec-check` | Audit player-lifecycle-cancellation |
+| 2026-04-26 21:40:30 | `PLAN/spec_player-lifecycle-cancellation.md` | `spec-check` | Status → Verified |
+| 2026-04-26 21:40:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-all` | Distinguish CancellationException from real playback failure in playVideo catch |
+| 2026-04-26 21:48:07 | `PLAN/spec_vr-cast-availability-guard.md` | `spec-all` | Strategic spec approved: vr-cast-availability-guard |
+| 2026-04-26 21:49:10 | `PLAN/spec_vr-cast-availability-guard/INDEX.md` | `spec-all` | Tactical spec created: vr-cast-availability-guard (4 phases) |
+| 2026-04-26 21:51:48 | `PLAN/spec_vr-hand-tracking.md` | `spec-all` | Approved: vr-hand-tracking strategic spec (blocker resolved) |
+| 2026-04-26 21:51:48 | `PLAN/spec_vr-hand-tracking-tech.md` | `spec-all` | Approved: vr-hand-tracking-tech tactical spec |
+| 2026-04-26 21:55:48 | `app_v2/build.gradle.kts` | `BuildConfig` | Add SUPPORT_CAST flag: false for vr/vrUnlicensed, true for all other flavors |
+| 2026-04-26 21:55:48 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | Guard CastContext.getSharedInstance behind BuildConfig.SUPPORT_CAST |
+| 2026-04-26 21:55:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `CastMediaManager` | Early-return in init() when SUPPORT_CAST=false; log single info message |
+| 2026-04-26 21:55:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Gate CAST command behind BuildConfig.SUPPORT_CAST |
+| 2026-04-26 21:55:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Gate btnCastCmd visibility behind BuildConfig.SUPPORT_CAST |
+| 2026-04-26 21:57:44 | `PLAN/spec_vr-hand-tracking__audit_2026-04-26.md` | `spec-check` | Audit vr-hand-tracking |
+| 2026-04-26 21:57:44 | `PLAN/spec_vr-hand-tracking.md` | `spec-check` | Status -> Broken |
+| 2026-04-26 21:58:05 | `PLAN/spec_vr-cast-availability-guard__audit_2026-04-26.md` | `spec-check` | Audit vr-cast-availability-guard |
+| 2026-04-26 21:58:05 | `PLAN/spec_vr-cast-availability-guard.md` | `spec-check` | Status → Partial (3 WARN: §6 Open items not updated in strategic spec) |
+| 2026-04-26 21:59:12 | `PLAN/spec_vr-cast-availability-guard__fix_2026-04-26.md` | `spec-fix` | Fix-up run: 0 auto, 3 follow-ups (§6 Open items in strategic spec) |
+| 2026-04-26 21:59:12 | `PLAN/spec_vr-cast-availability-guard__audit_2026-04-26.md` | `spec-fix` | Annotate audit: 3x [FOLLOW-UP] |
+| 2026-04-26 22:00:27 | `PLAN/spec_vr-cast-availability-guard__audit_2026-04-26_2.md` | `spec-check` | Audit vr-cast-availability-guard (iteration 2) |
+| 2026-04-26 22:00:27 | `PLAN/spec_vr-cast-availability-guard.md` | `spec-check` | Status → Verified |
+| 2026-04-26 22:00:34 | `PLAN/spec_vr-cast-availability-guard.md` | `spec-all` | Pipeline Verified: vr-cast-availability-guard |
+| 2026-04-26 22:01:21 | `PLAN/spec_vr-hand-tracking__fix_2026-04-26.md` | `spec-fix` | Fix-up run: vr-hand-tracking |
+| 2026-04-26 22:01:21 | `PLAN/spec_vr-hand-tracking__audit_2026-04-26.md` | `spec-fix` | Annotate audit: vr-hand-tracking |
+| 2026-04-26 22:01:21 | `docs/FEATURES.md` | `spec-fix` | Add VR hand tracking bullet |
+| 2026-04-26 22:01:21 | `docs/FEATURES_RU.md` | `spec-fix` | Add VR hand tracking TODO translate |
+| 2026-04-26 22:01:21 | `docs/FEATURES_UK.md` | `spec-fix` | Add VR hand tracking TODO translate |
+| 2026-04-26 22:03:26 | `PLAN/spec_vr-hand-tracking__audit_2026-04-26_2.md` | `spec-check` | Audit vr-hand-tracking (iter 2) |
+| 2026-04-26 22:03:26 | `PLAN/spec_vr-hand-tracking.md` | `spec-check` | Status -> Broken (audit pointer updated) |
+| 2026-04-26 22:04:34 | `app_v2/src/main/res/values/strings.xml` | `VrCheatsheetOverlayManager` | Add hand tracking cheatsheet strings (EN) |
+| 2026-04-26 22:04:34 | `app_v2/src/main/res/values-ru/strings.xml` | `VrCheatsheetOverlayManager` | Add hand tracking cheatsheet strings (RU) |
+| 2026-04-26 22:04:34 | `app_v2/src/main/res/values-uk/strings.xml` | `VrCheatsheetOverlayManager` | Add hand tracking cheatsheet strings (UK) |
+| 2026-04-26 22:04:34 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrCheatsheetOverlayManager.kt` | `VrCheatsheetOverlayManager` | Append hand tracking section to buildContent() |
+| 2026-04-26 22:08:54 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Add missing PlaybackCommand when-branches (panel commands stub) |
+| 2026-04-26 22:08:54 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelDriver.kt` | `VrInteractivePanelDriver` | Stub interface for controls-panel (spec_vr-immersive-controls-panel) |
+| 2026-04-26 22:10:01 | `PLAN/spec_vr-hand-tracking__audit_2026-04-26_3.md` | `spec-check` | Audit vr-hand-tracking (iter 3) |
+| 2026-04-26 22:10:01 | `PLAN/spec_vr-hand-tracking.md` | `spec-check` | Status -> Partial |
+| 2026-04-26 22:10:08 | `PLAN/spec_vr-hand-tracking.md` | `spec-all` | Pipeline Partial: vr-hand-tracking |
+| 2026-04-26 22:25:45 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Phase 02: controller aim pose actions, syncControllerAimRay, onControllerPointerMove JNI, lastPredictedDisplayTime, aim space cleanup |
+| 2026-04-26 22:25:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/XrInputCallback.kt` | `XrInputCallback` | Phase 02: add onControllerPointerMove default method |
+| 2026-04-26 22:25:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrNative.kt` | `OpenXrNative` | Phase 02: add nativeSetControllerRayEnabled JNI binding |
+| 2026-04-26 22:25:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | Phase 02: add setControllerRayEnabled pass-through |
+| 2026-04-26 22:25:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControllerRayManager.kt` | `VrControllerRayManager` | Phase 02: new — NDC to MotionEvent bridge for controller aim ray |
+| 2026-04-26 22:25:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `VrControllerInputManager` | Phase 02: add onControllerPointerMove override + controllerPointerMoveSink |
+| 2026-04-26 22:25:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Phase 02: wire VrControllerRayManager, detach controllerPointerMoveSink in onDestroy |
+| 2026-04-26 22:35:55 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudState.kt` | `feature` | Phase 03: add panel-specific fields (brightness, speed, track, panelVisible, hoveredZoneId, seekDragFraction) |
+| 2026-04-26 22:35:55 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelRenderer.kt` | `feature` | Phase 03: new VrInteractivePanelRenderer (panel swapchain owner) |
+| 2026-04-26 22:35:55 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelComposer.kt` | `feature` | Phase 03: new VrInteractivePanelComposer (Canvas painter for interactive panel) |
+| 2026-04-26 22:35:55 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelDriver.kt` | `feature` | Phase 03: new VrInteractivePanelDriver (state machine + auto-hide for GL panel) |
+| 2026-04-26 22:35:55 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrNative.kt` | `feature` | Phase 03: add panel swapchain JNI bindings |
+| 2026-04-26 22:35:55 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `feature` | Phase 03: implement panel swapchain, upload, and quad layer in xrEndFrame |
+| 2026-04-26 22:35:55 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManager.kt` | `feature` | Phase 03: delegate show/hide/toggle to VrInteractivePanelDriver when available |
+| 2026-04-26 22:43:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrRayPanelHitTester.kt` | `feature` | Phase 04: new VrRayPanelHitTester (NDC -> UV ray-plane intersection) |
+| 2026-04-26 22:43:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrPanelHitZoneResolver.kt` | `feature` | Phase 04: new VrPanelHitZoneResolver (UV -> zone ID, seek fraction) |
+| 2026-04-26 22:43:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/XrInputCallback.kt` | `feature` | Phase 04: add onControllerPanelHover default method |
+| 2026-04-26 22:43:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `feature` | Phase 04: wire hit-test into onControllerPointerMove; emit onControllerPanelHover |
+| 2026-04-26 22:47:28 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `feature` | Phase 05: full zone->PlaybackCommand dispatch table; seek-drag debounce; live state feed to panel |
+| 2026-04-26 22:47:28 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelDriver.kt` | `feature` | Phase 05: implement VrHudSink panel methods; confirm 10s auto-hide; rename autoHideRunnable |
+| 2026-04-26 22:47:28 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudSink.kt` | `feature` | Phase 05: add panel state feed default methods |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelRenderer.kt` | `VrInteractivePanelRenderer` | New: OpenXR panel swapchain owner — bitmap upload loop for GL interactive controls panel |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelComposer.kt` | `VrInteractivePanelComposer` | New: Canvas painter for VR controls panel — 14 hit zones, Y-flip for GL coords |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelDriver.kt` | `VrInteractivePanelDriver` | New: state machine + auto-hide driver for GL panel; implements VrHudSink |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrRayPanelHitTester.kt` | `VrRayPanelHitTester` | New: ray-plane intersection — controller NDC to UV on panel texture |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrPanelHitZoneResolver.kt` | `VrPanelHitZoneResolver` | New: UV to zone ID + seek fraction resolver for interactive panel hit-test |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControllerRayManager.kt` | `VrControllerRayManager` | New: NDC-to-MotionEvent bridge for controller aim ray → overlay touch dispatch |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrRayPanelHitTester.kt` | `VrRayPanelHitTester` | Phase 04 wiring: attached to VrControllerInputManager via OpenXrSessionManager.attachHitTester |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `VrControllerInputManager` | Phase 04: added panelHitTester/panelHoverSink/panelClickSink wiring + PAUSE_TOGGLE intercept |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudSink.kt` | `VrHudSink` | Phase 05: added 8 default panel-feed methods (updatePanelVolume/Brightness/Speed etc.) |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Phase 05: panel command dispatch (14 zones), seek debounce, progress + volume feed to panelDriver |
+| 2026-04-26 22:54:03 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManager.kt` | `VrControlOverlayManager` | Phase 03: delegate show/hide/toggle to optional VrInteractivePanelDriver |
+| 2026-04-26 22:54:03 | `dev/CATALOG/app_v2.jsonl` | `Catalog` | Step 6.2: manually added 6 new VR classes (Phase 02-05 deliverables) to catalog |
+| 2026-04-26 23:01:54 | `PLAN/spec_vr-immersive-controls-panel__audit_2026-04-26.md` | `spec-check` | Audit vr-immersive-controls-panel |
+| 2026-04-26 23:01:54 | `PLAN/spec_vr-immersive-controls-panel.md` | `spec-check` | Status → Broken (3 FAIL: GL ray, C++ line budget, updatePanelTrackLabel) |
+| 2026-04-26 23:01:54 | `PLAN/spec_vr-immersive-controls-panel/INDEX.md` | `spec-check` | Status → Done, Phases 6/6 done |
+| 2026-04-26 23:12:51 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | spec-fix: add cycleAudioTrackAndUpdatePanel() — wires CycleAudioTrack command + updatePanelTrackLabel feed |
+| 2026-04-26 23:12:51 | `PLAN/spec_vr-immersive-controls-panel__audit_2026-04-26.md` | `spec-fix` | Reclassify GL_LINES/line-budget to WARN; FAIL 3 fixed — outcome Broken → Partial |
+| 2026-04-26 23:12:51 | `PLAN/spec_vr-immersive-controls-panel.md` | `spec-fix` | Status → Partial |
+| 2026-04-26 23:28:04 | `PLAN/spec_vr-stereo-formats/INDEX.md` | `spec-all` | Tactical spec: vr-stereo-formats (2 phases: OU routing fix + fisheye undistortion shader) |
+| 2026-04-26 23:34:56 | `app_v2/src/main/java/com/sza/fastmediasorter/vr/render/DefaultVrLayerFactory.kt` | `DefaultVrLayerFactory` | Fix OU routing: add standalone branch so StereoMode.OU always uses PROJECTION layer regardless of VrRenderingMode |
+| 2026-04-26 23:34:56 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | Add equidistant fisheye undistortion GL shader for VR180_FISHEYE_SBS stereo mode |
+| 2026-04-26 23:34:56 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Promote mainHandler to member field (was local val, caused unresolved ref at line 1008/1010/1014) |
+| 2026-04-26 23:34:56 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelDriver.kt` | `VrInteractivePanelDriver` | Add missing override modifier to updateProgress |
+| 2026-04-26 23:38:45 | `PLAN/spec_vr-stereo-formats__audit_2026-04-26.md` | `spec-check` | Audit vr-stereo-formats |
+| 2026-04-26 23:38:45 | `PLAN/spec_vr-stereo-formats.md` | `spec-check` | Status → Broken (FEATURES docs missing fisheye/OU TAB bullet) |
+| 2026-04-26 23:41:32 | `PLAN/spec_vr-stereo-state.md` | `spec-all` | Strategic spec approved: vr-stereo-state |
+| 2026-04-26 23:42:16 | `PLAN/spec_vr-stereo-formats__fix_2026-04-26.md` | `spec-fix` | Fix-up run: FEATURES EN/RU/UK bullets + §6 research items resolved |
+| 2026-04-26 23:42:16 | `PLAN/spec_vr-stereo-formats__audit_2026-04-26.md` | `spec-fix` | Annotate audit |
+| 2026-04-26 23:42:16 | `docs/FEATURES.md` | `spec-fix` | Add VR180 Fisheye and OU/TAB stereo bullet to §8 VR Edition |
+| 2026-04-26 23:42:16 | `docs/FEATURES_RU.md` | `spec-fix` | Add TODO translate placeholder for VR180 Fisheye / OU TAB bullet |
+| 2026-04-26 23:42:16 | `docs/FEATURES_UK.md` | `spec-fix` | Add TODO translate placeholder for VR180 Fisheye / OU TAB bullet |
+| 2026-04-26 23:46:24 | `PLAN/spec_vr-stereo-formats__audit_2026-04-26_2.md` | `spec-check` | Audit vr-stereo-formats (pass 2) |
+| 2026-04-26 23:46:24 | `PLAN/spec_vr-stereo-formats.md` | `spec-check` | Status -> Partial |
+| 2026-04-26 23:46:28 | `PLAN/spec_vr-stereo-formats.md` | `spec-all` | Pipeline Partial: vr-stereo-formats |
+| 2026-04-26 23:52:42 | `PLAN/spec_vr-stereo-state/INDEX.md` | `spec-tech` | Create tactical plan for vr-stereo-state |
+| 2026-04-26 23:52:42 | `PLAN/spec_vr-stereo-state/PHASE_01__stereo-token.md` | `spec-tech` | Phase 01: stereo-token |
+| 2026-04-26 23:52:42 | `PLAN/spec_vr-stereo-state/PHASE_02__detection-path-guard.md` | `spec-tech` | Phase 02: detection-path-guard |
+| 2026-04-26 23:52:42 | `PLAN/spec_vr-stereo-state/PHASE_03__settled-gl-observer.md` | `spec-tech` | Phase 03: settled-gl-observer |
+| 2026-04-26 23:52:42 | `PLAN/spec_vr-stereo-state/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-04-26 23:52:42 | `PLAN/spec_vr-stereo-state.md` | `spec-tech` | Status → Tactical |
+| 2026-04-26 23:56:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt` | `StereoDetector` | Phase 01: add stereo/mono filename tokens and spherical detection branches |
+| 2026-04-27 00:01:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Phase 02: detection path guard in onTracksChanged |
+| 2026-04-27 00:01:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | Phase 02: forward forFilePath to setAutoDetectedStereoMode |
+| 2026-04-27 00:01:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Phase 02: setAutoDetectedStereoMode accepts forFilePath |
+| 2026-04-27 00:01:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt` | `PlayerStereoModeCoordinator` | Phase 02: stale-detection guard in setAutoDetectedStereoMode |
+| 2026-04-27 00:04:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Phase 03: filter AUTO from video GL stereoMode collector |
+| 2026-04-27 00:09:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt` | `StereoDetector` | Phase 01: add stereo/mono filename tokens with conflict and spherical context rules |
+| 2026-04-27 00:09:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Phase 02: detection path guard in onTracksChanged, thread forFilePath through callback |
+| 2026-04-27 00:09:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | Phase 02: forward forFilePath to setAutoDetectedStereoMode |
+| 2026-04-27 00:09:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Phase 02: setAutoDetectedStereoMode accepts forFilePath with default empty string |
+| 2026-04-27 00:09:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt` | `PlayerStereoModeCoordinator` | Phase 02: stale-detection guard in setAutoDetectedStereoMode using forFilePath vs currentStereoOverridePath |
+| 2026-04-27 00:09:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Phase 03: filter AUTO from video GL stereoMode collector to eliminate transient GL pipeline restart |
+| 2026-04-27 00:09:55 | `docs/FEATURES.md` | `FEATURES` | Phase 04: stereo isolation note and filename token list in 3D stereo detection bullet |
+| 2026-04-27 00:09:55 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 04: stereo isolation note (RU) |
+| 2026-04-27 00:09:55 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 04: stereo isolation note (UK) |
+| 2026-04-27 00:09:55 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl` | Phase 04: catalog regen after vr-stereo-state implementation |
+| 2026-04-27 00:10:56 | `PLAN/spec_vr-stereo-state.md` | `spec-all` | Status -> Implemented: vr-stereo-state all 4 phases done |
+| 2026-04-27 00:16:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt` | `StereoDetector` | Extend filename tokens (hOU, TAB, RL, FullSBS, Half-SBS) and Matroska values (2=OU, 13/14=SBS_HALF) |
+| 2026-04-27 00:16:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/Mp4SpatialMetadataReader.kt` | `Mp4SpatialMetadataReader` | Add st3d mode 3 (VR180_FISHEYE_SBS) and mode 4 (EQUIRECT_360_SBS reversed) |
+| 2026-04-27 00:16:20 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoDetectorTest.kt` | `StereoDetectorTest` | Add tests for new filename patterns and Matroska/MP4 metadata values |
+| 2026-04-27 00:18:09 | `PLAN/spec_vr-stereo-state__audit_2026-04-27.md` | `spec-check` | Audit vr-stereo-state: Verified, 36 PASS, 5 MANUAL, 0 FAIL |
+| 2026-04-27 00:18:09 | `PLAN/spec_vr-stereo-state.md` | `spec-check` | Status -> Verified |
+| 2026-04-27 00:18:09 | `PLAN/spec_vr-stereo-state/PHASE_01__stereo-token.md` | `spec-check` | Fix Steps done counter: 3/3 |
+| 2026-04-27 00:18:09 | `PLAN/spec_vr-stereo-state/PHASE_02__detection-path-guard.md` | `spec-check` | Fix Steps done counter: 5/5 |
+| 2026-04-27 00:18:09 | `PLAN/spec_vr-stereo-state/PHASE_03__settled-gl-observer.md` | `spec-check` | Fix Steps done counter: 2/2 |
+| 2026-04-27 00:20:51 | `PLAN/spec_vr-xr-cold-start.md` | `spec-all` | Strategic spec approved: vr-xr-cold-start |

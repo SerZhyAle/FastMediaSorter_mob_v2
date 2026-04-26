@@ -204,6 +204,10 @@ class Mp4SpatialMetadataReader {
                 0 -> StereoMode.EQUIRECT_360_MONO
                 1 -> StereoMode.EQUIRECT_360_OU
                 2 -> StereoMode.EQUIRECT_360_SBS
+                // mode 3 = STEREO_CUSTOM — used by VR180 cameras (Google VR180 spec)
+                3 -> StereoMode.VR180_FISHEYE_SBS
+                // mode 4 = right-left reversed SBS — render same as left-right SBS
+                4 -> StereoMode.EQUIRECT_360_SBS
                 else -> StereoMode.UNKNOWN
             }
         }

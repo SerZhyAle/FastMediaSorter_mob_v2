@@ -33,6 +33,15 @@ sealed class PlaybackCommand {
     data class SeekMicro(val forward: Boolean) : PlaybackCommand()
     data class SeekMacro(val forward: Boolean) : PlaybackCommand()
     data object Mute : PlaybackCommand()
+    // VR interactive panel commands (spec_vr-immersive-controls-panel).
+    data object VolumeUp : PlaybackCommand()
+    data object VolumeDown : PlaybackCommand()
+    data object BrightnessUp : PlaybackCommand()
+    data object BrightnessDown : PlaybackCommand()
+    data class SetPlaybackSpeed(val speed: Float) : PlaybackCommand()
+    data object CycleAudioTrack : PlaybackCommand()
+    data object CycleStereoFormat : PlaybackCommand()
+    data class SeekTo(val positionMs: Long) : PlaybackCommand()
 }
 
 data class PlaybackCommandSet(
@@ -66,6 +75,12 @@ data class PlaybackCommandSet(
                 PlaybackCommand.OpenFileOps,
                 PlaybackCommand.RenameFile,
                 PlaybackCommand.Mute,
+                PlaybackCommand.VolumeUp,
+                PlaybackCommand.VolumeDown,
+                PlaybackCommand.BrightnessUp,
+                PlaybackCommand.BrightnessDown,
+                PlaybackCommand.CycleAudioTrack,
+                PlaybackCommand.CycleStereoFormat,
             )
         )
 

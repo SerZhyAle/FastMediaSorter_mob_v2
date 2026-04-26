@@ -16,6 +16,8 @@ import com.sza.fastmediasorter.vr.openxr.XrHand
 import com.sza.fastmediasorter.vr.openxr.XrInputCallback
 import com.sza.fastmediasorter.vr.openxr.XrInputEventType
 import com.sza.fastmediasorter.vr.openxr.XrInputSource
+import com.sza.fastmediasorter.vr.ui.VrPanelHitZoneResolver
+import com.sza.fastmediasorter.vr.ui.VrRayPanelHitTester
 import timber.log.Timber
 
 enum class VrCommandSource {
@@ -61,6 +63,8 @@ class VrControllerInputManager(
     private val onPointerEvent: ((hand: Int, down: Boolean) -> Unit)? = null,
 ) : XrInputCallback {
 
+    private val commandDebouncer = VrCommandDebouncer()
+
     @Volatile
     private var lastVolumeEventMs = -1L
 
@@ -84,6 +88,23 @@ class VrControllerInputManager(
         mainHandler.post { rayManager(hand, ndcX, ndcY) }
     }
 
+    override fun onControllerPointerMove(hand: Int, ndcX: Float, ndcY: Float) {
+        // Raw render-thread call; VrControllerRayManager throttles internally.
+        controllerPointerMoveSink?.invoke(hand, ndcX, ndcY)
+        // Panel hit-test — runs only while the GL panel is visible.
+        val ht = panelHitTester ?: return
+        val rslv = panelHitResolver ?: return
+        if (panelVisibleProvider?.invoke() != true) return
+        val hit = ht.computeHit(ndcX, ndcY)
+        val zoneId = rslv.resolve(hit)
+        val seekFrac = rslv.resolveSeekFraction(hit)
+        panelHoverSink?.invoke(hand, zoneId, seekFrac)
+    }
+
+    override fun onControllerPanelHover(hand: Int, zoneId: Int, seekFraction: Float) {
+        // Forwarding via panelHoverSink — no additional dispatch needed here.
+    }
+
     /**
      * Optional high-frequency sink invoked from [onPointerMove]. Set by
      * `VrPlayerActivity` once `VrHandRayManager` is constructed so pointer coordinates
@@ -92,6 +113,41 @@ class VrControllerInputManager(
      */
     @Volatile
     var pointerMoveSink: ((hand: Int, ndcX: Float, ndcY: Float) -> Unit)? = null
+
+    /**
+     * Optional high-frequency sink invoked from [onControllerPointerMove]. Set by
+     * `VrPlayerActivity` once `VrControllerRayManager` is constructed.
+     * Called on the xr-render-thread; VrControllerRayManager handles its own throttle.
+     */
+    @Volatile
+    var controllerPointerMoveSink: ((hand: Int, ndcX: Float, ndcY: Float) -> Unit)? = null
+
+    // ── Interactive panel hit-test (Phase 04) ────────────────────────────────
+
+    @Volatile private var panelHitTester: VrRayPanelHitTester? = null
+    @Volatile private var panelHitResolver: VrPanelHitZoneResolver? = null
+
+    /** Set by `VrPlayerActivity` to determine whether the GL panel is currently shown. */
+    @Volatile var panelVisibleProvider: (() -> Boolean)? = null
+
+    /**
+     * Called on the xr-render-thread with the resolved zone ID and optional seek fraction
+     * whenever the panel is visible. [VrInteractivePanelDriver] posts internally to the main
+     * looper, so this sink is safe to invoke from any thread.
+     */
+    @Volatile var panelHoverSink: ((hand: Int, zoneId: Int, seekFrac: Float) -> Unit)? = null
+
+    /**
+     * Called on the main thread when a trigger click arrives while the panel is visible.
+     * The sink reads the last-hovered zone from its own state (set via [panelHoverSink]).
+     */
+    @Volatile var panelClickSink: (() -> Unit)? = null
+
+    /** Attach hit-test infrastructure after the GL panel swapchain is ready. */
+    fun attachHitTester(hitTester: VrRayPanelHitTester, resolver: VrPanelHitZoneResolver) {
+        panelHitTester = hitTester
+        panelHitResolver = resolver
+    }
 
     private fun dispatchXrEvent(type: Int, hand: Int, value: Float, source: Int) {
         val commandSource = xrCommandSource(source)
@@ -102,6 +158,14 @@ class VrControllerInputManager(
         when (type) {
             XrInputEventType.POINTER_CLICK_DOWN -> { handlePointerClick(hand, down = true); return }
             XrInputEventType.POINTER_CLICK_UP   -> { handlePointerClick(hand, down = false); return }
+        }
+
+        // When the interactive panel is visible, the primary trigger (PAUSE_TOGGLE) acts as a
+        // panel-zone click rather than toggling play/pause. The panelClickSink reads the last
+        // hovered zone from VrPlayerActivity state and dispatches the zone command.
+        if (type == XrInputEventType.PAUSE_TOGGLE && panelVisibleProvider?.invoke() == true) {
+            panelClickSink?.invoke()
+            return
         }
 
         val trigger = InputTrigger.fromXrInputEvent(type)
@@ -398,6 +462,10 @@ class VrControllerInputManager(
     }
 
     private fun dispatchCommand(command: PlaybackCommand, source: VrCommandSource) {
+        if (!commandDebouncer.shouldDispatch(command, source)) {
+            Timber.d("VrControllerInputManager: debounced %s", command)
+            return
+        }
         onCommand(command, source)
     }
 

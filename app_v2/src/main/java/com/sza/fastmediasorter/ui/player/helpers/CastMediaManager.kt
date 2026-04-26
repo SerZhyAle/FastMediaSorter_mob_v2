@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -111,6 +112,10 @@ class CastMediaManager(
      * Call once after CastContext is available (i.e. after FastMediaSorterApp.onCreate).
      */
     fun init() {
+        if (!BuildConfig.SUPPORT_CAST) {
+            Timber.i("CastMediaManager: cast not supported on this platform — init skipped")
+            return
+        }
         try {
             castContext = CastContext.getSharedInstance(context)
             castContext?.sessionManager?.addSessionManagerListener(
