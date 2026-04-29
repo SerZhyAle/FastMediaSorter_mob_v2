@@ -131,6 +131,12 @@ Full-size images:
 - 📱 **Widget Support:** Quick access to your favorite folders directly from your home screen with two widget types: **Resource Shortcut** (opens any folder instantly) and **Continue Reading** (launches slideshow mode immediately).
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
+- 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource — local or network. Output format and destination folder are set in Video Settings.
+- 🖨️ **Print:** Send documents (PDF, TXT) and images to a printer directly from the built-in player. Network and cloud files are cached locally before printing.
+- ⬇️ **Stream Offload:** Download a network file to local cache with a real-time progress dialog before or during playback. An optional cleanup prompt reclaims storage afterward.
+- 🔊 **DTS/DTS-HD Audio:** DTS and DTS-HD audio tracks are decoded in software via a custom FFmpeg build — no special hardware required.
+- 🎨 **Video Color & Brightness:** Adjust Hue and Brightness in real time using Media3 GPU effects. Settings persist across video files during the session.
+- 📤 **Share to FastMediaSorter:** Receive files from any app via the standard Android Share sheet and copy them to a selected resource with a single tap.
 
 ## Supported Media Formats 🎞️
 
@@ -138,7 +144,7 @@ FastMediaSorter v2 supports a wide range of formats:
 
 - **Images:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF
 - **Video:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
-- **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS
+- **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, DTS, DTS-HD
 - **Documents:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
 - **Binary Files** (All Files mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
 
