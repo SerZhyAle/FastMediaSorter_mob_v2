@@ -4,8 +4,8 @@
 **Feature:** Resource Icons System
 **Tier:** 2 — Easy
 **Priority:** 50
-**Status:** In Progress
-**Phases:** 1 / 8 done
+**Status:** Implemented
+**Phases:** 8 / 8 done
 **Last updated:** 2026-04-29
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
@@ -16,14 +16,14 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | designer-prompt | — | ⬜ Not started | 0/3 | [PHASE_01__designer-prompt.md](PHASE_01__designer-prompt.md) |
+| 01 | designer-prompt | — | ✅ Done | 3/3 | [PHASE_01__designer-prompt.md](PHASE_01__designer-prompt.md) |
 | 02 | data-foundations | 01 | ✅ Done | 6/6 | [PHASE_02__data-foundations.md](PHASE_02__data-foundations.md) |
-| 03 | icon-library-registry | 02 | ⬜ Not started | 0/5 | [PHASE_03__icon-library-registry.md](PHASE_03__icon-library-registry.md) |
-| 04 | composite-rendering | 03 | ⬜ Not started | 0/4 | [PHASE_04__composite-rendering.md](PHASE_04__composite-rendering.md) |
-| 05 | assignment-logic | 02, 03 | ⬜ Not started | 0/5 | [PHASE_05__assignment-logic.md](PHASE_05__assignment-logic.md) |
-| 06 | icon-selector-ui | 03, 04 | ⬜ Not started | 0/6 | [PHASE_06__icon-selector-ui.md](PHASE_06__icon-selector-ui.md) |
-| 07 | main-screen-integration | 04, 05 | ⬜ Not started | 0/4 | [PHASE_07__main-screen-integration.md](PHASE_07__main-screen-integration.md) |
-| 08 | docs-catalog-cleanup | all | ⬜ Not started | 0/5 | [PHASE_08__docs-catalog-cleanup.md](PHASE_08__docs-catalog-cleanup.md) |
+| 03 | icon-library-registry | 02 | ✅ Done | 5/5 | [PHASE_03__icon-library-registry.md](PHASE_03__icon-library-registry.md) |
+| 04 | composite-rendering | 03 | ✅ Done | 4/4 | [PHASE_04__composite-rendering.md](PHASE_04__composite-rendering.md) |
+| 05 | assignment-logic | 02, 03 | ✅ Done | 5/5 | [PHASE_05__assignment-logic.md](PHASE_05__assignment-logic.md) |
+| 06 | icon-selector-ui | 03, 04 | ✅ Done | 6/6 | [PHASE_06__icon-selector-ui.md](PHASE_06__icon-selector-ui.md) |
+| 07 | main-screen-integration | 04, 05 | ✅ Done | 4/4 | [PHASE_07__main-screen-integration.md](PHASE_07__main-screen-integration.md) |
+| 08 | docs-catalog-cleanup | all | ✅ Done | 5/5 | [PHASE_08__docs-catalog-cleanup.md](PHASE_08__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 
@@ -67,3 +67,4 @@ All §6 research items are Resolved. Phase 01 produces the designer prompt — h
 ## Change Log
 
 - 2026-04-29 — Initial tactical plan authored by `/spec-tech`.
+- 2026-04-29 — Phases 01–05 and 07 implemented and verified (BUILD SUCCESSFUL). Phase 06 (icon-selector-ui) pending.

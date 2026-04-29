@@ -1,6 +1,6 @@
 # Стратегическая спецификация: Ad-hoc — VR Immersive HUD через отдельный композитный слой
 
-**Status:** Partial
+**Status:** Implemented
 **Tactical plan:** `PLAN/spec_vr-immersive-hud-gl/INDEX.md` (all 7 phases ✅ Done; awaiting on-device acceptance + status-drift fix for Verified)
 **Date:** 2026-04-25
 **Tier:** 3 — Moderate (ad-hoc)

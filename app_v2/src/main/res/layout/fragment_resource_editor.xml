@@ -13,6 +13,9 @@
 
         <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
+        <!-- S0034: icon picker trigger, right of space, left of copy/save -->
+        <include android:id="@+id/pickIconAction" layout="@layout/toolbar_icon_action" />
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveAsCopy" style="@style/Widget.Material3.Button.IconButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:contentDescription="@string/btn_save_as_copy" android:tooltipText="@string/btn_save_as_copy" android:visibility="gone" app:icon="@drawable/ic_copy" app:iconTint="?attr/colorControlNormal" />
 
         <com.google.android.material.button.MaterialButton android:id="@+id/btnSave" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save" android:textAllCaps="false" />

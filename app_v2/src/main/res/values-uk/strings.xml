@@ -2900,4 +2900,13 @@
     <string name="keybinding_capture_conflict">Вже призначено: %s</string>
     <!-- S0017: показується після SMB-сканування, якщо витяг метаданих не вдався для частини файлів -->
     <string name="smb_metadata_errors_warning">%d файл(ів) проіндексовано без метаданих (помилка читання)</string>
+
+    <!-- S0034 Phase 06: рядки UI вибору іконки -->
+    <string name="cd_pick_resource_icon">Вибрати іконку ресурсу</string>
+    <string name="icon_picker_title">Вибір іконки</string>
+    <string name="icon_set_music">Музика</string>
+    <string name="icon_set_video">Відео</string>
+    <string name="icon_set_image">Зображення</string>
+    <string name="icon_set_docs">Документи</string>
+    <string name="icon_set_other">Інше</string>
 </resources>

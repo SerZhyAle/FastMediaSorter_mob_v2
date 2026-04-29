@@ -1,6 +1,6 @@
 # Стратегическая спецификация: ad-hoc — VR Stereo Formats: Fisheye и OU/TAB
 
-**Status:** Partial
+**Status:** Implemented
 <!-- auto-approved by /spec-all — 2026-04-26 -->
 **Date:** 2026-04-26
 **Tier:** 4 — Strategic (8h+, high risk)
@@ -146,6 +146,7 @@ OpenXR Swapchain → левый/правый глаз
 ## 8. Влияние на пользователя (docs/FEATURES)
 
 **Для FEATURES.md:**
+>
 > - **VR180 Fisheye и OU/TAB стерео**: Приложение корректно воспроизводит VR180-видео с fisheye-линзами (суффиксы `3dh`, `180`) и Over-Under/TAB стерео (суффиксы `3dv`, `OU`, `TAB`) — без необходимости ручного выбора формата.
 
 ---

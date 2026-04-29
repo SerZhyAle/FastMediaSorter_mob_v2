@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- bottom_sheet_icon_picker.xml — icon picker bottom sheet (S0034 Phase 06).
+     Contains: header title, TabLayout for 5 icon sets, RecyclerView grid. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp">
+
+    <TextView
+        android:id="@+id/tvIconPickerTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="8dp"
+        android:text="@string/icon_picker_title"
+        android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+    <!-- Tab strip for the 5 themed icon sets: Music / Video / Image / Docs / Other -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabsIconSet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="scrollable"
+        app:tabGravity="start" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvIcons"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/icon_picker_bottom_sheet_peek"
+        android:clipToPadding="false"
+        android:padding="@dimen/icon_picker_grid_spacing" />
+
+</LinearLayout>

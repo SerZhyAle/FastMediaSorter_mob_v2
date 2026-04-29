@@ -54,6 +54,7 @@ class ResourceEditorUseCase @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val credentialsRepository: NetworkCredentialsRepository,
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
@@ -222,7 +223,9 @@ class ResourceEditorUseCase @Inject constructor(
             rememberFileList = normalized.rememberFileList,
             accessPin = normalized.accessPin.ifBlank { null },
             comment = normalized.comment.ifBlank { null },
-            profile = normalized.profile
+            profile = normalized.profile,
+            // Preserve user-picked or previously-resolved icon; save() handles null case.
+            iconId = normalized.iconId
         )
     }
 
@@ -274,6 +277,17 @@ class ResourceEditorUseCase @Inject constructor(
                 }
 
                 else -> {
+                    // Assign an initial icon for newly added resources if not already set.
+                    // The user can override via the icon picker (S0034 Phase 06).
+                    if (model.iconId == null) {
+                        model = model.copy(
+                            iconId = resolveResourceIconUseCase(
+                                path = model.path,
+                                profile = model.profile,
+                                type = model.type
+                            )
+                        )
+                    }
                     addResourceUseCase(model).getOrThrow()
                 }
             }
@@ -598,7 +612,8 @@ class ResourceEditorUseCase @Inject constructor(
             showHiddenFiles = resource.showHiddenFiles,
             showSubfoldersAsItems = resource.showSubfoldersAsItems,
             rememberFileList = resource.rememberFileList,
-            profile = resource.profile
+            profile = resource.profile,
+            iconId = resource.iconId
         )
 
         return if (mode == ResourceEditorMode.COPY) {

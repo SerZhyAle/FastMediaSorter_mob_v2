@@ -1,6 +1,6 @@
 # Стратегическая спецификация: ad-hoc — VR Immersive Controls Panel
 
-**Status:** Partial
+**Status:** Implemented
 **Date:** 2026-04-26
 **Tier:** 4 — Strategic (8h+, high risk)
 **Roadmap entry:** Ad-hoc — запрос пользователя 2026-04-26

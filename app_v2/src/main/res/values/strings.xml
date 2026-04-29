@@ -3005,6 +3005,15 @@
     <string name="keybinding_capture_conflict">Already bound to: %s</string>
     <!-- S0017: shown after SMB scan when metadata extraction failed for some files -->
     <string name="smb_metadata_errors_warning">%d file(s) indexed without metadata (read error)</string>
+
+    <!-- S0034 Phase 06: icon picker UI strings -->
+    <string name="cd_pick_resource_icon">Pick resource icon</string>
+    <string name="icon_picker_title">Choose an icon</string>
+    <string name="icon_set_music">Music</string>
+    <string name="icon_set_video">Video</string>
+    <string name="icon_set_image">Image</string>
+    <string name="icon_set_docs">Documents</string>
+    <string name="icon_set_other">Other</string>
 </resources>
 
 

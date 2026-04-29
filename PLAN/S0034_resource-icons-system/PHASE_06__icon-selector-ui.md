@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0034_resource-icons-system.md`](../S0034_resource-icons-system.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 03, Phase 04
 **Blocks:** Phase 07
-**Steps done:** 0 / 6
-**Started:** —
-**Completed:** —
+**Steps done:** 6 / 6
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 
@@ -58,7 +58,7 @@ Add a tappable icon button to the right edge of the add-resource and edit-resour
 - `Grep` — `android:id="@\+id/btnPickIcon"` matches once.
 - `Grep` — `@string/cd_pick_resource_icon` matches once in this file.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -80,7 +80,7 @@ Add a tappable icon button to the right edge of the add-resource and edit-resour
 - `Grep` — `rvIcons` matches once.
 - `Grep` — `ivIcon` matches once in `item_icon_picker.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -99,7 +99,7 @@ Add a tappable icon button to the right edge of the add-resource and edit-resour
 - `Grep` — `fun setItems\(set: ResourceIconSet\)` matches once.
 - `Grep` — `ResourceIconRegistry\.resolveDrawable` matches at least once in `IconPickerAdapter.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -125,7 +125,7 @@ Add a tappable icon button to the right edge of the add-resource and edit-resour
 - `Grep` — `setFragmentResult` matches at least once in `IconPickerBottomSheet.kt`.
 - `Grep -n "Log\.d\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -151,7 +151,7 @@ Add a tappable icon button to the right edge of the add-resource and edit-resour
 - `Grep` — `btnPickIcon` matches at least four times across both files (find + click listener wire + result listener update + preview update).
 - `Grep` — `userPickedIconThisSession = true` matches in `ResourceEditorFragment.kt` or its ViewModel.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -182,7 +182,7 @@ Add a tappable icon button to the right edge of the add-resource and edit-resour
 - `Grep` — `icon_set_music` matches exactly three times.
 - `Grep` — `icon_set_other` matches exactly three times.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

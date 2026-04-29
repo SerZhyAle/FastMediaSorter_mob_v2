@@ -1,9 +1,12 @@
 # Specification: VR Hand Tracking & Gesture Control
 
-**Status:** Partial
-<!-- auto-approved by /spec-all — 2026-04-26; blocker resolved (controller/HUD pipeline implemented) -->
+**Status:** Tactical
+<!-- auto-approved by /spec-all — 2026-04-26; blocker resolved (controller/HUD pipeline implemented via S0008+S0009) -->
+<!-- S0008 dependency Implemented 2026-04-29 — ready for /spec-tech -->
+<!-- /spec-tech completed 2026-04-30 — tactical plan: PLAN/S0007_vr-hand-tracking/INDEX.md (4 phases) -->
 **Date:** 2026-04-24
-**Tier:** TBD
+**Tier:** 3
+**Tactical plan:** `PLAN/S0007_vr-hand-tracking/INDEX.md`
 **Roadmap Entry:** Ad-hoc (User Request 2026-04-24). Controllers remain the primary input modality; hand tracking serves as a secondary interface for scenarios where controllers are set aside (e.g., reclined media consumption).
 
 ---

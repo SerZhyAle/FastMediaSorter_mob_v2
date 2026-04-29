@@ -22,6 +22,9 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
+import com.sza.fastmediasorter.ui.icon.ResourceIconSet
+import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -34,6 +37,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private val viewModel: AddResourceViewModel by viewModels()
 
     private var copyResourceId: Long? = null
+
+    /** Icon id the user selected via the icon picker before committing the add (S0034 Phase 06). */
+    private var userPickedIconId: String? = null
 
     private val keyboardDelegate = AddResourceKeyboardDelegate(object : AddResourceKeyboardDelegate.Callback {
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
@@ -287,6 +293,32 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         formManager.setupCheckboxInteractions()
         formManager.setupCollapsibleSections()
         formManager.applyFlavorRestrictions()
+
+        setupIconPicker()
+    }
+
+    /** Wires the pick-icon button in the toolbar for pre-add icon customisation (S0034 Phase 06). */
+    private fun setupIconPicker() {
+        // Show the button; it is hidden by default in toolbar_icon_action.xml
+        binding.pickIconAction.btnPickIcon.visibility = android.view.View.VISIBLE
+
+        // Display initial icon preview using the OTHER set default
+        val initialIconId = ResourceIconRegistry.firstIdFor(ResourceIconSet.OTHER)
+        ResourceIconRegistry.resolveDrawable(initialIconId)?.let { binding.pickIconAction.btnPickIcon.setImageResource(it) }
+
+        binding.pickIconAction.btnPickIcon.setOnClickListener {
+            IconPickerBottomSheet.newInstance(userPickedIconId, ResourceIconSet.OTHER)
+                .show(supportFragmentManager, "icon_picker")
+        }
+
+        // Listen for the icon chosen by the user; update preview and remember for save
+        supportFragmentManager.setFragmentResultListener(
+            IconPickerBottomSheet.KEY, this
+        ) { _, bundle ->
+            val pickedId = bundle.getString(IconPickerBottomSheet.RESULT_ICON_ID) ?: return@setFragmentResultListener
+            userPickedIconId = pickedId
+            ResourceIconRegistry.resolveDrawable(pickedId)?.let { binding.pickIconAction.btnPickIcon.setImageResource(it) }
+        }
     }
 
     override fun observeData() {

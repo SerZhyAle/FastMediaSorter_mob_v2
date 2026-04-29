@@ -35,6 +35,9 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.widget.ResourceLaunchWidgetProvider
+import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
+import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
+import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
@@ -107,6 +110,7 @@ class ResourceEditorFragment : Fragment() {
         setupToolbar()
         setupFieldListeners()
         setupButtons()
+        setupIconPicker()
         setupCollapsibleSections()
         observeUiState()
         observeEvents()
@@ -396,6 +400,36 @@ class ResourceEditorFragment : Fragment() {
         }
     }
 
+    /** Wires the icon-picker button: opens [IconPickerBottomSheet] and handles its result (S0034 Phase 06). */
+    private fun setupIconPicker() {
+        // Show the pick-icon button; it is hidden by default in the include layout
+        binding.pickIconAction.btnPickIcon.visibility = View.VISIBLE
+
+        binding.pickIconAction.btnPickIcon.setOnClickListener {
+            val state = viewModel.uiState.value.formData
+            val currentIconId = state.iconId
+            val defaultSet = ResourceIconDefaults.setForResource(state.profile, state.type)
+            IconPickerBottomSheet.newInstance(currentIconId, defaultSet)
+                .show(childFragmentManager, "icon_picker")
+        }
+
+        // Listen for the icon the user picked; update ViewModel + preview button
+        childFragmentManager.setFragmentResultListener(
+            IconPickerBottomSheet.KEY, viewLifecycleOwner
+        ) { _, bundle ->
+            val pickedId = bundle.getString(IconPickerBottomSheet.RESULT_ICON_ID) ?: return@setFragmentResultListener
+            viewModel.onIconPicked(pickedId)
+            updateIconPickerPreview(pickedId)
+        }
+    }
+
+    private fun updateIconPickerPreview(iconId: String?) {
+        val drawableRes = ResourceIconRegistry.resolveDrawable(iconId)
+        if (drawableRes != null) {
+            binding.pickIconAction.btnPickIcon.setImageResource(drawableRes)
+        }
+    }
+
     private fun shouldCheckMediaPermissionBeforeSave(): Boolean {
         val state = viewModel.uiState.value
         val isCreateMode = mode == ResourceEditorMode.CREATE
@@ -679,6 +713,9 @@ class ResourceEditorFragment : Fragment() {
 
         // Profile selector button label
         binding.btnProfileSelector.setText(getProfileLabelResId(formData.profile))
+
+        // Update icon picker preview to match the current iconId (S0034 Phase 06)
+        updateIconPickerPreview(formData.iconId)
 
         // Scanning checkboxes (guarded from triggering listeners on programmatic updates)
         binding.cbScanSubdirectories.setOnCheckedChangeListener(null)

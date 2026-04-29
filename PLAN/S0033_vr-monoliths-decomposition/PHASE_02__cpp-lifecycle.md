@@ -64,7 +64,7 @@ Populate `OpenXrCtx.h` with the shared structs (`LayerConfig`, `SwapchainImage`,
 
 - `Grep` — `struct XrCtx` matches once and only inside `OpenXrCtx.h`.
 - `Grep` — `struct LayerConfig` matches once in `OpenXrCtx.h`.
-- `Grep` — `namespace\s*$` (anonymous namespace opener) does NOT match in `OpenXrNative.cpp`.
+- `Grep` — `^\s*namespace\s*\{` (anonymous namespace opener) does NOT match in `OpenXrNative.cpp`.
 - `Grep` — `using namespace xrnative` matches once in `OpenXrNative.cpp`.
 - `wc -l app_v2/src/vr/cpp/OpenXrNative.cpp` ≤ 3200.
 
@@ -178,3 +178,11 @@ Populate `OpenXrCtx.h` with the shared structs (`LayerConfig`, `SwapchainImage`,
 ## Rollback Plan
 
 Revert phase commit(s); the Phase 01 backup in `temp/` is still valid (the cpp body retained byte-equivalent semantics, just moved between TUs).
+
+---
+
+## Revision History
+
+- **2026-04-29** — by `/spec-update` (`claude-sonnet-4-6`, focus: verifiability)
+  - Applied: 1. Proposed (DISCUSS): 0.
+  - Step 02.1 Verification: fixed grep pattern `namespace\s*$` → `^\s*namespace\s*\{` (the old pattern does not match `namespace {` same-line style).

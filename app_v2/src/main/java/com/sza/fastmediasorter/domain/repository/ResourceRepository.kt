@@ -59,4 +59,11 @@ interface ResourceRepository {
     suspend fun testConnection(resource: MediaResource): Result<String>
 
     suspend fun updateIcon(resourceId: Long, iconId: String?)
+
+    /**
+     * Assigns icons to all resources that currently have [iconId] == null.
+     * Called once on startup after DB migration to 26; safe to call multiple times.
+     * Returns the number of resources that were updated.
+     */
+    suspend fun backfillMissingIcons(resolveIcon: (path: String, profileName: String, typeName: String) -> String?): Int
 }

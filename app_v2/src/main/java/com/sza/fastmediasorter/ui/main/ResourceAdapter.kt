@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
+import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import timber.log.Timber
 
@@ -284,30 +285,9 @@ class ResourceAdapter(
                     tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                 }
                 
-                // Set icon based on resource type
-                val iconRes = when {
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT -> R.drawable.ic_virtual_recent
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> R.drawable.ic_virtual_music
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> R.drawable.ic_virtual_video
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> R.drawable.ic_virtual_docs
-                    resource.id == -100L -> R.drawable.ic_resource_favorites
-                    else -> when (resource.type) {
-                        ResourceType.LOCAL -> R.drawable.ic_resource_local
-                        ResourceType.SMB -> R.drawable.ic_resource_smb
-                        ResourceType.SFTP -> R.drawable.ic_resource_sftp
-                        ResourceType.FTP -> R.drawable.ic_resource_ftp
-                        ResourceType.CLOUD -> {
-                            // Use provider-specific icon for cloud resources
-                            when (resource.cloudProvider?.name) {
-                                "GOOGLE_DRIVE" -> R.drawable.ic_provider_google_drive
-                                "ONEDRIVE" -> R.drawable.ic_provider_onedrive
-                                "DROPBOX" -> R.drawable.ic_provider_dropbox
-                                else -> R.drawable.ic_resource_cloud
-                            }
-                        }
-                    }
-                }
-                ivResourceTypeIcon.setImageResource(iconRes)
+                // Set icon using S0034 composer (falls back to legacy type-based icon when no custom icon)
+                val iconDrawable = ResourceIconComposer.compose(root.context, resource)
+                ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
                 val quickEligibleGrid = isQuickSlideshowEligible(resource)
                 if (quickEligibleGrid) {
@@ -484,21 +464,9 @@ class ResourceAdapter(
                     if (luminance > 0.4) android.graphics.Color.parseColor("#1A1A1A")
                     else android.graphics.Color.WHITE
                 )
-                val iconRes = when {
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT -> R.drawable.ic_virtual_recent
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> R.drawable.ic_virtual_music
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> R.drawable.ic_virtual_video
-                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> R.drawable.ic_virtual_docs
-                    resource.id == -100L -> R.drawable.ic_resource_favorites
-                    else -> when (resource.type) {
-                        ResourceType.LOCAL -> R.drawable.ic_resource_local
-                        ResourceType.SMB -> R.drawable.ic_resource_smb
-                        ResourceType.SFTP -> R.drawable.ic_resource_sftp
-                        ResourceType.FTP -> R.drawable.ic_resource_ftp
-                        ResourceType.CLOUD -> R.drawable.ic_resource_cloud
-                    }
-                }
-                ivResourceTypeIcon.setImageResource(iconRes)
+                // Set icon using S0034 composer (falls back to legacy type-based icon when no custom icon)
+                val iconDrawable = ResourceIconComposer.compose(root.context, resource)
+                ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
                 val quickEligibleList = isQuickSlideshowEligible(resource)
                 if (quickEligibleList) {

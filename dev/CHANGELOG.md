@@ -4743,3 +4743,101 @@ Format: | datetime | file | target | description |
 | 2026-04-29 16:38:09 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `FakeResourceRepository` | S0034 Phase 02: implement updateIcon stub in test fake |
 | 2026-04-29 16:44:02 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0034 Phase 02: regenerate catalog (scan + render via pwsh 7) |
 | 2026-04-29 16:44:02 | `dev/CATALOG/app_v2.md` | `catalog` | S0034 Phase 02: render markdown catalog |
+| 2026-04-29 17:41:35 | `app_v2/src/main/res/drawable/ico_01_001..ico_05_020.xml` | `ResourceIcons` | Phase 03 Step 03.1: generated 60 Android Vector Drawable XMLs (5 sets: music/video/image/docs/abstract) |
+| 2026-04-29 17:52:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconSet.kt` | `S0034 Phase 03.2` | New enum — five themed icon sets (MUSIC/VIDEO/IMAGE/DOCS/OTHER) with setId and countInSet |
+| 2026-04-29 17:52:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconRegistry.kt` | `S0034 Phase 03.3` | New object — constant registry mapping all 60 ico-XX-NNN ids to R.drawable.ico_XX_NNN resources |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconDefaults.kt` | `S0034 Phase 03.4` | New object — stateless helper mapping profile/type to ResourceIconSet and virtual paths to fixed icon ids |
+| 2026-04-29 17:52:32 | `app_v2/src/main/res/values/dimens.xml` | `S0034 Phase 04` | Added resource_icon_composite_size/badge_size/theme_inset + icon_picker grid dimensions |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | `S0034 Phase 04` | New object — maps MediaResource to connection-type badge drawable (null for virtual/local) |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `S0034 Phase 04` | New object — composes theme icon + optional badge into LayerDrawable; falls back to legacy icon when iconId=null |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResolveResourceIconUseCase.kt` | `S0034 Phase 05` | New UseCase — resolves initial ico-XX-NNN id for new/provisioned resources based on path/profile/type |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0034 Phase 05` | Injected ResolveResourceIconUseCase; assign iconId when provisioning virtual resources on first launch |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `S0034 Phase 05` | Injected ResolveResourceIconUseCase; assign default iconId when saving new resources (ADD mode) |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResourceRepository.kt` | `S0034 Phase 05` | Added backfillMissingIcons() contract for DB migration of pre-S0034 rows |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `S0034 Phase 05` | Implemented backfillMissingIcons() — assigns icons to existing rows with null iconId on startup |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0034 Phase 05` | Injected ResolveResourceIconUseCase; call backfillMissingIcons() on app init after provision/migrate |
+| 2026-04-29 17:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `S0034 Phase 07` | Replaced inline iconRes when-blocks in both List/Grid ViewHolders with ResourceIconComposer.compose() |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconSet.kt` | `S0034 Phase 03.2` | New enum - five themed icon sets (MUSIC/VIDEO/IMAGE/DOCS/OTHER) |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconRegistry.kt` | `S0034 Phase 03.3` | New object - maps all 60 ico-XX-NNN ids to R.drawable resources |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconDefaults.kt` | `S0034 Phase 03.4` | New object - maps profile/type to set and virtual paths to fixed icon ids |
+| 2026-04-29 17:52:46 | `app_v2/src/main/res/values/dimens.xml` | `S0034 Phase 04` | Added resource_icon_composite/badge/inset + icon_picker grid dimensions |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | `S0034 Phase 04` | New object - connection-type badge drawable per resource |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `S0034 Phase 04` | New object - LayerDrawable composer: theme icon + optional badge overlay |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResolveResourceIconUseCase.kt` | `S0034 Phase 05` | New UseCase - resolve initial icon id for new/provisioned resources |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0034 Phase 05` | Assign iconId when provisioning virtual resources on first launch |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `S0034 Phase 05` | Assign default iconId when saving new resources (ADD mode) |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResourceRepository.kt` | `S0034 Phase 05` | Added backfillMissingIcons() interface contract |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `S0034 Phase 05` | Implemented backfillMissingIcons() for pre-S0034 DB rows |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0034 Phase 05` | Call backfillMissingIcons() on app init |
+| 2026-04-29 17:52:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `S0034 Phase 07` | Replace inline iconRes blocks with ResourceIconComposer.compose() |
+| 2026-04-29 17:52:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconSet.kt` | `S0034 Ph03.2` | New enum - five themed icon sets MUSIC/VIDEO/IMAGE/DOCS/OTHER |
+| 2026-04-29 17:53:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconRegistry.kt` | `S0034 Ph03.3` | New object - maps all 60 ico-XX-NNN ids to R.drawable resources |
+| 2026-04-29 17:53:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconDefaults.kt` | `S0034 Ph03.4` | New object - maps profile/type to set and virtual paths to fixed icon ids |
+| 2026-04-29 17:53:06 | `app_v2/src/main/res/values/dimens.xml` | `S0034 Ph04` | Added resource_icon composite/badge/inset and icon_picker grid dimensions |
+| 2026-04-29 17:53:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | `S0034 Ph04` | New object - connection-type badge drawable per resource type |
+| 2026-04-29 17:53:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `S0034 Ph04` | New object - composes LayerDrawable theme icon + optional badge |
+| 2026-04-29 17:53:06 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResolveResourceIconUseCase.kt` | `S0034 Ph05` | New UseCase - resolves initial icon id for new/provisioned resources |
+| 2026-04-29 17:53:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0034 Ph05` | Inject ResolveResourceIconUseCase; assign iconId on first-launch provisioning |
+| 2026-04-29 17:53:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `S0034 Ph05` | Inject ResolveResourceIconUseCase; assign default iconId on ADD mode save |
+| 2026-04-29 17:53:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResourceRepository.kt` | `S0034 Ph05` | Add backfillMissingIcons() interface contract |
+| 2026-04-29 17:53:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `S0034 Ph05` | Implement backfillMissingIcons() for pre-S0034 DB rows |
+| 2026-04-29 17:53:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0034 Ph05` | Inject ResolveResourceIconUseCase; call backfillMissingIcons() on app init |
+| 2026-04-29 17:53:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `S0034 Ph07` | Replace both inline iconRes when-blocks with ResourceIconComposer.compose() |
+| 2026-04-29 17:53:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconRegistry.kt` | `S0034 Ph03.3` | New object - 60-entry registry ico-XX-NNN to R.drawable |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconDefaults.kt` | `S0034 Ph03.4` | New object - maps profile/type to set and virtual paths to fixed icon ids |
+| 2026-04-29 17:53:25 | `app_v2/src/main/res/values/dimens.xml` | `S0034 Ph04` | Added resource_icon composite/badge/inset and icon_picker grid dimensions |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | `S0034 Ph04` | New - connection-type badge drawable per resource type |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `S0034 Ph04` | New - LayerDrawable composer theme icon plus optional badge |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResolveResourceIconUseCase.kt` | `S0034 Ph05` | New UseCase - resolves initial icon id for new resources |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0034 Ph05` | Inject ResolveResourceIconUseCase - assign iconId on first-launch provisioning |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `S0034 Ph05` | Inject ResolveResourceIconUseCase - assign iconId on ADD mode save |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResourceRepository.kt` | `S0034 Ph05` | Add backfillMissingIcons() interface |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `S0034 Ph05` | Implement backfillMissingIcons() for pre-S0034 null iconId rows |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0034 Ph05` | Inject ResolveResourceIconUseCase - call backfillMissingIcons on init |
+| 2026-04-29 17:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `S0034 Ph07` | Replace inline iconRes blocks with ResourceIconComposer.compose() |
+| 2026-04-29 17:53:37 | `app_v2/src/main/res/values/dimens.xml` | `S0034 Ph04` | Added resource_icon composite/badge/inset and icon_picker dimensions |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | `S0034 Ph04` | New - connection-type badge per resource type |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `S0034 Ph04` | New - LayerDrawable composer theme icon plus badge |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResolveResourceIconUseCase.kt` | `S0034 Ph05` | New UseCase - resolves initial icon id |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0034 Ph05` | Assign iconId on first-launch provision |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `S0034 Ph05` | Assign iconId on ADD mode save |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResourceRepository.kt` | `S0034 Ph05` | Add backfillMissingIcons interface |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `S0034 Ph05` | Implement backfillMissingIcons |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0034 Ph05` | Call backfillMissingIcons on init |
+| 2026-04-29 17:53:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `S0034 Ph07` | Replace iconRes blocks with ResourceIconComposer.compose() |
+| 2026-04-29 18:14:58 | `app_v2/src/main/res/values/strings.xml` | `strings.xml / values-ru / values-uk` | S0034 Phase 06: added 7 icon picker strings (EN/RU/UK) — cd_pick_resource_icon, icon_picker_title, icon_set_* |
+| 2026-04-29 18:15:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `ResourceEditorFragment` | S0034 Phase 06: wired btnPickIcon — setupIconPicker(), updateIconPickerPreview(), renderFormData() sync, fragment result listener |
+| 2026-04-29 18:15:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | S0034 Phase 06: wired btnPickIcon — userPickedIconId field, setupIconPicker(), fragment result listener, initial preview from OTHER set |
+| 2026-04-29 18:15:09 | `app_v2/src/main/res/layout/fragment_resource_editor.xml` | `fragment_resource_editor.xml / activity_add_resource.xml` | S0034 Phase 06: added android:id=pickIconAction to include tags for correct ViewBinding reference generation |
+| 2026-04-29 18:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconRegistry.kt` | `ResourceIconRegistry` | S0034 Phase 03: icon id->drawable registry for 60 icons across 5 themed sets |
+| 2026-04-29 18:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconSet.kt` | `ResourceIconSet` | S0034 Phase 03: enum for 5 themed icon sets (MUSIC/VIDEO/IMAGE/DOCS/OTHER) |
+| 2026-04-29 18:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconDefaults.kt` | `ResourceIconDefaults` | S0034 Phase 03/05: default icon id resolution by ResourceProfile + ResourceType |
+| 2026-04-29 18:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/picker/IconPickerBottomSheet.kt` | `IconPickerBottomSheet` | S0034 Phase 06: tabbed bottom-sheet icon picker with Fragment Result API |
+| 2026-04-29 18:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/picker/IconPickerAdapter.kt` | `IconPickerAdapter` | S0034 Phase 06: RecyclerView adapter for 60-icon picker grid with selection ring |
+| 2026-04-29 18:43:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `AppDatabase / MIGRATION_25_26` | S0034 Phase 02: DB v25->v26 — added icon_id TEXT column to resources table |
+| 2026-04-29 18:43:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `ResourceIconComposer` | S0034 Phase 04: composes resource icon + connection badge into a single Bitmap |
+| 2026-04-29 18:43:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | `ConnectionBadgeMapper` | S0034 Phase 04: maps ResourceType to corner badge drawable id |
+| 2026-04-29 18:43:09 | `docs/FEATURES.md` | `FEATURES.md / FEATURES_RU.md / FEATURES_UK.md` | S0034 Phase 08: added Themed resource icons bullet in all three language variants |
+| 2026-04-29 18:43:09 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl / app_v2.md` | S0034 Phase 08: catalog regenerated — 827 records including new icon/picker classes |
+| 2026-04-29 18:47:21 | `PLAN/S0031_vr-immersive-hud-ux-gaps.md` | `spec-update` | Refinement (claude-opus-4-7); applied 8 ACCEPTs, 1 DISCUSS proposed |
+| 2026-04-29 18:52:53 | `PLAN/S0033_vr-monoliths-decomposition.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) |
+| 2026-04-29 18:52:53 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_02__cpp-lifecycle.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: verifiability) |
+| 2026-04-29 18:57:13 | `PLAN/S0028_vr-multi-window-playback.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: language, structure, verifiability, consistency, completeness, style) |
+| 2026-04-29 21:12:14 | `PLAN/S0007_vr-hand-tracking/INDEX.md` | `S0007 tactical plan` | spec-tech: created 4-phase tactical plan for VR Hand Tracking & Gesture Control |
+| 2026-04-29 21:12:14 | `PLAN/S0007_vr-hand-tracking/PHASE_01__verify-layer-e.md` | `S0007 Phase 01` | spec-tech: Layer E verification checklist vs spec requirements |
+| 2026-04-29 21:12:14 | `PLAN/S0007_vr-hand-tracking/PHASE_02__hover-visual-feedback.md` | `S0007 Phase 02` | spec-tech: hover cursor highlight design (VrHandRayManager) |
+| 2026-04-29 21:12:14 | `PLAN/S0007_vr-hand-tracking/PHASE_03__hover-click-audio.md` | `S0007 Phase 03` | spec-tech: hover + pinch-complete audio SFX design |
+| 2026-04-29 21:12:14 | `PLAN/S0007_vr-hand-tracking/PHASE_04__docs-catalog-cleanup.md` | `S0007 Phase 04` | spec-tech: docs/catalog/FEATURES cleanup phase |
+| 2026-04-29 21:12:14 | `PLAN/S0007_vr-hand-tracking.md` | `S0007 strategic spec` | spec-tech: Status Approved -> Tactical, Tier 3, tactical plan link added |
+| 2026-04-29 21:12:19 | `PLAN/S0007_vr-hand-tracking/PHASE_01__verify-layer-e.md` | `S0007 Phase 01` | spec-tech: Layer E verification checklist vs spec requirements |
+| 2026-04-29 21:12:19 | `PLAN/S0007_vr-hand-tracking/PHASE_02__hover-visual-feedback.md` | `S0007 Phase 02` | spec-tech: hover cursor highlight design (VrHandRayManager) |
+| 2026-04-29 21:12:19 | `PLAN/S0007_vr-hand-tracking/PHASE_03__hover-click-audio.md` | `S0007 Phase 03` | spec-tech: hover + pinch-complete audio SFX design |
+| 2026-04-29 21:12:19 | `PLAN/S0007_vr-hand-tracking/PHASE_04__docs-catalog-cleanup.md` | `S0007 Phase 04` | spec-tech: docs/catalog/FEATURES cleanup phase |
+| 2026-04-29 21:12:19 | `PLAN/S0007_vr-hand-tracking.md` | `S0007 strategic spec` | spec-tech: Status Approved -> Tactical, Tier 3, tactical plan link added |
+| 2026-04-29 21:12:22 | `PLAN/S0007_vr-hand-tracking/PHASE_02__hover-visual-feedback.md` | `S0007 Phase 02` | spec-tech: hover cursor highlight design (VrHandRayManager) |
+| 2026-04-29 21:12:27 | `PLAN/S0007_vr-hand-tracking/PHASE_03__hover-click-audio.md` | `S0007 Phase 03` | spec-tech: hover + pinch-complete audio SFX design |
+| 2026-04-29 21:12:27 | `PLAN/S0007_vr-hand-tracking/PHASE_04__docs-catalog-cleanup.md` | `S0007 Phase 04` | spec-tech: docs/catalog/FEATURES cleanup phase |
+| 2026-04-29 21:12:27 | `PLAN/S0007_vr-hand-tracking.md` | `S0007 strategic spec` | spec-tech: Status Approved -> Tactical, Tier 3, tactical plan link added |
+| 2026-04-29 21:12:31 | `PLAN/S0007_vr-hand-tracking/PHASE_04__docs-catalog-cleanup.md` | `S0007 Phase 04` | spec-tech: docs/catalog/FEATURES cleanup phase |
+| 2026-04-29 21:12:31 | `PLAN/S0007_vr-hand-tracking.md` | `S0007 strategic spec` | spec-tech: Status Approved -> Tactical, Tier 3, tactical plan link added |
+| 2026-04-29 21:12:35 | `PLAN/S0007_vr-hand-tracking.md` | `S0007 strategic spec` | spec-tech: Status Approved -> Tactical, Tier 3, tactical plan link added |

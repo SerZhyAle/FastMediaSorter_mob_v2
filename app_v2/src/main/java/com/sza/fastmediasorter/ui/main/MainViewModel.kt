@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
@@ -102,6 +103,7 @@ class MainViewModel @Inject constructor(
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
     private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
@@ -136,6 +138,16 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             provisionDefaultResourcesUseCase()
             migrateCameraResourceUseCase()
+            // Backfill icon ids for resources that existed before S0034 (DB v25 → v26 migration)
+            resourceRepository.backfillMissingIcons { path, profileName, typeName ->
+                val profile = runCatching {
+                    com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(profileName)
+                }.getOrElse { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
+                val type = runCatching {
+                    com.sza.fastmediasorter.domain.model.ResourceType.valueOf(typeName)
+                }.getOrElse { com.sza.fastmediasorter.domain.model.ResourceType.LOCAL }
+                resolveResourceIconUseCase(path = path, profile = profile, type = type)
+            }
             observeResourcesFromDatabase()
         }
     }

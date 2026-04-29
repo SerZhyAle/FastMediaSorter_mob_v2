@@ -648,4 +648,15 @@
     <dimen name="mini_now_playing_height">56dp</dimen>
     <dimen name="mini_now_playing_artwork">32dp</dimen>
 
+    <!-- Resource icon composer (S0034) -->
+    <dimen name="resource_icon_composite_size">48dp</dimen>
+    <dimen name="resource_icon_badge_size">18dp</dimen>
+    <dimen name="resource_icon_theme_inset">8dp</dimen>
+
+    <!-- Icon picker grid (S0034) -->
+    <dimen name="icon_picker_item_size">56dp</dimen>
+    <dimen name="icon_picker_item_padding">8dp</dimen>
+    <dimen name="icon_picker_grid_spacing">4dp</dimen>
+    <dimen name="icon_picker_bottom_sheet_peek">300dp</dimen>
+
 </resources>

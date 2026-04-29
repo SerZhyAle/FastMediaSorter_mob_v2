@@ -273,6 +273,26 @@ class ResourceRepositoryImpl @Inject constructor(
         resourceDao.updateIcon(resourceId, iconId)
     }
 
+    override suspend fun backfillMissingIcons(
+        resolveIcon: (path: String, profileName: String, typeName: String) -> String?
+    ): Int {
+        // Read once; process in-memory to avoid N+1 DAO calls
+        val allResources = resourceDao.getAllResourcesSync()
+        var updated = 0
+        allResources
+            .filter { it.iconId == null }
+            .forEach { entity ->
+                // entity.type is ResourceType enum; entity.profile is String
+                val iconId = resolveIcon(entity.path, entity.profile, entity.type.name)
+                if (iconId != null) {
+                    resourceDao.updateIcon(entity.id, iconId)
+                    updated++
+                }
+            }
+        Timber.d("backfillMissingIcons: updated $updated resources")
+        return updated
+    }
+
     override suspend fun testConnection(resource: MediaResource): Result<String> {
         return when (resource.type) {
             ResourceType.LOCAL -> {

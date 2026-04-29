@@ -1,6 +1,6 @@
 # Tactical Spec: vr-stereo-formats
 
-**Status:** Approved
+**Status:** Implemented
 **Strategic spec:** `PLAN/spec_vr-stereo-formats.md`
 **Created:** 2026-04-26
 
@@ -16,8 +16,8 @@ Fix two broken stereo rendering paths in the VR flavor:
 
 | Phase | File | Description |
 |-------|------|-------------|
-| [Phase 1](phase_1_ou_routing.md) | `DefaultVrLayerFactory.kt` | Route `OU` to projection descriptor independently of `VrRenderingMode` |
-| [Phase 2](phase_2_fisheye_shader.md) | `VrStereoRenderer.kt` | Add equidistant fisheye undistortion shader program and dispatch |
+| [Phase 1](phase_1_ou_routing.md) | `DefaultVrLayerFactory.kt` | Route `OU` to projection descriptor independently of `VrRenderingMode` | ✅ Done |
+| [Phase 2](phase_2_fisheye_shader.md) | `VrStereoRenderer.kt` | Add equidistant fisheye undistortion shader program and dispatch | ✅ Done |
 
 ## Open Research Items
 

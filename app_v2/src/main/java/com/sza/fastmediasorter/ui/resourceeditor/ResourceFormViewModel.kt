@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.applyProfile
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
+import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.domain.usecase.ResourceEditorSaveResult
 import com.sza.fastmediasorter.domain.usecase.ResourceEditorUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -89,8 +90,13 @@ sealed interface ResourceEditorUiEvent {
 
 @HiltViewModel
 class ResourceFormViewModel @Inject constructor(
-    private val resourceEditorUseCase: ResourceEditorUseCase
+    private val resourceEditorUseCase: ResourceEditorUseCase,
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase
 ) : ViewModel() {
+
+    // True after the user explicitly picks an icon via the icon picker in this editor session;
+    // prevents automatic profile-change from silently overwriting the user's selection.
+    private var userPickedIconThisSession = false
 
     private enum class LastAction {
         NONE,
@@ -269,7 +275,16 @@ class ResourceFormViewModel @Inject constructor(
     fun onProfileSelected(profile: ResourceProfile) {
         if (profile == ResourceProfile.NONE) return
         _uiState.update { current ->
-            val updated = current.formData.applyProfile(profile)
+            val applied = current.formData.applyProfile(profile)
+            // Auto-assign a new icon for the chosen profile only if the user has NOT already
+            // manually picked one in this session (S0034 Phase 06).
+            val updated = if (!userPickedIconThisSession) {
+                applied.copy(
+                    iconId = resolveResourceIconUseCase.resolveForProfileChange(profile, applied.type)
+                )
+            } else {
+                applied
+            }
             recalculateState(
                 current.copy(
                     formData = updated,
@@ -278,6 +293,17 @@ class ResourceFormViewModel @Inject constructor(
             )
         }
         applyValidation()
+    }
+
+    /**
+     * Called when the user picks an icon in [IconPickerBottomSheet] (S0034 Phase 06).
+     * Updates the in-memory icon id and marks this session as user-overridden.
+     */
+    fun onIconPicked(iconId: String) {
+        userPickedIconThisSession = true
+        _uiState.update { current ->
+            current.copy(formData = current.formData.copy(iconId = iconId))
+        }
     }
 
     fun onCredentialBehaviorSelected(keepCredentials: Boolean) {
@@ -378,6 +404,8 @@ class ResourceFormViewModel @Inject constructor(
             }
 
             saveResult.onSuccess { result ->
+                // Reset the manual-pick flag so a subsequent edit session starts clean
+                userPickedIconThisSession = false
                 _uiState.update {
                     recalculateState(
                         it.copy(

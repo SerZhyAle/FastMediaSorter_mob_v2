@@ -4,7 +4,7 @@
 **Status:** Tactical
 **Date:** 2026-04-29
 **Tier:** 3 — Moderate
-**Roadmap entry:** Discovered by `/spec-all S0024` — Phase 02 ray-hud-intersection требует пред-обработки JNI-слоя и `VrPlayerActivity`, оба превышают жёсткий лимит CLAUDE.md rule 2 (1000 LOC).
+**Roadmap entry:** Discovered by `/spec-all S0024` — Phase 02 ray-hud-intersection требует пред-обработки JNI-слоя и VR-Activity-плеера, оба превышают жёсткий лимит CLAUDE.md rule 2 (1000 LOC).
 **Tactical plan:** `PLAN/S0033_vr-monoliths-decomposition/INDEX.md`
 
 <!-- discovered by /spec-all — 2026-04-29 -->
@@ -55,7 +55,7 @@ Phase 02 явно говорит: «If `OpenXrNative.cpp` exceeds 1000 lines pre
 
 ### 3.1 Пожелания владельца
 
-1. Декомпозиция cpp — по подсистемам OpenXR (как читается рантайм-цикл сверху вниз: instance → session → swapchain → frame → input → submit). Не по слоям абстракции (Manager/Repository/...) — это не Kotlin-код.
+1. Декомпозиция cpp — по подсистемам OpenXR (как читается рантайм-цикл сверху вниз: instance → session → swapchain → frame → input → submit). Не по слоям абстракции (Manager/Repository/..) — это не Kotlin-код.
 2. Декомпозиция Activity — следуя уже сложившемуся шаблону `vr/helpers/Vr*Manager.kt`, без выдумывания новых паттернов.
 3. Использовать существующий механизм `// MARK: ===` (видно в коде) для маркеров — после декомпозиции каждая часть «вырастает» в отдельный файл, имена логично следуют существующим заголовкам.
 4. Читаемость дороже компактности: предпочесть 7 файлов по 400 LOC одному файлу 2000+.
@@ -111,17 +111,17 @@ Phase 02 явно говорит: «If `OpenXrNative.cpp` exceeds 1000 lines pre
 6. *Hand-tracking* — joints, aim-pose, pinch и микрожесты.
 7. *HUD layer & Bitmap upload* — head-locked quad, swapchain текстура, Bitmap → GL Texture.
 
-Главный `OpenXrNative.cpp` остаётся как тонкий координатор + JNI-фасад, ≤ 1000 LOC. Подсистемы — отдельные `.cpp/.h` пары в той же папке. CMake-список обновляется явно (целевой граф простой; см. `app_v2/src/vr/cpp/CMakeLists.txt`).
+Главный `OpenXrNative.cpp` остаётся как тонкий координатор + JNI-фасад. Подсистемы — отдельные `.cpp/.h` пары в той же папке. CMake-список обновляется явно (один target; детали — в §6.1).
 
-**Трек B — Activity-декомпозиция `VrPlayerActivity.kt`.**
+**Трек B — Activity-декомпозиция VR-Activity-плеера.**
 
-Существующие Manager-классы в `vr/helpers/` и `vr/ui/` — целевые получатели. Кандидаты на новые helper-классы (имена черновые — финализирует `/spec-tech`):
+Существующие helper-классы в `vr/helpers/` и `vr/ui/` — целевые получатели. Phase 05 вводит три новых Manager-класса для:
 
-- `VrSessionLifecycleManager` — XR-сессия, события OpenXR, callbacks `onSessionStateChange`, suspend/resume.
-- `VrPoseDispatchManager` — приём pose-событий из JNI, диспетчеризация подписчикам (controller ray, hand ray, в будущем — HUD ray из S0024).
-- `VrPlayerCommandRouter` — маршрутизация трекинговых триггеров на команды плеера (часть логики уже в `VrControllerInputManager`, но финальный диспатч сейчас в Activity).
+- Управления жизненным циклом XR-сессии, событий OpenXR, suspend/resume.
+- Управления render-пайплайном: инициализация, диспетчеризация кадров, синхронизация поверхности плеера.
+- Маршрутизации команд контроллеров и hand-tracking к командам плеера.
 
-Activity после рефакторинга содержит только композицию: создание Manager-ов, проводку колбэков, делегирование Android-лайфсайклов. Логики ≤ 1000 LOC, в идеале ≤ 600.
+Activity после рефакторинга содержит только композицию: создание Manager-ов, проводку колбэков, делегирование Android-лайфсайклов. Критерий — см. §11.
 
 ### 5.2 Потоки данных и событий
 
@@ -129,7 +129,7 @@ Activity после рефакторинга содержит только ко�
 
 ### 5.3 Точки расширяемости
 
-После трека A добавить новый JNI callback (как требует S0024 Phase 02 Step 02.2 — `nativeOnHudPointerMove`) — это правка одного маленького `.cpp/.h` файла «HUD layer & Bitmap upload» + одного блока в кодинатор. Без рефакторинга такая правка тонет в 3500 LOC.
+После трека A добавить новый JNI callback (как требует S0024 Phase 02 Step 02.2) — это правка одного небольшого `.cpp/.h` файла подсистемы «HUD layer & Bitmap upload» + одной точки в координаторе. Без рефакторинга такая правка тонет в 3500 LOC.
 
 После трека B добавить поле и колбэк (как требует S0024 Phase 02 Step 02.3) — это правка одного нового или существующего `*Manager.kt`, не Activity.
 
@@ -201,14 +201,22 @@ Activity после рефакторинга содержит только ко�
 2. `VrPlayerActivity.kt` ≤ 1000 LOC; новые helper-ы уложены в существующие подкаталоги `vr/helpers/` или `vr/ui/`.
 3. `assembleVrDebug` и `assembleStandardDebug` собираются без ошибок и новых lint-warnings в затронутых файлах.
 4. Smoke-тест на Quest 3: VR-плеер запускается, видео воспроизводится, контроллеры реагируют, hand-tracking работает (если включён в настройках), HUD рисуется. Регрессов нет.
-5. После закрытия — `S0024` переключается обратно в `In Progress` через `update.ps1 -Status "In Progress"`, и `/spec-dev S0024` продолжает с Phase 02 Step 02.1.
+5. После закрытия — `S0024` переходит в статус `In Progress` и продолжает с Phase 02.
 
 ---
 
 ## 12. Ссылка на тактическую спецификацию
 
-Тактическая декомпозиция не создана автоматически (объём cpp-рефакторинга требует отдельного прохода с чтением всего файла). Следующий шаг — запустить `/spec-tech S0033`, который:
+Тактическая декомпозиция создана `/spec-tech S0033` (2026-04-29). Подробный план — [`PLAN/S0033_vr-monoliths-decomposition/INDEX.md`](PLAN/S0033_vr-monoliths-decomposition/INDEX.md).
 
-1. Прочитает `OpenXrNative.cpp` целиком, выделит границы подсистем (по существующим `// MARK:` или `===`), пропишет порядок миграции функций.
-2. Прочитает `VrPlayerActivity.kt` целиком, найдёт логически связные блоки и подберёт подходящий Manager-класс.
-3. Сформирует фазы (черновой план: Phase 01 cpp logging+lifecycle → Phase 02 cpp swapchain+frame → Phase 03 cpp input+hand → Phase 04 cpp HUD → Phase 05 Activity helpers → Phase 06 docs/catalog cleanup; уточнит `/spec-tech`).
+Шесть фаз: cpp logging+ctx-header → cpp lifecycle → cpp swapchain+frame → cpp input+hand → Activity helpers → docs/catalog cleanup.
+
+Следующий шаг: `/spec-dev S0033`.
+
+---
+
+## Revision History
+
+- **2026-04-29** — by `/spec-update` (`claude-sonnet-4-6`, focus: all)
+  - Applied: 8. Proposed (DISCUSS): 0.
+  - `...` → `..` в §3.1; `VrPlayerActivity` → архитектурный термин в заголовке; убран путь CMakeLists и лимит LOC из §5.1 Track A; убраны черновые имена классов и лимит LOC из §5.1 Track B; убрано имя функции `nativeOnHudPointerMove` и исправлена опечатка «кодинатор» в §5.3; убрана CLI-команда из §11 item 5; §12 обновлён (тактика создана).

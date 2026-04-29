@@ -7,7 +7,12 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.addresource.AddResourceActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:fitsSystemWindows="true" app:layout_constraintTop_toTopOf="parent" app:navigationIcon="@drawable/ic_arrow_back" app:navigationIconTint="?attr/colorOnPrimary" app:title="Add Resource" app:titleTextColor="?attr/colorOnPrimary" />
+    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:fitsSystemWindows="true" app:layout_constraintTop_toTopOf="parent" app:navigationIcon="@drawable/ic_arrow_back" app:navigationIconTint="?attr/colorOnPrimary" app:title="Add Resource" app:titleTextColor="?attr/colorOnPrimary">
+
+        <!-- S0034: icon picker trigger at toolbar right edge -->
+        <include android:id="@+id/pickIconAction" layout="@layout/toolbar_icon_action" android:layout_gravity="end" />
+
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <TextView android:id="@+id/tvTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="@dimen/add_resource_title_margin" android:layout_marginStart="@dimen/resource_title_margin_start" android:paddingTop="@dimen/resource_padding_zero" android:paddingBottom="@dimen/resource_padding_zero" android:text="@string/select_resource_type" android:textSize="@dimen/add_resource_title_text_size" android:textStyle="@string/text_style_bold" android:visibility="visible" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/toolbar" />
 

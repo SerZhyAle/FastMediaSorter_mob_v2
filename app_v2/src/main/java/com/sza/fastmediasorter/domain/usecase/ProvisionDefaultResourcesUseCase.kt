@@ -24,7 +24,8 @@ import javax.inject.Inject
 class ProvisionDefaultResourcesUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase
 ) {
     /**
      * Returns true if provisioning was performed; false if skipped (not first launch).
@@ -159,7 +160,9 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             profile = profile,
             displayMode = displayMode,
             allFiles = false,
-            displayOrder = displayOrder
+            displayOrder = displayOrder,
+            // Assign a fixed icon for predefined virtual resources on first provisioning
+            iconId = resolveResourceIconUseCase(path = path, profile = profile, type = ResourceType.LOCAL)
         )
         resourceRepository.addResource(resource)
     }

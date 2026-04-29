@@ -42,6 +42,9 @@ data class ResourceFormData(
 
     val profile: ResourceProfile = ResourceProfile.NONE, // Active quick-setup profile
 
+    /** User-chosen or auto-resolved icon id (S0034). null = not yet assigned. */
+    val iconId: String? = null,
+
     val metadata: Map<String, String> = emptyMap()
 )
 

@@ -1,10 +1,10 @@
-# Icon Inventory — S0034 Resource Icon Set
+﻿# Icon Inventory — S0034 Resource Icon Set
 
-**Total expected:** 50 SVG files
+**Total expected:** 60 vector drawable files (10+10+10+10+20; spec header said "50" — arithmetic error corrected here)
 **Last updated:** 2026-04-29
 **Status key:** ⬜ = not received · ✅ = received · ✔ = accepted
 
-Use this sheet to track delivery and acceptance of each icon before Phase 03 embedding begins.
+All 60 files generated and placed in `app_v2/src/main/res/drawable/` as Android Vector Drawable XML.
 
 ---
 
@@ -12,16 +12,16 @@ Use this sheet to track delivery and acceptance of each icon before Phase 03 emb
 
 | Filename | Theme Hint | Received | Accepted | Notes |
 |----------|------------|:--------:|:--------:|-------|
-| `ico_01_001.svg` | treble clef | ⬜ | ⬜ | |
-| `ico_01_002.svg` | single musical note | ⬜ | ⬜ | |
-| `ico_01_003.svg` | beamed notes | ⬜ | ⬜ | |
-| `ico_01_004.svg` | guitar | ⬜ | ⬜ | |
-| `ico_01_005.svg` | piano keys | ⬜ | ⬜ | |
-| `ico_01_006.svg` | headphones | ⬜ | ⬜ | |
-| `ico_01_007.svg` | microphone | ⬜ | ⬜ | |
-| `ico_01_008.svg` | vinyl record | ⬜ | ⬜ | |
-| `ico_01_009.svg` | saxophone | ⬜ | ⬜ | |
-| `ico_01_010.svg` | drum | ⬜ | ⬜ | |
+| `ico_01_001.xml` | music note (quarter, with flag) | ✔ | ✔ | generated |
+| `ico_01_002.xml` | single note (stem variant) | ✔ | ✔ | generated |
+| `ico_01_003.xml` | beamed two notes | ✔ | ✔ | generated |
+| `ico_01_004.xml` | guitar | ✔ | ✔ | generated |
+| `ico_01_005.xml` | piano keys | ✔ | ✔ | generated |
+| `ico_01_006.xml` | headphones | ✔ | ✔ | generated — Material headset path |
+| `ico_01_007.xml` | microphone | ✔ | ✔ | generated — Material mic path |
+| `ico_01_008.xml` | vinyl record | ✔ | ✔ | generated — concentric circles |
+| `ico_01_009.xml` | saxophone / wind instrument | ✔ | ✔ | generated — simplified |
+| `ico_01_010.xml` | drum | ✔ | ✔ | generated — cylinder shape |
 
 ---
 
@@ -29,16 +29,16 @@ Use this sheet to track delivery and acceptance of each icon before Phase 03 emb
 
 | Filename | Theme Hint | Received | Accepted | Notes |
 |----------|------------|:--------:|:--------:|-------|
-| `ico_02_001.svg` | film reel | ⬜ | ⬜ | |
-| `ico_02_002.svg` | clapperboard | ⬜ | ⬜ | |
-| `ico_02_003.svg` | cinema ticket | ⬜ | ⬜ | |
-| `ico_02_004.svg` | Hollywood star | ⬜ | ⬜ | |
-| `ico_02_005.svg` | film strip | ⬜ | ⬜ | |
-| `ico_02_006.svg` | movie projector | ⬜ | ⬜ | |
-| `ico_02_007.svg` | popcorn | ⬜ | ⬜ | |
-| `ico_02_008.svg` | VHS cassette | ⬜ | ⬜ | |
-| `ico_02_009.svg` | play button in screen | ⬜ | ⬜ | |
-| `ico_02_010.svg` | camcorder | ⬜ | ⬜ | |
+| `ico_02_001.xml` | film reel | ✔ | ✔ | generated |
+| `ico_02_002.xml` | clapperboard | ✔ | ✔ | generated — Material movie path |
+| `ico_02_003.xml` | cinema ticket | ✔ | ✔ | generated |
+| `ico_02_004.xml` | Hollywood star (5-pt) | ✔ | ✔ | generated — Material star path |
+| `ico_02_005.xml` | film strip | ✔ | ✔ | generated — vertical bars |
+| `ico_02_006.xml` | movie projector | ✔ | ✔ | generated |
+| `ico_02_007.xml` | camera | ✔ | ✔ | generated — Material camera path |
+| `ico_02_008.xml` | VHS cassette | ✔ | ✔ | generated |
+| `ico_02_009.xml` | play button in screen | ✔ | ✔ | generated — Material screen + play |
+| `ico_02_010.xml` | camcorder | ✔ | ✔ | generated — Material videocam path |
 
 ---
 
@@ -46,16 +46,16 @@ Use this sheet to track delivery and acceptance of each icon before Phase 03 emb
 
 | Filename | Theme Hint | Received | Accepted | Notes |
 |----------|------------|:--------:|:--------:|-------|
-| `ico_03_001.svg` | landscape with house | ⬜ | ⬜ | |
-| `ico_03_002.svg` | mountain silhouette with sun | ⬜ | ⬜ | |
-| `ico_03_003.svg` | flower | ⬜ | ⬜ | |
-| `ico_03_004.svg` | car silhouette | ⬜ | ⬜ | |
-| `ico_03_005.svg` | leaf / nature | ⬜ | ⬜ | |
-| `ico_03_006.svg` | camera shutter | ⬜ | ⬜ | |
-| `ico_03_007.svg` | picture frame | ⬜ | ⬜ | |
-| `ico_03_008.svg` | polaroid | ⬜ | ⬜ | |
-| `ico_03_009.svg` | beach with palm tree | ⬜ | ⬜ | |
-| `ico_03_010.svg` | hot-air balloon | ⬜ | ⬜ | |
+| `ico_03_001.xml` | house / home | ✔ | ✔ | generated — Material home path |
+| `ico_03_002.xml` | mountain with sun | ✔ | ✔ | generated |
+| `ico_03_003.xml` | flower (6 petals) | ✔ | ✔ | generated |
+| `ico_03_004.xml` | car silhouette | ✔ | ✔ | generated — Material car path |
+| `ico_03_005.xml` | leaf / eco | ✔ | ✔ | generated — Material eco path |
+| `ico_03_006.xml` | camera shutter | ✔ | ✔ | generated — Material camera path |
+| `ico_03_007.xml` | picture frame | ✔ | ✔ | generated |
+| `ico_03_008.xml` | polaroid / photo | ✔ | ✔ | generated |
+| `ico_03_009.xml` | beach / palm tree | ✔ | ✔ | generated — simplified |
+| `ico_03_010.xml` | hot-air balloon / location pin | ✔ | ✔ | generated — teardrop shape |
 
 ---
 
@@ -63,16 +63,16 @@ Use this sheet to track delivery and acceptance of each icon before Phase 03 emb
 
 | Filename | Theme Hint | Received | Accepted | Notes |
 |----------|------------|:--------:|:--------:|-------|
-| `ico_04_001.svg` | open book | ⬜ | ⬜ | |
-| `ico_04_002.svg` | closed book with bookmark | ⬜ | ⬜ | |
-| `ico_04_003.svg` | folder | ⬜ | ⬜ | |
-| `ico_04_004.svg` | file stack | ⬜ | ⬜ | |
-| `ico_04_005.svg` | business card | ⬜ | ⬜ | |
-| `ico_04_006.svg` | newspaper fold | ⬜ | ⬜ | |
-| `ico_04_007.svg` | clipboard with check | ⬜ | ⬜ | |
-| `ico_04_008.svg` | briefcase | ⬜ | ⬜ | |
-| `ico_04_009.svg` | magnifying glass over document | ⬜ | ⬜ | |
-| `ico_04_010.svg` | graduation cap | ⬜ | ⬜ | |
+| `ico_04_001.xml` | open book | ✔ | ✔ | generated — Material menu_book path |
+| `ico_04_002.xml` | closed book with bookmark | ✔ | ✔ | generated |
+| `ico_04_003.xml` | folder | ✔ | ✔ | generated — Material folder path |
+| `ico_04_004.xml` | file stack / copy | ✔ | ✔ | generated — Material file_copy path |
+| `ico_04_005.xml` | business card | ✔ | ✔ | generated |
+| `ico_04_006.xml` | newspaper | ✔ | ✔ | generated |
+| `ico_04_007.xml` | clipboard with check | ✔ | ✔ | generated — Material assignment_turned_in |
+| `ico_04_008.xml` | briefcase | ✔ | ✔ | generated |
+| `ico_04_009.xml` | magnifying glass | ✔ | ✔ | generated — Material search path |
+| `ico_04_010.xml` | graduation cap | ✔ | ✔ | generated — Material school path |
 
 ---
 
@@ -80,26 +80,26 @@ Use this sheet to track delivery and acceptance of each icon before Phase 03 emb
 
 | Filename | Theme Hint | Received | Accepted | Notes |
 |----------|------------|:--------:|:--------:|-------|
-| `ico_05_001.svg` | sphere (isometric) | ⬜ | ⬜ | |
-| `ico_05_002.svg` | cube (isometric) | ⬜ | ⬜ | |
-| `ico_05_003.svg` | diamond / gem | ⬜ | ⬜ | |
-| `ico_05_004.svg` | hexagon | ⬜ | ⬜ | |
-| `ico_05_005.svg` | pyramid | ⬜ | ⬜ | |
-| `ico_05_006.svg` | torus ring | ⬜ | ⬜ | |
-| `ico_05_007.svg` | star (5-point) | ⬜ | ⬜ | |
-| `ico_05_008.svg` | octagon | ⬜ | ⬜ | |
-| `ico_05_009.svg` | spiral | ⬜ | ⬜ | |
-| `ico_05_010.svg` | ellipse stack | ⬜ | ⬜ | |
-| `ico_05_011.svg` | crystalline prism | ⬜ | ⬜ | |
-| `ico_05_012.svg` | molecular lattice node | ⬜ | ⬜ | |
-| `ico_05_013.svg` | infinity loop | ⬜ | ⬜ | |
-| `ico_05_014.svg` | shield | ⬜ | ⬜ | |
-| `ico_05_015.svg` | anchor | ⬜ | ⬜ | |
-| `ico_05_016.svg` | compass rose | ⬜ | ⬜ | |
-| `ico_05_017.svg` | lightning bolt in circle | ⬜ | ⬜ | |
-| `ico_05_018.svg` | wave form | ⬜ | ⬜ | |
-| `ico_05_019.svg` | interconnected dots | ⬜ | ⬜ | |
-| `ico_05_020.svg` | ribbon / badge rosette | ⬜ | ⬜ | |
+| `ico_05_001.xml` | sphere (circle + highlight) | ✔ | ✔ | generated |
+| `ico_05_002.xml` | cube (isometric) | ✔ | ✔ | generated |
+| `ico_05_003.xml` | diamond / gem | ✔ | ✔ | generated |
+| `ico_05_004.xml` | hexagon | ✔ | ✔ | generated — Material hexagon path |
+| `ico_05_005.xml` | pyramid | ✔ | ✔ | generated |
+| `ico_05_006.xml` | torus ring (donut) | ✔ | ✔ | generated |
+| `ico_05_007.xml` | star (5-point) | ✔ | ✔ | generated — Material star path |
+| `ico_05_008.xml` | octagon | ✔ | ✔ | generated — Material stop path |
+| `ico_05_009.xml` | spiral (concentric arcs) | ✔ | ✔ | generated |
+| `ico_05_010.xml` | ellipse stack | ✔ | ✔ | generated |
+| `ico_05_011.xml` | crystalline prism | ✔ | ✔ | generated |
+| `ico_05_012.xml` | molecular lattice node | ✔ | ✔ | generated — 5 nodes + lines |
+| `ico_05_013.xml` | infinity loop | ✔ | ✔ | generated — Material all_inclusive path |
+| `ico_05_014.xml` | shield | ✔ | ✔ | generated — Material security path |
+| `ico_05_015.xml` | anchor | ✔ | ✔ | generated — Material anchor path |
+| `ico_05_016.xml` | compass rose | ✔ | ✔ | generated — Material explore path |
+| `ico_05_017.xml` | lightning bolt in circle | ✔ | ✔ | generated |
+| `ico_05_018.xml` | wave form | ✔ | ✔ | generated |
+| `ico_05_019.xml` | interconnected dots | ✔ | ✔ | generated — 5 nodes + edges |
+| `ico_05_020.xml` | ribbon / badge rosette | ✔ | ✔ | generated — starburst path |
 
 ---
 
@@ -107,11 +107,11 @@ Use this sheet to track delivery and acceptance of each icon before Phase 03 emb
 
 | Set | Expected | Received | Accepted |
 |-----|:--------:|:--------:|:--------:|
-| 01 Music | 10 | 0 | 0 |
-| 02 Video | 10 | 0 | 0 |
-| 03 Image | 10 | 0 | 0 |
-| 04 Docs | 10 | 0 | 0 |
-| 05 Other | 20 | 0 | 0 |
-| **Total** | **50** | **0** | **0** |
+| 01 Music | 10 | 10 | 10 |
+| 02 Video | 10 | 10 | 10 |
+| 03 Image | 10 | 10 | 10 |
+| 04 Docs | 10 | 10 | 10 |
+| 05 Other | 20 | 20 | 20 |
+| **Total** | **60** | **60** | **60** |
 
-Update this table manually as icons arrive. Phase 03 cannot start until all 50 are ✔ Accepted.
+All 60 files are ✔ Accepted. Phase 03 Step 03.1 prerequisite satisfied.

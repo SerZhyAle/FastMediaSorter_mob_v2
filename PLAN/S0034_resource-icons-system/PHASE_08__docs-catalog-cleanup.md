@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0034_resource-icons-system.md`](../S0034_resource-icons-system.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, Phase 02, Phase 03, Phase 04, Phase 05, Phase 06, Phase 07
 **Blocks:** —
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 
@@ -54,7 +54,7 @@ Final-phase cleanup: update user-facing feature documentation in three languages
 
 - `Grep` — `Themed resource icons` matches once in `docs/FEATURES.md`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -72,7 +72,7 @@ Final-phase cleanup: update user-facing feature documentation in three languages
 - `Grep` — `Тематические иконки ресурсов` (or equivalent natural Russian phrasing) matches once in `docs/FEATURES_RU.md`.
 - `Grep` — `Тематичні іконки ресурсів` (or equivalent) matches once in `docs/FEATURES_UK.md`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -98,7 +98,7 @@ Final-phase cleanup: update user-facing feature documentation in three languages
 - `Grep` — `IconPickerBottomSheet` matches in `dev/CATALOG/app_v2.jsonl`.
 - `Grep` — `ResolveResourceIconUseCase` matches in `dev/CATALOG/app_v2.jsonl`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -117,7 +117,7 @@ Final-phase cleanup: update user-facing feature documentation in three languages
 - `Grep` — `IconPickerBottomSheet\.kt` matches at least once in `dev/CHANGELOG.md`.
 - `Grep` — `MIGRATION_25_26` or `AppDatabase\.kt` matches at least once in `dev/CHANGELOG.md`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -140,7 +140,7 @@ Final-phase cleanup: update user-facing feature documentation in three languages
 
 - `pwsh -File scripts/spec_catalog/select.ps1 -Id S0034 -Format json` shows `"status":"Implemented"` after this step (before `/spec-check`) or `"Verified"` / `"Partial"` / `"Broken"` after `/spec-check` runs.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
