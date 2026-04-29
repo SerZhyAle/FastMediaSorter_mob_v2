@@ -1,6 +1,6 @@
 {"id":"S0001","name":"spec-catalog","status":"Archived","priority":0,"tier":4,"file":"PLAN/S0001_spec-catalog.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
 {"id":"S0002","name":"decompose-giant-files","status":"Approved","priority":50,"file":"PLAN/S0002_decompose-giant-files.md","created":"2026-04-27","updated":"2026-04-27 23:57"}
-{"id":"S0003","name":"link-receive-download","status":"BlockNeedUserTest","priority":50,"tier":3,"file":"PLAN/S0003_link-receive-download.md","created":"2026-04-27","updated":"2026-04-29 01:23"}
+{"id":"S0003","name":"link-receive-download","status":"Implemented","priority":50,"tier":3,"file":"PLAN/S0003_link-receive-download.md","created":"2026-04-27","updated":"2026-04-30 00:28"}
 {"id":"S0004","name":"resource-icon-quick-slideshow","status":"Implemented","priority":50,"file":"PLAN/S0004_resource-icon-quick-slideshow.md","created":"2026-04-27","updated":"2026-04-29 23:36"}
 {"id":"S0005","name":"vr-auto-immersive-setting","status":"Archived","priority":0,"tier":2,"file":"PLAN/S0005_vr-auto-immersive-setting.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
 {"id":"S0006","name":"vr-fps-counter","status":"BlockNeedUserTest","priority":40,"tier":2,"file":"PLAN/S0006_vr-fps-counter.md","created":"2026-04-27","updated":"2026-04-28 23:06"}

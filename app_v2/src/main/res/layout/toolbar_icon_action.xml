@@ -2,13 +2,4 @@
 <!-- Reusable pick-icon action button. Include at the right edge of a toolbar or action bar.
      Access the view as binding.btnPickIcon (no include-id needed). -->
 <ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/btnPickIcon"
-    android:layout_width="40dp"
-    android:layout_height="40dp"
-    android:background="?attr/selectableItemBackgroundBorderless"
-    android:contentDescription="@string/cd_pick_resource_icon"
-    android:padding="8dp"
-    android:scaleType="fitCenter"
-    android:src="@drawable/ic_folder"
-    android:tint="?attr/colorOnPrimary"
-    android:visibility="gone" />
+     xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/btnPickIcon" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_pick_resource_icon" android:padding="8dp" android:scaleType="fitCenter" android:src="@drawable/ic_folder" app:tint="?attr/colorOnPrimary" android:visibility="gone" />

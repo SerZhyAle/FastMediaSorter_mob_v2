@@ -4873,3 +4873,5 @@ Format: | datetime | file | target | description |
 | 2026-04-30 00:00:40 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `VrHudSceneDriver` | S0031 fix: added missing import timber.log.Timber (build error) |
 | 2026-04-30 00:04:38 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | S0027: fix fisheye vLens V-axis inversion — 0.5+r*sin(az) to 0.5-r*sin(az) |
 | 2026-04-30 00:04:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | S0027 ADR-3: add VideoLayerGeometry log line in applyLayerDescriptor |
+| 2026-04-30 01:38:17 | `app_v2/src/main/res/layout/activity_add_resource.xml` | `activity_add_resource.xml` | Fix lint IncludeLayoutParam by adding explicit include width/height for toolbar action. |
+| 2026-04-30 01:38:29 | `app_v2/src/main/res/layout/toolbar_icon_action.xml` | `toolbar_icon_action.xml` | Fix lint UseAppTint by switching ImageButton tint from android:tint to app:tint. |

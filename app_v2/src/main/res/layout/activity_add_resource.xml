@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context=".ui.addresource.AddResourceActivity">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fitsSystemWindows="true" tools:context=".ui.addresource.AddResourceActivity">
 
     <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:fitsSystemWindows="true" app:layout_constraintTop_toTopOf="parent" app:navigationIcon="@drawable/ic_arrow_back" app:navigationIconTint="?attr/colorOnPrimary" app:title="Add Resource" app:titleTextColor="?attr/colorOnPrimary">
 
         <!-- S0034: icon picker trigger at toolbar right edge -->
-        <include android:id="@+id/pickIconAction" layout="@layout/toolbar_icon_action" android:layout_gravity="end" />
+        <include android:id="@+id/pickIconAction" layout="@layout/toolbar_icon_action" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" />
 
     </com.google.android.material.appbar.MaterialToolbar>
 
@@ -98,45 +94,45 @@
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/padding_large" android:paddingEnd="@dimen/padding_large" android:paddingTop="@dimen/padding_small" android:paddingBottom="@dimen/padding_large">
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.MaterialComponents.Button.Icon" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
 
-        </LinearLayout>
-
-        <TextView android:id="@+id/tvResourcesToAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resources_to_add" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_padding_zero" android:visibility="gone" />
-
-        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvResourcesToAdd" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_padding_zero" app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" android:visibility="gone" tools:listitem="@layout/item_resource_to_add" />
-
-        <!-- Scan Subdirectories and Destination checkboxes -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_padding_zero" android:visibility="gone" android:id="@+id/layoutLocalOptions">
-
-            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/add_to_destinations" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+            <TextView android:id="@+id/tvResourcesToAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resources_to_add" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_padding_zero" android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvResourcesToAdd" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_padding_zero" app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" android:visibility="gone" tools:listitem="@layout/item_resource_to_add" />
+
+            <!-- Scan Subdirectories and Destination checkboxes -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_padding_zero" android:visibility="gone" android:id="@+id/layoutLocalOptions">
+
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/add_to_destinations" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
+
             </LinearLayout>
 
-        </LinearLayout>
+            <!-- Read-Only Mode checkbox -->
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
+                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
-        <!-- Read-Only Mode checkbox -->
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
-            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
+            <!-- PIN Code (Optional) -->
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilLocalPinCode" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:helperText="@string/resource_pin_code_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
 
-        <!-- PIN Code (Optional) -->
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilLocalPinCode" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:helperText="@string/resource_pin_code_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etLocalPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
 
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etLocalPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:maxLength="6" android:maxLines="1" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>
 
