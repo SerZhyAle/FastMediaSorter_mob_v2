@@ -179,6 +179,11 @@ class SettingsRepositoryImpl @Inject constructor(
         // Video frame snapshot file format ("PNG" or "JPG")
         private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
 
+        // Link auto-download (S0003): master toggle, optional destination resource id, auto-open toggle
+        private val KEY_LINK_AUTO_DOWNLOAD_ENABLED = booleanPreferencesKey("link_auto_download_enabled")
+        private val KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID = longPreferencesKey("link_auto_download_resource_id")
+        private val KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER = booleanPreferencesKey("link_auto_download_open_in_player")
+
         // Resume on next launch
         private val KEY_RESUME_ON_NEXT_LAUNCH = booleanPreferencesKey("resume_on_next_launch")
 
@@ -189,8 +194,13 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_VR_FORCED_SPHERICAL_FORMAT = stringPreferencesKey("vr_forced_spherical_format")
         private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
         private val KEY_VR_REMEMBER_FILE_FORMAT = booleanPreferencesKey("vr_remember_file_format")
+        private val KEY_VR_AUTO_IMMERSIVE = booleanPreferencesKey("vr_auto_immersive")
         // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
         private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
+        // Panel-mode single-eye crop (spec_panel-stereo-single-eye)
+        private val KEY_PANEL_STEREO_SINGLE_EYE = booleanPreferencesKey("panel_stereo_single_eye")
+        private val KEY_VR_SHOW_FPS = booleanPreferencesKey("vr_show_fps")
+        private val KEY_PLAYER_SHOW_FPS = booleanPreferencesKey("player_show_fps")
 
         // Adaptive pre-cache strategy (spec §5)
         private val KEY_PREFETCH_CACHE_MULTIPLIER = stringPreferencesKey("prefetch_cache_multiplier")
@@ -402,6 +412,11 @@ class SettingsRepositoryImpl @Inject constructor(
                             ?.takeIf { it == "PNG" || it == "JPG" }
                             ?: "JPG",
 
+                    // Link auto-download (S0003)
+                    linkAutoDownloadEnabled = preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] ?: true,
+                    linkAutoDownloadResourceId = preferences[KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID],
+                    linkAutoDownloadOpenInPlayer = preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] ?: true,
+
                     // VR settings (spec §5.7 / Phase 8)
                     vrAutoDetectFormat = preferences[KEY_VR_AUTO_DETECT_FORMAT] ?: true,
                     vrForcedPlatFormat = readVrForcedPlatFormat(preferences),
@@ -410,7 +425,11 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?.takeIf { it in listOf("CINEMA", "FULL_SBS", "FULL_OU") }
                         ?: "CINEMA",
                     vrRememberFileFormat = preferences[KEY_VR_REMEMBER_FILE_FORMAT] ?: true,
+                    vrAutoImmersive = preferences[KEY_VR_AUTO_IMMERSIVE] ?: true,
                     disable3dVr = preferences[KEY_VR_DISABLE_3D] ?: false,
+                    panelStereoSingleEye = preferences[KEY_PANEL_STEREO_SINGLE_EYE] ?: !BuildConfig.SUPPORT_VR_PLAYER,
+                    vrShowFps = preferences[KEY_VR_SHOW_FPS] ?: false,
+                    playerShowFps = preferences[KEY_PLAYER_SHOW_FPS] ?: false,
 
                     // Default true: resumes playback on fresh installs and on update from old versions
                     // (absent key → null → default true, matching the user's existing behaviour)
@@ -432,30 +451,17 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateSettings(settings: AppSettings) {
         Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
 
-        // DEBUG: compare incoming settings with current stored values to detect no-op writes
-        if (BuildConfig.DEBUG) {
-            try {
-                val current = getSettings().first()
-                val diffs = buildList {
-                    if (current.allFiles != settings.allFiles) add("allFiles: ${current.allFiles} → ${settings.allFiles}")
-                    if (current.isPrimaryMediaPlayer != settings.isPrimaryMediaPlayer) add("isPrimaryMediaPlayer: ${current.isPrimaryMediaPlayer} → ${settings.isPrimaryMediaPlayer}")
-                    if (current.language != settings.language) add("language: ${current.language} → ${settings.language}")
-                    if (current.preventSleep != settings.preventSleep) add("preventSleep: ${current.preventSleep} → ${settings.preventSleep}")
-                    if (current.enableBackgroundSync != settings.enableBackgroundSync) add("enableBackgroundSync: ${current.enableBackgroundSync} → ${settings.enableBackgroundSync}")
-                    if (current.cacheSizeMb != settings.cacheSizeMb) add("cacheSizeMb: ${current.cacheSizeMb} → ${settings.cacheSizeMb}")
-                    if (current.defaultSortMode != settings.defaultSortMode) add("defaultSortMode: ${current.defaultSortMode} → ${settings.defaultSortMode}")
-                    if (current.networkParallelism != settings.networkParallelism) add("networkParallelism: ${current.networkParallelism} → ${settings.networkParallelism}")
-                    if (current.slideshowMusicResourceId != settings.slideshowMusicResourceId) add("slideshowMusicResourceId: ${current.slideshowMusicResourceId} → ${settings.slideshowMusicResourceId}")
-                    if (current.acceptSharedFiles != settings.acceptSharedFiles) add("acceptSharedFiles: ${current.acceptSharedFiles} → ${settings.acceptSharedFiles}")
-                }
-                if (diffs.isEmpty()) {
-                    Timber.w("SettingsRepo: updateSettings called but NO fields changed — possible no-op write")
-                } else {
-                    Timber.d("SettingsRepo: updateSettings diff (${diffs.size} fields): ${diffs.joinToString(", ")}")
-                }
-            } catch (e: Exception) {
-                Timber.w(e, "SettingsRepo: failed to compute diff for updateSettings")
-            }
+        // S0018 idempotency guard: if the incoming AppSettings equals the currently stored
+        // value (data-class equality across all fields), skip the DataStore write entirely.
+        // This eliminates the spam of "NO fields changed" warnings produced when settings
+        // fragments fire setOnCheckedChangeListener callbacks during initial UI inflation.
+        val current = runCatching { getSettings().first() }.getOrNull()
+        if (current != null && current == settings) {
+            Timber.v("SettingsRepo: updateSettings idempotent — skipping DataStore write")
+            return
+        }
+        if (BuildConfig.DEBUG && current != null) {
+            Timber.d("SettingsRepo: updateSettings diff detected — proceeding with DataStore write")
         }
 
         // NOTE: Language is NOT synced to SharedPreferences here.
@@ -625,6 +631,15 @@ class SettingsRepositoryImpl @Inject constructor(
             // Video frame snapshot format — always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
 
+            // Link auto-download (S0003)
+            preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] = settings.linkAutoDownloadEnabled
+            if (settings.linkAutoDownloadResourceId != null) {
+                preferences[KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID] = settings.linkAutoDownloadResourceId
+            } else {
+                preferences.remove(KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID)
+            }
+            preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] = settings.linkAutoDownloadOpenInPlayer
+
             // VR settings (spec §5.7 / Phase 8 split). Legacy key is removed on write so
             // existing installs migrate forward after the first successful save.
             preferences[KEY_VR_AUTO_DETECT_FORMAT] = settings.vrAutoDetectFormat
@@ -633,7 +648,11 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences.remove(KEY_VR_FORCED_FORMAT)
             preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
             preferences[KEY_VR_REMEMBER_FILE_FORMAT] = settings.vrRememberFileFormat
+            preferences[KEY_VR_AUTO_IMMERSIVE] = settings.vrAutoImmersive
             preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
+            preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
+            preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps
+            preferences[KEY_PLAYER_SHOW_FPS] = settings.playerShowFps
 
             // Resume on next launch
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch

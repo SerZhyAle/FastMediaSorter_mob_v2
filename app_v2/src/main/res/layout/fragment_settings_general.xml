@@ -119,14 +119,14 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- FILES SECTION -->
+        <!-- PERMISSIONS SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <TextView android:id="@+id/headerFiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_files" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+                <TextView android:id="@+id/headerPermissions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_permissions" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
 
-                <LinearLayout android:id="@+id/containerFiles" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
                     <!-- Permissions Container - adapts to horizontal in landscape -->
                     <LinearLayout android:id="@+id/containerPermissions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:orientation="vertical">
@@ -155,6 +155,19 @@
 
                     </LinearLayout>
 
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- APP DATA & BACKUPS SECTION -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <TextView android:id="@+id/headerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_app_data" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+
+                <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
                     <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDefaultRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/default_remember_file_list" />
@@ -165,50 +178,6 @@
                         </LinearLayout>
 
                         <ImageButton android:id="@+id/btnHelpRememberFileList" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-                    </LinearLayout>
-
-                    <!-- Enable Safe Mode + Confirm options in two columns -->
-
-                    <LinearLayout android:id="@+id/layoutEnableSafeMode" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableSafeMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/enable_safe_mode" />
-
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_safe_mode_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!-- Confirm Delete + Move Container - adapts to horizontal in landscape -->
-                    <LinearLayout android:id="@+id/containerConfirm" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_nested_margin_start" android:layout_marginBottom="@dimen/margin_tiny" android:baselineAligned="false" android:orientation="horizontal">
-
-                        <!-- Confirm Delete -->
-                        <LinearLayout android:id="@+id/layoutConfirmDelete" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmDelete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/confirm_delete_safe_mode" />
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_delete_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_delete_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                            <ImageButton android:id="@+id/iconHelpSafeMode" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_safe_mode_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-                        </LinearLayout>
-
-                        <!-- Confirm Move -->
-                        <LinearLayout android:id="@+id/layoutConfirmMove" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmMove" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/confirm_move_safe_mode" />
-
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_move_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_move_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
-                            </LinearLayout>
-
-                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -312,43 +281,41 @@
 
                     </LinearLayout>
 
-                    <TextView android:id="@+id/tvNetworkParallelismLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/network_parallelism_summary" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                    <!-- ── 2x2 grid: network + cache settings ─────────────────────── -->
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilNetworkParallelism" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/network_parallelism_title">
+                    <!-- Row 1: Network Parallelism | Prefetch Cache -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
-                        <AutoCompleteTextView android:id="@+id/actvNetworkParallelism" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/network_parallelism_title" android:inputType="number" android:text="@string/default_network_parallelism" android:textSize="@dimen/resource_card_desc_text_size" />
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilNetworkParallelism" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/network_parallelism_title">
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                            <AutoCompleteTextView android:id="@+id/actvNetworkParallelism" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/network_parallelism_title" android:inputType="number" android:text="@string/default_network_parallelism" android:textSize="@dimen/resource_card_desc_text_size" />
 
-                    <!-- ── Video pre-cache ─────────────────────────────────────── -->
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                    <TextView android:id="@+id/tvPrefetchCacheLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_prefetch_cache_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/pref_prefetch_cache_title" app:helperText="@string/pref_prefetch_cache_helper">
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilPrefetchCache" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_prefetch_cache_title" app:helperText="@string/pref_prefetch_cache_helper">
+                            <AutoCompleteTextView android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
 
-                        <AutoCompleteTextView android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
 
-                    <!-- ── Streaming cache cleanup ──────────────────────────────── -->
+                    <!-- Row 2: Streaming Cleanup | Streaming TTL -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
-                    <TextView android:id="@+id/tvStreamingCleanupLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/settings_item_margin_bottom" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_cleanup_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/pref_streaming_cleanup_title">
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingCleanup" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_cleanup_title">
+                            <AutoCompleteTextView android:id="@+id/actvStreamingCleanup" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
 
-                        <AutoCompleteTextView android:id="@+id/actvStreamingCleanup" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/pref_streaming_ttl_title">
 
-                    <!-- ── Streaming cache TTL ─────────────────────────────────── -->
+                            <AutoCompleteTextView android:id="@+id/actvStreamingTtl" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
 
-                    <TextView android:id="@+id/tvStreamingTtlLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/settings_item_margin_bottom" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_ttl_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilStreamingTtl" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_text_input_width" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:hint="@string/pref_streaming_ttl_title">
-
-                        <AutoCompleteTextView android:id="@+id/actvStreamingTtl" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textSize="@dimen/resource_card_desc_text_size" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton android:id="@+id/btnClearStreamingCache" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_streaming_clear_now" android:textSize="12sp" app:icon="@drawable/ic_delete" />
 

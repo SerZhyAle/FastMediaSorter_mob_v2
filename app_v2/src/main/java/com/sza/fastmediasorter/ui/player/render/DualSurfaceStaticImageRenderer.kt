@@ -41,7 +41,12 @@ import kotlin.coroutines.resume
 class DualSurfaceStaticImageRenderer(
     private val surfaceA: PhotoView,
     private val surfaceB: PhotoView?,
-    private val memoryTier: MemoryTier = MemoryTier.detect(surfaceA.context)
+    private val memoryTier: MemoryTier = MemoryTier.detect(surfaceA.context),
+    /**
+     * Optional one-shot notifier fired when stereo crop is actually applied to a load.
+     * See spec_panel-stereo-single-eye Phase 05. Null in non-player contexts (preview, tests).
+     */
+    private val panelStereoSingleEyeNotifier: com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier? = null
 ) : StaticImageRenderer {
 
     private enum class ActiveSurface { A, B }
@@ -54,6 +59,13 @@ class DualSurfaceStaticImageRenderer(
     private var currentTarget: RenderTarget? = null
     // Stereo crop mode for 3D images; MONO = no crop (default).
     private var currentStereoMode: StereoMode = StereoMode.MONO
+    // Panel single-eye crop master toggle — see spec_panel-stereo-single-eye.
+    // When false, stereo crop is suppressed regardless of currentStereoMode.
+    // Default matches AppSettings flavor-aware default; PlayerManagerInitializer
+    // overrides on first DataStore emission.
+    @Volatile
+    private var panelStereoSingleEyeEnabled: Boolean =
+        !com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER
 
     private val appContext = surfaceA.context.applicationContext
     private val maxLoadDimension = if (memoryTier == MemoryTier.LOW) 2048 else 4096
@@ -136,6 +148,14 @@ class DualSurfaceStaticImageRenderer(
     override fun setStereoMode(mode: StereoMode) {
         Timber.d("DualSurfaceStaticImageRenderer: setStereoMode() $currentStereoMode -> $mode")
         currentStereoMode = mode
+    }
+
+    override fun setPanelStereoSingleEyeEnabled(enabled: Boolean) {
+        if (panelStereoSingleEyeEnabled == enabled) return
+        Timber.d("DualSurfaceStaticImageRenderer: panelStereoSingleEye $panelStereoSingleEyeEnabled -> $enabled")
+        panelStereoSingleEyeEnabled = enabled
+        // Caller (ImageLoadingManager) is responsible for re-rendering the current target so the
+        // toggle takes effect without a fresh navigation; renderer holds no lifecycle scope.
     }
 
     override fun onPause() {
@@ -240,8 +260,9 @@ class DualSurfaceStaticImageRenderer(
         val mediaFile = target.mediaFile
         val cacheKey = "${mediaFile.path}_${mediaFile.size}"
 
-        // Include stereo mode in cache key so switching SBS↔MONO triggers a fresh decode.
-        val stereoCacheKey = "${cacheKey}_stereo_${currentStereoMode.name}"
+        // Include stereo mode and the panel single-eye flag in cache key so flipping either
+        // the mode or the user setting triggers a fresh decode (no stale "uncropped" image).
+        val stereoCacheKey = "${cacheKey}_stereo_${currentStereoMode.name}_pse_${panelStereoSingleEyeEnabled}"
 
         val glideRequest = Glide.with(appContext)
             .load(resolveGlideModel(target))
@@ -251,12 +272,14 @@ class DualSurfaceStaticImageRenderer(
             .override(maxLoadDimension, maxLoadDimension)
             .fitCenter()
 
-        // Apply stereo crop for 3D images (SBS → left half, OU → top half).
-        val isStereo = currentStereoMode == StereoMode.SBS_FULL ||
+        // Apply stereo crop for 3D images only when the panel single-eye flag is ON.
+        // SBS → right half, OU → bottom half (see spec_panel-stereo-single-eye).
+        val isStereo = (currentStereoMode == StereoMode.SBS_FULL ||
             currentStereoMode == StereoMode.SBS_HALF ||
-            currentStereoMode == StereoMode.OU
+            currentStereoMode == StereoMode.OU) && panelStereoSingleEyeEnabled
         if (isStereo) {
             glideRequest.transform(StereoImageCropTransformation(currentStereoMode))
+            panelStereoSingleEyeNotifier?.notifyIfFirstThisSession(appContext)
         }
 
         if (memoryTier == MemoryTier.LOW) {

@@ -1,32 +1,32 @@
 # Tactical Specification Writer
 
 Break an approved strategic spec into sequenced phases. Requires `Status: Approved` or later.
-Creates `PLAN/spec_<short-name>/INDEX.md` + phase files. Language: English, imperative, no rationale prose.
+Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imperative, no rationale prose.
 
 ## Usage
 
 ```text
-/spec-tech <short-name>
-/spec-tech <short-name> --phase <NN>
-/spec-tech <short-name> --dry-run
+/spec-tech <Sxxxx-or-slug>
+/spec-tech <Sxxxx-or-slug> --phase <NN>
+/spec-tech <Sxxxx-or-slug> --dry-run
 ```
 
-Aborts if `Status: Draft`. The strategic spec must exist at `PLAN/spec_<short-name>.md`.
+Aborts if `Status: Draft`. The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
 
 ---
 
 ## Directory layout
 
 ```text
-PLAN/spec_<short-name>.md          # strategic (Russian) — owned by /spec
-PLAN/spec_<short-name>/
+PLAN/Sxxxx_<short-name>.md          # strategic (Russian) — owned by /spec
+PLAN/Sxxxx_<short-name>/
   INDEX.md
   PHASE_01__<slug>.md
   ..
   PHASE_NN__docs-catalog-cleanup.md
 ```
 
-Phase-slug: kebab-case, ≤4 words. Examples: `foundations`, `input-dispatch`, `db-migration`.
+No `_spec_` segment in any path. Phase-slug: kebab-case, ≤4 words. Examples: `foundations`, `input-dispatch`, `db-migration`.
 
 ---
 
@@ -34,8 +34,8 @@ Phase-slug: kebab-case, ≤4 words. Examples: `foundations`, `input-dispatch`, `
 
 **1 — Validate strategic spec.**
 
-Read `PLAN/spec_<short-name>.md`. Abort if missing or `Status: Draft`.
-Extract: feature name, tier, goals (§2), constraints (§3.2), pillars (§5.1), open research items (§6), ADRs (§9), criteria (§11).
+Resolve `Sxxxx` and slug via `select.ps1`. Read `PLAN/Sxxxx_<short-name>.md`. Abort if missing or `Status: Draft` / `Block*` (Block states require resolution first).
+Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars (§5.1), open research items (§6), ADRs (§9), criteria (§11).
 
 **2 — Read project context.**
 
@@ -70,30 +70,31 @@ Target 3–8 phases. >10 → split the feature into multiple specs.
 **6 — Update strategic spec.** Flip `Status:` to `Tactical`. Add:
 
 ```markdown
-**Tactical plan:** `PLAN/spec_<short-name>/INDEX.md`
+**Tactical plan:** `PLAN/Sxxxx_<short-name>/INDEX.md`
 ```
 
 **7 — Run dev log** for every file written.
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>/INDEX.md" "spec-tech" "Create tactical plan for <short-name>"
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>/PHASE_01__<slug>.md" "spec-tech" "Phase 01: <slug>"
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>/INDEX.md" "spec-tech" "Create tactical plan for <Sxxxx>"
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>/PHASE_01__<slug>.md" "spec-tech" "Phase 01: <slug>"
 # one line per phase file
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec-tech" "Status → Tactical"
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-tech" "Status → Tactical"
 ```
 
-**Chat output:** `N phases. Blockers: [list or none]. Index: PLAN/spec_<short-name>/INDEX.md`
+**Chat output:** `<Sxxxx>: N phases. Blockers: [list or none]. Index: PLAN/Sxxxx_<short-name>/INDEX.md`
 
 ---
 
 ## `INDEX.md` Template
 
 ```markdown
-# Tactical Plan: <short-name>
+# Tactical Plan: <Sxxxx> — <short-name>
 
-**Strategic spec:** [`../spec_<short-name>.md`](../spec_<short-name>.md)
+**Strategic spec:** [`../Sxxxx_<short-name>.md`](../Sxxxx_<short-name>.md)
 **Feature:** <feature name>
 **Tier:** <tier label>
+**Priority:** <0..100>
 **Status:** Not started
 **Phases:** 0 / N done
 **Last updated:** <YYYY-MM-DD>
@@ -128,7 +129,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (if user-facing — see strategic §8).
 - [ ] `dev/CHANGELOG.md` has an entry for every modified file.
 - [ ] `dev/CATALOG/<module>.jsonl` regenerated if public API changed.
-- [ ] `/spec-check <short-name>` returns `Verified`.
+- [ ] `/spec-check <Sxxxx>` returns `Verified`.
 - [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
 
 ---
@@ -138,8 +139,8 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 1. Before starting a phase: flip row to `🚧 In Progress`. Update `Phases: X/N done`.
 2. During a phase: flip step to `[~] in progress` when started, `[x] done` when Verification passes. Never flip `[x]` on intent.
 3. On phase completion: confirm every step `[x]`, confirm Phase Done Criteria, flip row to `✅ Done`, bump counter.
-4. If blocked: flip to `⛔ Blocked`, add bullet to Blockers Log.
-5. All done: flip `Status:` to `Done`, run `/spec-check <short-name>`.
+4. If blocked: flip to `⛔ Blocked`, add bullet to Blockers Log. If the whole spec is blocked, also set the journal status to one of `BlockByOtherTask` / `BlockNeedUserTest` / `BlockQuestions` / `BlockExternal`.
+5. All done: flip `Status:` to `Done`, run `/spec-check <Sxxxx>`.
 
 ---
 
@@ -161,7 +162,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 ```markdown
 # Phase NN — <Phase Title>
 
-**Strategic spec:** [`../spec_<short-name>.md`](../spec_<short-name>.md)
+**Strategic spec:** [`../Sxxxx_<short-name>.md`](../Sxxxx_<short-name>.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
 **Status:** ⬜ Not started
 **Depends on:** Phase NN-M (or "none — foundation phase")
@@ -272,3 +273,13 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Timber only: `Grep -n "Log\.d\("` returning zero hits mandatory for any file the step modifies.
 - Final phase always `PHASE_NN__docs-catalog-cleanup.md`.
 - Do not duplicate strategic content — tactical says *what*, not *why*.
+- Never write phase steps that create audit / fix files in `PLAN/` — those are abolished.
+
+---
+
+## Spec Catalog hooks
+
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id.
+- **File / folder names.** Strategic spec is at `PLAN/<Sxxxx>_<slug>.md`. Tactical folder is `PLAN/<Sxxxx>_<slug>/`. Phase files inside follow the existing `PHASE_NN__<topic>.md` convention (no per-phase `Sxxxx` prefix). The `_spec_` segment is forbidden anywhere.
+- **Status transition.** After the tactical folder is fully written, run `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`.
+- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never create a tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.

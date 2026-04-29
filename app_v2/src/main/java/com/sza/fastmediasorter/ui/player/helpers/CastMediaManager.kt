@@ -244,6 +244,11 @@ class CastMediaManager(
 
         proxyServer.serveFile(localFile)
         val castUrl = proxyServer.castUrl()
+        // TODO(phase-06-deferred): apply panel single-eye crop to Cast output.
+        // See PLAN/spec_panel-stereo-single-eye/PHASE_06__cast-feasibility.md.
+        // Default Cast receiver decodes the original file natively; implementing the crop
+        // requires either FFmpeg transcode in the proxy (heavy CPU/IO + doubled cache) or a
+        // custom Cast receiver app. Deferred until either path is greenlit.
         Timber.d("CastMediaManager: casting ${file.name} via $castUrl")
 
         withContext(Dispatchers.Main) {

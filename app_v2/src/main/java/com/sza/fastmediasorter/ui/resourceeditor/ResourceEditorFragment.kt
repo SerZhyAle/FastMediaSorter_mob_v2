@@ -55,6 +55,7 @@ class ResourceEditorFragment : Fragment() {
     private var credentialsDialogShown = false
     private var pendingSaveAfterPermissionGrant = false
     private var hasMediaTypesBySchema = false
+    private var toolbarBaseTitle: String = ""
     private val uiPrefs by lazy {
         requireContext().getSharedPreferences(PREFS_RESOURCE_EDITOR_UI, Context.MODE_PRIVATE)
     }
@@ -119,16 +120,15 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun setupToolbar() {
-        val title = when (mode) {
+        toolbarBaseTitle = when (mode) {
             ResourceEditorMode.CREATE -> getString(R.string.title_add_resource)
             ResourceEditorMode.EDIT -> getString(R.string.title_edit_resource)
             ResourceEditorMode.COPY -> getString(R.string.title_copy_resource)
         }
-        binding.toolbar.title = title
+        binding.toolbar.subtitle = null
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        // Show current resource type as subtitle (visible at all times)
         updateToolbarTypeSubtitle(resourceType ?: ResourceType.LOCAL)
     }
 
@@ -140,10 +140,7 @@ class ResourceEditorFragment : Fragment() {
             ResourceType.FTP -> getString(R.string.resource_type_ftp)
             ResourceType.CLOUD -> getString(R.string.resource_type_cloud)
         }
-        binding.toolbar.subtitle = typeLabel
-        binding.toolbar.setSubtitleTextColor(
-            requireContext().getColor(android.R.color.white)
-        )
+        binding.toolbar.title = "$toolbarBaseTitle · $typeLabel"
     }
 
     /**

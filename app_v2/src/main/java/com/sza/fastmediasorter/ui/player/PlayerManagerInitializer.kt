@@ -42,7 +42,9 @@ import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -333,6 +335,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             lifecycleScope = activity.lifecycleScope,
             loadingIndicatorHandler = activity.loadingIndicatorHandler,
             showLoadingIndicatorRunnable = activity.showLoadingIndicatorRunnable,
+            panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerImageLoadingCallbackImpl(
                 activity = activity,
                 viewModel = activity.viewModel
@@ -488,6 +491,22 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             }
         }
 
+        // Observe panelStereoSingleEye flag — toggle stereo crop on the currently displayed image
+        // without a fresh navigation (spec_panel-stereo-single-eye §3.1.1).
+        activity.lifecycleScope.launch {
+            activity.settingsRepository.getSettings()
+                .map { it.panelStereoSingleEye }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    activity.imageLoadingManager.setPanelStereoSingleEyeEnabled(enabled)
+                    val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
+                    if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
+                        currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
+                        activity.imageLoadingManager.displayImage(currentFile.path)
+                    }
+                }
+        }
+
         activity.exoPlayerControlsManager = ExoPlayerControlsManager(
             binding = activity.activityBinding,
             videoPlayerManager = activity.videoPlayerManager,
@@ -521,7 +540,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             lifecycleScope = activity.lifecycleScope,
             settingsRepository = activity.settingsRepository,
             translationManager = activity.translationManager,
-            textViewerManager = activity.textViewerManager,
+            textViewerManagerProvider = { activity.textViewerManager },
             callback = object : ImageOcrManager.ImageOcrCallback {
                 override fun showError(message: String) { activity.showError(message) }
                 override fun getString(resId: Int): String = activity.getString(resId)
@@ -613,9 +632,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             viewModel = activity.viewModel,
             imageLoadingManager = activity.imageLoadingManager,
             videoPlayerManager = activity.videoPlayerManager,
-            pdfViewerManager = activity.pdfViewerManager,
-            epubViewerManager = activity.epubViewerManager,
-            textViewerManager = activity.textViewerManager,
+            textViewerManagerProvider = { activity.textViewerManager },
             exoPlayerControlsManager = activity.exoPlayerControlsManager,
             lifecycleScope = activity.lifecycleScope,
             loadingIndicatorHandler = activity.loadingIndicatorHandler,
@@ -687,7 +704,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             dialogHelper = activity.dialogHelper,
             destinationButtonsManager = activity.destinationButtonsManager,
             commandPanelController = activity.commandPanelController,
-            textViewerManager = activity.textViewerManager,
+            textViewerManagerProvider = { activity.textViewerManager },
             mediaLoaderManager = activity.mediaLoaderManager,
             networkFileManager = activity.networkFileManager,
             imageLoadingManager = activity.imageLoadingManager,
@@ -742,9 +759,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             viewModel = activity.viewModel,
             lifecycleScope = activity.lifecycleScope,
             slideshowController = activity.slideshowController,
-            pdfViewerManager = activity.pdfViewerManager,
-            epubViewerManager = activity.epubViewerManager,
-            textViewerManager = activity.textViewerManager,
+            pdfViewerManagerProvider = { activity.pdfViewerManager },
+            epubViewerManagerProvider = { activity.epubViewerManager },
+            textViewerManagerProvider = { activity.textViewerManager },
             translationManager = activity.translationManager,
             translationButtonManager = activity.translationButtonManager,
             exoPlayerControlsManager = activity.exoPlayerControlsManager,

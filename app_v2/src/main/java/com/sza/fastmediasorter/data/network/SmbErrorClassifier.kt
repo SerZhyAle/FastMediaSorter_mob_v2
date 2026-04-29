@@ -123,15 +123,20 @@ object SmbErrorClassifier {
         }
     }
 
-    /** Fast TCP pre-check before a full SMBJ connect. Throws IOException if [host]:[port] is unreachable. */
-    fun checkConnectivity(host: String, port: Int, timeoutMs: Int) {
-        try {
+    /**
+     * Fast TCP pre-check before a full SMBJ connect.
+     * @return `true` if the TCP socket connect to [host]:[port] succeeded within [timeoutMs];
+     *   `false` if the host is unreachable / refused / timed out at the TCP layer.
+     */
+    fun checkConnectivity(host: String, port: Int, timeoutMs: Int): Boolean {
+        return try {
             Socket().use { socket ->
                 socket.connect(InetSocketAddress(host, port), timeoutMs)
             }
+            true
         } catch (e: Exception) {
             Timber.w("Fast connectivity check failed to $host:$port after ${timeoutMs}ms")
-            throw IOException("Server unreachable ($host:$port)", e)
+            false
         }
     }
 }

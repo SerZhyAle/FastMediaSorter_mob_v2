@@ -7,6 +7,8 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.data.transfer.TransferStrategy
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,12 +32,13 @@ class LocalToSftpStrategy @Inject constructor(
         overwrite: Boolean,
         sourceCredentialsId: String?,
         progressCallback: ByteProgressCallback?
-    ): Boolean {
+    ): Boolean = withContext(Dispatchers.IO) {
+        // Always dispatch to IO — SftpClient does not switch dispatchers internally.
         // Resolve destination credentials
         val destCredentials = credentialsResolver.getCredentials(destination.toString())
         if (destCredentials == null) {
             Timber.e("LocalToSftpStrategy.copy: No credentials for destination $destination")
-            return false
+            return@withContext false
         }
         
         val destRemotePath = extractRemotePath(destination, destCredentials.server, destCredentials.port)
@@ -47,7 +50,7 @@ class LocalToSftpStrategy @Inject constructor(
                     val sourceFile = java.io.File(source.path ?: source.toString())
                     if (!sourceFile.exists()) {
                         Timber.e("LocalToSftpStrategy.copy: Source file does not exist")
-                        return false
+                        return@withContext false
                     }
                     sourceFile.inputStream() to sourceFile.length()
                 }
@@ -68,12 +71,12 @@ class LocalToSftpStrategy @Inject constructor(
                 }
                 else -> {
                     Timber.e("LocalToSftpStrategy.copy: Unsupported source scheme ${source.scheme}")
-                    return false
+                    return@withContext false
                 }
             }
         } catch (e: Exception) {
             Timber.e(e, "LocalToSftpStrategy.copy: Failed to open source")
-            return false
+            return@withContext false
         }
         
         // Upload to SFTP
@@ -85,7 +88,7 @@ class LocalToSftpStrategy @Inject constructor(
             privateKey = destCredentials.privateKey
         )
         
-        return try {
+        return@withContext try {
             inputStream.use { input ->
                 val uploadResult = sftpClient.uploadFile(
                     connectionInfo = connectionInfo,

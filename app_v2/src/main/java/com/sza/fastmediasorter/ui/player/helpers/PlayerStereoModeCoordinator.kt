@@ -30,8 +30,25 @@ class PlayerStereoModeCoordinator(
     private val getCurrentFilePath: () -> String?
 ) {
 
-    private val _stereoMode = MutableStateFlow(StereoMode.AUTO)
-    val stereoMode: StateFlow<StereoMode> = _stereoMode.asStateFlow()
+    /**
+     * Requested stereo mode — represents user/detector intent before pipeline application.
+     * May carry [StereoMode.AUTO] (let detector decide) or [StereoMode.UNKNOWN] (sentinel,
+     * detector ran but produced no conclusive result). Not safe to feed into renderer/decoder.
+     */
+    private val _requestedStereoMode = MutableStateFlow(StereoMode.AUTO)
+    val requestedStereoMode: StateFlow<StereoMode> = _requestedStereoMode.asStateFlow()
+
+    /**
+     * Effective stereo mode — the value actually applied to renderer/decoder pipeline.
+     * Initialised to [StereoMode.MONO] and never moves to [StereoMode.AUTO] or
+     * [StereoMode.UNKNOWN]; if a transition would resolve to either, the prior known
+     * effective is kept until detection produces a concrete value.
+     */
+    private val _effectiveStereoMode = MutableStateFlow(StereoMode.MONO)
+    val effectiveStereoMode: StateFlow<StereoMode> = _effectiveStereoMode.asStateFlow()
+
+    /** Backwards-compatible alias preserved for existing call sites. */
+    val stereoMode: StateFlow<StereoMode> = effectiveStereoMode
 
     private val _detectedStereoMode = MutableStateFlow(StereoMode.UNKNOWN)
     val detectedStereoMode: StateFlow<StereoMode> = _detectedStereoMode.asStateFlow()
@@ -73,9 +90,7 @@ class PlayerStereoModeCoordinator(
             mode
         }
 
-        if (_stereoMode.value == resolvedMode) return
-        Timber.d("PlayerStereoModeCoordinator: stereoMode -> $resolvedMode (requested=$mode)")
-        _stereoMode.value = resolvedMode
+        publishEffective(resolvedMode, "manual-set", requested = mode)
     }
 
     /**
@@ -102,9 +117,7 @@ class PlayerStereoModeCoordinator(
             resolveForcedStereoMode(mode)
         }
 
-        if (_stereoMode.value == resolvedMode) return
-        Timber.d("PlayerStereoModeCoordinator: auto-detected stereoMode -> $resolvedMode (detected=$mode)")
-        _stereoMode.value = resolvedMode
+        publishEffective(resolvedMode, "auto-detect", requested = mode)
     }
 
     /**
@@ -117,7 +130,7 @@ class PlayerStereoModeCoordinator(
         _detectedStereoMode.value = StereoMode.UNKNOWN
         currentStereoOverridePath = filePath
         currentStereoOverrideMode = null
-        _stereoMode.value = resolveForcedStereoMode(StereoMode.AUTO)
+        publishEffective(resolveForcedStereoMode(StereoMode.AUTO), "reset-new-file", requested = StereoMode.AUTO)
 
         if (!vrRememberFileFormatEnabled || filePath.isNullOrBlank()) return
 
@@ -132,10 +145,7 @@ class PlayerStereoModeCoordinator(
 
                 if (!hasManualStereoSelection && !ignoreForcedFormatForCurrentFile) {
                     val resolvedMode = resolveForcedStereoMode(_detectedStereoMode.value)
-                    if (_stereoMode.value != resolvedMode) {
-                        Timber.d("PlayerStereoModeCoordinator: remembered per-file stereoMode -> $resolvedMode (path=$filePath)")
-                        _stereoMode.value = resolvedMode
-                    }
+                    publishEffective(resolvedMode, "remembered-per-file", requested = StereoMode.AUTO)
                 }
             }
         }
@@ -188,10 +198,41 @@ class PlayerStereoModeCoordinator(
             !hasManualStereoSelection &&
             !ignoreForcedFormatForCurrentFile
         ) {
-            _stereoMode.value = resolveForcedStereoMode(_detectedStereoMode.value)
+            publishEffective(
+                resolveForcedStereoMode(_detectedStereoMode.value),
+                "apply-settings",
+                requested = StereoMode.AUTO,
+            )
             return true
         }
         return false
+    }
+
+    /**
+     * Single sink for transitioning the requested + effective stereo mode pair.
+     * The effective flow never accepts [StereoMode.AUTO] or [StereoMode.UNKNOWN]: such transitions
+     * are suppressed (logged once, prior effective value preserved) so downstream consumers
+     * (decoder, renderer) never observe sentinel values that would force a MONO fallback.
+     */
+    private fun publishEffective(mode: StereoMode, reason: String, requested: StereoMode) {
+        _requestedStereoMode.value = requested
+        if (mode == StereoMode.AUTO || mode == StereoMode.UNKNOWN) {
+            Timber.d(
+                "PlayerStereoModeCoordinator: suppressed effective=%s reason=%s (kept=%s)",
+                mode,
+                reason,
+                _effectiveStereoMode.value,
+            )
+            return
+        }
+        if (_effectiveStereoMode.value == mode) return
+        Timber.d(
+            "PlayerStereoModeCoordinator: effective=%s reason=%s (requested=%s)",
+            mode,
+            reason,
+            requested,
+        )
+        _effectiveStereoMode.value = mode
     }
 
     private fun resolveAutoStereoMode(): StereoMode {

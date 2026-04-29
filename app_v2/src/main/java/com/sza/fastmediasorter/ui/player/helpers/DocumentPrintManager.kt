@@ -9,9 +9,9 @@ import android.print.PageRange
 import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
+import android.content.Context
 import android.print.PrintManager
 import android.webkit.WebView
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.print.PrintHelper
 import com.google.android.material.snackbar.Snackbar
@@ -83,8 +83,8 @@ class DocumentPrintManager(
      * Resolve [PrintManager] lazily, right before dispatching the job. Android requires
      * PrintManager.print() to be invoked from an instance whose context is an Activity
      * (checked via `mContext instanceof Activity`). On some OEM builds / x86 emulators this
-     * check fails when the manager is cached via application context, so we:
-     *   1) fetch through [ContextCompat.getSystemService] (canonical AndroidX path);
+     * check fails when the manager is obtained via application context, so we:
+     *   1) fetch via `activity.getSystemService(Context.PRINT_SERVICE)` — guarantees Activity-backed instance;
      *   2) post the actual print() onto [Activity.runOnUiThread] to guarantee a fresh main-tick;
      *   3) wrap in try/catch to degrade gracefully instead of crashing the process.
      */
@@ -92,9 +92,13 @@ class DocumentPrintManager(
         adapter: PrintDocumentAdapter,
         jobLabel: String
     ) {
-        val pm = ContextCompat.getSystemService(activity, PrintManager::class.java)
+        // Direct Activity.getSystemService guarantees the returned PrintManager holds an
+        // Activity context — required by PrintManager.print() internal check on API 26–27.
+        // ContextCompat.getSystemService can return an app-context-backed instance on some
+        // x86 emulator builds, causing IllegalStateException: "Can print only from an activity".
+        val pm = activity.getSystemService(Context.PRINT_SERVICE) as? PrintManager
         if (pm == null) {
-            Timber.e("DocumentPrintManager: PrintManager system service unavailable")
+            Timber.w("DocumentPrintManager: PrintManager system service unavailable")
             showSnackbar(activity.getString(R.string.error_print_unavailable))
             return
         }

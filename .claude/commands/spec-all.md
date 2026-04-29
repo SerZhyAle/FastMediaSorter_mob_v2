@@ -29,12 +29,13 @@ MAX_FIX_ITERATIONS = 5. MAX_BUILD_RETRIES = 3.
 
 Parse `$ARGUMENTS`. If blank → abort: "No idea provided."
 
-Derive `short-name`: kebab-case slug, 3–5 words. Glob `PLAN/spec_*.md` for collisions — append `-v2`, `-v3` if needed.
+Derive `short-name`: kebab-case slug, 3–5 words. Glob `PLAN/Sxxxx_*.md` for slug collisions — append `-v2`, `-v3` if needed. The id `Sxxxx` is allocated by `/spec` via `insert.ps1`.
 
 **Existing-spec guard:**
 
 - `Status: Approved` or later → abort: "Spec exists (Status: X). Use individual skills to continue."
 - `Status: Draft` → skip spec-writing stage, use existing draft.
+- `Status: Block*` → abort: "Spec is blocked. Resolve via the appropriate channel before re-running."
 
 **Complexity assessment** — classify as **Simple** or **Full**:
 
@@ -55,16 +56,16 @@ Log complexity decision in chat: `Complexity: Simple | Full — <one-line reason
 
 ### Stage S1 — Compact Spec
 
-Write a single `PLAN/spec_<short-name>.md` that combines strategic goal and phases inline.
+Allocate `Sxxxx` via `insert.ps1`. Write a single `PLAN/Sxxxx_<short-name>.md` that combines strategic goal and phases inline.
 Use the `spec_tech` phase template directly (English, imperative steps with Verification predicates).
-Include a brief **Goal** section (2–4 sentences, Russian) before the phases.
+Include a brief **Goal** section (2–4 sentences, Russian) before the phases. Auto-derive priority per `/spec` rules.
 
-Flip `Status: Draft` → `Status: Approved`.
-Run dev log: `.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec-all" "Compact spec: <short-name>"`
+Flip `Status: Draft` → `Status: Approved` in the file and via `update.ps1`.
+Run dev log: `.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-all" "Compact spec: <Sxxxx>"`
 
 ### Stage S2 — Implementation
 
-Same as **Stage F3** below. Reference `PLAN/spec_<short-name>.md` phases directly.
+Same as **Stage F3** below. Reference `PLAN/Sxxxx_<short-name>.md` phases directly.
 
 ### Stage S3 — Build Gate
 
@@ -80,8 +81,8 @@ Audit loop max 3 iterations (not 5). Otherwise same as **Stage F5** below.
 
 ### Stage F1 — Strategic Spec
 
-Follow `/spec` process with `roadmap-id: ad-hoc`.
-After writing: flip `Status: Draft` → `Status: Approved`. Add:
+Follow `/spec` process with `roadmap-id: ad-hoc`. The id is allocated by `insert.ps1` inside `/spec`.
+After writing: flip `Status: Draft` → `Status: Approved` (file + journal). Add:
 
 ```markdown
 <!-- auto-approved by /spec-all — <YYYY-MM-DD> -->
@@ -109,7 +110,7 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 4. Still failing → hard-stop → jump to final report as Blocked.
 5. If any `src/vr/` file modified: also run `vr debug` after standard passes.
 
-**MANUAL-REQUIRED stop:** tick as `[manual — deferred to human]`. Continue `--resume`.
+**MANUAL-REQUIRED stop:** tick as `[manual — deferred to human]`. Continue `--resume`. If the manual gate is on-device verification, set status `BlockNeedUserTest` at end of pipeline.
 
 **Hard stop — attempt inline resolution:**
 
@@ -124,7 +125,7 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 **Out-of-scope dependency:**
 
 - Minor (no new classes, no schema change, ≤ ~30 min of work) → implement inline.
-- Significant → create `PLAN/spec_<dependency-slug>.md` (`Status: Approved`, `<!-- discovered by /spec-all — <date> -->`). If the dependency itself is **Full**-complexity, create full tactical folder too. Continue current pipeline.
+- Significant → allocate a new `Sxxxx` via `insert.ps1`, write `PLAN/Sxxxx_<dependency-slug>.md` (`Status: Approved`, `<!-- discovered by /spec-all — <date> -->`). If the dependency itself is **Full**-complexity, create full tactical folder too. Continue current pipeline. Set the parent's status to `BlockByOtherTask` only if the dependency must finish before continuing — otherwise just record it under §10.
 
 **Override does NOT apply to:** read-only zones (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`).
 
@@ -142,10 +143,10 @@ Follow `/spec-check` (full mode). If `Verified` → final report.
 
 Each iteration:
 
-1. `/spec-fix <short-name>`.
-2. Implement "Suggested next action" items directly. If requires design decision not derivable from codebase → mark `UNRESOLVABLE`, skip.
+1. `/spec-fix <Sxxxx>`.
+2. Implement "Action items" directly. If requires design decision not derivable from codebase → mark `[FOLLOW-UP]`, skip.
 3. If code modified → `/build` → `standard debug` (+ `vr debug` if `src/vr/` touched).
-4. `/spec-check <short-name>`. If `Verified` → final report.
+4. `/spec-check <Sxxxx>`. If `Verified` → final report.
 
 MAX_FIX_ITERATIONS exhausted → final report as Incomplete.
 
@@ -154,18 +155,18 @@ MAX_FIX_ITERATIONS exhausted → final report as Incomplete.
 ## Final Report
 
 ```text
-spec-all: <short-name> — <Verified ✅ | Partial ⚠️ | Blocked 🛑 | Incomplete ⏱️>
-Spec:   PLAN/spec_<short-name>.md  [Simple]
+spec-all: <Sxxxx> <short-name> — <Verified ✅ | Partial ⚠️ | Blocked 🛑 | Incomplete ⏱️>
+Spec:   PLAN/Sxxxx_<short-name>.md  [Simple]
   — or —
-Spec:   PLAN/spec_<short-name>/INDEX.md  [Full]
-Audit:  PLAN/spec_<short-name>__audit_<YYYY-MM-DD>.md
+Spec:   PLAN/Sxxxx_<short-name>/INDEX.md  [Full]
+Audit:  inline in spec — `## Last Audit` section.
 
 Manual / unresolved:
 - <item>   (empty → "All closed automatically.")
 ```
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec-all" "Pipeline <status>: <short-name>"
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-all" "Pipeline <status>: <Sxxxx>"
 ```
 
 ---
@@ -182,7 +183,8 @@ Manual / unresolved:
 | Read-only zone reference | Stop — hard boundary |
 | MAX_FIX_ITERATIONS exhausted | Final report — Incomplete |
 | Stage F3 unresolvable after 2 attempts | Final report — Blocked |
-| Device/hardware verification required | Defer to manual items, continue |
+| Device/hardware verification required | Defer to manual items, set status `BlockNeedUserTest`, continue |
+| External dependency missing | Set status `BlockExternal`, final report — Blocked |
 
 ---
 
@@ -195,3 +197,17 @@ Manual / unresolved:
 - MANUAL items are not failures — `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly — always via `.\scripts\add_to_dev_log.ps1`.
 - Read-only zones never touched.
+- Never create audit / fix files in `PLAN/`. All audit findings live inside the spec's `## Last Audit` block.
+
+---
+
+## Spec Catalog hooks
+
+- **Argument resolution.** Accept `Sxxxx`, a slug, or a path (`PLAN/Sxxxx_<slug>.md`). For `Sxxxx`, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` and skip Stage 0 short-name derivation.
+- **Stage transitions** (orchestrator does not duplicate sub-skill updates — these fire from the underlying skills as documented in their own "Spec Catalog hooks" sections):
+  - F1 (Strategic Spec): `/spec` performs `insert.ps1` (Status `Draft`); `/spec-all` then auto-flips `Draft → Approved` via `update.ps1 -Status Approved`.
+  - F2 (Tactical): `/spec-tech` flips to `Tactical`.
+  - F3 (Implementation): `/spec-dev` flips to `In Progress` then `Implemented`.
+  - F5 (Audit): `/spec-check` flips to `Verified` / `Partial` / `Broken`.
+- **Final report.** Always include `Ticket: Sxxxx` on the first line, alongside the spec slug.
+- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly. Never produce a path with a `_spec_` segment. Do not bypass an underlying skill's catalog update.

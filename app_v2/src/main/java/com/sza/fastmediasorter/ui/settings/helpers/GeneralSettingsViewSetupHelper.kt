@@ -78,16 +78,6 @@ class GeneralSettingsViewSetupHelper(
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(useCompactElements = isChecked))
         }
-        binding.switchEnableSafeMode.setOnCheckedChangeListener { _, isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableSafeMode = isChecked))
-            binding.layoutConfirmDelete.visibility = if (isChecked) View.VISIBLE else View.GONE
-            binding.layoutConfirmMove.visibility = if (isChecked) View.VISIBLE else View.GONE
-        }
-        binding.switchConfirmDelete.setOnCheckedChangeListener { _, isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(confirmDelete = isChecked))
-        }
         binding.switchAllFiles.setOnCheckedChangeListener { _, isChecked ->
             if (getIsUpdatingSpinner()) {
                 Timber.d("GeneralSettings: switchAllFiles listener blocked by isUpdatingSpinner")
@@ -119,16 +109,9 @@ class GeneralSettingsViewSetupHelper(
             viewModel.updateSettings(viewModel.settings.value.copy(defaultRememberFileList = isChecked))
         }
         binding.btnHelpRememberFileList.setOnClickListener { resetHelper.showRememberFileListHelpDialog() }
-        binding.switchConfirmMove.setOnCheckedChangeListener { _, isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(confirmMove = isChecked))
-        }
     }
 
     private fun setupTooltips() {
-        binding.iconHelpSafeMode.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_safe_mode_title, R.string.tooltip_safe_mode_message)
-        }
         binding.iconHelpFavorites.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_favorites_title, R.string.tooltip_favorites_message)
         }

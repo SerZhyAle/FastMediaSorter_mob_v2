@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 class OperationsSettingsFragment : Fragment() {
     companion object {
         private const val PREFS_NAME = "settings_section_states"
+        private const val KEY_SAFETY_EXPANDED = "operations_safety_expanded"
         private const val KEY_FILE_OPS_EXPANDED = "destinations_file_ops_expanded"
         private const val KEY_DESTINATIONS_EXPANDED = "destinations_list_expanded"
         private const val KEY_SCHEDULED_EXPANDED = "scheduled_ops_expanded"
@@ -159,6 +160,30 @@ class OperationsSettingsFragment : Fragment() {
                 R.string.tooltip_go_to_next_after_copy_message
             )
         }
+
+        // Safety & Confirmation group (moved from General settings)
+        binding.switchEnableSafeMode.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableSafeMode = isChecked))
+            binding.layoutConfirmDelete.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding.layoutConfirmMove.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+        binding.switchConfirmDelete.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(confirmDelete = isChecked))
+        }
+        binding.switchConfirmMove.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(confirmMove = isChecked))
+        }
+        binding.iconHelpSafeMode.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_safe_mode_title,
+                R.string.tooltip_safe_mode_message
+            )
+        }
         
         // RecyclerView setup
         adapter = DestinationsAdapter(
@@ -272,6 +297,15 @@ class OperationsSettingsFragment : Fragment() {
                         binding.switchOverwriteOnCopy.isChecked = settings.overwriteOnCopy
                         binding.switchEnableMoving.isChecked = settings.enableMoving
                         binding.switchOverwriteOnMove.isChecked = settings.overwriteOnMove
+
+                        // Safety & Confirmation switches (moved from General)
+                        binding.switchEnableSafeMode.isChecked = settings.enableSafeMode
+                        binding.switchConfirmDelete.isChecked = settings.confirmDelete
+                        binding.switchConfirmMove.isChecked = settings.confirmMove
+                        binding.layoutConfirmDelete.visibility =
+                            if (settings.enableSafeMode) View.VISIBLE else View.GONE
+                        binding.layoutConfirmMove.visibility =
+                            if (settings.enableSafeMode) View.VISIBLE else View.GONE
                         
                         // Update Max Recipients
                         if (binding.etMaxRecipients.text.toString() != settings.maxRecipients.toString()) {
@@ -326,9 +360,16 @@ class OperationsSettingsFragment : Fragment() {
     private fun setupExpandableSections() {
         val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         bindSectionToggle(
-            header = binding.headerFileOperations,
+            header = binding.headerSafety,
+            content = binding.containerSafety,
+            title = getString(R.string.settings_category_safety),
+            prefKey = KEY_SAFETY_EXPANDED,
+            initiallyExpanded = prefs.getBoolean(KEY_SAFETY_EXPANDED, false)
+        )
+        bindSectionToggle(
+            header = binding.headerCopyMove,
             content = binding.containerFileOperations,
-            title = getString(R.string.settings_category_file_operations),
+            title = getString(R.string.settings_category_copy_move),
             prefKey = KEY_FILE_OPS_EXPANDED,
             initiallyExpanded = prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false)
         )

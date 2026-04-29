@@ -16,6 +16,8 @@ import com.sza.fastmediasorter.utils.UserActionLogger
 class BrowseSortMenuManager(
     private val context: Context,
     private val onSortModeSelected: (SortMode) -> Unit,
+    // Called when user picks RANDOM regardless of current sort mode — always reshuffles.
+    private val onRandomReshuffle: () -> Unit,
     private val getCurrentSortMode: () -> SortMode,
     private val getCurrentResource: () -> MediaResource?
 ) {
@@ -61,8 +63,11 @@ class BrowseSortMenuManager(
 
         popup.setOnMenuItemClickListener { menuItem ->
             val selectedMode = sortModes[menuItem.itemId]
-            if (selectedMode != getCurrentSortMode()) {
-                UserActionLogger.logButtonClick("SortMenu_${selectedMode.name}", "BrowseActivity")
+            UserActionLogger.logButtonClick("SortMenu_${selectedMode.name}", "BrowseActivity")
+            if (selectedMode == SortMode.RANDOM) {
+                // Always reshuffle when RANDOM is tapped, even if already active.
+                onRandomReshuffle()
+            } else if (selectedMode != getCurrentSortMode()) {
                 onSortModeSelected(selectedMode)
             }
             true

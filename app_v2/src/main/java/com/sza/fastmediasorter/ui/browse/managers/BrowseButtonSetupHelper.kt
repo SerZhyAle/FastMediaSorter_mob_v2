@@ -36,6 +36,7 @@ class BrowseButtonSetupHelper(
         fun onShareClicked()
         fun onArchiveClicked()
         fun onPlayClicked()
+        fun onPlayRandomClicked()
         fun onResourceOpsClicked(anchor: android.view.View)
         fun onRetryClicked()
         fun onStopScanClicked()
@@ -119,6 +120,11 @@ class BrowseButtonSetupHelper(
             callbacks.onArchiveClicked()
         }
 
+        binding.btnPlayRandom?.setOnClickListener {
+            UserActionLogger.logButtonClick("PlayRandom", "BrowseActivity - Toolbar")
+            callbacks.onPlayRandomClicked()
+        }
+
         binding.btnPlay.setOnClickListener {
             UserActionLogger.logButtonClick("Play", "BrowseActivity - Toolbar")
             callbacks.onPlayClicked()
@@ -195,6 +201,7 @@ class BrowseButtonSetupHelper(
             binding.btnToggleView.text = ctx.getString(R.string.toggle_view_short)
             binding.btnSelectAll.text = ctx.getString(R.string.select_all_short)
             binding.btnPlay.text = ctx.getString(R.string.slideshow)
+            binding.btnPlayRandom?.text = ctx.getString(R.string.play_random_short)
         } else {
             binding.btnBack.text = null
             binding.btnFilter.text = null
@@ -202,6 +209,7 @@ class BrowseButtonSetupHelper(
             binding.btnToggleView.text = null
             binding.btnSelectAll.text = null
             binding.btnPlay.text = null
+            binding.btnPlayRandom?.text = null
             binding.btnResourceOps?.text = null
         }
     }

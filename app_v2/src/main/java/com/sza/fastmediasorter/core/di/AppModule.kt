@@ -97,29 +97,12 @@ object AppModule {
         )
     }
     
-    @Provides
-    @Singleton
-    fun provideSftpClient(): SftpClient {
-        return SftpClient()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideFtpClient(): FtpClient {
-        return FtpClient()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideGoogleDriveRestClient(
-        @ApplicationContext context: Context,
-        credentialsManager: GoogleDriveCredentialsManager,
-        httpClient: GoogleDriveHttpClient,
-        pendingRevocationDao: com.sza.fastmediasorter.data.local.db.PendingRevocationDao,
-        networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-    ): GoogleDriveRestClient {
-        return GoogleDriveRestClient(context, credentialsManager, httpClient, pendingRevocationDao, networkCredentialsRepository)
-    }
+    // SftpClient and FtpClient are constructor-injected (@Inject + @Singleton on the class).
+    // Their explicit @Provides bindings were removed in S0025 since both now require
+    // NetworkReachabilityGate — Hilt resolves them via the constructor.
+
+    // GoogleDriveRestClient is constructor-injected (@Inject + @Singleton on the class).
+    // Explicit @Provides removed in S0025 — Hilt resolves it via the constructor.
     
     @Provides
     @Singleton

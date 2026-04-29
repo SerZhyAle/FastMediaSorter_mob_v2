@@ -1,16 +1,16 @@
 # Specification Developer Executor
 
-Execute a tactical specification step by step. Reads `PLAN/spec_<short-name>/INDEX.md` + phase files, follows `Prompt for developer:` in dependency order, runs each step's `Verification:` predicate before flipping to `[x] done`.
+Execute a tactical specification step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files, follows `Prompt for developer:` in dependency order, runs each step's `Verification:` predicate before flipping to `[x] done`.
 
 ## Usage
 
 ```text
-/spec-dev <short-name>                    # continue from first non-done step
-/spec-dev <short-name> --phase <NN>       # all remaining steps in one phase
-/spec-dev <short-name> --step <NN.M>      # single step
-/spec-dev <short-name> --until <NN.M>     # steps up to and including this one
-/spec-dev <short-name> --resume           # re-scan state, then continue
-/spec-dev <short-name> --dry-run          # print plan without writing
+/spec-dev <Sxxxx-or-slug>                    # continue from first non-done step
+/spec-dev <Sxxxx-or-slug> --phase <NN>       # all remaining steps in one phase
+/spec-dev <Sxxxx-or-slug> --step <NN.M>      # single step
+/spec-dev <Sxxxx-or-slug> --until <NN.M>     # steps up to and including this one
+/spec-dev <Sxxxx-or-slug> --resume           # re-scan state, then continue
+/spec-dev <Sxxxx-or-slug> --dry-run          # print plan without writing
 ```
 
 ---
@@ -24,6 +24,7 @@ Execute a tactical specification step by step. Reads `PLAN/spec_<short-name>/IND
 | `Draft` / `Approved` | Abort: no tactical folder. Run `/spec-tech` first. |
 | `Implemented` / `Verified` | Abort: feature closed. |
 | `Partial` / `Broken` | Abort: audit found problems. Run `/spec-fix` or `/spec-update --force-locked`. |
+| `BlockByOtherTask` / `BlockNeedUserTest` / `BlockQuestions` / `BlockExternal` | Abort: blocked. Resolve the block first (see §10 of strategic spec), then `update.ps1 -Status <prev>`. |
 
 ---
 
@@ -42,7 +43,7 @@ For each step in plan order:
 1. **Re-read the phase file.** If `Status:` is no longer `[ ]`/`[~]` → log "PRE-RESOLVED — skipped".
 2. **Verify dependencies.** `Depends on:` step must be `[x] done` — else abort: "Dependency violation: NN.M depends on NN.K which is not done."
 3. **Read `Prompt for developer:`** + `Files Touched` row(s). For each referenced existing class/method, confirm it exists at the expected path — else abort: "Prompt references `<symbol>` at `<path>`, not found."
-4. **Ambiguity check.** If prompt contains `<TODO>`, `<choose ..>`, `???`, or any unresolved placeholder → abort, request spec update via `/spec-update`.
+4. **Ambiguity check.** If prompt contains `<TODO>`, `<choose ..>`, `???`, or any unresolved placeholder → abort, request spec update via `/spec-update`. If it requires user input, set spec status to `BlockQuestions` and stop.
 5. **Pre-edit guards:**
    - Read-only zone (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`) → abort.
    - File >500 lines and not yet backed up → create timestamped copy in `temp/` first.
@@ -67,8 +68,9 @@ After all planned steps in the current phase complete:
 After all phases done:
 
 - Flip strategic `Status:` to `Implemented`. Add `**Implemented date:** <YYYY-MM-DD>`.
+- If on-device verification is part of the acceptance — also flip journal status to `BlockNeedUserTest`.
 
-**Chat output:** `N steps done. Cursor: <next step>. [Stop reason if any].`
+**Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any].`
 
 ---
 
@@ -76,7 +78,7 @@ After all phases done:
 
 Stop immediately and report — never guess or recover — on any of:
 
-1. **Ambiguous prompt** — placeholder text, missing class/method name, unspecified Hilt scope, unspecified dispatcher.
+1. **Ambiguous prompt** — placeholder text, missing class/method name, unspecified Hilt scope, unspecified dispatcher. Set status `BlockQuestions`.
 2. **Verification FAIL** after edit — step left `[~]`. User investigates.
 3. **Read-only zone touch.**
 4. **Line budget violation** — projected >1000 lines.
@@ -88,6 +90,7 @@ Stop immediately and report — never guess or recover — on any of:
 10. **Catalog-affecting change without regen step** — public API change in touched file but no catalog regen step in phase. Stop, suggest `/spec-update --tactical --phase NN`.
 11. **External system touch** — network, file deletion outside `temp/`, force push, CI edit. Stop, require explicit permission.
 12. **Trilingual gap** — step adds UI string but prompt names <3 `values/` files. Stop, never fabricate translations.
+13. **External dependency missing** — step needs library version / hardware / third-party state not present. Set status `BlockExternal`, stop.
 
 ---
 
@@ -131,3 +134,14 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 - Never auto-revert a failed edit — user decides from Step Log.
 - Dev log per file, per step — run immediately after step completion.
 - Cursor recomputed from phase file `Status:` on every invocation — never from memory.
+
+---
+
+## Spec Catalog hooks
+
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain the id. Read current status the same way before the first phase touches code.
+- **Status transitions.**
+  - Before the first non-done step is started: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status "In Progress"` (skip if status is already `In Progress` or later).
+  - After every phase has all steps `[x] done` and final dev log is written: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Implemented`.
+  - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions | BlockExternal | BlockByOtherTask | BlockNeedUserTest` per the stop reason.
+- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never set the journal status to `Verified` from this skill — that is `/spec-check`'s job.

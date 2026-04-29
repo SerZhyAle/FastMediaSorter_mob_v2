@@ -232,106 +232,7 @@ class EpubViewerManager(
                 return false
             }
         })
-        
-        // Initialize WebView with settings
-        webView = getOrCreateWebView()
-        webView?.apply {
-            settings.javaScriptEnabled = true // Enable JavaScript for scroll position detection
-            settings.loadWithOverviewMode = true
-            settings.useWideViewPort = true
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            settings.setSupportZoom(true)
-            
-            // Enable text selection for copying to clipboard
-            // Long-press on text should show selection handles and copy menu
-            isLongClickable = true
-            isClickable = true
-            isFocusable = true
-            isFocusableInTouchMode = true
-            setOnLongClickListener(null) // Use default WebView long click behavior
 
-            // Register JS interface so the injected selectionchange script can report selections
-            addJavascriptInterface(selectionBridge, "EpubSelectionBridge")
-
-            // Note: WebView does not support setCustomSelectionActionModeCallback (TextView-only API).
-            // Custom "Translate" / "Search in Google" items are injected via
-            // Activity.onActionModeStarted — use getSelectionActionModeCallback() to retrieve
-            // the pre-built callback for that hookup point.
-
-            // Setup WebViewClient to hide progress bar when page is fully loaded
-            webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    // Hide progress bar after WebView finishes rendering HTML
-                    binding.progressBar.post {
-                        binding.progressBar.isVisible = false
-                    }
-                    Timber.d("EPUB: WebView finished loading chapter")
-                }
-                
-                // Intercept requests to file:///android_asset/ and serve images from EPUB
-                override fun shouldInterceptRequest(
-                    view: WebView?,
-                    request: android.webkit.WebResourceRequest?
-                ): android.webkit.WebResourceResponse? {
-                    val url = request?.url?.toString() ?: return null
-                    
-                    // Check if this is a request to android_asset that we need to intercept
-                    if (url.startsWith("file:///android_asset/")) {
-                        val resourcePath = url.removePrefix("file:///android_asset/")
-                        Timber.d("EPUB: Intercepting request for asset: $resourcePath")
-                        
-                        // Try to find this resource in EPUB
-                        val book = currentBook
-                        if (book != null) {
-                            val imageResource = findImageResourceByPath(resourcePath, book)
-                            
-                            if (imageResource != null) {
-                                try {
-                                    val imageData = imageResource.data
-                                    val mimeType = imageResource.mediaType?.name ?: "image/jpeg"
-                                    val inputStream = java.io.ByteArrayInputStream(imageData)
-                                    
-                                    Timber.d("EPUB: Serving intercepted asset '$resourcePath' from EPUB (${imageData.size} bytes, $mimeType)")
-                                    
-                                    return android.webkit.WebResourceResponse(
-                                        mimeType,
-                                        "UTF-8",
-                                        inputStream
-                                    )
-                                } catch (e: Exception) {
-                                    Timber.e(e, "EPUB: Error serving intercepted asset '$resourcePath'")
-                                }
-                            } else {
-                                Timber.w("EPUB: Asset '$resourcePath' not found in EPUB resources")
-                                // List available images for debugging
-                                val imageResources = book.resources.all.filter { 
-                                    it.mediaType?.name?.startsWith("image/") == true 
-                                }
-                                Timber.w("EPUB: Available images: ${imageResources.map { it.href }.joinToString()}")
-                            }
-                        }
-                    }
-                    
-                    return super.shouldInterceptRequest(view, request)
-                }
-            }
-            
-            // Attach touch listener to WebView for gesture detection
-            setOnTouchListener { v, event ->
-                if (event.action == MotionEvent.ACTION_UP) v.performClick()
-                // Pass touch events to gesture detector first
-                swipeGestureDetector.onTouchEvent(event)
-                
-                // Return false to allow WebView's default touch handling (zoom, scroll, text selection)
-                // unless gesture was handled
-                // Always return false to allow WebView's default touch handling (scroll, etc.)
-                // The gesture detector is just "spying" on touches for custom actions (swipes)
-                false
-            }
-        }
-        
         // Setup chapter indicator click to show "Go to chapter" dialog
         binding.tvEpubChapterIndicator.setOnClickListener {
             if (chapterCount > 1) {
@@ -352,7 +253,7 @@ class EpubViewerManager(
             closeTranslationOverlay()
         }
         
-        Timber.d("EpubViewerManager initialized with WebView, fontSize=$currentFontSize, translationFontSize=$translationFontSize")
+        Timber.d("EpubViewerManager initialized, fontSize=$currentFontSize, translationFontSize=$translationFontSize")
     }
     
     /**
@@ -1126,6 +1027,70 @@ class EpubViewerManager(
                 )
             )
             webView = wv
+            configureWebView(wv)
+        }
+    }
+
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
+    private fun configureWebView(wv: WebView) {
+        wv.settings.javaScriptEnabled = true
+        wv.settings.loadWithOverviewMode = true
+        wv.settings.useWideViewPort = true
+        wv.settings.builtInZoomControls = true
+        wv.settings.displayZoomControls = false
+        wv.settings.setSupportZoom(true)
+        wv.isLongClickable = true
+        wv.isClickable = true
+        wv.isFocusable = true
+        wv.isFocusableInTouchMode = true
+        wv.setOnLongClickListener(null)
+        wv.addJavascriptInterface(selectionBridge, "EpubSelectionBridge")
+        wv.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                binding.progressBar.post {
+                    binding.progressBar.isVisible = false
+                }
+                Timber.d("EPUB: WebView finished loading chapter")
+            }
+
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: android.webkit.WebResourceRequest?
+            ): android.webkit.WebResourceResponse? {
+                val url = request?.url?.toString() ?: return null
+                if (url.startsWith("file:///android_asset/")) {
+                    val resourcePath = url.removePrefix("file:///android_asset/")
+                    Timber.d("EPUB: Intercepting request for asset: $resourcePath")
+                    val book = currentBook
+                    if (book != null) {
+                        val imageResource = findImageResourceByPath(resourcePath, book)
+                        if (imageResource != null) {
+                            try {
+                                val imageData = imageResource.data
+                                val mimeType = imageResource.mediaType?.name ?: "image/jpeg"
+                                val inputStream = java.io.ByteArrayInputStream(imageData)
+                                Timber.d("EPUB: Serving intercepted asset '$resourcePath' from EPUB (${imageData.size} bytes, $mimeType)")
+                                return android.webkit.WebResourceResponse(mimeType, "UTF-8", inputStream)
+                            } catch (e: Exception) {
+                                Timber.e(e, "EPUB: Error serving intercepted asset '$resourcePath'")
+                            }
+                        } else {
+                            Timber.w("EPUB: Asset '$resourcePath' not found in EPUB resources")
+                            val imageResources = book.resources.all.filter {
+                                it.mediaType?.name?.startsWith("image/") == true
+                            }
+                            Timber.w("EPUB: Available images: ${imageResources.map { it.href }.joinToString()}")
+                        }
+                    }
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
+        }
+        wv.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
+            swipeGestureDetector.onTouchEvent(event)
+            false
         }
     }
 

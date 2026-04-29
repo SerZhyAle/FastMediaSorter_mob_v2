@@ -200,10 +200,6 @@ class GeneralSettingsFragment : Fragment() {
         binding.containerSync.orientation = if (isLandscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
         updateLayoutParams(binding.layoutEnableSync, isLandscape)
         updateLayoutParams(binding.layoutSyncControls, isLandscape)
-
-        binding.containerConfirm.orientation = if (isLandscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
-        updateLayoutParams(binding.layoutConfirmDelete, isLandscape)
-        updateLayoutParams(binding.layoutConfirmMove, isLandscape)
     }
 }
 

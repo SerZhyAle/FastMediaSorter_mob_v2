@@ -244,6 +244,30 @@ class VideoSettingsFragment : Fragment() {
                 viewModel.updateSettings(current.copy(vrRememberFileFormat = isChecked))
             }
         }
+
+        // Auto-immersive on stereo content switch
+        binding.switchVrAutoImmersive.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(vrAutoImmersive = isChecked))
+            }
+        }
+
+        // Show VR FPS switch
+        binding.switchVrShowFps.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(vrShowFps = isChecked))
+            }
+        }
+
+        // S0021: Show FPS over flat (non-immersive) player
+        binding.switchPlayerShowFps.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(playerShowFps = isChecked))
+            }
+        }
     }
 
     private fun observeData() {
@@ -303,6 +327,12 @@ class VideoSettingsFragment : Fragment() {
                         binding.spinnerVrRenderingMode.setSelection(modeIdx)
 
                         binding.switchVrRememberFormat.isChecked = settings.vrRememberFileFormat
+                        binding.switchVrAutoImmersive.isChecked = settings.vrAutoImmersive
+                        binding.switchVrShowFps.isChecked = settings.vrShowFps
+                        val vrGloballyEnabled = !settings.disable3dVr
+                        binding.switchVrShowFps.isEnabled = vrGloballyEnabled
+                        binding.tvVrShowFpsDisabledHint.visibility = if (vrGloballyEnabled) View.GONE else View.VISIBLE
+                        binding.switchPlayerShowFps.isChecked = settings.playerShowFps
                     }
 
                     isUpdatingFromSettings = false

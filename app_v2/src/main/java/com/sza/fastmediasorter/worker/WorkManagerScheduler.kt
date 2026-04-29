@@ -10,11 +10,19 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,6 +37,7 @@ class WorkManagerScheduler @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val scheduledOperationRepository: ScheduledOperationRepository
 ) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     
     /**
      * Schedule periodic trash cleanup worker
@@ -177,6 +186,7 @@ class WorkManagerScheduler @Inject constructor(
                 request
             )
             Timber.i("WorkManagerScheduler: scheduled op=${operation.id} in ${delayMs / 1000}s")
+            observeAndReschedule(request.id, operation.id)
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: failed to schedule op=${operation.id}")
         }
@@ -203,6 +213,7 @@ class WorkManagerScheduler @Inject constructor(
                 request
             )
             Timber.i("WorkManagerScheduler: runNow op=$operationId")
+            observeAndReschedule(request.id, operationId)
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: failed to runNow op=$operationId")
         }
@@ -331,6 +342,36 @@ class WorkManagerScheduler @Inject constructor(
             Timber.i("WorkManagerScheduler: cancelled all thumbnail preload jobs")
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: failed to cancel all thumbnail preloads")
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * After [requestId] reaches a terminal state, reschedule the next run of [operationId]
+     * if the work succeeded. Called from scheduleOperation/runNow to break the self-scheduling
+     * race that occurred when enqueueUniqueWork(REPLACE) was called inside doWork.
+     */
+    private fun observeAndReschedule(requestId: UUID, operationId: Long) {
+        scope.launch {
+            try {
+                val workInfo = WorkManager.getInstance(context)
+                    .getWorkInfoByIdFlow(requestId)
+                    .filter { it?.state?.isFinished == true }
+                    .first()
+                if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
+                    val updated = scheduledOperationRepository.getById(operationId)
+                    if (updated != null && updated.isEnabled) {
+                        scheduleOperation(updated)
+                    }
+                } else {
+                    Timber.w("WorkManagerScheduler: op=$operationId finished with state=${workInfo?.state} — skipping reschedule")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "WorkManagerScheduler: reschedule observer failed for op=$operationId")
+            }
         }
     }
 

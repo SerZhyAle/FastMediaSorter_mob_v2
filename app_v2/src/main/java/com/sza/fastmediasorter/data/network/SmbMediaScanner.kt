@@ -24,6 +24,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,6 +60,7 @@ class SmbMediaScanner @Inject constructor(
 
     private val exifCache = LruCache<String, ExifMetadata>(100)
     private val videoMetadataCache = LruCache<String, VideoMetadata>(100)
+    private val _metadataErrorCount = AtomicInteger(0)
 
     companion object {
         // Extensions moved to MediaTypeUtils
@@ -130,7 +132,8 @@ class SmbMediaScanner @Inject constructor(
                     if (skipMetadataExtraction) {
                         Timber.d("Large folder (${result.data.size} files) — skipping per-file EXIF/video metadata extraction")
                     }
-                    result.data.mapNotNull { fileInfo ->
+                    _metadataErrorCount.set(0)
+                    val files = result.data.mapNotNull { fileInfo ->
                         // Skip hidden files if not requested (files starting with ".")
                         if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
                             return@mapNotNull null
@@ -180,6 +183,9 @@ class SmbMediaScanner @Inject constructor(
                             )
                         } else null
                     }
+                    val errCount = _metadataErrorCount.get()
+                    if (errCount > 0) progressCallback?.onMetadataErrors(errCount)
+                    files
                 }
                 is SmbResult.Error -> {
                     val ex = result.exception ?: Exception(result.message)
@@ -712,7 +718,8 @@ class SmbMediaScanner @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Timber.v(e, "SMB video metadata extraction failed for $remotePath")
+            _metadataErrorCount.incrementAndGet()
+            Timber.w(e, "SMB video metadata extraction failed for $remotePath")
             null
         } finally {
             runCatching { tempFile?.delete() }

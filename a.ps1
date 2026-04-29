@@ -21,6 +21,7 @@
     ch   - Check Typo/Lint
     s    - Setup Test Media
     bp   - Build and Push All
+    ss   - Show unresolved specs (alias: sca-specs)
 .EXAMPLE
     .\a.ps1 d
     .\a d
@@ -52,8 +53,10 @@ $scripts = @{
     'c'   = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @() }
     'ch'  = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @() }
     's'   = @{ Path = 'scripts\utils\setup_test_media.ps1'; Args = @() }
-    'b'   = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
-    'bp'  = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
+    'b'         = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
+    'bp'        = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
+    'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
+    'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
 }
 
 # Validate command
@@ -77,6 +80,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  s    - Setup Test Media" -ForegroundColor Cyan
     Write-Host "  b    - Build and Push All (same as bp)" -ForegroundColor Cyan
     Write-Host "  bp   - Build and Push All" -ForegroundColor Cyan
+    Write-Host "  ss   - Show unresolved specs (alias: sca-specs)" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray
     Write-Host "Example: .\a.ps1 d" -ForegroundColor Gray

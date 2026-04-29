@@ -33,7 +33,7 @@ class ImageOcrManager(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val settingsRepository: SettingsRepository,
     private val translationManager: TranslationManager,
-    private val textViewerManager: TextViewerManager,
+    private val textViewerManagerProvider: () -> TextViewerManager,
     private val callback: ImageOcrCallback
 ) {
     
@@ -84,7 +84,7 @@ class ImageOcrManager(
                 
                 withContext(Dispatchers.Main) {
                     if (recognizedText != null && recognizedText.isNotBlank()) {
-                        textViewerManager.displayOcrText(recognizedText)
+                        textViewerManagerProvider().displayOcrText(recognizedText)
                     } else {
                         callback.showError(callback.getString(R.string.ocr_no_text_found))
                     }

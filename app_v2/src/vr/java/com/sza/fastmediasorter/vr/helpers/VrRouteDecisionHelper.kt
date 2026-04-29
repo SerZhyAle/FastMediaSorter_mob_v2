@@ -7,13 +7,32 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.vr.VrLaunchRoute
+import timber.log.Timber
 
 internal data class VrRouteDecision(
     val route: VrLaunchRoute,
     val effectiveStereoMode: StereoMode,
     val logReason: String,
     @StringRes val userMessageResId: Int? = null,
-)
+) {
+    /**
+     * S0018 atomic logging: emits the (route, reason) pair from the same decision instance,
+     * so route and reason can never appear desynchronised in the log. Replaces the
+     * format string previously inlined in VrPlayerActivity.buildRouteDecision.
+     */
+    fun logTo(currentFile: MediaFile, requestedStereoMode: StereoMode, autoDetect: Boolean) {
+        Timber.i(
+            "VrPlayerActivity: route decision file=%s type=%s requested=%s effective=%s autoDetect=%b route=%s reason=%s",
+            currentFile.path,
+            currentFile.type,
+            requestedStereoMode,
+            effectiveStereoMode,
+            autoDetect,
+            route,
+            logReason,
+        )
+    }
+}
 
 /**
  * Centralizes VR route selection so VrPlayerActivity remains a coordinator.
@@ -21,6 +40,10 @@ internal data class VrRouteDecision(
  * The helper decides whether a file should stay in panel mode, enter immersive playback, or
  * fall back with an explicit user-visible message when the file asks for immersive playback but
  * the current media family is not supported by the headset renderer stack yet.
+ *
+ * S0018 invariant: route assignments live only inside VrRouteDecisionHelper.decide.
+ * No code outside this class may construct or mutate a VrRouteDecision.route value;
+ * downstream consumers may only READ routeDecision.route (e.g. in `when` arms).
  */
 internal class VrRouteDecisionHelper {
 
@@ -74,12 +97,29 @@ internal class VrRouteDecisionHelper {
         // has to enter immersive XR to actually expose per-eye pixels. Only plain 2D falls back
         // to the panel player.
         val requestsImmersive = effectiveStereoMode.isSpherical() || effectiveStereoMode.isStereoscopic()
+
+        // Auto-immersive setting (spec_vr-auto-immersive-setting): when the user disabled the
+        // automatic transition, stereo content stays on the flat screen unless explicitly forced.
+        // userForcedImmersive bypass already covers the "manual 3DVR button" path.
+        if (requestsImmersive && !userForcedImmersive && !settings.vrAutoImmersive) {
+            return VrRouteDecision(
+                route = VrLaunchRoute.STANDARD_PANEL_FALLBACK,
+                effectiveStereoMode = effectiveStereoMode,
+                logReason = "auto-immersive-disabled",
+            )
+        }
+
         if (!requestsImmersive) {
             if (currentFile.type == MediaType.VIDEO) {
+                val fallbackRoute = if (settings.vrAutoImmersive) {
+                    VrLaunchRoute.CINEMA_IMMERSIVE
+                } else {
+                    VrLaunchRoute.STANDARD_PANEL_FALLBACK
+                }
                 return VrRouteDecision(
-                    route = VrLaunchRoute.CINEMA_IMMERSIVE,
+                    route = fallbackRoute,
                     effectiveStereoMode = StereoMode.MONO,
-                    logReason = "plain-2d-video-cinema",
+                    logReason = "plain-2d-video",
                 )
             }
             return VrRouteDecision(

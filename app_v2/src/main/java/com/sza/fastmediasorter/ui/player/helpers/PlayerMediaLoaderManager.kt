@@ -59,9 +59,7 @@ class PlayerMediaLoaderManager(
     private val viewModel: PlayerViewModel,
     private val imageLoadingManager: ImageLoadingManager,
     private val videoPlayerManager: VideoPlayerManager,
-    private val pdfViewerManager: PdfViewerManager,
-    private val epubViewerManager: EpubViewerManager,
-    private val textViewerManager: TextViewerManager,
+    private val textViewerManagerProvider: () -> TextViewerManager,
     private val exoPlayerControlsManager: ExoPlayerControlsManager,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val loadingIndicatorHandler: Handler,
@@ -179,7 +177,7 @@ class PlayerMediaLoaderManager(
         val resource = viewModel.state.value.resource
         Timber.d("PlayerMediaLoaderManager.displayText: file=${mediaFile.name}")
         imageLoadingManager.hideAnimatedBadge()
-        textViewerManager.displayText(mediaFile, isWritable = resource?.isWritable == true)
+        textViewerManagerProvider().displayText(mediaFile, isWritable = resource?.isWritable == true)
     }
 
     /**
@@ -438,6 +436,10 @@ class PlayerMediaLoaderManager(
             Timber.w("preCacheNetworkAudio: timed out after ${NETWORK_AUDIO_PRECACHE_TIMEOUT_MS}ms for $path — falling back to direct streaming")
             destFile.delete()
             null
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // Structured cancellation (e.g. lifecycleScope destroyed while downloading) — not an error.
+            destFile.delete()
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "preCacheNetworkAudio: download failed for $path")
             destFile.delete()

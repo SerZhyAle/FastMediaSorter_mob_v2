@@ -51,6 +51,7 @@ class BrowseStateUiUpdater(
         updateFilterBadge(state)
         updateSelectionPanel(state)
         updateDisplayModeIfNeeded(state)
+        updatePlayRandomButtonVisibility(state)
         adapter.setUseCompactElements(state.useCompactElements)
         applySmallControls(state)
         onUpdateBreadcrumb(state)
@@ -95,6 +96,18 @@ class BrowseStateUiUpdater(
         binding.btnShare.isVisible = hasSelection
         val isLocalResource = resource?.type == ResourceType.LOCAL
         binding.btnArchive?.isVisible = hasSelection && isLocalResource
+    }
+
+    /**
+     * "Play Random" button appears only for single-type libraries (audio / image / video).
+     * Hidden for mixed, allFiles, or document-only resources — random play has no meaningful
+     * semantics there from a UX perspective.
+     */
+    private fun updatePlayRandomButtonVisibility(state: BrowseState) {
+        val resource = state.resource
+        val isSingleTypeMediaLibrary = resource != null &&
+            (resource.isAudioOnly() || resource.isOnlyImage() || resource.isVideoOnly())
+        binding.btnPlayRandom?.isVisible = isSingleTypeMediaLibrary
     }
 
     private suspend fun updateDisplayModeIfNeeded(state: BrowseState) {

@@ -240,6 +240,20 @@ class PlaybackSettingsFragment : Fragment() {
             }
         }
 
+        // S0003: Link auto-download — master toggle + open-in-player toggle.
+        // Resource picker (row_link_autodownload_resource) is wired in Phase 05;
+        // for Phase 01 the row stays informational and reflects the persisted id.
+        binding.switchLinkAutodownloadEnabled.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(linkAutoDownloadEnabled = isChecked))
+        }
+        binding.switchLinkAutodownloadOpenInPlayer.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(linkAutoDownloadOpenInPlayer = isChecked))
+        }
+
         binding.switchResumeOnNextLaunch.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -306,6 +320,13 @@ class PlaybackSettingsFragment : Fragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enablePictureInPicture = isChecked))
+        }
+
+        // Panel single-eye 3D crop (spec_panel-stereo-single-eye)
+        binding.switchPanelStereoSingleEye.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(panelStereoSingleEye = isChecked))
         }
 
         // Handle manual input
@@ -377,6 +398,9 @@ class PlaybackSettingsFragment : Fragment() {
                             binding.switchEnablePip.isChecked = settings.enablePictureInPicture
                         }
                     }
+                    if (binding.switchPanelStereoSingleEye.isChecked != settings.panelStereoSingleEye) {
+                        binding.switchPanelStereoSingleEye.isChecked = settings.panelStereoSingleEye
+                    }
                     if (binding.switchShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
                         binding.switchShowPlayerHint.isChecked = settings.showPlayerHintOnFirstRun
                     }
@@ -402,6 +426,24 @@ class PlaybackSettingsFragment : Fragment() {
 
                     if (binding.switchResumeOnNextLaunch.isChecked != settings.resumeOnNextLaunch) {
                         binding.switchResumeOnNextLaunch.isChecked = settings.resumeOnNextLaunch
+                    }
+
+                    // S0003: Link auto-download
+                    if (binding.switchLinkAutodownloadEnabled.isChecked != settings.linkAutoDownloadEnabled) {
+                        binding.switchLinkAutodownloadEnabled.isChecked = settings.linkAutoDownloadEnabled
+                    }
+                    if (binding.switchLinkAutodownloadOpenInPlayer.isChecked != settings.linkAutoDownloadOpenInPlayer) {
+                        binding.switchLinkAutodownloadOpenInPlayer.isChecked = settings.linkAutoDownloadOpenInPlayer
+                    }
+                    // Disable child controls when master toggle is off
+                    binding.switchLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
+                    binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
+                    binding.tvLinkAutodownloadResourceValue.isEnabled = settings.linkAutoDownloadEnabled
+                    binding.tvLinkAutodownloadResourceValue.text = if (settings.linkAutoDownloadResourceId == null) {
+                        getString(R.string.link_autodownload_resource_not_set)
+                    } else {
+                        // Phase 05 will resolve the resource label via GetDestinationsUseCase.
+                        getString(R.string.link_autodownload_resource_not_set)
                     }
 
                     if (BuildConfig.SUPPORT_VR_PLAYER) {

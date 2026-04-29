@@ -186,6 +186,11 @@ data class MediaResource(
     fun isOnlyImage(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.IMAGE)
     }
+
+    /** True only for a video-only library (single type, not allFiles). */
+    fun isVideoOnly(): Boolean {
+        return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.VIDEO)
+    }
 }
 
 /**

@@ -203,6 +203,18 @@
 
                     </LinearLayout>
 
+                    <!-- Panel Stereo Single-Eye View (spec_panel-stereo-single-eye) -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPanelStereoSingleEye" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_panel_stereo_single_eye_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:id="@+id/textPanelStereoSingleEyeSummary" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_panel_stereo_single_eye_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -320,6 +332,38 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_accept_shared_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- S0003: Link auto-download — master toggle -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_link_autodownload_enabled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_master_label" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_master_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- S0003: Link auto-download — destination resource (label-only stub; picker wired in Phase 05) -->
+                    <LinearLayout android:id="@+id/row_link_autodownload_resource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_resource_label" android:textSize="@dimen/toggler_title_text_size" />
+                        <TextView android:id="@+id/tv_link_autodownload_resource_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_resource_not_set" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+
+                    </LinearLayout>
+
+                    <!-- S0003: Link auto-download — open in player toggle -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_link_autodownload_open_in_player" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_open_in_player_label" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_open_in_player_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                     </LinearLayout>

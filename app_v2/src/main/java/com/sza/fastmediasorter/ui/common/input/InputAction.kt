@@ -72,6 +72,12 @@ sealed interface InputAction {
     data object ShowHelp : InputAction          // F1
     data object ToggleFavourite : InputAction   // middle-click / Bookmark key
 
+    // -------- browse / media-library actions --------
+    /** Start slideshow / player from first file without reshuffling. */
+    data object StartSlideshow : InputAction    // Ctrl+Enter in Browse (wired via existing onPlayClicked)
+    /** Reshuffle and immediately start playback from first reshuffled file (Browse Ctrl+P). */
+    data object PlayRandomCurrent : InputAction // Ctrl+P in Browse
+
     // -------- player specific --------
     data object PlayPause : InputAction          // Space / Enter / media play-pause
     data object ToggleMute : InputAction         // M

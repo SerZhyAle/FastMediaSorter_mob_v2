@@ -70,13 +70,19 @@ object VrTaskTransition {
      * FLAG_IMMUTABLE is mandatory on API 31+ for PendingIntents that cross into another
      * process (vrshell fires the PendingIntent), and has been supported since API 23,
      * so it is always on for this app (minSdk 26 for the VR flavor).
+     *
+     * Use [exitImmersiveToFlatPlayer] for user-driven «exit to playback panel» — that path
+     * carries playback context (file/position/resource) so the user is not stranded on
+     * the file browser. This `exitImmersiveToPanel` overload is for recovery fallbacks
+     * (XR init failure, file-ops dialog requesting browser navigation) where landing
+     * on the browser root is the intended behaviour.
      */
-    fun exitImmersiveToPanel(source: Activity) {
+    fun exitImmersiveToPanel(source: Activity, resumePlayerIntent: Intent? = null) {
         val ctx: Context = source.applicationContext
-        val panelIntent = Intent(ctx, MainActivity::class.java).apply {
+        val panelIntent = resumePlayerIntent ?: Intent(ctx, MainActivity::class.java).apply {
             action = Intent.ACTION_MAIN
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
+        panelIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val pending = PendingIntent.getActivity(
             ctx,
             0,
@@ -87,8 +93,32 @@ object VrTaskTransition {
             .addCategory(Intent.CATEGORY_HOME)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             .putExtra(EXTRA_LAUNCH_IN_HOME_PENDING_INTENT, pending)
-        Timber.i("VrTaskTransition.exitImmersiveToPanel: routing via home-intent")
+        val targetClass = panelIntent.component?.className?.substringAfterLast('.')
+        Timber.i("VrTaskTransition.exitImmersiveToPanel: routing via home-intent target=%s", targetClass)
         source.startActivity(home)
         source.finishAndRemoveTask()
+    }
+
+    /**
+     * S0019: explicit user-driven «exit to flat playback panel» path. Carries playback
+     * context (resource/file/position) so the user lands on the same file in the 2D
+     * player rather than on the file-browser root.
+     *
+     * This is a thin wrapper over [exitImmersiveToPanel] that requires a non-null
+     * `playerIntent`; the named function makes it impossible to accidentally fall back
+     * to MainActivity for the user-driven exit (which was the symptom of the original
+     * S0019 bug).
+     */
+    fun exitImmersiveToFlatPlayer(source: Activity, playerIntent: Intent) {
+        val targetClass = playerIntent.component?.className?.substringAfterLast('.')
+        val filePath = playerIntent.getStringExtra("extra_initial_file_path")
+            ?: playerIntent.getStringExtra("initialFilePath")
+            ?: "<unknown>"
+        Timber.i(
+            "VrTaskTransition.exitImmersiveToFlatPlayer: routing via home-intent target=%s file=%s",
+            targetClass,
+            filePath,
+        )
+        exitImmersiveToPanel(source, playerIntent)
     }
 }

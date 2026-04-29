@@ -48,20 +48,28 @@ object SettingsSearchRegistry {
             viewId = R.id.switchShowHiddenFiles
         ),
         SettingsSearchIndex(
-            key = "general.safe_mode",
+            key = "operations.safe_mode",
             title = "Safe mode",
             keywords = listOf("safe mode", "confirm", "protection"),
-            sectionId = "general",
-            destination = SettingsSearchDestination.GENERAL,
+            sectionId = "operations",
+            destination = SettingsSearchDestination.DESTINATIONS,
             viewId = R.id.switchEnableSafeMode
         ),
         SettingsSearchIndex(
-            key = "general.confirm_delete",
+            key = "operations.confirm_delete",
             title = "Confirm delete",
             keywords = listOf("confirm delete", "delete prompt"),
-            sectionId = "general",
-            destination = SettingsSearchDestination.GENERAL,
+            sectionId = "operations",
+            destination = SettingsSearchDestination.DESTINATIONS,
             viewId = R.id.switchConfirmDelete
+        ),
+        SettingsSearchIndex(
+            key = "operations.confirm_move",
+            title = "Confirm move",
+            keywords = listOf("confirm move", "move prompt"),
+            sectionId = "operations",
+            destination = SettingsSearchDestination.DESTINATIONS,
+            viewId = R.id.switchConfirmMove
         ),
         SettingsSearchIndex(
             key = "general.network_parallelism",

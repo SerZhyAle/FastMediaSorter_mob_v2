@@ -34,9 +34,9 @@ class PlayerControlsSetupManager(
     private val viewModel: PlayerViewModel,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val slideshowController: SlideshowController,
-    private val pdfViewerManager: PdfViewerManager,
-    private val epubViewerManager: EpubViewerManager,
-    private val textViewerManager: TextViewerManager,
+    private val pdfViewerManagerProvider: () -> PdfViewerManager,
+    private val epubViewerManagerProvider: () -> EpubViewerManager,
+    private val textViewerManagerProvider: () -> TextViewerManager,
     private val translationManager: TranslationManager,
     private val translationButtonManager: TranslationButtonManager,
     private val exoPlayerControlsManager: ExoPlayerControlsManager,
@@ -209,19 +209,19 @@ class PlayerControlsSetupManager(
     private fun setupPdfControls() {
         binding.btnPdfPrevPage.setOnClickListener {
             UserActionLogger.logButtonClick("PdfPrevPage", "PlayerActivity")
-            pdfViewerManager.showPreviousPage()
+            pdfViewerManagerProvider().showPreviousPage()
             activity.scheduleHideControls()
         }
         
         binding.btnPdfHome.setOnClickListener {
             UserActionLogger.logButtonClick("PdfHome", "PlayerActivity")
-            pdfViewerManager.showFirstPage()
+            pdfViewerManagerProvider().showFirstPage()
             activity.scheduleHideControls()
         }
         
         binding.btnPdfNextPage.setOnClickListener {
             UserActionLogger.logButtonClick("PdfNextPage", "PlayerActivity")
-            pdfViewerManager.showNextPage()
+            pdfViewerManagerProvider().showNextPage()
             activity.scheduleHideControls()
         }
 
@@ -248,7 +248,7 @@ class PlayerControlsSetupManager(
         // PDF Translation Button (in command panel)
         binding.btnTranslatePdfCmd.setOnClickListener {
             UserActionLogger.logButtonClick("TranslatePdfCmd", "PlayerActivity")
-            pdfViewerManager.toggleTranslation()
+            pdfViewerManagerProvider().toggleTranslation()
             activity.scheduleHideControls()
         }
         binding.btnTranslatePdfCmd.setOnLongClickListener {
@@ -264,44 +264,44 @@ class PlayerControlsSetupManager(
     private fun setupEpubControls() {
         binding.btnEpubPrevChapter.setOnClickListener {
             UserActionLogger.logButtonClick("EpubPrevChapter", "PlayerActivity")
-            epubViewerManager.showPreviousChapter()
+            epubViewerManagerProvider().showPreviousChapter()
             activity.scheduleHideControls()
         }
         
         binding.btnEpubHome.setOnClickListener {
             UserActionLogger.logButtonClick("EpubHome", "PlayerActivity")
-            epubViewerManager.showFirstChapter()
+            epubViewerManagerProvider().showFirstChapter()
             activity.scheduleHideControls()
         }
         
         binding.btnEpubNextChapter.setOnClickListener {
             UserActionLogger.logButtonClick("EpubNextChapter", "PlayerActivity")
-            epubViewerManager.showNextChapter()
+            epubViewerManagerProvider().showNextChapter()
             activity.scheduleHideControls()
         }
         
         binding.btnEpubToc.setOnClickListener {
             UserActionLogger.logButtonClick("EpubToc", "PlayerActivity")
-            epubViewerManager.showTableOfContents()
+            epubViewerManagerProvider().showTableOfContents()
             activity.scheduleHideControls()
         }
         
         binding.btnEpubFontSizeDecrease.setOnClickListener {
             UserActionLogger.logButtonClick("EpubFontSizeDecrease", "PlayerActivity")
-            epubViewerManager.decreaseFontSize()
+            epubViewerManagerProvider().decreaseFontSize()
             activity.scheduleHideControls()
         }
         
         binding.btnEpubFontSizeIncrease.setOnClickListener {
             UserActionLogger.logButtonClick("EpubFontSizeIncrease", "PlayerActivity")
-            epubViewerManager.increaseFontSize()
+            epubViewerManagerProvider().increaseFontSize()
             activity.scheduleHideControls()
         }
         
         // EPUB Exit Fullscreen Button
         binding.btnExitEpubFullscreen.setOnClickListener {
             UserActionLogger.logButtonClick("ExitEpubFullscreen", "PlayerActivity")
-            epubViewerManager.exitFullscreenMode()
+            epubViewerManagerProvider().exitFullscreenMode()
         }
     }
     
@@ -433,7 +433,7 @@ class PlayerControlsSetupManager(
      * Delegates to TextViewerManager.
      */
     private fun setupTextViewerControls() {
-        textViewerManager.setupControls()
+        textViewerManagerProvider().setupControls()
     }
     
     /**

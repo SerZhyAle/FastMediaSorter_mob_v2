@@ -219,10 +219,14 @@ class NetworkVideoFrameDecoder(
             try {
                 retriever.setDataSource(mediaDataSource)
 
-                // Extract frame at 1 second (or first frame if video is shorter)
+                // Extract frame at 1 second; if null the file header is unreadable — skip fallback
+                // to avoid a second system-level "videoFrame is a NULL pointer" warning.
                 val frameTime = 1_000_000L // 1 second in microseconds
-                retriever.getFrameAtTime(frameTime, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                    ?: retriever.getFrameAtTime(0) // Fallback to first frame
+                val frame = retriever.getFrameAtTime(frameTime, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                if (frame == null) {
+                    Timber.w("getFrameAtTime returned null for ${path.substringAfterLast('/')}, skipping fallback")
+                }
+                frame
             } catch (e: Exception) {
                 if (isExpectedFrameExtractionFailure(e)) {
                     Timber.w("Video frame extraction skipped for ${path.substringAfterLast('/')} - ${e.message}")

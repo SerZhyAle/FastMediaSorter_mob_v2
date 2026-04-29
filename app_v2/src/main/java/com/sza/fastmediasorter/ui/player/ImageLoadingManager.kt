@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
 import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioInfoDisplayHelper
+import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer
@@ -61,6 +62,7 @@ class ImageLoadingManager(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val loadingIndicatorHandler: Handler,
     private val showLoadingIndicatorRunnable: Runnable,
+    private val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier,
     private val callback: ImageLoadingCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
@@ -119,7 +121,8 @@ class ImageLoadingManager(
     private var isDynamicBackgroundEnabled: Boolean = false
     private val staticImageRenderer: StaticImageRenderer = DualSurfaceStaticImageRenderer(
         surfaceA = binding.photoView,
-        surfaceB = binding.photoViewSurfaceB
+        surfaceB = binding.photoViewSurfaceB,
+        panelStereoSingleEyeNotifier = panelStereoSingleEyeNotifier
     )
 
     private val imagePreloadHelper: ImagePreloadHelper by lazy {
@@ -172,10 +175,19 @@ class ImageLoadingManager(
 
     /**
      * Set stereo crop mode for 3D images. Delegates to the underlying renderer.
-     * SBS crops to left half, OU crops to top half, MONO = no crop.
+     * SBS crops to right half, OU crops to bottom half, MONO = no crop.
      */
     fun setStereoMode(mode: com.sza.fastmediasorter.domain.model.StereoMode) {
         staticImageRenderer.setStereoMode(mode)
+    }
+
+    /**
+     * Toggle the panel single-eye crop master flag for 3D images.
+     * Caller (PlayerManagerInitializer) is responsible for re-displaying the current image
+     * so the toggle takes effect without a fresh navigation.
+     */
+    fun setPanelStereoSingleEyeEnabled(enabled: Boolean) {
+        staticImageRenderer.setPanelStereoSingleEyeEnabled(enabled)
     }
 
     /**

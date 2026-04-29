@@ -52,6 +52,10 @@ object NetworkErrorMessageMapper {
         val isConnectivityError = exception is NetworkConnectionLostException
                 || exception is NetworkTimeoutException
 
+        if (isConnectivityError && !contextAnalyzer.hasAnyNetwork()) {
+            return context.getString(R.string.error_network_connection_lost)
+        }
+
         if (isConnectivityError && resourceType == ResourceType.SMB) {
             val host = contextAnalyzer.extractHost(resourcePath)
             if (contextAnalyzer.isCellularNetwork()) {

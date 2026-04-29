@@ -193,21 +193,21 @@ class StereoVideoProcessorTest {
     // ──────────────────────────────────────────────────────────────────────────
 
     @Test
-    fun `buildGlEffect returns Crop for SBS_FULL left-eye crop`() {
+    fun `buildGlEffect returns Crop for SBS_FULL right-eye crop`() {
         val effect = processor.buildGlEffect(StereoMode.SBS_FULL)
         assertNotNull(effect)
         assertTrue(effect is Crop)
     }
 
     @Test
-    fun `buildGlEffect returns Crop for SBS_HALF left-eye crop`() {
+    fun `buildGlEffect returns Crop for SBS_HALF right-eye crop`() {
         val effect = processor.buildGlEffect(StereoMode.SBS_HALF)
         assertNotNull(effect)
         assertTrue(effect is Crop)
     }
 
     @Test
-    fun `buildGlEffect returns Crop for OU top-eye crop`() {
+    fun `buildGlEffect returns Crop for OU bottom-eye crop`() {
         val effect = processor.buildGlEffect(StereoMode.OU)
         assertNotNull(effect)
         assertTrue(effect is Crop)
@@ -216,5 +216,15 @@ class StereoVideoProcessorTest {
     @Test
     fun `buildGlEffect returns null for MONO`() {
         assertNull(processor.buildGlEffect(StereoMode.MONO))
+    }
+
+    @Test
+    fun `buildGlEffect returns null for AUTO`() {
+        assertNull(processor.buildGlEffect(StereoMode.AUTO))
+    }
+
+    @Test
+    fun `buildGlEffect returns null for UNKNOWN`() {
+        assertNull(processor.buildGlEffect(StereoMode.UNKNOWN))
     }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.ui.BaseViewModel
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -117,6 +118,12 @@ class PlayerViewModel @Inject constructor(
         // VIDEO/AUDIO use isSlideShowActive for auto-advance only, not visual slideshow mode.
         val isPhotoSlideshowActive: Boolean get() =
             isSlideShowActive && (currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF)
+        // S0023: aliases used by the VR-flavor exit path. resourceId is derived from the
+        // active resource; isSlideshowEnabled mirrors the existing isSlideShowActive flag —
+        // VrPlayerActivity.exitVrAndStopPlayback uses these names when it rebuilds the
+        // panel intent for the standard PlayerActivity.
+        val resourceId: Long get() = resource?.id ?: 0L
+        val isSlideshowEnabled: Boolean get() = isSlideShowActive
     }
 
     sealed class PlayerEvent {
@@ -504,6 +511,14 @@ class PlayerViewModel @Inject constructor(
     fun clearExpiredUndoOperation() = deleteUndoCoordinator.clearExpiredUndoOperation()
 
     suspend fun getSettings() = settingsRepository.getSettings().first()
+
+    /**
+     * S0023: hot StateFlow of app settings for UI consumers that need synchronous reads
+     * (e.g. VrPlayerActivity HUD FPS gate). Eager start so `.value` is non-default after
+     * the first emission of the underlying DataStore flow.
+     */
+    val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
 
     /**
      * Get adjacent files for preloading (previous + next).

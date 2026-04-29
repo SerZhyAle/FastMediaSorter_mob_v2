@@ -67,28 +67,58 @@ class NetworkFileManager(
         if (mediaFile.path.startsWith("/")) {
             val f = File(mediaFile.path)
             if (f.exists()) return f
-            throw java.io.FileNotFoundException("Local file not found: ${mediaFile.path}")
+
+            // Fallback 1: MediaStore contentUri — available for media files on API 29+.
+            // Files in Android/data/<other_package>/ may not have one, but worth checking.
+            val contentUri = mediaFile.contentUri
+            if (!contentUri.isNullOrEmpty()) {
+                Timber.w("NetworkFileManager: File.exists()=false, trying contentUri fallback: $contentUri")
+                return copyUriToTemp(contentUri, mediaFile.name)
+            }
+
+            // Fallback 2: try direct FileInputStream — handles the Android FUSE quirk where
+            // File.exists() returns false (e.g. stat() denied on parent) but the file itself
+            // is still accessible. Also surfaces EACCES as IOException for better diagnostics.
+            try {
+                return copyFileToTemp(f, mediaFile.name)
+            } catch (e: java.io.IOException) {
+                Timber.w(e, "NetworkFileManager: direct stream fallback failed for ${mediaFile.path}")
+                throw java.io.FileNotFoundException("Local file not found: ${mediaFile.path}")
+            }
         }
 
         // Content URIs from external intents (e.g. "Open With") — copy to temp file
         if (mediaFile.path.startsWith("content://")) {
-            return copyContentUriToTemp(mediaFile)
+            return copyUriToTemp(mediaFile.path, mediaFile.name)
         }
 
         // Network files - download to temp cache
         return downloadNetworkFileForRead(mediaFile)
     }
 
-    private suspend fun copyContentUriToTemp(mediaFile: MediaFile): File = withContext(Dispatchers.IO) {
-        val uri = android.net.Uri.parse(mediaFile.path)
-        val ext = mediaFile.name.substringAfterLast('.', "bin")
+    private suspend fun copyUriToTemp(uriString: String, fileName: String): File = withContext(Dispatchers.IO) {
+        val uri = android.net.Uri.parse(uriString)
+        val ext = fileName.substringAfterLast('.', "bin")
         val tempFile = File(context.cacheDir, "standalone_content_${System.currentTimeMillis()}.$ext")
         context.contentResolver.openInputStream(uri)?.use { input ->
             tempFile.outputStream().use { output -> input.copyTo(output) }
-        } ?: throw java.io.IOException("Cannot open content URI: ${mediaFile.path}")
+        } ?: throw java.io.IOException("Cannot open content URI: $uriString")
         Timber.d("NetworkFileManager: content URI copied to temp file: ${tempFile.path}")
         tempFile
     }
+
+    private suspend fun copyFileToTemp(file: File, fileName: String): File = withContext(Dispatchers.IO) {
+        val ext = fileName.substringAfterLast('.', "bin")
+        val tempFile = File(context.cacheDir, "local_fallback_${System.currentTimeMillis()}.$ext")
+        file.inputStream().use { input ->
+            tempFile.outputStream().use { output -> input.copyTo(output) }
+        }
+        Timber.d("NetworkFileManager: local file copied to temp via InputStream (File.exists() was false): ${tempFile.path}")
+        tempFile
+    }
+
+    private suspend fun copyContentUriToTemp(mediaFile: MediaFile): File =
+        copyUriToTemp(mediaFile.path, mediaFile.name)
     
     /**
      * Prepare file for writing. Returns temp file for network files (will be uploaded after edit).

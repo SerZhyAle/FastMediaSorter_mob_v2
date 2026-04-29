@@ -36,7 +36,9 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             googleDriveClient = activity.googleDriveClient,
             oneDriveClient = activity.oneDriveClient,
             dropboxClient = activity.dropboxClient,
-            playbackPositionRepository = activity.playbackPositionRepository
+            playbackPositionRepository = activity.playbackPositionRepository,
+            settingsRepository = activity.settingsRepository,
+            panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
         }

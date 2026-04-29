@@ -540,7 +540,8 @@ class SmbOperationStrategy(
 
         val hostCredentials = credentialsRepository.getCredentialsByHost(server)
         if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
-            Timber.w("SmbOperationStrategy: Share-specific credentials not found for '$server/$shareName', using SMB host credentials (user: ${hostCredentials.username})")
+            // D instead of W — expected fallback during batch ops, not an error worth spamming W-level
+            Timber.d("SmbOperationStrategy: Share-specific credentials not found for '$server/$shareName', using SMB host credentials (user: ${hostCredentials.username})")
             return hostCredentials
         }
 

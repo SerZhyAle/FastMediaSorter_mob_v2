@@ -8,10 +8,10 @@ import java.security.MessageDigest
 
 /**
  * Glide BitmapTransformation that crops a stereoscopic image to show
- * the left-eye frame only.
+ * a single eye only.
  *
- * - SBS (Side-by-Side): crops to the left 50% of the image width.
- * - OU (Over-Under): crops to the top 50% of the image height.
+ * - SBS (Side-by-Side): crops to the right 50% of the image width.
+ * - OU (Over-Under): crops to the bottom 50% of the image height.
  * - MONO / AUTO: no-op passthrough (returns original bitmap).
  *
  * The cropped result is cached by Glide under a unique key that includes
@@ -32,16 +32,16 @@ class StereoImageCropTransformation(
 
         return when (stereoMode) {
             StereoMode.SBS_FULL, StereoMode.SBS_HALF -> {
-                // Left eye = left half of the frame
+                // Right eye = right half of the frame
                 val halfW = w / 2
                 if (halfW <= 0) toTransform
-                else Bitmap.createBitmap(toTransform, 0, 0, halfW, h)
+                else Bitmap.createBitmap(toTransform, w - halfW, 0, halfW, h)
             }
             StereoMode.OU -> {
-                // Left eye = top half of the frame
+                // Right eye = bottom half of the frame
                 val halfH = h / 2
                 if (halfH <= 0) toTransform
-                else Bitmap.createBitmap(toTransform, 0, 0, w, halfH)
+                else Bitmap.createBitmap(toTransform, 0, h - halfH, w, halfH)
             }
             else -> toTransform // MONO / AUTO / UNKNOWN — no crop
         }
@@ -57,7 +57,9 @@ class StereoImageCropTransformation(
     }
 
     companion object {
-        private const val ID = "com.sza.fastmediasorter.StereoImageCropTransformation"
+        // ID bumped to .v2 when crop direction flipped from left/top to right/bottom
+        // (spec_panel-stereo-single-eye) — invalidates old cached bitmaps.
+        private const val ID = "com.sza.fastmediasorter.StereoImageCropTransformation.v2"
         private val CHARSET = Charsets.UTF_8
     }
 }

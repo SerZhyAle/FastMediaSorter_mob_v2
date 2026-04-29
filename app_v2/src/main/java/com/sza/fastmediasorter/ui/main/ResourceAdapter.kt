@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
@@ -35,6 +36,7 @@ interface DragStartListener {
 @android.annotation.SuppressLint("SetTextI18n")
 class ResourceAdapter(
     private val onItemClick: (MediaResource) -> Unit,
+    private val onIconClick: (MediaResource) -> Unit,
     private val onItemLongClick: (MediaResource) -> Unit,
     private val onEditClick: (MediaResource) -> Unit,
     private val onCopyFromClick: (MediaResource) -> Unit,
@@ -139,6 +141,11 @@ class ResourceAdapter(
             
             return spannable
         }
+
+        fun isQuickSlideshowEligible(resource: MediaResource): Boolean =
+            resource.profile == ResourceProfile.AUDIO_LIBRARY ||
+            resource.profile == ResourceProfile.VIDEO_LIBRARY ||
+            resource.profile == ResourceProfile.PHOTO_STORAGE
 
         private fun createIconSpan(context: android.content.Context, iconRes: Int, tintColor: Int): CharSequence {
             val drawable = ContextCompat.getDrawable(context, iconRes)?.mutate()
@@ -301,7 +308,26 @@ class ResourceAdapter(
                     }
                 }
                 ivResourceTypeIcon.setImageResource(iconRes)
-                
+
+                val quickEligibleGrid = isQuickSlideshowEligible(resource)
+                if (quickEligibleGrid) {
+                    ivResourceTypeIcon.isClickable = true
+                    ivResourceTypeIcon.isFocusable = true
+                    ivResourceTypeIcon.foreground = ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.ripple_icon_quick_slideshow
+                    )
+                    ivResourceTypeIcon.contentDescription =
+                        root.context.getString(R.string.cd_resource_icon_quick_slideshow)
+                    ivResourceTypeIcon.setOnClickListenerDebounced { onIconClick(resource) }
+                } else {
+                    ivResourceTypeIcon.isClickable = false
+                    ivResourceTypeIcon.foreground = null
+                    ivResourceTypeIcon.setOnClickListener(null)
+                    ivResourceTypeIcon.contentDescription =
+                        root.context.getString(R.string.resource_type_icon)
+                }
+
                 // Destination border (quick sort)
                 if (resource.isDestination) {
                     // Show colored border
@@ -473,7 +499,26 @@ class ResourceAdapter(
                     }
                 }
                 ivResourceTypeIcon.setImageResource(iconRes)
-                
+
+                val quickEligibleList = isQuickSlideshowEligible(resource)
+                if (quickEligibleList) {
+                    ivResourceTypeIcon.isClickable = true
+                    ivResourceTypeIcon.isFocusable = true
+                    ivResourceTypeIcon.foreground = ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.ripple_icon_quick_slideshow
+                    )
+                    ivResourceTypeIcon.contentDescription =
+                        root.context.getString(R.string.cd_resource_icon_quick_slideshow)
+                    ivResourceTypeIcon.setOnClickListenerDebounced { onIconClick(resource) }
+                } else {
+                    ivResourceTypeIcon.isClickable = false
+                    ivResourceTypeIcon.foreground = null
+                    ivResourceTypeIcon.setOnClickListener(null)
+                    ivResourceTypeIcon.contentDescription =
+                        root.context.getString(R.string.resource_type_icon)
+                }
+
                 // Format file count with ">1000" for resources with 1000+ files
                 // For favorites, we might want to show "N/A" or "All" until we implement counting
                 tvFileCount.text = when {

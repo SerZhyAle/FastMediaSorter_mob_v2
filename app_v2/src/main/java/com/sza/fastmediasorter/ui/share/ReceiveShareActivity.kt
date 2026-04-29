@@ -17,11 +17,16 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.FileOperationType
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
+import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -43,6 +48,10 @@ class ReceiveShareActivity : AppCompatActivity() {
 
     @Inject lateinit var fileOperationUseCase: FileOperationUseCase
     @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
+    @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var linkAutoDownloadCoordinator: LinkAutoDownloadCoordinator
+
+    private var linkDownloadJob: Job? = null
 
     private val tempDir: File by lazy {
         cacheDir.resolve("temp_share").also { it.mkdirs() }
@@ -88,7 +97,19 @@ class ReceiveShareActivity : AppCompatActivity() {
         val loadingDialog = showLoadingDialog()
         lifecycleScope.launch {
             try {
-                val files = withContext(Dispatchers.IO) { extractAndCacheFiles(intent) }
+                // S0003: when no stream is attached, inspect EXTRA_TEXT for an http(s) URL
+                // and route through the auto-download channel if the user opted in.
+                val streams = withContext(Dispatchers.IO) { extractStreams(intent) }
+                if (streams.isEmpty()) {
+                    val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+                    val url = UrlInTextDetector.firstHttpUrl(text)
+                    val settings = settingsRepository.getSettings().first()
+                    if (url != null && settings.linkAutoDownloadEnabled) {
+                        processLinkAutoDownload(url, loadingDialog)
+                        return@launch
+                    }
+                }
+                val files = withContext(Dispatchers.IO) { extractAndCacheFiles(intent, streams) }
                 loadingDialog.dismiss()
                 if (files.isEmpty()) {
                     Toast.makeText(this@ReceiveShareActivity, R.string.receive_share_no_content, Toast.LENGTH_SHORT).show()
@@ -110,13 +131,83 @@ class ReceiveShareActivity : AppCompatActivity() {
         }
     }
 
-    private fun extractAndCacheFiles(intent: Intent): List<File> {
-        val streams = extractStreams(intent)
+    private fun extractAndCacheFiles(intent: Intent, streams: List<Uri>): List<File> {
         return if (streams.isNotEmpty()) {
             cacheStreams(streams)
         } else {
             val text = intent.getStringExtra(Intent.EXTRA_TEXT)
             if (!text.isNullOrBlank()) listOf(createTextFile(intent, text)) else emptyList()
+        }
+    }
+
+    /**
+     * S0003: drive the link auto-download coordinator, mapping its terminal Result
+     * to user-facing toasts/strings. Phase 05 will replace the stub progress dialog
+     * with a dedicated cancellable LinkAutoDownloadProgressDialog.
+     */
+    private fun processLinkAutoDownload(url: String, loadingDialog: AlertDialog) {
+        loadingDialog.setMessage(getString(R.string.link_autodownload_progress_starting))
+        linkDownloadJob = lifecycleScope.launch {
+            val result = try {
+                linkAutoDownloadCoordinator.handle(
+                    url,
+                    object : LinkAutoDownloadCoordinator.Callbacks {
+                        override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) {
+                            runOnUiThread {
+                                val msg = when (state) {
+                                    LinkAutoDownloadCoordinator.ProgressState.Probing ->
+                                        getString(R.string.link_autodownload_progress_starting)
+                                    is LinkAutoDownloadCoordinator.ProgressState.Downloading ->
+                                        getString(R.string.link_autodownload_progress_downloading)
+                                }
+                                runCatching { loadingDialog.setMessage(msg) }
+                            }
+                        }
+                    }
+                )
+            } catch (t: Throwable) {
+                Timber.e(t, "ReceiveShareActivity: link auto-download crashed")
+                LinkAutoDownloadCoordinator.Result.Failed.Other(t)
+            }
+            loadingDialog.dismiss()
+            handleLinkAutoDownloadResult(result)
+            cleanupAndFinish()
+        }
+    }
+
+    private fun handleLinkAutoDownloadResult(result: LinkAutoDownloadCoordinator.Result) {
+        val message = when (result) {
+            is LinkAutoDownloadCoordinator.Result.Saved ->
+                getString(R.string.link_autodownload_done_resource, result.resourceLabel)
+            is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ->
+                getString(R.string.link_autodownload_fallback_downloads)
+            LinkAutoDownloadCoordinator.Result.Failed.NoNetwork ->
+                getString(R.string.link_autodownload_error_no_network)
+            LinkAutoDownloadCoordinator.Result.Failed.Timeout ->
+                getString(R.string.link_autodownload_error_timeout)
+            LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound ->
+                getString(R.string.link_autodownload_error_no_media)
+            LinkAutoDownloadCoordinator.Result.Failed.MimeBlocked ->
+                getString(R.string.link_autodownload_error_mime_blocked)
+            is LinkAutoDownloadCoordinator.Result.Failed.Other ->
+                getString(R.string.receive_share_cache_failed, result.cause.message ?: result.cause::class.java.simpleName)
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+
+        val openUri: Uri? = when (result) {
+            is LinkAutoDownloadCoordinator.Result.Saved -> result.openInPlayerUri
+            is LinkAutoDownloadCoordinator.Result.FellBackToDownloads -> result.openInPlayerUri
+            else -> null
+        }
+        if (openUri != null) {
+            try {
+                val intent = Intent(this, StandalonePlayerActivity::class.java)
+                    .setData(openUri)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(intent)
+            } catch (t: Throwable) {
+                Timber.e(t, "ReceiveShareActivity: failed to launch player for %s", openUri)
+            }
         }
     }
 

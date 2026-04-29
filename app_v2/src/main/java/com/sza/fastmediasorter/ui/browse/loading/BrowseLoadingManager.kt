@@ -54,6 +54,7 @@ class BrowseLoadingManager(
         suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>)
         fun startFileObserver()
         fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean): List<MediaFile>
+        suspend fun onScanMetadataErrors(count: Int) = Unit
     }
     
     /**
@@ -159,9 +160,13 @@ class BrowseLoadingManager(
             override suspend fun onComplete(totalFiles: Int, durationMs: Long) {
                 Timber.d("BrowseLoadingManager: Progress callback completed: $totalFiles files in ${durationMs}ms")
             }
-            
+
             override fun shouldStop(): Boolean {
                 return shouldStopScan.get()
+            }
+
+            override suspend fun onMetadataErrors(errorCount: Int) {
+                if (errorCount > 0) callbacks.onScanMetadataErrors(errorCount)
             }
         }
         

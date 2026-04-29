@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
+import com.sza.fastmediasorter.ui.player.helpers.PlayerFpsMeter
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
@@ -79,11 +80,18 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             return _videoPlayerManager!!
         }
 
+    // S0021: lazy-initialised FPS meter for the flat 2D player overlay.
+    internal val playerFpsMeter: PlayerFpsMeter = PlayerFpsMeter()
+    private var playerFpsCollectorStarted: Boolean = false
+
     internal lateinit var fileOperationsHandler: FileOperationsHandler
     internal lateinit var destinationButtonsManager: DestinationButtonsManager
     internal lateinit var navigationManager: PlayerNavigationManager
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
+    // Session-scoped notifier for the panel single-eye toast (spec_panel-stereo-single-eye Phase 05).
+    internal val panelStereoSingleEyeNotifier =
+        com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier()
     internal var audioEmptyStateController: com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController? = null
     internal lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
     internal val isMediaLoaderManagerInitialized: Boolean
@@ -568,6 +576,17 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         }
     }
 
+    /**
+     * S0019: explicit «launch immersive on the current file» entry point used by the
+     * «Apply and 3D» combo button in [PlaybackControlDialogFragment]. Thin wrapper over
+     * [handle3dVrToggleClicked] that adds a Timber.i marker with a caller-supplied reason
+     * so the dialog → immersive transition is greppable in logs.
+     */
+    internal fun launchImmersiveOnCurrentFile(reason: String) {
+        Timber.i("PlayerActivity: launchImmersiveOnCurrentFile reason=%s", reason)
+        handle3dVrToggleClicked()
+    }
+
     internal fun handleDeleteSuccess(deletedFilePath: String) = lifecycleManager.handleDeleteSuccess(deletedFilePath)
 
     private fun handleEvent(event: PlayerViewModel.PlayerEvent) = eventHandler.handleEvent(event)
@@ -632,6 +651,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         }
         audioEmptyStateController?.onPause()
         lifecycleManager.saveCurrentPlaybackPosition()
+        // S0021: stop the FPS meter when the activity loses foreground; the overlay
+        // hides via updatePlayerFpsOverlay() once visibility is reconciled.
+        playerFpsMeter.stop()
+        binding.tvPlayerFpsOverlay.isVisible = false
     }
 
     override fun onUserLeaveHint() {
@@ -663,6 +686,30 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             viewModel.state.value.showNowPlayingPanel
         )
         if (::mediaLoaderManager.isInitialized) mediaLoaderManager.reattachServicePlayerToView()
+        // S0021: start collecting FPS once per Activity lifetime; reconcile visibility.
+        if (!playerFpsCollectorStarted) {
+            playerFpsCollectorStarted = true
+            lifecycleScope.launch {
+                playerFpsMeter.fps.collect { fps ->
+                    binding.tvPlayerFpsOverlay.text = "$fps fps"
+                }
+            }
+            lifecycleScope.launch {
+                viewModel.settings.collect { updatePlayerFpsOverlay() }
+            }
+        }
+        updatePlayerFpsOverlay()
+    }
+
+    /**
+     * S0021: reconcile FPS overlay visibility against settings + current file type.
+     * Open: only visible when `playerShowFps` is on AND current file is VIDEO.
+     */
+    internal open fun updatePlayerFpsOverlay() {
+        val show = viewModel.settings.value.playerShowFps &&
+            viewModel.state.value.currentFile?.type == MediaType.VIDEO
+        binding.tvPlayerFpsOverlay.isVisible = show
+        if (show) playerFpsMeter.start() else playerFpsMeter.stop()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

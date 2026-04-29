@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0021: background for the diagnostic FPS overlay over the flat 2D player. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="8dp" />
+    <solid android:color="#66000000" />
+    <stroke
+        android:width="1dp"
+        android:color="#80FFFFFF" />
+</shape>

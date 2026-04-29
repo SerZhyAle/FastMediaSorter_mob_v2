@@ -100,9 +100,14 @@ class SaveVideoFrameManager(
                 tempFile.delete()
                 showSnackbar(finalMessage)
 
-            } catch (e: Exception) {
-                Timber.e(e, "SaveVideoFrameManager: unexpected error saving frame")
-                showSnackbar(activity.getString(R.string.save_frame_error))
+            } catch (t: Throwable) {
+                if (t is OutOfMemoryError) {
+                    Timber.e(t, "SaveVideoFrameManager: OutOfMemoryError during save")
+                    showSnackbar("Not enough memory to capture frame")
+                } else {
+                    Timber.e(t, "SaveVideoFrameManager: unexpected error saving frame")
+                    showSnackbar(activity.getString(R.string.save_frame_error))
+                }
             }
         }
     }
@@ -122,8 +127,11 @@ class SaveVideoFrameManager(
         }
         return try {
             textureView.getBitmap()
-        } catch (e: Exception) {
-            Timber.e(e, "SaveVideoFrameManager: getBitmap() failed")
+        } catch (t: Throwable) {
+            Timber.e(t, "SaveVideoFrameManager: getBitmap() failed")
+            if (t is OutOfMemoryError) {
+                showSnackbar("Not enough memory to capture frame")
+            }
             null
         }
     }

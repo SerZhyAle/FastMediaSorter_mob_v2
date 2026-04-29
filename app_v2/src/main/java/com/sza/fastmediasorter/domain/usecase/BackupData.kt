@@ -139,12 +139,18 @@ data class BackupSettings(
     val videoSnapshotResourceId: Long? = null,
     // Video frame snapshot format: "PNG" (default) or "JPG"
     val videoSnapshotFormat: String = "JPG",
+    // Link auto-download (S0003) — nullable for forward-compat with older backups
+    val linkAutoDownloadEnabled: Boolean? = null,
+    val linkAutoDownloadResourceId: Long? = null,
+    val linkAutoDownloadOpenInPlayer: Boolean? = null,
     // VR settings (spec §5.7 / Phase 8)
     val vrAutoDetectFormat: Boolean = true,
     val vrForcedPlatFormat: String = "AUTO",
     val vrForcedSphericalFormat: String = "AUTO",
     val vrRenderingMode: String = "CINEMA",
     val vrRememberFileFormat: Boolean = true,
+    // Auto-enter immersive on stereo content; nullable for forward-compat with older backup files
+    val vrAutoImmersive: Boolean? = null,
     // Global VR kill-switch (spec §3.0.2); nullable for forward-compat with older backup files
     val disable3dVr: Boolean? = null,
     // Legacy alias kept nullable so old exports still restore after the split.

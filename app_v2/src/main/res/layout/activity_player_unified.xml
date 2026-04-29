@@ -258,6 +258,26 @@
             android:elevation="@dimen/elevation_player_overlay"
             android:visibility="gone" />
 
+        <!-- S0021: Diagnostic FPS overlay over the flat player. Visibility driven by
+             AppSettings.playerShowFps + active-video gate; see PlayerActivity. -->
+        <TextView
+            android:id="@+id/tvPlayerFpsOverlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:background="@drawable/bg_fps_overlay"
+            android:paddingHorizontal="@dimen/margin_small"
+            android:paddingVertical="2dp"
+            android:textColor="@color/white"
+            android:textSize="@dimen/toggler_desc_text_size"
+            android:elevation="@dimen/elevation_player_overlay"
+            android:focusable="false"
+            android:clickable="false"
+            android:visibility="gone"
+            tools:text="60 fps" />
+
     </FrameLayout>
 
     <!-- Mini Now Playing bar — shown only while AudioPlaybackService.isRunning == true.

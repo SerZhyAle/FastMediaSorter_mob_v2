@@ -40,7 +40,7 @@ class PlayerDialogAndUiStateManager(
     private val dialogHelper: PlayerDialogHelper,
     private val destinationButtonsManager: DestinationButtonsManager,
     private val commandPanelController: CommandPanelController,
-    private val textViewerManager: TextViewerManager,
+    private val textViewerManagerProvider: () -> TextViewerManager,
     private val mediaLoaderManager: PlayerMediaLoaderManager,
     private val networkFileManager: NetworkFileManager,
     private val imageLoadingManager: com.sza.fastmediasorter.ui.player.ImageLoadingManager,
@@ -360,7 +360,7 @@ class PlayerDialogAndUiStateManager(
         updateAudioTouchZonesVisibility()
         
         // Update text viewer close button visibility (User request: hide when command panel visible)
-        textViewerManager.updateCloseButtonVisibility(forceShowPanel)
+        textViewerManagerProvider().updateCloseButtonVisibility(forceShowPanel)
     }
     
     /**

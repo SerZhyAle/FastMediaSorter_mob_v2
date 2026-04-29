@@ -25,11 +25,10 @@ import timber.log.Timber
 class ResourceNavigationCoordinator(
     private val context: Context,
     private val resourceRepository: ResourceRepository,
-    private val updateResourceUseCase: UpdateResourceUseCase
+    private val updateResourceUseCase: UpdateResourceUseCase,
+    private val networkContextAnalyzer: NetworkContextAnalyzer
 ) {
 
-    private val networkContextAnalyzer = NetworkContextAnalyzer(context)
-    
     companion object {
         const val FAVORITES_RESOURCE_ID = -100L
     }

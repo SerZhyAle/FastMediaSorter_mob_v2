@@ -5,20 +5,21 @@ Review and refine a strategic or tactical spec in-place. Modifies spec files —
 ## Usage
 
 ```text
-/spec-update <short-name>                      # strategic spec
-/spec-update <short-name> --tactical           # INDEX + every phase file
-/spec-update <short-name> --tactical --phase 03
-/spec-update <short-name> --index
-/spec-update <short-name> --review-only        # analyse only, no writes
-/spec-update <short-name> --apply-all          # same as default; DISCUSS still never auto-applied
-/spec-update <short-name> --focus <aspect>     # language|structure|verifiability|consistency|completeness|style
+/spec-update <Sxxxx-or-slug>                      # strategic spec
+/spec-update <Sxxxx-or-slug> --tactical           # INDEX + every phase file
+/spec-update <Sxxxx-or-slug> --tactical --phase 03
+/spec-update <Sxxxx-or-slug> --index
+/spec-update <Sxxxx-or-slug> --review-only        # analyse only, no writes
+/spec-update <Sxxxx-or-slug> --apply-all          # same as default; DISCUSS still never auto-applied
+/spec-update <Sxxxx-or-slug> --focus <aspect>     # language|structure|verifiability|consistency|completeness|style
+/spec-update <Sxxxx-or-slug> --priority N         # update journal priority
 ```
 
 Targets:
 
-- Strategic: `PLAN/spec_<short-name>.md`
-- Tactical INDEX: `PLAN/spec_<short-name>/INDEX.md`
-- Tactical phase: `PLAN/spec_<short-name>/PHASE_NN__*.md`
+- Strategic: `PLAN/Sxxxx_<short-name>.md`
+- Tactical INDEX: `PLAN/Sxxxx_<short-name>/INDEX.md`
+- Tactical phase: `PLAN/Sxxxx_<short-name>/PHASE_NN__*.md`
 
 ---
 
@@ -34,6 +35,7 @@ Targets:
 - All mandatory template sections present, in order.
 - Strategic: no class names, file paths, line budgets, Room versions, Hilt modules.
 - Tactical: no rationale prose (lives in strategic).
+- No legacy `_spec_` segment in any path reference.
 
 ### 3. `verifiability`
 
@@ -45,6 +47,7 @@ Targets:
 ### 4. `consistency`
 
 - Strategic `Status:` ↔ tactical INDEX `Status:` aligned.
+- Strategic `Priority:` ↔ journal `priority` aligned.
 - INDEX phase counter matches phase-file `Status:` headers.
 - Every tactical phase links to strategic spec at top.
 - `Depends on` values reference existing earlier steps.
@@ -66,7 +69,7 @@ Targets:
 
 **1 — Parse arguments, locate target.**
 
-Resolve target file(s) from flags. Abort if target does not exist (suggest `/spec` or `/spec-tech`).
+Resolve `Sxxxx` and slug via `select.ps1`. Resolve target file(s) from flags. Abort if target does not exist (suggest `/spec` or `/spec-tech`).
 
 **1a — Status gate.**
 
@@ -75,6 +78,7 @@ Resolve target file(s) from flags. Abort if target does not exist (suggest `/spe
 | `Draft` | ✅ |
 | `Approved` | ✅ |
 | `Tactical` | ✅ |
+| `BlockByOtherTask` / `BlockNeedUserTest` / `BlockQuestions` / `BlockExternal` | ✅ — refinement may unblock |
 | `In Progress` | ⛔ spec locked for execution |
 | `Implemented` / `Verified` / `Partial` / `Broken` | ⛔ historical record |
 
@@ -95,6 +99,7 @@ Classification rules:
 | Missing mandatory section skeleton | ACCEPT |
 | Rewording ambiguous `Verification:` predicate (obvious fix) | ACCEPT |
 | Removing class names/paths from strategic spec | ACCEPT |
+| Removing `_spec_` segment from path references | ACCEPT |
 | Adding/removing/merging a step or phase | DISCUSS |
 | Renaming a class in tactical step | DISCUSS |
 | Demoting strategic↔tactical content | DISCUSS |
@@ -102,7 +107,9 @@ Classification rules:
 
 **3 — Apply pass** (skip if `--review-only`).
 
-- **ACCEPT** — apply via `Edit`. Log in Revision History.
+Per memory rule: **fix all non-structural issues silently**. Only structural decisions go into a DISCUSS block.
+
+- **ACCEPT** — apply via `Edit`. Append a single Revision History line covering the run.
 - **DISCUSS** — record in "Proposed Structural Changes" block with `Status: Proposed`. Never apply regardless of `--apply-all`.
 
 Edits are minimal and localized. Never renumber steps/phases unless that is the specific finding.
@@ -141,11 +148,11 @@ If strategic target and tactical folder both exist: run `consistency` focus betw
 **6 — Run dev log.**
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec-update" "Refinement (<model-id>, focus: <aspects>)"
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-update" "Refinement (<model-id>, focus: <aspects>)"
 # one line per tactical file if touched
 ```
 
-**Chat output:** `Applied N, proposed N DISCUSS. Clean: [aspects].`
+**Chat output:** `<Sxxxx>: applied N, proposed N DISCUSS. Clean: [aspects].`
 
 ---
 
@@ -157,5 +164,14 @@ If strategic target and tactical folder both exist: run `consistency` focus betw
 - Class names/file paths in strategic specs: auto-fix via ACCEPT (replace with architectural term).
 - Tactical steps with non-static Verification: ACCEPT with Glob/Grep template if obvious; otherwise DISCUSS.
 - Read-only zones never edited: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Never create audit / fix files (`__audit_*.md` / `__fix_*.md`) — they are abolished.
 - `--review-only`: no writes, no dev log.
 - Revision History is append-only — never rewrite earlier entries.
+
+---
+
+## Spec Catalog hooks
+
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug.
+- **Status transition.** After refinement is applied, touch the journal `updated` timestamp without changing status: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>`. On `--review-only` skip the update. With `--priority N` also pass `-Priority N`.
+- **Forbidden:** never set the journal status from this skill. Never write to `PLAN/spec-catalog.jsonl` directly.

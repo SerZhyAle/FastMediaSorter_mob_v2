@@ -34,9 +34,20 @@ interface VrHudSink {
      * auto-hides when no further activity is reported.
      */
     fun reportActivity()
+
+    /**
+     * Force HUD visibility transition with an explicit reason. Distinct from auto-show paths
+     * (e.g. session-startup, idle-hide) so that explicit user commands such as `OpenControls`
+     * always reach the HUD even when an auto-show already latched it visible.
+     *
+     * Default no-op — overridden by [com.sza.fastmediasorter.vr.render.VrHudSceneDriver].
+     */
+    fun setVisible(visible: Boolean, reason: String) {}
     /** Update the stereo-mode badge shown at top-left (e.g. "2D", "360° SBS"). Null = clear. */
     fun showStereoModeLabel(label: String?)
     fun updateProgress(positionMs: Long, bufferedMs: Long, totalMs: Long)
+    fun updateFps(fps: Int) {}
+    fun clearFps() {}
     fun hideAll()
 
     // ── Interactive GL panel feed (spec_vr-immersive-controls-panel Phase 05) ──

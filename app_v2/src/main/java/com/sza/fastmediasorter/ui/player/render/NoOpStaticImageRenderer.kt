@@ -19,6 +19,8 @@ class NoOpStaticImageRenderer : StaticImageRenderer {
 
     override fun setStereoMode(mode: StereoMode) = Unit
 
+    override fun setPanelStereoSingleEyeEnabled(enabled: Boolean) = Unit
+
     override fun onPause() = Unit
 
     override fun onResume() = Unit

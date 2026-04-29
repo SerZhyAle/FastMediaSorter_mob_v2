@@ -23,4 +23,10 @@ interface ScanProgressCallback {
      * @return true if scanner should stop and return partial results
      */
     fun shouldStop(): Boolean = false
+
+    /**
+     * Called after metadata extraction when one or more files failed.
+     * Default no-op — override where error count needs to surface to the UI.
+     */
+    suspend fun onMetadataErrors(errorCount: Int) = Unit
 }

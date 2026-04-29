@@ -328,6 +328,7 @@ class BrowseManagerInitializer(
                 override fun undoLastOperation() {
                     viewModel.undoLastOperation()
                 }
+                override fun playRandomFiles() = startRandomPlay()
             }
         )
 
@@ -408,6 +409,7 @@ class BrowseManagerInitializer(
         sortMenuManager = BrowseSortMenuManager(
             context = activity,
             onSortModeSelected = { viewModel.setSortMode(it) },
+            onRandomReshuffle = { viewModel.reshuffleRandom() },
             getCurrentSortMode = { viewModel.state.value.sortMode },
             getCurrentResource = { viewModel.state.value.resource }
         )
@@ -548,6 +550,7 @@ class BrowseManagerInitializer(
                 )
             }
             override fun onPlayClicked() = startSlideshow()
+            override fun onPlayRandomClicked() = startRandomPlay()
             override fun onRetryClicked() {
                 viewModel.clearError()
                 viewModel.reloadFiles()
@@ -780,6 +783,35 @@ class BrowseManagerInitializer(
             }
         } else {
             Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Reshuffles the current file list (switches sort to RANDOM) and immediately
+     * launches PlayerActivity starting from the first file in the reshuffled list.
+     * This gives a true "play random" UX: list order is randomised AND playback starts
+     * at a random position every time the button is pressed.
+     */
+    private fun startRandomPlay() {
+        if (viewModel.state.value.mediaFiles.isEmpty()) {
+            Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
+            return
+        }
+        // Reshuffle (persists RANDOM sort mode) — the list state updates asynchronously,
+        // so we capture the reshuffled list synchronously via the ViewModel for the launch.
+        viewModel.reshuffleRandom()
+        val state = viewModel.state.value
+        val resource = state.resource
+        val files = state.mediaFiles
+        if (files.isEmpty()) {
+            Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, 0, isSkipAvailabilityCheck)
+        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
+            VrTaskTransition.enterImmersive(activity, intent)
+        } else {
+            activity.startActivity(intent)
         }
     }
 

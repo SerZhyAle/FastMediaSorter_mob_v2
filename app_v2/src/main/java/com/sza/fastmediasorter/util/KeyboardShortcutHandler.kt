@@ -233,6 +233,12 @@ class KeyboardShortcutHandler(
         if (!ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_DEL) {
             return InputAction.BackOneLevel
         }
+        // Ctrl+P — Play Random (reshuffle + start player); only meaningful when the button is
+        // visible (single-type library), but key is registered unconditionally and the handler
+        // in BrowseManagerInitializer shows a toast when the action is unavailable.
+        if (ctrl && !shift && !alt && keyCode == KeyEvent.KEYCODE_P) {
+            return InputAction.PlayRandomCurrent
+        }
         return mapFileList(keyCode, ctrl, shift, alt)
     }
 

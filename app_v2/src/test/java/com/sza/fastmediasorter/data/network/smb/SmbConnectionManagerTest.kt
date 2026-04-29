@@ -5,8 +5,11 @@ import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.network.SmbConnectionManager
+import com.sza.fastmediasorter.data.network.SmbPlaybackConnectionTracker
+import com.sza.fastmediasorter.data.network.exceptions.NetworkConnectionLostException
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import io.mockk.*
@@ -31,7 +34,8 @@ class SmbConnectionManagerTest {
     private lateinit var mockSession: Session
     private lateinit var mockShare: DiskShare
     private lateinit var mockNetworkStateMonitor: NetworkStateMonitor
-    
+    private lateinit var mockReachabilityGate: NetworkReachabilityGate
+
     @Before
     fun setup() {
         // Initialize mocks
@@ -40,6 +44,9 @@ class SmbConnectionManagerTest {
         mockSession = mockk(relaxed = true)
         mockShare = mockk(relaxed = true)
         mockNetworkStateMonitor = mockk(relaxed = true)
+        mockReachabilityGate = mockk(relaxed = true)
+        every { mockReachabilityGate.requireWifi(any()) } just Runs
+        every { mockReachabilityGate.requireAnyNetwork(any()) } just Runs
         
         // Setup default mock behavior
         every { mockSmbClient.connect(any(), any()) } returns mockConnection
@@ -59,7 +66,12 @@ class SmbConnectionManagerTest {
         every { anyConstructed<Socket>().close() } just Runs
 
         // Create manager instance
-        connectionManager = SmbConnectionManager(mockNetworkStateMonitor)
+        // S0018: out-of-scope inline fix — added playbackTracker mock to satisfy updated constructor
+        connectionManager = SmbConnectionManager(
+            mockNetworkStateMonitor,
+            mockk<SmbPlaybackConnectionTracker>(relaxed = true),
+            mockReachabilityGate
+        )
     }
     
     @After
@@ -371,6 +383,70 @@ class SmbConnectionManagerTest {
             
             // Timeout counter should be incremented
             // (Internal state, verified through subsequent behavior)
+        }
+    }
+
+    // ── S0025: Wi-Fi gate + smart retry ─────────────────────────────────────
+
+    @Test
+    fun `withConnection throws synchronously when Wi-Fi gate denies — no socket attempt`() = runBlocking {
+        val connectionInfo = SmbConnectionInfo(
+            server = "testserver",
+            shareName = "testshare",
+            username = "u",
+            password = "p",
+            domain = "",
+            port = 445
+        )
+        every { mockReachabilityGate.requireWifi("SMB") } throws NetworkConnectionLostException()
+
+        val thrown = try {
+            connectionManager.withConnection(connectionInfo) { SmbResult.Success(Unit) }
+            null
+        } catch (e: NetworkConnectionLostException) {
+            e
+        }
+
+        assertNotNull("requireWifi failure must propagate as NetworkConnectionLostException", thrown)
+        verify(exactly = 0) { anyConstructed<Socket>().connect(any<InetSocketAddress>(), any<Int>()) }
+        verify(exactly = 0) { anyConstructed<SMBClient>().connect(any(), any<Int>()) }
+    }
+
+    @Test
+    fun `withConnection skips degraded retry when TCP precheck fails — tcpReachable false branch`() = runBlocking {
+        val connectionInfo = SmbConnectionInfo(
+            server = "deadhost",
+            shareName = "share",
+            username = "u",
+            password = "p",
+            domain = "",
+            port = 445
+        )
+        // Force TCP precheck failure: Socket.connect throws on every attempt
+        every { anyConstructed<Socket>().connect(any<InetSocketAddress>(), any<Int>()) } throws
+            java.net.SocketTimeoutException("simulated TCP precheck failure")
+
+        val result = connectionManager.withConnection(connectionInfo) { SmbResult.Success(Unit) }
+
+        assertTrue("Expected Error result on TCP precheck failure", result is SmbResult.Error)
+        // Critical assertion: SMBJ connect must NOT be attempted when TCP precheck failed.
+        verify(exactly = 0) { anyConstructed<SMBClient>().connect(any(), any<Int>()) }
+    }
+
+    @Test
+    fun `withConnection consults reachability gate before pooled-connection attempt`() = runBlocking {
+        val connectionInfo = SmbConnectionInfo(
+            server = "testserver",
+            shareName = "testshare",
+            username = "u",
+            password = "p",
+            domain = "",
+            port = 445
+        )
+        mockkObject(connectionManager) {
+            every { connectionManager.getClient(any(), any()) } returns mockSmbClient
+            connectionManager.withConnection(connectionInfo) { SmbResult.Success(Unit) }
+            verify(atLeast = 1) { mockReachabilityGate.requireWifi("SMB") }
         }
     }
 }

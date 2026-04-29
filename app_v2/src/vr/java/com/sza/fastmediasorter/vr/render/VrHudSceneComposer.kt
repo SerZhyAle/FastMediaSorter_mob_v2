@@ -29,6 +29,8 @@ class VrHudSceneComposer(
     private val height: Int = VrHudRenderer.DEFAULT_HEIGHT,
 ) {
 
+    val registry: VrHudElementRegistry = VrHudElementRegistry(width, height)
+
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = Typeface.DEFAULT
         color = Color.WHITE
@@ -76,6 +78,7 @@ class VrHudSceneComposer(
     private val tmpRect = RectF()
 
     fun draw(state: VrHudState, canvas: Canvas) {
+        registry.beginFrame()
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         // WHY: GL textures have Y=0 at the bottom (opposite to Android Canvas Y=0 at top).
         // glTexSubImage2D maps bitmap row 0 to the bottom of the GL texture, so without this
@@ -93,6 +96,7 @@ class VrHudSceneComposer(
         drawFileBadge(state, canvas)
         drawRepeatIcon(state, canvas)
         drawStereoModeLabel(state, canvas)
+        drawFpsLabel(state, canvas)
         drawActionBadge(state, canvas, now)
         drawImmersiveBadge(state, canvas, now)
         drawBanner(state, canvas, now)
@@ -114,6 +118,7 @@ class VrHudSceneComposer(
         // Background
         tmpRect.set(marginX, barY, marginX + barW, barY + barH)
         canvas.drawRoundRect(tmpRect, 4f, 4f, progressBgPaint)
+        registry.register(HUD_ELEMENT_SEEK_BAR, tmpRect, "seek") {}
         // Buffered
         val bufW = barW * buf.toFloat() / total.toFloat()
         if (bufW > 0f) {
@@ -218,6 +223,17 @@ class VrHudSceneComposer(
         canvas.drawText(label, 24f, 32f, smallTextPaint)
     }
 
+    /** Top-right corner; drops below the file badge when present (S0006). */
+    private fun drawFpsLabel(state: VrHudState, canvas: Canvas) {
+        val fps = state.fps ?: return
+        if (fps <= 0) return
+        val text = "$fps FPS"
+        val tw = smallTextPaint.measureText(text)
+        val x = width - 24f - tw
+        val y = if (state.fileLabel == null) 32f else 64f
+        canvas.drawText(text, x, y, smallTextPaint)
+    }
+
     private fun drawActionBadge(state: VrHudState, canvas: Canvas, now: Long) {
         val badge = state.actionBadge ?: return
         if (state.actionBadgeUntilMs <= now) return
@@ -279,5 +295,9 @@ class VrHudSceneComposer(
         } else {
             String.format("%d:%02d", m, s)
         }
+    }
+
+    companion object {
+        const val HUD_ELEMENT_SEEK_BAR: Int = 1
     }
 }

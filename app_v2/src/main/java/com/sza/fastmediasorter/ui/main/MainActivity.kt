@@ -373,6 +373,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 viewModel.selectResource(resource)
                 viewModel.openBrowse(resource)
             },
+            onIconClick = { resource ->
+                viewModel.startSlideshowFor(resource)
+            },
             onItemLongClick = { resource ->
                 // Long click = open Edit (check PIN first)
                 if (!resource.accessPin.isNullOrBlank()) {

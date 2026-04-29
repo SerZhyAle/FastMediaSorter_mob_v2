@@ -19,7 +19,8 @@ Non-negotiable — not typos.
 
 | Situation | Skill |
 |-----------|-------|
-| Creating/updating `PLAN/spec_*.md` | `/spec` |
+| **Очень незначительная** правка (коррекция дизайна, опечатка, цвет/отступ, одна строка ресурса) | `/quick` (без спеки/доков/билда; только `dev/CHANGELOG.md`) |
+| Creating/updating `PLAN/Sxxxx_*.md` | `/spec` |
 | Full spec pipeline (idea → verified implementation, unattended) | `/spec-all` |
 | UI/UX change touching layout, menus, visibility, orientation, empty/error states, overflow | `/ui-clarify` (blocks impl until ambiguities resolved) |
 | Editing `docs/FEATURES*.md` or other feature docs | `/doc-update` (EN/RU/UK mirrors) |
@@ -28,19 +29,36 @@ Non-negotiable — not typos.
 | Git questions (commit/stage/push/diff/history) | `/git` |
 | "Where does X happen?" / "find file Foo.kt" / auditing code / planning a refactor / adding a class | `/catalog` (query first, update after) |
 
+## Spec Catalog (Sxxxx tickets)
+
+Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded). The id never changes, never gets reused, and is the canonical reference token in chat / commits / `dev/CHANGELOG.md`.
+
+- **Token rule:** any reference of the form `S\d{4}` is a ticket id. Resolve via:
+  `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
+- **Filenames:** every spec artefact is `PLAN/Sxxxx_<slug>.md` (no `_spec_` segment — the id already identifies the artefact). Tactical folder: `PLAN/Sxxxx_<slug>/`. **No audit / fix files are written** — `/spec-check` and `/spec-fix` record findings inside the ticket file's `## Last Audit` block (overwritten on each run) and in the journal `updated` timestamp.
+- **Journal:** `PLAN/spec-catalog.jsonl` is the source of truth. Schema: `scripts/spec_catalog/SCHEMA.md`.
+- **Required fields:** `id`, `name`, `status`, `priority` (0..100), `file`, `created`, `updated`. Optional: `tier`.
+- **Priority guide:** 90..100 build/release blocker · 70..89 critical · 40..69 standard (default 50) · 10..39 polish · 0..9 wishlist.
+- **Statuses:** active — `Draft`, `Approved`, `Tactical`, `In Progress`, `Implemented`, `Verified`, `Partial`, `Broken`. Block — `BlockByOtherTask`, `BlockNeedUserTest`, `BlockQuestions`, `BlockExternal`. Terminal — `Archived` (soft delete; ids never reused).
+- **Stale signal:** `a.ps1 ss` flags any active spec with `updated` ≥ 14 days (`!`) or ≥ 30 days (`!!`); consider `/spec-update <Sxxxx>`.
+- **CLI (only sanctioned mutators):** `insert.ps1`, `update.ps1`, `select.ps1`, `delete.ps1`, `validate.ps1` under `scripts/spec_catalog/`. **Never edit `PLAN/spec-catalog.jsonl` by hand.**
+- **Lifecycle hooks:** `/spec` calls `insert`; `/spec-tech` flips status to `Tactical`; `/spec-dev` flips to `In Progress` then `Implemented`; `/spec-check` flips to `Verified` / `Partial` / `Broken` (writes summary into ticket's `## Last Audit`); `/spec-fix` touches `updated`. Block-states are set explicitly via `update.ps1 -Status Block...`.
+- **Soft delete only:** `delete.ps1` sets status `Archived`; record stays in the journal forever.
+
 ## Research Order (before changes)
 
 1. `dev/PROJECT_OPERATIONS_INDEX.md` — workspace routing + **Feature-to-Path Map** (use before any global search).
-2. **`dev/CATALOG/<module>.md` (or `query.ps1`) — MANDATORY first stop for any class/file lookup.**
+2. For any `Sxxxx`-tagged question — run `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` first to get current status / file path; do not infer from filename alone.
+3. **`dev/CATALOG/<module>.md` (or `query.ps1`) — MANDATORY first stop for any class/file lookup.**
    - Run `query.ps1` before any `Grep`, `Glob`, or shell `find`. These are fallbacks only when the catalogue yields nothing.
    - Locating a `.kt` file by name? → `-ClassMatches "*Name*"`. Finding what touches a feature? → `-PathMatches` or `-Role`. Who injects a type? → `-Injected <Type>`.
    - **Never use `find`/`Glob` to locate a Kotlin class — the catalogue already knows the path.**
-3. Domain doc per task type:
+4. Domain doc per task type:
    - Architecture → `docs/ARCHITECTURE.md`
    - Build/flags → `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`
    - Dependencies → `docs/TECH_STACK.md` + `dev/TECH_REQUIREMENTS.md`
    - Network → `dev/NETWORK_SPECS.md`
-4. Implementation files.
+5. Implementation files.
 
 **Multi-step tasks**: read `dev/AGENT_WORKFLOW.md` BEFORE execution (mandatory 5-step process).
 
@@ -84,6 +102,7 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 9. Before editing, read existing inline comments/KDoc in the affected area — treat as requirements.
 10. When changing logic, add WHY-comments only when not obvious; remove stale comments.
 11. UI ambiguity gate: see `/ui-clarify` — implementation blocked until all placement/visibility/fallback decisions are explicit.
+12. Spec ticket discipline: never edit `PLAN/spec-catalog.jsonl` directly; never rename a spec file out of its `Sxxxx_` prefix; never re-introduce a `_spec_` segment in PLAN paths; new specs must allocate an id via `scripts/spec_catalog/insert.ps1` **before** the strategic `.md` is written to disk.
 
 ## Feature Inventory
 
@@ -100,6 +119,10 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
    - `pwsh -File dev/CATALOG/scripts/render.ps1 -Module <app_v2|wear>` — regenerates the human-readable `.md`.
    - For new classes, fill `role` + `status` via `set.ps1` (see `dev/CATALOG/README.md`).
    - Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
+4. **Spec catalog sync** — run on every spec status transition (Draft → Approved → Tactical → In Progress → Implemented → Verified / Partial / Broken, or to/from any `Block*` state):
+   - `pwsh -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` (also `-Priority N` when the urgency changes).
+   - Skills `/spec`, `/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-update`, `/spec-all`, `/quick` perform this automatically — invoke the CLI yourself only when no skill is in flight.
+   - Direct edits to `PLAN/spec-catalog.jsonl` are forbidden.
 
 ## Version Format
 

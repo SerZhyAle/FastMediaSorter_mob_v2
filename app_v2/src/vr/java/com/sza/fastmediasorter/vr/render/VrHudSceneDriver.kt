@@ -36,11 +36,21 @@ class VrHudSceneDriver(
         val now = System.currentTimeMillis()
         val active = anySlotActive(state, now)
         if (active != lastVisibleSubmitted) {
-            renderer.setVisible(active)
+            renderer.setVisible(active, reason = "auto-redraw")
             lastVisibleSubmitted = active
         }
         if (active) {
             renderer.submit { canvas -> composer.draw(state, canvas) }
+        }
+    }
+
+    override fun setVisible(visible: Boolean, reason: String) {
+        handler.post {
+            renderer.setVisible(visible, reason)
+            lastVisibleSubmitted = visible
+            if (visible) {
+                requestRedraw()
+            }
         }
     }
 
@@ -238,6 +248,20 @@ class VrHudSceneDriver(
         }
     }
 
+    override fun updateFps(fps: Int) {
+        runOnMain {
+            state = state.copy(fps = fps)
+            requestRedraw()
+        }
+    }
+
+    override fun clearFps() {
+        runOnMain {
+            state = state.copy(fps = null)
+            requestRedraw()
+        }
+    }
+
     override fun reportActivity() {
         runOnMain {
             val until = System.currentTimeMillis() + IDLE_HIDE_DELAY_MS
@@ -288,6 +312,7 @@ class VrHudSceneDriver(
         if (s.immersiveBadgeUntilMs > now) return true
         if (s.bannerText != null && s.bannerUntilMs > now) return true
         if (s.repeatMode != null && s.visibleUntilMs > now) return true
+        if (s.fps != null && s.fps > 0) return true
         return s.visibleUntilMs > now
     }
 

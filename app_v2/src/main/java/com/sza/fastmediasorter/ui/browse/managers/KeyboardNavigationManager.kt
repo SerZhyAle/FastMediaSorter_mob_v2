@@ -41,6 +41,8 @@ class KeyboardNavigationManager(
         fun extendSelectionUp()
         fun extendSelectionDown()
         fun undoLastOperation()
+        /** Reshuffle and immediately start playback; no-op for non-media libraries. */
+        fun playRandomFiles()
     }
 
     private val shortcutHandler = KeyboardShortcutHandler(
@@ -83,6 +85,8 @@ class KeyboardNavigationManager(
             InputAction.RangeExtendDown -> { callbacks.extendSelectionDown(); true }
             InputAction.UndoRequested -> { callbacks.undoLastOperation(); true }
             InputAction.RedoRequested -> false
+
+            InputAction.PlayRandomCurrent -> { callbacks.playRandomFiles(); true }
 
             is InputAction.MoveFocus -> { handleMoveFocus(action.direction); true }
             is InputAction.PageJump -> { scrollPage(action.deltaPages); true }

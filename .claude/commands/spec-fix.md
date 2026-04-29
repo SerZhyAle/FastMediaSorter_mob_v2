@@ -1,20 +1,21 @@
 # Specification Audit Fix-up
 
-Consume a `/spec-check` audit report and apply mechanical fixes to the repository. Modifies codebase, not specs (`/spec-update` does that).
+Apply mechanical fixes flagged by the latest audit. Modifies the codebase, not the spec body — `/spec-update` does that.
+
+> **No fix file is written.** This skill reads the `## Last Audit` block of `PLAN/Sxxxx_<slug>.md`, applies the auto-fixes, and annotates each action item in place (`[FIXED]` / `[PARTIAL]` / `[FOLLOW-UP]` / `[PRE-RESOLVED]`). The journal `updated` timestamp moves on every run. Old fix-log files are abolished.
 
 ## Usage
 
 ```text
-/spec-fix <short-name>
-/spec-fix <short-name> --date YYYY-MM-DD
-/spec-fix <short-name> --only FAIL
-/spec-fix <short-name> --only WARN
-/spec-fix <short-name> --dry-run
-/spec-fix <short-name> --include <pattern>
-/spec-fix <short-name> --exclude <pattern>
+/spec-fix <Sxxxx-or-slug>
+/spec-fix <Sxxxx-or-slug> --only FAIL
+/spec-fix <Sxxxx-or-slug> --only WARN
+/spec-fix <Sxxxx-or-slug> --dry-run
+/spec-fix <Sxxxx-or-slug> --include <pattern>
+/spec-fix <Sxxxx-or-slug> --exclude <pattern>
 ```
 
-Requires `PLAN/spec_<short-name>__audit_<YYYY-MM-DD>.md`. Aborts if absent — run `/spec-check <short-name>` first.
+Requires a `## Last Audit` block in `PLAN/Sxxxx_<slug>.md`. Aborts if absent — run `/spec-check <Sxxxx>` first.
 
 ---
 
@@ -31,7 +32,6 @@ A fix is auto-applicable iff purely mechanical — no logic, design, or naming d
 | Missing `import timber.log.Timber` | Add import in canonical position. |
 | INDEX counter drift | Recompute counter from phase statuses, overwrite. |
 | INDEX row status drift | Update row to match phase file header. |
-| Missing `**Audit:**` pointer in spec | Insert line under `Status:`. |
 | FEATURES bullet missing in RU/UK | Mirror EN bullet as `<!-- TODO translate: <EN> -->` placeholder. |
 | Orphan `TODO(phase-NN)` markers | List them — do NOT auto-delete. Record as follow-up. |
 
@@ -41,12 +41,11 @@ Everything else becomes a **manual follow-up**. Never modifies method bodies, cl
 
 ## Process
 
-**1 — Locate audit report.**
+**1 — Locate audit block.**
 
-Glob `PLAN/spec_<short-name>__audit_*.md`. Pick most recent unless `--date` given.
-Abort if absent. If `Outcome: Verified` → exit: "Already Verified — nothing to fix."
+Read `PLAN/Sxxxx_<slug>.md`. Locate `## Last Audit`. Abort if absent. If `Outcome: Verified` → exit: "Already Verified — nothing to fix."
 
-**2 — Parse §7 Action Items.**
+**2 — Parse Action items.**
 
 Classify each as `auto` (maps to category table), `manual` (requires dev attention), or `skipped` (filtered by flags).
 
@@ -59,77 +58,22 @@ Deterministic order:
 3. FEATURES trilingual bullets.
 4. `Log.d` → `Timber.d` rewrites + imports.
 5. INDEX counter / status drift corrections.
-6. Spec `**Audit:**` pointer line insertion.
-7. Dev log entries — last, after all file edits.
+6. Dev log entries — last, after all file edits.
 
-Before each fix: re-verify the precondition (audit may be stale). If already fixed → record as `PRE-RESOLVED`, no action.
+Before each fix: re-verify the precondition (block may be stale). If already fixed → mark `[PRE-RESOLVED]`, no action.
 
-**4 — Write fix log** to `PLAN/spec_<short-name>__fix_<YYYY-MM-DD>.md` (suffix `_2`, `_3` on collision).
+**4 — Annotate the `## Last Audit` block in place.**
 
-**5 — Annotate audit report.**
+For each action item: prepend `[FIXED]`, `[PARTIAL]`, `[FOLLOW-UP]`, `[PRE-RESOLVED]`, or `[SKIPPED]` exactly once. Do not rewrite the rest of the block. Do not add new sections.
 
-For each §7 Action Item: prepend `[FIXED]`, `[PARTIAL]`, or `[FOLLOW-UP]`. Leave untouched items alone.
-
-**6 — Run dev log.**
+**5 — Run dev log.**
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>__fix_<YYYY-MM-DD>.md" "spec-fix" "Fix-up run"
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>__audit_<DATE>.md" "spec-fix" "Annotate audit"
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-fix" "Annotate Last Audit (<Sxxxx>)"
 # plus one line per modified source file
 ```
 
-**Chat output:** `Auto-fixed: N. Follow-ups: N — [title1, title2, ..]. Run /spec-check <short-name> to confirm.`
-
----
-
-## Fix Log Template
-
-```markdown
-# Spec Fix Run: <short-name>
-
-**Source audit:** `spec_<short-name>__audit_<YYYY-MM-DD>.md`
-**Fix date:** <YYYY-MM-DD>
-**Mode:** full | --only FAIL | --only WARN | --dry-run
-**Auto-applied:** N
-**Manual follow-ups:** N
-
----
-
-## 1. Auto-applied Fixes
-
-| # | Origin | Category | Files | Outcome |
-|---|--------|----------|-------|:-------:|
-| 1 | [FAIL §3.2.3] | dev log | `dev/CHANGELOG.md` | ✅ |
-
----
-
-## 2. Manual Follow-ups
-
-### Follow-up 1 — [FAIL §3.2.2 — Step 02.3]
-
-- **What the audit said:** <verbatim>
-- **Why not auto-fixed:** <one sentence>
-- **Suggested next action:** <concrete step + files>
-
----
-
-## 3. Skipped (filter flags)
-
-- [WARN §2.4] — excluded by `--exclude trilingual`.
-
----
-
-## 4. PRE-RESOLVED
-
-- [FAIL §3.2.3] — dev log entry for `path/File.kt` already present. Fixed between audit and this run.
-
----
-
-## 5. Next Steps
-
-1. Address manual follow-ups.
-2. Run `/spec-check <short-name>` to confirm Verified.
-```
+**Chat output:** `<Sxxxx>: auto-fixed N. Follow-ups: N — [title1, title2, ..]. Run /spec-check <Sxxxx> to confirm.`
 
 ---
 
@@ -137,11 +81,20 @@ For each §7 Action Item: prepend `[FIXED]`, `[PARTIAL]`, or `[FOLLOW-UP]`. Leav
 
 - Never modify application code beyond the category table.
 - Never invent translations — only `<!-- TODO translate: <EN text> -->` placeholders.
-- Re-verify every precondition before patching — audit may be hours old.
+- Re-verify every precondition before patching — the audit block may be hours old.
 - Dev log entries run last, batch-applied.
 - Never touch `Status:` on specs — only `/spec-check` moves those.
 - Never run the build or tests — static edits only.
 - Read-only zones never modified: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- One fix log per run. Never overwrite a prior fix log.
+- Annotations are append-style markers in place — never overwrite or delete prior items in the audit block; the next `/spec-check` rewrites the whole block.
+- **Never create or read `PLAN/Sxxxx_<slug>__audit_*.md` or `__fix_*.md` files.** They are abolished.
 - `--dry-run`: print complete plan (auto + manual + skipped), no writes, exit.
-- Running twice with no intervening changes must be a no-op (all items PRE-RESOLVED).
+- Running twice with no intervening changes must be a no-op (all items `[PRE-RESOLVED]`).
+
+---
+
+## Spec Catalog hooks
+
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug.
+- **Status transition.** After at least one fix is applied, touch the journal `updated` timestamp without changing status: `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>` (no other flags). On `--dry-run` skip the update.
+- **Forbidden:** never set the journal status from this skill — verdict belongs to `/spec-check`. Never write to `PLAN/spec-catalog.jsonl` directly.

@@ -340,7 +340,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     internal fun onCameraCaptureClicked() {
-        val resource = viewModel.state.value.resource ?: return
+        val resource = viewModel.state.value.resource
+        Timber.i(
+            "S0022-CAM: BrowseActivity.onCameraCaptureClicked resource=%s",
+            resource?.let { "{id=${it.id}, type=${it.type}, name=${it.name}}" } ?: "NULL",
+        )
+        if (resource == null) {
+            Timber.w("S0022-CAM: BrowseActivity.onCameraCaptureClicked ABORT — viewModel resource is null")
+            return
+        }
         cameraCaptureManager.launch(resource)
     }
 

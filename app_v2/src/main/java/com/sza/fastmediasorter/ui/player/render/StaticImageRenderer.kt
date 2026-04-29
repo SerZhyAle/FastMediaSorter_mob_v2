@@ -31,6 +31,12 @@ interface StaticImageRenderer {
     fun setMode(mode: RendererMode)
     /** Set the stereo crop mode for 3D images (SBS / OU). MONO = no crop. */
     fun setStereoMode(mode: StereoMode)
+    /**
+     * Toggle the panel single-eye crop feature for 3D images. When false, stereo crop is
+     * suppressed regardless of [setStereoMode] selection (full-frame display).
+     * See spec_panel-stereo-single-eye.
+     */
+    fun setPanelStereoSingleEyeEnabled(enabled: Boolean)
     fun onPause()
     fun onResume()
     fun release()

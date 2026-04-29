@@ -1,0 +1,164 @@
+# Shared helpers for spec_catalog scripts.
+# Compatible with PowerShell 5.1 and 7+.
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$libDir = $PSScriptRoot
+if (-not $libDir) { $libDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
+$repoRoot = (Resolve-Path (Join-Path $libDir '..\..')).Path
+$script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
+
+$script:RequiredFields = @('id', 'name', 'status', 'priority', 'file', 'created', 'updated')
+$script:StatusEnum = @(
+    'Draft', 'Approved', 'Tactical', 'In Progress',
+    'Implemented', 'Verified', 'Partial', 'Broken',
+    'BlockByOtherTask', 'BlockNeedUserTest', 'BlockQuestions', 'BlockExternal',
+    'Archived'
+)
+$script:IdPattern        = '^S\d{4}$'
+$script:FilePattern      = '^PLAN/S\d{4}_(?!spec_)'
+$script:PriorityMin      = 0
+$script:PriorityMax      = 100
+$script:PriorityDefault  = 50
+$script:StaleWarnDays    = 14
+$script:StaleAlertDays   = 30
+
+function Get-CatalogPath {
+    return $script:CatalogPath
+}
+
+function Get-Now {
+    return (Get-Date -Format 'yyyy-MM-dd HH:mm')
+}
+
+function Get-Today {
+    return (Get-Date -Format 'yyyy-MM-dd')
+}
+
+function Read-Catalog {
+    if (-not (Test-Path $script:CatalogPath)) {
+        return ,@()
+    }
+    $raw = Get-Content -LiteralPath $script:CatalogPath -Encoding UTF8 -ErrorAction Stop
+    if (-not $raw) { return ,@() }
+    $records = New-Object System.Collections.Generic.List[object]
+    $lineNo = 0
+    foreach ($line in @($raw)) {
+        $lineNo++
+        $trim = "$line".Trim()
+        if (-not $trim) { continue }
+        try {
+            $records.Add(($trim | ConvertFrom-Json))
+        } catch {
+            throw "Catalog parse error at line ${lineNo}: $($_.Exception.Message)"
+        }
+    }
+    $sorted = [object[]]@($records | Sort-Object -Property id)
+    return ,$sorted
+}
+
+function Assert-Record {
+    param([Parameter(Mandatory)] $Record)
+    foreach ($f in $script:RequiredFields) {
+        if (-not ($Record.PSObject.Properties.Name -contains $f)) {
+            throw "Record missing required field '$f'."
+        }
+        if ($null -eq $Record.$f -or "$($Record.$f)" -eq '') {
+            throw "Record field '$f' is empty."
+        }
+    }
+    if ($Record.id -notmatch $script:IdPattern) {
+        throw "Invalid id '$($Record.id)' — must match $script:IdPattern."
+    }
+    if ($script:StatusEnum -notcontains $Record.status) {
+        throw "Invalid status '$($Record.status)'. Allowed: $($script:StatusEnum -join ', ')."
+    }
+    $pri = [int]$Record.priority
+    if ($pri -lt $script:PriorityMin -or $pri -gt $script:PriorityMax) {
+        throw "Invalid priority '$($Record.priority)' — must be in $script:PriorityMin..$script:PriorityMax."
+    }
+    $fileNorm = ($Record.file -replace '\\', '/')
+    if ($fileNorm -notmatch $script:FilePattern) {
+        throw "Invalid file path '$($Record.file)' — must match $script:FilePattern (no '_spec_' segment)."
+    }
+    if ($fileNorm -match '\.\.') {
+        throw "Invalid file path '$($Record.file)' — must not contain '..' segments."
+    }
+}
+
+function Write-Catalog {
+    param([Parameter(Mandatory)][object[]] $Records)
+    $sorted = @($Records | Sort-Object -Property id)
+    foreach ($r in $sorted) { Assert-Record -Record $r }
+    # Build one compact JSON per record. Use JavaScriptSerializer-style output via ConvertTo-Json -Compress.
+    $lines = New-Object System.Collections.Generic.List[string]
+    foreach ($r in $sorted) {
+        # Re-shape to a fixed key order for stable diffs.
+        $ordered = [ordered]@{
+            id       = [string]$r.id
+            name     = [string]$r.name
+            status   = [string]$r.status
+            priority = [int]$r.priority
+        }
+        if ($r.PSObject.Properties.Name -contains 'tier' -and $null -ne $r.tier -and "$($r.tier)" -ne '') {
+            $ordered['tier'] = [int]$r.tier
+        }
+        $ordered['file']    = [string]$r.file
+        $ordered['created'] = [string]$r.created
+        $ordered['updated'] = [string]$r.updated
+        $json = ($ordered | ConvertTo-Json -Compress -Depth 5)
+        $lines.Add($json)
+    }
+    $payload = ($lines -join "`n")
+    if ($payload.Length -gt 0) { $payload += "`n" }
+    # Atomic write: temp file + Move-Item -Force.
+    $tmp = "$($script:CatalogPath).tmp"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($tmp, $payload, $utf8NoBom)
+    Move-Item -LiteralPath $tmp -Destination $script:CatalogPath -Force
+}
+
+function New-CatalogId {
+    $records = Read-Catalog
+    $max = 0
+    foreach ($r in $records) {
+        if ($r.id -match '^S(\d{4})$') {
+            $n = [int]$Matches[1]
+            if ($n -gt $max) { $max = $n }
+        }
+    }
+    $next = $max + 1
+    if ($next -gt 9999) { throw "Id space exhausted (S9999 reached)." }
+    return ('S{0:D4}' -f $next)
+}
+
+function Find-Record {
+    param([Parameter(Mandatory)][string] $Id)
+    $records = Read-Catalog
+    foreach ($r in $records) { if ($r.id -eq $Id) { return $r } }
+    return $null
+}
+
+function Get-DaysSinceUpdated {
+    param([Parameter(Mandatory)][string] $Updated)
+    try {
+        $dt = [datetime]::ParseExact($Updated, 'yyyy-MM-dd HH:mm', $null)
+        $span = (Get-Date) - $dt
+        return [int][math]::Floor($span.TotalDays)
+    } catch {
+        return -1
+    }
+}
+
+function Get-StaleLevel {
+    param([Parameter(Mandatory)][string] $Status, [Parameter(Mandatory)][int] $Days)
+    # Frozen states ignore staleness.
+    $frozen = @('Verified', 'Archived', 'Implemented')
+    if ($frozen -contains $Status) { return 'fresh' }
+    if ($Days -lt 0)                          { return 'unknown' }
+    if ($Days -ge $script:StaleAlertDays)     { return 'alert' }
+    if ($Days -ge $script:StaleWarnDays)      { return 'warn' }
+    return 'fresh'
+}
+

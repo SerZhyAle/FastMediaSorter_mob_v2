@@ -1307,6 +1307,10 @@ namespace
 
         LOGI("createPanelSwapchainImpl: %ux%u swapchain created imgCount=%u",
              requestedWidth, requestedHeight, imgCount);
+        // S0020 ADR-3: atomic "panel ready" marker, distinct from the "swapchain created" line.
+        // On-device test grep target — see strategic §11.1.
+        LOGI("nativeCreatePanelSwapchain: panel ready %ux%u imgCount=%u",
+             g_ctx.panelSwapchainWidth, g_ctx.panelSwapchainHeight, imgCount);
         return true;
     }
 
@@ -3421,11 +3425,13 @@ Java_com_sza_fastmediasorter_vr_openxr_OpenXrNative_nativeCreatePanelSwapchain(
     JNIEnv *, jclass, jint width, jint height)
 {
     std::lock_guard<std::mutex> lock(g_ctxMutex);
-    if (!g_ctx.sessionRunning)
+    // S0020: align with HUD JNI (line 3303). xrCreateSwapchain only requires a
+    // valid session handle; the stricter `sessionRunning` check fired before
+    // XR_SESSION_STATE_READY arrived, producing the user-visible "panel never
+    // came up" symptom on every cold start. Strategic ADR-1: no deferred state.
+    if (g_ctx.session == XR_NULL_HANDLE)
     {
-        g_ctx.panelSwapchainWidth = static_cast<uint32_t>(width);
-        g_ctx.panelSwapchainHeight = static_cast<uint32_t>(height);
-        LOGI("nativeCreatePanelSwapchain: %dx%d stored — session not yet up", width, height);
+        LOGW("nativeCreatePanelSwapchain: session handle null — request rejected (size=%dx%d)", width, height);
         return JNI_FALSE;
     }
     return createPanelSwapchainImpl(static_cast<uint32_t>(width),

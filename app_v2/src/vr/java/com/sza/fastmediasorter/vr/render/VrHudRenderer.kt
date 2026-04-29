@@ -75,11 +75,15 @@ class VrHudRenderer(
         return uploaded
     }
 
-    /** Toggle inclusion of the HUD quad layer in the next composition frame. */
-    fun setVisible(visible: Boolean) {
+    /**
+     * Toggle inclusion of the HUD quad layer in the next composition frame.
+     * [reason] is logged once per transition; pass an explicit tag (e.g. `"explicit-open-controls"`,
+     * `"auto-show-startup"`, `"idle-hide"`) so the cause of every visibility change is traceable.
+     */
+    fun setVisible(visible: Boolean, reason: String = "unspecified") {
+        Timber.d("VrHudRenderer: setVisible(%s) reason=%s prev=%s", visible, reason, lastVisible)
         if (lastVisible != visible) {
             lastVisible = visible
-            Timber.d("VrHudRenderer: setVisible(%b)", visible)
         }
         sessionManager.setHudLayerVisible(visible)
     }

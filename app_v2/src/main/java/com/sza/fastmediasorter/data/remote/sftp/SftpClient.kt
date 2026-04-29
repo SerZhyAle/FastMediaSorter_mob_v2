@@ -63,7 +63,9 @@ data class SftpFileAttributes(
  * - See JSch's HostKeyRepository for implementation
  */
 @Singleton
-class SftpClient @Inject constructor() {
+class SftpClient @Inject constructor(
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+) {
 
     companion object {
         private const val CONNECTION_TIMEOUT = 10000 // 10 seconds (reduced from 15s for faster error feedback)
@@ -88,12 +90,17 @@ class SftpClient @Inject constructor() {
     private suspend fun <T> withConnection(
         info: SftpConnectionInfo,
         block: suspend (ChannelSftp) -> Result<T>
-    ): Result<T> = pool.withConnection(info, block)
+    ): Result<T> {
+        reachabilityGate.requireAnyNetwork("SFTP")
+        return pool.withConnection(info, block)
+    }
 
     // ExoPlayer connection management lives in SftpConnectionPool.
     @Throws(IOException::class)
-    fun getConnectionForExoPlayer(connectionInfo: SftpConnectionInfo): SftpConnectionPool.ExoPlayerConnection =
-        pool.getConnectionForExoPlayer(connectionInfo)
+    fun getConnectionForExoPlayer(connectionInfo: SftpConnectionInfo): SftpConnectionPool.ExoPlayerConnection {
+        reachabilityGate.requireAnyNetwork("SFTP")
+        return pool.getConnectionForExoPlayer(connectionInfo)
+    }
 
     fun releaseExoPlayerConnection() = pool.releaseExoPlayerConnection()
 

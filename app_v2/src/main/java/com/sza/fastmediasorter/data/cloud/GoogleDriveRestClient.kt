@@ -52,7 +52,8 @@ class GoogleDriveRestClient @Inject constructor(
     private val credentialsManager: GoogleDriveCredentialsManager,
     private val httpClient: GoogleDriveHttpClient,
     private val pendingRevocationDao: PendingRevocationDao,
-    private val networkCredentialsRepository: NetworkCredentialsRepository
+    private val networkCredentialsRepository: NetworkCredentialsRepository,
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.GOOGLE_DRIVE
@@ -81,7 +82,8 @@ class GoogleDriveRestClient @Inject constructor(
      */
     suspend fun tryRestoreFromStorage(): Boolean {
         if (isAuthenticated()) return true
-        
+        reachabilityGate.requireAnyNetwork("Cloud-GDrive")
+
         // Try silent sign-in first (most reliable)
         val silentResult = silentSignIn()
         if (silentResult is AuthResult.Success) {

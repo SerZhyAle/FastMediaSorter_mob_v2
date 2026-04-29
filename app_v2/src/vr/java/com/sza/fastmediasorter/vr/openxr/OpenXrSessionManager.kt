@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.vr.openxr
 
 import android.app.Activity
+import android.os.SystemClock
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext
@@ -114,6 +115,7 @@ class OpenXrSessionManager(
             val threadId   = Thread.currentThread().id
             Timber.i("OpenXrSessionManager: render thread started — name='%s' id=%d", threadName, threadId)
 
+            val tInit = SystemClock.uptimeMillis()
             val egl = XrEglContext()
             Timber.d("OpenXrSessionManager: creating EGL context...")
             if (!egl.create()) {
@@ -125,12 +127,15 @@ class OpenXrSessionManager(
                 return@Thread
             }
             Timber.i("OpenXrSessionManager: EGL context created OK")
+            Timber.i("VR_PERF: [xr-thread] egl_create=%dms", SystemClock.uptimeMillis() - tInit)
 
+            val tNative = SystemClock.uptimeMillis()
             Timber.i("OpenXrSessionManager: calling nativeInitialize...")
             val ok = try {
                 val result = OpenXrNative.nativeInitialize(activity, callback)
                 drainNativeLog()
                 Timber.i("OpenXrSessionManager: nativeInitialize returned %b", result)
+                Timber.i("VR_PERF: [xr-thread] native_init=%dms  cumulative=%dms", SystemClock.uptimeMillis() - tNative, SystemClock.uptimeMillis() - tInit)
                 result
             } catch (t: Throwable) {
                 drainNativeLog()
@@ -181,15 +186,16 @@ class OpenXrSessionManager(
             running.set(true)
             starting.set(false)
 
-            Timber.i("OpenXrSessionManager: applying initial layer descriptor type=%s", currentLayerDescriptor.type)
-            applyLayerDescriptor(currentLayerDescriptor)
+            applyLayerDescriptor(currentLayerDescriptor, reason = "session-init")
 
             // Initialise GL bridge/renderer resources on the GL thread before the loop.
             // This must run after nativeInitialize so the EGL context + XR session exist.
+            val tReady = SystemClock.uptimeMillis()
             Timber.i("OpenXrSessionManager: invoking onSessionReady callback")
             try {
                 onSessionReady?.invoke()
                 Timber.i("OpenXrSessionManager: onSessionReady completed OK")
+                Timber.i("VR_PERF: [xr-thread] session_ready_cb=%dms  cumulative=%dms", SystemClock.uptimeMillis() - tReady, SystemClock.uptimeMillis() - tInit)
             } catch (t: Throwable) {
                 Timber.e(t, "OpenXrSessionManager: onSessionReady THREW — continuing without pipeline")
             }
@@ -306,10 +312,10 @@ class OpenXrSessionManager(
 
     fun isActive(): Boolean = running.get()
 
-    fun updateLayerDescriptor(descriptor: VrLayerDescriptor) {
+    fun updateLayerDescriptor(descriptor: VrLayerDescriptor, reason: String = "external-update") {
         currentLayerDescriptor = descriptor
         if (running.get() || starting.get()) {
-            applyLayerDescriptor(descriptor)
+            applyLayerDescriptor(descriptor, reason)
         }
     }
 
@@ -359,8 +365,33 @@ class OpenXrSessionManager(
 
     /** Allocate (or re-allocate) the interactive panel swapchain. */
     fun createPanelSwapchain(width: Int, height: Int): Boolean {
-        if (!running.get()) return false
-        return OpenXrNative.nativeCreatePanelSwapchain(width, height)
+        if (!running.get()) {
+            Timber.w(
+                "OpenXrSessionManager: createPanelSwapchain refused — session not running (size=%dx%d)",
+                width, height,
+            )
+            return false
+        }
+        Timber.i("OpenXrSessionManager: createPanelSwapchain → native (size=%dx%d)", width, height)
+        var ok = OpenXrNative.nativeCreatePanelSwapchain(width, height)
+        if (!ok && running.get()) {
+            // S0020 ADR-1: defensive single retry. After Phase 01 the native side checks
+            // session-handle (loose) instead of session-running (strict), so this branch
+            // should be unreachable — but if a future regression re-tightens the check,
+            // a 50 ms grace gives the session-state event a chance to land.
+            Timber.i("OpenXrSessionManager: panel retry after initial false (size=%dx%d)", width, height)
+            Thread.sleep(50)
+            ok = OpenXrNative.nativeCreatePanelSwapchain(width, height)
+        }
+        if (ok) {
+            Timber.i("OpenXrSessionManager: panel ready (size=%dx%d)", width, height)
+        } else {
+            Timber.w(
+                "OpenXrSessionManager: panel never came up (size=%dx%d) — see OpenXrNative log entries above",
+                width, height,
+            )
+        }
+        return ok
     }
 
     /** Release panel swapchain resources. */
@@ -396,9 +427,19 @@ class OpenXrSessionManager(
     }
 
     fun requestStereoSnapshot(): Boolean {
-        if (!running.get()) return false
+        Timber.d("OpenXrSessionManager: requestStereoSnapshot enter running=%s", running.get())
+        if (!running.get()) {
+            Timber.w("OpenXrSessionManager: requestStereoSnapshot refused — session not running")
+            return false
+        }
         return try {
-            OpenXrNative.nativeRequestStereoSnapshot()
+            val accepted = OpenXrNative.nativeRequestStereoSnapshot()
+            if (accepted) {
+                Timber.i("OpenXrSessionManager: requestStereoSnapshot accepted")
+            } else {
+                Timber.w("OpenXrSessionManager: requestStereoSnapshot native returned false")
+            }
+            accepted
         } catch (t: Throwable) {
             Timber.w(t, "OpenXrSessionManager: failed to request stereo snapshot")
             false
@@ -465,7 +506,8 @@ class OpenXrSessionManager(
         }
     }
 
-    private fun applyLayerDescriptor(descriptor: VrLayerDescriptor) {
+    private fun applyLayerDescriptor(descriptor: VrLayerDescriptor, reason: String) {
+        Timber.d("OpenXrSessionManager: applyLayerDescriptor → %s (reason=%s)", descriptor.type, reason)
         try {
             OpenXrNative.nativeConfigureLayer(
                 layerType = descriptor.type.nativeValue,
@@ -478,7 +520,7 @@ class OpenXrSessionManager(
                 lowerVerticalAngleRadians = descriptor.lowerVerticalAngleRadians,
             )
         } catch (t: Throwable) {
-            Timber.w(t, "OpenXrSessionManager: failed to apply layer descriptor %s", descriptor.type)
+            Timber.w(t, "OpenXrSessionManager: failed to apply layer descriptor %s (reason=%s)", descriptor.type, reason)
         }
     }
 

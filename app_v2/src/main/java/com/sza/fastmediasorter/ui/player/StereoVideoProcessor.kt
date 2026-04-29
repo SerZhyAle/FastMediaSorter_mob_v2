@@ -8,13 +8,14 @@ import timber.log.Timber
 /**
  * Applies stereoscopic rendering to ExoPlayer video output.
  *
- * For standard phone screens, SBS and OU content is displayed by cropping to the left/top eye
- * and letting the player scale the result to fill the screen. This gives a normal mono view of
- * one eye's perspective — the correct default for non-VR viewing.
+ * For standard phone screens, SBS and OU content is displayed by cropping to one fixed eye
+ * (right half for SBS, bottom half for OU) and letting the player scale the result to fill
+ * the screen. This gives a normal mono view of one eye's perspective — the correct default
+ * for non-VR viewing.
  *
  * [StereoMode.MONO] / [StereoMode.AUTO] / [StereoMode.UNKNOWN] → no GL effect (full-frame).
- * [StereoMode.SBS_FULL] / [StereoMode.SBS_HALF] → left-eye crop via `Crop(-1, 0, -1, 1)`.
- * [StereoMode.OU] → top-eye crop via `Crop(-1, 1, 0, 1)`.
+ * [StereoMode.SBS_FULL] / [StereoMode.SBS_HALF] → right-eye crop via `Crop(0, 1, -1, 1)`.
+ * [StereoMode.OU] → bottom-eye crop via `Crop(-1, 1, -1, 0)`.
  *
  * Thread safety: [setStereoMode] is called from the main thread.
  * [buildGlEffect] is called from [VideoPlayerManager.applyConfiguredVideoEffects] on the main thread.
@@ -61,13 +62,13 @@ class StereoVideoProcessor {
     /**
      * Builds the [Effect] to apply for the given [mode].
      *
-     * SBS_FULL / SBS_HALF → crop the left eye (left half of frame) and let [PlayerView] scale it
-     * to fill the screen.  The left eye occupies x=[-1, 0] in Media3 NDC, so `Crop(-1, 0, -1, 1)`
-     * extracts exactly the left half. The resulting frame has half the original width, so the
+     * SBS_FULL / SBS_HALF → crop the right eye (right half of frame) and let [PlayerView] scale
+     * it to fill the screen.  The right eye occupies x=[0, 1] in Media3 NDC, so `Crop(0, 1, -1, 1)`
+     * extracts exactly the right half. The resulting frame has half the original width, so the
      * player renders it at the correct aspect ratio without any additional transformation.
      *
-     * OU → crop the top eye (top half of frame).  In GL NDC y increases upward, so the top half
-     * is y=[0, 1].  `Crop(-1, 1, 0, 1)` extracts the top half for standard-screen viewing.
+     * OU → crop the bottom eye (bottom half of frame).  In GL NDC y increases upward, so the
+     * bottom half is y=[-1, 0].  `Crop(-1, 1, -1, 0)` extracts the bottom half for standard-screen viewing.
      *
      * MONO / AUTO / UNKNOWN → null (full-frame pass-through, no GL work).
      *
@@ -76,16 +77,16 @@ class StereoVideoProcessor {
     fun buildGlEffect(mode: StereoMode): Effect? {
         return when (mode) {
             StereoMode.SBS_FULL, StereoMode.SBS_HALF -> {
-                // Left eye is the left half of the SBS frame (NDC x = -1..0).
+                // Right eye is the right half of the SBS frame (NDC x = 0..1).
                 // Cropping to this region and letting the player scale it gives a standard
                 // mono view of one eye — the correct default for a regular phone screen.
-                Timber.d("StereoVideoProcessor: buildGlEffect → SBS left-eye crop for $mode")
-                Crop(-1f, 0f, -1f, 1f)
+                Timber.d("StereoVideoProcessor: buildGlEffect → SBS right-eye crop for $mode")
+                Crop(0f, 1f, -1f, 1f)
             }
             StereoMode.OU -> {
-                // Top eye occupies the top half of the OU frame (GL NDC y = 0..1).
-                Timber.d("StereoVideoProcessor: buildGlEffect → OU top-eye crop")
-                Crop(-1f, 1f, 0f, 1f)
+                // Bottom eye occupies the bottom half of the OU frame (GL NDC y = -1..0).
+                Timber.d("StereoVideoProcessor: buildGlEffect → OU bottom-eye crop")
+                Crop(-1f, 1f, -1f, 0f)
             }
             // No visual transformation for mono / unresolved modes
             else -> {

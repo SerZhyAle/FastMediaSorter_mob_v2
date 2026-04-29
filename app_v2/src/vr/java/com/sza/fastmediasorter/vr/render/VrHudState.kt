@@ -45,6 +45,7 @@ data class VrHudState(
     val fileTotal: Int? = null,
     val repeatMode: RepeatMode? = null,
     val seekDeltaSec: Int? = null,
+    val fps: Int? = null,
     /** Current stereo/display mode shown at top-left (e.g. "2D", "360° SBS"). Null = hidden. */
     val stereoModeLabel: String? = null,
     /** When > now, draw a recenter flash overlay for the remaining duration. */

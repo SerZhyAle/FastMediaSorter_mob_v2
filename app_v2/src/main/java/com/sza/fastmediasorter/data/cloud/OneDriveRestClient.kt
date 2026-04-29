@@ -63,7 +63,8 @@ class OneDriveRestClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val pendingRevocationDao: PendingRevocationDao,
     private val networkCredentialsRepository: NetworkCredentialsRepository,
-    @ApplicationScope private val applicationScope: CoroutineScope
+    @ApplicationScope private val applicationScope: CoroutineScope,
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.ONEDRIVE
@@ -82,7 +83,10 @@ class OneDriveRestClient @Inject constructor(
     
     private suspend fun initializeMsal(): Boolean = auth.initializeMsal()
     
-    override suspend fun authenticate(): AuthResult = auth.authenticate()
+    override suspend fun authenticate(): AuthResult {
+        reachabilityGate.requireAnyNetwork("Cloud-OneDrive")
+        return auth.authenticate()
+    }
     
     fun signIn(activity: Activity, callback: (AuthResult) -> Unit) = auth.signIn(activity, callback)
 

@@ -58,9 +58,13 @@
     <string name="documentation">Documentation Portal</string>
     <string name="settings_category_interface">Interface</string>
     <string name="settings_category_files">Files &amp; Data</string>
-    <string name="settings_category_system">System</string>
-    <string name="settings_category_sorting_slideshow">Sorting &amp; Slideshow</string>
-    <string name="settings_category_file_operations">File Operations</string>
+    <string name="settings_category_permissions">Permissions &amp; Access</string>
+    <string name="settings_category_app_data">App Data &amp; Backups</string>
+    <string name="settings_category_system">Network &amp; Cache</string>
+    <string name="settings_category_sorting_slideshow">Sorting, Slideshow &amp; Playback</string>
+    <string name="settings_category_file_operations">File Access in Player</string>
+    <string name="settings_category_copy_move">Copy &amp; Move</string>
+    <string name="settings_category_safety">Safety &amp; Confirmation</string>
     <string name="settings_category_grid_view">Grid View</string>
     <string name="settings_category_player_ui">Player UI</string>
     <string name="settings_category_touch_zones">Touch Zones</string>
@@ -145,6 +149,8 @@
     <string name="toggle_view_short">List/Grid</string>
     <string name="select_all_short">All</string>
     <string name="play">Play</string>
+    <string name="play_random">Play Random</string>
+    <string name="play_random_short">Random</string>
     <string name="scroll_to_top">Scroll to top</string>
     <string name="scroll_to_bottom">Scroll to bottom</string>
     <string name="scroll_page_up">Page up</string>
@@ -510,6 +516,9 @@
     <string name="playback_control_no_audio_tracks">No audio tracks available</string>
     <string name="playback_control_no_subtitles">No subtitles available</string>
     <string name="playback_control_done">Done</string>
+    <string name="dialog_playback_apply_and_3d">Apply and 3D</string>
+    <string name="vr_hud_prev_next_hint">← prev / next →</string>
+    <string name="vr_hud_applied_format">Applied: %1$s</string>
     <string name="playback_control_hue_value">HUE: %1$+d°</string>
     <string name="playback_control_brightness_value">Brightness: %1$+d%%</string>
     <string name="playback_control_speed_value">Speed: %1$.2fx</string>
@@ -842,8 +851,18 @@
     <string name="settings_vr_rendering_mode_desc">Cinema = flat screen in VR; Full = per-eye rendering</string>
     <string name="settings_vr_remember_format">Remember file format</string>
     <string name="settings_vr_remember_format_desc">Cache detected format per file in local database</string>
+    <string name="settings_vr_auto_immersive">Auto-enter immersive on stereo content</string>
+    <string name="settings_vr_auto_immersive_desc">When off, stereo files stay on the flat screen; switch to VR with the 3DVR button in the player.</string>
+    <string name="settings_vr_show_fps">Show VR FPS</string>
+    <string name="settings_vr_show_fps_desc">Display diagnostic FPS counter in immersive HUD</string>
+    <string name="settings_vr_show_fps_hint_disabled">Available when VR is enabled</string>
+    <string name="settings_player_show_fps">Show FPS over player</string>
+    <string name="settings_player_show_fps_desc">Display diagnostic FPS counter over the flat 2D player</string>
     <string name="settings_vr_disable_3d">Disable 3D/VR</string>
     <string name="settings_vr_disable_3d_desc">Treat all content as plain 2D; disables 3D/VR detection and the 3D tab in the playback dialog</string>
+    <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
+    <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen — comfortable to watch without 3D glasses. Default: ON for non-VR builds, OFF for VR.</string>
+    <string name="toast_panel_stereo_single_eye_applied">Stereo content cropped to one eye</string>
     <string name="settings_vr_help_title">VR Settings</string>
     <string name="settings_vr_help_message">These settings control how stereoscopic 3D and spherical content is detected and rendered in the VR headset.\n\nAuto-detect analyzes media metadata and aspect ratio to determine the stereo layout family.\n\nForced flat format applies only to SBS, Over-Under, and mono cinema playback. Forced spherical format applies only to 360°, VR180, and cylinder playback.\n\nRendering mode chooses between a flat cinema screen in VR space or full per-eye stereoscopic rendering.</string>
     <string-array name="vr_forced_format_entries">
@@ -993,6 +1012,26 @@
     <string name="save_frame_error">Failed to save frame</string>
     <string name="save_frame_drm_error">Protected content cannot be saved</string>
     <string name="save_frame_no_video">No video playing</string>
+
+    <!-- Link auto-download (S0003) -->
+    <string name="link_autodownload_section_title">Behaviour</string>
+    <string name="link_autodownload_master_label">Auto-download incoming links</string>
+    <string name="link_autodownload_master_summary">Fetch the linked file from a shared http(s) URL into the chosen resource.</string>
+    <string name="link_autodownload_resource_label">Download destination resource</string>
+    <string name="link_autodownload_resource_not_set">Not selected (saves to Downloads)</string>
+    <string name="link_autodownload_open_in_player_label">Open downloaded file in player</string>
+    <string name="link_autodownload_open_in_player_summary">After a successful download the file opens automatically in the built-in player.</string>
+    <string name="link_autodownload_progress_starting">Preparing download..</string>
+    <string name="link_autodownload_progress_downloading">Downloading..</string>
+    <string name="link_autodownload_cancel">Cancel</string>
+    <string name="link_autodownload_done_resource">Saved to %s</string>
+    <string name="link_autodownload_done_downloads">Saved to Downloads</string>
+    <string name="link_autodownload_fallback_downloads">Destination unavailable — saved to Downloads</string>
+    <string name="link_autodownload_error_no_network">No network connection</string>
+    <string name="link_autodownload_error_resource_unavailable">Selected resource is unavailable</string>
+    <string name="link_autodownload_error_no_media">No downloadable media at this link</string>
+    <string name="link_autodownload_error_timeout">Download timed out</string>
+    <string name="link_autodownload_error_mime_blocked">This file type is not supported</string>
     <string name="vr_fullscreen_already_active">Already fullscreen in VR</string>
     <string name="vr_toggle_enter_description">Immersive view</string>
     <string name="vr_toggle_exit_description">Exit immersive</string>
@@ -1458,11 +1497,11 @@
     <string name="msg_copy_success">File copied to %1$s</string>
     <string name="msg_copy_success_count">Copied %1$d files to %2$s</string>
     <string name="error_copy_failed">Copy failed: %1$s</string>
-    <string name="error_file_exists_copy">File "%1$s" already exists in "%2$s".\n\nEnable "Overwrite on copy" in Settings → File Operations</string>
+    <string name="error_file_exists_copy">File "%1$s" already exists in "%2$s".\n\nEnable "Overwrite on copy" in Settings → Copy &amp; Move</string>
     <string name="msg_move_success">File moved to %1$s</string>
     <string name="msg_move_success_count">Moved %1$d files to %2$s</string>
     <string name="error_move_failed">Move failed: %1$s</string>
-    <string name="error_file_exists_move">File "%1$s" already exists in "%2$s".\n\nEnable "Overwrite on move" in Settings → File Operations</string>
+    <string name="error_file_exists_move">File "%1$s" already exists in "%2$s".\n\nEnable "Overwrite on move" in Settings → Copy &amp; Move</string>
     <string name="msg_delete_success">File deleted</string>
     <string name="error_delete_failed">Delete failed: %1$s</string>
     <string name="error_delete_unexpected">Unexpected delete result</string>
@@ -2117,6 +2156,7 @@
     <string name="files_scanned_default">0 files scanned</string>
     <string name="thumbnail">Thumbnail</string>
     <string name="resource_type_icon">Resource type icon</string>
+    <string name="cd_resource_icon_quick_slideshow">Start slideshow</string>
     <string name="translate_image">Translate image</string>
     <string name="previous_match">Previous match</string>
     <string name="next_match">Next match</string>
@@ -2958,6 +2998,8 @@
     <string name="reset_cancel_button">Cancel</string>
     <!-- Conflict label in capture dialog -->
     <string name="keybinding_capture_conflict">Already bound to: %s</string>
+    <!-- S0017: shown after SMB scan when metadata extraction failed for some files -->
+    <string name="smb_metadata_errors_warning">%d file(s) indexed without metadata (read error)</string>
 </resources>
 
 

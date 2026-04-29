@@ -4,9 +4,13 @@
     <string name="add_new_account">Добавить новый аккаунт</string>
     <string name="settings_category_interface">Интерфейс</string>
     <string name="settings_category_files">Файлы и данные</string>
-    <string name="settings_category_system">Система</string>
-    <string name="settings_category_sorting_slideshow">Сортировка и слайдшоу</string>
-    <string name="settings_category_file_operations">Операции с файлами</string>
+    <string name="settings_category_permissions">Разрешения и доступ</string>
+    <string name="settings_category_app_data">Данные и резервные копии</string>
+    <string name="settings_category_system">Сеть и кэш</string>
+    <string name="settings_category_sorting_slideshow">Сортировка, слайдшоу и воспроизведение</string>
+    <string name="settings_category_file_operations">Доступ к файлам в плеере</string>
+    <string name="settings_category_copy_move">Копирование и перемещение</string>
+    <string name="settings_category_safety">Безопасность операций</string>
     <string name="settings_category_grid_view">Сетка</string>
     <string name="settings_category_player_ui">Интерфейс плеера</string>
     <string name="settings_category_touch_zones">Сенсорные зоны</string>
@@ -210,6 +214,8 @@
     <string name="toggle_view_short">Список/Табл.</string>
     <string name="select_all_short">Всё</string>
     <string name="play">Воспроизвести</string>
+    <string name="play_random">Случайный</string>
+    <string name="play_random_short">Случайный</string>
     <string name="scroll_to_top">В начало списка</string>
     <string name="scroll_to_bottom">В конец списка</string>
     <string name="empty_state_message">Добро пожаловать! 🎉\n\nНачните с установки настроек программы и добавления локальных папок устройства на этот экран</string>
@@ -578,6 +584,14 @@
     <string name="add_resources_first_message">Сначала добавьте папки на главном экране, прежде чем отмечать их для быстрой сортировки.</string>
     <string name="register_as_destination">Быстрая сортировка</string>
 
+    <!-- VR show_fps strings (canonical: settings_vr_remember_format + auto_immersive defined later in file) -->
+    <string name="settings_vr_show_fps">Показывать FPS в VR</string>
+    <string name="settings_vr_show_fps_desc">Отображать диагностический счётчик FPS в иммерсивном HUD</string>
+    <string name="settings_vr_show_fps_hint_disabled">Доступно при включённом VR</string>
+    <!-- S0021: panel-fps-overlay -->
+    <string name="settings_player_show_fps">Показывать FPS поверх плеера</string>
+    <string name="settings_player_show_fps_desc">Отображать диагностический счётчик FPS поверх плоского 2D-плеера</string>
+
     <!-- Edit Folder -->
     <string name="edit_resource">Редактирование папки</string>
     <string name="edit_resource_with_type">Редактирование папки (%1$s)</string>
@@ -727,8 +741,13 @@
     <string name="settings_vr_rendering_mode_desc">Cinema = плоский экран в VR; Full = раздельный рендеринг для каждого глаза</string>
     <string name="settings_vr_remember_format">Запоминать формат файла</string>
     <string name="settings_vr_remember_format_desc">Кэшировать определённый формат каждого файла в локальной базе</string>
+    <string name="settings_vr_auto_immersive">Автопереход в иммерсив для стерео-контента</string>
+    <string name="settings_vr_auto_immersive_desc">Когда выключено, стерео-файлы остаются на плоском экране; вход в VR — кнопкой 3DVR в плеере.</string>
     <string name="settings_vr_disable_3d">Отключить 3D/VR</string>
     <string name="settings_vr_disable_3d_desc">Открывать весь контент как обычное 2D; отключает распознавание 3D/VR и вкладку «3D» в диалоге управления воспроизведением</string>
+    <string name="pref_panel_stereo_single_eye_title">Показывать 3D-контент с одного глаза</string>
+    <string name="pref_panel_stereo_single_eye_summary">Если включено, SBS- и OU-стерео-видео и полноэкранные фото обрезаются до одного глаза и растягиваются на весь экран — удобно смотреть без 3D-очков. По умолчанию: включено в обычных сборках, выключено в VR-сборке.</string>
+    <string name="toast_panel_stereo_single_eye_applied">Стерео-контент обрезан до одного глаза</string>
     <string name="settings_vr_help_title">Настройки VR</string>
     <string name="settings_vr_help_message">Эти настройки управляют распознаванием и отображением стереоскопического 3D- и сферического контента в VR-шлеме.\n\nАвтоопределение анализирует метаданные и соотношение сторон, чтобы определить семейство стереоформата.\n\nПринудительный плоский формат применяется только к SBS, Over-Under и mono cinema. Принудительный сферический формат применяется только к 360°, VR180 и цилиндрическому воспроизведению.\n\nРежим рендеринга выбирает между плоским экраном-кинотеатром в VR-пространстве или полным стереоскопическим рендерингом для каждого глаза.</string>
     <string-array name="vr_forced_format_entries">
@@ -867,6 +886,26 @@
     <string name="save_frame_error">Не удалось сохранить кадр</string>
     <string name="save_frame_drm_error">Защищённый контент не может быть сохранён</string>
     <string name="save_frame_no_video">Видео не воспроизводится</string>
+
+    <!-- Автоскачивание по входящей ссылке (S0003) -->
+    <string name="link_autodownload_section_title">Поведение</string>
+    <string name="link_autodownload_master_label">При получении ссылки — скачать</string>
+    <string name="link_autodownload_master_summary">Извлекать файл по http(s)-ссылке из «Поделиться» в выбранный ресурс.</string>
+    <string name="link_autodownload_resource_label">Ресурс для закачки</string>
+    <string name="link_autodownload_resource_not_set">Не выбран (сохраняется в Downloads)</string>
+    <string name="link_autodownload_open_in_player_label">Открывать скачанное в плеере</string>
+    <string name="link_autodownload_open_in_player_summary">После успешной загрузки файл сразу открывается во встроенном плеере.</string>
+    <string name="link_autodownload_progress_starting">Подготовка к загрузке..</string>
+    <string name="link_autodownload_progress_downloading">Скачивание..</string>
+    <string name="link_autodownload_cancel">Отмена</string>
+    <string name="link_autodownload_done_resource">Сохранено в %s</string>
+    <string name="link_autodownload_done_downloads">Сохранено в Downloads</string>
+    <string name="link_autodownload_fallback_downloads">Ресурс недоступен — сохранено в Downloads</string>
+    <string name="link_autodownload_error_no_network">Нет подключения к сети</string>
+    <string name="link_autodownload_error_resource_unavailable">Выбранный ресурс недоступен</string>
+    <string name="link_autodownload_error_no_media">По ссылке не найден файл для скачивания</string>
+    <string name="link_autodownload_error_timeout">Превышено время ожидания загрузки</string>
+    <string name="link_autodownload_error_mime_blocked">Этот тип файла не поддерживается</string>
     <string name="vr_fullscreen_already_active">В VR уже активен полноэкранный режим</string>
     <string name="vr_toggle_enter_description">В иммерсив</string>
     <string name="vr_toggle_exit_description">Из иммерсива</string>
@@ -1225,11 +1264,11 @@
     <string name="msg_copy_success">Файл скопирован в %1$s</string>
     <string name="msg_copy_success_count">Скопировано %1$d файлов в %2$s</string>
     <string name="error_copy_failed">Ошибка копирования: %1$s</string>
-    <string name="error_file_exists_copy">Файл "%1$s" уже существует в "%2$s".\n\nВключите "Перезапись при копировании" в Настройки → Операции с файлами</string>
+    <string name="error_file_exists_copy">Файл "%1$s" уже существует в "%2$s".\n\nВключите "Перезапись при копировании" в Настройки → Копирование и перемещение</string>
     <string name="msg_move_success">Файл перемещён в %1$s</string>
     <string name="msg_move_success_count">Перемещено %1$d файлов в %2$s</string>
     <string name="error_move_failed">Ошибка перемещения: %1$s</string>
-    <string name="error_file_exists_move">Файл "%1$s" уже существует в "%2$s".\n\nВключите "Перезапись при перемещении" в Настройки → Операции с файлами</string>
+    <string name="error_file_exists_move">Файл "%1$s" уже существует в "%2$s".\n\nВключите "Перезапись при перемещении" в Настройки → Копирование и перемещение</string>
     <string name="msg_delete_success">Файл удалён</string>
     <string name="error_delete_failed">Ошибка удаления: %1$s</string>
     <string name="error_delete_unexpected">Неожиданная ошибка удаления</string>
@@ -2004,6 +2043,7 @@
     <string name="resource_pin_code">PIN-код (необязательно)</string>
     <string name="resource_pin_code_hint">4–6 цифр для защиты этой папки</string>
     <string name="resource_type_icon">Иконка типа ресурса</string>
+    <string name="cd_resource_icon_quick_slideshow">Запустить слайдшоу</string>
     <string name="resources_added">Добавлено ресурсов: %1$d</string>
     <string name="rewind_10_seconds">На 10 секунд назад</string>
     <string name="rewind_30_seconds">На 30 секунд назад</string>
@@ -2047,6 +2087,9 @@
     <string name="playback_control_no_audio_tracks">Аудиодорожки недоступны</string>
     <string name="playback_control_no_subtitles">Субтитры недоступны</string>
     <string name="playback_control_done">Готово</string>
+    <string name="dialog_playback_apply_and_3d">Применить и в 3D</string>
+    <string name="vr_hud_prev_next_hint">← пред. / след. →</string>
+    <string name="vr_hud_applied_format">Применено: %1$s</string>
     <string name="playback_control_hue_value">HUE: %1$+d°</string>
     <string name="playback_control_brightness_value">Яркость: %1$+d%%</string>
     <string name="playback_control_speed_value">Скорость: %1$.2fx</string>
@@ -2891,4 +2934,6 @@
     <string name="reset_cancel_button">Отмена</string>
     <!-- Conflict label in capture dialog -->
     <string name="keybinding_capture_conflict">Уже назначено: %s</string>
+    <!-- S0017: показывается после SMB-скана, если извлечение метаданных не удалось для части файлов -->
+    <string name="smb_metadata_errors_warning">%d файл(ов) проиндексировано без метаданных (ошибка чтения)</string>
 </resources>

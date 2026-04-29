@@ -125,6 +125,10 @@ class VrPhotoSphereRenderer(
         currentStereoMode = mode
     }
 
+    // VR renderer owns per-eye crop via VrStereoRenderer; the panel single-eye flag
+    // does not influence VR-side photo sphere rendering.
+    override fun setPanelStereoSingleEyeEnabled(enabled: Boolean) = Unit
+
     override fun onPause() = Unit
 
     override fun onResume() = Unit

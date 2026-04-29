@@ -24,8 +24,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted workerParams: WorkerParameters,
     private val executeScheduledOperationUseCase: ExecuteScheduledOperationUseCase,
-    private val scheduledOperationRepository: ScheduledOperationRepository,
-    private val workManagerScheduler: WorkManagerScheduler
+    private val scheduledOperationRepository: ScheduledOperationRepository
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
@@ -53,7 +52,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
 
         val execResult = executeScheduledOperationUseCase(operationId)
 
-        // Update lastRunAt, lastRunStatus, nextRunAt in DB and schedule next run
+        // Update lastRunAt, lastRunStatus, nextRunAt in DB; rescheduling is handled by WorkManagerScheduler observer
         val operation = scheduledOperationRepository.getById(operationId)
         if (operation != null && operation.isEnabled) {
             val now = System.currentTimeMillis()
@@ -65,7 +64,6 @@ class ScheduledOperationsWorker @AssistedInject constructor(
                 workerId = "sched_op_$operationId"
             )
             scheduledOperationRepository.update(updated)
-            workManagerScheduler.scheduleOperation(updated)
         }
 
         Timber.i("ScheduledOperationsWorker: op=$operationId done — ${execResult.filesProcessed} files, errors=${execResult.errors.size}")

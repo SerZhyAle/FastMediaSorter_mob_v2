@@ -22,13 +22,29 @@ class VrInteractivePanelRenderer(
     private var lastVisible: Boolean? = null
     private var failedSubmitCount = 0
     private var firstSubmitLogged = false
+    private var lastRefusalLogged = false
 
     /** Ensure the native panel swapchain exists. Returns true on success / already ready. */
     fun ensureSwapchainCreated(): Boolean {
-        if (swapchainReady) return true
+        if (swapchainReady) {
+            lastRefusalLogged = false
+            return true
+        }
+        if (lastRefusalLogged) {
+            Timber.d(
+                "VrInteractivePanelRenderer: ensureSwapchainCreated suppressed-repeat (size=%dx%d)",
+                width, height,
+            )
+            return false
+        }
         swapchainReady = sessionManager.createPanelSwapchain(width, height)
-        if (!swapchainReady)
+        if (!swapchainReady) {
             Timber.w("VrInteractivePanelRenderer: createPanelSwapchain(%dx%d) returned false", width, height)
+            Timber.w("VrInteractivePanelRenderer: panel unavailable — falling back to 2D overlay")
+            lastRefusalLogged = true
+        } else {
+            lastRefusalLogged = false
+        }
         return swapchainReady
     }
 

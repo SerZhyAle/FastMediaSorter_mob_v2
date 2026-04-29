@@ -51,7 +51,8 @@ import javax.inject.Singleton
 @Singleton
 class DropboxClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+    private val networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.DROPBOX
@@ -165,6 +166,7 @@ class DropboxClient @Inject constructor(
      */
     suspend fun tryRestoreForAccount(email: String): Boolean {
         if (dbxClient != null && accountEmail == email) return true // Already correct account
+        reachabilityGate.requireAnyNetwork("Cloud-Dropbox")
         val stored = loadStoredCredentials(email)
         if (stored != null) {
             if (initialize(stored)) {

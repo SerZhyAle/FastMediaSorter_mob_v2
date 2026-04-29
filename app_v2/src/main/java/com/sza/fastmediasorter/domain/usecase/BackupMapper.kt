@@ -204,11 +204,15 @@ object BackupMapper {
             thumbnailPreloadWifiOnly = settings.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = settings.videoSnapshotResourceId,
             videoSnapshotFormat = settings.videoSnapshotFormat,
+            linkAutoDownloadEnabled = settings.linkAutoDownloadEnabled,
+            linkAutoDownloadResourceId = settings.linkAutoDownloadResourceId,
+            linkAutoDownloadOpenInPlayer = settings.linkAutoDownloadOpenInPlayer,
             vrAutoDetectFormat = settings.vrAutoDetectFormat,
             vrForcedPlatFormat = settings.vrForcedPlatFormat,
             vrForcedSphericalFormat = settings.vrForcedSphericalFormat,
             vrRenderingMode = settings.vrRenderingMode,
             vrRememberFileFormat = settings.vrRememberFileFormat,
+            vrAutoImmersive = settings.vrAutoImmersive,
             disable3dVr = settings.disable3dVr,
         )
     }
@@ -355,11 +359,17 @@ object BackupMapper {
             thumbnailPreloadWifiOnly = backup.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = backup.videoSnapshotResourceId,
             videoSnapshotFormat = backup.videoSnapshotFormat,
+            // S0003: null in older backups → keep current setting (don't reset master toggle)
+            linkAutoDownloadEnabled = backup.linkAutoDownloadEnabled ?: current.linkAutoDownloadEnabled,
+            linkAutoDownloadResourceId = backup.linkAutoDownloadResourceId,
+            linkAutoDownloadOpenInPlayer = backup.linkAutoDownloadOpenInPlayer ?: current.linkAutoDownloadOpenInPlayer,
             vrAutoDetectFormat = backup.vrAutoDetectFormat,
             vrForcedPlatFormat = backup.vrForcedPlatFormat.gsonSafe(migratedPlatFormat),
             vrForcedSphericalFormat = backup.vrForcedSphericalFormat.gsonSafe(migratedSphericalFormat),
             vrRenderingMode = backup.vrRenderingMode.gsonSafe(current.vrRenderingMode),
             vrRememberFileFormat = backup.vrRememberFileFormat,
+            // null in older backup files → preserve current setting
+            vrAutoImmersive = backup.vrAutoImmersive ?: current.vrAutoImmersive,
             // null in older backup files → preserve current setting (don't force to false on restore)
             disable3dVr = backup.disable3dVr ?: current.disable3dVr,
         )

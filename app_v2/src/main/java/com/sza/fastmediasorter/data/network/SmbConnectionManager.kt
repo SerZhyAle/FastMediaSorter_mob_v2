@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.network
 
+// TODO(phase-decompose-smb): file at 1004 LOC after S0025 — split via Manager pattern in a follow-up spec.
+
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
@@ -7,6 +9,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.network.model.ConnectionKey
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
@@ -55,7 +58,8 @@ interface SmbResetCallback {
 @Singleton
 class SmbConnectionManager @Inject constructor(
     private val networkStateMonitor: NetworkStateMonitor,
-    private val playbackTracker: SmbPlaybackConnectionTracker
+    private val playbackTracker: SmbPlaybackConnectionTracker,
+    private val reachabilityGate: NetworkReachabilityGate
 ) {
     
     init {
@@ -265,6 +269,9 @@ class SmbConnectionManager @Inject constructor(
         allowRetry: Boolean = true,
         block: suspend (DiskShare) -> SmbResult<T>
     ): SmbResult<T> = connectionSemaphore.withPermit {
+        // Wi-Fi gate: synchronous fast-fail when no Wi-Fi/ethernet transport is active.
+        // Throws NetworkConnectionLostException — no socket attempt is made.
+        reachabilityGate.requireWifi("SMB")
         val key = ConnectionKey(
             server = connectionInfo.server,
             port = connectionInfo.port,
@@ -324,6 +331,19 @@ class SmbConnectionManager @Inject constructor(
             }
         }
         
+        // Smart retry: TCP precheck once. If host is unreachable at the TCP layer, skip the
+        // degraded retry — the server is dead, prolonging the wait will not help.
+        val tcpReachable = checkConnectivity(
+            connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS
+        )
+        if (!tcpReachable) {
+            Timber.w("SMB TCP precheck failed: ${connectionInfo.server}:${connectionInfo.port} — fast-fail without retry")
+            return@withPermit handleFreshConnectionFailure(
+                key, connectionInfo,
+                IOException("Server unreachable (${connectionInfo.server}:${connectionInfo.port})")
+            )
+        }
+
         // Attempt 2: Create fresh connection (with optional retry)
         val maxAttempts = if (allowRetry) 2 else 1
         var freshConnectionAttempts = 0
@@ -336,8 +356,7 @@ class SmbConnectionManager @Inject constructor(
                 // Degraded client (extended timeouts) only on retry — server proved reachable but slow.
                 val newPooled = createFreshConnection(
                     connectionInfo,
-                    useDegradedTimeout = freshConnectionAttempts > 1 && allowRetry,
-                    skipConnectivityCheck = freshConnectionAttempts > 1
+                    useDegradedTimeout = freshConnectionAttempts > 1 && allowRetry
                 )
 
                 // Track usage for fresh connection
@@ -357,9 +376,6 @@ class SmbConnectionManager @Inject constructor(
                 }
             } catch (e: Exception) {
                 // An outer withTimeout/coroutine cancel propagates as CancellationException.
-                // Retrying after cancellation is impossible — the scope is already cancelled.
-                // Re-throw immediately so the cancellation is not silently swallowed, which
-                // would cause delay() (the next suspension point) to throw again anyway.
                 if (e is CancellationException) throw e
 
                 lastException = e
@@ -373,27 +389,19 @@ class SmbConnectionManager @Inject constructor(
                 }
             }
         }
-        
-        // If we get here, both attempts failed - return error
+
         handleFreshConnectionFailure(key, connectionInfo, lastException ?: Exception("Unknown SMB connection error"))
     }
     
     /**
-     * Create a new SMB connection and add to pool.
+     * Create a new SMB connection and add to pool. TCP precheck is performed by the caller in
+     * `withConnection` — kept out of here so the retry decision can consult its outcome.
      * @param useDegradedTimeout if true, use extended timeouts for recovery scenarios
      */
     private suspend fun createFreshConnection(
         connectionInfo: SmbConnectionInfo,
-        useDegradedTimeout: Boolean = false,
-        skipConnectivityCheck: Boolean = false
+        useDegradedTimeout: Boolean = false
     ): PooledConnection {
-        // Fast TCP pre-check before attempting full SMBJ connect.
-        // Skipped on retry attempt — the first TCP ping already failed transiently;
-        // SMBJ itself will time out via CONNECTION_TIMEOUT_DEGRADED_MS if the host is truly dead.
-        if (!skipConnectivityCheck) {
-            checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
-        }
-
         val startTime = if (BuildConfig.DEBUG) System.currentTimeMillis() else 0L
         // Use degraded client for recovery after timeout to get extended timeouts
         val client = if (useDegradedTimeout) getDegradedClient() else getClient(connectionInfo.server, connectionInfo.port)
@@ -862,7 +870,7 @@ class SmbConnectionManager @Inject constructor(
         resetClients()
     }
 
-    private fun checkConnectivity(host: String, port: Int, timeoutMs: Int) =
+    private fun checkConnectivity(host: String, port: Int, timeoutMs: Int): Boolean =
         SmbErrorClassifier.checkConnectivity(host, port, timeoutMs)
     
     private fun getUserFriendlyMessage(e: Exception): String =

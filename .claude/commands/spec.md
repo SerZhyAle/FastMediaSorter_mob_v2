@@ -6,19 +6,29 @@ Write a strategic specification: product-level *what* and *why*, in Russian, wit
 
 ```text
 /spec <roadmap-id> <short-name>
+/spec <roadmap-id> <short-name> --priority N
 ```
 
 - `/spec X.11 background-thumbnail-preload`
 - `/spec III.12 standalone-player-playlist`
 - `/spec ad-hoc player-keybinding-remapping`
+- `/spec ad-hoc bugfix-camera-capture-crash --priority 95`
 
-Output file: `PLAN/spec_<short-name>.md`. Tactical folder created separately by `/spec-tech`.
+Output file: `PLAN/Sxxxx_<short-name>.md` (the `Sxxxx` ticket id is allocated by `scripts/spec_catalog/insert.ps1` — see "Spec Catalog hooks" below). No `_spec_` segment in the filename. Tactical folder created separately by `/spec-tech` at `PLAN/Sxxxx_<short-name>/`.
 
 ---
 
 ## Process
 
-**1 — Parse arguments.** Extract ID (`X.11` or `ad-hoc`) and short name.
+**1 — Parse arguments.** Extract ID (`X.11` or `ad-hoc`) and short name. Auto-derive priority from slug if `--priority` not supplied:
+
+| Slug pattern | Default priority |
+|--------------|:----------------:|
+| starts with `bugfix-` | 90 |
+| starts with `hotfix-` | 95 |
+| anything else | 50 |
+
+`--priority N` overrides (0..100).
 
 **2 — Read context.**
 
@@ -41,15 +51,33 @@ Output file: `PLAN/spec_<short-name>.md`. Tactical folder created separately by 
 
 For ad-hoc: estimate from scope, note "ad-hoc" alongside.
 
-**4 — Write `PLAN/spec_<short-name>.md`** using the template below.
-
-**5 — Run dev log.**
+**4 — Allocate ticket id.** Before any file write:
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec" "Add strategic spec for <id>"
+$ticketId = (& pwsh -File scripts/spec_catalog/insert.ps1 `
+    -Name "<short-name>" `
+    -File "PLAN/<placeholder>" `
+    -Status Draft `
+    -Tier <N> `
+    -Priority <P>).Trim()
+# $ticketId -> e.g. "S0042"
 ```
 
-**Chat output:** `PLAN/spec_<short-name>.md — Tier N. Next: /spec-tech <short-name>`
+The `name` field in the journal is the **bare slug** — no `spec_` prefix. The placeholder `-File` value is harmless because step 5 immediately overwrites it via `update.ps1`. After allocation, build the real path: `PLAN/$ticketId\_<short-name>.md`.
+
+**5 — Write the strategic file** at `PLAN/<Sxxxx>_<short-name>.md` using the template below. The `**Ticket:** Sxxxx` and `**Priority:** N` fields go in the frontmatter. Then patch the journal `file` field:
+
+```powershell
+& pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
+```
+
+**6 — Run dev log.**
+
+```powershell
+.\scripts\add_to_dev_log.ps1 "PLAN/<Sxxxx>_<short-name>.md" "spec" "Add strategic spec <Sxxxx> for <id>"
+```
+
+**Chat output:** `<Sxxxx> <short-name> — Tier N, Priority P. Next: /spec-tech <Sxxxx>`
 
 ---
 
@@ -57,18 +85,27 @@ For ad-hoc: estimate from scope, note "ad-hoc" alongside.
 
 `Draft` → `Approved` → `Tactical` → `In Progress` → `Implemented` → `Verified` / `Partial` / `Broken`
 
+Block states (any active spec may transition into one of these and back via `update.ps1 -Status Block...`):
+
+- `BlockByOtherTask`  — depends on another `Sxxxx`; record the dependency in §10.
+- `BlockNeedUserTest` — implementation done, awaiting hands-on verification.
+- `BlockQuestions`    — awaiting clarification from the user (turn relevant §6 items to `Open`).
+- `BlockExternal`     — waiting on a library release, hardware, or third party.
+
 ---
 
 ## Template
 
 ```markdown
-# Стратегическая спецификация: <ID> — <Название фичи>
+# Стратегическая спецификация: <Sxxxx> — <Название фичи>
 
+**Ticket:** <Sxxxx>
 **Status:** Draft
+**Priority:** <0..100>
 **Date:** <YYYY-MM-DD>
 **Tier:** <метка>
 **Roadmap entry:** <текст из роадмапа или «Ad-hoc — запрос <дата>»>
-**Tactical spec:** `PLAN/spec_<short-name>/` (будет создан через `/spec-tech`)
+**Tactical spec:** `PLAN/<Sxxxx>_<short-name>/` (будет создан через `/spec-tech`)
 
 > **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
 
@@ -85,6 +122,7 @@ For ad-hoc: estimate from scope, note "ad-hoc" alongside.
 <Нумерованный список наблюдаемых улучшений. «Что станет возможным / что перестанет происходить».>
 
 **Non-goals:**
+
 - <что явно вне объёма>
 
 ---
@@ -160,6 +198,7 @@ For ad-hoc: estimate from scope, note "ad-hoc" alongside.
 ## 9. Архитектурные решения (ADR)
 
 **ADR-1: <Заголовок>**
+
 - **Решение:** <что решено>
 - **Альтернативы:** <что рассматривалось>
 - **Почему:** <обоснование>
@@ -170,7 +209,7 @@ For ad-hoc: estimate from scope, note "ad-hoc" alongside.
 
 ## 10. Связи с другими спеками
 
-<Список связей или «Связей нет.»>
+<Список связей или «Связей нет.» Если статус будет `BlockByOtherTask` — указать блокирующий `Sxxxx` здесь.>
 
 ---
 
@@ -182,8 +221,18 @@ For ad-hoc: estimate from scope, note "ad-hoc" alongside.
 
 ## 12. Ссылка на тактическую спецификацию
 
-Следующий шаг: `/spec-tech <short-name>` — создаст `PLAN/spec_<short-name>/` с фазами.
+Следующий шаг: `/spec-tech <Sxxxx>` — создаст `PLAN/<Sxxxx>_<short-name>/` с фазами.
 ```
+
+---
+
+## Spec Catalog hooks
+
+- **Argument resolution.** If the first argument matches `^S\d{4}$`, treat as a ticket id; resolve current state via `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Otherwise treat as a short-name slug and allocate a new id (Process step 4).
+- **Mutations performed by this skill:**
+  - On new spec: `insert.ps1 -Status Draft -Tier <N> -Priority <P>` (Process step 4).
+  - After file is on disk: `update.ps1 -Id <Sxxxx> -File "PLAN/<Sxxxx>_<short-name>.md"` (Process step 5).
+- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never produce a strategic file at `PLAN/spec_<short-name>.md` or `PLAN/<Sxxxx>_spec_<short-name>.md` — the `_spec_` segment is forbidden.
 
 ---
 

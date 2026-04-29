@@ -26,7 +26,9 @@ import javax.inject.Singleton
  * Supports connection pooling for ExoPlayer DataSource via getConnectionForExoPlayer().
  */
 @Singleton
-class FtpClient @Inject constructor() {
+class FtpClient @Inject constructor(
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+) {
 
     private var ftpClient: FTPClient? = null
     private val mutex = Any() // Synchronization lock for FTPClient operations
@@ -44,8 +46,10 @@ class FtpClient @Inject constructor() {
     private val exoPlayerPool = FtpExoPlayerPool()
 
     @Throws(IOException::class)
-    fun getConnectionForExoPlayer(connectionInfo: FtpExoPlayerPool.FtpConnectionInfo): FtpExoPlayerPool.ExoPlayerFtpConnection =
-        exoPlayerPool.getConnectionForExoPlayer(connectionInfo)
+    fun getConnectionForExoPlayer(connectionInfo: FtpExoPlayerPool.FtpConnectionInfo): FtpExoPlayerPool.ExoPlayerFtpConnection {
+        reachabilityGate.requireAnyNetwork("FTP")
+        return exoPlayerPool.getConnectionForExoPlayer(connectionInfo)
+    }
 
     fun releaseExoPlayerConnection(client: FTPClient?) =
         exoPlayerPool.releaseExoPlayerConnection(client)
@@ -67,6 +71,7 @@ class FtpClient @Inject constructor() {
         password: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            reachabilityGate.requireAnyNetwork("FTP")
             disconnect() // Ensure clean state
             
             val client = FTPClient()

@@ -57,14 +57,6 @@ class GeneralSettingsObserversHelper(
             if (binding.switchDefaultRememberFileList.isChecked != settings.defaultRememberFileList)
                 binding.switchDefaultRememberFileList.isChecked = settings.defaultRememberFileList
 
-            if (binding.switchEnableSafeMode.isChecked != settings.enableSafeMode)
-                binding.switchEnableSafeMode.isChecked = settings.enableSafeMode
-            binding.layoutConfirmDelete.visibility = if (settings.enableSafeMode) View.VISIBLE else View.GONE
-            binding.layoutConfirmMove.visibility = if (settings.enableSafeMode) View.VISIBLE else View.GONE
-            if (binding.switchConfirmDelete.isChecked != settings.confirmDelete)
-                binding.switchConfirmDelete.isChecked = settings.confirmDelete
-            if (binding.switchConfirmMove.isChecked != settings.confirmMove)
-                binding.switchConfirmMove.isChecked = settings.confirmMove
             if (binding.switchEnableBackgroundSync.isChecked != settings.enableBackgroundSync)
                 binding.switchEnableBackgroundSync.isChecked = settings.enableBackgroundSync
 

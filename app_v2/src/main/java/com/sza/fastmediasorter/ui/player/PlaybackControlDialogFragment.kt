@@ -109,6 +109,21 @@ class PlaybackControlDialogFragment : DialogFragment() {
         // All changes are applied immediately from the controls, so the explicit action here is
         // only to close the dialog in an obvious way for touch users.
         binding.btnClosePlaybackControl.setOnClickListener { dismiss() }
+
+        // S0019: «Apply and 3D» combo button — visible only on VR-flavor builds.
+        // One click closes the dialog AND launches immersive playback with current settings
+        // (the «settings → apply → 3D» scenario from S0019 §2 goal 5).
+        binding.btnApplyAnd3D.isVisible = BuildConfig.SUPPORT_VR_PLAYER
+        binding.btnApplyAnd3D.setOnClickListener {
+            Timber.i("PlaybackControlDialog: btnApplyAnd3D clicked — dismissing + launching immersive")
+            val host = activity
+            dismiss()
+            if (host is com.sza.fastmediasorter.ui.player.PlayerActivity) {
+                host.launchImmersiveOnCurrentFile("dialog-apply-and-3d")
+            } else {
+                Timber.w("PlaybackControlDialog: btnApplyAnd3D — host is not PlayerActivity (host=%s)", host?.javaClass?.simpleName)
+            }
+        }
     }
 
     override fun onStart() {

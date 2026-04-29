@@ -28,7 +28,9 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
+import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
 import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
 import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
@@ -54,6 +56,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -83,7 +89,9 @@ class VideoPlayerManager(
     internal val googleDriveClient: GoogleDriveRestClient,
     internal val oneDriveClient: OneDriveRestClient,
     internal val dropboxClient: DropboxClient,
-    internal val playbackPositionRepository: PlaybackPositionRepository
+    internal val playbackPositionRepository: PlaybackPositionRepository,
+    internal val settingsRepository: SettingsRepository,
+    internal val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier
 ) : DefaultLifecycleObserver {
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -219,6 +227,42 @@ class VideoPlayerManager(
     }
 
     internal val managerScope = CoroutineScope(Dispatchers.Main + Job())
+
+    // Panel single-eye crop flag — see spec_panel-stereo-single-eye.md.
+    // Default at construction matches the AppSettings default (flavor-aware via BuildConfig);
+    // overridden as soon as the first DataStore emission arrives below.
+    @Volatile
+    internal var panelStereoSingleEyeEnabled: Boolean = !BuildConfig.SUPPORT_VR_PLAYER
+
+    // VR-only override: when VrPlayerActivity enters immersive rendering, the immersive
+    // renderer (VrStereoRenderer) owns per-eye crop; suppress panel single-eye crop here
+    // to avoid double-cropping. Toggled by VrPlayerActivity.setVrRenderingActive().
+    @Volatile
+    private var vrImmersiveActive: Boolean = false
+
+    /**
+     * Set by VrPlayerActivity when the OpenXR immersive render loop becomes active or inactive.
+     * While active, panel single-eye crop is suppressed regardless of the user setting.
+     */
+    fun setVrImmersiveActive(active: Boolean) {
+        if (vrImmersiveActive == active) return
+        vrImmersiveActive = active
+        Timber.d("VideoPlayerManager: vrImmersiveActive=$active — re-applying video effects")
+        // Re-apply on the main thread to honour the toggle for the currently-loaded media.
+        applyConfiguredVideoEffects()
+    }
+
+    init {
+        settingsRepository.getSettings()
+            .map { it.panelStereoSingleEye }
+            .distinctUntilChanged()
+            .onEach { enabled ->
+                panelStereoSingleEyeEnabled = enabled
+                Timber.d("VideoPlayerManager: panelStereoSingleEye=$enabled — re-applying video effects")
+                applyConfiguredVideoEffects()
+            }
+            .launchIn(managerScope)
+    }
 
     /**
      * Optional callback invoked with the first decoded video frame bitmap.
@@ -411,6 +455,8 @@ class VideoPlayerManager(
                     } finally {
                         retriever.release()
                     }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Timber.w(e, "VideoPlayerManager: Failed to extract first frame from $path")
                 }
@@ -481,14 +527,26 @@ class VideoPlayerManager(
      */
     fun applyStereoEffect(mode: StereoMode) {
         val resolved = when (mode) {
-            StereoMode.AUTO, StereoMode.UNKNOWN -> StereoMode.MONO
+            StereoMode.AUTO, StereoMode.UNKNOWN -> {
+                Timber.w(
+                    "VideoPlayerManager: applyStereoEffect sentinel input=%s — defensive fallback to MONO " +
+                        "(upstream coordinator should have suppressed; see PlayerStereoModeCoordinator)",
+                    mode,
+                )
+                StereoMode.MONO
+            }
             else -> mode
         }
         Timber.d("VideoPlayerManager: applyStereoEffect requested=$mode resolved=$resolved")
-        // On VR the renderer (VrStereoRenderer) owns per-eye cropping — pass full frame through.
-        val effectiveMode = if (BuildConfig.SUPPORT_VR_PLAYER) StereoMode.MONO else resolved
+        // Immersive renderer owns per-eye crop; suppress panel single-eye crop when immersive is active.
+        // Otherwise gated by the user setting (default ON for non-VR, OFF for VR).
+        val effectiveMode = if (panelStereoSingleEyeEnabled && !vrImmersiveActive) resolved else StereoMode.MONO
         stereoVideoProcessor.setStereoMode(effectiveMode)
         applyConfiguredVideoEffects()
+        // Show one-shot toast when crop becomes active for the first time this session.
+        if (effectiveMode != StereoMode.MONO) {
+            panelStereoSingleEyeNotifier.notifyIfFirstThisSession(context)
+        }
     }
 
     fun setHueAdjustmentDegrees(hueDegrees: Float) {
@@ -551,6 +609,8 @@ class VideoPlayerManager(
 
         // Reset per-file stereo detection before every new video
         playerCallback.onBeforeVideoLoad(path)
+        // Reset the panel single-eye toast one-shot for the new media session.
+        panelStereoSingleEyeNotifier.resetForNewSession()
         logMemoryStats("BEFORE playVideo")
 
         // Reset effects-deferral gate for the new file — size will be reported

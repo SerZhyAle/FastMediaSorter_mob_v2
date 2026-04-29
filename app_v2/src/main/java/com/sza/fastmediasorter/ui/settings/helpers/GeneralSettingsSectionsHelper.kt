@@ -16,7 +16,8 @@ class GeneralSettingsSectionsHelper(
     companion object {
         const val PREFS_NAME = "general_sections_state"
         const val KEY_INTERFACE_EXPANDED = "section_interface_expanded"
-        const val KEY_FILES_EXPANDED = "section_files_expanded"
+        const val KEY_PERMISSIONS_EXPANDED = "section_permissions_expanded"
+        const val KEY_APP_DATA_EXPANDED = "section_app_data_expanded"
         const val KEY_SYSTEM_EXPANDED = "section_system_expanded"
         const val KEY_DEBUG_EXPANDED = "section_debug_expanded"
     }
@@ -29,9 +30,14 @@ class GeneralSettingsSectionsHelper(
             KEY_INTERFACE_EXPANDED, savedStates[KEY_INTERFACE_EXPANDED] ?: false
         )
         bindSectionToggle(
-            binding.headerFiles, binding.containerFiles,
-            fragment.getString(R.string.settings_category_files),
-            KEY_FILES_EXPANDED, savedStates[KEY_FILES_EXPANDED] ?: false
+            binding.headerPermissions, binding.containerPermissions,
+            fragment.getString(R.string.settings_category_permissions),
+            KEY_PERMISSIONS_EXPANDED, savedStates[KEY_PERMISSIONS_EXPANDED] ?: false
+        )
+        bindSectionToggle(
+            binding.headerAppData, binding.containerAppData,
+            fragment.getString(R.string.settings_category_app_data),
+            KEY_APP_DATA_EXPANDED, savedStates[KEY_APP_DATA_EXPANDED] ?: false
         )
         bindSectionToggle(
             binding.headerSystem, binding.containerSystem,
@@ -75,7 +81,8 @@ class GeneralSettingsSectionsHelper(
             val prefs = fragment.requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             mapOf(
                 KEY_INTERFACE_EXPANDED to prefs.getBoolean(KEY_INTERFACE_EXPANDED, false),
-                KEY_FILES_EXPANDED to prefs.getBoolean(KEY_FILES_EXPANDED, false),
+                KEY_PERMISSIONS_EXPANDED to prefs.getBoolean(KEY_PERMISSIONS_EXPANDED, false),
+                KEY_APP_DATA_EXPANDED to prefs.getBoolean(KEY_APP_DATA_EXPANDED, false),
                 KEY_SYSTEM_EXPANDED to prefs.getBoolean(KEY_SYSTEM_EXPANDED, false),
                 KEY_DEBUG_EXPANDED to prefs.getBoolean(KEY_DEBUG_EXPANDED, false)
             )

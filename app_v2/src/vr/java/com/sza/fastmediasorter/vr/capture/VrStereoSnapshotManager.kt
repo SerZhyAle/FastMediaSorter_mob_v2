@@ -43,26 +43,48 @@ class VrStereoSnapshotManager(
 ) {
 
     fun captureCurrentFrame() {
+        Timber.i(
+            "VrPhotoCapture: stage=request file=%s",
+            activity.viewModel.state.value.currentFile?.name,
+        )
         val sessionManager = sessionProvider()
-        if (sessionManager == null || !sessionManager.requestStereoSnapshot()) {
+        if (sessionManager == null) {
+            Timber.w("VrPhotoCapture: stage=request result=fail reason=no-session")
             Toast.makeText(activity, R.string.vr_save_frame_unavailable, Toast.LENGTH_SHORT).show()
             return
         }
+        if (!sessionManager.requestStereoSnapshot()) {
+            Timber.w("VrPhotoCapture: stage=request result=fail reason=request-rejected")
+            Toast.makeText(activity, R.string.vr_save_frame_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        Timber.d("VrPhotoCapture: stage=request result=ok — awaiting snapshot")
 
         activity.lifecycleScope.launch {
-            val snapshot = waitForSnapshot(sessionManager)
+            val snapshot = try {
+                waitForSnapshot(sessionManager)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                Timber.w("VrPhotoCapture: stage=poll result=cancelled")
+                return@launch
+            }
             if (snapshot == null) {
+                Timber.w("VrPhotoCapture: stage=poll result=timeout deadline_ms=%d", SNAPSHOT_TIMEOUT_MS)
                 Toast.makeText(activity, R.string.vr_save_frame_timeout, Toast.LENGTH_SHORT).show()
                 return@launch
             }
+            Timber.d("VrPhotoCapture: stage=poll result=ok size=%dx%d", snapshot.width, snapshot.height)
 
             try {
                 val fileName = VrStereoSnapshotFileNameBuilder.build(
                     mediaFile = activity.viewModel.state.value.currentFile,
                     capturedAt = LocalDateTime.now(),
                 )
+                Timber.d("VrPhotoCapture: stage=compose")
                 val bitmap = composeSbsBitmap(snapshot)
+                Timber.d("VrPhotoCapture: stage=compose result=ok")
+                Timber.d("VrPhotoCapture: stage=save fileName=%s", fileName)
                 val savedUri = saveBitmap(bitmap, fileName)
+                Timber.i("VrPhotoCapture: stage=save result=ok uri=%s", savedUri)
                 bitmap.recycle()
 
                 val message = activity.getString(R.string.vr_save_frame_saved_to_pictures)
@@ -73,8 +95,13 @@ class VrStereoSnapshotManager(
                     }
                     .show()
             } catch (t: Throwable) {
-                Timber.e(t, "VrStereoSnapshotManager: failed to save stereo snapshot")
-                Toast.makeText(activity, R.string.save_frame_error, Toast.LENGTH_SHORT).show()
+                if (t is OutOfMemoryError) {
+                    Timber.e(t, "VrPhotoCapture: OutOfMemoryError during save")
+                    Toast.makeText(activity, "Not enough memory to capture frame", Toast.LENGTH_SHORT).show()
+                } else {
+                    Timber.e(t, "VrPhotoCapture: stage=save result=fail throwable=%s", t::class.simpleName)
+                    Toast.makeText(activity, R.string.save_frame_error, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

@@ -148,6 +148,12 @@ class BrowseEventHandler(
             is BrowseEvent.ScrollToFile -> {
                 onScrollToFile?.invoke(event.fileName)
             }
+            is BrowseEvent.ShowMetadataWarning -> {
+                val msg = activity.getString(R.string.smb_metadata_errors_warning, event.errorCount)
+                com.google.android.material.snackbar.Snackbar
+                    .make(activity.findViewById(android.R.id.content), msg, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                    .show()
+            }
         }
     }
 

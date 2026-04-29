@@ -103,6 +103,7 @@ class MainViewModel @Inject constructor(
     private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
     private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
+    private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -116,7 +117,8 @@ class MainViewModel @Inject constructor(
     private val navigationCoordinator = ResourceNavigationCoordinator(
         context = context,
         resourceRepository = resourceRepository,
-        updateResourceUseCase = updateResourceUseCase
+        updateResourceUseCase = updateResourceUseCase,
+        networkContextAnalyzer = networkContextAnalyzer
     )
     private val orderManager = ResourceOrderManager(
         resourceRepository = resourceRepository
@@ -302,6 +304,31 @@ class MainViewModel @Inject constructor(
         }
     }
     
+    fun startSlideshowFor(resource: MediaResource) {
+        if (state.value.isNavigating) {
+            Timber.d("Navigation already in progress, ignoring icon click")
+            return
+        }
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                updateState {
+                    it.copy(
+                        isNavigating = true,
+                        navigationMessage = context.getString(
+                            com.sza.fastmediasorter.R.string.starting_slideshow_for,
+                            resource.name
+                        )
+                    )
+                }
+                selectResource(resource)
+                saveLastUsedResourceId(resource.id)
+                validateAndOpenResource(resource, slideshowMode = true)
+            } finally {
+                updateState { it.copy(isNavigating = false, navigationMessage = null) }
+            }
+        }
+    }
+
     fun startRandomMusicPlayback() {
         viewModelScope.launch(ioDispatcher) {
             val resource = state.value.resources.firstOrNull {

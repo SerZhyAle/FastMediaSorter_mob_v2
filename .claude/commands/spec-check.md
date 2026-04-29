@@ -2,19 +2,19 @@
 
 Audit a spec against the actual repository state. Auto-detects strategic vs tactical scope.
 
+> **No audit file is written.** Findings are recorded in a compact `## Last Audit` block at the bottom of the strategic spec. The block is **overwritten** on each run — only the most recent audit is preserved. The journal `updated` timestamp moves on every audit. Old audit history is intentionally discarded.
+
 ## Usage
 
 ```text
-/spec-check <short-name>
-/spec-check <short-name> --strategic
-/spec-check <short-name> --tactical
-/spec-check <short-name> --phase <NN>
-/spec-check <short-name> --phases <01,03,05>
-/spec-check <short-name> --strict        # treat WARN as FAIL
-/spec-check <short-name> --quick         # skip grep-heavy invariants
+/spec-check <Sxxxx-or-slug>
+/spec-check <Sxxxx-or-slug> --strategic
+/spec-check <Sxxxx-or-slug> --tactical
+/spec-check <Sxxxx-or-slug> --phase <NN>
+/spec-check <Sxxxx-or-slug> --phases <01,03,05>
+/spec-check <Sxxxx-or-slug> --strict        # treat WARN as FAIL
+/spec-check <Sxxxx-or-slug> --quick         # skip grep-heavy invariants
 ```
-
-Report: `PLAN/spec_<short-name>__audit_<YYYY-MM-DD>.md` (suffix `_2`, `_3` on same-day collision).
 
 ---
 
@@ -35,9 +35,7 @@ Report: `PLAN/spec_<short-name>__audit_<YYYY-MM-DD>.md` (suffix `_2`, `_3` on sa
 
 **1 — Parse arguments, locate spec.**
 
-Check `PLAN/spec_<short-name>.md` exists — abort if not.
-Check `PLAN/spec_<short-name>/INDEX.md` — record presence.
-Apply auto-detection table.
+Resolve `Sxxxx` and slug via `select.ps1`. Check `PLAN/Sxxxx_<slug>.md` exists — abort if not. Check `PLAN/Sxxxx_<slug>/INDEX.md` — record presence. Apply auto-detection table.
 
 **2 — Extract verification contract.**
 
@@ -71,151 +69,74 @@ Verification mechanics:
 - `Partial` — zero FAIL, ≥1 WARN. Collapses to `Broken` under `--strict`.
 - `Broken` — ≥1 FAIL.
 
-**5 — Write audit report** to `PLAN/spec_<short-name>__audit_<YYYY-MM-DD>.md` (template below).
+**5 — Write `## Last Audit` block** at the bottom of `PLAN/Sxxxx_<slug>.md` (overwrite if present). The block uses the compact template below — keep it under ~40 lines, including only PASS counts and FAIL/WARN action items. No verbose tables. Action items are the input that `/spec-fix` consumes.
 
 **6 — Update `Status:` fields.**
 
-Full/strategic mode: flip strategic spec `Status:` to score. If Broken/Partial, add:
-
-```markdown
-**Audit:** see `PLAN/spec_<short-name>__audit_<YYYY-MM-DD>.md`
-```
+Full/strategic mode: flip strategic spec `Status:` to score (`Verified` / `Partial` / `Broken`). Always touch the journal status via `update.ps1`.
 
 Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers. Do not touch strategic `Status:`.
 
 **7 — Run dev log.**
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>__audit_<YYYY-MM-DD>.md" "spec-check" "Audit <short-name>"
-.\scripts\add_to_dev_log.ps1 "PLAN/spec_<short-name>.md" "spec-check" "Status → <score>"
-# plus one line per updated phase / INDEX
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-check" "Audit <Sxxxx> → <score>; PASS/WARN/FAIL N/N/N"
+# plus one line per modified phase / INDEX
 ```
 
-**Chat output:** `<score>. PASS/WARN/FAIL: N/N/N. Top issues: [list]. Next: /spec-fix <short-name>`
+**Chat output:** `<Sxxxx>: <score>. PASS/WARN/FAIL: N/N/N. Top issues: [list]. Next: /spec-fix <Sxxxx>`
 
 ---
 
-## Audit Report Template
+## `## Last Audit` block — compact template
 
 ```markdown
-# Spec Audit: <short-name>
+## Last Audit
 
-**Strategic spec:** [`spec_<short-name>.md`](spec_<short-name>.md)
-**Tactical plan:** [`spec_<short-name>/INDEX.md`](spec_<short-name>/INDEX.md)
-**Audit date:** <YYYY-MM-DD>
+**Date:** <YYYY-MM-DD>
 **Mode:** full | strategic | tactical | phase-<NN>
 **Flags:** strict | quick | —
 **Outcome:** Verified | Partial | Broken
+**Counts:** PASS N · WARN N · FAIL N · MANUAL N · EXEMPT N
 
----
+### Action items
 
-## 1. Summary
+1. **[FAIL §3.2.2 — Step 02.3]** <one line> — <concrete fix>.
+2. **[FAIL §3.2.3 — Phase 02 Done]** <one line> — <concrete fix>.
+3. **[WARN §2.3]** <one line> — <concrete fix>.
 
-| Metric | Count |
-|--------|------:|
-| Checks total | N |
-| PASS | N |
-| WARN | N |
-| FAIL | N |
-| MANUAL | N |
-| EXEMPT | N |
-
-<One-paragraph verdict.>
-
----
-
-## 2. Strategic Audit
-
-### 2.1 Goals Coverage (§2)
-
-| # | Goal | Referenced in phase(s) | Status | Action |
-|---|------|------------------------|:------:|--------|
-
-### 2.2 Constraints (§3.2)
-
-| # | Constraint | Verification | Status | Evidence | Action |
-|---|-----------|--------------|:------:|----------|--------|
-
-### 2.3 Open Research Items (§6)
-
-- **WARN** — §6.1 "<title>" still `Status: Open`.
-
-### 2.4 User-Facing Text (§8)
-
-| Artefact | Status | Evidence | Action |
-|---------|:------:|----------|--------|
-| `docs/FEATURES.md` | PASS/FAIL | line N | — |
-| `docs/FEATURES_RU.md` | .. | .. | .. |
-| `docs/FEATURES_UK.md` | .. | .. | .. |
-
-### 2.5 Completion Criteria (§11)
-
-- [ ] <criterion 1>
-- [ ] <criterion 2>
-
----
-
-## 3. Tactical Audit
-
-### 3.1 INDEX Consistency
-
-| Check | Status | Evidence | Action |
-|-------|:------:|----------|--------|
-| Phase counter matches statuses | PASS/FAIL | 3/5 vs 4/5 | "Bump to 4/5" |
-| Phase-file headers match INDEX rows | PASS/FAIL | .. | .. |
-| Pre-Implementation Blockers all ticked | PASS/WARN | 1 unchecked | .. |
-
-### 3.2 Phase NN — <Title>
-
-**Outcome:** Verified | Partial | Broken
-
-#### 3.2.1 Files Touched
-
-| File | Expected | Exists? | Lines vs budget | Status |
-|------|---------|:-------:|:---------------:|:------:|
-
-#### 3.2.2 Steps
-
-| # | Step | Claimed | Verification | Outcome | Evidence | Action |
-|---|------|:-------:|--------------|:-------:|----------|--------|
-
-#### 3.2.3 Phase Done Criteria
-
-| Criterion | Status | Evidence | Action |
-|-----------|:------:|----------|--------|
-
----
-
-## 4. Cross-Reference Checks
-
-- Goal §2.X (strategic) ↔ phase(s) implementing it — PASS/MISSING.
-- ADR §9.X ↔ phases applying it — PASS/MISSING.
-
----
-
-## 5. Manual Acceptance Signals
+### Manual / on-device
 
 - [ ] <signal from §11>
-- [ ] <Build passes — from phase Done Criteria>
+- [ ] <build / device check>
 
----
-
-## 6. Action Items (FAIL + WARN, priority order)
-
-1. **[FAIL §3.2.2 — Step 02.3]** <description> — <concrete fix>.
-2. **[FAIL §3.2.3 — Phase 02]** <description> — <concrete fix>.
-3. **[WARN §2.3]** <description> — <concrete fix>.
+<If `Verified`: drop the "Action items" section, keep "Manual / on-device" only.>
 ```
+
+The block replaces the previous `## Last Audit` block in full. The rest of the strategic spec (§1..§12) is untouched.
 
 ---
 
 ## Constraints
 
-- Never mutate spec content beyond `Status:` and the `**Audit:**` pointer line.
+- Never mutate spec content beyond `Status:`, `**Priority:**` (only when explicitly recomputed), and the `## Last Audit` block.
+- **Never write `PLAN/Sxxxx_<slug>__audit_*.md` or any other file in `PLAN/` to record audit findings.** All findings live inline in the spec.
 - Strategic audit is qualitative (keyword overlap for goal coverage). Tactical audit is strict (static predicates).
 - A grep miss is FAIL. Hit-count mismatch (expected 1, found 3) is WARN with all hits listed.
 - Never run `./gradlew` or build commands — static analysis only.
 - Read-only zones ignored: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- `--quick` skips grep-heavy invariants (forbidden-call checks, trilingual greps) — annotates summary.
+- `--quick` skips grep-heavy invariants (forbidden-call checks, trilingual greps) — annotates the block.
 - Never approve `Verified` if any tactical phase is Broken.
 - Grep hits on declaration lines only — not comments or string literals.
+
+---
+
+## Spec Catalog hooks
+
+- **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json`.
+- **Status transition** (after the audit verdict is final):
+  - Verdict `Verified` → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Verified`.
+  - Verdict `Partial`  → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Partial`.
+  - Verdict `Broken`   → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
+- **Read-only mode (`--quick`):** still emits the status transition above; the difference is in scope of checks, not in journal effect.
+- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` — only `/spec-fix` followed by `/spec-check` can change the verdict. Never create audit files in `PLAN/`.
