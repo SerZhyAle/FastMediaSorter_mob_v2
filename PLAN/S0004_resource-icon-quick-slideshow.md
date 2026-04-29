@@ -2,7 +2,7 @@
 
 **Tier:** UX enhancement
 **Roadmap-id:** ad-hoc
-**Status:** Approved
+**Status:** Implemented
 **Module:** app_v2
 **Last updated:** 2026-04-27
 
@@ -262,14 +262,14 @@ toggled by eligibility without diverging the two layout files (`item_resource.xm
 
 ### Phase Done Criteria
 
-- [ ] All Step 1.* are `[x] done`.
-- [ ] `/build` → `standard debug` PASS.
+- [x] All Step 1.* are `[x] done`.
+- [x] `/build` → `standard debug` PASS (2026-04-29).
 - [ ] Manual: tap the music-note icon on «Вся музыка» — plays slideshow without going through Browse.
 - [ ] Manual: tap the video icon on «Все видео» — plays slideshow.
 - [ ] Manual: tap the image icon on «Все изображения» — plays slideshow.
 - [ ] Manual: tap the icon on a local AUDIO_LIBRARY/VIDEO_LIBRARY/PHOTO_STORAGE folder — plays slideshow.
 - [ ] Manual: tap the icon on an FTP / SMB / non-library local folder — no quick-launch reaction; tapping the row still opens Browse.
-- [ ] Dev log entry added for every modified file via `.\scripts\add_to_dev_log.ps1`.
+- [x] Dev log entry added for every modified file via `.\scripts\add_to_dev_log.ps1`.
 
 ---
 

@@ -19,7 +19,7 @@ import android.graphics.Typeface
  * │  ─────────────────────────────────── (seek slider)       │  Row 2: seek bar
  * │  [00:03 / 01:22:05]           (time labels)              │  Row 3: time
  * │  [Vol -] [▓░░] [Vol +]  [Bright -] [▓░] [Bright +]     │  Row 4: vol + bright
- * │  [Speed: 1.0x]  [Track: RUS]  [Format: 360° SBS] [Exit] │  Row 5: meta + exit
+ * │  [Speed: 1.0x]  [Track: RUS]  [Format: 360° SBS] [2D] [Exit] │  Row 5: meta + exit
  * └──────────────────────────────────────────────────────────┘
  * ```
  *
@@ -90,7 +90,7 @@ class VrInteractivePanelComposer(
 
     private val btnW1 = w / 5f           // 5 nav buttons in row 1
     private val btnW4 = w / 6f           // vol/bright buttons (3+3)
-    private val btnW5 = w / 4f           // 4 meta buttons in row 5
+    private val btnW5 = w / 5f           // 5 meta buttons in row 5 (S0031 П3: added Exit-to-2D)
 
     private val zones: List<PanelZone> = buildList {
         // Row 1 — nav
@@ -106,11 +106,12 @@ class VrInteractivePanelComposer(
         add(zone(ZONE_VOL_UP,     btnW4 * 2f, row4Top, btnW4 * 3f, row4Bot, "Vol +"))
         add(zone(ZONE_BRIGHT_DOWN,btnW4 * 3f, row4Top, btnW4 * 4f, row4Bot, "Bri −"))
         add(zone(ZONE_BRIGHT_UP,  btnW4 * 5f, row4Top, w,           row4Bot, "Bri +"))
-        // Row 5 — meta + exit
-        add(zone(ZONE_SPEED,  btnW5 * 0f, row5Top, btnW5 * 1f, row5Bot, "Speed"))
-        add(zone(ZONE_TRACK,  btnW5 * 1f, row5Top, btnW5 * 2f, row5Bot, "Track"))
-        add(zone(ZONE_FORMAT, btnW5 * 2f, row5Top, btnW5 * 3f, row5Bot, "Format"))
-        add(zone(ZONE_EXIT,   btnW5 * 3f, row5Top, w,           row5Bot, "Exit"))
+        // Row 5 — meta + exit. S0031 П3: split old single Exit into "To 2D" (panel mode) + "Exit" (full VR exit).
+        add(zone(ZONE_SPEED,      btnW5 * 0f, row5Top, btnW5 * 1f, row5Bot, "Speed"))
+        add(zone(ZONE_TRACK,      btnW5 * 1f, row5Top, btnW5 * 2f, row5Bot, "Track"))
+        add(zone(ZONE_FORMAT,     btnW5 * 2f, row5Top, btnW5 * 3f, row5Bot, "Format"))
+        add(zone(ZONE_EXIT_TO_2D, btnW5 * 3f, row5Top, btnW5 * 4f, row5Bot, "To 2D"))
+        add(zone(ZONE_EXIT,       btnW5 * 4f, row5Top, w,           row5Bot, "Exit"))
     }
 
     fun getAllZones(): List<PanelZone> = zones
@@ -202,6 +203,7 @@ class VrInteractivePanelComposer(
         ZONE_SPEED      -> "Speed: ${state.playbackSpeed?.let { "${it}x" } ?: "1.0x"}"
         ZONE_TRACK      -> "Track: ${state.audioTrackLabel ?: "—"}"
         ZONE_FORMAT     -> state.stereoModeLabel ?: "—"
+        ZONE_EXIT_TO_2D -> "To 2D"
         ZONE_EXIT       -> "Exit"
         else -> ""
     }
@@ -228,5 +230,7 @@ class VrInteractivePanelComposer(
         const val ZONE_TRACK       = 12
         const val ZONE_FORMAT      = 13
         const val ZONE_EXIT        = 14
+        // S0031 П3: exit to VR panel (2D view within headset) without fully leaving VR.
+        const val ZONE_EXIT_TO_2D  = 15
     }
 }

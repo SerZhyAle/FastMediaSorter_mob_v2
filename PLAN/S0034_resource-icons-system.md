@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0034 — Система иконок ресурсов
 
 **Ticket:** S0034
-**Status:** Tactical
+**Status:** Verified
 **Priority:** 50
 **Date:** 2026-04-29
 **Tier:** 2 — Easy
@@ -160,3 +160,18 @@
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: `/spec-tech S0034` — создаст `PLAN/S0034_resource-icons-system/` с фазами.
+
+---
+
+## Last Audit
+
+**Date:** 2026-04-29
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 57 · WARN 0 · FAIL 0 · MANUAL 2 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] `/build standard debug` PASS ✅ (verified — BUILD SUCCESSFUL 2026-04-29)
+- [ ] On-device smoke: composite icons visible, predefined resources show consistent icons, quick-slideshow ripple intact

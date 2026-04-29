@@ -155,6 +155,8 @@ class VrControlOverlayManager(
             button(R.string.vr_overlay_btn_seek_fwd) { dispatchAndReschedule(PlaybackCommand.SeekForward) },
             button(R.string.vr_overlay_btn_next) { dispatchAndReschedule(PlaybackCommand.NextFile) },
             button(R.string.vr_overlay_btn_settings) { dispatchAndReschedule(PlaybackCommand.OpenControls) },
+            // S0031 П3: switch to VR panel (2D view within headset) without leaving VR entirely.
+            button(R.string.vr_overlay_btn_exit_to_2d) { dispatchAndReschedule(PlaybackCommand.ExitTo2D) },
             button(R.string.vr_overlay_btn_exit) { dispatchAndReschedule(PlaybackCommand.Exit) },
         )
 

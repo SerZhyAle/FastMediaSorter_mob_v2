@@ -2809,6 +2809,7 @@
     <string name="vr_overlay_btn_seek_fwd">+10s</string>
     <string name="vr_overlay_btn_play_pause">Play / Pause</string>
     <string name="vr_overlay_btn_settings">Settings</string>
+    <string name="vr_overlay_btn_exit_to_2d">To 2D</string>
     <string name="vr_overlay_btn_exit">Exit</string>
     <string name="vr_overlay_btn_vol_up">Vol +</string>
     <string name="vr_overlay_btn_vol_down">Vol -</string>

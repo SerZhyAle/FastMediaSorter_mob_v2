@@ -64,7 +64,14 @@ object ResourceIconComposer {
         val customRes = ResourceIconRegistry.resolveDrawable(resource.iconId)
         if (customRes != null) return customRes
 
-        // Legacy fallback — mirrors the pre-S0034 inline when block exactly
+        // S0034 set-first-icon fallback — uses registry before falling through to pre-S0034 legacy drawables
+        val setFirstId = ResourceIconRegistry.firstIdFor(
+            ResourceIconDefaults.setForResource(resource.profile, resource.type)
+        )
+        val setFallbackRes = ResourceIconRegistry.resolveDrawable(setFirstId)
+        if (setFallbackRes != null) return setFallbackRes
+
+        // Pre-S0034 legacy fallback — kept for safety during migration window
         return legacyIconFor(resource)
     }
 

@@ -199,8 +199,11 @@ class VrControllerInputManager(
                 dispatchCommand(PlaybackCommand.Exit, source)
             CommandId.FILE_OPS ->
                 dispatchCommand(PlaybackCommand.OpenFileOps, source)
-            CommandId.TOGGLE_CONTROLS ->
+            CommandId.TOGGLE_CONTROLS -> {
+                // S0031 П1: trace the moment the input manager receives the open-controls command.
+                Timber.i("VrControllerInputManager: TOGGLE_CONTROLS received source=%s — dispatching OpenControls", source)
                 dispatchCommand(PlaybackCommand.OpenControls, source)
+            }
             CommandId.SEEK_FORWARD_5S, CommandId.SEEK_FORWARD_30S, CommandId.SEEK_MACRO_FORWARD ->
                 dispatchCommand(PlaybackCommand.SeekForward, source)
             CommandId.SEEK_BACKWARD_5S, CommandId.SEEK_BACKWARD_30S, CommandId.SEEK_MACRO_BACKWARD ->

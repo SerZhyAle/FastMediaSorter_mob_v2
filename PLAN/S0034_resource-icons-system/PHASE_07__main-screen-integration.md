@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0034_resource-icons-system.md`](../S0034_resource-icons-system.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 04, Phase 05
 **Blocks:** Phase 08
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 
@@ -57,7 +57,7 @@ Replace the static `iconRes` lookup in `ResourceAdapter` (both `ResourceViewHold
 - `Grep` — `setImageDrawable\(composedDrawable\)` matches at least once.
 - `Grep -n "ivResourceTypeIcon\.setImageResource"` returns zero hits in `ResourceViewHolder.bind` (use surrounding context to confirm, since `GridViewHolder.bind` is updated in 07.2).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -75,7 +75,7 @@ Replace the static `iconRes` lookup in `ResourceAdapter` (both `ResourceViewHold
 - `Grep -n "ResourceIconComposer\.compose"` returns exactly two hits in `ResourceAdapter.kt` (list + grid).
 - `Grep -n "ivResourceTypeIcon\.setImageResource\("` returns zero hits in `ResourceAdapter.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -93,7 +93,7 @@ Replace the static `iconRes` lookup in `ResourceAdapter` (both `ResourceViewHold
 - `Grep` — `R\.drawable\.ripple_icon_quick_slideshow` matches twice in `ResourceAdapter.kt` (untouched from S0004).
 - `Grep` — `isQuickSlideshowEligible` matches twice (one per ViewHolder).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -117,16 +117,16 @@ Replace the static `iconRes` lookup in `ResourceAdapter` (both `ResourceViewHold
 - Manual visual inspection of all four cases above (record observations in dev log entry).
 - `Grep -n "Log\.d\("` returns zero hits in `ResourceAdapter.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 07.*` above is `[x] done`.
-- [ ] Project compiles — run `/build` (do not invoke gradle directly).
-- [ ] `Grep` for `TODO(phase-07)` returns zero hits.
-- [ ] Dev log entry added for `ResourceAdapter.kt` via `.\scripts\add_to_dev_log.ps1`.
+- [x] Every `Step 07.*` above is `[x] done`.
+- [x] Project compiles — run `/build` (do not invoke gradle directly).
+- [x] `Grep` for `TODO(phase-07)` returns zero hits.
+- [x] Dev log entry added for `ResourceAdapter.kt` via `.\scripts\add_to_dev_log.ps1`.
 - [ ] No public-API change here; catalog regen is optional but recommended.
 
 ---

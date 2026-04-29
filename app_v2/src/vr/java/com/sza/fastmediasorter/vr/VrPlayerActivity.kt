@@ -1063,6 +1063,7 @@ class VrPlayerActivity : PlayerActivity() {
                 PlaybackCommand.SetPlaybackSpeed(nextPanelSpeed())
             VrInteractivePanelComposer.ZONE_TRACK       -> PlaybackCommand.CycleAudioTrack
             VrInteractivePanelComposer.ZONE_FORMAT      -> PlaybackCommand.CycleStereoFormat
+            VrInteractivePanelComposer.ZONE_EXIT_TO_2D  -> PlaybackCommand.ExitTo2D
             VrInteractivePanelComposer.ZONE_EXIT        -> PlaybackCommand.Exit
             -1 -> null
             else -> null.also {
@@ -1199,6 +1200,11 @@ class VrPlayerActivity : PlayerActivity() {
                 }
             }
             PlaybackCommand.Exit -> exitVrAndStopPlayback("overlay-exit-command")
+            // S0031 П3: switch to VR panel (2D view in headset) preserving file position.
+            PlaybackCommand.ExitTo2D -> {
+                Timber.i("VrPlayerActivity: ExitTo2D — switching to VR panel mode")
+                switchToPanelPreservingPosition()
+            }
             PlaybackCommand.OpenFileOps -> {
                 if (isImmersiveUiLocked()) {
                     Timber.i("VrPlayerActivity: OpenFileOps no-op — reason=immersive-ui-locked")

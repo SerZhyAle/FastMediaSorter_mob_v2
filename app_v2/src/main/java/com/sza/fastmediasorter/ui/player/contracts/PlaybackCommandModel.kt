@@ -15,6 +15,9 @@ sealed class PlaybackCommand {
     data object NextFile : PlaybackCommand()
     data object OpenControls : PlaybackCommand()
     data object Exit : PlaybackCommand()
+    // S0031 (П3): switch from immersive mode to the VR panel (2D view within the headset)
+    // without fully exiting VR. Distinct from Exit which closes VR entirely.
+    data object ExitTo2D : PlaybackCommand()
     // File operations — available in standard; VR exposes these through the immersive file-ops panel.
     data object MoveFile : PlaybackCommand()
     data object CopyFile : PlaybackCommand()
@@ -81,6 +84,7 @@ data class PlaybackCommandSet(
                 PlaybackCommand.BrightnessDown,
                 PlaybackCommand.CycleAudioTrack,
                 PlaybackCommand.CycleStereoFormat,
+                PlaybackCommand.ExitTo2D,
             )
         )
 

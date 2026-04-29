@@ -133,6 +133,9 @@ abstract class ResourceDao {
     @Query("UPDATE resources SET icon_id = :iconId WHERE id = :resourceId")
     abstract suspend fun updateIcon(resourceId: Long, iconId: String?)
 
+    @Query("SELECT * FROM resources WHERE icon_id IS NULL")
+    abstract suspend fun findResourcesWithoutIcon(): List<ResourceEntity>
+
     /**
      * Batch-update displayOrder for a reordered list in a single transaction.
      * Each pair is (resourceId, newDisplayOrder). Used by drag-to-reorder.

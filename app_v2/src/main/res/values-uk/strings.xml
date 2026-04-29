@@ -2704,6 +2704,7 @@
     <string name="vr_overlay_btn_seek_fwd">+10с</string>
     <string name="vr_overlay_btn_play_pause">Плей / Пауза</string>
     <string name="vr_overlay_btn_settings">Налаштування</string>
+    <string name="vr_overlay_btn_exit_to_2d">У 2D</string>
     <string name="vr_overlay_btn_exit">Вихід</string>
     <string name="vr_overlay_btn_vol_up">Гучн +</string>
     <string name="vr_overlay_btn_vol_down">Гучн −</string>

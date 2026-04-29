@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.vr.render
 import android.os.Handler
 import android.os.Looper
 import com.sza.fastmediasorter.vr.ui.VrHudSink
+import timber.log.Timber
 
 /**
  * GL backend of [VrHudSink]. Maintains a mutable [VrHudState], renders it via
@@ -45,6 +46,8 @@ class VrHudSceneDriver(
     }
 
     override fun setVisible(visible: Boolean, reason: String) {
+        // S0031 П1: log HUD visibility changes so we can confirm the swapchain received the request.
+        Timber.i("VrHudSceneDriver: setVisible visible=%b reason=%s", visible, reason)
         handler.post {
             renderer.setVisible(visible, reason)
             lastVisibleSubmitted = visible

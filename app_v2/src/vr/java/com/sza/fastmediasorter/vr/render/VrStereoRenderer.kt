@@ -157,7 +157,15 @@ class VrStereoRenderer {
                 float r  = rho / (PI * 0.5);
                 float az = atan(dy, dx);
                 float uLens = 0.5 + 0.5 * r * cos(az);
-                float vLens = 0.5 + 0.5 * r * sin(az);
+                // WHY: vLens uses MINUS to compensate the V-axis inversion between the GL FBO
+                // convention (Y=0 at bottom) and the SurfaceTexture/Android image convention
+                // (Y=0 at top). The Quest OpenXR compositor maps GL-texture-bottom to the
+                // display TOP of the equirect2 sphere (elevation = upperVerticalAngle). When
+                // the user looks UP (phi>0, az≈+PI/2), sin(az)>0, so +sin would give vLens>0.5
+                // (lower half of fisheye = ground), which appears at the TOP — upside down.
+                // Negating sin(az) corrects the mapping: looking UP samples the upper half
+                // of the fisheye image (vLens<0.5 = sky/ceiling in Android image convention). ✓
+                float vLens = 0.5 - 0.5 * r * sin(az);
                 gl_FragColor = texture2D(uTexture,
                     vec2(uFisheyeUOffset + uLens * 0.5, vLens));
             }

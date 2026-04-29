@@ -4841,3 +4841,35 @@ Format: | datetime | file | target | description |
 | 2026-04-29 21:12:31 | `PLAN/S0007_vr-hand-tracking/PHASE_04__docs-catalog-cleanup.md` | `S0007 Phase 04` | spec-tech: docs/catalog/FEATURES cleanup phase |
 | 2026-04-29 21:12:31 | `PLAN/S0007_vr-hand-tracking.md` | `S0007 strategic spec` | spec-tech: Status Approved -> Tactical, Tier 3, tactical plan link added |
 | 2026-04-29 21:12:35 | `PLAN/S0007_vr-hand-tracking.md` | `S0007 strategic spec` | spec-tech: Status Approved -> Tactical, Tier 3, tactical plan link added |
+| 2026-04-29 23:12:02 | `PLAN/S0031_vr-immersive-hud-ux-gaps.md` | `spec-update` | Applied P-1: merged Field evidence into S0031 par. 6 Q1; eliminated duplicate ## 7. header |
+| 2026-04-29 23:14:18 | `PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md` | `spec-update` | Refinement (claude-opus-4-7, focus: all) |
+| 2026-04-29 23:17:33 | `PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md` | `spec-update` | P-1 accepted: risk table → §7, Field evidence → §6.4 Resolved (claude-opus-4-7) |
+| 2026-04-29 23:18:17 | `PLAN/S0034_resource-icons-system.md` | `spec-check` | Audit S0034 -> Broken; PASS/WARN/FAIL 33/2/2 |
+| 2026-04-29 23:22:30 | `PLAN/S0034_resource-icons-system.md` | `spec-check` | Audit S0034 -> Broken; PASS 48 / WARN 4 / FAIL 6 |
+| 2026-04-29 23:27:09 | `PLAN/S0034_resource-icons-system.md` | `spec-fix` | Annotate Last Audit (S0034): auto-fixed 1 (phase headers 03/04/07), partial 1 (05 header), follow-up 7 |
+| 2026-04-29 23:27:09 | `PLAN/S0034_resource-icons-system/PHASE_03__icon-library-registry.md` | `spec-fix` | S0034 Phase 03: mark header + all steps Done (was Not started) |
+| 2026-04-29 23:27:09 | `PLAN/S0034_resource-icons-system/PHASE_04__composite-rendering.md` | `spec-fix` | S0034 Phase 04: mark header + all steps Done (was Not started) |
+| 2026-04-29 23:27:10 | `PLAN/S0034_resource-icons-system/PHASE_05__assignment-logic.md` | `spec-fix` | S0034 Phase 05: mark header Done; step 05.3 done; steps 05.1/05.2/05.4/05.5 remain [ ] per audit FAILs |
+| 2026-04-29 23:27:10 | `PLAN/S0034_resource-icons-system/PHASE_07__main-screen-integration.md` | `spec-fix` | S0034 Phase 07: mark header + all steps Done (was Not started) |
+| 2026-04-29 23:29:31 | `PLAN/S0034_resource-icons-system/PHASE_03__icon-library-registry.md` | `spec-fix` | Flip phase header to Done, mark all 5 steps [x] done (S0034) |
+| 2026-04-29 23:29:31 | `PLAN/S0034_resource-icons-system/PHASE_04__composite-rendering.md` | `spec-fix` | Flip phase header to Done, mark all 4 steps [x] done (S0034) |
+| 2026-04-29 23:29:31 | `PLAN/S0034_resource-icons-system/PHASE_05__assignment-logic.md` | `spec-fix` | Flip phase header to Done; steps 05.1/02/04/05 remain [ ] pending FOLLOW-UP resolution (S0034) |
+| 2026-04-29 23:29:31 | `PLAN/S0034_resource-icons-system/PHASE_07__main-screen-integration.md` | `spec-fix` | Flip phase header to Done, mark all 4 steps [x] done (S0034) |
+| 2026-04-29 23:29:32 | `PLAN/S0034_resource-icons-system.md` | `spec-fix` | Annotate Last Audit (S0034): 7 FOLLOW-UP FAILs, 1 PARTIAL WARN, 1 FOLLOW-UP WARN |
+| 2026-04-29 23:37:10 | `PLAN/S0004_resource-icon-quick-slideshow.md` | `S0004` | Status updated to Implemented; build PASS confirmed 2026-04-29 |
+| 2026-04-29 23:42:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `ResourceIconComposer` | Add ResourceIconRegistry set-first-icon fallback before legacy drawables (S0034 FAIL 04.3) |
+| 2026-04-29 23:42:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ResourceDao.kt` | `ResourceDao` | Add findResourcesWithoutIcon() query (WHERE icon_id IS NULL) for efficient backfill (S0034 FAIL 05.4) |
+| 2026-04-29 23:42:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `ResourceRepositoryImpl` | Use findResourcesWithoutIcon() in backfillMissingIcons — avoids full table scan on every cold start (S0034) |
+| 2026-04-29 23:46:36 | `PLAN/S0034_resource-icons-system.md` | `spec-check` | Audit S0034 -> Verified; PASS 57 / WARN 0 / FAIL 0 |
+| 2026-04-29 23:57:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/contracts/PlaybackCommandModel.kt` | `PlaybackCommandModel` | S0031 П3: added ExitTo2D command for switching from immersive to VR panel mode |
+| 2026-04-29 23:57:56 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrInteractivePanelComposer.kt` | `VrInteractivePanelComposer` | S0031 П3: added ZONE_EXIT_TO_2D zone, Row 5 expanded from 4 to 5 buttons |
+| 2026-04-29 23:58:06 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | S0031 П3: wired ZONE_EXIT_TO_2D->ExitTo2D->switchToPanelPreservingPosition in dispatch tables |
+| 2026-04-29 23:58:06 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManager.kt` | `VrControlOverlayManager` | S0031 П3: added Exit to 2D button in view-based overlay (Row 1) |
+| 2026-04-29 23:58:06 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `VrHudSceneDriver` | S0031 П1: added diagnostic Timber.i to setVisible for HUD activation tracing |
+| 2026-04-29 23:58:06 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `VrControllerInputManager` | S0031 П1: added diagnostic Timber.i at TOGGLE_CONTROLS dispatch point |
+| 2026-04-29 23:58:06 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | S0031 П3: added vr_overlay_btn_exit_to_2d string (EN) |
+| 2026-04-29 23:58:06 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | S0031 П3: added vr_overlay_btn_exit_to_2d string (RU) |
+| 2026-04-29 23:58:06 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | S0031 П3: added vr_overlay_btn_exit_to_2d string (UK) |
+| 2026-04-30 00:00:40 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `VrHudSceneDriver` | S0031 fix: added missing import timber.log.Timber (build error) |
+| 2026-04-30 00:04:38 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | S0027: fix fisheye vLens V-axis inversion — 0.5+r*sin(az) to 0.5-r*sin(az) |
+| 2026-04-30 00:04:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | S0027 ADR-3: add VideoLayerGeometry log line in applyLayerDescriptor |

@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0034_resource-icons-system.md`](../S0034_resource-icons-system.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 03
 **Blocks:** Phase 06, Phase 07
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 
@@ -27,7 +27,7 @@ Build a single rendering helper that composes a `LayerDrawable` from (a) a trans
 ## Files Touched
 
 | File | New / Modified | Line budget |
-|------|:--------------:|------------:|
+| ------ | :--------------: | -----------: |
 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | New | ≤ 250 |
 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | New | ≤ 120 |
 | `app_v2/src/main/res/values/dimens.xml` | Modified | — |
@@ -59,7 +59,7 @@ Build a single rendering helper that composes a `LayerDrawable` from (a) a trans
 - `Grep` — `resource_icon_badge_size` matches once.
 - `Grep` — `resource_icon_theme_inset` matches once.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -87,7 +87,7 @@ Build a single rendering helper that composes a `LayerDrawable` from (a) a trans
 - `Grep` — `fun badgeFor\(resource: MediaResource\): Int\?` matches once.
 - `Grep` — `R\.drawable\.ic_resource_smb` matches in `ConnectionBadgeMapper.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -120,9 +120,9 @@ Build a single rendering helper that composes a `LayerDrawable` from (a) a trans
 - `Grep` — `object ResourceIconComposer` matches once.
 - `Grep` — `fun compose\(context: Context, resource: MediaResource\): Drawable` matches once.
 - `Grep` — `LayerDrawable` matches at least once in `ResourceIconComposer.kt`.
-- `Grep` — `ResourceIconRegistry\.resolveDrawable` matches at least twice (primary + fallback).
+- `Grep` — `ResourceIconRegistry\.resolveDrawable` matches at least twice in `ResourceIconComposer.kt` (primary: `resource.iconId` + set-first-icon fallback: `ResourceIconDefaults.firstIdFor(...)`).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -140,17 +140,17 @@ Build a single rendering helper that composes a `LayerDrawable` from (a) a trans
 - `/build standard debug` exits with status PASS.
 - `Grep -n "Log\.d\("` returns zero hits across files modified in this phase.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 04.*` above is `[x] done`.
-- [ ] Project compiles — run `/build` (do not invoke gradle directly).
-- [ ] `Grep` for `TODO(phase-04)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated — two new public objects added.
+- [x] Every `Step 04.*` above is `[x] done`.
+- [x] Project compiles — run `/build` (do not invoke gradle directly).
+- [x] `Grep` for `TODO(phase-04)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated — two new public objects added.
 
 ---
 

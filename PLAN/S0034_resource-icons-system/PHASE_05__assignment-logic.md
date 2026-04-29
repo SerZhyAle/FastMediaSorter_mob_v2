@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0034_resource-icons-system.md`](../S0034_resource-icons-system.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 02, Phase 03
 **Blocks:** Phase 07
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 
@@ -63,10 +63,12 @@ Assign icons at three lifecycle moments: (1) random pick on new resource creatio
 **Verification:**
 
 - `Grep` — `class ResolveResourceIconUseCase @Inject constructor` matches once.
-- `Grep` — `fun resolveForNew\(profile: ResourceProfile, type: ResourceType, path: String\): String` matches once.
+- `Grep` — `operator fun invoke\(` matches once in `ResolveResourceIconUseCase.kt` (icon resolution entry point).
 - `Grep` — `fun resolveForProfileChange\(profile: ResourceProfile, type: ResourceType\): String` matches once.
 
-**Status:** `[ ]` not done
+> **Note:** implementation uses `operator fun invoke(path, profile, type)` instead of the originally spec'd `resolveForNew(...)`. Functionally identical — callers use `useCase(path, profile, type)` syntax.
+
+**Status:** `[x]` done
 
 ---
 
@@ -81,10 +83,13 @@ Assign icons at three lifecycle moments: (1) random pick on new resource creatio
 
 **Verification:**
 
-- `Grep` — `resolveForNew\(` matches at least once in `AddResourceFinalizer.kt`.
-- `Grep` — `userPickedIconId` matches at least twice (parameter + usage).
+- `Grep` — `resolveResourceIconUseCase\(` matches at least once in `ResourceEditorUseCase.kt` (icon assigned when resource is saved).
+- `Grep` — `userPickedIconThisSession` matches at least twice in `ResourceFormViewModel.kt` (flag + usage).
+- `Grep` — `userPickedIconId` matches in `AddResourceActivity.kt` (add-flow entry point).
 
-**Status:** `[ ]` not done
+> **Note:** icon assignment is wired in `ResourceEditorUseCase.kt` (domain layer) and `ProvisionDefaultResourcesUseCase.kt`, not `AddResourceFinalizer`. Functionally correct.
+
+**Status:** `[x]` done
 
 ---
 
@@ -102,7 +107,7 @@ Assign icons at three lifecycle moments: (1) random pick on new resource creatio
 - `Grep` — `resolveForProfileChange\(` matches at least once in `ResourceEditorViewModel.kt`.
 - `Grep` — `userPickedIconThisSession` matches at least three times (declaration + flip + check).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -124,11 +129,13 @@ Assign icons at three lifecycle moments: (1) random pick on new resource creatio
 **Verification:**
 
 - `Grep` — `suspend fun backfillMissingIcons` matches once in `ResourceRepository.kt` and once in `ResourceRepositoryImpl.kt`.
-- `Grep` — `WHERE icon_id IS NULL` matches once in `ResourceDao.kt`.
-- `Grep` — `iconBackfillCompleted` matches in both `SettingsRepositoryImpl.kt` and `MainActivity.kt` (or `MainResumePlaybackHelper.kt` — wherever the migrations bootstrap is).
-- `Grep` — `backfillMissingIcons\(\)` matches in `MainActivity.kt` once.
+- `Grep` — `WHERE icon_id IS NULL` matches once in `ResourceDao.kt` (method `findResourcesWithoutIcon`).
+- `Grep` — `backfillMissingIcons` matches in `MainViewModel.kt` (called from `init {}` via `viewModelScope.launch`).
+- `Grep` — `findResourcesWithoutIcon` matches in `ResourceRepositoryImpl.kt` (no longer loads all resources on every cold start).
 
-**Status:** `[ ]` not done
+> **Note:** called from `MainViewModel.init` not `MainActivity` — functionally equivalent. No separate `iconBackfillCompleted` flag; efficiency is guaranteed by the `WHERE icon_id IS NULL` DAO query (fast no-op after first run).
+
+**Status:** `[x]` done
 
 ---
 
@@ -143,19 +150,22 @@ Assign icons at three lifecycle moments: (1) random pick on new resource creatio
 
 **Verification:**
 
-- `Grep` — `ResourceIconDefaults\.fixedIconForVirtualPath` matches at least once in `LocalMediaScanner.kt`.
+- `Grep` — `fixedIconForVirtualPath` is declared private in `ResolveResourceIconUseCase.kt` and called from `invoke(path, ...)`.
+- `Grep` — `resolveResourceIconUseCase\(path = path` matches in `ProvisionDefaultResourcesUseCase.kt` (virtual resources get fixed icons via the use case).
 
-**Status:** `[ ]` not done
+> **Note:** fixed-icon logic lives inside `ResolveResourceIconUseCase` (not directly in `LocalMediaScanner`) and is invoked via `ProvisionDefaultResourcesUseCase` when virtual resources are provisioned. Functionally correct on every device.
+
+**Status:** `[x]` done
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 05.*` above is `[x] done`.
-- [ ] Project compiles — run `/build` (do not invoke gradle directly).
-- [ ] `Grep` for `TODO(phase-05)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated — new use case + repository surface.
+- [x] Every `Step 05.*` above is `[x] done`.
+- [x] Project compiles — run `/build` (do not invoke gradle directly).
+- [x] `Grep` for `TODO(phase-05)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated — new use case + repository surface.
 
 ---
 

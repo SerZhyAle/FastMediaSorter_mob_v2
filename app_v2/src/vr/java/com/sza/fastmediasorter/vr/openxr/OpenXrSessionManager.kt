@@ -508,6 +508,19 @@ class OpenXrSessionManager(
 
     private fun applyLayerDescriptor(descriptor: VrLayerDescriptor, reason: String) {
         Timber.d("OpenXrSessionManager: applyLayerDescriptor → %s (reason=%s)", descriptor.type, reason)
+        // ADR-3 (S0027): single reference log line per layer application. Compare against
+        // known-good snapshots in tests to catch geometry regressions without a headset.
+        // orientation is always (0,0,0,1) — identity in appSpace (LOCAL reference space).
+        Timber.i(
+            "VideoLayerGeometry: type=%s orientation=(0,0,0,1) position=(0,0,0)" +
+                " centralAngle=%.4f upper=%.4f lower=%.4f radius=%.4f (reason=%s)",
+            descriptor.type,
+            descriptor.centralHorizontalAngleRadians,
+            descriptor.upperVerticalAngleRadians,
+            descriptor.lowerVerticalAngleRadians,
+            descriptor.radiusMeters,
+            reason,
+        )
         try {
             OpenXrNative.nativeConfigureLayer(
                 layerType = descriptor.type.nativeValue,

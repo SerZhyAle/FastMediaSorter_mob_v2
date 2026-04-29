@@ -1,7 +1,7 @@
 {"id":"S0001","name":"spec-catalog","status":"Archived","priority":0,"tier":4,"file":"PLAN/S0001_spec-catalog.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
 {"id":"S0002","name":"decompose-giant-files","status":"Approved","priority":50,"file":"PLAN/S0002_decompose-giant-files.md","created":"2026-04-27","updated":"2026-04-27 23:57"}
 {"id":"S0003","name":"link-receive-download","status":"BlockNeedUserTest","priority":50,"tier":3,"file":"PLAN/S0003_link-receive-download.md","created":"2026-04-27","updated":"2026-04-29 01:23"}
-{"id":"S0004","name":"resource-icon-quick-slideshow","status":"Approved","priority":50,"file":"PLAN/S0004_resource-icon-quick-slideshow.md","created":"2026-04-27","updated":"2026-04-27 23:58"}
+{"id":"S0004","name":"resource-icon-quick-slideshow","status":"Implemented","priority":50,"file":"PLAN/S0004_resource-icon-quick-slideshow.md","created":"2026-04-27","updated":"2026-04-29 23:36"}
 {"id":"S0005","name":"vr-auto-immersive-setting","status":"Archived","priority":0,"tier":2,"file":"PLAN/S0005_vr-auto-immersive-setting.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
 {"id":"S0006","name":"vr-fps-counter","status":"BlockNeedUserTest","priority":40,"tier":2,"file":"PLAN/S0006_vr-fps-counter.md","created":"2026-04-27","updated":"2026-04-28 23:06"}
 {"id":"S0007","name":"vr-hand-tracking","status":"Tactical","priority":60,"file":"PLAN/S0007_vr-hand-tracking.md","created":"2026-04-27","updated":"2026-04-29 21:12"}
@@ -24,11 +24,11 @@
 {"id":"S0024","name":"vr-hud-ray-input","status":"BlockByOtherTask","priority":50,"tier":3,"file":"PLAN/S0024_vr-hud-ray-input.md","created":"2026-04-28","updated":"2026-04-29 12:47"}
 {"id":"S0025","name":"smb-fast-fail","status":"Implemented","priority":50,"tier":2,"file":"PLAN/S0025_smb-fast-fail.md","created":"2026-04-29","updated":"2026-04-29 02:06"}
 {"id":"S0026","name":"bugfix-vr-stereo-route-flicker","status":"BlockNeedUserTest","priority":85,"tier":3,"file":"PLAN/S0026_bugfix-vr-stereo-route-flicker.md","created":"2026-04-29","updated":"2026-04-29 10:18"}
-{"id":"S0027","name":"bugfix-vr-immersive-orientation-inverted","status":"Draft","priority":80,"tier":3,"file":"PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md","created":"2026-04-29","updated":"2026-04-29 03:00"}
+{"id":"S0027","name":"bugfix-vr-immersive-orientation-inverted","status":"Implemented","priority":80,"tier":3,"file":"PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md","created":"2026-04-29","updated":"2026-04-30 00:04"}
 {"id":"S0028","name":"vr-multi-window-playback","status":"Draft","priority":30,"tier":4,"file":"PLAN/S0028_vr-multi-window-playback.md","created":"2026-04-29","updated":"2026-04-29 18:57"}
 {"id":"S0029","name":"bugfix-resume-position-end-of-file","status":"Implemented","priority":70,"tier":2,"file":"PLAN/S0029_bugfix-resume-position-end-of-file.md","created":"2026-04-29","updated":"2026-04-29 13:01"}
 {"id":"S0030","name":"bugfix-panel-stereo-dialog-ui","status":"Implemented","priority":60,"tier":2,"file":"PLAN/S0030_bugfix-panel-stereo-dialog-ui.md","created":"2026-04-29","updated":"2026-04-29 12:58"}
-{"id":"S0031","name":"vr-immersive-hud-ux-gaps","status":"Draft","priority":65,"tier":3,"file":"PLAN/S0031_vr-immersive-hud-ux-gaps.md","created":"2026-04-29","updated":"2026-04-29 18:47"}
+{"id":"S0031","name":"vr-immersive-hud-ux-gaps","status":"Implemented","priority":65,"tier":3,"file":"PLAN/S0031_vr-immersive-hud-ux-gaps.md","created":"2026-04-29","updated":"2026-04-29 23:59"}
 {"id":"S0032","name":"bugfix-vr180-frameat-null","status":"BlockNeedUserTest","priority":45,"tier":2,"file":"PLAN/S0032_bugfix-vr180-frameat-null.md","created":"2026-04-29","updated":"2026-04-29 13:33"}
 {"id":"S0033","name":"vr-monoliths-decomposition","status":"Tactical","priority":60,"tier":3,"file":"PLAN/S0033_vr-monoliths-decomposition.md","created":"2026-04-29","updated":"2026-04-29 18:52"}
-{"id":"S0034","name":"resource-icons-system","status":"Implemented","priority":50,"tier":2,"file":"PLAN/S0034_resource-icons-system.md","created":"2026-04-29","updated":"2026-04-29 18:43"}
+{"id":"S0034","name":"resource-icons-system","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0034_resource-icons-system.md","created":"2026-04-29","updated":"2026-04-29 23:46"}
