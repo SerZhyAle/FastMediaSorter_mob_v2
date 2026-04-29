@@ -1,4 +1,4 @@
-# Updates manual fields on a catalogue record (role, status, noFlavors, function description).
+﻿# Updates manual fields on a catalogue record (role, status, noFlavors, function description).
 # Auto-fields (loc, injected, flags, etc.) are NOT editable here — they come from scan.ps1.
 #
 # Usage:

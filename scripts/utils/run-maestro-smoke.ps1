@@ -1,4 +1,4 @@
-# Run Maestro tests
+﻿# Run Maestro tests
 # Usage:
 #   .\scripts\utils\run-maestro-smoke.ps1           - Run smoke tests
 #   .\scripts\utils\run-maestro-smoke.ps1 -Suite critical

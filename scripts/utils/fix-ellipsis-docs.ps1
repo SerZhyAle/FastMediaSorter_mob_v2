@@ -1,4 +1,4 @@
-# fix-ellipsis-docs.ps1
+﻿# fix-ellipsis-docs.ps1
 # Replaces "..." with ".." in documentation .md files.
 # Skips code blocks (``` fenced) and inline code (`...`).
 

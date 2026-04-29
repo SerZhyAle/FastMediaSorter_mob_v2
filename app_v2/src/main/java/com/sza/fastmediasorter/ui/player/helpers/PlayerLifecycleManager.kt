@@ -17,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.playback.PlaybackCompletionDetector
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import kotlinx.coroutines.Dispatchers
@@ -323,8 +324,15 @@ class PlayerLifecycleManager(
         if (duration <= 0 || position < 0) return
         activity.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                activity.playbackPositionRepository.savePosition(currentFile.path, position, duration)
-                Timber.d("PlayerLifecycleManager: Saved playback position $position/$duration for ${currentFile.name}")
+                if (PlaybackCompletionDetector.isNearEnd(position, duration)) {
+                    activity.playbackPositionRepository.markPlaybackCompleted(
+                        currentFile.path,
+                        reason = "playback-completed-near-end"
+                    )
+                } else {
+                    activity.playbackPositionRepository.savePosition(currentFile.path, position, duration)
+                    Timber.d("PlayerLifecycleManager: Saved playback position $position/$duration for ${currentFile.name}")
+                }
             } catch (e: Exception) {
                 Timber.e(e, "PlayerLifecycleManager: Failed to save playback position for ${currentFile.name}")
             }

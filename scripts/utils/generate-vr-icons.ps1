@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Generates VR-flavor launcher icons by compositing a "VR" badge onto the standard icons.
 .DESCRIPTION

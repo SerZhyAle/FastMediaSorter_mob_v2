@@ -1,4 +1,4 @@
-# Generate resource XMLs from extracted resources library
+﻿# Generate resource XMLs from extracted resources library
 # MERGES with existing files - preserves all current resources
 
 param(

@@ -48,7 +48,8 @@ class GoogleDriveTokenRefreshTest {
             credentialsManager = mockCredentialsManager,
             httpClient = mockHttpClient,
             pendingRevocationDao = mockPendingRevocationDao,
-            networkCredentialsRepository = mockCredentialsRepo
+            networkCredentialsRepository = mockCredentialsRepo,
+            reachabilityGate = mockk(relaxed = true),
         )
     }
 

@@ -1,6 +1,6 @@
 # Phase 03 — Optimization or Backlog Decision
 
-**Strategic spec:** [`../spec_vr-xr-cold-start.md`](../spec_vr-xr-cold-start.md)
+**Strategic spec:** [`../S0014_vr-xr-cold-start.md`](../S0014_vr-xr-cold-start.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
 **Status:** ⬜ Not started
 **Depends on:** Phase 02
@@ -35,9 +35,9 @@ Branch A (`OPTIMIZE_NOW` — code change):
 
 Branch B (`BACKLOG` — documentation only):
 
-| File | New / Modified | Line budget |
-|------|:--------------:|------------:|
-| `PLAN/spec_vr-xr-cold-start.md` | Modified | ≤ 210 |
+| File                             | New / Modified | Line budget |
+|----------------------------------|:--------------:|------------:|
+| `PLAN/S0014_vr-xr-cold-start.md` |    Modified    |       ≤ 210 |
 
 > Determine which branch applies by reading Phase 02 Recommendation. If `OPTIMIZE_NOW`, proceed with Branch A; if `BACKLOG`, proceed with Branch B. Only one branch executes.
 
@@ -47,7 +47,7 @@ Branch B (`BACKLOG` — documentation only):
 
 ### Step 03.1 — Read Phase 02 recommendation
 
-**Files:** `PLAN/spec_vr-xr-cold-start/PHASE_02__measurement-run.md`
+**Files:** `PLAN/S0014_vr-xr-cold-start/PHASE_02__measurement-run.md`
 **Depends on:** — start of phase
 
 **Prompt for developer:**
@@ -56,7 +56,7 @@ Branch B (`BACKLOG` — documentation only):
 
 **Verification:**
 
-- `Grep "RECOMMENDATION:"` in `PLAN/spec_vr-xr-cold-start/PHASE_02__measurement-run.md` returns exactly 1 match.
+- `Grep "RECOMMENDATION:"` in `PLAN/S0014_vr-xr-cold-start/PHASE_02__measurement-run.md` returns exactly 1 match.
 
 **Status:** `[ ]` not done
 
@@ -93,12 +93,12 @@ Branch B (`BACKLOG` — documentation only):
 
 ### Step 03.3 — Branch B: mark strategic spec as Backlog / Won't-fix-now
 
-**Files:** `PLAN/spec_vr-xr-cold-start.md`
+**Files:** `PLAN/S0014_vr-xr-cold-start.md`
 **Depends on:** Step 03.1 (only if recommendation = `BACKLOG`)
 
 **Prompt for developer:**
 
-> In `PLAN/spec_vr-xr-cold-start.md`, update the header block:
+> In `PLAN/S0014_vr-xr-cold-start.md`, update the header block:
 >
 > 1. Change `**Status:** Approved` to `**Status:** Backlog / Won't-fix-now`.
 > 2. Add a new section `## 13. Decision` immediately before the end of file:
@@ -120,7 +120,7 @@ Branch B (`BACKLOG` — documentation only):
 
 **Verification:**
 
-- `Grep "Backlog / Won't-fix-now"` in `PLAN/spec_vr-xr-cold-start.md` returns at least 1 match.
+- `Grep "Backlog / Won't-fix-now"` in `PLAN/S0014_vr-xr-cold-start.md` returns at least 1 match.
 - `Grep "## 13"` in that file returns 1 match.
 
 **Status:** `[ ]` not done

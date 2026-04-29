@@ -1,4 +1,4 @@
-# Maestro Test Suite Runner
+﻿# Maestro Test Suite Runner
 # FastMediaSorter v2
 # Usage: .\maestro\run-tests.ps1 [smoke|critical|all]
 

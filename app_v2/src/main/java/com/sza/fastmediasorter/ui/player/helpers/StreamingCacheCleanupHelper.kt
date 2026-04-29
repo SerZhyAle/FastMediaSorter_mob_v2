@@ -33,7 +33,12 @@ object StreamingCacheCleanupHelper {
         AlertDialog.Builder(context)
             .setTitle(R.string.cleanup_prompt_title)
             .setMessage(
-                context.getString(R.string.cleanup_prompt_body_format, entry.localPath.substringAfterLast("/"))
+                // %1$s = filename, %2$s = human-readable size (string requires 2 args)
+                context.getString(
+                    R.string.cleanup_prompt_body_format,
+                    entry.localPath.substringAfterLast("/"),
+                    android.text.format.Formatter.formatShortFileSize(context, entry.sizeBytes)
+                )
             )
             .setPositiveButton(R.string.cleanup_keep) { _, _ ->
                 Timber.d("StreamingCacheCleanupHelper: user chose Keep")

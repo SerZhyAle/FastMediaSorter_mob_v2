@@ -1,4 +1,4 @@
-#!/usr/bin/env powershell
+﻿#!/usr/bin/env powershell
 # Maestro Quick Setup Aliases
 # Run this to add convenient aliases for Maestro commands
 

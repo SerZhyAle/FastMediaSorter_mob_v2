@@ -1,4 +1,4 @@
-# Replace hardcoded dimension values with @dimen references
+﻿# Replace hardcoded dimension values with @dimen references
 # Uses dimensions library to perform replacements across all layouts
 
 param(

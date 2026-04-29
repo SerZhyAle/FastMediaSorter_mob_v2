@@ -1,4 +1,4 @@
-# Unify duplicate dimension values into semantic base resources
+﻿# Unify duplicate dimension values into semantic base resources
 param(
     [string]$InputFile = "temp\generated_resources\dimens.xml",
     [string]$OutputFile = "temp\generated_resources\dimens_unified.xml"

@@ -464,10 +464,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
         host().rememberStereoModeIfEnabled(mode)
         host().setStereoMode(mode)
 
-        val effectiveMode = host().stereoMode.value
-        bindStereoMode(effectiveMode)
+        // Bind UI to the user's choice, not the resolved effective renderer mode.
+        // When AUTO is selected, effectiveStereoMode is already resolved to the detected
+        // value — using it here would jump the radio off AUTO immediately. ADR-1 (S0030).
+        bindStereoMode(mode)
 
         if (mode != StereoMode.AUTO) {
+            val effectiveMode = host().stereoMode.value
             host().showMessage(
                 getString(R.string.playback_settings_3d_manual_toast, stereoModeLabel(effectiveMode))
             )
@@ -476,7 +479,17 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private fun updateStereoDetectedLabel(mode: StereoMode) {
         if (mode == StereoMode.AUTO) {
-            binding.tvStereoDetected.isVisible = false
+            // When user is on AUTO, show the detected mode as secondary info if available.
+            // This satisfies strategic completion criteria §11.4 (S0030): the radio stays on
+            // AUTO while the user can still see which concrete mode is actually being used.
+            val detected = host().detectedStereoMode.value
+            val hasInfo = detected != StereoMode.UNKNOWN && detected != StereoMode.AUTO
+            binding.tvStereoDetected.isVisible = hasInfo
+            if (hasInfo) {
+                binding.tvStereoDetected.text = getString(
+                    R.string.playback_settings_3d_current, stereoModeLabel(detected)
+                )
+            }
             return
         }
         binding.tvStereoDetected.isVisible = true

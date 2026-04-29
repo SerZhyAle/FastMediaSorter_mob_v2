@@ -6,10 +6,17 @@
     <!--
         StandalonePlayerActivity is an "Open With" handler designed to receive intents from any app.
         The UnsafeIntentLaunch check fires on debug-only logging code that calls checkUriPermission()
-        with a URI read from the incoming intent. No intent data is ever forwarded to startActivity/
+        with a URI from the incoming intent. No intent data is ever forwarded to startActivity/
         startService — it is passed only to ExoPlayer/Glide. This is a false positive.
     -->
     <issue id="UnsafeIntentLaunch">
         <ignore path="**/StandalonePlayerActivity.kt" />
+    </issue>
+    <!--
+        gradle.properties uses forward-slash path (C:/...) which is valid on Windows but lint
+        misidentifies it as an un-escaped backslash path. Suppress at the root file level.
+    -->
+    <issue id="PropertyEscape">
+        <ignore path="../gradle.properties" />
     </issue>
 </lint>

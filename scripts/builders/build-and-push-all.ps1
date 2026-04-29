@@ -1,4 +1,4 @@
-# Master Build and Push Script
+﻿# Master Build and Push Script
 # Builds ALL flavors (Standard, Lite, Photos, Legacy, VR) in both Debug and Release modes
 # Also builds Wear OS (Debug + Release)
 # Copies artifacts to DOWNLOADS folder

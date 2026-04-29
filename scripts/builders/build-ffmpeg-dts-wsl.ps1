@@ -1,4 +1,4 @@
-# build-ffmpeg-dts-wsl.ps1
+﻿# build-ffmpeg-dts-wsl.ps1
 # ══════════════════════════════════════════════════════════════════════════════
 # PowerShell launcher for the WSL2 FFmpeg DTS build (NDK r27c, 16 KB compliant).
 #

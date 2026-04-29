@@ -1,4 +1,4 @@
-# Queries the catalogue by filters. Combine filters freely (all are AND'd).
+﻿# Queries the catalogue by filters. Combine filters freely (all are AND'd).
 #
 # Examples:
 #   # All data-layer classes that touch disk

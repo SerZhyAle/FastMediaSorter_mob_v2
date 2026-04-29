@@ -20,15 +20,15 @@
 
 ---
 
-## 1. [spec_vr-xr-cold-start/PHASE_02__measurement-run.md](spec_vr-xr-cold-start/PHASE_02__measurement-run.md) — единственный явный блокер
+## 1. [S0014_vr-xr-cold-start/PHASE_02__measurement-run.md](S0014_vr-xr-cold-start/PHASE_02__measurement-run.md) — единственный явный блокер
 
 Блокирует Phase 03. 5 шагов.
 
 1. **Cold start:** force-stop приложения, затем открыть VR-файл из browse → дождаться первого кадра. В логах должны быть `VR_PERF: [xr-thread] egl_create=` и `VR_PERF: [gl-thread] first_frame_ready`.
 2. **Warm re-entry:** вернуться в browse без force-stop, открыть VR-файл снова → второй `first_frame_ready` с заметно меньшим `abs_from_init`.
-3. **Заполнить таблицу** в [PHASE_02__measurement-run.md](spec_vr-xr-cold-start/PHASE_02__measurement-run.md#L137) — заменить все `MEASURED: ?ms` реальными значениями.
+3. **Заполнить таблицу** в [PHASE_02__measurement-run.md](S0014_vr-xr-cold-start/PHASE_02__measurement-run.md#L137) — заменить все `MEASURED: ?ms` реальными значениями.
 4. **Записать рекомендацию** в секции `RECOMMENDATION:` — `OPTIMIZE_NOW` (если хоть одна стадия > 200 ms и есть реалистичный low-risk фикс) или `BACKLOG`.
-5. **Дев-лог:** `.\scripts\add_to_dev_log.ps1 "PLAN/spec_vr-xr-cold-start/PHASE_02__measurement-run.md" "Phase 02 measurement" "filled cold/warm timings on Quest 3"`.
+5. **Дев-лог:** `.\scripts\add_to_dev_log.ps1 "PLAN/S0014_vr-xr-cold-start/PHASE_02__measurement-run.md" "Phase 02 measurement" "filled cold/warm timings on Quest 3"`.
 
 ---
 

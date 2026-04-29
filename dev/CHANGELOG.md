@@ -4620,3 +4620,126 @@ Format: | datetime | file | target | description |
 | 2026-04-29 02:05:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `S0025/04` | Inject NetworkReachabilityGate; gate authenticate() with requireAnyNetwork('Cloud-OneDrive') |
 | 2026-04-29 02:05:43 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/AppModule.kt` | `S0025/04` | Remove redundant @Provides for GoogleDriveRestClient (now constructor-injected) |
 | 2026-04-29 02:06:38 | `PLAN/S0025_smb-fast-fail.md` | `S0025` | All 5 phases complete; Status -> Implemented. Awaiting on-device verification. |
+| 2026-04-29 03:14:09 | `PLAN/S0026..S0031 + S0022` | `specs` | VR session 2026-04-29 (Quest 3) post-mortem: 6 new strategic specs (S0026 route flicker, S0027 orientation regression, S0028 multi-window, S0029 resume EOF, S0030 panel UI bugs, S0031 HUD UX gaps), S0022 enriched with empirical Quest 3 evidence (handlers=0) |
+| 2026-04-29 10:08:33 | `PLAN/S0022_bugfix-camera-capture-crash.md` | `S0022` | Closed open questions #1, #3, #5 based on 2026-04-29 Quest 3 field evidence: silent abort confirmed (handlers=0), camera cmd hidden on VR per ADR-3, temp file created before handler check documented |
+| 2026-04-29 10:08:33 | `PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md` | `S0027` | Added §8 Field Evidence from 2026-04-29 log: VrPlayerActivity ran 0 render frames both times (fallback S0026); orientation bug cannot be confirmed from this log; S0027 blocked by S0026 |
+| 2026-04-29 10:08:33 | `PLAN/S0028_vr-multi-window-playback.md` | `S0028` | Added §8 Field Evidence: 4 independent PlayerActivity windows in single session confirmed; ResumeStateRepository conflict documented |
+| 2026-04-29 10:08:33 | `PLAN/S0029_bugfix-resume-position-end-of-file.md` | `S0029` | Added §7 Field Evidence: completed=false never triggers in log; specific log lines cited; Q#4 partial answer (completed field exists in DataStore) |
+| 2026-04-29 10:08:33 | `PLAN/S0030_bugfix-panel-stereo-dialog-ui.md` | `S0030` | Added §7 Field Evidence: PlaybackControlDialog AUTO selection observed at 02:23:03; jump behavior not explicitly logged; suggested V-level logging for next session |
+| 2026-04-29 10:08:33 | `PLAN/S0031_vr-immersive-hud-ux-gaps.md` | `S0031` | Added §7 Field Evidence: VrControlOverlay:hide only (never show) in log; HUD blocked by S0026 fallback; S0031 blocked by S0026 |
+| 2026-04-29 10:08:33 | `PLAN/S0032_bugfix-vr180-frameat-null.md` | `S0032` | NEW SPEC: getFrameAtTime null for 7K VR180 file on Quest 3 (low native heap + decoder contention); fallback hierarchy defined; registered in spec-catalog |
+| 2026-04-29 10:09:23 | `PLAN/S0026_bugfix-vr-stereo-route-flicker/` | `S0026/F2` | Tactical plan: 5 phases — extract BrowseRoutingDecision, intent-extra detected stereo, VrPlayerActivity hint consumption, unit tests, manual acceptance |
+| 2026-04-29 10:16:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseRoutingDecision.kt;app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `S0026/F01` | Extract BrowseRoutingDecision; honor vrAutoImmersive setting (no VR flicker on stereo files when toggle is off) |
+| 2026-04-29 10:16:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0026/F02` | PlayerActivity.createIntent accepts detectedStereoMode; emits EXTRA_DETECTED_STEREO_MODE |
+| 2026-04-29 10:16:38 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `S0026/F03` | VrPlayerActivity consumes EXTRA_DETECTED_STEREO_MODE to prime route decision before MONO short-circuit |
+| 2026-04-29 10:16:38 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/managers/BrowseRoutingDecisionTest.kt;app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `S0026/F04` | Unit tests: BrowseRoutingDecision matrix (14 tests) + S0026 regression pin in VrRouteDecisionHelperTest |
+| 2026-04-29 10:16:38 | `app_v2/src/test/java/com/sza/fastmediasorter/data/cloud/GoogleDriveTokenRefreshTest.kt` | `S0026/F4-blocker` | Fix pre-existing compile error: missing reachabilityGate constructor argument in GoogleDriveTokenRefreshTest |
+| 2026-04-29 10:18:48 | `PLAN/S0026_bugfix-vr-stereo-route-flicker.md` | `spec-all` | Pipeline BlockNeedUserTest: S0026 — code-side criteria closed; on-device verification (Quest 3) pending |
+| 2026-04-29 12:35:56 | `PLAN/S0014_vr-xr-cold-start.md` | `spec-all` | S0014 status -> BlockNeedUserTest: Phase 02 measurement on Quest 3 deferred to manual |
+| 2026-04-29 12:35:56 | `PLAN/S0014_vr-xr-cold-start/INDEX.md` | `spec-all` | S0014 resume: fix stale spec_vr-xr-cold-start paths, Phase 02 steps marked manual-deferred |
+| 2026-04-29 12:35:56 | `PLAN/Other/ON_DEVICE_TESTS_QUEST3.md` | `spec-all` | Update stale spec_vr-xr-cold-start references to S0014_vr-xr-cold-start |
+| 2026-04-29 12:36:12 | `PLAN/S0014_vr-xr-cold-start.md` | `spec-all` | Pipeline BlockNeedUserTest: S0014 — Phase 01 done, Phase 02 awaits Quest 3 measurement run |
+| 2026-04-29 12:47:08 | `PLAN/S0024_vr-hud-ray-input/PHASE_01__hud-element-registry.md` | `spec-all` | S0024 Phase 01 build gate PASS (assembleVrDebug); phase closed |
+| 2026-04-29 12:47:14 | `PLAN/S0033_vr-monoliths-decomposition.md` | `spec-all` | Discovered dependency for S0024 Phase 02; OpenXrNative.cpp 3487 LOC + VrPlayerActivity.kt 1956 LOC over hard limit |
+| 2026-04-29 12:47:14 | `PLAN/S0024_vr-hud-ray-input.md` | `spec-all` | S0024 status -> BlockByOtherTask (waits on S0033) |
+| 2026-04-29 12:48:32 | `PLAN/S0029_bugfix-resume-position-end-of-file/INDEX.md` | `spec-tech` | Create tactical plan for S0029 (5 phases) |
+| 2026-04-29 12:48:32 | `PLAN/S0029_bugfix-resume-position-end-of-file/PHASE_01__completion-detector.md` | `spec-tech` | Phase 01: PlaybackCompletionDetector + unit tests |
+| 2026-04-29 12:48:32 | `PLAN/S0029_bugfix-resume-position-end-of-file/PHASE_02__repo-mark-completed.md` | `spec-tech` | Phase 02: PlaybackPositionRepository.markPlaybackCompleted |
+| 2026-04-29 12:48:33 | `PLAN/S0029_bugfix-resume-position-end-of-file/PHASE_03__wire-state-ended.md` | `spec-tech` | Phase 03: VideoPlayerManager STATE_ENDED wiring |
+| 2026-04-29 12:48:33 | `PLAN/S0029_bugfix-resume-position-end-of-file/PHASE_04__near-end-exit-guard.md` | `spec-tech` | Phase 04: PlayerLifecycleManager near-end exit guard |
+| 2026-04-29 12:48:33 | `PLAN/S0029_bugfix-resume-position-end-of-file/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs / catalog / cleanup |
+| 2026-04-29 12:48:33 | `PLAN/S0029_bugfix-resume-position-end-of-file.md` | `spec-tech` | Status -> Tactical |
+| 2026-04-29 12:49:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `S0022` | Visibility guard (hasCameraHandler before menu open), handler check before temp file creation, exception wrapping (ActivityNotFoundException/SecurityException/IOException) -> Snackbar, process death saveState/restoreState |
+| 2026-04-29 12:49:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0022` | Added hasCameraHandler check in onResourceOpsClicked — hides camera command when system has no camera app handler |
+| 2026-04-29 12:49:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0022` | Added onSaveInstanceState/restoreState for camera capture process death survival |
+| 2026-04-29 12:49:30 | `app_v2/src/main/res/values/strings.xml,values-ru/strings.xml,values-uk/strings.xml` | `S0022` | Added 4 localized error strings: camera_capture_error_no_camera_app, _permission_denied, _io, _session_expired (EN/RU/UK) |
+| 2026-04-29 12:49:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/playback/PlaybackCompletionDetector.kt` | `spec-dev` | S0029 phase 01.1: add PlaybackCompletionDetector (near-end zone formula min(5%,5000ms)) |
+| 2026-04-29 12:50:14 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/playback/PlaybackCompletionDetectorTest.kt` | `spec-dev` | S0029 phase 01.2: PlaybackCompletionDetector unit tests (12 cases) |
+| 2026-04-29 12:50:58 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/PlaybackPositionRepository.kt` | `spec-dev` | S0029 phase 02.1: add markPlaybackCompleted(filePath, reason) to interface |
+| 2026-04-29 12:51:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/PlaybackPositionRepositoryImpl.kt` | `spec-dev` | S0029 phase 02.2: implement markPlaybackCompleted (delete + reason-tagged ResumeState log) |
+| 2026-04-29 12:51:59 | `app_v2/src/test/java/com/sza/fastmediasorter/data/repository/PlaybackPositionRepositoryImplMarkCompletedTest.kt` | `spec-dev` | S0029 phase 02.3: unit test markPlaybackCompleted (delete + exception swallow) |
+| 2026-04-29 12:54:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev` | S0029 phase 03.1: STATE_ENDED -> markPlaybackCompleted (idempotent via lastCompletedPath guard) |
+| 2026-04-29 12:54:54 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VideoPlayerManagerStateEndedTest.kt` | `spec-dev` | S0029 phase 03.2: VideoPlayerManager STATE_ENDED test (3 cases incl. 30s/28s scenario) |
+| 2026-04-29 12:56:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `spec-dev` | S0029 phase 04.1: near-end exit guard branches savePosition vs markPlaybackCompleted |
+| 2026-04-29 12:56:01 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManagerNearEndTest.kt` | `spec-dev` | S0029 phase 04.2: near-end branch decision contract test |
+| 2026-04-29 12:56:45 | `docs/FEATURES.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (EN) |
+| 2026-04-29 12:56:45 | `docs/FEATURES_RU.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (RU) |
+| 2026-04-29 12:56:45 | `docs/FEATURES_UK.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (UK) |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/INDEX.md` | `spec-tech` | Create tactical plan for S0033 |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_01__cpp-logging-and-ctx-header.md` | `spec-tech` | Phase 01: cpp logging extraction + shared ctx header skeleton |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_02__cpp-lifecycle.md` | `spec-tech` | Phase 02: cpp lifecycle subsystem extraction |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_03__cpp-swapchain-and-frame.md` | `spec-tech` | Phase 03: cpp swapchain + frame loop extraction |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_04__cpp-input-and-hand.md` | `spec-tech` | Phase 04: cpp input + hand-tracking extraction |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_05__activity-helpers.md` | `spec-tech` | Phase 05: VrPlayerActivity decomposition into three Managers |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: catalog regen + S0024 unblock |
+| 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition.md` | `spec-tech` | Status -> Tactical |
+| 2026-04-29 12:57:53 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0029 phase 05.2: catalog regen (new PlaybackCompletionDetector + markPlaybackCompleted method) |
+| 2026-04-29 12:57:53 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0029 phase 05.2: catalog markdown regen |
+| 2026-04-29 12:57:56 | `app_v2/src/main/res/layout/dialog_playback_control.xml` | `switchVrOverrideFormatType` | B2 (S0030): Wrap override-format switch in canonical horizontal LinearLayout - portrait |
+| 2026-04-29 12:57:56 | `app_v2/src/main/res/layout-land/dialog_playback_control.xml` | `switchVrOverrideFormatType` | B2 (S0030): Wrap override-format switch in canonical horizontal LinearLayout - landscape |
+| 2026-04-29 12:57:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `handleStereoModeSelection` | B3 (S0030): Bind UI to user mode not effectiveStereoMode; show detected mode in secondary label when AUTO |
+| 2026-04-29 12:57:56 | `PLAN/S0030_bugfix-panel-stereo-dialog-ui/INDEX.md` | `spec-tech` | S0030: Create tactical plan (4 phases) |
+| 2026-04-29 12:57:56 | `PLAN/S0030_bugfix-panel-stereo-dialog-ui.md` | `spec-tech` | S0030: Advance status Draft -> Tactical; link tactical plan |
+| 2026-04-29 13:00:03 | `PLAN/S0030_bugfix-panel-stereo-dialog-ui.md` | `status` | S0030: Advance status to Implemented |
+| 2026-04-29 13:00:25 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VideoPlayerManagerStateEndedTest.kt` | `spec-dev` | S0029 phase 03.2 fix: explicit mockk<SettingsRepository> generic for type inference |
+| 2026-04-29 13:01:19 | `PLAN/S0029_bugfix-resume-position-end-of-file.md` | `spec-dev` | S0029 status -> Implemented |
+| 2026-04-29 13:01:27 | `app_v2/src/main/AndroidManifest.xml` | `VIBRATE` | Add missing VIBRATE permission required by BeamAnimationDialog haptic feedback on Wear sync success |
+| 2026-04-29 13:16:05 | `app_v2/src/main/res/menu/document_selection_menu.xml` | `AppCompatResource` | Fix: use app:showAsAction instead of android:showAsAction (AppCompatResource lint) |
+| 2026-04-29 13:16:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VerticalSeekBar.kt` | `AppCompatCustomView` | Fix: extend AppCompatSeekBar instead of SeekBar (AppCompatCustomView lint) |
+| 2026-04-29 13:16:12 | `app_v2/src/main/res/values-ru/strings.xml,values-uk/strings.xml` | `StringFormatMatches` | Fix: add missing %2 arg to cloud_auth_dialog_message in RU/UK locales |
+| 2026-04-29 13:16:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt` | `StringFormatMatches` | Fix: pass sizeBytes as %2 arg to cleanup_prompt_body_format |
+| 2026-04-29 13:16:12 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `MenuTitle` | Fix: add missing android:title to menu_search item |
+| 2026-04-29 13:18:18 | `PLAN/S0032_bugfix-vr180-frameat-null/INDEX.md` | `spec-tech` | Create tactical plan for S0032 |
+| 2026-04-29 13:18:18 | `PLAN/S0032_bugfix-vr180-frameat-null/PHASE_01__preventive-guards-logging.md` | `spec-tech` | Phase 01: preventive-guards-logging |
+| 2026-04-29 13:18:18 | `PLAN/S0032_bugfix-vr180-frameat-null/PHASE_02__fallback-hierarchy.md` | `spec-tech` | Phase 02: fallback-hierarchy |
+| 2026-04-29 13:18:18 | `PLAN/S0032_bugfix-vr180-frameat-null/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-04-29 13:18:18 | `PLAN/S0032_bugfix-vr180-frameat-null.md` | `spec-tech` | Status -> Tactical |
+| 2026-04-29 13:18:23 | `app_v2/src/main/res/values-ru/strings.xml` | `StringFormatMatches` | Fix: add missing %2 (provider name) arg to cloud_auth_dialog_message in RU locale |
+| 2026-04-29 13:18:23 | `app_v2/src/main/res/values-uk/strings.xml` | `StringFormatMatches` | Fix: add missing %2 (provider name) arg to cloud_auth_dialog_message in UK locale |
+| 2026-04-29 13:18:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StreamingCacheCleanupHelper.kt` | `StringFormatMatches` | Fix: pass Formatter.formatShortFileSize as %2 to cleanup_prompt_body_format |
+| 2026-04-29 13:18:23 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `MenuTitle` | Fix: add missing android:title to menu_search item (MenuTitle lint) |
+| 2026-04-29 13:18:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterFileInfoFormatter.kt` | `ByteOrderMark` | Fix: replace literal BOM char with Unicode escape \uFEFF (ByteOrderMark lint) |
+| 2026-04-29 13:19:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPosterExtractor.kt` | `S0032 step 01.1` | Skeleton with Result/Source/SkipReason model |
+| 2026-04-29 13:19:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPosterExtractor.kt` | `S0032 step 01.2` | Preventive skip: native heap and player-busy guards |
+| 2026-04-29 13:20:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPosterExtractor.kt` | `S0032 step 01.3` | getFrameAtTime with reason classification (OOM/UNSUPPORTED/UNKNOWN) |
+| 2026-04-29 13:21:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0032 step 01.4` | Wire VideoPosterExtractor into onRenderedFirstFrame; remove inline getFrameAtTime |
+| 2026-04-29 13:24:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPosterExtractor.kt` | `S0032 step 02.1` | Add Glide memory-cache fallback (50ms timeout, sync-from-IO) |
+| 2026-04-29 13:25:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPosterExtractor.kt` | `S0032 step 02.2` | Track and reuse last delivered bitmap for EXOPLAYER_LAST tier |
+| 2026-04-29 13:26:23 | `app_v2/src/main/res/values/strings.xml` | `S0032 step 02.3` | Add poster_thumbnail_unavailable string |
+| 2026-04-29 13:26:23 | `app_v2/src/main/res/values-ru/strings.xml` | `S0032 step 02.3` | Add poster_thumbnail_unavailable string (RU) |
+| 2026-04-29 13:26:23 | `app_v2/src/main/res/values-uk/strings.xml` | `S0032 step 02.3` | Add poster_thumbnail_unavailable string (UK) |
+| 2026-04-29 13:26:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPosterExtractor.kt` | `S0032 step 02.3` | buildPlaceholder bitmap and PLACEHOLDER tier |
+| 2026-04-29 13:27:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPosterExtractor.kt` | `S0032 step 02.4` | Enriched logging: fallback= field with skipped/null distinction |
+| 2026-04-29 13:28:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0032 step 02.5` | Wire fallback chain; widen onFirstFrameReady callback signature; reset extractor on path change |
+| 2026-04-29 13:28:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `S0032 step 02.5` | triggerVideoBackground takes isPlaceholder; contentDescription on ivDynamicBackground |
+| 2026-04-29 13:28:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0032 step 02.5` | Pass isPlaceholder flag from onFirstFrameReady |
+| 2026-04-29 13:30:51 | `docs/FEATURES.md` | `S0032 step 03.1` | Player — resilient poster-frame extraction bullet |
+| 2026-04-29 13:30:51 | `docs/FEATURES_RU.md` | `S0032 step 03.1` | Player — resilient poster-frame extraction bullet (RU) |
+| 2026-04-29 13:30:51 | `docs/FEATURES_UK.md` | `S0032 step 03.1` | Player — resilient poster-frame extraction bullet (UK) |
+| 2026-04-29 13:32:21 | `dev/CATALOG/app_v2.jsonl` | `S0032 step 03.2` | Catalog regen for VideoPosterExtractor |
+| 2026-04-29 13:32:21 | `dev/CATALOG/app_v2.md` | `S0032 step 03.2` | Catalog regen for VideoPosterExtractor |
+| 2026-04-29 15:14:15 | `PLAN/S0034_resource-icons-system.md` | `spec` | Add strategic spec S0034 for resource-icons-system |
+| 2026-04-29 15:25:50 | `PLAN/S0034_resource-icons-system.md` | `spec` | Update S0034: resolve open questions, approve spec |
+| 2026-04-29 15:45:30 | `PLAN/S0034_resource-icons-system/INDEX.md` | `spec-tech` | Create tactical plan for S0034 |
+| 2026-04-29 15:45:31 | `PLAN/S0034_resource-icons-system/PHASE_01__designer-prompt.md` | `spec-tech` | Phase 01: designer-prompt |
+| 2026-04-29 15:45:31 | `PLAN/S0034_resource-icons-system/PHASE_02__data-foundations.md` | `spec-tech` | Phase 02: data-foundations |
+| 2026-04-29 15:45:31 | `PLAN/S0034_resource-icons-system/PHASE_03__icon-library-registry.md` | `spec-tech` | Phase 03: icon-library-registry |
+| 2026-04-29 15:45:31 | `PLAN/S0034_resource-icons-system/PHASE_04__composite-rendering.md` | `spec-tech` | Phase 04: composite-rendering |
+| 2026-04-29 15:45:31 | `PLAN/S0034_resource-icons-system/PHASE_05__assignment-logic.md` | `spec-tech` | Phase 05: assignment-logic |
+| 2026-04-29 15:45:32 | `PLAN/S0034_resource-icons-system/PHASE_06__icon-selector-ui.md` | `spec-tech` | Phase 06: icon-selector-ui |
+| 2026-04-29 15:45:32 | `PLAN/S0034_resource-icons-system/PHASE_07__main-screen-integration.md` | `spec-tech` | Phase 07: main-screen-integration |
+| 2026-04-29 15:45:32 | `PLAN/S0034_resource-icons-system/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs-catalog-cleanup |
+| 2026-04-29 15:45:32 | `PLAN/S0034_resource-icons-system.md` | `spec-tech` | Status -> Tactical |
+| 2026-04-29 16:28:41 | `PLAN/S0034_resource-icons-system/DESIGNER_PROMPT.md` | `DESIGNER_PROMPT` | Phase 01 Step 01.1: authored English designer brief for 50-icon SVG set (5 themed groups) |
+| 2026-04-29 16:28:47 | `PLAN/S0034_resource-icons-system/DESIGNER_PROMPT_RU.md` | `DESIGNER_PROMPT_RU` | Phase 01 Step 01.2: authored Russian mirror of designer brief |
+| 2026-04-29 16:28:47 | `PLAN/S0034_resource-icons-system/ICON_INVENTORY.md` | `ICON_INVENTORY` | Phase 01 Step 01.3: authored icon inventory checklist (50 icons, 5 sets) |
+| 2026-04-29 16:37:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ResourceEntity.kt` | `ResourceEntity` | S0034 Phase 02: add iconId column (ico-XX-NNN format) for resource icons system |
+| 2026-04-29 16:37:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `AppDatabase` | S0034 Phase 02: bump version 25->26 + MIGRATION_25_26 (add icon_id column) |
+| 2026-04-29 16:37:39 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt` | `DatabaseModule` | S0034 Phase 02: register MIGRATION_25_26 in Room builder |
+| 2026-04-29 16:37:45 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `MediaResource` | S0034 Phase 02: add iconId field (nullable, default null) |
+| 2026-04-29 16:37:51 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `ResourceRepositoryImpl` | S0034 Phase 02: pass iconId through entity<->domain mapper; implement updateIcon |
+| 2026-04-29 16:37:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResourceRepository.kt` | `ResourceRepository` | S0034 Phase 02: add updateIcon(resourceId, iconId) contract |
+| 2026-04-29 16:38:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ResourceDao.kt` | `ResourceDao` | S0034 Phase 02: add updateIcon query (UPDATE resources SET icon_id WHERE id) |
+| 2026-04-29 16:38:09 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `FakeResourceRepository` | S0034 Phase 02: implement updateIcon stub in test fake |
+| 2026-04-29 16:44:02 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0034 Phase 02: regenerate catalog (scan + render via pwsh 7) |
+| 2026-04-29 16:44:02 | `dev/CATALOG/app_v2.md` | `catalog` | S0034 Phase 02: render markdown catalog |

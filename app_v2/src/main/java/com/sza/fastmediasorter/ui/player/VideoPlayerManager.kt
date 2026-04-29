@@ -170,6 +170,10 @@ class VideoPlayerManager(
     // Stereo detection runs once per video load inside onTracksChanged
     private val stereoDetector = StereoDetector()
 
+    // S0032: resilient poster-frame extractor with preventive heap/decoder guards
+    // and (in phase 02) a fallback hierarchy to Glide memory cache / placeholder.
+    private val posterExtractor = VideoPosterExtractor()
+
     // Stereo GL effect builder — Phase 2: builds Crop effects for ExoPlayer.setVideoEffects()
     internal val stereoVideoProcessor = StereoVideoProcessor()
     internal val videoColorProcessor = VideoColorProcessor(
@@ -197,6 +201,11 @@ class VideoPlayerManager(
     internal var currentFilePath: String? = null
     internal var positionSaveRunnable: Runnable? = null
     internal var lastSavedPosition: Long = -1L
+
+    // S0029: idempotency guard for STATE_ENDED → markPlaybackCompleted.
+    // Reset on every load of a new media file so re-opening the same path re-arms the path.
+    @Volatile
+    private var lastCompletedPath: String? = null
 
     private var wasPlayingBeforePause = false
 
@@ -266,9 +275,11 @@ class VideoPlayerManager(
 
     /**
      * Optional callback invoked with the first decoded video frame bitmap.
-     * Only fires for local files (MediaMetadataRetriever does not support SMB/SFTP/FTP/cloud).
+     * Only fires for local files — network/cloud paths are short-circuited inside
+     * [onRenderedFirstFrame] because the underlying retriever has no streaming support.
+     * The Boolean flag is true when the bitmap is a static placeholder (S0032 fallback).
      */
-    var onFirstFrameReady: ((android.graphics.Bitmap) -> Unit)? = null
+    var onFirstFrameReady: ((android.graphics.Bitmap, Boolean) -> Unit)? = null
 
     /** Callback invoked after each periodic position save (every 5 s). */
     var onPositionSaved: (() -> Unit)? = null
@@ -323,6 +334,20 @@ class VideoPlayerManager(
                 Player.STATE_ENDED -> {
                     Timber.d("VideoPlayerManager: Playback ended")
                     cancelPlaybackHealthCheck()
+                    val completedPath = currentFilePath
+                    if (completedPath != null && completedPath != lastCompletedPath) {
+                        lastCompletedPath = completedPath
+                        managerScope.launch(Dispatchers.IO) {
+                            try {
+                                playbackPositionRepository.markPlaybackCompleted(
+                                    completedPath,
+                                    reason = "playback-completed"
+                                )
+                            } catch (e: Exception) {
+                                Timber.e(e, "VideoPlayerManager: markPlaybackCompleted failed")
+                            }
+                        }
+                    }
                     playerCallback.onPlaybackEnded()
                 }
                 Player.STATE_IDLE -> {
@@ -434,32 +459,21 @@ class VideoPlayerManager(
         override fun onRenderedFirstFrame() {
             val path = currentFilePath ?: return
             val callback = onFirstFrameReady ?: return
-            // MediaMetadataRetriever only supports local files — skip for network/cloud
+            // Poster extractor only supports local files — skip for network/cloud sources
             if (path.startsWith("smb://") || path.startsWith("sftp://") ||
                 path.startsWith("ftp://") || path.startsWith("cloud://")) {
                 Timber.d("VideoPlayerManager: Skipping first-frame capture for network/cloud source")
                 return
             }
             managerScope.launch(Dispatchers.IO) {
-                try {
-                    val retriever = android.media.MediaMetadataRetriever()
-                    try {
-                        retriever.setDataSource(path)
-                        val bitmap = retriever.getFrameAtTime(0L, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                        if (bitmap != null) {
-                            Timber.d("VideoPlayerManager: First frame extracted (${bitmap.width}x${bitmap.height})")
-                            withContext(Dispatchers.Main) { callback(bitmap) }
-                        } else {
-                            Timber.w("VideoPlayerManager: getFrameAtTime returned null for $path")
-                        }
-                    } finally {
-                        retriever.release()
-                    }
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Timber.w(e, "VideoPlayerManager: Failed to extract first frame from $path")
+                val isBusy = withContext(Dispatchers.Main) {
+                    exoPlayer?.let { it.isPlaying || it.isLoading } == true
                 }
+                val result = posterExtractor.extract(context, path, isBusy)
+                val bitmap = result.bitmap ?: return@launch
+                val isPlaceholder = result.source == VideoPosterExtractor.Source.PLACEHOLDER
+                if (!isPlaceholder) posterExtractor.rememberDelivered(bitmap)
+                withContext(Dispatchers.Main) { callback(bitmap, isPlaceholder) }
             }
         }
 
@@ -619,6 +633,8 @@ class VideoPlayerManager(
         pendingEffectsApply = false
 
         currentFilePath = path
+        posterExtractor.reset()
+        lastCompletedPath = null
         lastSavedPosition = -1L
         stopPositionSaving()
 

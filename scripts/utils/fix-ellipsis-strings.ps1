@@ -1,4 +1,4 @@
-# fix-ellipsis-strings.ps1
+﻿# fix-ellipsis-strings.ps1
 # Replaces "..." with ".." in Android strings.xml UI string values.
 # Only modifies content inside <string ...>...</string> tags — skips code, comments, attributes.
 

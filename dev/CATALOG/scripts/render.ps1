@@ -1,4 +1,4 @@
-# Renders a JSONL catalogue into a human-readable Markdown view.
+﻿# Renders a JSONL catalogue into a human-readable Markdown view.
 #
 # Usage:
 #   pwsh -File dev/CATALOG/scripts/render.ps1 -Module app_v2

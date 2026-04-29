@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Script to check the freshness of project documentation files.
 .DESCRIPTION

@@ -1,4 +1,4 @@
-# Analyze duplicate values in generated resources
+﻿# Analyze duplicate values in generated resources
 # Groups resources by VALUE to find consolidation opportunities
 
 param(

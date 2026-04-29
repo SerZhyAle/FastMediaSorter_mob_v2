@@ -1,4 +1,4 @@
-# Replace hardcoded resource values with resource references (@dimen, @color, @string, etc.)
+﻿# Replace hardcoded resource values with resource references (@dimen, @color, @string, etc.)
 # Uses resources library to perform replacements across all layouts
 
 param(

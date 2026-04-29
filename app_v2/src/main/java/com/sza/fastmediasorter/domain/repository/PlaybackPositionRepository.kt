@@ -22,6 +22,16 @@ interface PlaybackPositionRepository {
      * Delete saved position for file.
      */
     suspend fun deletePosition(filePath: String)
+
+    /**
+     * Delete saved position because playback reached the end (natural STATE_ENDED
+     * or explicit user exit inside the near-end zone). Emits a reason-tagged log
+     * marker so the playback-completed clear path is distinguishable in logs from
+     * user-exited / resource-changed clear paths.
+     *
+     * @param reason short tag (e.g. "playback-completed") logged for observability.
+     */
+    suspend fun markPlaybackCompleted(filePath: String, reason: String)
     
     /**
      * Cleanup positions by count limit.

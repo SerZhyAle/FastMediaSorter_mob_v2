@@ -1,8 +1,8 @@
 # Стратегическая спецификация: S0024 — Ray-input подсистема для интерактивного HUD в иммерсиве
 
 **Ticket:** S0024
-**Status:** Tactical
-**Date:** 2026-04-28
+**Status:** BlockByOtherTask (Phase 01 done; Phase 02 blocked by S0033)
+**Date:** 2026-04-28 (last review 2026-04-29)
 **Tier:** 3 — Moderate
 **Roadmap entry:** Discovered by `/spec-all S0019` — out-of-scope dependency for interactive HUD controls
 **Tactical plan:** `PLAN/S0024_vr-hud-ray-input/INDEX.md`
@@ -145,6 +145,7 @@ Trigger event → диспетчер → callback зарегистрирован
 - **S0019** (Approved) — главный потребитель. Без S0024 интерактивная часть HUD из S0019 не реализуется; S0019 фазы 01–04 реализуют самостоятельный объём, фазы интерактивности отложены до приземления S0024.
 - **S0009** (Partial) — поставляет HUD-канвас и композитор содержимого. S0024 расширяет роль композитора реестром интерактивных элементов. Возможно, для применения P-1 (см. proposed structural changes в S0019) потребуется разблокировка S0009 через `/spec-update S0009 --force-locked`.
 - **S0007** (Partial) — `spec_vr-hand-tracking`. Поставляет controller pose + pinch-event для hand-tracking. S0024 потребляет как источник.
+- **S0033** (Approved, blocking) — discovered by `/spec-all S0024` 2026-04-29: Phase 02 правит `OpenXrNative.cpp` (3487 LOC) и `VrPlayerActivity.kt` (1956 LOC), оба над лимитом 1000 LOC (CLAUDE.md rule 2) и над фазным бюджетом. До приземления S0033 (декомпозиция VR-монолитов) Phase 02 ray-hud-intersection не стартует. После S0033 — `update.ps1 -Status "In Progress"` и `/spec-dev S0024` с Phase 02 Step 02.1.
 
 ---
 

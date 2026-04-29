@@ -1,4 +1,4 @@
-# Setup AVD for Maestro Tests
+﻿# Setup AVD for Maestro Tests
 # Автоматическая настройка эмулятора для Maestro тестов
 # Usage: .\scripts\utils\setup-avd-for-tests.ps1
 

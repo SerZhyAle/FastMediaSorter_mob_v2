@@ -1,4 +1,4 @@
-# Extract ALL attribute values from Layout files with SEMANTIC CONSOLIDATION
+﻿# Extract ALL attribute values from Layout files with SEMANTIC CONSOLIDATION
 # Generates unified JSON library with smart naming (no value in name unless collision)
 # Key format: layoutname_viewid_attribute (value added only for real collisions)
 

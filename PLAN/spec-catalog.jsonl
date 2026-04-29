@@ -11,7 +11,7 @@
 {"id":"S0011","name":"vr-photo-capture-reliability","status":"Archived","priority":0,"tier":3,"file":"PLAN/S0011_vr-photo-capture-reliability.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
 {"id":"S0012","name":"vr-stereo-formats","status":"Partial","priority":60,"tier":4,"file":"PLAN/S0012_vr-stereo-formats.md","created":"2026-04-27","updated":"2026-04-27 23:58"}
 {"id":"S0013","name":"vr-stereo-projection-mapping","status":"Archived","priority":0,"tier":3,"file":"PLAN/S0013_vr-stereo-projection-mapping.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
-{"id":"S0014","name":"vr-xr-cold-start","status":"In Progress","priority":70,"tier":2,"file":"PLAN/S0014_vr-xr-cold-start.md","created":"2026-04-27","updated":"2026-04-27 23:58"}
+{"id":"S0014","name":"vr-xr-cold-start","status":"BlockNeedUserTest","priority":70,"tier":2,"file":"PLAN/S0014_vr-xr-cold-start.md","created":"2026-04-27","updated":"2026-04-29 12:35"}
 {"id":"S0015","name":"bugfix-scheduled-ops-worker-freeze","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0015_bugfix-scheduled-ops-worker-freeze.md","created":"2026-04-28","updated":"2026-04-28 01:45"}
 {"id":"S0016","name":"bugfix-document-print-manager-context","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0016_bugfix-document-print-manager-context.md","created":"2026-04-28","updated":"2026-04-28 02:07"}
 {"id":"S0017","name":"bugfix-smb-scanner-metadata-exception","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0017_bugfix-smb-scanner-metadata-exception.md","created":"2026-04-28","updated":"2026-04-28 02:03"}
@@ -19,7 +19,16 @@
 {"id":"S0019","name":"vr-controls-panel-flow-restoration","status":"Partial","priority":55,"tier":4,"file":"PLAN/S0019_vr-controls-panel-flow-restoration.md","created":"2026-04-28","updated":"2026-04-28 16:58"}
 {"id":"S0020","name":"bugfix-vr-panel-swapchain-session-race","status":"Verified","priority":90,"tier":3,"file":"PLAN/S0020_bugfix-vr-panel-swapchain-session-race.md","created":"2026-04-28","updated":"2026-04-28 15:16"}
 {"id":"S0021","name":"panel-fps-overlay-landscape","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0021_panel-fps-overlay-landscape.md","created":"2026-04-28","updated":"2026-04-28 14:27"}
-{"id":"S0022","name":"bugfix-camera-capture-crash","status":"Draft","priority":90,"tier":2,"file":"PLAN/S0022_bugfix-camera-capture-crash.md","created":"2026-04-28","updated":"2026-04-28 04:00"}
+{"id":"S0022","name":"bugfix-camera-capture-crash","status":"Implemented","priority":90,"tier":2,"file":"PLAN/S0022_bugfix-camera-capture-crash.md","created":"2026-04-28","updated":"2026-04-29 12:49"}
 {"id":"S0023","name":"bugfix-vr-player-activity-stale-references","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0023_bugfix-vr-player-activity-stale-references.md","created":"2026-04-28","updated":"2026-04-28 12:55"}
-{"id":"S0024","name":"vr-hud-ray-input","status":"In Progress","priority":50,"tier":3,"file":"PLAN/S0024_vr-hud-ray-input.md","created":"2026-04-28","updated":"2026-04-28 22:23"}
+{"id":"S0024","name":"vr-hud-ray-input","status":"BlockByOtherTask","priority":50,"tier":3,"file":"PLAN/S0024_vr-hud-ray-input.md","created":"2026-04-28","updated":"2026-04-29 12:47"}
 {"id":"S0025","name":"smb-fast-fail","status":"Implemented","priority":50,"tier":2,"file":"PLAN/S0025_smb-fast-fail.md","created":"2026-04-29","updated":"2026-04-29 02:06"}
+{"id":"S0026","name":"bugfix-vr-stereo-route-flicker","status":"BlockNeedUserTest","priority":85,"tier":3,"file":"PLAN/S0026_bugfix-vr-stereo-route-flicker.md","created":"2026-04-29","updated":"2026-04-29 10:18"}
+{"id":"S0027","name":"bugfix-vr-immersive-orientation-inverted","status":"Draft","priority":80,"tier":3,"file":"PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md","created":"2026-04-29","updated":"2026-04-29 03:00"}
+{"id":"S0028","name":"vr-multi-window-playback","status":"Draft","priority":30,"tier":4,"file":"PLAN/S0028_vr-multi-window-playback.md","created":"2026-04-29","updated":"2026-04-29 03:00"}
+{"id":"S0029","name":"bugfix-resume-position-end-of-file","status":"Implemented","priority":70,"tier":2,"file":"PLAN/S0029_bugfix-resume-position-end-of-file.md","created":"2026-04-29","updated":"2026-04-29 13:01"}
+{"id":"S0030","name":"bugfix-panel-stereo-dialog-ui","status":"Implemented","priority":60,"tier":2,"file":"PLAN/S0030_bugfix-panel-stereo-dialog-ui.md","created":"2026-04-29","updated":"2026-04-29 12:58"}
+{"id":"S0031","name":"vr-immersive-hud-ux-gaps","status":"Draft","priority":65,"tier":3,"file":"PLAN/S0031_vr-immersive-hud-ux-gaps.md","created":"2026-04-29","updated":"2026-04-29 03:00"}
+{"id":"S0032","name":"bugfix-vr180-frameat-null","status":"BlockNeedUserTest","priority":45,"tier":2,"file":"PLAN/S0032_bugfix-vr180-frameat-null.md","created":"2026-04-29","updated":"2026-04-29 13:33"}
+{"id":"S0033","name":"vr-monoliths-decomposition","status":"Tactical","priority":60,"tier":3,"file":"PLAN/S0033_vr-monoliths-decomposition.md","created":"2026-04-29","updated":"2026-04-29 12:57"}
+{"id":"S0034","name":"resource-icons-system","status":"BlockExternal","priority":50,"tier":2,"file":"PLAN/S0034_resource-icons-system.md","created":"2026-04-29","updated":"2026-04-29 16:28"}

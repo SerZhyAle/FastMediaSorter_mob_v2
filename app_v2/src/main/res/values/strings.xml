@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FastMediaSorter</string>
+    <string name="poster_thumbnail_unavailable">Thumbnail unavailable</string>
     <string name="add_new_account">Add New Account</string>
     <string name="start_player">Start Player</string>
     <string name="add">Add</string>
@@ -2519,6 +2520,10 @@
     <string name="camera_capture_saved">Saved: %s</string>
     <string name="camera_capture_error_save_generic">Failed to save captured file</string>
     <string name="camera_capture_error_temp_file">Failed to create temporary file for capture</string>
+    <string name="camera_capture_error_no_camera_app">No camera app available on this device</string>
+    <string name="camera_capture_error_permission_denied">Camera permission denied</string>
+    <string name="camera_capture_error_io">Failed to read captured file</string>
+    <string name="camera_capture_error_session_expired">Capture session expired — please try again</string>
     <string name="duplicate_detection_title">Duplicates</string>
     <string name="duplicate_scan_start">Start Scan</string>
     <string name="duplicate_none_found">No duplicates found.</string>

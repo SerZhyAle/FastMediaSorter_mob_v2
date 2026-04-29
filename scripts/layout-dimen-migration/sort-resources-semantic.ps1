@@ -1,4 +1,4 @@
-# Sort generated resource XMLs by semantic priority
+﻿# Sort generated resource XMLs by semantic priority
 # Priority: 1-ElementType, 2-Attribute, 3-ViewId, 4-Layout, 5-Value
 
 param(

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Prepares a Quest (or any Android XR) device with VR stereoscopic test media.
 

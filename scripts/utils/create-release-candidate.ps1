@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # create-release-candidate.ps1
 # Creates a Release Candidate: bumps version, builds release APK/AAB,
 # generates changelog, creates git tag, and optionally pushes.

@@ -1,4 +1,4 @@
-# Install VR DEBUG APK on connected device WITHOUT launching it.
+﻿# Install VR DEBUG APK on connected device WITHOUT launching it.
 #
 # Why no auto-launch:
 #   Launching a VR app via `adb shell am start` bypasses the Horizon OS VR shell,

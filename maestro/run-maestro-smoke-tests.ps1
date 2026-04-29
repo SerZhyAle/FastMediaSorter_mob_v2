@@ -1,4 +1,4 @@
-#!/usr/bin/env powershell
+﻿#!/usr/bin/env powershell
 # Maestro E2E Smoke Tests Runner
 # Purpose: Quick smoke test execution for FastMediaSorter v2
 # Usage: .\run-maestro-smoke-tests.ps1

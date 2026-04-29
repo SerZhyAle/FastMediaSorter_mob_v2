@@ -1,4 +1,4 @@
-# Generate resource XMLs from extracted resources library
+﻿# Generate resource XMLs from extracted resources library
 # Creates separate files: dimens.xml, colors.xml, strings.xml
 
 param(

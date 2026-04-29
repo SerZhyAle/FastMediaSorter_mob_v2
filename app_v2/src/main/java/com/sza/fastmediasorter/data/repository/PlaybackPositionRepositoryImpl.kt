@@ -65,6 +65,15 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
             Timber.e(e, "PlaybackPosition: Failed to mark as completed: $filePath")
         }
     }
+
+    override suspend fun markPlaybackCompleted(filePath: String, reason: String) {
+        try {
+            dao.deletePosition(filePath)
+            Timber.d("ResumeState: clearState reason=%s uri=%s", reason, filePath)
+        } catch (e: Exception) {
+            Timber.e(e, "ResumeState: clearState FAILED reason=%s uri=%s", reason, filePath)
+        }
+    }
     
     override suspend fun deletePosition(filePath: String) {
         try {

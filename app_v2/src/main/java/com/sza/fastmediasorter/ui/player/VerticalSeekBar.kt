@@ -5,7 +5,7 @@ import android.content.res.Configuration
 import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.widget.SeekBar
+import androidx.appcompat.widget.AppCompatSeekBar
 
 /**
  * A SeekBar that is vertical in portrait and falls back to the standard horizontal behaviour
@@ -23,7 +23,7 @@ class VerticalSeekBar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = android.R.attr.seekBarStyle
-) : SeekBar(context, attrs, defStyle) {
+) : AppCompatSeekBar(context, attrs, defStyle) {
 
     // Determined once at construction time; re-inflated on orientation change anyway.
     private val isVertical: Boolean =

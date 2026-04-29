@@ -1,4 +1,4 @@
-# Maestro Stress Test Runner with Live Monitoring
+﻿# Maestro Stress Test Runner with Live Monitoring
 # FastMediaSorter v2
 # Usage: .\scripts\utils\run-maestro-stress.ps1 [-Suite monkey|navigation|lifecycle|all] [-Monitor] [-Report]
 

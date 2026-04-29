@@ -1,11 +1,11 @@
 # Tactical Plan: vr-xr-cold-start
 
-**Strategic spec:** [`../spec_vr-xr-cold-start.md`](../spec_vr-xr-cold-start.md)
+**Strategic spec:** [`../S0014_vr-xr-cold-start.md`](../S0014_vr-xr-cold-start.md)
 **Feature:** VR XR Cold Start Latency Analysis & Resolution
 **Tier:** 2 — Easy
-**Status:** Not started
-**Phases:** 1 / 4 done
-**Last updated:** 2026-04-27
+**Status:** BlockNeedUserTest
+**Phases:** 1 / 4 done — Phase 02 manual on Quest 3 deferred to human
+**Last updated:** 2026-04-29
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
 
@@ -16,7 +16,7 @@
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
 | 01 | stage-instrumentation | — | ✅ Done | 4/4 | [PHASE_01__stage-instrumentation.md](PHASE_01__stage-instrumentation.md) |
-| 02 | measurement-run | 01 | ⬜ Not started | 0/5 | [PHASE_02__measurement-run.md](PHASE_02__measurement-run.md) |
+| 02 | measurement-run | 01 | 🚧 In Progress (manual) | 0/5 | [PHASE_02__measurement-run.md](PHASE_02__measurement-run.md) |
 | 03 | optimization-or-backlog | 02 | ⬜ Not started | 0/3 | [PHASE_03__optimization-or-backlog.md](PHASE_03__optimization-or-backlog.md) |
 | 04 | docs-catalog-cleanup | all | ⬜ Not started | 0/3 | [PHASE_04__docs-catalog-cleanup.md](PHASE_04__docs-catalog-cleanup.md) |
 
@@ -58,10 +58,11 @@ Phase 03 is blocked by the manual Phase 02 results.
 
 ## Blockers Log
 
-*(empty)*
+- 2026-04-29 — Phase 02 deferred to manual on-device run on Quest 3. Phase 03 cannot start until measurement table + RECOMMENDATION are filled. See [Other/ON_DEVICE_TESTS_QUEST3.md](../Other/ON_DEVICE_TESTS_QUEST3.md) §1 for the user-facing checklist.
 
 ---
 
 ## Change Log
 
 - 2026-04-27 — Initial tactical plan authored by `/spec-tech`.
+- 2026-04-29 — `/spec-all` resume: stale `spec_vr-xr-cold-start` paths fixed across phases; Phase 02 steps marked `[manual — deferred to human]`; status flipped to `BlockNeedUserTest`.

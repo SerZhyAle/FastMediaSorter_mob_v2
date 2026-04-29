@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0024_vr-hud-ray-input.md`](../S0024_vr-hud-ray-input.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02, Phase 03, Phase 04
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-28
+**Completed:** 2026-04-29
 
 ---
 
@@ -153,21 +153,22 @@ Introduce a HUD element registry owned by `VrHudSceneComposer`. Each element car
 - `Grep` — `TODO(phase-01)` returns zero hits.
 - Build output indicates VR flavor compiles without errors.
 
-**Status:** `[~] in progress` — BUILD-REQUIRED
+**Status:** `[x] done`
 
 **Step Log:**
 
 - 2026-04-28 — Static checks PASS (zero `TODO(phase-01)` hits). Build gate deferred — `/spec-dev` cannot run `/build` directly. Run `/build` to flip to done.
+- 2026-04-29 — `/build` `vr debug` PASS (`assembleVrDebug` 41s, BUILD SUCCESSFUL). Phase 01 closed.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 01.*` above is `[x] done`.
-- [ ] Project compiles — run `/build` (do not invoke gradle directly).
-- [ ] `Grep` for `TODO(phase-01)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2` (two new public classes).
+- [x] Every `Step 01.*` above is `[x] done`.
+- [x] Project compiles — `assembleVrDebug` PASS (2026-04-29).
+- [x] `Grep` for `TODO(phase-01)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2` (two new public classes).
 
 ---
 

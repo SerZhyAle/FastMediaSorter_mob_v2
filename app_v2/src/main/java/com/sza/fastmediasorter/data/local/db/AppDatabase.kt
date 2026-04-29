@@ -25,7 +25,7 @@ import com.sza.fastmediasorter.data.input.InputBindingEntity
         StreamingCacheEntry::class,
         InputBindingEntity::class
     ],
-    version = 25,
+    version = 26,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -645,6 +645,14 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     """.trimIndent()
                 )
+            }
+        }
+
+        val MIGRATION_25_26 = object : Migration(25, 26) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                if (!hasColumn(db, "resources", "icon_id")) {
+                    db.execSQL("ALTER TABLE resources ADD COLUMN icon_id TEXT DEFAULT NULL")
+                }
             }
         }
 

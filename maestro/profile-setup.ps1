@@ -1,4 +1,4 @@
-# PowerShell Profile - FastMediaSorter Maestro Setup
+﻿# PowerShell Profile - FastMediaSorter Maestro Setup
 # Add this to your PowerShell profile for permanent PATH configuration
 
 # Add Node.js and npm to PATH (for Maestro CLI)

@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # generate-changelog.ps1
 # Generates a CHANGELOG section from git log between two refs (tags or commits).
 # Output is formatted for Play Store "What's New" and GitHub release notes.

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Appends a structured entry to the development changelog (dev/CHANGELOG.md).
 

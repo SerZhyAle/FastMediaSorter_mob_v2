@@ -114,6 +114,11 @@ class VrPlayerActivity : PlayerActivity() {
     private val stereoDetector = StereoDetector()
     private val routeDecisionHelper = VrRouteDecisionHelper()
 
+    // S0026: stereo mode hint from BrowseEventHandler. When present and resolvable, primes
+    // resolveLaunchStereoMode so the inner route decision sees the actual file format.
+    // Single-use — consumed on the first route resolution and cleared.
+    private var initialDetectedStereoModeHint: StereoMode? = null
+
     // ── VR immersive controls (spec_vr-immersive-controls-tech) ──────────────
     private var vrInputManager: VrControllerInputManager? = null
     private var vrZoomManager: VrZoomManager? = null
@@ -250,6 +255,10 @@ class VrPlayerActivity : PlayerActivity() {
         forceImmersiveThisLaunch = intent.getBooleanExtra(EXTRA_FORCE_IMMERSIVE, false)
         Timber.i("VrPlayerActivity: forceImmersiveThisLaunch=%b", forceImmersiveThisLaunch)
         forcePanelThisLaunch = intent.getBooleanExtra(EXTRA_FORCE_PANEL, false)
+
+        initialDetectedStereoModeHint = intent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE)
+            ?.let { name -> runCatching { StereoMode.valueOf(name) }.getOrNull() }
+        Timber.i("VrPlayerActivity: initial detected stereo hint=%s", initialDetectedStereoModeHint)
 
         // Wire the immersive toggle button (VR flavor only — button is always in the layout but hidden in other flavors).
         vrToggleButtonManager = VrToggleButtonManager(
@@ -1531,6 +1540,26 @@ class VrPlayerActivity : PlayerActivity() {
         requestedStereoMode: StereoMode,
         autoDetectEnabled: Boolean,
     ): StereoMode {
+        // S0026: when Browse provided a detected mode hint, honor it over the coordinator's
+        // current value if the coordinator is still at the MONO/UNKNOWN/AUTO default. The hint
+        // is single-use; subsequent file changes within the same VrPlayerActivity instance
+        // re-detect normally via the stereoDetector block below.
+        val hintToUse = initialDetectedStereoModeHint
+        initialDetectedStereoModeHint = null
+
+        if (hintToUse != null && hintToUse != StereoMode.UNKNOWN && hintToUse != StereoMode.MONO &&
+            (requestedStereoMode == StereoMode.MONO ||
+                requestedStereoMode == StereoMode.AUTO ||
+                requestedStereoMode == StereoMode.UNKNOWN)
+        ) {
+            Timber.i(
+                "VrPlayerActivity: resolveLaunchStereoMode using browse hint=%s (was requested=%s)",
+                hintToUse,
+                requestedStereoMode,
+            )
+            return hintToUse
+        }
+
         if (requestedStereoMode != StereoMode.AUTO && requestedStereoMode != StereoMode.UNKNOWN) {
             return requestedStereoMode
         }

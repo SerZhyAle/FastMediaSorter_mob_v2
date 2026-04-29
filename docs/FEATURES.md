@@ -134,6 +134,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **ExoPlayer integration**: Benefit from a robust, state-of-the-art playback engine based on ExoPlayer, capable of flawlessly handling various codecs and network stream formats.
 - **Full-screen mode**: Immerse yourself completely as the system UI automatically hides, dedicating every pixel of your screen to the video content.
 - **Playback position save & restore**: Stop watching securely in the knowledge that your exact playback position is saved per file. You will perfectly resume from where you left off the next time you open the video.
+- **Watched-to-end auto-clear**: When a file plays to its end, the saved position is cleared so the next open starts from zero. Resume from a saved position now applies only to files paused mid-playback.
 - **Resume Next Time**: Return to your media instantly. Upon a cold app start, the app automatically navigates through network and cloud resources to restore your absolute last active video dynamically.
 - **Picture-in-Picture (PiP)**: Multitask without pausing. On Android 12+ devices, the video automatically shrinks into a floating window when you press the home button, letting you use other apps.
 - **Configurable touch zones**: Personalize your player controls. Define exactly which invisible tap regions of the screen trigger previous, next, play/pause, or skip/seek commands.
@@ -148,6 +149,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Remappable controls**: Every keyboard, mouse, gamepad and VR-controller binding for the player is user-assignable through `Settings → Controls & Keybindings`, with per-row / per-group / global reset to factory defaults.
 - **VR HUD FPS counter**: A separate setting "Show VR FPS" in Video settings (only effective when VR is globally enabled) draws the current frame rate in the top-right corner of the immersive HUD overlay. Off by default; the toggle takes effect within about a second even inside an active immersive session — no restart needed. The value is averaged over a 500 ms window and freezes at the last valid reading during render-cycle stalls.
 - **Diagnostic FPS counter overlay**: A separate setting `Settings → Video → Show FPS over player` enables a small bordered FPS bubble in the top-end corner of the flat 2D player while a video is actually playing. Independent from the existing VR-HUD-FPS setting and available on every flavor with a player; in VR-immersive mode the bubble is suppressed in favour of the existing immersive HUD counter.
+- **Resilient poster-frame extraction**: VR180 / 7K videos and low-native-heap devices fall back to cached thumbnail or a localized "Thumbnail unavailable" placeholder; never an empty preview.
 
 ## 8. VR Edition
 

@@ -1,4 +1,4 @@
-# Backup all Layout files before dimension migration
+﻿# Backup all Layout files before dimension migration
 # Creates timestamped backup in temp/layout_backups/
 
 param(

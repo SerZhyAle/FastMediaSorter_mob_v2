@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Prepares the Android device with a structured test media layout for pre-release manual testing.
 

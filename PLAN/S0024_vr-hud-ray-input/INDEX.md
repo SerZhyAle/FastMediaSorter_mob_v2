@@ -4,9 +4,9 @@
 **Feature:** Ray-input subsystem for the interactive immersive HUD (controller aim + hand-tracking pinch → click on HUD elements registered by the HUD content composer).
 **Tier:** 3 — Moderate
 **Priority:** 50
-**Status:** Not started
-**Phases:** 0 / 6 done
-**Last updated:** 2026-04-28
+**Status:** In Progress (blocked on Phase 02 dependency)
+**Phases:** 1 / 6 done
+**Last updated:** 2026-04-29
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
 
@@ -16,7 +16,7 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | hud-element-registry | — | ⬜ Not started | 0/5 | [PHASE_01__hud-element-registry.md](PHASE_01__hud-element-registry.md) |
+| 01 | hud-element-registry | — | ✅ Done | 5/5 | [PHASE_01__hud-element-registry.md](PHASE_01__hud-element-registry.md) |
 | 02 | ray-hud-intersection | 01 | ⬜ Not started | 0/4 | [PHASE_02__ray-hud-intersection.md](PHASE_02__ray-hud-intersection.md) |
 | 03 | hover-state-and-redraw | 01, 02 | ⬜ Not started | 0/4 | [PHASE_03__hover-state-and-redraw.md](PHASE_03__hover-state-and-redraw.md) |
 | 04 | input-dispatcher | 01, 02, 03 | ⬜ Not started | 0/5 | [PHASE_04__input-dispatcher.md](PHASE_04__input-dispatcher.md) |
@@ -56,7 +56,7 @@ _None — all research items in strategic §6 are Resolved (owner decisions 2026
 
 ## Blockers Log
 
-- _none yet_
+- **2026-04-29 — Phase 02 blocked by S0033.** `OpenXrNative.cpp` 3487 LOC (> 1000 hard limit, > 1500 phase budget) и `VrPlayerActivity.kt` 1956 LOC (> 1000 hard limit). Phase 02 явно требует декомпозиции до правок. Allocated dependency: `S0033_vr-monoliths-decomposition` (Approved). S0024 status flipped to `BlockByOtherTask`. Resume after S0033 lands: `update.ps1 -Status "In Progress"` + `/spec-dev S0024`.
 
 ---
 

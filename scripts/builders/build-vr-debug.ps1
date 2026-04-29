@@ -1,4 +1,4 @@
-# Build VR Debug APK
+﻿# Build VR Debug APK
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 Write-Host "Building VR Debug APK (auto-versioned)..." -ForegroundColor Cyan

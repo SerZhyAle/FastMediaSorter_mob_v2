@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Generates a quality metrics report for FastMediaSorter.
 .DESCRIPTION

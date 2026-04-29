@@ -268,7 +268,11 @@ class ResourceRepositoryImpl @Inject constructor(
     override suspend fun deleteAllResources() {
         resourceDao.deleteAll()
     }
-    
+
+    override suspend fun updateIcon(resourceId: Long, iconId: String?) {
+        resourceDao.updateIcon(resourceId, iconId)
+    }
+
     override suspend fun testConnection(resource: MediaResource): Result<String> {
         return when (resource.type) {
             ResourceType.LOCAL -> {
@@ -463,10 +467,11 @@ class ResourceRepositoryImpl @Inject constructor(
             readSpeedMbps = readSpeedMbps,
             writeSpeedMbps = writeSpeedMbps,
             recommendedThreads = recommendedThreads,
-            lastSpeedTestDate = lastSpeedTestDate
+            lastSpeedTestDate = lastSpeedTestDate,
+            iconId = iconId
         )
     }
-    
+
     private fun MediaResource.toEntity(): ResourceEntity {
         var flags = 0
         if (MediaType.IMAGE in supportedMediaTypes) flags = flags or 0b0001
@@ -517,7 +522,8 @@ class ResourceRepositoryImpl @Inject constructor(
             readSpeedMbps = readSpeedMbps,
             writeSpeedMbps = writeSpeedMbps,
             recommendedThreads = recommendedThreads,
-            lastSpeedTestDate = lastSpeedTestDate
+            lastSpeedTestDate = lastSpeedTestDate,
+            iconId = iconId
         )
     }
 }

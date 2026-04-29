@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FastMediaSorter</string>
+    <string name="poster_thumbnail_unavailable">Прев\'ю недоступне</string>
     <string name="settings_category_interface">Інтерфейс</string>
     <string name="settings_category_files">Файли та дані</string>
     <string name="settings_category_permissions">Дозволи та доступ</string>
@@ -666,7 +667,7 @@
     <string name="authentication_failed">Помилка авторизації: %1$s</string>
     <string name="go_to_resources">До Ресурсів</string>
     <string name="authentication_required">Потрібна авторизація</string>
-    <string name="cloud_auth_dialog_message">Для доступу до \&quot;%1$s\&quot; потрібно увійти за допомогою Google-акаунту.</string>
+    <string name="cloud_auth_dialog_message">Для доступу до \&quot;%1$s\&quot; потрібно увійти за допомогою акаунту %2$s.</string>
     <string name="cloud_auth_copy_error">Потрібна авторизація Google Drive.\n\nБудь ласка, перейдіть в Ресурси та увійдіть у цей Cloud-ресурс.</string>
     <string name="sign_in_now">Увійти зараз</string>
     <string name="copy_error">Копіювати помилку</string>
@@ -2451,6 +2452,10 @@
     <string name="camera_capture_saved">Збережено: %s</string>
     <string name="camera_capture_error_save_generic">Не вдалося зберегти знятий файл</string>
     <string name="camera_capture_error_temp_file">Не вдалося створити тимчасовий файл для зйомки</string>
+    <string name="camera_capture_error_no_camera_app">На пристрої немає застосунку камери</string>
+    <string name="camera_capture_error_permission_denied">Доступ до камери заборонено</string>
+    <string name="camera_capture_error_io">Не вдалося прочитати знятий файл</string>
+    <string name="camera_capture_error_session_expired">Сеанс зйомки застарів — спробуйте ще раз</string>
     <string name="duplicate_detection_title">Дублікати</string>
     <string name="duplicate_scan_start">Почати сканування</string>
     <string name="scanning_for_duplicates">Пошук дублікатів…</string>

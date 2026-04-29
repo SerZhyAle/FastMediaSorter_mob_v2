@@ -1,4 +1,4 @@
-# Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
+﻿# Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
 # Generates unified JSON library with resource types classification
 # Key format: layoutname_viewid_attribute_value
 

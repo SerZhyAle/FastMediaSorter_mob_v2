@@ -260,15 +260,20 @@ class ImageLoadingManager(
      * Called by [VideoPlayerManager] (via [PlayerMediaLoaderManager]) on first frame rendered.
      * No-op when dynamic background is disabled or screen dimensions not yet resolved.
      */
-    fun triggerVideoBackground(bitmap: android.graphics.Bitmap) {
+    fun triggerVideoBackground(bitmap: android.graphics.Bitmap, isPlaceholder: Boolean) {
         if (!isDynamicBackgroundEnabled) return
         val w = currentDeviceWidth.takeIf { it > 0 } ?: return
         val h = currentDeviceHeight.takeIf { it > 0 } ?: return
-        Timber.d("ImageLoadingManager: triggerVideoBackground frame=${bitmap.width}x${bitmap.height} screen=${w}x${h}")
+        Timber.d("ImageLoadingManager: triggerVideoBackground frame=${bitmap.width}x${bitmap.height} screen=${w}x${h} placeholder=$isPlaceholder")
         // processFromBitmap internally uses the backgroundView dimensions via process(),
         // which now receives the view size — but for video we pass screen dims as fallback;
         // the processor will use backgroundView.width/height if available via its own layout.
         dynamicBackgroundProcessor?.processFromBitmap(bitmap, w, h)
+        binding.ivDynamicBackground.contentDescription = if (isPlaceholder) {
+            binding.root.context.getString(R.string.poster_thumbnail_unavailable)
+        } else {
+            null
+        }
     }
 
     /**

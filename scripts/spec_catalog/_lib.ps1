@@ -1,4 +1,4 @@
-# Shared helpers for spec_catalog scripts.
+﻿# Shared helpers for spec_catalog scripts.
 # Compatible with PowerShell 5.1 and 7+.
 
 Set-StrictMode -Version Latest

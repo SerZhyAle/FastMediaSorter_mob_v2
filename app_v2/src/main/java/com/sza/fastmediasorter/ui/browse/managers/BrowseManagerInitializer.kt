@@ -572,7 +572,14 @@ class BrowseManagerInitializer(
                         false
                     }
                     val settings = settingsRepository.getSettings().first()
-                    val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings)
+                    // Check state-based predicate first (toggle + media type + path), then
+                    // confirm the system actually has a handler for the capture intent.
+                    // hasCameraHandler() is the key fix for Quest 3 where handlers=0.
+                    val isCameraVisibleByState = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings)
+                    val isCameraVisible = isCameraVisibleByState &&
+                        viewModel.state.value.resource?.let { res ->
+                            BrowseCameraCaptureManager.hasCameraHandler(activity, res)
+                        } ?: false
                     resourceOpsMenuManager.showMenu(
                         anchor = anchor,
                         viewModel = viewModel,

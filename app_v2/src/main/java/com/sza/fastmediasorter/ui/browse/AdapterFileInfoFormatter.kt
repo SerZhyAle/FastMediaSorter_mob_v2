@@ -21,7 +21,7 @@ object AdapterFileInfoFormatter {
         }
         // Guard against invisible characters from malformed ID3 tags (BOM, NUL, etc.)
         val trimmed = result.trim()
-        if (trimmed.isEmpty() || trimmed.all { it.code < 32 || it == ' ' || it == '﻿' }) {
+        if (trimmed.isEmpty() || trimmed.all { it.code < 32 || it == ' ' || it == '\uFEFF' }) {
             Timber.w(
                 "buildAudioDisplayName: invisible result for '${file.name}' | " +
                     "artist.codes=${file.artist?.map { it.code }?.take(8)} | " +

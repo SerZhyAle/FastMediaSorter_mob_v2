@@ -1,4 +1,4 @@
-# Master script for full layout dimension migration
+﻿# Master script for full layout dimension migration
 # Runs all migration steps with user confirmations
 
 param(

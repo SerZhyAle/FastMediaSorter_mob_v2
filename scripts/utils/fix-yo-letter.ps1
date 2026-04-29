@@ -1,4 +1,4 @@
-# fix-yo-letter.ps1
+﻿# fix-yo-letter.ps1
 # Restores the letter Ё/ё in Russian text where it is grammatically required.
 # Uses a curated dictionary of common Russian words where е/Е should be ё/Ё.
 # Safe: only replaces whole-word matches to avoid false positives.

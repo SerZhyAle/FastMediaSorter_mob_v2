@@ -1,4 +1,4 @@
-#!/usr/bin/env powershell
+﻿#!/usr/bin/env powershell
 # Maestro Setup Verification Script
 # Checks all prerequisites and configurations
 

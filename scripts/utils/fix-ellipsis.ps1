@@ -1,4 +1,4 @@
-# fix-ellipsis.ps1
+﻿# fix-ellipsis.ps1
 # Replaces "..." (three dots) with ".." (two dots) according to author style.
 # Applies to strings.xml UI text and markdown documents.
 # SKIPS: code blocks, inline code, URL paths (e.g. .../drive), file path placeholders.

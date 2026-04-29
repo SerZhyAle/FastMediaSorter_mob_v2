@@ -366,6 +366,27 @@ class VrRouteDecisionHelperTest {
         )
     }
 
+    // ── S0026 regression — lost-stereo-mode bug ──────────────────────────────
+    //
+    // Documents the inner-helper behaviour that the route flicker exploits when
+    // VrPlayerActivity inherits a MONO default before BrowseEventHandler's hint
+    // is consumed. With the F03 fix, requested=MONO will be replaced by the
+    // detected mode before this helper is called. This test pins the helper's
+    // contract for the unhinted path: requested=MONO + auto-immersive=on
+    // STILL yields plain-2d-video, which is correct for genuinely 2D files.
+
+    @Test
+    fun `S0026 regression - requested MONO with auto-immersive on yields cinema immersive for video`() {
+        val decision = helper.decide(
+            currentFile = mediaFile("/movies/file_appears_stereo.mp4", MediaType.VIDEO),
+            effectiveStereoMode = StereoMode.MONO,
+            settings = AppSettings(vrAutoImmersive = true),
+        )
+
+        assertEquals(VrLaunchRoute.CINEMA_IMMERSIVE, decision.route)
+        assertEquals("plain-2d-video", decision.logReason)
+    }
+
     private fun mediaFile(path: String, type: MediaType): MediaFile {
         return MediaFile(
             name = path.substringAfterLast('/'),

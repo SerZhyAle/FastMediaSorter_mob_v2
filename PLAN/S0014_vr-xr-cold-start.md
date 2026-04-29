@@ -1,11 +1,12 @@
 # Стратегическая спецификация: Ad-hoc — VR XR Cold Start Latency
 
-**Status:** In Progress
+**Status:** BlockNeedUserTest
 <!-- auto-approved by /spec-all — 2026-04-27 -->
+<!-- BlockNeedUserTest set by /spec-all — 2026-04-29: Phase 02 measurement requires Quest 3 + adb logcat; pipeline cannot proceed without measurement data -->
 **Date:** 2026-04-26
 **Tier:** 2 — Easy
 **Roadmap entry:** Ad-hoc — запрос пользователя 2026-04-26 (из Quest 3 VR problem list: P3-5 — первый запуск XR-сессии ждёт 1093ms и до этого нигде не был зафиксирован).
-**Tactical plan:** `PLAN/spec_vr-xr-cold-start/INDEX.md`
+**Tactical plan:** `PLAN/S0014_vr-xr-cold-start/INDEX.md`
 
 > **Scope of this document:** STRATEGIC. Фиксирует пропущенную проблему cold-start latency как отдельный optimization/backlog item. Не означает автоматический немедленный implementation commitment.
 

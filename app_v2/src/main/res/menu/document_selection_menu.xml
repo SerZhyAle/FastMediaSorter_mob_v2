@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_translate_selection"
         android:title="@string/action_translate_selection"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_search_google"
         android:title="@string/action_search_google"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_read_aloud_selection"
         android:title="@string/action_read_aloud_selection"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" />
 </menu>

@@ -177,7 +177,9 @@ data class MediaResource(
     val readSpeedMbps: Double? = null,
     val writeSpeedMbps: Double? = null,
     val recommendedThreads: Int? = null,
-    val lastSpeedTestDate: Long? = null
+    val lastSpeedTestDate: Long? = null,
+
+    val iconId: String? = null // Format: ico-XX-NNN; null until S0034 backfill assigns one
 ) {
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)

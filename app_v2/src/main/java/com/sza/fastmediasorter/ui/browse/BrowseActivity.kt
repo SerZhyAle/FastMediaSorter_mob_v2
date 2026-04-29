@@ -124,6 +124,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         )
+        // Restore pending camera-capture context if the process was killed while the system
+        // camera was open. Must run after the manager is constructed so launcher is registered.
+        savedInstanceState?.let { state ->
+            cameraCaptureManager.restoreState(state) { id ->
+                viewModel.state.value.resource?.takeIf { it.id == id }
+            }
+        }
     }
 
     override fun getViewBinding(): ActivityBrowseBinding {
@@ -337,6 +344,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
         binding.rvMediaFiles.clearOnScrollListeners()
         super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: android.os.Bundle) {
+        super.onSaveInstanceState(outState)
+        // Persist pending camera-capture context so it survives process death.
+        if (::cameraCaptureManager.isInitialized) {
+            cameraCaptureManager.saveState(outState)
+        }
     }
 
     internal fun onCameraCaptureClicked() {

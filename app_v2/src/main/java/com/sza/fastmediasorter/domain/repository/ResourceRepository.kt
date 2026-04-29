@@ -53,8 +53,10 @@ interface ResourceRepository {
     suspend fun updateResourcesDisplayOrder(resources: List<MediaResource>)
     
     suspend fun deleteResource(resourceId: Long)
-    
+
     suspend fun deleteAllResources()
-    
+
     suspend fun testConnection(resource: MediaResource): Result<String>
+
+    suspend fun updateIcon(resourceId: Long, iconId: String?)
 }

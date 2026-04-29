@@ -117,8 +117,8 @@ class PlayerMediaLoaderManager(
 
     init {
         // Wire first-frame extraction to dynamic background when video is opened
-        videoPlayerManager.onFirstFrameReady = { bitmap ->
-            imageLoadingManager.triggerVideoBackground(bitmap)
+        videoPlayerManager.onFirstFrameReady = { bitmap, isPlaceholder ->
+            imageLoadingManager.triggerVideoBackground(bitmap, isPlaceholder)
         }
     }
 

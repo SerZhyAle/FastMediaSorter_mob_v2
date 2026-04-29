@@ -1,4 +1,4 @@
-# Script to create Android Studio run configurations for all flavors
+﻿# Script to create Android Studio run configurations for all flavors
 $runConfigsDir = ".idea\runConfigurations"
 
 # Ensure directory exists

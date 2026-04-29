@@ -876,6 +876,11 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
         const val EXTRA_MODIFIED_FILES = "modified_files"
 
+        // S0026: detected stereo mode hint. Browse fills this when launching VR; VrPlayerActivity
+        // primes PlayerStereoModeCoordinator with this value before applying user-settings, so the
+        // route decision sees the actual file format instead of the default MONO.
+        const val EXTRA_DETECTED_STEREO_MODE = "extra_detected_stereo_mode"
+
         fun createIntent(
             context: Context,
             resourceId: Long,
@@ -884,7 +889,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             initialFilePath: String? = null,
             isPlaying: Boolean? = null,
             isSlideshowEnabled: Boolean = false,
-            shuffleOnStart: Boolean = false
+            shuffleOnStart: Boolean = false,
+            detectedStereoMode: StereoMode? = null,
         ): Intent {
             // PLAYER_ACTIVITY_CLASS is set per-flavor in build.gradle.kts.
             // VR flavor routes to VrPlayerActivity (OpenXR host); all other flavors use PlayerActivity.
@@ -902,6 +908,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                 isPlaying?.let { putExtra("resumeIsPlaying", it) }
                 if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
                 if (shuffleOnStart) putExtra("shuffleOnStart", true)
+                detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
             }
         }
     }

@@ -25,6 +25,9 @@
     <!-- Keep screen on -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- Haptic feedback on Wear sync success (BeamAnimationDialog) -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- Audio background playback service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />

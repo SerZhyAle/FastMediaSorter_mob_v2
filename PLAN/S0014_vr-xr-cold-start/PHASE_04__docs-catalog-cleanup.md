@@ -1,6 +1,6 @@
 # Phase 04 — Docs + Catalog Cleanup
 
-**Strategic spec:** [`../spec_vr-xr-cold-start.md`](../spec_vr-xr-cold-start.md)
+**Strategic spec:** [`../S0014_vr-xr-cold-start.md`](../S0014_vr-xr-cold-start.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
 **Status:** ⬜ Not started
 **Depends on:** Phase 01, 02, 03

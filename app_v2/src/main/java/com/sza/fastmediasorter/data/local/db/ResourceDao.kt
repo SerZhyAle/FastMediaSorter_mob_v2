@@ -130,6 +130,9 @@ abstract class ResourceDao {
     @Query("UPDATE resources SET displayOrder = :newOrder WHERE id = :resourceId")
     abstract suspend fun updateDisplayOrder(resourceId: Long, newOrder: Int)
 
+    @Query("UPDATE resources SET icon_id = :iconId WHERE id = :resourceId")
+    abstract suspend fun updateIcon(resourceId: Long, iconId: String?)
+
     /**
      * Batch-update displayOrder for a reordered list in a single transaction.
      * Each pair is (resourceId, newDisplayOrder). Used by drag-to-reorder.

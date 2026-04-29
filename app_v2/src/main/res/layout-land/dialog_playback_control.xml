@@ -271,15 +271,30 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:visibility="gone" />
 
-                <!-- Override switch spans full width above both columns -->
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switchVrOverrideFormatType"
+                <!-- B2: canonical switch+label row — switch left (wrap_content), label right (weight=1).
+                     Previous `match_parent` on the switch caused a wide text-to-thumb gap. -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="6dp"
-                    android:focusable="true"
-                    android:focusableInTouchMode="false"
-                    android:text="@string/playback_settings_3d_override_format_type" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchVrOverrideFormatType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:focusable="true"
+                        android:focusableInTouchMode="false" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/playback_settings_3d_override_format_type" />
+
+                </LinearLayout>
 
                 <!-- Two columns: Flat (left) | Spherical (right) — halves the vertical footprint -->
                 <LinearLayout

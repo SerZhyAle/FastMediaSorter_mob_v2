@@ -1,12 +1,12 @@
 # Phase 02 — Measurement Run
 
-**Strategic spec:** [`../spec_vr-xr-cold-start.md`](../spec_vr-xr-cold-start.md)
+**Strategic spec:** [`../S0014_vr-xr-cold-start.md`](../S0014_vr-xr-cold-start.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⛔ Blocked
+**Status:** 🚧 In Progress — manual deferred to human
 **Depends on:** Phase 01
 **Blocks:** Phase 03
-**Steps done:** 0 / 5
-**Started:** —
+**Steps done:** 0 / 5 (5 manual)
+**Started:** 2026-04-29
 **Completed:** —
 
 ---
@@ -27,9 +27,9 @@ Run the instrumented VR debug build on Quest 3, capture logcat for a cold start 
 
 ## Files Touched
 
-| File | New / Modified | Line budget |
-|------|:--------------:|------------:|
-| `PLAN/spec_vr-xr-cold-start/PHASE_02__measurement-run.md` | Modified (fill in table) | ≤ 200 |
+| File                                                       | New / Modified           | Line budget |
+|------------------------------------------------------------|:------------------------:|------------:|
+| `PLAN/S0014_vr-xr-cold-start/PHASE_02__measurement-run.md` | Modified (fill in table) |       ≤ 200 |
 
 > This is a documentation-only update after data collection. No source files changed.
 
@@ -50,7 +50,7 @@ Run the instrumented VR debug build on Quest 3, capture logcat for a cold start 
 
 - `[manual]` APK installed; app launches on Quest 3 without immediate crash.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 
@@ -74,7 +74,7 @@ Run the instrumented VR debug build on Quest 3, capture logcat for a cold start 
 - `[manual]` Logcat contains at least one `VR_PERF: [xr-thread] egl_create=` line.
 - `[manual]` Logcat contains a `VR_PERF: [gl-thread] first_frame_ready` line.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 
@@ -91,13 +91,13 @@ Run the instrumented VR debug build on Quest 3, capture logcat for a cold start 
 
 - `[manual]` Logcat contains a second `VR_PERF: [gl-thread] first_frame_ready` line with a significantly lower `abs_from_init` than the cold run.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 
 ### Step 02.4 — Fill in measurement table
 
-**Files:** `PLAN/spec_vr-xr-cold-start/PHASE_02__measurement-run.md` (this file)
+**Files:** `PLAN/S0014_vr-xr-cold-start/PHASE_02__measurement-run.md` (this file)
 **Depends on:** Steps 02.2 and 02.3
 
 **Prompt for developer:**
@@ -108,13 +108,13 @@ Run the instrumented VR debug build on Quest 3, capture logcat for a cold start 
 
 - `Grep "MEASURED"` in this file returns at least 5 matches (each filled table row replaces the placeholder).
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 
 ### Step 02.5 — Record optimize-vs-backlog recommendation
 
-**Files:** `PLAN/spec_vr-xr-cold-start/PHASE_02__measurement-run.md` (this file)
+**Files:** `PLAN/S0014_vr-xr-cold-start/PHASE_02__measurement-run.md` (this file)
 **Depends on:** Step 02.4
 
 **Prompt for developer:**
@@ -128,7 +128,7 @@ Run the instrumented VR debug build on Quest 3, capture logcat for a cold start 
 
 - `Grep "OPTIMIZE_NOW\|BACKLOG"` in this file returns exactly 1 match in the Recommendation section.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 

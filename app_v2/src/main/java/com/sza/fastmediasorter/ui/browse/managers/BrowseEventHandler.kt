@@ -73,12 +73,16 @@ class BrowseEventHandler(
                     val playerIntent = if (file != null && shouldLaunchStandardPlayer(file)) {
                         createStandardPlayerIntent(resourceId, event.fileIndex, event.filePath)
                     } else {
+                        // S0026: forward detected stereo mode so VrPlayerActivity primes the
+                        // coordinator before settings apply (otherwise inner route decision sees MONO).
+                        val detectedForVr = file?.let { detectStereoForLaunch(it) }
                         PlayerActivity.createIntent(
                             activity,
                             resourceId,
                             event.fileIndex,
                             skipAvailabilityCheck,
-                            event.filePath
+                            event.filePath,
+                            detectedStereoMode = detectedForVr,
                         )
                     }
 
@@ -221,14 +225,16 @@ class BrowseEventHandler(
             )
         }
 
-        val shouldUseStandard = !effectiveMode.isStereoscopic() && !effectiveMode.isSpherical()
+        val route = BrowseRoutingDecision.decide(file, effectiveMode, settings)
+        val shouldUseStandard = route == BrowseRoutingDecision.Route.STANDARD_PLAYER
         Timber.i(
-            "BrowseEventHandler: route file=%s type=%s detected=%s effective=%s autoDetect=%b -> standard=%b",
+            "BrowseEventHandler: route file=%s type=%s detected=%s effective=%s autoDetect=%b autoImmersive=%b -> standard=%b",
             file.path,
             file.type,
             detectedMode,
             effectiveMode,
             settings.vrAutoDetectFormat,
+            settings.vrAutoImmersive,
             shouldUseStandard,
         )
         return shouldUseStandard
@@ -243,6 +249,21 @@ class BrowseEventHandler(
         putExtra("initialIndex", fileIndex)
         putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
         putExtra("initialFilePath", filePath)
+    }
+
+    /**
+     * S0026: same detection priority as [shouldLaunchStandardPlayer], but returns the actual
+     * StereoMode for forwarding through intent-extras (not a boolean). Filename match wins over
+     * dimension match; UNKNOWN if nothing matches.
+     */
+    private fun detectStereoForLaunch(file: MediaFile): StereoMode {
+        if (file.type != MediaType.VIDEO) return StereoMode.UNKNOWN
+        val byFilename = stereoDetector.detectFromFilename(file.path)
+        if (byFilename != StereoMode.UNKNOWN) return byFilename
+        if (file.width != null && file.height != null) {
+            return stereoDetector.detectFromDimensions(file.width, file.height)
+        }
+        return StereoMode.UNKNOWN
     }
 
     private fun showAddedAsDestinationSnackbar() {
