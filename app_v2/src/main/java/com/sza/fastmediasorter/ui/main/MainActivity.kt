@@ -51,6 +51,7 @@ import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -76,9 +77,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { /* Result reflected next onResume via hasFullLocalPermissions() */ }
 
-    private val settingsPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { /* Result reflected next onResume via hasFullLocalPermissions() */ }
+    // S0043: settings-permission launcher removed — Manage Storage intent is now launched via
+    // SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable).
+    // Result is delivered through onActivityResult below and forwarded to permissionsHelper.
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -178,8 +179,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
         permissionsHelper = MainStoragePermissionsHelper(
             activity = this,
-            storagePermissionLauncher = storagePermissionLauncher,
-            settingsPermissionLauncher = settingsPermissionLauncher
+            storagePermissionLauncher = storagePermissionLauncher
         )
         layoutChrome = MainLayoutChromeManager(
             activity = this,
@@ -289,43 +289,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        
-        // Restore previous tab if returning from Favorites Browse
-        // This ensures the tab that was active before opening Favorites is restored
+    override fun onResumeWithViews() {
+        // Restore previous tab if returning from Favorites Browse — keeps the active tab
+        // sticky after the user navigates back from the Favorites Browse screen.
         if (viewModel.state.value.previousTab != null) {
             viewModel.restorePreviousTab()
         }
-        
-        // Sync TabLayout with ViewModel state immediately on resume
-        // Skip FAVORITES tab - it's action-only (opens Browse), not a filter
-        // Guard: tabsManager is initialized inside setupViews() via post{} — may not be ready
-        // on the very first onResume if the system triggers it before the first frame renders
+
+        // Sync TabLayout with ViewModel state. FAVORITES is action-only (opens Browse), not a filter.
         val currentTab = viewModel.state.value.activeResourceTab
-        if (currentTab != ResourceTab.FAVORITES && ::tabsManager.isInitialized) {
+        if (currentTab != ResourceTab.FAVORITES) {
             val tabPosition = getTabIndexForResourceTab(currentTab)
             if (binding.tabResourceTypes.selectedTabPosition != tabPosition) {
                 binding.tabResourceTypes.selectTab(binding.tabResourceTypes.getTabAt(tabPosition))
             }
         }
-        
-        // Only refresh when returning from another activity (not on first launch)
+
         if (isReturningFromAnotherActivity) {
             viewModel.refreshResources()
         }
 
-        // permissionsHelper may not yet be initialized if onResume fires before super.onCreate completes
-        if (::permissionsHelper.isInitialized) {
-            permissionsHelper.checkLocalPermissionsOnStartup()
-        }
+        permissionsHelper.checkLocalPermissionsOnStartup()
     }
 
     override fun onPause() {
         super.onPause()
         isReturningFromAnotherActivity = true
     }
-    
+
+    // S0043: Manage Storage intent is launched via SettingsIntentLauncher (which carries
+    // setLaunchBounds for XR / freeform / foldable). Result arrives here and is forwarded
+    // to permissionsHelper for re-evaluation.
+    @Deprecated("Required for Settings panel bounds — see S0043")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PermissionHelper.REQUEST_CODE_MANAGE_STORAGE) {
+            permissionsHelper.onSettingsResult()
+        }
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         // On VR headsets, HorizonOS delivers window resize events via onConfigurationChanged.
@@ -557,12 +560,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 binding.btnToggleView.setIconResource(R.drawable.ic_view_grid)
             }
 
-            // Toggle button visibility logic:
-            // - Show when grid mode is active (to allow returning to list view)
-            // - OR when > 10 resources (to allow switching to grid view)
-            // - OR always in landscape (grid vs compact-icon modes look meaningfully different)
-            val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-            binding.btnToggleView.isVisible = state.isResourceGridMode || state.resources.size > 10 || isLandscape
+            binding.btnToggleView.isVisible = true
 
             // Enable Play button if any resources exist (auto-selects last used or first)
             binding.btnStartPlayer.isEnabled = state.resources.isNotEmpty()

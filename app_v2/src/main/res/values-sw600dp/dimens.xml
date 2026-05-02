@@ -36,6 +36,12 @@
     <dimen name="player_cmd_overflow_width">96dp</dimen>
     <dimen name="player_controls_padding">12dp</dimen>
     <dimen name="player_progress_height">32dp</dimen>
+    <dimen name="player_progress_height_large">56dp</dimen>
+    <dimen name="player_position_text_size_large">22sp</dimen>
+    <dimen name="player_progress_bar_height_large">8dp</dimen>
+    <dimen name="player_progress_touch_height_large">56dp</dimen>
+    <dimen name="player_progress_scrubber_size_large">28dp</dimen>
+    <dimen name="player_progress_scrubber_dragged_size_large">36dp</dimen>
     <dimen name="player_small_button_size">52dp</dimen>
     <dimen name="player_medium_button_size">60dp</dimen>
     <dimen name="player_large_button_size">72dp</dimen>

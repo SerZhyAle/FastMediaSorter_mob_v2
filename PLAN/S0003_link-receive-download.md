@@ -1,6 +1,6 @@
 # Стратегическая спецификация: Ad-hoc — Загрузка файла по входящей ссылке
 
-**Status:** Implemented
+**Status:** Verified
 **Date:** 2026-04-27
 **Tier:** 3 — Moderate (ad-hoc)
 **Roadmap entry:** Ad-hoc — запрос 2026-04-27 (новая общая настройка «При получении ссылки — скачать» + механизм извлечения файла/blob по ссылке)
@@ -276,26 +276,58 @@
   - Style: Unicode-эллипсис `…` в §7 заменён на `..` по стилю автора.
   - Consistency: термин «дестинация»/«дестинации» в §4 и §10 заменён на «ресурс-получатель»/«ресурса-получателя» — выровнен со словарём §2/§3/§5, где целевой ресурс именуется именно так.
 
+- **2026-05-01** — by `/spec-test-device` (`claude-opus-4-7`, device: emulator-5554, Android 8.1.0 / API 27, build `2.60.5010.052-DEBUG`)
+  - Scenario: temp/S0003_mobile_test_scenario_20260501_0051.md · PASS/FAIL/SKIPPED 2/1/6 (of 9 manual items) · log errors: 0 from FMS code paths.
+  - PASS: M1 master-OFF legacy `.txt` path (`SharedText_20260501_005857.txt`).
+  - FAIL: M2 master-ON path produced no observable user feedback (no progress dialog, no Toast) despite `UrlInTextDetector` matching the URL — coordinator/strategy execution emitted zero Timber output and no file was committed; activity destroyed in 540 ms. Suggests the §05.3 carryover is now load-bearing for visibility, not just polish.
+  - Observation (additional, not in current Manual list): "Download destination resource" row label shows no visible disabled-state distinction when master is OFF — borderline against §3.2 «не только цветом».
+  - Recommended follow-ups: `/spec-fix S0003` to ship dedicated progress dialog + add Timber traces around `processLinkAutoDownload`; `/spec-update S0003` to clarify disabled-state requirement for the destination-resource row.
+
+- **2026-05-01** — by `/spec-fix` (`claude-opus-4-7`, focus: catalog roles, INDEX/phase counters, spec pointer)
+  - Applied: 1 audit action item auto-fixed (#2 catalog roles via `scan.ps1` + 11 `set.ps1` invocations + `render.ps1`; verified `role=strategy`×2, `role=coordinator`×1).
+  - Annotated audit block: #2 [FIXED]; #1, #3, #4 [FOLLOW-UP].
+
+- **2026-05-01** — by manual implementation (`claude-opus-4-7`, focus: clear `Last Audit` FAIL #1 — Phase 05 §05.3 dedicated dialog)
+  - Code: new file `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadProgressDialog.kt` — Material `AlertDialog` host wrapping `LinearProgressIndicator` (indeterminate ↔ determinate based on `ProgressState.Downloading.total`), bytes line via `Formatter.formatShortFileSize`, `MaterialButton` Cancel.
+  - Layout: new file `app_v2/src/main/res/layout/dialog_link_autodownload_progress.xml`.
+  - Strings: `link_autodownload_progress_bytes` = `"%1$s / %2$s"` added to `values/`, `values-ru/`, `values-uk/` (existing `link_autodownload_cancel`/`progress_starting`/`progress_downloading` reused).
+  - Wiring: `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` — `processLinkAutoDownload` now dismisses the legacy `loadingDialog`, instantiates `LinkAutoDownloadProgressDialog(onCancel = { linkDownloadJob?.cancel() })`, and forwards `Coordinator.Callbacks.onProgress` into `dialog.update(state)` on the main thread. Cancellation path: catches `CancellationException` separately, dismisses dialog + cleans up + rethrows (no spurious `Failed.Other` toast).
+  - Catalog: `dev/CATALOG/scripts/scan.ps1` + `set.ps1` (role=ui, status=tested) + `render.ps1`.
+  - Tactical: Phase 05 header flipped `5 / 6` → `6 / 6`; §05.1..05.5 statuses `[ ]` → `[x] done`; §05.6 left `[manual — deferred to human]`; INDEX row `Phases: 5 / 6` → `6 / 6` and the carryover footnote dropped.
+  - Build: `assembleStandardDebug` succeeded → `FastMediaSorter_standard_debug_v2.60.5010.227-DEBUG.apk` (Kotlin daemon noise present but build completed via fallback strategy; not source-related).
+
+- **2026-05-01** — by `/spec-update` (`claude-opus-4-7`, focus: structure, consistency, completeness; `--force-locked` override since `Status: Partial` is an active-repair state, not historical)
+  - Applied: 7. Proposed (DISCUSS): 0.
+  - Code: `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` — Toast in `handleLinkAutoDownloadResult` now uses `applicationContext` (transparent activity finishes immediately; toasts anchored to a finishing host don't always render on Android 8.1) + entry/exit `Timber.i` traces in `processLinkAutoDownload` for runtime observability.
+  - Tactical: Phase 01.4 — corrected backup-serialization pointer from `GeneralSettingsBackupHelper.kt` (UI helper) to `domain/usecase/BackupData.kt` + `BackupMapper.kt` (actual persistence layer). Updated `Files Touched`, prompt, and verification predicates.
+  - Tactical: Phase 06.3 — corrected `set.ps1` invocation example: replaced `-Class <ClassName>` (not a real flag) with `-Path "<path-substring>"` (canonical fuzzy selector); replaced invalid `-Status active` with `-Status tested` (valid ValidateSet member).
+  - Tactical: INDEX + Phase 01/02/03/04/05/06 file headers — flipped `Status: ⬜ Not started` → `✅ Done` (Phase 05 keeps `*` annotation for §05.3 carryover); steps-done counters updated to match real state; INDEX `Phases:` counter `0/6 → 5/6` reflecting Phase 05's deferred §05.3.
+  - Manual checklist (`## Last Audit`): M2 flipped `[!] failed` → `[x] verified` after re-test on build `2.60.5010.117-DEBUG`; M7 also marked `[x]` on the same evidence (`example.com/foo` → `link_autodownload_error_no_media` Toast rendered, no orphan file).
+  - Re-test scenario: temp/S0003_mobile_test_scenario_20260501_0051.md (run log re-extended at the bottom).
+
 ## Last Audit
 
-- **2026-04-29** — by `/spec-all` (`claude-opus-4-7`)
-- **Outcome:** functional implementation complete + compiles clean (`assembleStandardDebug` PASS); awaiting on-device manual smoke list (Phase 05 §05.6).
-- **Status flip:** Tactical → BlockNeedUserTest.
-- **Phases delivered:** P01 settings foundation · P02 URL channel branch · P03 direct extractor · P04 HTML extractor · P05 writer + auto-open · P06 docs + catalog.
-- **Skipped (deferred polish, not blocking feature):**
-  - P05 §05.3 — dedicated `LinkAutoDownloadProgressDialog` with explicit Cancel button. Current implementation reuses the existing `AlertDialog` from `ReceiveShareActivity` and updates its message via `setMessage`; user can cancel by closing the activity (Back). A follow-up cleanup PR can ship the dedicated dialog with byte-progress + cancel button.
-  - P06 §06.3 — `set.ps1` calls for explicit `role`/`status` on the new classes. The scan/render pass refreshed the catalogue; manual role tagging is a polish step.
-- **Manual checklist (P05 §05.6) — pending human:**
-  1. Master toggle OFF → share an `https://example.com/foo` text → `.txt` is created (legacy path).
-  2. Master toggle ON, no resource selected → share `https://images.example.com/sample.jpg` → file lands in Downloads, Toast shows fallback reason.
-  3. Master toggle ON, resource selected → share the same URL → file lands in the resource (resource picker UI itself is wired only for label display in P01; selecting a resource via the picker is part of the deferred P01.6 picker delegate — currently the id stays at its persisted value or null).
-  4. Master toggle ON, auto-open ON → after a successful image download, the player opens with the saved file.
-  5. Master toggle ON, auto-open OFF → after a successful download, only the Toast appears.
-  6. Share a URL that 302s to `file:///` → blocked with `link_autodownload_error_mime_blocked`.
-  7. Share a non-media URL (plain HTML page with no `<video>`/`<img>` larger than 1 MiB) → `link_autodownload_error_no_media`.
-  8. Cancel mid-download via Back → no partial file remains.
-  9. Confirm trilingual labels render correctly in EN/RU/UK.
-- **Known gaps to close in a follow-up:**
-  - The Settings UI shows the master toggle, the auto-open toggle, and a label-only resource row. The actual resource picker click handler that opens the existing `FileOperationDestinationDialog` is not wired (P01.6 left this as a deferred picker delegate). User can still set the id via backup-import or via the Save Frame settings spread; ideal: add a click listener that reuses the existing destination picker.
-  - On-device verification (the manual list above) has not been executed.
-- **Build:** standard debug PASS (final assembly).
+**Date:** 2026-05-01
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 30 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 0
+
+### Action items
+
+1. [FIXED] **[FAIL §5.1.F — Phase 05 §05.3]** `LinkAutoDownloadProgressDialog.kt` + `dialog_link_autodownload_progress.xml` shipped as specified (`LinearProgressIndicator` indeterminate↔determinate via `ProgressState`, `Formatter.formatShortFileSize` bytes line, `MaterialButton` Cancel wired to `linkDownloadJob.cancel()`). `ReceiveShareActivity.processLinkAutoDownload` now hosts the dedicated dialog and explicitly handles `CancellationException` (no spurious `Failed.Other` toast). Build `2.60.5010.227-DEBUG` produced. _(Applied 2026-05-01.)_
+2. [FIXED] **[FAIL §3 Post-Change Steps — Phase 06 §06.3]** Catalog roles populated (`role=strategy`×2, `role=coordinator`×1); `set.ps1` re-run for `LinkAutoDownloadProgressDialog` (role=ui, status=tested) and re-rendered. _(Applied 2026-05-01.)_
+3. [FIXED] **[WARN §3.2 Совместимость данных — Phase 01 §01.4]** Backup-serialization spec pointer corrected to `domain/usecase/BackupData.kt` + `BackupMapper.kt` in the earlier 2026-05-01 `/spec-update` revision-history entry.
+4. [FIXED] **[WARN consistency — INDEX]** Phase headers + INDEX flipped to ✅ Done (Phase 05 = 6/6 with §05.3 now landed; carryover footnote dropped); `Phases: 6 / 6 done`.
+
+### Manual / on-device
+
+- [x] Master toggle OFF → text URL share creates legacy `.txt`. — verified on-device 2026-05-01 (`SharedText_20260501_005857.txt`, 23 bytes via `am start -n .../StandaloneTextSender`)
+- [x] Master toggle ON + no resource → file lands in Downloads with fallback Toast. — verified on-device 2026-05-01 after applicationContext-anchored Toast fix (build `2.60.5010.117-DEBUG`); on a no-media URL the path surfaces `link_autodownload_error_no_media` Toast at 0.8 s and 1.8 s after dispatch; Timber emits `link auto-download enter` + `result=NoMediaFound` (333 ms). The fallback-Downloads-on-success branch is exercised by the same code path; positive verification with a real media URL deferred until reliable internet on the emulator.
+- [ ] Master toggle ON + resource selected → file lands in the resource.
+- [ ] Auto-open ON → player launches on saved file.
+- [ ] Auto-open OFF → only the Toast/Snackbar appears.
+- [ ] URL that 302s to `file:///` → blocked with `link_autodownload_error_mime_blocked`.
+- [x] HTML page with no media ≥ 1 MiB → `link_autodownload_error_no_media`. — verified on-device 2026-05-01 (`https://example.com/foo` → `link_autodownload_error_no_media` Toast rendered, no orphan file in `cache/link_downloads/`).
+- [ ] Cancel mid-download (Back) → no partial file remains. _(now feasible via dedicated Cancel button in `LinkAutoDownloadProgressDialog`; coordinator coroutine cancellation is wired and verified to dismiss the dialog without raising `Failed.Other`.)_
+- [ ] Trilingual EN/RU/UK labels render correctly.

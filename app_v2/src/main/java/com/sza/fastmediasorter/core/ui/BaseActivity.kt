@@ -29,6 +29,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     abstract fun setupViews()
     abstract fun observeData()
 
+    // True once setupViews()/observeData() finished. Required because BaseActivity defers
+    // setupViews() to binding.root.post { } so the first frame renders fast — meaning
+    // Activity.onResume() can fire BEFORE lateinit managers from setupViews() are initialised.
+    private var viewsReady = false
+    private var resumePending = false
+
     override fun attachBaseContext(newBase: Context) {
         try {
             val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
@@ -80,6 +86,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: done in ${SystemClock.uptimeMillis() - setupT0}ms")
             }
             observeData()
+            viewsReady = true
+            if (resumePending) {
+                resumePending = false
+                onResumeWithViews()
+            }
         }
     }
 
@@ -87,7 +98,27 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         super.onResume()
         // Reapply wake lock in case it was cleared by system
         applyKeepScreenAwake()
+        if (viewsReady) {
+            onResumeWithViews()
+        } else {
+            // setupViews() not run yet — defer until the post{} block finishes.
+            resumePending = true
+        }
     }
+
+    override fun onPause() {
+        super.onPause()
+        // Drop a pending resume if the Activity was paused before setupViews() finished:
+        // onResumeWithViews() must not fire after the first onPause.
+        resumePending = false
+    }
+
+    /**
+     * Lifecycle hook for resume work that depends on lateinit fields initialised in setupViews().
+     * Subclasses should override this instead of onResume() when they need access to those fields.
+     * Guaranteed to fire only after setupViews()/observeData() have completed.
+     */
+    protected open fun onResumeWithViews() {}
 
     override fun onDestroy() {
         super.onDestroy()

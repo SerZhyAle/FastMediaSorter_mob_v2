@@ -32,7 +32,21 @@ foreach ($line in (Get-Content -Path $InFile -Encoding UTF8)) {
 $total = $records.Count
 $byLayer = $records | Group-Object -Property layer | Sort-Object Name
 $now = (Get-Date -Format 'yyyy-MM-dd HH:mm')
-$srcRel = "$Module/src/main/java"
+
+function Resolve-SourceLink([string]$module, [string]$relPath, [string]$root) {
+    $candidateRoots = @(
+        "$module/src/main/java",
+        "$module/src/vr/java"
+    )
+    foreach ($candidateRoot in $candidateRoots) {
+        $candidate = Join-Path $root ($candidateRoot -replace '/', '\\')
+        $fullPath = Join-Path $candidate ($relPath -replace '/', '\\')
+        if (Test-Path $fullPath) {
+            return "$candidateRoot/$relPath"
+        }
+    }
+    return "$module/src/main/java/$relPath"
+}
 
 $out = New-Object System.Collections.ArrayList
 [void]$out.Add("# Catalogue: $Module")
@@ -57,7 +71,8 @@ foreach ($g in $byLayer) {
 [void]$out.Add("| Path | Class | Layer | LOC | Last | Status | Role |")
 [void]$out.Add("|------|-------|-------|----:|------|--------|------|")
 foreach ($r in ($records | Sort-Object -Property @{Expression={$_.layer}}, @{Expression={$_.path}})) {
-    $pathLink = "[$($r.path)]($srcRel/$($r.path))"
+    $sourceLink = Resolve-SourceLink $Module $r.path $Root
+    $pathLink = "[$($r.path)]($sourceLink)"
     $role = if ($r.role) { $r.role } else { '_—_' }
     $status = if ($r.status) { $r.status } else { 'unknown' }
     $last = if ($r.lastTouched) { $r.lastTouched } else { '—' }
@@ -68,6 +83,7 @@ foreach ($r in ($records | Sort-Object -Property @{Expression={$_.layer}}, @{Exp
 [void]$out.Add("## Details")
 [void]$out.Add("")
 foreach ($r in ($records | Sort-Object -Property @{Expression={$_.layer}}, @{Expression={$_.path}})) {
+    $sourceLink = Resolve-SourceLink $Module $r.path $Root
     $flags = @()
     if ($r.coroutines) { $flags += 'coroutines' }
     if ($r.userFeedback) { $flags += 'user-feedback' }
@@ -79,7 +95,7 @@ foreach ($r in ($records | Sort-Object -Property @{Expression={$_.layer}}, @{Exp
     $injStr = if ($r.injected -and $r.injected.Count) { ($r.injected -join ', ') } else { '—' }
     $noFlavStr = if ($r.noFlavors -and $r.noFlavors.Count) { ($r.noFlavors -join ', ') } else { '—' }
 
-    [void]$out.Add("### ``$($r.class)`` — [$($r.path)]($srcRel/$($r.path))")
+    [void]$out.Add("### ``$($r.class)`` — [$($r.path)]($sourceLink)")
     [void]$out.Add("")
     [void]$out.Add("**Layer:** $($r.layer) · **LOC:** $($r.loc) · **Last:** $(if ($r.lastTouched) { $r.lastTouched } else { '—' }) · **Status:** $(if ($r.status) { $r.status } else { 'unknown' }) · **NoFlavors:** $noFlavStr")
     [void]$out.Add("")

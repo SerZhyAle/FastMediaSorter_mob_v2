@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.transfer
 
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
@@ -279,19 +281,26 @@ class AtomicFileOperationStrategy(
     
     /**
      * Cleanup temporary file on failure.
-     * Best-effort - logs error but doesn't throw.
+     * Best-effort — logs error but doesn't throw.
+     *
+     * Runs under NonCancellable so cleanup completes even when the parent scope
+     * (e.g. Activity lifecycleScope) is being cancelled mid-copy. Without this,
+     * cancellation leaves orphan `*.temp_copy` files on the destination FS
+     * because deletePath() observes the cancelled context and bails out.
      */
     private suspend fun cleanupTempFile(tempPath: String) {
-        try {
-            Timber.d("AtomicFileOperationStrategy: Attempting cleanup of temp file: $tempPath")
-            val deleteResult = deletePath(tempPath)
-            if (deleteResult.isSuccess) {
-                Timber.d("AtomicFileOperationStrategy: Temp file cleanup successful")
-            } else {
-                Timber.w("AtomicFileOperationStrategy: Temp file cleanup failed: ${deleteResult.exceptionOrNull()?.message}")
+        withContext(NonCancellable) {
+            try {
+                Timber.d("AtomicFileOperationStrategy: Attempting cleanup of temp file: $tempPath")
+                val deleteResult = deletePath(tempPath)
+                if (deleteResult.isSuccess) {
+                    Timber.d("AtomicFileOperationStrategy: Temp file cleanup successful")
+                } else {
+                    Timber.w("AtomicFileOperationStrategy: Temp file cleanup failed: ${deleteResult.exceptionOrNull()?.message}")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "AtomicFileOperationStrategy: Exception during temp file cleanup")
             }
-        } catch (e: Exception) {
-            Timber.e(e, "AtomicFileOperationStrategy: Exception during temp file cleanup")
         }
     }
     

@@ -500,8 +500,10 @@ class BrowseManagerInitializer(
             },
             skipAvailabilityCheck = isSkipAvailabilityCheck,
             onScrollToFile = { fileName ->
-                val idx = mediaFileAdapter.currentList.indexOfFirst { it.name == fileName }
-                if (idx >= 0) binding.rvMediaFiles.scrollToPosition(idx)
+                // Read index from VM state (already up-to-date) — adapter.currentList lags behind
+                // because ListAdapter's AsyncListDiffer commits the diff asynchronously.
+                val idx = viewModel.state.value.mediaFiles.indexOfFirst { it.name == fileName }
+                if (idx >= 0) binding.rvMediaFiles.post { binding.rvMediaFiles.scrollToPosition(idx) }
             }
         )
 

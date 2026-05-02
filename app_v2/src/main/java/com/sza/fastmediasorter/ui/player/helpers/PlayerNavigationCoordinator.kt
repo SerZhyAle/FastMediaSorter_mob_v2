@@ -25,7 +25,8 @@ class PlayerNavigationCoordinator(
     private val resourceRepository: ResourceRepository,
     private val stateFlow: StateFlow<PlayerViewModel.PlayerState>,
     private val updateState: ((PlayerViewModel.PlayerState) -> PlayerViewModel.PlayerState) -> Unit,
-    private val saveResumeState: () -> Unit
+    private val saveResumeState: () -> Unit,
+    private val clearPlaybackWatchdogs: () -> Unit = {}
 ) {
 
     private var saveLastViewedFileJob: Job? = null
@@ -37,7 +38,7 @@ class PlayerNavigationCoordinator(
         updateState { it.copy(currentIndex = serviceIndex) }
     }
 
-    fun jumpToIndex(index: Int) {
+    fun jumpToIndex(index: Int, manual: Boolean = false) {
         val currentState = stateFlow.value
         if (index !in currentState.files.indices) {
             Timber.d("jumpToIndex: ABORT invalid index=$index for size=${currentState.files.size}")
@@ -47,6 +48,8 @@ class PlayerNavigationCoordinator(
             Timber.d("jumpToIndex: ABORT target index matches current index=$index")
             return
         }
+
+        if (manual) clearPlaybackWatchdogs()
 
         Timber.d("jumpToIndex: index ${currentState.currentIndex} → $index / ${currentState.files.size}")
 
@@ -58,7 +61,7 @@ class PlayerNavigationCoordinator(
         }
     }
 
-    fun nextFile(skipDocuments: Boolean = false) {
+    fun nextFile(skipDocuments: Boolean = false, manual: Boolean = false) {
         if (BuildConfig.DEBUG) {
             val stackTrace = Thread.currentThread().stackTrace
             val caller = if (stackTrace.size > 3) stackTrace[3] else null
@@ -67,7 +70,7 @@ class PlayerNavigationCoordinator(
             Timber.d("╚═══════════════════════════════════════════════════════════════╝")
             Timber.d("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
             Timber.d("Thread: ${Thread.currentThread().name}")
-            Timber.d("skipDocuments: $skipDocuments")
+            Timber.d("skipDocuments: $skipDocuments, manual: $manual")
         }
 
         val currentState = stateFlow.value
@@ -75,6 +78,8 @@ class PlayerNavigationCoordinator(
             Timber.d("nextFile: ABORT: No files to navigate")
             return
         }
+
+        if (manual) clearPlaybackWatchdogs()
 
         var nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
             Timber.d("nextFile: Looping from last (${currentState.currentIndex}) to first (0)")
@@ -116,7 +121,7 @@ class PlayerNavigationCoordinator(
         }
     }
 
-    fun previousFile(skipDocuments: Boolean = false) {
+    fun previousFile(skipDocuments: Boolean = false, manual: Boolean = false) {
         if (BuildConfig.DEBUG) {
             val stackTrace = Thread.currentThread().stackTrace
             val caller = if (stackTrace.size > 3) stackTrace[3] else null
@@ -125,7 +130,7 @@ class PlayerNavigationCoordinator(
             Timber.d("╚═══════════════════════════════════════════════════════════════╝")
             Timber.d("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
             Timber.d("Thread: ${Thread.currentThread().name}")
-            Timber.d("skipDocuments: $skipDocuments")
+            Timber.d("skipDocuments: $skipDocuments, manual: $manual")
         }
 
         val currentState = stateFlow.value
@@ -133,6 +138,8 @@ class PlayerNavigationCoordinator(
             Timber.d("previousFile: ABORT: No files to navigate")
             return
         }
+
+        if (manual) clearPlaybackWatchdogs()
 
         var prevIndex = if (currentState.currentIndex <= 0) {
             Timber.d("previousFile: Looping from first (${currentState.currentIndex}) to last (${currentState.files.size - 1})")

@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0003_link-receive-download.md`](../S0003_link-receive-download.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 02, Phase 03, Phase 04
 **Blocks:** Phase 06
-**Steps done:** 0 / 6
-**Started:** —
-**Completed:** —
+**Steps done:** 6 / 6
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 
@@ -84,7 +84,7 @@ Wire the coordinator end-to-end: walk strategies, stream the chosen body to a te
 - `Grep -n "MediaStore.Downloads"` in the file matches at least once.
 - `Grep -n "Log\\.d\\("` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
@@ -127,7 +127,7 @@ Wire the coordinator end-to-end: walk strategies, stream the chosen body to a te
 - `Grep -n "Result.Failed.NoMediaFound"` in the file matches at least twice (no-strategy-applicable + NotFound branch).
 - `Grep -n "linkAutoDownloadOpenInPlayer"` in the file matches at least once.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
@@ -168,7 +168,7 @@ Wire the coordinator end-to-end: walk strategies, stream the chosen body to a te
 - `Grep -n "link_autodownload_cancel"` in `dialog_link_autodownload_progress.xml` matches at least once.
 - `Grep -n "fun update"` in the dialog Kotlin file matches exactly once.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
@@ -202,7 +202,7 @@ Wire the coordinator end-to-end: walk strategies, stream the chosen body to a te
 - `Grep -n "coordinator.handle"` in `ReceiveShareActivity.kt` matches exactly once.
 - `Grep -n "createTextFile"` in `ReceiveShareActivity.kt` still matches at least once (legacy path preserved).
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
@@ -220,7 +220,7 @@ Wire the coordinator end-to-end: walk strategies, stream the chosen body to a te
 - `Grep -n "DefaultPlayerManager.applyShareReceiverState"` in the project (any file) matches at least once (the existing call site is preserved).
 - `Grep -n "ReceiveShareActivity"` in `app_v2/src/main/AndroidManifest.xml` matches at least once.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 

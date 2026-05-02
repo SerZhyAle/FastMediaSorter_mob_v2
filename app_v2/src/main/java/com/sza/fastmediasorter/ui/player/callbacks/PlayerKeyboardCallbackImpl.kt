@@ -191,8 +191,8 @@ class PlayerKeyboardCallbackImpl(
         viewModel.toggleCommandPanel()
     }
 
-    override fun onNextFile() = viewModel.nextFile()
-    override fun onPreviousFile() = viewModel.previousFile()
+    override fun onNextFile() = viewModel.nextFile(manual = true)
+    override fun onPreviousFile() = viewModel.previousFile(manual = true)
     override fun onToggleFavourite() = viewModel.toggleFavorite()
     override fun onUndoOperation() = viewModel.undoLastOperation()
 }

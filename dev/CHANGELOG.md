@@ -4875,3 +4875,383 @@ Format: | datetime | file | target | description |
 | 2026-04-30 00:04:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `OpenXrSessionManager` | S0027 ADR-3: add VideoLayerGeometry log line in applyLayerDescriptor |
 | 2026-04-30 01:38:17 | `app_v2/src/main/res/layout/activity_add_resource.xml` | `activity_add_resource.xml` | Fix lint IncludeLayoutParam by adding explicit include width/height for toolbar action. |
 | 2026-04-30 01:38:29 | `app_v2/src/main/res/layout/toolbar_icon_action.xml` | `toolbar_icon_action.xml` | Fix lint UseAppTint by switching ImageButton tint from android:tint to app:tint. |
+| 2026-04-30 01:56:23 | `PLAN/S0035_android17-local-network-permission.md` | `spec` | Add strategic spec S0035 for Android 17 local network permission |
+| 2026-04-30 02:41:24 | `app_v2/src/main/res/values-night/colors.xml` | `welcome_page_7_background, welcome_page_8_background` | Add missing dark-theme welcome page backgrounds (pages 7-8) to fix invisible white text on light fallback colors |
+| 2026-04-30 02:53:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity.applyWindowInsets` | Fix btnSkip marginEnd to account for right-side display cutout and nav bar insets on foldable/landscape |
+| 2026-04-30 02:57:54 | `PLAN/S0036_vr-android-xr-sdk-compat.md` | `spec` | Add strategic spec S0036 for vr-android-xr-sdk-compat |
+| 2026-04-30 03:10:26 | `PLAN/S0037_resource-icon-ux-polish.md` | `S0037` | Создана стратегическая спецификация: полировка иконок и бейджей ресурсов (5 подзадач) |
+| 2026-04-30 03:15:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Fix black screen: save/restore permission-flow flags (waitingPermissionForFinish etc.) across Activity recreation; restore ViewPager page in setupViewPager() |
+| 2026-04-30 03:15:59 | `app_v2/src/main/res/layout/activity_welcome.xml` | `activity_welcome` | Fix black flash on startup: change root background from ?attr/colorSurface (black in dark mode) to @color/welcome_page_1_background |
+| 2026-04-30 03:18:25 | `PLAN/S0037_resource-icon-ux-polish/INDEX.md` | `S0037` | Tactical plan created: 5 phases for icon/badge UX polish |
+| 2026-04-30 03:50:10 | `PLAN/S0041_debug-vr180-fisheye-quality-regression.md` | `spec-update` | Spec refinement pass: 5 edits (risks section, MANUAL mark, verifiability predicates, revision history) |
+| 2026-04-30 03:53:41 | `PLAN/S0041_debug-vr180-fisheye-quality-regression/INDEX.md` | `spec-tech` | Create tactical plan for debug-vr180-fisheye-quality-regression |
+| 2026-04-30 03:53:41 | `PLAN/S0041_debug-vr180-fisheye-quality-regression/PHASE_01__add-debug-logging.md` | `spec-tech` | Phase 01: add-debug-logging |
+| 2026-04-30 03:53:41 | `PLAN/S0041_debug-vr180-fisheye-quality-regression/PHASE_02__build-and-device-test.md` | `spec-tech` | Phase 02: build-and-device-test |
+| 2026-04-30 03:53:41 | `PLAN/S0041_debug-vr180-fisheye-quality-regression/PHASE_03__analyze-and-fix.md` | `spec-tech` | Phase 03: analyze-and-fix |
+| 2026-04-30 03:53:41 | `PLAN/S0041_debug-vr180-fisheye-quality-regression/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-04-30 03:53:41 | `PLAN/S0041_debug-vr180-fisheye-quality-regression.md` | `spec-tech` | Move strategic status to Tactical; link tactical plan |
+| 2026-04-30 03:55:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager.onTracksChanged` | S0041: add VR_QUALITY_DEBUG track format log for fisheye quality investigation |
+| 2026-04-30 03:55:05 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer.renderFisheyeQuad` | S0041: add VR_QUALITY_DEBUG first-frame fisheye log (uOffset, target dimensions) |
+| 2026-04-30 03:58:19 | `PLAN/spec-all_debug-vr180-fisheye-quality-regression_2026-04-30.md` | `spec-all` | Stage 5-8 complete: debug logging implemented, BUILD SUCCESSFUL; blocked on MANUAL device test |
+| 2026-04-30 10:10:51 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window.md` | `spec-update` | Stage 2: уточнён root cause (3 дефекта), исправлены §2/§4/§5/§6/§7, добавлена §9 Риски и Revision History |
+| 2026-04-30 10:12:11 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window/INDEX.md` | `spec-tech` | Create tactical plan S0038: 2 phases |
+| 2026-04-30 10:12:11 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window/PHASE_01__apply-fixes.md` | `spec-tech` | Phase 01: apply-fixes (3 code changes) |
+| 2026-04-30 10:12:11 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window/PHASE_02__verify-and-test.md` | `spec-tech` | Phase 02: verify-and-test (grep + MANUAL device test) |
+| 2026-04-30 10:13:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/entry/VrTaskTransition.kt` | `VrTaskTransition.exitImmersiveToPanel` | S0038: add FLAG_ACTIVITY_SINGLE_TOP to panelIntent to prevent new window on HorizonOS |
+| 2026-04-30 10:13:51 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.exitVrAndStopPlayback+onNewIntent` | S0038: fix EXTRA_FORCE_PANEL key + replace Log.e with Timber.d in onNewIntent |
+| 2026-04-30 10:16:31 | `dev/CATALOG/app_v2.md` | `catalog-scan` | S0038: catalog sync after VrTaskTransition + VrPlayerActivity edits |
+| 2026-04-30 10:16:31 | `PLAN/spec-all_bugfix-vr-exit-immersive-new-window_2026-04-30.md` | `spec-all` | S0038: Stages 5-8 complete; BUILD SUCCESSFUL; blocked on MANUAL device test (Phase 02) |
+| 2026-04-30 12:17:11 | `PLAN/S0039_bugfix-vr-panel-swapchain-regression/INDEX.md` | `spec-tech` | Create tactical plan for S0039 |
+| 2026-04-30 12:17:19 | `PLAN/S0039_bugfix-vr-panel-swapchain-regression/PHASE_01__fix-panel-samplecount.md` | `spec-tech` | Phase 01: fix-panel-samplecount |
+| 2026-04-30 12:17:19 | `PLAN/S0039_bugfix-vr-panel-swapchain-regression/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-04-30 12:17:19 | `PLAN/S0039_bugfix-vr-panel-swapchain-regression.md` | `spec-tech` | Status → Tactical |
+| 2026-04-30 12:19:31 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `S0039` | Fix: add sc.sampleCount=1 + pre-creation LOGD to createPanelSwapchainImpl; resolves xrCreateSwapchain XR_ERROR_VALIDATION_FAILURE(-1) |
+| 2026-04-30 12:22:28 | `PLAN/S0039_bugfix-vr-panel-swapchain-regression/PHASE_01__fix-panel-samplecount.md` | `spec-tech` | Phase 01 done |
+| 2026-04-30 12:25:49 | `PLAN/S0039_bugfix-vr-panel-swapchain-regression.md` | `spec-check` | Audit S0039 → Verified; PASS/WARN/FAIL 7/0/0; 2 manual on-device |
+| 2026-04-30 12:26:03 | `PLAN/S0039_bugfix-vr-panel-swapchain-regression.md` | `spec-all` | Pipeline Verified: S0039 |
+| 2026-04-30 12:26:48 | `PLAN/S0040_bugfix-vr-hud-button-affordance/INDEX.md` | `spec-tech` | Create tactical plan for bugfix-vr-hud-button-affordance (S0040) |
+| 2026-04-30 12:26:48 | `PLAN/S0040_bugfix-vr-hud-button-affordance/PHASE_01__add-button-affordance.md` | `spec-tech` | Phase 01: add-button-affordance |
+| 2026-04-30 12:26:48 | `PLAN/S0040_bugfix-vr-hud-button-affordance/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-04-30 12:26:48 | `PLAN/S0040_bugfix-vr-hud-button-affordance.md` | `spec-tech` | S0040 strategic status → Tactical; link tactical plan |
+| 2026-04-30 12:28:32 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt` | `VrHudSceneComposer` | S0040: add rounded-rect affordance to pause/play button; register HUD_ELEMENT_PLAY_PAUSE |
+| 2026-04-30 12:30:05 | `PLAN/S0040_bugfix-vr-hud-button-affordance.md` | `spec` | S0040 status → Implemented |
+| 2026-04-30 12:33:52 | `PLAN/spec-all_bugfix-vr-hud-button-affordance_2026-04-30.md` | `spec-all` | Full pipeline completed: bugfix-vr-hud-button-affordance -> Verified |
+| 2026-04-30 14:36:25 | `PLAN/S0028_vr-multi-window-playback.md` | `spec` | Update S0028: integrate owner answers in §6 (all Resolved), fix §7/§9/§12 per decisions, add Priority field |
+| 2026-04-30 15:06:18 | `app_v2/src/vr/cpp/OpenXrCtx.h` | `OpenXrCtx` | S0033 Phase 01 Step 01.1: add shared XR context header skeleton |
+| 2026-04-30 15:06:48 | `app_v2/src/vr/cpp/OpenXrLog.h` | `OpenXrLog` | S0033 Phase 01 Step 01.2: add OpenXR logging header API |
+| 2026-04-30 15:09:32 | `app_v2/src/vr/cpp/OpenXrLog.h` | `OpenXrLog` | S0033 Phase 01 Step 01.3: extend logging header with drain and diagnostic helper declarations |
+| 2026-04-30 15:09:33 | `app_v2/src/vr/cpp/OpenXrLog.cpp` | `OpenXrLog` | S0033 Phase 01 Step 01.3: extract native logging buffer and diagnostic helpers |
+| 2026-04-30 15:09:33 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | S0033 Phase 01 Step 01.4: include extracted logging helpers and remove duplicate definitions |
+| 2026-04-30 15:10:36 | `app_v2/src/vr/cpp/CMakeLists.txt` | `openxr_native` | S0033 Phase 01 Step 01.5: add OpenXrLog.cpp to native target and validate assembleVrDebug |
+| 2026-04-30 15:11:49 | `PLAN/S0040_bugfix-vr-hud-button-affordance/INDEX.md` | `spec-tech` | S0040 tactical status -> Done; completion gate synced with executed phases |
+| 2026-04-30 15:11:56 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | S0040 status Draft -> Implemented |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash.md` | `spec-restore` | Restore strategic spec S0022 from temp/done for audit |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash/INDEX.md` | `spec-restore` | Restore tactical INDEX S0022 from temp/done for audit |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash/phase-01-strings.md` | `spec-restore` | Restore S0022 phase 01 from temp/done for audit |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash/phase-02-visibility.md` | `spec-restore` | Restore S0022 phase 02 from temp/done for audit |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash/phase-03-exceptions.md` | `spec-restore` | Restore S0022 phase 03 from temp/done for audit |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash/phase-04-process-death.md` | `spec-restore` | Restore S0022 phase 04 from temp/done for audit |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash__audit_2026-04-30.md` | `spec-check` | Audit S0022 -> Broken |
+| 2026-04-30 15:12:42 | `PLAN/S0022_bugfix-camera-capture-crash.md` | `spec-check` | Advance status to Broken |
+| 2026-04-30 15:12:42 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Update S0022 status to Broken after audit |
+| 2026-04-30 15:15:10 | `app_v2/src/vr/cpp/OpenXrCtx.h` | `xrnative` | Moved shared XR structs and hand-tracking fallback typedefs into OpenXrCtx header for S0033 Phase 02 Step 02.1 |
+| 2026-04-30 15:15:36 | `PLAN/S0022_bugfix-camera-capture-crash__fix_2026-04-30.md` | `spec-fix` | Fix-up run for S0022 |
+| 2026-04-30 15:15:36 | `PLAN/S0022_bugfix-camera-capture-crash__audit_2026-04-30.md` | `spec-fix` | Annotate audit with FOLLOW-UP tags for S0022 |
+| 2026-04-30 15:16:28 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Removed local XR shared-type block and anonymous namespace after moving shared structs into OpenXrCtx for S0033 Phase 02 Step 02.1 |
+| 2026-04-30 15:17:08 | `app_v2/src/vr/cpp/OpenXrLifecycle.h` | `xrnative` | Added lifecycle extraction header with explicit XrCtx-based function declarations for S0033 Phase 02 Step 02.2 |
+| 2026-04-30 15:18:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `BrowseCameraCaptureManager` | S0022: surface dedicated camera_capture_error_io message for save IOException |
+| 2026-04-30 15:18:06 | `docs/FEATURES.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (EN) |
+| 2026-04-30 15:18:06 | `docs/FEATURES_RU.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (RU) |
+| 2026-04-30 15:18:06 | `docs/FEATURES_UK.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (UK) |
+| 2026-04-30 15:20:00 | `app_v2/src/vr/cpp/OpenXrLifecycle.cpp` | `xrnative` | Moved lifecycle function bodies out of OpenXrNative into OpenXrLifecycle with explicit XrCtx parameter for S0033 Phase 02 Step 02.3 |
+| 2026-04-30 15:20:36 | `PLAN/S0040_bugfix-vr-hud-button-affordance__audit_2026-04-30_2.md` | `spec-check` | Audit S0040 -> Partial |
+| 2026-04-30 15:20:36 | `PLAN/S0040_bugfix-vr-hud-button-affordance.md` | `spec-check` | Advance S0040 status to Partial; add audit pointer |
+| 2026-04-30 15:20:36 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Update S0040 status to Partial after audit |
+| 2026-04-30 15:21:12 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Rewired JNI exports to OpenXrLifecycle and removed in-file lifecycle bodies for S0033 Phase 02 Step 02.3 |
+| 2026-04-30 15:21:39 | `app_v2/src/vr/cpp/CMakeLists.txt` | `openxr_native` | Added OpenXrLifecycle.cpp to the openxr_native source list for S0033 Phase 02 Step 02.4 |
+| 2026-04-30 15:22:09 | `PLAN/S0022_bugfix-camera-capture-crash.md` | `S0022` | Close research items #2/#4, note implementation-complete state, status -> Verified |
+| 2026-04-30 15:22:09 | `PLAN/S0022_bugfix-camera-capture-crash/INDEX.md` | `S0022` | Set tactical index to BlockNeedUserTest and tick static completion items |
+| 2026-04-30 15:22:09 | `PLAN/S0022_bugfix-camera-capture-crash__audit_2026-04-30_2.md` | `spec-check` | Audit S0022 -> Verified |
+| 2026-04-30 15:22:09 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Update S0022 status to Verified after re-audit |
+| 2026-04-30 15:23:17 | `app_v2/src/vr/cpp/OpenXrSwapchain.h` | `xrnative` | Added swapchain extraction header with canonical free-function declarations for S0033 Phase 03 Step 03.1 |
+| 2026-04-30 15:23:58 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0040: refresh app_v2 catalog after VrHudSceneComposer change |
+| 2026-04-30 15:23:58 | `dev/CATALOG/app_v2.md` | `catalog` | S0040: render app_v2 catalog after VrHudSceneComposer change |
+| 2026-04-30 15:24:56 | `app_v2/src/vr/cpp/OpenXrSwapchain.cpp` | `xrnative` | Moved swapchain lifecycle bodies out of OpenXrNative into OpenXrSwapchain for S0033 Phase 03 Step 03.2 |
+| 2026-04-30 15:27:06 | `dev/CATALOG/scripts/scan.ps1` | `catalog` | Include app_v2 src/vr/java in catalog scan roots |
+| 2026-04-30 15:27:06 | `dev/CATALOG/scripts/render.ps1` | `catalog` | Resolve catalog source links across main and vr Kotlin roots |
+| 2026-04-30 15:27:06 | `dev/CATALOG/README.md` | `catalog` | Document catalog support for app_v2 src/vr/java roots |
+| 2026-04-30 15:27:06 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0040: rescan app_v2 catalog after vr-root support fix |
+| 2026-04-30 15:27:06 | `dev/CATALOG/app_v2.md` | `catalog` | S0040: rerender app_v2 catalog after vr-root support fix |
+| 2026-04-30 15:27:46 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Collapsed swapchain bodies into wrappers and included OpenXrSwapchain declarations for S0033 Phase 03 Step 03.2 |
+| 2026-04-30 15:28:11 | `PLAN/S0040_bugfix-vr-hud-button-affordance__audit_2026-04-30_3.md` | `spec-check` | Audit S0040 -> Verified |
+| 2026-04-30 15:28:11 | `PLAN/S0040_bugfix-vr-hud-button-affordance.md` | `spec-check` | Advance S0040 status to Verified |
+| 2026-04-30 15:28:11 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Update S0040 status to Verified after re-audit |
+| 2026-04-30 15:33:08 | `app_v2/src/vr/cpp/CMakeLists.txt` | `openxr_native` | Added OpenXrSwapchain.cpp to the openxr_native source list while progressing S0033 Phase 03 |
+| 2026-04-30 15:33:44 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Removed stale kFormFactor and kSpaceType constants after swapchain extraction to restore vr build under -Werror |
+| 2026-04-30 15:35:03 | `PLAN/S0028_vr-multi-window-playback/INDEX.md` | `spec-tech` | Create tactical plan for S0028 |
+| 2026-04-30 15:35:03 | `PLAN/S0028_vr-multi-window-playback/PHASE_01__manifest-player-multi-instance.md` | `spec-tech` | Phase 01: manifest-player-multi-instance |
+| 2026-04-30 15:35:03 | `PLAN/S0028_vr-multi-window-playback/PHASE_02__per-window-resume-state.md` | `spec-tech` | Phase 02: per-window-resume-state |
+| 2026-04-30 15:35:04 | `PLAN/S0028_vr-multi-window-playback/PHASE_03__window-id-intent-plumbing.md` | `spec-tech` | Phase 03: window-id-intent-plumbing |
+| 2026-04-30 15:35:04 | `PLAN/S0028_vr-multi-window-playback/PHASE_04__open-in-new-window-ui.md` | `spec-tech` | Phase 04: open-in-new-window-ui |
+| 2026-04-30 15:35:04 | `PLAN/S0028_vr-multi-window-playback/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-04-30 15:35:04 | `PLAN/S0028_vr-multi-window-playback.md` | `spec-tech` | Status -> Tactical |
+| 2026-04-30 15:40:24 | `PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md` | `spec-check` | Audit S0027 -> Partial; PASS/WARN/FAIL 7/4/1; restored deleted spec from commit 7d54d31^ |
+| 2026-04-30 15:45:50 | `app_v2/src/vr/cpp/OpenXrFrame.h` | `xrnative` | Added frame extraction header for S0033 Phase 03 Step 03.3 |
+| 2026-04-30 15:45:50 | `app_v2/src/vr/cpp/OpenXrFrame.cpp` | `xrnative` | Moved frame loop and render callback helpers out of OpenXrNative into OpenXrFrame for S0033 Phase 03 Step 03.3 |
+| 2026-04-30 15:45:50 | `app_v2/src/vr/cpp/OpenXrLifecycle.cpp` | `xrnative` | Switched lifecycle teardown to canonical swapchain free functions during S0033 Phase 03 |
+| 2026-04-30 15:45:50 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Removed local frame loop helpers and rewired nativeRunFrame to OpenXrFrame for S0033 Phase 03 |
+| 2026-04-30 15:45:50 | `app_v2/src/vr/cpp/CMakeLists.txt` | `openxr_native` | Added OpenXrFrame.cpp to the native target for S0033 Phase 03 Step 03.5 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrInput.h` | `xrnative` | Added controller input API header for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrInput.cpp` | `xrnative` | Moved controller input and controller ray helpers out of OpenXrNative for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrHandTracking.h` | `xrnative` | Added hand tracking API header for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrHandTracking.cpp` | `xrnative` | Moved hand tracking subsystem out of OpenXrNative for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrFrame.cpp` | `xrnative` | Rewired frame loop to extracted input and hand tracking APIs for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrSwapchain.cpp` | `xrnative` | Rewired swapchain setup to extracted input and hand tracking APIs for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrLifecycle.cpp` | `xrnative` | Rewired lifecycle teardown to extracted input and hand tracking APIs for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `OpenXrNative` | Removed controller input and hand tracking bodies from the native monolith for S0033 Phase 04 |
+| 2026-04-30 15:53:33 | `app_v2/src/vr/cpp/CMakeLists.txt` | `openxr_native` | Added OpenXrInput.cpp and OpenXrHandTracking.cpp to the native target for S0033 Phase 04 |
+| 2026-04-30 15:54:01 | `PLAN/S0036_vr-android-xr-sdk-compat.md` | `spec-update` | Resolve research items section 6 (Q1-Q4) and flip S0036 to Approved |
+| 2026-04-30 15:55:45 | `app_v2/src/main/res/values/dimens.xml` | `resource_icon_badge_size` | S0037 P4: badge size 18dp -> 27dp (1.5x increase) |
+| 2026-04-30 15:56:21 | `app_v2/src/main/res/drawable/ico_02_001.xml` | `ico_02_001` | S0037 P1: redesign as retro camcorder silhouette (evenOdd lens ring) |
+| 2026-04-30 15:56:22 | `app_v2/src/main/res/drawable/ic_resource_smb.xml` | `ic_resource_smb` | S0037 P3: redesign as network folder (folder + 3 LAN nodes) |
+| 2026-04-30 15:57:09 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResolveResourceIconUseCase.kt` | `ResolveResourceIconUseCase` | S0037 P2: use randomIdFor for SET_OTHER instead of fixed ico-05-001 |
+| 2026-04-30 15:57:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | S0037 P2: initial icon for Other resources randomised |
+| 2026-04-30 15:57:37 | `PLAN/S0036_vr-android-xr-sdk-compat/INDEX.md` | `spec-tech` | Create tactical plan for S0036 (3 phases) |
+| 2026-04-30 15:57:37 | `PLAN/S0036_vr-android-xr-sdk-compat/PHASE_01__manifest-xr-properties.md` | `spec-tech` | Phase 01: vr manifest XR properties |
+| 2026-04-30 15:57:37 | `PLAN/S0036_vr-android-xr-sdk-compat/PHASE_02__activity-config-overlay.md` | `spec-tech` | Phase 02: vr manifest activity configChanges overlay |
+| 2026-04-30 15:57:38 | `PLAN/S0036_vr-android-xr-sdk-compat/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs/catalog cleanup |
+| 2026-04-30 15:57:38 | `PLAN/S0036_vr-android-xr-sdk-compat.md` | `spec-tech` | S0036 Status -> Tactical |
+| 2026-04-30 15:57:41 | `app_v2/src/main/res/drawable/bg_icon_button_dark.xml` | `bg_icon_button_dark` | S0037 P5: new dark circular background for toolbar pick-icon button |
+| 2026-04-30 15:57:41 | `app_v2/src/main/res/layout/toolbar_icon_action.xml` | `btnPickIcon` | S0037 P5: use dark bg + foreground ripple, remove tint |
+| 2026-04-30 16:00:32 | `PLAN/S0037_resource-icon-ux-polish.md` | `spec-check` | Audit S0037 -> Verified; PASS/WARN/FAIL 13/0/0 |
+| 2026-04-30 16:03:12 | `PLAN/S0002_decompose-giant-files.md` | `spec-update` | Refinement (claude-opus-4-7, focus: language, structure, verifiability, consistency, completeness, style) |
+| 2026-04-30 16:05:18 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHandRayManager.kt` | `VrHandRayManager` | S0007 Phase 02: cursor highlight on interactive hover |
+| 2026-04-30 16:06:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHandRayManager.kt` | `VrHandRayManager` | S0007 Phase 03: hover-enter SFX via AudioManager |
+| 2026-04-30 16:06:43 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | S0007 Phase 03: pass audioManager to VrHandRayManager |
+| 2026-04-30 16:06:46 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `VrControllerInputManager` | S0007 Phase 03: pinch-complete SFX on POINTER_CLICK_UP |
+| 2026-04-30 16:57:53 | `PLAN/S0007_vr-hand-tracking.md` | `spec-check` | Audit S0007 -> Broken; PASS/WARN/FAIL 18/1/5 |
+| 2026-04-30 17:02:33 | `PLAN/S0041_debug-vr180-fisheye-quality-regression.md` | `spec-all` | Pipeline Partial: S0041 — build gate cleared (standard+vr debug), Phase 03 awaiting Quest 3 capture |
+| 2026-04-30 17:12:20 | `PLAN/test-android17.md` | `test-scenario` | Android 17 test scenario for standard flavor — 12 cases (Profile A baseline + Profile B targetSdk=37) to close S0035 open items §6.1..§6.3 |
+| 2026-04-30 17:12:30 | `PLAN/test-android.md` | `test-android` | Add Android emulator test scenario for standard flavor (S0003/S0004/S0025/S0029/S0030 verification) |
+| 2026-04-30 18:26:47 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `fix: defer onResume work until setupViews() finishes` | Add onResumeWithViews() hook in BaseActivity to eliminate UninitializedPropertyAccessException race when system fires onResume before deferred binding.root.post{ setupViews() } block runs. Migrated AddResourceActivity (which crashed in logs/current.log line 814), MainActivity, BrowseActivity, PlayerActivity, StandalonePlayerActivity to use the new hook; removed ad-hoc ::isInitialized guards. |
+| 2026-05-01 00:04:03 | `app_v2/src/main/res/drawable` | `ic_resource_*.xml + bg_icon_button_themed.xml` | Resource type badges (LOCAL/SMB/FTP/SFTP/CLOUD/FAVORITES) repainted from Material 800 to Material 500 tones for equal visibility on light & dark themes; pick-icon toolbar button background switched from hardcoded #CC000000 to ?attr/colorSurface (renamed bg_icon_button_dark -> bg_icon_button_themed). |
+| 2026-05-01 00:19:50 | `PLAN/S0003_link-receive-download.md` | `spec-check` | Audit S0003 -> Partial; PASS/WARN/FAIL 26/2/2 (missing progress dialog, catalog roles) |
+| 2026-05-01 00:47:26 | `.claude/commands/spec-test-device.md` | `spec-test-device` | Add /spec-test-device skill: end-to-end on-device verification via mobile-mcp + logcat harvest |
+| 2026-05-01 01:05:59 | `PLAN/S0003_link-receive-download.md` | `spec-test-device` | Device run on emulator-5554 (Android 8.1) standard-debug 2.60.5010.052: PASS 2 / FAIL 1 / SKIPPED 6 of 9 manual items. Master-OFF legacy .txt path verified; Master-ON path produced no user feedback nor file write despite URL detection. Scenario: temp/S0003_mobile_test_scenario_20260501_0051.md |
+| 2026-05-01 01:10:37 | `dev/CATALOG/app_v2.jsonl` | `spec-fix` | S0003: catalogue refresh + role assignments per Phase 06.3 (coordinator/registry/contract/strategy/writer/policy/model/parser/di) |
+| 2026-05-01 01:10:37 | `dev/CATALOG/app_v2.md` | `spec-fix` | S0003: render after role assignments |
+| 2026-05-01 01:10:37 | `PLAN/S0003_link-receive-download.md` | `spec-fix` | Annotate Last Audit (S0003): #2 FIXED, #1/#3/#4 FOLLOW-UP |
+| 2026-05-01 01:21:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `spec-update` | S0003: route Toast through applicationContext (Android 8.1 transparent-host fix) + add Timber traces around processLinkAutoDownload |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download/PHASE_01__settings-foundation.md` | `spec-update` | S0003: correct Phase 01.4 pointer to BackupData.kt + BackupMapper.kt; flip header to Done |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download/PHASE_02__url-channel-branch.md` | `spec-update` | S0003: flip Phase 02 header to Done (5/5) |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download/PHASE_03__direct-file-extractor.md` | `spec-update` | S0003: flip Phase 03 header to Done (5/5) |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download/PHASE_04__html-page-extractor.md` | `spec-update` | S0003: flip Phase 04 header to Done (4/4) |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download/PHASE_05__writer-progress-autoopen.md` | `spec-update` | S0003: flip Phase 05 header to Done* (5/6, S05.3 carryover) |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download/PHASE_06__docs-catalog-cleanup.md` | `spec-update` | S0003: fix set.ps1 invocation example (-Path / -Status tested); flip Phase 06 header to Done |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download/INDEX.md` | `spec-update` | S0003: flip INDEX rows to Done; counter 5/6 with Phase 05 carryover note |
+| 2026-05-01 01:21:40 | `PLAN/S0003_link-receive-download.md` | `spec-update` | S0003: flip M2/M7 manual items to verified; append Revision History entries for /spec-fix + /spec-update |
+| 2026-05-01 01:21:40 | `temp/S0003_mobile_test_scenario_20260501_0051.md` | `spec-update` | S0003: append re-test section confirming Toast visibility on 2.60.5010.117-DEBUG |
+| 2026-05-01 01:33:27 | `app_v2/src/main/res/layout/activity_settings.xml` | `activity_settings.xml` | Remove duplicate fitsSystemWindows from toolbarContainer (portrait) — IME bottom inset was applied as bottom padding, expanding the colorPrimary header by keyboard height and covering half the screen when editing fields in Media tab. |
+| 2026-05-01 01:37:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Always show resource list/grid toggle button (was hidden in portrait when <= 10 resources) |
+| 2026-05-01 01:42:16 | `app_v2/src/main/res/layout/activity_main.xml` | `activity_main.xml` | Widen each top toolbar button by 4dp (paddingHorizontal=2dp on all 8 control buttons) |
+| 2026-05-01 01:59:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration.md` | `spec` | Add strategic spec S0042 for AGP 9/10 migration (kapt -> KSP, deprecation cleanup) |
+| 2026-05-01 02:42:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadProgressDialog.kt` | `LinkAutoDownloadProgressDialog` | S0003 §05.3: dedicated cancellable progress dialog with LinearProgressIndicator + bytes line for the link auto-download channel |
+| 2026-05-01 02:42:43 | `app_v2/src/main/res/layout/dialog_link_autodownload_progress.xml` | `dialog_link_autodownload_progress.xml` | S0003 §05.3: layout for LinkAutoDownloadProgressDialog (title + LinearProgressIndicator + bytes line + Cancel MaterialButton) |
+| 2026-05-01 02:42:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0003 §05.3: replace AlertDialog substitute with LinkAutoDownloadProgressDialog; honour user Cancel by cancelling the coordinator coroutine |
+| 2026-05-01 02:42:43 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | S0003: add link_autodownload_progress_bytes format string for the dedicated progress dialog |
+| 2026-05-01 02:42:43 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | S0003: add link_autodownload_progress_bytes format string (RU) |
+| 2026-05-01 02:42:43 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | S0003: add link_autodownload_progress_bytes format string (UK) |
+| 2026-05-01 02:42:43 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0003 §05.3: scan + role/status for LinkAutoDownloadProgressDialog (role=ui, status=tested) |
+| 2026-05-01 02:42:43 | `dev/CATALOG/app_v2.md` | `catalog` | S0003: regenerate human-readable catalog |
+| 2026-05-01 02:48:52 | `docs/FEATURES_RU.md` | `VR Player section` | S0007: hand tracking feature bullet (RU translation) |
+| 2026-05-01 02:48:52 | `docs/FEATURES_UK.md` | `VR Player section` | S0007: hand tracking feature bullet (UK translation) |
+| 2026-05-01 02:48:52 | `dev/CATALOG/app_v2.jsonl` | `catalog regen` | S0007 Phase 04: catalog rescan after VrHandRayManager changes |
+| 2026-05-01 02:48:52 | `PLAN/S0007_vr-hand-tracking/PHASE_03__hover-click-audio.md` | `S0007 Phase 03` | S0007: build verification passed (assembleStandardDebug), phase Done |
+| 2026-05-01 02:48:52 | `PLAN/S0007_vr-hand-tracking/PHASE_04__docs-catalog-cleanup.md` | `S0007 Phase 04` | S0007: docs+catalog+status cleanup, spec closed Implemented |
+| 2026-05-01 03:16:34 | `PLAN/S0043_bugfix-settings-window-bounds-xr.md` | `spec` | Add strategic spec S0043 for ad-hoc bugfix-settings-window-bounds-xr |
+| 2026-05-01 03:27:51 | `PLAN/S0043_bugfix-settings-window-bounds-xr/INDEX.md` | `spec-tech` | Create tactical plan for S0043 |
+| 2026-05-01 03:27:57 | `PLAN/S0043_bugfix-settings-window-bounds-xr/PHASE_01__settings-launcher.md` | `spec-tech` | Phase 01: settings-launcher |
+| 2026-05-01 03:28:03 | `PLAN/S0043_bugfix-settings-window-bounds-xr/PHASE_02__wire-callers.md` | `spec-tech` | Phase 02: wire-callers |
+| 2026-05-01 03:28:10 | `PLAN/S0043_bugfix-settings-window-bounds-xr/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-01 03:28:16 | `PLAN/S0043_bugfix-settings-window-bounds-xr.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-01 03:35:54 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/SettingsIntentLauncher.kt` | `S0043 step 01.1` | Create SettingsIntentLauncher object skeleton |
+| 2026-05-01 03:36:59 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/SettingsIntentLauncher.kt` | `S0043 step 01.2` | Add computeCenteredLaunchBounds private helper |
+| 2026-05-01 03:37:58 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/SettingsIntentLauncher.kt` | `S0043 step 01.3` | Add public launch(activity, intent, requestCode) overload |
+| 2026-05-01 03:38:29 | `PLAN/Other/test-vr.md` | `VR test session` | Fixed log grep patterns (T01 VideoLayerGeometry tag; T05 VR_PERF instead of dead startXrInitialization), expanded T04 with 4 open S0027 manual items (§11.1/§11.2/§11.3/§11.6 incl. 5 cold-start consistency check), added T07 (S0006 FPS counter — 5 manual checks) and T08 (S0007 hand tracking — F7/F8/F10), updated report table and closing commands to cover all unclosed VR specs. |
+| 2026-05-01 03:45:30 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt` | `S0043 step 02.1` | Route all Settings intents through SettingsIntentLauncher |
+| 2026-05-01 03:47:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0043 step 02.2` | Replace Settings launchers with SettingsIntentLauncher + onActivityResult override |
+| 2026-05-01 03:49:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainStoragePermissionsHelper.kt` | `S0043 step 02.3` | Drop settingsPermissionLauncher; route through SettingsIntentLauncher; add onSettingsResult |
+| 2026-05-01 03:49:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0043 step 02.3` | Forward Manage Storage result to permissionsHelper.onSettingsResult |
+| 2026-05-01 03:50:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt` | `S0043 step 02.4` | Mark fire-and-forget Settings link with sweep comment |
+| 2026-05-01 03:51:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `S0043 step 02.4` | Mark fire-and-forget default-apps Settings links with sweep comment |
+| 2026-05-01 03:56:01 | `dev/CATALOG/app_v2.jsonl` | `S0043 step 03.1` | Catalog regen + register SettingsIntentLauncher (role=util, status=new) |
+| 2026-05-01 03:56:07 | `dev/CATALOG/app_v2.md` | `S0043 step 03.1` | Catalog render after S0043 changes |
+| 2026-05-01 03:56:36 | `docs/FEATURES.md` | `S0043` | No change - internal Settings-window-bounds fix per strategic 8 |
+| 2026-05-01 03:57:40 | `PLAN/S0043_bugfix-settings-window-bounds-xr.md` | `spec-dev` | Status -> Implemented; awaiting XR device verification |
+| 2026-05-01 15:31:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Added Timber logs to media/battery/notifications permission launcher callbacks for permission-flow diagnostics |
+| 2026-05-01 16:17:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer.onScrollToFile` | Fix camera-capture scroll race: read index from viewModel.state (not adapter.currentList lagging behind AsyncListDiffer) and post scrollToPosition to next frame so layout settles after submitList commits. |
+| 2026-05-01 18:48:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbPlaybackConnectionTracker.kt` | `SmbPlaybackConnectionTracker` | Reduce SMB playback fail-fast watchdog window from 60s to 15s; add clearAllWatchdogs() for user-initiated retries |
+| 2026-05-01 18:48:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/` | `PlayerNavigation` | Plumb manual=true through nextFile/previousFile/jumpToIndex from user-input callsites (gestures, keys, buttons, touch zones, mouse wheel, random); manual nav clears SMB playback watchdogs to bypass fail-fast lockout |
+| 2026-05-01 18:59:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt` | `AtomicFileOperationStrategy` | wrap temp-file cleanup in NonCancellable so cancellation no longer leaves orphan .temp_copy files on destination |
+| 2026-05-01 19:00:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | run performCopy/performMove on @ApplicationScope so file operations survive PlayerActivity destruction; gate UI callbacks with isActivityGone() and use applicationContext for Toasts |
+| 2026-05-01 19:00:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | inject @ApplicationScope CoroutineScope as fileOpsAppScope and pass it to FileOperationsHandler |
+| 2026-05-01 19:00:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | wire activity.fileOpsAppScope into FileOperationsHandler constructor |
+| 2026-05-01 19:46:05 | `app_v2/src/main/res/layout/custom_player_controls_large.xml,app_v2/src/main/res/values/dimens.xml,app_v2/src/main/res/values-sw600dp/dimens.xml,app_v2/src/main/res/values/themes.xml,app_v2/src/main/res/values-night/themes.xml,app_v2/src/main/res/values/attrs.xml,app_v2/src/main/res/layout/activity_player_unified.xml,app_v2/src/main/res/layout-land/activity_player_unified.xml,app_v2/src/main/res/values/strings.xml,app_v2/src/main/res/values-ru/strings.xml,app_v2/src/main/res/values-uk/strings.xml,app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLayoutModePrefs.kt,app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt,app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt,app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt,app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `Player controls layout (compact vs large)` | Add LargePlayerControls theme overlay + custom_player_controls_large.xml: when 'Compact elements' is OFF, the audio/video player progress bar gets thicker (6/8dp), the touch target grows to 48/56dp, the scrubber doubles in size, and the time text scales to 18/22sp. Toggling 'Compact elements' in Settings now prompts for an app restart (DefaultTimeBar reads bar/touch/scrubber sizes from XML at inflate only). PlayerLayoutModePrefs mirrors the flag in synchronous SharedPreferences so PlayerActivity/StandalonePlayerActivity can apply the theme overlay before super.onCreate; FastMediaSorterApp keeps the SP in sync with DataStore on startup. |
+| 2026-05-01 19:51:58 | `PLAN/S0044_settings-layout-compactness.md` | `spec` | Add strategic spec S0044 for settings-layout-compactness |
+| 2026-05-01 22:33:23 | `PLAN/S0044_settings-layout-compactness.md` | `spec-all` | Strategic spec auto-approved and refined for S0044 |
+| 2026-05-01 22:35:37 | `PLAN/S0044_settings-layout-compactness/INDEX.md` | `spec-tech` | Create tactical index for S0044 |
+| 2026-05-01 22:35:37 | `PLAN/S0044_settings-layout-compactness/PHASE_01__landscape-settings-dimens.md` | `spec-tech` | Phase 01 for S0044 |
+| 2026-05-01 22:35:37 | `PLAN/S0044_settings-layout-compactness/PHASE_02__general-other-land-layouts.md` | `spec-tech` | Phase 02 for S0044 |
+| 2026-05-01 22:35:37 | `PLAN/S0044_settings-layout-compactness/PHASE_03__media-land-size-limit-rows.md` | `spec-tech` | Phase 03 for S0044 |
+| 2026-05-01 22:35:37 | `PLAN/S0044_settings-layout-compactness/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04 for S0044 |
+| 2026-05-01 22:35:37 | `PLAN/S0044_settings-layout-compactness.md` | `spec-tech` | Move S0044 strategic spec to Tactical |
+| 2026-05-01 22:36:33 | `app_v2/src/main/res/values-land/dimens.xml` | `settings dims` | S0044 Phase 01 landscape settings overrides |
+| 2026-05-01 22:36:33 | `PLAN/S0044_settings-layout-compactness/PHASE_01__landscape-settings-dimens.md` | `spec-dev` | S0044 Step 1.1 and 1.2 completed |
+| 2026-05-01 22:36:56 | `.github/prompts/spec-all.prompt.md` | `spec-all.prompt` | Sync spec-all Copilot prompt with current Sxxxx-based orchestrator workflow |
+| 2026-05-01 22:39:50 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `settings layout` | S0044 Phase 02 general landscape normalization |
+| 2026-05-01 22:39:51 | `app_v2/src/main/res/layout-land/fragment_settings_other.xml` | `settings layout` | S0044 Phase 02 other landscape normalization |
+| 2026-05-01 22:39:51 | `PLAN/S0044_settings-layout-compactness/PHASE_02__general-other-land-layouts.md` | `spec-dev` | S0044 Step 2.1 completed; Step 2.2 validated |
+| 2026-05-01 22:40:42 | `PLAN/S0044_settings-layout-compactness/PHASE_01__landscape-settings-dimens.md` | `spec-dev` | S0044 Phase 01 completed after build gate |
+| 2026-05-01 22:40:42 | `PLAN/S0044_settings-layout-compactness/PHASE_02__general-other-land-layouts.md` | `spec-dev` | S0044 Phase 02 completed after build gate |
+| 2026-05-01 22:40:42 | `PLAN/S0044_settings-layout-compactness/INDEX.md` | `spec-dev` | S0044 index synced to 2 of 4 phases done |
+| 2026-05-01 22:41:17 | `PLAN/S0045_per-resource-sort-type-memory.md` | `spec` | Add strategic spec S0045 for per-resource-sort-type-memory |
+| 2026-05-01 22:43:19 | `app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `settings layout` | S0044 Phase 03 add landscape audio layout |
+| 2026-05-01 22:43:19 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `settings layout` | S0044 Phase 03 add landscape video size row |
+| 2026-05-01 22:43:20 | `app_v2/src/main/res/layout-land/fragment_settings_images.xml` | `settings layout` | S0044 Phase 03 add landscape image size row |
+| 2026-05-01 22:43:20 | `PLAN/S0044_settings-layout-compactness/PHASE_03__media-land-size-limit-rows.md` | `spec-dev` | S0044 Steps 3.1-3.3 completed and validated |
+| 2026-05-01 22:49:46 | `PLAN/S0044_settings-layout-compactness/PHASE_03__media-land-size-limit-rows.md` | `spec-dev` | S0044 Phase 03 completed after build gate |
+| 2026-05-01 22:49:46 | `PLAN/S0044_settings-layout-compactness/PHASE_04__docs-catalog-cleanup.md` | `spec-dev` | S0044 Step 4.1 completed |
+| 2026-05-01 22:49:46 | `PLAN/S0044_settings-layout-compactness/INDEX.md` | `spec-dev` | S0044 index synced to 3 of 4 phases done |
+| 2026-05-01 22:50:51 | `PLAN/S0044_settings-layout-compactness.md` | `spec-all` | Pipeline Verified: S0044 |
+| 2026-05-01 22:50:51 | `PLAN/S0044_settings-layout-compactness/PHASE_04__docs-catalog-cleanup.md` | `spec-dev` | S0044 Phase 04 completed |
+| 2026-05-01 22:50:51 | `PLAN/S0044_settings-layout-compactness/INDEX.md` | `spec-dev` | S0044 index synced to 4 of 4 phases done |
+| 2026-05-01 23:44:00 | `.github/prompts/spec.prompt.md` | `spec.prompt` | Sync /spec prompt with current Sxxxx strategic spec workflow |
+| 2026-05-01 23:46:25 | `.github/prompts/spec-tech.prompt.md` | `spec-tech.prompt` | Sync /spec-tech prompt with current Sxxxx tactical workflow |
+| 2026-05-01 23:46:26 | `.github/prompts/spec-dev.prompt.md` | `spec-dev.prompt` | Sync /spec-dev prompt with current Sxxxx execution workflow |
+| 2026-05-01 23:46:26 | `.github/prompts/spec-check.prompt.md` | `spec-check.prompt` | Sync /spec-check prompt with inline Last Audit workflow |
+| 2026-05-01 23:47:43 | `.github/prompts/spec-fix.prompt.md` | `spec-fix.prompt` | Sync /spec-fix prompt with inline Last Audit fix workflow |
+| 2026-05-01 23:47:43 | `.github/prompts/spec-update.prompt.md` | `spec-update.prompt` | Sync /spec-update prompt with current Sxxxx refinement workflow |
+| 2026-05-01 23:48:16 | `.github/copilot-instructions.md` | `copilot-instructions` | Update spec prompt routing descriptions to Sxxxx and inline Last Audit workflow |
+| 2026-05-02 00:11:45 | `.github/prompts/build.prompt.md` | `build.prompt` | Sync /build prompt with current .claude build guide |
+| 2026-05-02 00:13:03 | `PLAN/S0045_per-resource-sort-type-memory/INDEX.md` | `spec-tech` | Create tactical plan for S0045 |
+| 2026-05-02 00:13:03 | `PLAN/S0045_per-resource-sort-type-memory/PHASE_01__player-cold-start-sort.md` | `spec-tech` | Phase 01: player-cold-start-sort |
+| 2026-05-02 00:13:04 | `PLAN/S0045_per-resource-sort-type-memory/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-02 00:13:04 | `PLAN/S0045_per-resource-sort-type-memory.md` | `spec-tech` | Status → Tactical |
+| 2026-05-02 00:14:01 | `.github/prompts/doc-update.prompt.md` | `doc-update.prompt` | Sync /doc-update prompt with current .claude documentation workflow |
+| 2026-05-02 00:14:01 | `.github/prompts/git.prompt.md` | `git.prompt` | Sync /git prompt with current .claude git guide |
+| 2026-05-02 00:14:01 | `.github/prompts/log-reader.prompt.md` | `log-reader.prompt` | Sync /log-reader prompt with current .claude log analysis guide |
+| 2026-05-02 00:16:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `S0045` | Phase 01: pass resource.sortMode to GetMediaFilesUseCase slow path |
+| 2026-05-02 00:16:22 | `docs/FEATURES.md` | `S0045` | Add sort-memory bullet (EN) |
+| 2026-05-02 00:16:22 | `docs/FEATURES_RU.md` | `S0045` | Add sort-memory bullet (RU) |
+| 2026-05-02 00:16:23 | `docs/FEATURES_UK.md` | `S0045` | Add sort-memory bullet (UK) |
+| 2026-05-02 00:16:23 | `dev/CATALOG/app_v2.jsonl` | `S0045` | Catalog regen after Phase 01 changes |
+| 2026-05-02 00:17:21 | `PLAN/S0045_per-resource-sort-type-memory.md` | `spec-check` | Audit S0045 → Verified; PASS/WARN/FAIL 9/0/0 |
+| 2026-05-02 00:31:39 | `PLAN/S0045_per-resource-sort-type-memory.md` | `spec-update` | Resolve §6 open questions per owner answers; revise ADR-2 (SortMode enum encodes type+direction+MANUAL) |
+| 2026-05-02 00:31:39 | `PLAN/S0045_per-resource-sort-type-memory/INDEX.md` | `spec-all` | Mark phases 01+02 done; align tactical state with completed implementation |
+| 2026-05-02 00:37:20 | `docs/FEATURES.md` | `FEATURES.md` | Trim self-evident UI sugar from feature list (resource edit/delete, list/grid toggles, basic navigation, pinch-zoom, full-screen, notification controls, etc.) — keep only distinctive functionality. |
+| 2026-05-02 00:44:27 | `docs/FEATURES_RU.md;docs/FEATURES_UK.md` | `FEATURES mirrors` | Sync RU/UK mirrors with EN sugar trim: drop pagination + detailed progress bullets, bump date stamp. |
+| 2026-05-02 01:11:08 | `PLAN/S0046_sftp-key-auth-hardening.md` | `spec` | Add strategic spec S0046 for ad-hoc SFTP key-auth hardening (XML schema + host fingerprint pinning) |
+| 2026-05-02 01:11:12 | `app_v2/src/main/res/xml/sza_resources.xml` | `config` | Rename 192.168.1.110 SFTP entries to local_*; add three Home_* SFTP resources for 46.54.0.135 |
+| 2026-05-02 01:25:20 | `PLAN/S0046_sftp-key-auth-hardening.md` | `spec` | S0046: resolve open questions 6.1-6.4 with Best Practice answers, status Draft -> Approved |
+| 2026-05-02 01:32:03 | `PLAN/S0046_sftp-key-auth-hardening/INDEX.md` | `spec-tech` | Create tactical plan for S0046 |
+| 2026-05-02 01:32:03 | `PLAN/S0046_sftp-key-auth-hardening/PHASE_01__data-model-and-db.md` | `spec-tech` | Phase 01: data-model-and-db |
+| 2026-05-02 01:32:04 | `PLAN/S0046_sftp-key-auth-hardening/PHASE_02__fingerprint-verifier-core.md` | `spec-tech` | Phase 02: fingerprint-verifier-core |
+| 2026-05-02 01:32:04 | `PLAN/S0046_sftp-key-auth-hardening/PHASE_03__sftp-pin-wiring.md` | `spec-tech` | Phase 03: sftp-pin-wiring |
+| 2026-05-02 01:32:04 | `PLAN/S0046_sftp-key-auth-hardening/PHASE_04__xml-schema-and-bundle.md` | `spec-tech` | Phase 04: xml-schema-and-bundle |
+| 2026-05-02 01:32:04 | `PLAN/S0046_sftp-key-auth-hardening/PHASE_05__resource-form-fingerprint-ui.md` | `spec-tech` | Phase 05: resource-form-fingerprint-ui |
+| 2026-05-02 01:32:05 | `PLAN/S0046_sftp-key-auth-hardening/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-02 01:32:05 | `PLAN/S0046_sftp-key-auth-hardening.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-02 01:34:08 | `app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `fragment_settings_audio (land)` | S0044: replace button_height + settings_margin_standard on toggle rows with settings_item_min_height + settings_item_margin_bottom for landscape compactness |
+| 2026-05-02 01:34:11 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `fragment_settings_video (land)` | S0044: switch toggle rows to settings_item_min_height + settings_item_margin_bottom so landscape compactness dimens actually apply |
+| 2026-05-02 01:34:14 | `app_v2/src/main/res/layout-land/fragment_settings_images.xml` | `fragment_settings_images (land)` | S0044: switch toggle rows to settings_item_min_height + settings_item_margin_bottom so landscape compactness dimens actually apply |
+| 2026-05-02 01:35:06 | `PLAN/S0044_settings-layout-compactness.md` | `S0044` | Revision history: media land layouts now actually consume Phase 01 compact dimens after runtime regression |
+| 2026-05-02 01:35:10 | `PLAN/S0044_settings-layout-compactness/INDEX.md` | `S0044 INDEX` | Tactical index: Phase 04 closed, completion gate ticked |
+| 2026-05-02 01:35:10 | `PLAN/S0044_settings-layout-compactness/PHASE_04__docs-catalog-cleanup.md` | `S0044 Phase 04` | Phase marked Done, step log records Phase-03 land compact-dimen regression fix |
+| 2026-05-02 01:40:40 | `app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `fragment_settings_audio (land)` | S0044: drop weight=1 from toggle-row inner text container so the help-? icon snaps right next to the text instead of the row's far right edge |
+| 2026-05-02 01:40:40 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `fragment_settings_video (land)` | S0044: drop weight=1 from toggle-row inner text container so the help-? icon snaps right next to the text instead of the row's far right edge |
+| 2026-05-02 01:40:40 | `app_v2/src/main/res/layout-land/fragment_settings_images.xml` | `fragment_settings_images (land)` | S0044: drop weight=1 from toggle-row inner text container so the help-? icon snaps right next to the text instead of the row's far right edge |
+| 2026-05-02 01:43:32 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `fragment_settings_general (portrait)` | S0044: portrait toggle compactness — drop weight=1 from inner text container (snaps help-? next to text) and switch minHeight from button_height (48dp) to settings_item_min_height (36dp portrait); user-requested extension of S0044 scope to portrait orientation |
+| 2026-05-02 01:43:32 | `app_v2/src/main/res/layout/fragment_settings_other.xml` | `fragment_settings_other (portrait)` | S0044: portrait toggle compactness — drop weight=1 from inner text container (snaps help-? next to text) and switch minHeight from button_height (48dp) to settings_item_min_height (36dp portrait); user-requested extension of S0044 scope to portrait orientation |
+| 2026-05-02 01:43:32 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `fragment_settings_audio (portrait)` | S0044: portrait toggle compactness — drop weight=1 from inner text container (snaps help-? next to text) and switch minHeight from button_height (48dp) to settings_item_min_height (36dp portrait); user-requested extension of S0044 scope to portrait orientation |
+| 2026-05-02 01:43:32 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video (portrait)` | S0044: portrait toggle compactness — drop weight=1 from inner text container (snaps help-? next to text) and switch minHeight from button_height (48dp) to settings_item_min_height (36dp portrait); user-requested extension of S0044 scope to portrait orientation |
+| 2026-05-02 01:43:32 | `app_v2/src/main/res/layout/fragment_settings_images.xml` | `fragment_settings_images (portrait)` | S0044: portrait toggle compactness — drop weight=1 from inner text container (snaps help-? next to text) and switch minHeight from button_height (48dp) to settings_item_min_height (36dp portrait); user-requested extension of S0044 scope to portrait orientation |
+| 2026-05-02 01:43:32 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback (portrait)` | S0044: portrait toggle compactness — drop weight=1 from inner text container (snaps help-? next to text) and switch minHeight from button_height (48dp) to settings_item_min_height (36dp portrait); user-requested extension of S0044 scope to portrait orientation |
+| 2026-05-02 01:43:48 | `PLAN/S0044_settings-layout-compactness.md` | `S0044` | Revision history: portrait scope extension recorded (toggle compaction + helper-? alignment in 6 portrait fragments) |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `fragment_settings_general` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout-land/fragment_settings_other.xml` | `fragment_settings_other` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `fragment_settings_video` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `fragment_settings_audio` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `fragment_settings_destinations` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `fragment_settings_documents` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout/fragment_settings_other.xml` | `fragment_settings_other` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 01:52:58 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | S0044: comprehensive helper alignment sweep — pulled toggle-row inner text containers to wrap_content (drops weight=1) and label-only section headers (snapshot resource, VR title) so all help-? icons snap directly next to their object instead of the row's far right edge; covers both single-line and multiline XML formats across all settings fragments |
+| 2026-05-02 02:26:00 | `app_v2/src/main/res/xml/sza_resources.xml` | `config` | Switch local_* SFTP resources from sza to media-svc (low-priv account, NTFS RX on J:\MEDIA) |
+| 2026-05-02 02:33:37 | `app_v2/src/main/res/values/dimens.xml` | `audio player` | Lift audio info overlay margin from 116dp to 140dp so its drop shadow no longer overlaps exo position/duration text after the wider progress bar |
+| 2026-05-02 02:45:59 | `PLAN/S0047_bugfix-sftp-pool-broken-channel.md` | `spec` | Add strategic spec S0047 for SFTP channel pool broken-channel recovery (Tier 1, Priority 90) |
+| 2026-05-02 02:49:53 | `PLAN/S0047_bugfix-sftp-pool-broken-channel/INDEX.md` | `spec-tech` | Create tactical plan for S0047 (3 phases) |
+| 2026-05-02 02:49:53 | `PLAN/S0047_bugfix-sftp-pool-broken-channel/PHASE_01__pool-eviction-api.md` | `spec-tech` | S0047 Phase 01: pool-eviction-api |
+| 2026-05-02 02:49:53 | `PLAN/S0047_bugfix-sftp-pool-broken-channel/PHASE_02__datasource-health-tracking.md` | `spec-tech` | S0047 Phase 02: datasource-health-tracking |
+| 2026-05-02 02:49:53 | `PLAN/S0047_bugfix-sftp-pool-broken-channel/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | S0047 Phase 03: docs-catalog-cleanup |
+| 2026-05-02 02:49:53 | `PLAN/S0047_bugfix-sftp-pool-broken-channel.md` | `spec-tech` | S0047 Status -> Tactical |
+| 2026-05-02 03:02:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `pool` | S0047 step 01.1: add evictExoPlayerChannel private method |
+| 2026-05-02 03:03:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `pool` | S0047 step 01.2: extend releaseExoPlayerConnection signature with channel + broken |
+| 2026-05-02 03:03:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `client` | S0047 step 01.3: forward releaseExoPlayerConnection(channel, broken) to pool |
+| 2026-05-02 03:05:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `datasource` | S0047 step 02.1: add channelBroken state |
+| 2026-05-02 03:06:49 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec` | Add strategic spec S0048 for info-dialog-extended-metadata |
+| 2026-05-02 03:06:50 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `datasource` | S0047 step 02.2: mark channelBroken in read() and InputStream-close catches |
+| 2026-05-02 03:06:50 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `datasource` | S0047 step 02.3: mark channelBroken in open() post-acquisition catch |
+| 2026-05-02 03:07:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `datasource` | S0047 step 02.4: pass (channel, channelBroken) to releaseExoPlayerConnection |
+| 2026-05-02 03:09:30 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0047 step 03.2: catalog rescan after SFTP pool/datasource API change |
+| 2026-05-02 03:09:30 | `dev/CATALOG/app_v2.md` | `catalog` | S0047 step 03.2: catalog re-render |
+| 2026-05-02 03:09:59 | `PLAN/S0047_bugfix-sftp-pool-broken-channel.md` | `spec-dev` | S0047 Status -> Implemented (journal -> BlockNeedUserTest pending hands-on reproduction) |
+| 2026-05-02 03:26:16 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec-update` | Refinement (claude-opus-4-7, focus: completeness, consistency) |
+| 2026-05-02 03:27:48 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec-update` | Accept P-1: rewrite ADR-1 to extend existing pipeline |
+| 2026-05-02 03:29:42 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec-update` | Status -> Approved (user approval) |
+| 2026-05-02 03:37:19 | `PLAN/S0048_info-dialog-extended-metadata/INDEX.md` | `spec-tech` | Create tactical plan for S0048 |
+| 2026-05-02 03:37:19 | `PLAN/S0048_info-dialog-extended-metadata/PHASE_01__split-fileinfo-launch.md` | `spec-tech` | Phase 01: split-fileinfo-launch |
+| 2026-05-02 03:37:19 | `PLAN/S0048_info-dialog-extended-metadata/PHASE_02__extend-audio-extractor.md` | `spec-tech` | Phase 02: extend-audio-extractor |
+| 2026-05-02 03:37:19 | `PLAN/S0048_info-dialog-extended-metadata/PHASE_03__info-dialog-audio-route.md` | `spec-tech` | Phase 03: info-dialog-audio-route |
+| 2026-05-02 03:37:19 | `PLAN/S0048_info-dialog-extended-metadata/PHASE_04__file-info-block.md` | `spec-tech` | Phase 04: file-info-block |
+| 2026-05-02 03:37:19 | `PLAN/S0048_info-dialog-extended-metadata/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-02 03:37:19 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-02 04:02:28 | `temp/FileInfoDialog.kt.20260502-040215.bak` | `spec-dev` | S0048 step 01.1: backup FileInfoDialog.kt before extraction |
+| 2026-05-02 04:03:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/FileInfoLaunchManager.kt` | `spec-dev` | S0048 step 01.2: extract launch logic from FileInfoDialog into FileInfoLaunchManager |
+| 2026-05-02 04:03:58 | `PLAN/S0049_bugfix-icon-pick-save-disabled.md` | `spec-all` | Compact spec: S0049 |
+| 2026-05-02 04:05:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceFormViewModel.kt` | `ResourceFormViewModel` | S0049: onIconPicked now triggers recalculateState so icon change enables Save button |
+| 2026-05-02 04:05:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileInfoDialog.kt` | `spec-dev` | S0048 step 01.3: delegate launch logic to FileInfoLaunchManager (946 -> 709 LOC) |
+| 2026-05-02 04:06:02 | `PLAN/S0049_bugfix-icon-pick-save-disabled.md` | `spec-all` | Pipeline Verified: S0049 |
+| 2026-05-02 04:16:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/FileInfoLaunchManager.kt` | `FileInfoLaunchManager` | Phase 01 step 01.4: build confirmed OK |
+| 2026-05-02 04:25:31 | `PLAN/S0050_player-black-screen-mode.md` | `Spec` | Создана спецификация для режима чёрного экрана |
+| 2026-05-02 04:31:25 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `AudioMetadataLoader` | S0048 Phase 02: extend AudioMetadata with technical fields, format extraction, FLAC STREAMINFO bit-depth parser, ReplayGain, cover art (PictureFrame/ApicFrame), inject AudioMetadataCacheRepository |
+| 2026-05-02 04:31:25 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AudioMetadataCacheRepository.kt` | `AudioMetadataCacheRepository` | S0048 Phase 02: add readCoverFile(coverFileName, coverExtension): File? |
+| 2026-05-02 04:33:33 | `PLAN/S0041_debug-vr180-fisheye-quality-regression.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: verifiability+consistency): §3.2 first-frame guard уточнение, §6 S0033 → In Progress |
+| 2026-05-02 04:33:33 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: completeness+verifiability): §1 регрессия 2026-05-02 routing-via-home-intent; P-1 DISCUSS — пересмотр §2/§4/§5 |
+| 2026-05-02 04:33:34 | `PLAN/S0024_vr-hud-ray-input.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: consistency+completeness): §10 S0033 → In Progress, §13 field-log 2026-05-02 — visual ray indicator отсутствует, math-pass работает при locked HUD |
+| 2026-05-02 04:43:11 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `AudioMetadataLoader` | S0048 Phase 03 Step 03.1: Add suspend fun loadDetailed for synchronous extended metadata load |
+| 2026-05-02 04:45:08 | `app_v2/src/main/res/layout/dialog_file_info.xml` | `dialog_file_info` | S0048 Phase 03 Step 03.2: Add ivAudioCoverArt, tvAudioBitDepth/Lossless/ReplayGainTrack/Album to sectionAudio |
+| 2026-05-02 04:45:08 | `app_v2/src/main/res/layout-land/dialog_file_info.xml` | `dialog_file_info (land)` | S0048 Phase 03 Step 03.2: Add ivAudioCoverArt, tvAudioBitDepth/Lossless/ReplayGainTrack/Album to sectionAudio |
+| 2026-05-02 04:45:08 | `app_v2/src/main/res/values/dimens.xml` | `dimens` | S0048 Phase 03 Step 03.2: Add file_info_cover_art_size = 120dp |
+| 2026-05-02 04:46:15 | `PLAN/S0008_vr-immersive-controls-panel.md` | `spec-check` | Audit S0008 -> Broken; PASS/WARN/FAIL 1/2/5. Top: VR_UI_COMPOSITION_LAYER_ENABLED=false блокирует весь HUD; visual ray indicator отсутствует |
+| 2026-05-02 04:46:16 | `PLAN/S0050_player-black-screen-mode.md` | `spec` | Add strategic spec S0050 for player-black-screen-mode |
+| 2026-05-02 04:46:29 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0048 Phase 03 Step 03.3: Add audio_bit_depth_label, audio_lossless_label/values, audio_replaygain_track/album_label, audio_cover_art_cd (EN) |
+| 2026-05-02 04:46:29 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0048 Phase 03 Step 03.3: Add audio_bit_depth_label, audio_lossless_label/values, audio_replaygain_track/album_label, audio_cover_art_cd (RU) |
+| 2026-05-02 04:46:29 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0048 Phase 03 Step 03.3: Add audio_bit_depth_label, audio_lossless_label/values, audio_replaygain_track/album_label, audio_cover_art_cd (UK) |
+| 2026-05-02 04:47:25 | `PLAN/S0050_player-black-screen-mode.md` | `spec` | Add strategic spec S0050 for player-black-screen-mode |
+| 2026-05-02 04:49:00 | `PLAN/S0009_vr-immersive-hud-gl.md` | `spec-check` | Audit S0009 -> Partial; PASS/WARN/FAIL 5/2/0. Static OK; on-device verification §11.1/§11.2/§11.4/§11.6 pending |
+| 2026-05-02 04:50:22 | `PLAN/S0019_vr-controls-panel-flow-restoration.md` | `spec-check` | Audit S0019 -> Broken; PASS/WARN/FAIL 1/2/4. Top: HUD-overlay блокирован S0008/S0024; exit-to-panel клонирует окно (S0038); apply-and-3D OK |
+| 2026-05-02 04:50:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/FileInfoAudioDisplayHelper.kt` | `FileInfoAudioDisplayHelper` | S0048 Phase 03 Step 03.4: Create helper to display extended audio metadata and cover art in info dialog |
+| 2026-05-02 04:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileInfoDialog.kt` | `FileInfoDialog` | S0048 Phase 03 Step 03.5: Wire FileInfoAudioDisplayHelper — add constructor params, init helper, branch async block for AUDIO |
+| 2026-05-02 04:54:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `PlayerDialogHelper` | S0048 Phase 03 Step 03.5: Update FileInfoDialog call site to pass audioMetadataLoader/audioMetadataCacheRepository = null |
+| 2026-05-02 05:00:20 | `PLAN/S0050_player-black-screen-mode.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) |
+| 2026-05-02 05:00:43 | `PLAN/S0008_vr-immersive-controls-panel/` | `spec-restore` | Restored tactical folder (INDEX + 6 phases) from temp/done; updated INDEX with 2026-05-02 field-log + Broken status + blockers (VR_UI_COMPOSITION_LAYER_ENABLED + cursor dot) |
+| 2026-05-02 05:00:44 | `PLAN/S0009_vr-immersive-hud-gl/` | `spec-restore` | Restored tactical folder (INDEX + 7 phases) from temp/done; INDEX updated with 2026-05-02 field-log confirming passive HUD pipeline live, on-device acceptance pending |
+| 2026-05-02 05:00:44 | `PLAN/S0019_vr-controls-panel-flow-restoration/` | `spec-restore` | Restored tactical folder (INDEX + 6 phases) from temp/done; INDEX updated with 2026-05-02 field-log mapping each §11 criterion to current verdict + dependency chain (S0008 / S0038 / S0033) |
+| 2026-05-02 05:00:44 | `PLAN/Other/test-vr.md` | `test-vr` | Updated VR test scenario for 2026-05-02: added T09 (S0008), T10 (S0009), T11 (S0019), T12 (S0024); fixed T01 fisheye-guard note; added T03 home-intent regression note; refreshed coverage table with current statuses |
+| 2026-05-02 05:00:52 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0048 Phase 03: Regenerate catalog after AudioMetadataLoader.loadDetailed, FileInfoAudioDisplayHelper, FileInfoDialog constructor API changes |
+| 2026-05-02 05:05:23 | `PLAN/S0050_player-black-screen-mode/INDEX.md` | `spec-tech` | Create tactical plan for S0050 |
+| 2026-05-02 05:05:23 | `PLAN/S0050_player-black-screen-mode/PHASE_01__settings-foundation.md` | `spec-tech` | Phase 01: settings-foundation |
+| 2026-05-02 05:05:23 | `PLAN/S0050_player-black-screen-mode/PHASE_02__command-panel-button.md` | `spec-tech` | Phase 02: command-panel-button |
+| 2026-05-02 05:05:24 | `PLAN/S0050_player-black-screen-mode/PHASE_03__black-screen-overlay.md` | `spec-tech` | Phase 03: black-screen-overlay |
+| 2026-05-02 05:05:24 | `PLAN/S0050_player-black-screen-mode/PHASE_04__keybinding-registration.md` | `spec-tech` | Phase 04: keybinding-registration |
+| 2026-05-02 05:05:24 | `PLAN/S0050_player-black-screen-mode/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-02 05:05:24 | `PLAN/S0050_player-black-screen-mode.md` | `spec-tech` | Status → Tactical |
+| 2026-05-02 05:05:27 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaFilePathDescriptor.kt` | `MediaFilePathDescriptor` | Add path decomposition utility for network/local paths (S0048 phase 04 step 1) |
+| 2026-05-02 05:06:19 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/MimeTypeResolver.kt` | `MimeTypeResolver` | Add MIME resolver with MimeTypeMap + byte signature sniffing (S0048 phase 04 step 2) |
+| 2026-05-02 05:07:38 | `app_v2/src/main/res/layout/dialog_file_info.xml` | `dialog_file_info` | Add structured file-info fields and copy-path button (S0048 phase 04 step 3) |
+| 2026-05-02 05:07:38 | `app_v2/src/main/res/layout-land/dialog_file_info.xml` | `dialog_file_info (land)` | Add structured file-info fields and copy-path button (S0048 phase 04 step 3) |
+| 2026-05-02 05:08:59 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add file-info structured labels and copy-path strings (S0048 phase 04 step 4) |
+| 2026-05-02 05:08:59 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add file-info structured labels and copy-path strings RU (S0048 phase 04 step 4) |
+| 2026-05-02 05:09:00 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add file-info structured labels and copy-path strings UK (S0048 phase 04 step 4) |
+| 2026-05-02 05:11:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/FileInfoFileSectionHelper.kt` | `FileInfoFileSectionHelper` | Add structured file-info section renderer with path decomposition and copy-path (S0048 phase 04 step 5) |
+| 2026-05-02 05:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileInfoDialog.kt` | `FileInfoDialog` | Wire FileInfoFileSectionHelper; remove buildPathInfoText (S0048 phase 04 step 6) |
+| 2026-05-02 05:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `MediaFile/FileAttributes` | Add FileAttributes and attributes field to MediaFile (S0048 phase 04 step 6) |
+| 2026-05-02 05:17:10 | `docs/FEATURES.md` | `FEATURES` | Add extended file-info dialog bullet (S0048 phase 05 step 1) |
+| 2026-05-02 05:18:10 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add extended file-info dialog bullet RU (S0048 phase 05 step 2) |
+| 2026-05-02 05:18:11 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add extended file-info dialog bullet UK (S0048 phase 05 step 2) |
+| 2026-05-02 05:18:56 | `dev/CATALOG/app_v2.jsonl` | `app_v2 catalog` | Regenerate catalog; set role/status for MediaFilePathDescriptor, MimeTypeResolver, FileInfoFileSectionHelper, FileInfoAudioDisplayHelper (S0048 phase 05 step 3) |
+| 2026-05-02 05:18:57 | `dev/CATALOG/app_v2.md` | `app_v2 catalog (md)` | Regenerate catalog markdown (S0048 phase 05 step 3) |
+| 2026-05-02 05:20:09 | `PLAN/S0048_info-dialog-extended-metadata.md` | `S0048` | Status -> Implemented (S0048 all 5 phases done) |
+| 2026-05-02 05:20:09 | `PLAN/S0048_info-dialog-extended-metadata/INDEX.md` | `S0048/INDEX` | All 5 phases complete (S0048) |
+| 2026-05-02 05:31:43 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec-check` | Audit S0048 -> Verified; PASS 40/WARN 1 (fixed inline)/FAIL 0; Status Implemented -> Verified |
+| 2026-05-02 05:31:44 | `PLAN/S0048_info-dialog-extended-metadata/INDEX.md` | `spec-check` | Fix INDEX Status: Not started -> Done (stale metadata) |

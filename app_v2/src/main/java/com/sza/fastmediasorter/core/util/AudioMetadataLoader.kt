@@ -27,8 +27,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import timber.log.Timber
 import java.io.File
+import java.io.RandomAccessFile
+import java.security.MessageDigest
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -59,7 +62,8 @@ class AudioMetadataLoader @Inject constructor(
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val audioMetadataCacheRepository: AudioMetadataCacheRepository
 ) {
 
     companion object {
@@ -67,6 +71,7 @@ class AudioMetadataLoader @Inject constructor(
         private const val FAILED_CACHE_MAX_SIZE = 5000
         /** After this many consecutive failures, disable the feature for the session. */
         private const val KILL_SWITCH_THRESHOLD = 15
+        private const val MAX_COVER_BYTES = 4 * 1024 * 1024 // 4 MB cover art size limit
     }
 
     /** Background scope for network + parsing work. Cancelled items won't crash. */
@@ -164,7 +169,7 @@ class AudioMetadataLoader @Inject constructor(
                         return@withPermit
                     }
 
-                    val metadata = extractMetadataFromBytes(bytes)
+                    val metadata = extractMetadataFromBytes(bytes, file.path)
                     if (metadata == null || !metadata.hasAnyData()) {
                         // No embedded tags is a per-file outcome, not a system failure — skip kill-switch counter
                         Timber.d("AudioMetadataLoader: No metadata extracted for ${file.name}")
@@ -229,6 +234,37 @@ class AudioMetadataLoader @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: warmMemoryCacheForResource failed for resource $resourceId")
+        }
+    }
+
+    /**
+     * Synchronously loads extended audio metadata for [file] within the calling coroutine.
+     * Does not touch the in-flight set, kill-switch, or callbacks.
+     * Returns the parsed [AudioMetadata] or null on any failure.
+     */
+    suspend fun loadDetailed(file: MediaFile): AudioMetadata? {
+        return try {
+            val bytes: ByteArray? = when {
+                PathUtils.isLocalPath(file.path) -> {
+                    RandomAccessFile(file.path, "r").use { raf ->
+                        val toRead = minOf(raf.length(), MAX_PARTIAL_READ_BYTES.toLong()).toInt()
+                        val buf = ByteArray(toRead)
+                        raf.readFully(buf)
+                        buf
+                    }
+                }
+                file.path.startsWith("content://") -> {
+                    context.contentResolver.openInputStream(file.path.toUri())?.use { stream ->
+                        stream.readNBytes(MAX_PARTIAL_READ_BYTES)
+                    }
+                }
+                else -> readPartialBytes(file.path)
+            }
+            if (bytes == null || bytes.isEmpty()) return null
+            extractMetadataFromBytes(bytes, file.path)
+        } catch (e: Exception) {
+            Timber.w(e, "AudioMetadataLoader: loadDetailed failed for ${file.path}")
+            null
         }
     }
 
@@ -366,7 +402,7 @@ class AudioMetadataLoader @Inject constructor(
      * which unlike native [android.media.MediaMetadataRetriever] cannot SIGSEGV
      * on truncated files. Returns null on any failure.
      */
-    private suspend fun extractMetadataFromBytes(bytes: ByteArray): AudioMetadata? {
+    private suspend fun extractMetadataFromBytes(bytes: ByteArray, filePath: String): AudioMetadata? {
         val tempFile = File(context.cacheDir, "audio_meta_${System.nanoTime()}.tmp")
         return try {
             tempFile.writeBytes(bytes)
@@ -377,6 +413,17 @@ class AudioMetadataLoader @Inject constructor(
             var artist: String? = null
             var album: String? = null
             var title: String? = null
+            var sampleRateHz: Int? = null
+            var bitDepth: Int? = null
+            var channels: Int? = null
+            var bitrateBps: Int? = null
+            var lossless: Boolean? = null
+            var replayGainTrackDb: Float? = null
+            var replayGainAlbumDb: Float? = null
+            var coverFileName: String? = null
+            var coverExtension: String? = null
+
+            val coverCacheKey = coverCacheKey(filePath)
 
             for (groupIndex in 0 until trackGroups.length) {
                 val trackGroup = trackGroups[groupIndex]
@@ -392,8 +439,46 @@ class AudioMetadataLoader @Inject constructor(
                                     "artist" -> if (artist == null) artist = value
                                     "album" -> if (album == null) album = value
                                     "title" -> if (title == null) title = value
+                                    "replayGainTrack" -> if (replayGainTrackDb == null) {
+                                        replayGainTrackDb = value.replace(" dB", "", ignoreCase = true).toFloatOrNull()
+                                    }
+                                    "replayGainAlbum" -> if (replayGainAlbumDb == null) {
+                                        replayGainAlbumDb = value.replace(" dB", "", ignoreCase = true).toFloatOrNull()
+                                    }
                                 }
                             }
+                            if (coverFileName == null) {
+                                extractCoverArtEntry(entry)?.let { (imgBytes, imgMimeType) ->
+                                    if (imgBytes.size <= MAX_COVER_BYTES) {
+                                        val ext = when {
+                                            imgMimeType.contains("png", ignoreCase = true) -> "png"
+                                            else -> "jpg"
+                                        }
+                                        audioMetadataCacheRepository.saveCover(coverCacheKey, imgBytes, ext)
+                                        coverFileName = coverCacheKey
+                                        coverExtension = ext
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Format technical fields (sample rate, channels, bitrate, lossless, FLAC bit depth)
+                    val mimeType = format.sampleMimeType ?: format.containerMimeType
+                    if (mimeType != null && mimeType.startsWith("audio/")) {
+                        if (sampleRateHz == null && format.sampleRate > 0) sampleRateHz = format.sampleRate
+                        if (channels == null && format.channelCount > 0) channels = format.channelCount
+                        if (bitrateBps == null && format.bitrate > 0) bitrateBps = format.bitrate
+                        if (lossless == null) {
+                            lossless = when (mimeType.lowercase()) {
+                                "audio/flac", "audio/raw", "audio/x-wav", "audio/x-alac" -> true
+                                "audio/mpeg", "audio/mp4a-latm", "audio/vorbis", "audio/opus" -> false
+                                else -> null
+                            }
+                        }
+                        // FLAC: bit depth from STREAMINFO block (not exposed by Media3 via Format)
+                        if (bitDepth == null && mimeType.equals("audio/flac", ignoreCase = true)) {
+                            bitDepth = parseFlacBitDepth(bytes)
                         }
                     }
                 }
@@ -403,7 +488,16 @@ class AudioMetadataLoader @Inject constructor(
                 artist = artist?.takeIf { it.isNotBlank() },
                 album = album?.takeIf { it.isNotBlank() },
                 title = title?.takeIf { it.isNotBlank() },
-                duration = null // Duration from partial 64KB read is unreliable
+                duration = null, // Duration from partial 64KB read is unreliable
+                sampleRateHz = sampleRateHz,
+                bitDepth = bitDepth,
+                channels = channels,
+                bitrateBps = bitrateBps,
+                lossless = lossless,
+                replayGainTrackDb = replayGainTrackDb,
+                replayGainAlbumDb = replayGainAlbumDb,
+                coverFileName = coverFileName,
+                coverExtension = coverExtension
             )
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: Media3 MetadataRetriever failed on ${bytes.size} bytes")
@@ -424,6 +518,15 @@ class AudioMetadataLoader @Inject constructor(
             when (entry) {
                 is androidx.media3.extractor.metadata.id3.TextInformationFrame -> {
                     val id = entry.id.uppercase()
+                    if (id == "TXXX") {
+                        val description = entry.description?.uppercase() ?: return null
+                        val raw = entry.values.firstOrNull() ?: return null
+                        return when (description) {
+                            "REPLAYGAIN_TRACK_GAIN" -> "replayGainTrack" to raw
+                            "REPLAYGAIN_ALBUM_GAIN" -> "replayGainAlbum" to raw
+                            else -> null
+                        }
+                    }
                     val raw = entry.values.firstOrNull() ?: return null
                     val value = fixCp1251Encoding(raw)
                     when (id) {
@@ -440,10 +543,11 @@ class AudioMetadataLoader @Inject constructor(
                         "ARTIST", "ALBUMARTIST" -> "artist" to value
                         "ALBUM" -> "album" to value
                         "TITLE" -> "title" to value
+                        "REPLAYGAIN_TRACK_GAIN" -> "replayGainTrack" to value
+                        "REPLAYGAIN_ALBUM_GAIN" -> "replayGainAlbum" to value
                         else -> null
                     }
                 }
-                is androidx.media3.extractor.metadata.flac.PictureFrame -> null
                 else -> {
                     Timber.v("AudioMetadataLoader: Unhandled metadata entry: ${entry.javaClass.simpleName}")
                     null
@@ -547,6 +651,58 @@ class AudioMetadataLoader @Inject constructor(
         }
     }
 
+    /**
+     * Parses bits-per-sample from the FLAC STREAMINFO block.
+     * Layout: fLaC(4) + block-header(4) + min/max-blocksize(4) + min/max-framesize(6) = 18 bytes;
+     * then bits 23-27 straddle bytes 20-21 (big-endian bit order).
+     */
+    private fun parseFlacBitDepth(bytes: ByteArray): Int? {
+        if (bytes.size < 27) return null
+        // FLAC signature "fLaC" (0x66 0x4C 0x61 0x43)
+        if (bytes[0] != 0x66.toByte() || bytes[1] != 0x4C.toByte() ||
+            bytes[2] != 0x61.toByte() || bytes[3] != 0x43.toByte()) return null
+        // Byte 4: last-metadata-block(bit7) + block-type(bits6-0); STREAMINFO type = 0
+        if ((bytes[4].toInt() and 0x7F) != 0) return null
+        // Within STREAMINFO data (starting at byte 8), bits-per-sample-1 occupies 5 bits:
+        //   byte[20] bit0 = MSB, byte[21] bits7-4 = remaining 4 bits
+        val b20 = bytes[20].toInt() and 0xFF
+        val b21 = bytes[21].toInt() and 0xFF
+        val bpsMinusOne = ((b20 and 0x01) shl 4) or (b21 ushr 4)
+        val bps = bpsMinusOne + 1
+        return if (bps in 4..32) bps else null
+    }
+
+    /**
+     * Extracts embedded cover art bytes from a Media3 metadata entry.
+     * Handles FLAC PictureFrame and ID3v2 ApicFrame.
+     * @return Pair(imageBytes, mimeType) or null if entry is not cover art.
+     */
+    private fun extractCoverArtEntry(entry: Metadata.Entry): Pair<ByteArray, String>? {
+        return try {
+            when (entry) {
+                is androidx.media3.extractor.metadata.flac.PictureFrame -> {
+                    val bytes = entry.pictureData ?: return null
+                    if (bytes.isEmpty()) null else bytes to entry.mimeType
+                }
+                is androidx.media3.extractor.metadata.id3.ApicFrame -> {
+                    val bytes = entry.pictureData ?: return null
+                    if (bytes.isEmpty()) null else bytes to entry.mimeType
+                }
+                else -> null
+            }
+        } catch (e: Exception) {
+            Timber.v(e, "AudioMetadataLoader: Failed to extract cover art entry")
+            null
+        }
+    }
+
+    /** First 16 bytes of SHA-256(path) as a hex string — stable, unique cache key. */
+    private fun coverCacheKey(path: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hash = digest.digest(path.toByteArray(Charsets.UTF_8))
+        return hash.take(16).joinToString("") { "%02x".format(it) }
+    }
+
     private fun applyMetadata(file: MediaFile, metadata: AudioMetadata): MediaFile {
         return file.copy(
             artist = metadata.artist ?: file.artist,
@@ -567,8 +723,20 @@ class AudioMetadataLoader @Inject constructor(
         val artist: String?,
         val album: String?,
         val title: String?,
-        val duration: Long?
+        val duration: Long?,
+        val sampleRateHz: Int? = null,
+        val bitDepth: Int? = null,
+        val channels: Int? = null,
+        val bitrateBps: Int? = null,
+        val lossless: Boolean? = null,
+        val replayGainTrackDb: Float? = null,
+        val replayGainAlbumDb: Float? = null,
+        val coverFileName: String? = null,
+        val coverExtension: String? = null
     ) {
-        fun hasAnyData(): Boolean = artist != null || album != null || title != null || duration != null
+        fun hasAnyData(): Boolean = artist != null || album != null || title != null
+            || duration != null || sampleRateHz != null || bitDepth != null
+            || channels != null || bitrateBps != null || lossless != null
+            || replayGainTrackDb != null || replayGainAlbumDb != null || coverFileName != null
     }
 }

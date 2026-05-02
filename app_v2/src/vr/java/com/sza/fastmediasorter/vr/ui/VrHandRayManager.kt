@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.vr.ui
 import android.app.Activity
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.media.AudioManager
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
@@ -29,7 +30,10 @@ import timber.log.Timber
  *     `ACTION_DOWN`; pinch-up fires `ACTION_UP` at the same coordinates so even
  *     if the aim drifts mid-pinch the click lands where the user committed.
  */
-class VrHandRayManager(private val activity: Activity) {
+class VrHandRayManager(
+    private val activity: Activity,
+    private val audioManager: AudioManager? = null,
+) {
 
     private var cursorView: View? = null
     private var rootLayout: FrameLayout? = null
@@ -39,6 +43,9 @@ class VrHandRayManager(private val activity: Activity) {
     @Volatile private var lastDownX = Float.NaN
     @Volatile private var lastDownY = Float.NaN
     private var isDown = false
+    // True while the cursor is positioned over an interactive View. Toggled by
+    // dispatchMotion based on whether the decor view consumed the hover event.
+    private var isHoveringInteractive = false
     private var lastHoverMs = 0L
     @Volatile private var released = false
 
@@ -117,6 +124,7 @@ class VrHandRayManager(private val activity: Activity) {
         rootLayout = null
         cursorView = null
         isDown = false
+        isHoveringInteractive = false
     }
 
     // ── Internal helpers ────────────────────────────────────────────────────
@@ -163,12 +171,34 @@ class VrHandRayManager(private val activity: Activity) {
             source = android.view.InputDevice.SOURCE_CLASS_POINTER or android.view.InputDevice.SOURCE_TOUCHSCREEN
         }
         try {
-            when (action) {
+            // dispatchGenericMotionEvent returns true only when a View in the hierarchy
+            // consumed the hover — a lightweight proxy for "cursor is over an interactive
+            // element" without walking the View tree manually.
+            val consumed = when (action) {
                 MotionEvent.ACTION_HOVER_MOVE -> decor.dispatchGenericMotionEvent(event)
-                else -> decor.dispatchTouchEvent(event)
+                else -> { decor.dispatchTouchEvent(event); false }
+            }
+            if (action == MotionEvent.ACTION_HOVER_MOVE && consumed != isHoveringInteractive) {
+                isHoveringInteractive = consumed
+                updateCursorAppearance()
             }
         } finally {
             event.recycle()
+        }
+    }
+
+    private fun updateCursorAppearance() {
+        val dot = cursorView ?: return
+        val bg = dot.background as? GradientDrawable ?: return
+        if (isHoveringInteractive) {
+            bg.setColor(Color.argb(220, 0, 160, 255))
+            bg.setStroke(3, Color.argb(220, 255, 255, 255))
+            // Hover-enter SFX — fires only on the false→true transition (caller guarantees
+            // updateCursorAppearance() is invoked only when the consumed-state changes).
+            audioManager?.playSoundEffect(AudioManager.FX_FOCUS_NAVIGATION_UP)
+        } else {
+            bg.setColor(Color.argb(220, 255, 255, 255))
+            bg.setStroke(3, Color.argb(220, 0, 160, 255))
         }
     }
 

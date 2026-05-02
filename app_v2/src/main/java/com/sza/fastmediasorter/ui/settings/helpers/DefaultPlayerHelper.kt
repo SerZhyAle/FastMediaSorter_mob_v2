@@ -321,6 +321,7 @@ object DefaultPlayerHelper {
 
     private fun openDefaultAppsSettings(fragment: Fragment) {
         try {
+            // SettingsIntentLauncher.launch not needed — fire-and-forget link to default-apps page
             fragment.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
         } catch (e: Exception) {
             try {
@@ -336,6 +337,7 @@ object DefaultPlayerHelper {
 
     private fun openDefaultAppsSettingsFromActivity(activity: Activity) {
         try {
+            // SettingsIntentLauncher.launch not needed — fire-and-forget link to default-apps page
             activity.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
         } catch (e: Exception) {
             try {

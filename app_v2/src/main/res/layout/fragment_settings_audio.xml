@@ -3,11 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/settings_padding">
 
     <!-- Support audio -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_audio_description" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_audio_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -16,22 +16,22 @@
     </LinearLayout>
 
     <!-- Search audio covers online -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSearchAudioCoversOnline" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/search_audio_covers_online" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_search_audio_covers_online_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
     </LinearLayout>
 
     <!-- Search covers only on WiFi -->
-    <LinearLayout android:id="@+id/layoutSearchCoversOnlyWifi" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:id="@+id/layoutSearchCoversOnlyWifi" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSearchCoversOnlyWifi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/search_covers_only_on_wifi" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_secondary" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_search_covers_only_wifi_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:minHeight="@dimen/button_height"
+        android:minHeight="@dimen/settings_item_min_height"
         android:layout_marginStart="@dimen/settings_nested_margin_start"
         android:visibility="gone"
         android:layout_marginBottom="@dimen/margin_small">
@@ -57,9 +57,8 @@
             android:checked="true" />
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
@@ -99,11 +98,11 @@
     </LinearLayout>
 
     <!-- Enable photos during audio playback -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnablePhotosDuringAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_photos_during_audio_description" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_photos_during_audio_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -160,7 +159,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:minHeight="@dimen/button_height"
+        android:minHeight="@dimen/settings_item_min_height"
         android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -171,9 +170,8 @@
             android:contentDescription="@string/background_audio_setting_title" />
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
@@ -262,7 +260,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:layout_marginTop="6dp">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -273,9 +271,8 @@
                 android:contentDescription="@string/show_now_playing_panel_title" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView

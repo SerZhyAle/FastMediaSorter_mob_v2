@@ -75,6 +75,20 @@ class VrHudSceneComposer(
         color = Color.argb(160, 255, 255, 255)
     }
 
+    // WHY: button affordance paints — S0040. Two bg variants encode active/inactive
+    // state without per-frame Paint mutation. Border is a thin STROKE on top.
+    private val btnBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(100, 255, 255, 255) // inactive / paused state
+    }
+    private val btnBgActivePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(170, 255, 255, 255) // active / playing state — more opaque
+    }
+    private val btnBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(128, 255, 255, 255) // #80FFFFFF border
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
+    }
+
     private val tmpRect = RectF()
 
     fun draw(state: VrHudState, canvas: Canvas) {
@@ -145,6 +159,18 @@ class VrHudSceneComposer(
         val glyph = if (paused) "❚❚" else "▶"
         val cx = width / 2f
         val cy = height / 2f - 20f
+        // WHY: glyph width varies between pause and play glyphs; measure each frame
+        // to avoid a fixed rect that clips "❚❚" or leaves too much space for "▶".
+        // Paint.measureText does not allocate — safe inside draw (see KDoc contract).
+        val hw = iconPaint.measureText(glyph) / 2f + 20f
+        tmpRect.set(cx - hw, cy - 70f, cx + hw, cy + 20f)
+        // Active (playing) state → stronger bg opacity; inactive (paused) → dimmer.
+        // Two separate Paint instances avoid mutating color on the hot path.
+        val bg = if (paused) btnBgPaint else btnBgActivePaint
+        canvas.drawRoundRect(tmpRect, 6f, 6f, bg)
+        canvas.drawRoundRect(tmpRect, 6f, 6f, btnBorderPaint)
+        // Register bounds for S0024 ray-input hit-testing.
+        registry.register(HUD_ELEMENT_PLAY_PAUSE, tmpRect, "play_pause") {}
         canvas.drawText(glyph, cx, cy, iconPaint)
     }
 
@@ -299,5 +325,6 @@ class VrHudSceneComposer(
 
     companion object {
         const val HUD_ELEMENT_SEEK_BAR: Int = 1
+        const val HUD_ELEMENT_PLAY_PAUSE: Int = 2
     }
 }

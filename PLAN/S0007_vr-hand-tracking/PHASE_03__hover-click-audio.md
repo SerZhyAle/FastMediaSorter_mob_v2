@@ -2,7 +2,7 @@
 
 **Spec:** S0007 · vr-hand-tracking  
 **Phase:** 03 / 04  
-**Status:** ⬜ Not started  
+**Status:** ✅ Done  
 **Depends on:** Phase 02 ✅
 
 ---
@@ -114,18 +114,15 @@ private fun handlePointerClick(hand: Int, down: Boolean) {
 ## Execution Steps
 
 ```
-[ ] 1. VrHandRayManager.kt — add audioManager param (nullable, default null).
-[ ] 2. VrHandRayManager.kt — add audioManager?.playSoundEffect(FX_FOCUS_NAVIGATION_UP)
+[x] 1. VrHandRayManager.kt — add audioManager param (nullable, default null).
+[x] 2. VrHandRayManager.kt — add audioManager?.playSoundEffect(FX_FOCUS_NAVIGATION_UP)
        to updateCursorAppearance() inside the isHoveringInteractive = true branch.
-[ ] 3. VrPlayerActivity.kt — update VrHandRayManager constructor call to pass audioManager.
-[ ] 4. VrControllerInputManager.kt — add FX_KEYPRESS_RETURN on POINTER_CLICK_UP
+[x] 3. VrPlayerActivity.kt — update VrHandRayManager constructor call to pass audioManager.
+[x] 4. VrControllerInputManager.kt — add FX_KEYPRESS_RETURN on POINTER_CLICK_UP
        in handlePointerClick().
-[ ] 5. Build: .\scripts\builders\build-debug.PS1 — confirm zero errors.
-[ ] 6. Run dev log for each modified file:
-       .\scripts\add_to_dev_log.ps1 "app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHandRayManager.kt" "VrHandRayManager" "S0007 Phase 03: hover-enter SFX via AudioManager"
-       .\scripts\add_to_dev_log.ps1 "app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt" "VrPlayerActivity" "S0007 Phase 03: pass audioManager to VrHandRayManager"
-       .\scripts\add_to_dev_log.ps1 "app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt" "VrControllerInputManager" "S0007 Phase 03: pinch-complete SFX on POINTER_CLICK_UP"
-[ ] 7. Mark phase Done.
+[x] 5. Build: assembleStandardDebug PASS in 6m 54s (APK 2.60.5010.241-DEBUG).
+[x] 6. Dev logs recorded for all three files.
+[x] 7. Mark phase Done.
 ```
 
 ---
@@ -143,4 +140,17 @@ private fun handlePointerClick(hand: Int, down: Boolean) {
 
 ## Status
 
-**Done:** ⬜
+**Done:** ✅ — code edits + dev logs + build verification all complete.
+
+**Step Log:**
+
+- 2026-04-30 — Code edits 4/4 PASS. Code-review verification 3/3 PASS:
+  `audioManager: AudioManager? = null` on `VrHandRayManager` constructor;
+  `playSoundEffect(FX_FOCUS_NAVIGATION_UP)` inside the
+  `isHoveringInteractive = true` branch of `updateCursorAppearance`;
+  `playSoundEffect(FX_KEYPRESS_RETURN)` on `down = false` in `handlePointerClick`.
+  Files: VrHandRayManager.kt (+~5 LOC, total 213), VrPlayerActivity.kt (1 LOC),
+  VrControllerInputManager.kt (+3 LOC, total 502). Dev logs recorded for all three.
+- 2026-05-01 — `assembleStandardDebug` PASS in 6m 54s after full clean (kapt
+  incremental cache corruption required `gradlew --stop` + delete `app_v2/build`).
+  APK `FastMediaSorter_standard_debug_v2.60.5010.241-DEBUG.apk`. Phase ✅ Done.

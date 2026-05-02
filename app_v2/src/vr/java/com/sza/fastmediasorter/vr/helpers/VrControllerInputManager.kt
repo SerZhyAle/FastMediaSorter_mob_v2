@@ -182,6 +182,9 @@ class VrControllerInputManager(
             // click avoids shipping additional audio assets. DOUBLE_PINCH is emitted
             // by native and bypasses this method entirely.
             audioManager?.playSoundEffect(AudioManager.FX_KEY_CLICK)
+        } else {
+            // Pinch-complete SFX — distinguishes release from press (spec S0007 §3.5).
+            audioManager?.playSoundEffect(AudioManager.FX_KEYPRESS_RETURN)
         }
         onPointerEvent?.invoke(hand, down)
     }

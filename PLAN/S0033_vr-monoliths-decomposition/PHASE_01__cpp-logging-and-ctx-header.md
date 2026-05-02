@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0033_vr-monoliths-decomposition.md`](../S0033_vr-monoliths-decomposition.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02, Phase 03, Phase 04
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-30
+**Completed:** 2026-04-30
 
 ---
 
@@ -19,9 +19,9 @@ Extract the logging utilities (lines 167–220) and diagnostic name helpers (lin
 
 ## Prerequisites
 
-- [ ] S0024 Phase 01 closed (sanity — confirms current `OpenXrNative.cpp` line count baseline of 3487).
+- [x] S0024 Phase 01 closed (sanity — confirms current `OpenXrNative.cpp` line count baseline of 3487).
 - [ ] Working tree clean or on a feature branch.
-- [ ] Backup of `OpenXrNative.cpp` placed in `temp/` (file >500 LOC — CLAUDE.md rule 5).
+- [x] Backup of `OpenXrNative.cpp` placed in `temp/` (file >500 LOC — CLAUDE.md rule 5).
 
 ---
 
@@ -66,7 +66,11 @@ Extract the logging utilities (lines 167–220) and diagnostic name helpers (lin
 - `Glob` — `app_v2/src/vr/cpp/OpenXrCtx.h` exists.
 - `Grep` — `namespace xrnative` matches once in `OpenXrCtx.h`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-04-30 — Backup created at `temp/OpenXrNative.cpp.20260430-1505.bak`; `OpenXrCtx.h` added with `namespace xrnative {}` only. Verification 3/3 PASS. Files: `app_v2/src/vr/cpp/OpenXrCtx.h` (+4 LOC), backup copy in `temp/`. Dev log entry recorded.
 
 ---
 
@@ -103,7 +107,11 @@ Extract the logging utilities (lines 167–220) and diagnostic name helpers (lin
 - `Grep` — `nativeLogBufferSnapshot` declared.
 - `Grep` — `Log\.d\(` returns zero hits in the file (header-only sanity).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-04-30 — `OpenXrLog.h` added with `nativeLogEmit`, `kLogBufferMaxEntries`, and `nativeLogBufferSnapshot` declarations. Verification 4/4 PASS. Files: `app_v2/src/vr/cpp/OpenXrLog.h` (+13 LOC). Dev log entry recorded.
 
 ---
 
@@ -137,7 +145,11 @@ Extract the logging utilities (lines 167–220) and diagnostic name helpers (lin
 - `Grep` — `xrSessionStateName` and `xrEventTypeName` definitions exist in this file.
 - `Grep` — `nativeLogEmit` no longer matches in `OpenXrNative.cpp` *as a definition* (the call sites stay, but the definition is gone).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-04-30 — `OpenXrLog.cpp` added with extracted ring-buffer state, `nativeLogEmit`, diagnostic helper definitions, and a small `[silent fix]` drain accessor in `OpenXrLog.h` because `nativeDrainLog()` needs move-out semantics once globals leave `OpenXrNative.cpp`. Verification PASS after adjacent duplicate-removal in `OpenXrNative.cpp`. Files: `app_v2/src/vr/cpp/OpenXrLog.cpp` (+122 LOC), `app_v2/src/vr/cpp/OpenXrLog.h` (+4 LOC). Dev log entries recorded.
 
 ---
 
@@ -165,7 +177,11 @@ Extract the logging utilities (lines 167–220) and diagnostic name helpers (lin
 - `Grep` — `kLogBufferMaxEntries` does NOT match in `OpenXrNative.cpp` (moved to `OpenXrLog.cpp`).
 - `wc -l app_v2/src/vr/cpp/OpenXrNative.cpp` ≤ 3380.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-04-30 — `OpenXrNative.cpp` now includes `OpenXrLog.h`/`OpenXrCtx.h`, uses `xrnative::nativeLogEmit` + diagnostic helpers, drains via accessor, and no longer owns logging definitions. Verification 5/5 PASS; final LOC = 3380. Files: `app_v2/src/vr/cpp/OpenXrNative.cpp` (-107 LOC net). Dev log entry recorded.
 
 ---
 
@@ -184,18 +200,22 @@ Extract the logging utilities (lines 167–220) and diagnostic name helpers (lin
 - Build output indicates VR flavor compiles without errors.
 - `Grep` — `TODO(phase-01)` returns zero hits across the cpp directory.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-04-30 — `OpenXrLog.cpp` added to `openxr_native` target in `CMakeLists.txt`; `assembleVrDebug` PASS; `TODO(phase-01)` grep returned zero hits. Files: `app_v2/src/vr/cpp/CMakeLists.txt` (+1 LOC). Dev log entry recorded.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 01.*` above is `[x] done`.
-- [ ] Project compiles — `/build vr debug` PASS.
-- [ ] `Grep` for `TODO(phase-01)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `OpenXrNative.cpp` is ≤ 3380 LOC (verified by `wc -l`).
-- [ ] No regression in `assembleVrDebug` link step (no `UnsatisfiedLinkError` symbol added/removed).
+- [x] Every `Step 01.*` above is `[x] done`.
+- [x] Project compiles — `/build vr debug` PASS.
+- [x] `Grep` for `TODO(phase-01)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched" via `\.\scripts\add_to_dev_log.ps1`.
+- [x] `OpenXrNative.cpp` is ≤ 3380 LOC (verified by `wc -l`).
+- [x] No regression in `assembleVrDebug` link step (no `UnsatisfiedLinkError` symbol added/removed).
 
 ---
 

@@ -302,7 +302,7 @@ class ResourceFormViewModel @Inject constructor(
     fun onIconPicked(iconId: String) {
         userPickedIconThisSession = true
         _uiState.update { current ->
-            current.copy(formData = current.formData.copy(iconId = iconId))
+            recalculateState(current.copy(formData = current.formData.copy(iconId = iconId)))
         }
     }
 

@@ -12,6 +12,9 @@ import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoAudioDisplayHelper
+import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoFileSectionHelper
+import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoLaunchManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,19 +34,40 @@ class FileInfoDialog(
     ftpClient: com.sza.fastmediasorter.data.remote.ftp.FtpClient? = null,
     credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository? = null,
     unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
-    private val downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase? = null
+    private val downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase? = null,
+    private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader? = null,
+    private val audioMetadataCacheRepository: com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository? = null
 ) : Dialog(context) {
 
     private lateinit var binding: DialogFileInfoBinding
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var audioDisplayHelper: FileInfoAudioDisplayHelper? = null
     private val metadataHelper = com.sza.fastmediasorter.core.util.MediaMetadataHelper(
         context, smbClient, sftpClient, ftpClient, credentialsRepository, unifiedCache
     )
+    private lateinit var launchManager: FileInfoLaunchManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DialogFileInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        launchManager = FileInfoLaunchManager(
+            context = context,
+            mediaFile = mediaFile,
+            downloadNetworkFileUseCase = downloadNetworkFileUseCase,
+            scope = scope,
+            onDismissRequested = { dismiss() }
+        )
+
+        if (mediaFile.type == MediaType.AUDIO &&
+            audioMetadataLoader != null &&
+            audioMetadataCacheRepository != null
+        ) {
+            audioDisplayHelper = FileInfoAudioDisplayHelper(
+                context, binding, audioMetadataLoader, audioMetadataCacheRepository
+            )
+        }
 
         // Set dialog width to 90% of screen width for better readability
         window?.setLayout(
@@ -56,8 +80,12 @@ class FileInfoDialog(
         
         // Load detailed info asynchronously
         scope.launch {
-            val details = metadataHelper.getDetailedInfo(mediaFile)
-            updateDetailedInfo(details)
+            if (mediaFile.type == MediaType.AUDIO && audioDisplayHelper != null) {
+                audioDisplayHelper!!.displayDetailed(mediaFile)
+            } else {
+                val details = metadataHelper.getDetailedInfo(mediaFile)
+                updateDetailedInfo(details)
+            }
         }
     }
     
@@ -75,14 +103,17 @@ class FileInfoDialog(
         if (isLocalFile()) {
             binding.btnOpenExternal.visibility = View.VISIBLE
             binding.btnOpenExternal.setOnClickListener {
-                openInExternalPlayer()
+                launchManager.openInExternalPlayer()
             }
             binding.btnDownloadAndOpen.visibility = View.GONE
         } else {
             binding.btnOpenExternal.visibility = View.GONE
             binding.btnDownloadAndOpen.visibility = View.VISIBLE
             binding.btnDownloadAndOpen.setOnClickListener {
-                downloadAndOpenFile()
+                launchManager.downloadAndOpenFile(
+                    onProgressDialogReady = { /* dialog is shown by manager */ },
+                    onFinished = { dismiss() }
+                )
             }
         }
     }
@@ -100,137 +131,13 @@ class FileInfoDialog(
             mediaFile.path.startsWith("cloud:/")
     }
 
-    private fun buildPathInfoText(): String {
-        if (!isCloudFile()) {
-            return context.getString(R.string.file_path_label, mediaFile.path)
-        }
-
-        val readablePath = mediaFile.cloudDisplayPath
-            ?.takeIf { it.isNotBlank() }
-            ?: mediaFile.path
-        val basePathLine = context.getString(R.string.file_path_label, readablePath)
-        val cloudId = mediaFile.cloudItemId?.takeIf { it.isNotBlank() }
-
-        return if (cloudId != null) {
-            basePathLine + "\n" + context.getString(R.string.file_cloud_id_label, cloudId)
-        } else {
-            basePathLine
-        }
-    }
-    
-    private fun openInExternalPlayer() {
-        timber.log.Timber.d("FileInfoDialog.openInExternalPlayer: Opening file ${mediaFile.name} (path=${mediaFile.path})")
-        
-        try {
-            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
-            
-            // Determine MIME type based on file extension or MediaType
-            val mimeType = when (mediaFile.type) {
-                MediaType.VIDEO -> {
-                    val extension = mediaFile.name.substringAfterLast('.', "").lowercase()
-                    when (extension) {
-                        "mp4" -> "video/mp4"
-                        "mkv" -> "video/x-matroska"
-                        "avi" -> "video/x-msvideo"
-                        "mov" -> "video/quicktime"
-                        "webm" -> "video/webm"
-                        "3gp" -> "video/3gpp"
-                        else -> "video/*"
-                    }
-                }
-                MediaType.AUDIO -> {
-                    val extension = mediaFile.name.substringAfterLast('.', "").lowercase()
-                    when (extension) {
-                        "mp3" -> "audio/mpeg"
-                        "m4a" -> "audio/mp4"
-                        "wav" -> "audio/wav"
-                        "ogg" -> "audio/ogg"
-                        "flac" -> "audio/flac"
-                        else -> "audio/*"
-                    }
-                }
-                MediaType.IMAGE -> {
-                    val extension = mediaFile.name.substringAfterLast('.', "").lowercase()
-                    when (extension) {
-                        "jpg", "jpeg" -> "image/jpeg"
-                        "png" -> "image/png"
-                        "webp" -> "image/webp"
-                        "bmp" -> "image/bmp"
-                        else -> "image/*"
-                    }
-                }
-                MediaType.GIF -> "image/gif"
-                MediaType.TEXT -> "text/plain"
-                MediaType.PDF -> "application/pdf"
-                MediaType.EPUB -> "application/epub+zip"
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "application/octet-stream"
-            }
-            
-            timber.log.Timber.d("FileInfoDialog.openInExternalPlayer: MIME type = $mimeType")
-            
-            // Handle different path types
-            val uri = when {
-                mediaFile.path.startsWith("content://") -> {
-                    // SAF URI - use directly
-                    timber.log.Timber.d("FileInfoDialog.openInExternalPlayer: Using content:// URI directly")
-                    android.net.Uri.parse(mediaFile.path)
-                }
-                else -> {
-                    // Regular file path
-                    val file = java.io.File(mediaFile.path)
-                    timber.log.Timber.d("FileInfoDialog.openInExternalPlayer: File path = ${file.absolutePath}, exists = ${file.exists()}")
-                    
-                    if (!file.exists()) {
-                        timber.log.Timber.w("FileInfoDialog.openInExternalPlayer: File does not exist!")
-                        android.widget.Toast.makeText(
-                            context,
-                            context.getString(R.string.error_opening_file, "File not found"),
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                        return
-                    }
-                    
-                    androidx.core.content.FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.fileprovider",
-                        file
-                    )
-                }
-            }
-            
-            timber.log.Timber.d("FileInfoDialog.openInExternalPlayer: URI = $uri")
-            
-            intent.setDataAndType(uri, mimeType)
-            intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            
-            // Use chooser to show all available apps (handles Android 11+ package visibility)
-            val chooserIntent = android.content.Intent.createChooser(intent, context.getString(R.string.open_with))
-            chooserIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-            
-            timber.log.Timber.d("FileInfoDialog.openInExternalPlayer: Starting chooser activity")
-            context.startActivity(chooserIntent)
-            dismiss()
-        } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to open file in external player")
-            android.widget.Toast.makeText(
-                context,
-                context.getString(R.string.error_opening_file, e.message),
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-    
     private fun displayFileInfo() {
-        // File Information
-        binding.tvFileName.text = context.getString(R.string.file_name_label, mediaFile.name)
-        binding.tvFileSize.text = context.getString(R.string.file_size_label, formatFileSize(mediaFile.size))
-        binding.tvFileDate.text = context.getString(
-            R.string.file_date_label,
-            formatDate(mediaFile.createdDate)
+        FileInfoFileSectionHelper(context, binding).render(
+            file = mediaFile,
+            lastModifiedMs = mediaFile.lastModified.takeIf { it > 0L },
+            isReadOnly = mediaFile.attributes?.readOnly == true,
+            isHidden = mediaFile.attributes?.hidden == true
         )
-        binding.tvFileType.text = context.getString(R.string.file_type_label, mediaFile.type.name)
-        binding.tvFilePath.text = buildPathInfoText()
 
         // EXIF Information (for images/GIFs) - show section for all images, hide later if no data
         if (mediaFile.type == MediaType.IMAGE || mediaFile.type == MediaType.GIF) {
@@ -719,153 +626,6 @@ class FileInfoDialog(
         if (details.encoding != null) {
             binding.tvDocEncoding.text = context.getString(R.string.doc_encoding_label, details.encoding)
             binding.tvDocEncoding.visibility = View.VISIBLE
-        }
-    }
-
-    private fun downloadAndOpenFile() {
-        if (downloadNetworkFileUseCase == null) {
-            timber.log.Timber.e("DownloadNetworkFileUseCase not available")
-            android.widget.Toast.makeText(
-                context,
-                context.getString(R.string.download_failed, "UseCase not available"),
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        val progressDialog = MaterialProgressDialog(context).apply {
-            setTitle(context.getString(R.string.downloading_file))
-            setMessage(mediaFile.name)
-            setProgressStyle(MaterialProgressDialog.STYLE_HORIZONTAL)
-            max = 100
-            setCancelable(false)
-            show()
-        }
-
-        scope.launch(Dispatchers.IO) {
-            try {
-                // Get Downloads folder
-                val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
-                    android.os.Environment.DIRECTORY_DOWNLOADS
-                )
-                val targetFile = java.io.File(downloadsDir, mediaFile.name)
-                
-                timber.log.Timber.d("Downloading ${mediaFile.path} to ${targetFile.absolutePath}")
-                
-                // Download file using UseCase
-                val success = downloadNetworkFileUseCase.execute(
-                    remotePath = mediaFile.path,
-                    targetFile = targetFile,
-                    progressCallback = { progress ->
-                        scope.launch(Dispatchers.Main) {
-                            progressDialog.progress = progress
-                        }
-                    }
-                )
-
-                launch(Dispatchers.Main) {
-                    progressDialog.dismiss()
-                    
-                    if (success) {
-                        timber.log.Timber.d("Download successful: ${targetFile.absolutePath}")
-                        android.widget.Toast.makeText(
-                            context,
-                            context.getString(R.string.downloaded_successfully),
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                        
-                        // Open file with default app
-                        openDownloadedFile(targetFile)
-                        dismiss()
-                    } else {
-                        timber.log.Timber.e("Download failed")
-                        android.widget.Toast.makeText(
-                            context,
-                            context.getString(R.string.download_failed, "Unknown error"),
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            } catch (e: Exception) {
-                timber.log.Timber.e(e, "Error downloading file")
-                launch(Dispatchers.Main) {
-                    progressDialog.dismiss()
-                    android.widget.Toast.makeText(
-                        context,
-                        context.getString(R.string.download_failed, e.message),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
-
-    private fun openDownloadedFile(file: java.io.File) {
-        try {
-            val uri = androidx.core.content.FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                file
-            )
-
-            // Determine MIME type
-            val mimeType = when (mediaFile.type) {
-                MediaType.VIDEO -> {
-                    val extension = file.extension.lowercase()
-                    when (extension) {
-                        "mp4" -> "video/mp4"
-                        "mkv" -> "video/x-matroska"
-                        "avi" -> "video/x-msvideo"
-                        "mov" -> "video/quicktime"
-                        "webm" -> "video/webm"
-                        "3gp" -> "video/3gpp"
-                        else -> "video/*"
-                    }
-                }
-                MediaType.AUDIO -> {
-                    val extension = file.extension.lowercase()
-                    when (extension) {
-                        "mp3" -> "audio/mpeg"
-                        "m4a" -> "audio/mp4"
-                        "wav" -> "audio/wav"
-                        "ogg" -> "audio/ogg"
-                        "flac" -> "audio/flac"
-                        else -> "audio/*"
-                    }
-                }
-                MediaType.IMAGE -> {
-                    val extension = file.extension.lowercase()
-                    when (extension) {
-                        "jpg", "jpeg" -> "image/jpeg"
-                        "png" -> "image/png"
-                        "webp" -> "image/webp"
-                        "bmp" -> "image/bmp"
-                        else -> "image/*"
-                    }
-                }
-                MediaType.GIF -> "image/gif"
-                MediaType.TEXT -> "text/plain"
-                MediaType.PDF -> "application/pdf"
-                MediaType.EPUB -> "application/epub+zip"
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "application/octet-stream"
-            }
-
-            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
-            intent.setDataAndType(uri, mimeType)
-            intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            
-            val chooserIntent = android.content.Intent.createChooser(intent, context.getString(R.string.open_with))
-            chooserIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-            
-            context.startActivity(chooserIntent)
-        } catch (e: Exception) {
-            timber.log.Timber.e(e, "Error opening downloaded file")
-            android.widget.Toast.makeText(
-                context,
-                context.getString(R.string.error_opening_file, e.message),
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
         }
     }
 

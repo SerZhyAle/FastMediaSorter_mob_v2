@@ -125,7 +125,7 @@
     <dimen name="player_cmd_padding_horizontal">0dp</dimen>
     <dimen name="player_button_padding">2dp</dimen>
     <dimen name="player_audio_overlay_padding">24dp</dimen>
-    <dimen name="player_audio_overlay_margin_bottom">116dp</dimen>
+    <dimen name="player_audio_overlay_margin_bottom">140dp</dimen>
     <dimen name="player_audio_filename_text_size">20sp</dimen>
     <dimen name="player_audio_filename_margin_bottom">16dp</dimen>
     <dimen name="player_audio_info_text_size">14sp</dimen>
@@ -196,6 +196,14 @@
     <dimen name="player_progress_height">26dp</dimen>
     <dimen name="player_progress_margin_horizontal">4dp</dimen>
     <dimen name="player_position_text_size">14sp</dimen>
+
+    <!-- Custom Player Controls (LARGE variant — used when "Compact elements" is OFF) -->
+    <dimen name="player_progress_height_large">48dp</dimen>
+    <dimen name="player_position_text_size_large">18sp</dimen>
+    <dimen name="player_progress_bar_height_large">6dp</dimen>
+    <dimen name="player_progress_touch_height_large">48dp</dimen>
+    <dimen name="player_progress_scrubber_size_large">24dp</dimen>
+    <dimen name="player_progress_scrubber_dragged_size_large">32dp</dimen>
     <dimen name="player_small_button_size">48dp</dimen>
     <dimen name="player_medium_button_size">48dp</dimen>
     <dimen name="player_large_button_size">56dp</dimen>
@@ -258,6 +266,7 @@
     <dimen name="dialog_color_grid_spacing">4dp</dimen>
 
     <!-- Specific Dialog Dimensions -->
+    <dimen name="file_info_cover_art_size">120dp</dimen>
     <dimen name="dialog_file_info_min_width">150dp</dimen>
     <dimen name="dialog_button_min_width_small">80dp</dimen>
     <dimen name="dialog_scroll_max_height">500dp</dimen>
@@ -650,7 +659,7 @@
 
     <!-- Resource icon composer (S0034) -->
     <dimen name="resource_icon_composite_size">48dp</dimen>
-    <dimen name="resource_icon_badge_size">18dp</dimen>
+    <dimen name="resource_icon_badge_size">27dp</dimen>
     <dimen name="resource_icon_theme_inset">8dp</dimen>
 
     <!-- Icon picker grid (S0034) -->

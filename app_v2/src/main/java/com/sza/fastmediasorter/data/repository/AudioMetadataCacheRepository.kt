@@ -73,6 +73,11 @@ class AudioMetadataCacheRepository @Inject constructor(
         }
     }
 
+    fun readCoverFile(coverFileName: String, coverExtension: String): File? {
+        val file = File(cacheDir, "$coverFileName.$coverExtension")
+        return if (file.exists()) file else null
+    }
+
     fun getCacheSize(): Long =
         cacheDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
 

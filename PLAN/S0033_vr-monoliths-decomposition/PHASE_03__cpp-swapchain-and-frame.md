@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0033_vr-monoliths-decomposition.md`](../S0033_vr-monoliths-decomposition.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, Phase 02
 **Blocks:** Phase 04, Phase 05
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-30
+**Completed:** 2026-04-30
 
 ---
 
@@ -19,9 +19,9 @@ Move the swapchain creation/destruction code (`createSessionAndSwapchains`, `cre
 
 ## Prerequisites
 
-- [ ] Phase 02 ✅ Done (shared header populated with `XrCtx`/`EyeSwapchain`/`SwapchainImage`/`LayerConfig`).
-- [ ] Backup of `OpenXrNative.cpp` placed in `temp/` (file still > 500 LOC).
-- [ ] Working tree clean or on a feature branch.
+- [x] Phase 02 ✅ Done (shared header populated with `XrCtx`/`EyeSwapchain`/`SwapchainImage`/`LayerConfig`).
+- [x] Backup of `OpenXrNative.cpp` placed in `temp/` (file still > 500 LOC).
+- [x] Working tree clean or on a feature branch.
 
 ---
 
@@ -69,7 +69,7 @@ Move the swapchain creation/destruction code (`createSessionAndSwapchains`, `cre
 - `Glob` — `OpenXrSwapchain.h` exists.
 - `Grep` — five function declarations present inside `xrnative` namespace.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -98,7 +98,7 @@ Move the swapchain creation/destruction code (`createSessionAndSwapchains`, `cre
 - `Grep` — `XrCtx::createHudSwapchainImpl` does NOT match anywhere.
 - `wc -l app_v2/src/vr/cpp/OpenXrNative.cpp` ≤ 2300.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -130,7 +130,7 @@ Move the swapchain creation/destruction code (`createSessionAndSwapchains`, `cre
 - `Grep` — `XrCtx::renderFrame` does NOT match.
 - `wc -l app_v2/src/vr/cpp/OpenXrFrame.cpp` ≤ 600.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -151,7 +151,7 @@ Move the swapchain creation/destruction code (`createSessionAndSwapchains`, `cre
 - `Grep` — `xrnative::renderFrame\(g_ctx` matches at least once.
 - `wc -l app_v2/src/vr/cpp/OpenXrNative.cpp` ≤ 1900.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -170,18 +170,18 @@ Move the swapchain creation/destruction code (`createSessionAndSwapchains`, `cre
 - Build output indicates VR flavor compiles without errors.
 - `Grep` — `TODO(phase-03)` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 03.*` above is `[x] done`.
-- [ ] Project compiles — `/build vr debug` PASS.
-- [ ] `OpenXrNative.cpp` ≤ 1900 LOC.
-- [ ] `OpenXrSwapchain.cpp` and `OpenXrFrame.cpp` each ≤ 600 LOC.
-- [ ] `Grep` for `TODO(phase-03)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched".
+- [x] Every `Step 03.*` above is `[x] done`.
+- [x] Project compiles — `/build vr debug` PASS.
+- [x] `OpenXrNative.cpp` ≤ 1900 LOC.
+- [x] `OpenXrSwapchain.cpp` and `OpenXrFrame.cpp` each ≤ 600 LOC.
+- [x] `Grep` for `TODO(phase-03)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched".
 
 ---
 
@@ -194,3 +194,15 @@ Move the swapchain creation/destruction code (`createSessionAndSwapchains`, `cre
 ## Rollback Plan
 
 Revert phase commit(s); previous backups remain valid. No JNI surface or Kotlin code was touched.
+
+---
+
+## Revision History
+
+- **2026-04-30** — execution in progress
+	- Step 03.1: added `OpenXrSwapchain.h` with canonical `xrnative` declarations.
+	- Step 03.2: moved swapchain bodies to `OpenXrSwapchain.cpp`; `OpenXrNative.cpp` now uses thin wrappers and dropped to 2126 LOC.
+	- Safety check: `OpenXrSwapchain.cpp` added to CMake and `assembleVrDebug` passed after removing stale unused constants from `OpenXrNative.cpp`.
+	- Step 03.3: added `OpenXrFrame.h/.cpp` and moved `invokeRenderCallback`, `renderFrame`, and frame-only helpers into the new TU.
+	- Step 03.4: `OpenXrNative.cpp` now includes `OpenXrFrame.h`, calls `xrnative::renderFrame(g_ctx, env)`, and dropped to 1644 LOC.
+	- Step 03.5: `OpenXrFrame.cpp` added to CMake and `assembleVrDebug` passed.

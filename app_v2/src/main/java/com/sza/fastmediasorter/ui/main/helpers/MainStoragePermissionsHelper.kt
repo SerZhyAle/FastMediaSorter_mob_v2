@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.core.util.SettingsIntentLauncher
 
 /**
  * Encapsulates the storage permission startup flow: checks current state, asks once per session,
@@ -20,8 +21,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
  */
 class MainStoragePermissionsHelper(
     private val activity: AppCompatActivity,
-    private val storagePermissionLauncher: ActivityResultLauncher<Array<String>>,
-    private val settingsPermissionLauncher: ActivityResultLauncher<Intent>
+    private val storagePermissionLauncher: ActivityResultLauncher<Array<String>>
 ) {
 
     private var permissionCheckDoneThisSession = false
@@ -76,10 +76,20 @@ class MainStoragePermissionsHelper(
             } catch (_: Exception) {
                 Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
             }
-            settingsPermissionLauncher.launch(intent)
+            SettingsIntentLauncher.launch(activity, intent, PermissionHelper.REQUEST_CODE_MANAGE_STORAGE)
         } else {
             storagePermissionLauncher.launch(PermissionHelper.getStoragePermissionsArray())
         }
+    }
+
+    /**
+     * Must be called from the host activity's `onActivityResult` for
+     * `PermissionHelper.REQUEST_CODE_MANAGE_STORAGE`. Resets the once-per-session flag and
+     * re-runs the startup check so the user is re-evaluated after returning from Settings.
+     */
+    fun onSettingsResult() {
+        permissionCheckDoneThisSession = false
+        checkLocalPermissionsOnStartup()
     }
 
     companion object {

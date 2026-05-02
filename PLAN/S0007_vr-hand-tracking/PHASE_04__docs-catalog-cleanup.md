@@ -2,7 +2,7 @@
 
 **Spec:** S0007 · vr-hand-tracking  
 **Phase:** 04 / 04  
-**Status:** ⬜ Not started  
+**Status:** ✅ Done  
 **Depends on:** Phase 03 ✅
 
 ---
@@ -96,20 +96,16 @@ Mark all phases ✅ Done in `PLAN/S0007_vr-hand-tracking/INDEX.md` Phase Graph t
 ## Execution Checklist
 
 ```
-[ ] A. docs/FEATURES.md — add hand tracking bullet (EN)
-[ ] A. docs/FEATURES_RU.md — add hand tracking bullet (RU)
-[ ] A. docs/FEATURES_UK.md — add hand tracking bullet (UK)
-[ ] B. pwsh dev/CATALOG/scripts/scan.ps1 -Module app_v2
-[ ] B. pwsh dev/CATALOG/scripts/render.ps1 -Module app_v2
-[ ] C. Run dev log commands for phase files (see above)
-[ ] C. Run dev log for FEATURES docs:
-       .\scripts\add_to_dev_log.ps1 "docs/FEATURES.md" "VR Player section" "S0007: hand tracking feature bullet (EN)"
-       .\scripts\add_to_dev_log.ps1 "docs/FEATURES_RU.md" "VR Player section" "S0007: hand tracking feature bullet (RU)"
-       .\scripts\add_to_dev_log.ps1 "docs/FEATURES_UK.md" "VR Player section" "S0007: hand tracking feature bullet (UK)"
-[ ] D. pwsh scripts/spec_catalog/update.ps1 -Id S0007 -Status Implemented
-[ ] E. Update PLAN/S0007_vr-hand-tracking.md Status → Implemented
-[ ] F. Update INDEX.md Phase Graph all ✅ Done
-[ ] G. Mark this phase Done.
+[x] A. docs/FEATURES.md — EN bullet was already present at L171 (added during earlier Phase 02/03 work).
+[x] A. docs/FEATURES_RU.md — RU bullet added at L157 (replaced TODO-translate marker).
+[x] A. docs/FEATURES_UK.md — UK bullet added at L157 (replaced TODO-translate marker).
+[x] B. pwsh dev/CATALOG/scripts/scan.ps1 -Module app_v2 — 871 files scanned.
+[x] B. pwsh dev/CATALOG/scripts/render.ps1 -Module app_v2 — 871 records rendered; VrHandRayManager confirmed via query.
+[x] C. Dev log entries recorded for FEATURES_RU, FEATURES_UK, catalog jsonl, Phase 03, Phase 04.
+[x] D. pwsh scripts/spec_catalog/update.ps1 -Id S0007 -Status Implemented (Broken → Implemented).
+[x] E. PLAN/S0007_vr-hand-tracking.md Status → Implemented.
+[x] F. INDEX.md Phase Graph all ✅ Done.
+[x] G. Phase Done.
 ```
 
 ---
@@ -124,4 +120,4 @@ Mark all phases ✅ Done in `PLAN/S0007_vr-hand-tracking/INDEX.md` Phase Graph t
 
 ## Status
 
-**Done:** ⬜
+**Done:** ✅ — 2026-05-01. All audit FAILs closed; spec status `Implemented`.

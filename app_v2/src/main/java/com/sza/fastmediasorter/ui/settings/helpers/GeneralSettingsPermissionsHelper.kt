@@ -87,6 +87,7 @@ class GeneralSettingsPermissionsHelper(
             val pmNow = ctx.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
             if (pmNow.isIgnoringBatteryOptimizations(ctx.packageName)) {
                 try {
+                    // SettingsIntentLauncher.launch not needed — fire-and-forget link to battery optimization list page
                     fragment.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
                 } catch (_: Exception) { openAppSettings() }
             } else {

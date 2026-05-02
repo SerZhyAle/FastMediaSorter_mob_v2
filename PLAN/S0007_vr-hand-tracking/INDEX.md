@@ -1,7 +1,7 @@
 # S0007 · vr-hand-tracking — Tactical Plan
 
 **Spec:** `PLAN/S0007_vr-hand-tracking.md`  
-**Status:** Tactical  
+**Status:** Implemented  
 **Priority:** 60  
 **Created:** 2026-04-30  
 
@@ -32,10 +32,10 @@ three cheatsheet languages reference the hands section.
 
 | Phase | Slug | Status |
 |---|---|---|
-| Phase 01 | `verify-layer-e` | ⬜ Not started |
-| Phase 02 | `hover-visual-feedback` | ⬜ Not started |
-| Phase 03 | `hover-click-audio` | ⬜ Not started |
-| Phase 04 | `docs-catalog-cleanup` | ⬜ Not started |
+| Phase 01 | `verify-layer-e` | ✅ Done |
+| Phase 02 | `hover-visual-feedback` | ✅ Done |
+| Phase 03 | `hover-click-audio` | ✅ Done |
+| Phase 04 | `docs-catalog-cleanup` | ✅ Done |
 
 ---
 

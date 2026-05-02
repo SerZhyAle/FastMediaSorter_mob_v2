@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
+import com.sza.fastmediasorter.ui.icon.ResourceIconSet
 import javax.inject.Inject
 
 /**
@@ -43,7 +45,9 @@ class ResolveResourceIconUseCase @Inject constructor() {
             // NONE / ALL_FILES → fall through to type-based heuristic
             else -> typeHeuristicSetId(type)
         }
-        return "ico-%02d-001".format(setId)
+        // For "Other" set, pick a random icon so each new resource looks distinct
+        return if (setId == SET_OTHER) ResourceIconRegistry.randomIdFor(ResourceIconSet.OTHER)
+               else "ico-%02d-001".format(setId)
     }
 
     // ---------------------------------------------------------------------------
@@ -71,5 +75,7 @@ class ResolveResourceIconUseCase @Inject constructor() {
 
     /** Resolves a new icon id when the user changes profile/type in the editor session. */
     fun resolveForProfileChange(profile: ResourceProfile, type: ResourceType): String =
-        invoke(path = "", profile = profile, type = type) ?: "ico-%02d-001".format(SET_OTHER)
+        // Fallback to random Other icon so repeated profile-changes don't always yield the same icon
+        invoke(path = "", profile = profile, type = type)
+            ?: ResourceIconRegistry.randomIdFor(ResourceIconSet.OTHER)
 }

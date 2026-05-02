@@ -135,6 +135,16 @@
     <!-- File Information Dialog -->
     <string name="file_information">Информация о файле</string>
     <string name="file_info_section">Информация о файле</string>
+    <string name="file_info_host_label">Хост: %1$s</string>
+    <string name="file_info_share_label">Шара: %1$s</string>
+    <string name="file_info_directory_label">Каталог: %1$s</string>
+    <string name="file_info_filename_label">Файл: %1$s</string>
+    <string name="file_info_extension_mime_label">Формат: %1$s · %2$s</string>
+    <string name="file_info_last_modified_label">Изменён: %1$s</string>
+    <string name="file_info_read_only_label">Только чтение</string>
+    <string name="file_info_hidden_label">Скрытый</string>
+    <string name="file_info_copy_path">Копировать путь</string>
+    <string name="file_info_copy_path_done">Путь скопирован</string>
     <string name="exif_info_section">EXIF метаданные</string>
     <string name="video_info_section">Метаданные видео</string>
     <string name="file_name_label">Имя: %1$s</string>
@@ -200,6 +210,13 @@
     <string name="audio_duration_label">Длительность: %1$s</string>
     <string name="audio_album_label">Альбом: %1$s</string>
     <string name="audio_sample_rate_label">Частота дискретизации: %1$d Гц</string>
+    <string name="audio_bit_depth_label">Битовая глубина: %1$d-бит</string>
+    <string name="audio_lossless_label">Качество: %1$s</string>
+    <string name="audio_lossless_value_lossless">Без потерь</string>
+    <string name="audio_lossless_value_lossy">С потерями</string>
+    <string name="audio_replaygain_track_label">ReplayGain (трек): %1$.2f дБ</string>
+    <string name="audio_replaygain_album_label">ReplayGain (альбом): %1$.2f дБ</string>
+    <string name="audio_cover_art_cd">Обложка альбома</string>
     <string name="loading_placeholder">..</string>
 
     <!-- Common -->
@@ -690,6 +707,7 @@
     <string name="restart_app_title">Перезапустить приложение</string>
     <string name="restart_app_message">Для применения нового языка (%1$s) необходимо перезапустить приложение. Продолжить?</string>
     <string name="restart_app_cache_message">Для применения нового размера кэша (%1$d МБ) необходимо перезапустить приложение. Продолжить?</string>
+    <string name="restart_app_compact_elements_message">Для применения нового размера элементов плеера необходимо перезапустить приложение. Продолжить?</string>
     <string name="restart">Перезапустить</string>
 
     <!-- Welcome Screen -->
@@ -898,6 +916,7 @@
     <string name="link_autodownload_open_in_player_summary">После успешной загрузки файл сразу открывается во встроенном плеере.</string>
     <string name="link_autodownload_progress_starting">Подготовка к загрузке..</string>
     <string name="link_autodownload_progress_downloading">Скачивание..</string>
+    <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
     <string name="link_autodownload_cancel">Отмена</string>
     <string name="link_autodownload_done_resource">Сохранено в %s</string>
     <string name="link_autodownload_done_downloads">Сохранено в Downloads</string>

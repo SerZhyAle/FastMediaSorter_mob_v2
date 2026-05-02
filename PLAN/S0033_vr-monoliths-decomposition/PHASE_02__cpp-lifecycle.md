@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0033_vr-monoliths-decomposition.md`](../S0033_vr-monoliths-decomposition.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01
 **Blocks:** Phase 03, Phase 04
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-04-30
+**Completed:** 2026-04-30
 
 ---
 
@@ -68,7 +68,7 @@ Populate `OpenXrCtx.h` with the shared structs (`LayerConfig`, `SwapchainImage`,
 - `Grep` — `using namespace xrnative` matches once in `OpenXrNative.cpp`.
 - `wc -l app_v2/src/vr/cpp/OpenXrNative.cpp` ≤ 3200.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -103,7 +103,7 @@ Populate `OpenXrCtx.h` with the shared structs (`LayerConfig`, `SwapchainImage`,
 - `Grep` — each of the five function declarations matches in the header.
 - `Grep` — `Log\.d\(` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -135,7 +135,7 @@ Populate `OpenXrCtx.h` with the shared structs (`LayerConfig`, `SwapchainImage`,
 - `Grep` — `xrnative::enumerateAndCreateInstance` matches at least once in `OpenXrNative.cpp` (call site preserved).
 - `wc -l app_v2/src/vr/cpp/OpenXrNative.cpp` ≤ 2900.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -154,18 +154,18 @@ Populate `OpenXrCtx.h` with the shared structs (`LayerConfig`, `SwapchainImage`,
 - Build output indicates VR flavor compiles without errors.
 - `Grep` — `TODO(phase-02)` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 02.*` above is `[x] done`.
-- [ ] Project compiles — `/build vr debug` PASS.
-- [ ] `OpenXrNative.cpp` ≤ 2900 LOC.
-- [ ] `OpenXrLifecycle.cpp` ≤ 700 LOC.
-- [ ] `Grep` for `TODO(phase-02)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched".
+- [x] Every `Step 02.*` above is `[x] done`.
+- [x] Project compiles — `/build vr debug` PASS.
+- [x] `OpenXrNative.cpp` ≤ 2900 LOC.
+- [x] `OpenXrLifecycle.cpp` ≤ 700 LOC.
+- [x] `Grep` for `TODO(phase-02)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched".
 
 ---
 
@@ -186,3 +186,8 @@ Revert phase commit(s); the Phase 01 backup in `temp/` is still valid (the cpp b
 - **2026-04-29** — by `/spec-update` (`claude-sonnet-4-6`, focus: verifiability)
   - Applied: 1. Proposed (DISCUSS): 0.
   - Step 02.1 Verification: fixed grep pattern `namespace\s*$` → `^\s*namespace\s*\{` (the old pattern does not match `namespace {` same-line style).
+- **2026-04-30** — execution completed
+  - Step 02.1: moved shared XR structs and hand-tracking fallback typedefs into `OpenXrCtx.h`; `OpenXrNative.cpp` dropped to 3011 LOC and now uses `using namespace xrnative`.
+  - Step 02.2: added `OpenXrLifecycle.h` with explicit `XrCtx&` lifecycle declarations.
+  - Step 02.3: moved `enumerateAndCreateInstance`, `handleSessionStateChange`, `pollEvents`, `releaseCallback`, and `destroyAll` into `OpenXrLifecycle.cpp`; `OpenXrNative.cpp` dropped to 2628 LOC.
+  - Step 02.4: wired `OpenXrLifecycle.cpp` into CMake and `assembleVrDebug` passed.

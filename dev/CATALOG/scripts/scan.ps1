@@ -23,9 +23,12 @@ if (-not $OutFile) {
     $OutFile = Join-Path $Root "dev\CATALOG\$Module.jsonl"
 }
 
-$srcRoot = Join-Path $Root "$Module\src\main\java"
-if (-not (Test-Path $srcRoot)) {
-    throw "Source root not found: $srcRoot"
+$srcRoots = @(
+    (Join-Path $Root "$Module\src\main\java"),
+    (Join-Path $Root "$Module\src\vr\java")
+) | Where-Object { Test-Path $_ }
+if (-not $srcRoots -or $srcRoots.Count -eq 0) {
+    throw "No supported source roots found for module '$Module'"
 }
 
 function Get-Layer([string]$relPath) {
@@ -126,7 +129,10 @@ if (Test-Path $OutFile) {
     }
 }
 
-$ktFiles = Get-ChildItem -Path $srcRoot -Recurse -Filter '*.kt' -File
+$ktFiles = @()
+foreach ($srcRoot in $srcRoots) {
+    $ktFiles += Get-ChildItem -Path $srcRoot -Recurse -Filter '*.kt' -File
+}
 $records = New-Object System.Collections.ArrayList
 
 foreach ($file in $ktFiles) {
@@ -134,6 +140,8 @@ foreach ($file in $ktFiles) {
     if (-not $content) { continue }
     $loc = ([regex]::Matches($content, "`n")).Count + 1
 
+    $srcRoot = $srcRoots | Where-Object { $file.FullName.StartsWith($_, [System.StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1
+    if (-not $srcRoot) { continue }
     $rel = $file.FullName.Substring($srcRoot.Length + 1) -replace '\\', '/'
     $layer = Get-Layer $rel
     $className = Get-PrimaryName $content $file.Name

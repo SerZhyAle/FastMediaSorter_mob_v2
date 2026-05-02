@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0033_vr-monoliths-decomposition.md`](../S0033_vr-monoliths-decomposition.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done (manual device smoke deferred)
 **Depends on:** Phase 01, Phase 02, Phase 03
 **Blocks:** Phase 05 (only because the cpp track must finish before the Activity track to keep diffs reviewable; no semantic dependency)
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-04-30
+**Completed:** 2026-04-30
 
 ---
 
@@ -19,9 +19,9 @@ Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`
 
 ## Prerequisites
 
-- [ ] Phase 03 ✅ Done (swapchain + frame already extracted; `OpenXrNative.cpp` ≤ 1900 LOC).
-- [ ] Backup of `OpenXrNative.cpp` placed in `temp/`.
-- [ ] Working tree clean or on a feature branch.
+- [x] Phase 03 ✅ Done (swapchain + frame already extracted; `OpenXrNative.cpp` ≤ 1900 LOC).
+- [x] Backup of `OpenXrNative.cpp` placed in `temp/`.
+- [x] Working tree clean or on a feature branch.
 
 ---
 
@@ -76,7 +76,7 @@ Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`
 - `Grep` — `XrCtx::syncInputActions` does NOT match.
 - `wc -l app_v2/src/vr/cpp/OpenXrInput.cpp` ≤ 750.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -109,7 +109,7 @@ Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`
 - `Grep` — `XrCtx::syncHandTracking` does NOT match anywhere.
 - `wc -l app_v2/src/vr/cpp/OpenXrHandTracking.cpp` ≤ 600.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -130,7 +130,7 @@ Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`
 - `Grep` — `g_ctx\.syncHandTracking\(` does NOT match.
 - `wc -l app_v2/src/vr/cpp/OpenXrNative.cpp` ≤ 700.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -150,7 +150,7 @@ Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`
 - `assembleStandardDebug` PASS.
 - `Grep` — `TODO(phase-04)` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 
@@ -174,18 +174,18 @@ Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`
 
 - Step status flipped to `[manual — deferred to human]` in this file.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 04.*` above is `[x] done` (Step 04.5 may be `[manual — deferred to human]`; spec status moves to `BlockNeedUserTest` if so).
-- [ ] Project compiles — `/build vr debug` PASS, `/build standard debug` PASS.
-- [ ] `OpenXrNative.cpp` ≤ 700 LOC. Coordinator role only.
-- [ ] All extracted `OpenXr*.cpp` files ≤ 800 LOC each.
-- [ ] `Grep` for `TODO(phase-04)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched".
+- [x] Every `Step 04.*` above is `[x] done` (Step 04.5 may be `[manual — deferred to human]`; spec status moves to `BlockNeedUserTest` if so).
+- [x] Project compiles — `/build vr debug` PASS, `/build standard debug` PASS.
+- [x] `OpenXrNative.cpp` ≤ 700 LOC. Coordinator role only.
+- [x] All extracted `OpenXr*.cpp` files ≤ 800 LOC each.
+- [x] `Grep` for `TODO(phase-04)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched".
 
 ---
 
@@ -198,3 +198,14 @@ cpp track is complete. `OpenXrNative.cpp` is now a thin coordinator (globals + J
 ## Rollback Plan
 
 Revert phase commit(s); previous backups remain valid. JNI signatures preserved verbatim — no cross-language coupling at risk.
+
+---
+
+## Revision History
+
+- **2026-04-30** — Phase 04 completed
+	- Step 04.1: added `OpenXrInput.h/.cpp` and moved controller input, pointer, and controller-ray helpers out of `OpenXrNative.cpp`.
+	- Step 04.2: added `OpenXrHandTracking.h/.cpp` and moved the hand-tracking subsystem out of `OpenXrNative.cpp`.
+	- Step 04.3: rewired `OpenXrFrame.cpp`, `OpenXrSwapchain.cpp`, `OpenXrLifecycle.cpp`, and `OpenXrNative.cpp` to use the extracted `xrnative` APIs.
+	- Step 04.4: added both new TUs to CMake; `assembleVrDebug` and `assembleStandardDebug` passed.
+	- Step 04.5: Quest 3 smoke remains manual and is deferred to human validation.

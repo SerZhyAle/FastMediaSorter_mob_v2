@@ -222,6 +222,12 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
 
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        // See PlayerActivity.onCreate — must run before super → setContentView.
+        com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.applyControlsThemeOverlay(this)
+        super.onCreate(savedInstanceState)
+    }
+
     // Player layout has its own immersive insets handling — skip global edge-to-edge
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
@@ -398,9 +404,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         observePipSettings()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (::lifecycleManager.isInitialized) lifecycleManager.onResume()
+    override fun onResumeWithViews() {
+        lifecycleManager.onResume()
     }
 
     override fun onPause() {

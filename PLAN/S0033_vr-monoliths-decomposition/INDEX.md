@@ -4,9 +4,9 @@
 **Feature:** Decompose `OpenXrNative.cpp` (3487 LOC) and `VrPlayerActivity.kt` (1956 LOC) so both files satisfy CLAUDE.md rule 2 (≤ 1000 LOC) and unblock S0024 Phase 02.
 **Tier:** 3 — Moderate
 **Priority:** 60
-**Status:** Not started
-**Phases:** 0 / 6 done
-**Last updated:** 2026-04-29
+**Status:** In Progress
+**Phases:** 4 / 6 done
+**Last updated:** 2026-04-30
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
 
@@ -16,10 +16,10 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | cpp-logging-and-ctx-header | — | ⬜ Not started | 0/5 | [PHASE_01__cpp-logging-and-ctx-header.md](PHASE_01__cpp-logging-and-ctx-header.md) |
-| 02 | cpp-lifecycle | 01 | ⬜ Not started | 0/4 | [PHASE_02__cpp-lifecycle.md](PHASE_02__cpp-lifecycle.md) |
-| 03 | cpp-swapchain-and-frame | 01, 02 | ⬜ Not started | 0/5 | [PHASE_03__cpp-swapchain-and-frame.md](PHASE_03__cpp-swapchain-and-frame.md) |
-| 04 | cpp-input-and-hand | 01, 02, 03 | ⬜ Not started | 0/5 | [PHASE_04__cpp-input-and-hand.md](PHASE_04__cpp-input-and-hand.md) |
+| 01 | cpp-logging-and-ctx-header | — | ✅ Done | 5/5 | [PHASE_01__cpp-logging-and-ctx-header.md](PHASE_01__cpp-logging-and-ctx-header.md) |
+| 02 | cpp-lifecycle | 01 | ✅ Done | 4/4 | [PHASE_02__cpp-lifecycle.md](PHASE_02__cpp-lifecycle.md) |
+| 03 | cpp-swapchain-and-frame | 01, 02 | ✅ Done | 5/5 | [PHASE_03__cpp-swapchain-and-frame.md](PHASE_03__cpp-swapchain-and-frame.md) |
+| 04 | cpp-input-and-hand | 01, 02, 03 | ✅ Done | 5/5 | [PHASE_04__cpp-input-and-hand.md](PHASE_04__cpp-input-and-hand.md) |
 | 05 | activity-helpers | 01..04 | ⬜ Not started | 0/6 | [PHASE_05__activity-helpers.md](PHASE_05__activity-helpers.md) |
 | 06 | docs-catalog-cleanup | all | ⬜ Not started | 0/4 | [PHASE_06__docs-catalog-cleanup.md](PHASE_06__docs-catalog-cleanup.md) |
 
@@ -33,7 +33,7 @@ _None — strategic §6 research items are either Resolved (CMake org, test cove
 
 - [x] **Research §6.1 (CMake organization):** single `openxr_native` target with all `.cpp` listed; resolved (default).
 - [x] **Research §6.3 (Test coverage policy):** unit-tests only for pure Kotlin logic extracted into Managers; JNI surface stays smoke-tested. Resolved.
-- [ ] **Research §6.2 (Activity granularity):** finalised inline in Phase 05 by mapping each existing function to one of three Managers.
+- [x] **Research §6.2 (Activity granularity):** finalised inline in Phase 05 by mapping each existing function to one of three Managers.
 
 ---
 
@@ -72,3 +72,11 @@ _None — strategic §6 research items are either Resolved (CMake org, test cove
 ## Change Log
 
 - 2026-04-29 — Initial tactical plan authored by `/spec-tech`.
+- 2026-04-30 — Execution started: Phase 01 set to In Progress, Step 01.1 completed, global blocker §6.2 marked resolved because the manager mapping is already frozen inline in Phase 05.
+- 2026-04-30 — Step 01.2 completed: `OpenXrLog.h` added and validated.
+- 2026-04-30 — Steps 01.3 and 01.4 completed: logging + diagnostic helpers extracted into `OpenXrLog.cpp`; `OpenXrNative.cpp` shrunk to 3380 LOC.
+- 2026-04-30 — Phase 01 completed: `OpenXrLog.cpp` wired into CMake, `assembleVrDebug` passed, phase criteria all satisfied.
+- 2026-04-30 — Phase 02 completed: `OpenXrCtx.h` now owns shared XR structs, lifecycle functions moved to `OpenXrLifecycle.cpp`, `OpenXrNative.cpp` shrunk to 2628 LOC, and `assembleVrDebug` passed again.
+- 2026-04-30 — Phase 03 started: `OpenXrSwapchain.h/.cpp` added, swapchain bodies extracted behind thin wrappers, `OpenXrNative.cpp` shrunk to 2126 LOC, and `assembleVrDebug` still passes.
+- 2026-04-30 — Phase 03 completed: `OpenXrFrame.h/.cpp` added, frame loop extracted, `OpenXrNative.cpp` shrunk to 1644 LOC, and `assembleVrDebug` passed.
+- 2026-04-30 — Phase 04 completed: `OpenXrInput.h/.cpp` and `OpenXrHandTracking.h/.cpp` added, `OpenXrNative.cpp` shrunk to 675 LOC, and both `assembleVrDebug` and `assembleStandardDebug` passed. Quest 3 smoke remains manual.

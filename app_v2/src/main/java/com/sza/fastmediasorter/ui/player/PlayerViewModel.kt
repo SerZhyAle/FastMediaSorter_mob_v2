@@ -276,7 +276,8 @@ class PlayerViewModel @Inject constructor(
         resourceRepository = resourceRepository,
         stateFlow = state,
         updateState = { update -> updateState(update) },
-        saveResumeState = { this.saveResumeState() }
+        saveResumeState = { this.saveResumeState() },
+        clearPlaybackWatchdogs = { smbClient.playbackConnectionTracker.clearAllWatchdogs() }
     )
 
     // IMPORTANT: init must run AFTER mediaFilesLoader/navigationCoordinator are initialized —
@@ -328,11 +329,11 @@ class PlayerViewModel @Inject constructor(
      */
     fun syncAudioServiceIndex(serviceIndex: Int) = navigationCoordinator.syncAudioServiceIndex(serviceIndex)
 
-    fun jumpToIndex(index: Int) = navigationCoordinator.jumpToIndex(index)
+    fun jumpToIndex(index: Int, manual: Boolean = false) = navigationCoordinator.jumpToIndex(index, manual)
 
-    fun nextFile(skipDocuments: Boolean = false) = navigationCoordinator.nextFile(skipDocuments)
+    fun nextFile(skipDocuments: Boolean = false, manual: Boolean = false) = navigationCoordinator.nextFile(skipDocuments, manual)
 
-    fun previousFile(skipDocuments: Boolean = false) = navigationCoordinator.previousFile(skipDocuments)
+    fun previousFile(skipDocuments: Boolean = false, manual: Boolean = false) = navigationCoordinator.previousFile(skipDocuments, manual)
 
     
     fun cancelLoading() = mediaFilesLoader.cancelLoading()

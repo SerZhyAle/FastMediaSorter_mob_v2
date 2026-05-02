@@ -349,14 +349,16 @@ class PlayerDialogHelper(
      */
     fun showFileInfo(file: MediaFile) {
         val dialog = com.sza.fastmediasorter.ui.dialog.FileInfoDialog(
-            activity, 
+            activity,
             file,
             smbClient,
             sftpClient,
             ftpClient,
             credentialsRepository,
             unifiedCache,
-            downloadNetworkFileUseCase
+            downloadNetworkFileUseCase,
+            audioMetadataLoader = null,
+            audioMetadataCacheRepository = null
         )
         safeShow(dialog)
     }

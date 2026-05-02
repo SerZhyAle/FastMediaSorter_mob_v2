@@ -74,9 +74,30 @@ class GeneralSettingsViewSetupHelper(
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showSmallControls = isChecked))
         }
-        binding.switchCompactElements?.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchCompactElements?.setOnCheckedChangeListener { switchView, isChecked ->
             if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(useCompactElements = isChecked))
+            val current = viewModel.settings.value
+            if (current.useCompactElements == isChecked) return@setOnCheckedChangeListener
+            // Player controls layout is bound to this flag at inflate time (see PlayerLayoutModePrefs);
+            // the switch only takes effect after an app restart, so confirm with the user first.
+            AlertDialog.Builder(fragment.requireContext())
+                .setTitle(R.string.restart_app_title)
+                .setMessage(R.string.restart_app_compact_elements_message)
+                .setCancelable(false)
+                .setPositiveButton(R.string.restart) { _, _ ->
+                    viewModel.updateSettings(current.copy(useCompactElements = isChecked))
+                    com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
+                        .setCompact(fragment.requireContext(), isChecked)
+                    LocaleHelper.markReturnToSettings(fragment.requireContext())
+                    LocaleHelper.restartApp(fragment.requireActivity())
+                }
+                .setNegativeButton(R.string.cancel) { dialog, _ ->
+                    setIsUpdatingSpinner(true)
+                    switchView.isChecked = current.useCompactElements
+                    setIsUpdatingSpinner(false)
+                    dialog.dismiss()
+                }
+                .show()
         }
         binding.switchAllFiles.setOnCheckedChangeListener { _, isChecked ->
             if (getIsUpdatingSpinner()) {

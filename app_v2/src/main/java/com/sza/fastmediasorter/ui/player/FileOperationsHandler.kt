@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -35,10 +36,26 @@ import java.net.Socket
 class FileOperationsHandler(
     private val context: Context,
     private val lifecycleScope: LifecycleCoroutineScope,
+    private val appScope: CoroutineScope,
     private val settingsRepository: SettingsRepository,
     private val fileOperationUseCase: FileOperationUseCase,
     private val callback: FileOperationCallback
 ) {
+    /**
+     * App-context wrapper for Toasts that may fire after Activity is destroyed.
+     * Activity context is invalid for view-system callbacks once the window is gone.
+     */
+    private val appCtx: Context get() = context.applicationContext
+
+    /**
+     * True if `context` is an Activity that is finishing or destroyed.
+     * Used to skip UI callbacks (Toasts, dialogs, navigation) on dead Activities
+     * when copy/move complete on the long-lived appScope.
+     */
+    private fun isActivityGone(): Boolean {
+        val act = context as? Activity ?: return false
+        return act.isFinishing || act.isDestroyed
+    }
     interface FileOperationCallback {
         fun onCopySuccess(destination: MediaResource, goToNext: Boolean)
         fun onMoveSuccess(destination: MediaResource, movedFilePath: String, goToNext: Boolean)
@@ -56,73 +73,91 @@ class FileOperationsHandler(
     fun performCopy(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
 
-        lifecycleScope.launch {
+        // Runs on appScope so the copy survives PlayerActivity destruction.
+        // UI callbacks (Toast, navigation) are gated by isActivityGone() — when
+        // the Activity is gone the user already moved on, so suppress the noise.
+        appScope.launch {
             val destinationReachabilityError = checkSmbDestinationReachability(destination)
             if (destinationReachabilityError != null) {
-                callback.onOperationError(destinationReachabilityError, null)
+                if (!isActivityGone()) {
+                    withContext(Dispatchers.Main) {
+                        callback.onOperationError(destinationReachabilityError, null)
+                    }
+                }
                 return@launch
             }
 
-            // Show immediate feedback that operation started
-            Toast.makeText(
-                context,
-                context.getString(com.sza.fastmediasorter.R.string.msg_copy_started, destination.name),
-                Toast.LENGTH_LONG
-            ).show()
+            withContext(Dispatchers.Main) {
+                if (!isActivityGone()) {
+                    Toast.makeText(
+                        appCtx,
+                        appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_started, destination.name),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
 
             val settings = settingsRepository.getSettings().first()
-            
+
             try {
                 val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
                 val destFile = createNetworkAwareFile(destination.path, null)
-                
+
                 val operation = FileOperation.Copy(
                     sources = listOf(sourceFile),
                     destination = destFile,
                     overwrite = settings.overwriteOnCopy,
                     sourceCredentialsId = callback.getCurrentResource()?.credentialsId
                 )
-                
+
                 val result = fileOperationUseCase.execute(operation)
-                
-                when (result) {
-                    is FileOperationResult.Success -> {
-                        Toast.makeText(context, context.getString(com.sza.fastmediasorter.R.string.msg_copy_success, destination.name), Toast.LENGTH_SHORT).show()
-                        callback.onCopySuccess(destination, settings.goToNextAfterCopy)
+
+                withContext(Dispatchers.Main) {
+                    if (isActivityGone()) {
+                        Timber.i("FileOperationsHandler: copy completed after Activity destroyed — skipping UI callbacks (result=${result::class.simpleName})")
+                        return@withContext
                     }
-                    is FileOperationResult.PartialSuccess -> {
-                        val successCount = result.processedCount
-                        Toast.makeText(context, context.getString(com.sza.fastmediasorter.R.string.msg_copy_success_count, successCount, destination.name), Toast.LENGTH_SHORT).show()
-                        if (settings.goToNextAfterCopy) {
-                            callback.onCopySuccess(destination, true)
+                    when (result) {
+                        is FileOperationResult.Success -> {
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_success, destination.name), Toast.LENGTH_SHORT).show()
+                            callback.onCopySuccess(destination, settings.goToNextAfterCopy)
                         }
-                    }
-                    is FileOperationResult.Failure -> {
-                        val errorText = if (result.errorRes != null) {
-                            context.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                        } else if (result.error.contains("already exists", ignoreCase = true)) {
-                            context.getString(com.sza.fastmediasorter.R.string.error_file_exists_copy, currentFile.name, destination.name)
-                        } else {
-                            result.error
+                        is FileOperationResult.PartialSuccess -> {
+                            val successCount = result.processedCount
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_success_count, successCount, destination.name), Toast.LENGTH_SHORT).show()
+                            if (settings.goToNextAfterCopy) {
+                                callback.onCopySuccess(destination, true)
+                            }
                         }
-                        
-                        // If using localized bulk error, use it directly. Otherwise wrap in generic "Copy failed"
-                        val message = if (result.errorRes != null) errorText 
-                                     else context.getString(com.sza.fastmediasorter.R.string.error_copy_failed, errorText)
-                        
-                        callback.onOperationError(message, null)
-                    }
-                    is FileOperationResult.AuthenticationRequired -> {
-                        callback.onAuthenticationRequired(result.provider, result.message)
-                    }
-                    is FileOperationResult.PermissionRequired -> {
-                        // This shouldn't happen for Copy operation, only Delete
-                        callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
+                        is FileOperationResult.Failure -> {
+                            val errorText = if (result.errorRes != null) {
+                                appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
+                            } else if (result.error.contains("already exists", ignoreCase = true)) {
+                                appCtx.getString(com.sza.fastmediasorter.R.string.error_file_exists_copy, currentFile.name, destination.name)
+                            } else {
+                                result.error
+                            }
+
+                            val message = if (result.errorRes != null) errorText
+                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, errorText)
+
+                            callback.onOperationError(message, null)
+                        }
+                        is FileOperationResult.AuthenticationRequired -> {
+                            callback.onAuthenticationRequired(result.provider, result.message)
+                        }
+                        is FileOperationResult.PermissionRequired -> {
+                            callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
+                        }
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Copy operation failed")
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_copy_failed, e.message), e)
+                if (!isActivityGone()) {
+                    withContext(Dispatchers.Main) {
+                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, e.message), e)
+                    }
+                }
             }
         }
     }
@@ -133,71 +168,87 @@ class FileOperationsHandler(
     fun performMove(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
 
-        lifecycleScope.launch {
+        // Same scope reasoning as performCopy: outlive Activity destruction.
+        appScope.launch {
             val destinationReachabilityError = checkSmbDestinationReachability(destination)
             if (destinationReachabilityError != null) {
-                callback.onOperationError(destinationReachabilityError, null)
+                if (!isActivityGone()) {
+                    withContext(Dispatchers.Main) {
+                        callback.onOperationError(destinationReachabilityError, null)
+                    }
+                }
                 return@launch
             }
 
-            // Show immediate feedback that operation started
-            Toast.makeText(
-                context,
-                context.getString(com.sza.fastmediasorter.R.string.msg_move_started, destination.name),
-                Toast.LENGTH_LONG
-            ).show()
+            withContext(Dispatchers.Main) {
+                if (!isActivityGone()) {
+                    Toast.makeText(
+                        appCtx,
+                        appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_started, destination.name),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
 
             val settings = settingsRepository.getSettings().first()
-            
+
             try {
                 val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
                 val destFile = createNetworkAwareFile(destination.path, null)
-                
+
                 val operation = FileOperation.Move(
                     sources = listOf(sourceFile),
                     destination = destFile,
                     overwrite = settings.overwriteOnMove,
                     sourceCredentialsId = callback.getCurrentResource()?.credentialsId
                 )
-                
+
                 val result = fileOperationUseCase.execute(operation)
-                
-                when (result) {
-                    is FileOperationResult.Success -> {
-                        Toast.makeText(context, context.getString(com.sza.fastmediasorter.R.string.msg_move_success, destination.name), Toast.LENGTH_SHORT).show()
-                        callback.onMoveSuccess(destination, currentFile.path, true)
+
+                withContext(Dispatchers.Main) {
+                    if (isActivityGone()) {
+                        Timber.i("FileOperationsHandler: move completed after Activity destroyed — skipping UI callbacks (result=${result::class.simpleName})")
+                        return@withContext
                     }
-                    is FileOperationResult.PartialSuccess -> {
-                        val successCount = result.processedCount
-                        Toast.makeText(context, context.getString(com.sza.fastmediasorter.R.string.msg_move_success_count, successCount, destination.name), Toast.LENGTH_SHORT).show()
-                        callback.onMoveSuccess(destination, currentFile.path, true)
-                    }
-                    is FileOperationResult.Failure -> {
-                        val errorText = if (result.errorRes != null) {
-                            context.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                        } else if (result.error.contains("already exists", ignoreCase = true)) {
-                            context.getString(com.sza.fastmediasorter.R.string.error_file_exists_move, currentFile.name, destination.name)
-                        } else {
-                            result.error
+                    when (result) {
+                        is FileOperationResult.Success -> {
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success, destination.name), Toast.LENGTH_SHORT).show()
+                            callback.onMoveSuccess(destination, currentFile.path, true)
                         }
-                        
-                        // If using localized bulk error, use it directly. Otherwise wrap in generic "Move failed"
-                        val message = if (result.errorRes != null) errorText 
-                                     else context.getString(com.sza.fastmediasorter.R.string.error_move_failed, errorText)
-                                     
-                        callback.onOperationError(message, null)
-                    }
-                    is FileOperationResult.AuthenticationRequired -> {
-                        callback.onAuthenticationRequired(result.provider, result.message)
-                    }
-                    is FileOperationResult.PermissionRequired -> {
-                        // Move operation requires permission to delete source after copy
-                        callback.onBatchDeletePermissionRequired(result.pendingIntent)
+                        is FileOperationResult.PartialSuccess -> {
+                            val successCount = result.processedCount
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success_count, successCount, destination.name), Toast.LENGTH_SHORT).show()
+                            callback.onMoveSuccess(destination, currentFile.path, true)
+                        }
+                        is FileOperationResult.Failure -> {
+                            val errorText = if (result.errorRes != null) {
+                                appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
+                            } else if (result.error.contains("already exists", ignoreCase = true)) {
+                                appCtx.getString(com.sza.fastmediasorter.R.string.error_file_exists_move, currentFile.name, destination.name)
+                            } else {
+                                result.error
+                            }
+
+                            val message = if (result.errorRes != null) errorText
+                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, errorText)
+
+                            callback.onOperationError(message, null)
+                        }
+                        is FileOperationResult.AuthenticationRequired -> {
+                            callback.onAuthenticationRequired(result.provider, result.message)
+                        }
+                        is FileOperationResult.PermissionRequired -> {
+                            callback.onBatchDeletePermissionRequired(result.pendingIntent)
+                        }
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Move operation failed")
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message), e)
+                if (!isActivityGone()) {
+                    withContext(Dispatchers.Main) {
+                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message), e)
+                    }
+                }
             }
         }
     }

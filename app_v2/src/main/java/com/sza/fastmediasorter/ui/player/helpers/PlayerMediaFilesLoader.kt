@@ -233,6 +233,7 @@ class PlayerMediaFilesLoader(
 
                     getMediaFilesUseCase(
                         resource = resource,
+                        sortMode = resource.sortMode,
                         sizeFilter = sizeFilter,
                         useChunkedLoading = false,
                         maxFiles = Int.MAX_VALUE,

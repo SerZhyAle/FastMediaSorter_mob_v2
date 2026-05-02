@@ -115,11 +115,11 @@ class PlayerNavigationManager(
             if (verticalScroll > 0) {
                 // Scroll up = previous file
                 Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Mouse scroll UP")
-                navigatePrevious()
+                navigatePrevious(manual = true)
             } else {
                 // Scroll down = next file
                 Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Mouse scroll DOWN")
-                navigateNext()
+                navigateNext(manual = true)
             }
             return true
         }
@@ -133,11 +133,11 @@ class PlayerNavigationManager(
         when (zone) {
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.LEFT -> {
                 Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: 2-zone LEFT touch (GestureHelper)")
-                navigatePrevious()
+                navigatePrevious(manual = true)
             }
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.RIGHT -> {
                 Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: 2-zone RIGHT touch (GestureHelper)")
-                navigateNext()
+                navigateNext(manual = true)
             }
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.CENTER -> {
                 viewModel.togglePause()
@@ -156,7 +156,7 @@ class PlayerNavigationManager(
      */
     fun navigatePreviousFromButton() {
         Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: UI Manager PREVIOUS button clicked")
-        navigatePrevious()
+        navigatePrevious(manual = true)
         activity.scheduleHideControls()
     }
 
@@ -165,7 +165,7 @@ class PlayerNavigationManager(
      */
     fun navigateNextFromButton() {
         Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: UI Manager NEXT button clicked")
-        navigateNext()
+        navigateNext(manual = true)
         activity.scheduleHideControls()
     }
 
@@ -185,7 +185,7 @@ class PlayerNavigationManager(
         val randomOffset = Random.nextInt(files.size - 1) + 1
         val randomIndex = (currentIndex + randomOffset) % files.size
         Timber.tag("TOUCH_ZONE_DEBUG").w("RANDOM triggered by: UI Manager RANDOM button clicked -> $currentIndex to $randomIndex")
-        viewModel.jumpToIndex(randomIndex)
+        viewModel.jumpToIndex(randomIndex, manual = true)
 
         if (currentState.currentFile?.type == MediaType.AUDIO) {
             activity.advanceAudioBackgroundPhoto()
@@ -199,7 +199,7 @@ class PlayerNavigationManager(
      */
     fun navigatePreviousFromGesture() {
         Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Gesture PREVIOUS")
-        navigatePrevious()
+        navigatePrevious(manual = true)
     }
 
     /**
@@ -207,15 +207,15 @@ class PlayerNavigationManager(
      */
     fun navigateNextFromGesture() {
         Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Gesture NEXT")
-        navigateNext()
+        navigateNext(manual = true)
     }
 
     /**
      * Navigate to previous file
      */
-    private fun navigatePrevious(skipDocuments: Boolean = false) {
+    private fun navigatePrevious(skipDocuments: Boolean = false, manual: Boolean = false) {
         val currentFileBeforeNav = viewModel.state.value.currentFile
-        viewModel.previousFile(skipDocuments)
+        viewModel.previousFile(skipDocuments, manual)
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
             activity.advanceAudioBackgroundPhoto()
@@ -227,9 +227,9 @@ class PlayerNavigationManager(
     /**
      * Navigate to next file
      */
-    private fun navigateNext(skipDocuments: Boolean = false) {
+    private fun navigateNext(skipDocuments: Boolean = false, manual: Boolean = false) {
         val currentFileBeforeNav = viewModel.state.value.currentFile
-        viewModel.nextFile(skipDocuments)
+        viewModel.nextFile(skipDocuments, manual)
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
             activity.advanceAudioBackgroundPhoto()

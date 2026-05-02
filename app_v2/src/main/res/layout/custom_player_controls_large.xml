@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Large variant of custom_player_controls.
+  Selected via theme attr `customPlayerControlsLayout` when AppSettings.useCompactElements == false.
+  Differs from the compact baseline only in the seekbar/time block:
+  - thicker bar, larger touch target, larger scrubber, larger time text.
+  Bottom button row is intentionally identical to keep layout stable.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="UselessParent">
+
+    <LinearLayout
+        android:id="@+id/exo_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/activity_player_unified_toolbar_background"
+        android:orientation="vertical"
+        android:padding="@dimen/player_controls_padding">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@id/exo_position"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="@dimen/player_position_text_size_large"
+                android:includeFontPadding="false" />
+
+            <androidx.media3.ui.DefaultTimeBar
+                android:id="@id/exo_progress"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/player_progress_height_large"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="@dimen/player_progress_margin_horizontal"
+                app:bar_height="@dimen/player_progress_bar_height_large"
+                app:touch_target_height="@dimen/player_progress_touch_height_large"
+                app:scrubber_enabled_size="@dimen/player_progress_scrubber_size_large"
+                app:scrubber_dragged_size="@dimen/player_progress_scrubber_dragged_size_large"
+                app:played_color="@color/white"
+                app:scrubber_color="@color/white"
+                app:buffered_color="@color/white_50_alpha"
+                app:unplayed_color="@color/custom_player_controls_exo_bottom_bar_unplayed_color" />
+
+            <TextView
+                android:id="@id/exo_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="@dimen/player_position_text_size_large"
+                android:includeFontPadding="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/exo_repeat"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:src="@drawable/ic_repeat"
+                app:tint="@color/selector_player_button_tint"
+                android:contentDescription="@string/repeat"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/exo_prev_file"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_medium_button_size"
+                android:layout_height="@dimen/player_medium_button_size"
+                android:layout_marginStart="@dimen/player_group_separator_margin"
+                android:src="@drawable/ic_back"
+                app:tint="@color/selector_player_button_tint"
+                android:contentDescription="@string/previous_file"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnRewind10"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:layout_marginStart="@dimen/player_button_margin_start"
+                android:src="@drawable/ic_fast_rewind"
+                app:tint="@color/selector_player_button_tint"
+                android:contentDescription="@string/rewind_10_seconds"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@id/exo_play_pause"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_large_button_size"
+                android:layout_height="@dimen/player_large_button_size"
+                android:layout_marginHorizontal="@dimen/player_play_button_margin_horizontal"
+                app:tint="@color/selector_player_button_tint"
+                android:contentDescription="@string/play_pause"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnForward30"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:src="@drawable/ic_fast_forward"
+                app:tint="@color/selector_player_button_tint"
+                android:contentDescription="@string/forward_30_seconds"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/exo_next_file"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="96dp"
+                android:layout_height="@dimen/player_medium_button_size"
+                android:src="@drawable/ic_next_circle_selector"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/next_file"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnPlaybackControl"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:layout_marginStart="@dimen/player_group_separator_margin"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/selector_player_button_tint"
+                android:contentDescription="@string/control"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnPictureInPicture"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:layout_marginStart="@dimen/player_button_margin_start"
+                android:src="@drawable/ic_picture_in_picture"
+                app:tint="@color/selector_player_button_tint"
+                android:contentDescription="@string/picture_in_picture"
+                android:visibility="gone"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

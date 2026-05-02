@@ -275,6 +275,7 @@ class BrowseCameraCaptureManager(
 
     private suspend fun save(tempFile: File, name: String, resource: MediaResource) {
         val path = resource.path
+        var failureMessageRes = R.string.camera_capture_error_save_generic
         val isVirtualCameraTarget = VirtualPathUtils.isVirtualPath(path) ||
             path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO ||
             path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
@@ -296,9 +297,11 @@ class BrowseCameraCaptureManager(
             }
         } catch (e: IOException) {
             Timber.e(e, "S0022-CAM: save IO error resource.type=%s path=%s", resource.type, path)
+            failureMessageRes = R.string.camera_capture_error_io
             false
         } catch (e: Exception) {
             Timber.e(e, "S0022-CAM: save FAILED resource.type=%s path=%s", resource.type, path)
+            failureMessageRes = R.string.camera_capture_error_save_generic
             false
         } finally {
             tempFile.delete()
@@ -310,7 +313,7 @@ class BrowseCameraCaptureManager(
                 showSnackbar(activity.getString(R.string.camera_capture_saved, name))
                 onFileSaved(name)
             } else {
-                showSnackbar(R.string.camera_capture_error_save_generic)
+                showSnackbar(failureMessageRes)
             }
         }
     }

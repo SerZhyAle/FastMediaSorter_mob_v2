@@ -195,6 +195,11 @@ data class MediaResource(
     }
 }
 
+data class FileAttributes(
+    val readOnly: Boolean = false,
+    val hidden: Boolean = false
+)
+
 /**
  * Domain model for Media File
  */
@@ -233,7 +238,8 @@ data class MediaFile(
     val lastModified: Long = 0L, // File last modified timestamp (ms); 0 if unavailable
     // Cloud display metadata (for CLOUD resources)
     val cloudDisplayPath: String? = null, // Human-readable cloud path (folders + file name)
-    val cloudItemId: String? = null // Provider-specific internal file/folder ID
+    val cloudItemId: String? = null, // Provider-specific internal file/folder ID
+    val attributes: FileAttributes? = null // Read-only/hidden attributes (where the source reports them)
 )
 
 /**

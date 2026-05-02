@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0003_link-receive-download.md`](../S0003_link-receive-download.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 03
 **Blocks:** Phase 05
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 

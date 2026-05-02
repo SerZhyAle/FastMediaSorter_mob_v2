@@ -20,6 +20,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.core.util.SettingsIntentLauncher
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
@@ -37,6 +39,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private var currentPage = 0
     private var defaultPlayerPageIndex = -1
     private var waitingPermissionForFinish = false
+    // Separate field so the restored page is applied once in setupViewPager() without
+    // affecting currentPage until the ViewPager is ready.
+    private var restoredPage = 0
     private var hasTriggeredLastPagePermissionRequest = false
     private var hasRequestedManageMediaInSession = false
     private var hasRequestedAllFilesAccessInSession = false
@@ -46,30 +51,33 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.values.all { it }
+        Timber.tag(TAG).i(
+            "mediaPermissionsLauncher result: allGranted=%s, perPermission=%s, hasRequiredAfter=%s",
+            allGranted,
+            permissions.entries.joinToString { "${it.key}=${it.value}" },
+            hasRequiredMediaPermissions()
+        )
         if (allGranted || hasRequiredMediaPermissions()) {
             onRuntimePermissionsProcessed()
         } else {
             showPermissionDeniedDialog()
         }
     }
-    private val manageMediaPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        continueSpecialPermissionsFlowOrComplete()
-    }
-    private val allFilesAccessPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        continueSpecialPermissionsFlowOrComplete()
-    }
     private val batteryOptimizationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) {
+    ) { result ->
+        val pm = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+        Timber.tag(TAG).i(
+            "batteryOptimizationPermissionLauncher result: resultCode=%d, isIgnoringBatteryOptimizations=%s",
+            result.resultCode,
+            pm.isIgnoringBatteryOptimizations(packageName)
+        )
         continueSpecialPermissionsFlowOrComplete()
     }
     private val notificationsPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) {
+    ) { granted ->
+        Timber.tag(TAG).i("notificationsPermissionLauncher result: granted=%s", granted)
         continueSpecialPermissionsFlowOrComplete()
     }
     private val pageBackgrounds = mutableListOf(
@@ -98,6 +106,34 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // No data to observe
     }
 
+    // Preserve permission-flow state across Activity recreation (e.g., night-mode or density
+    // config changes that occur while a system permission dialog is on screen).  Without this,
+    // waitingPermissionForFinish resets to false and continueSpecialPermissionsFlowOrComplete()
+    // never reaches completeWelcomeFlow(), leaving the user permanently stuck on WelcomeActivity.
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.let { state ->
+            waitingPermissionForFinish = state.getBoolean(KEY_WAITING_PERMISSION, false)
+            hasRequestedManageMediaInSession = state.getBoolean(KEY_REQUESTED_MANAGE_MEDIA, false)
+            hasRequestedAllFilesAccessInSession = state.getBoolean(KEY_REQUESTED_ALL_FILES, false)
+            hasRequestedBatteryOptimizationInSession = state.getBoolean(KEY_REQUESTED_BATTERY, false)
+            hasRequestedNotificationsInSession = state.getBoolean(KEY_REQUESTED_NOTIFICATIONS, false)
+            hasTriggeredLastPagePermissionRequest = state.getBoolean(KEY_TRIGGERED_PERMISSION_REQUEST, false)
+            restoredPage = state.getInt(KEY_CURRENT_PAGE, 0)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_WAITING_PERMISSION, waitingPermissionForFinish)
+        outState.putBoolean(KEY_REQUESTED_MANAGE_MEDIA, hasRequestedManageMediaInSession)
+        outState.putBoolean(KEY_REQUESTED_ALL_FILES, hasRequestedAllFilesAccessInSession)
+        outState.putBoolean(KEY_REQUESTED_BATTERY, hasRequestedBatteryOptimizationInSession)
+        outState.putBoolean(KEY_REQUESTED_NOTIFICATIONS, hasRequestedNotificationsInSession)
+        outState.putBoolean(KEY_TRIGGERED_PERMISSION_REQUEST, hasTriggeredLastPagePermissionRequest)
+        outState.putInt(KEY_CURRENT_PAGE, currentPage)
+    }
+
     private fun applyEdgeToEdgeInsets() {
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             applyWindowInsets(insets)
@@ -117,10 +153,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
         val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+        val cutout = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout())
 
-        // Skip button below status bar
+        val marginSmall = resources.getDimensionPixelSize(R.dimen.margin_small)
+
+        // Skip button: clear of status bar top and right-side cutout/nav bar (foldable, landscape)
         (binding.btnSkip.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
-            it.topMargin = statusBar.top + resources.getDimensionPixelSize(R.dimen.margin_small)
+            it.topMargin = statusBar.top + marginSmall
+            it.marginEnd = maxOf(statusBar.right, cutout.right, navBar.right) + marginSmall
             binding.btnSkip.layoutParams = it
         }
 
@@ -245,6 +285,15 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         })
 
         setupIndicators(pages.size)
+
+        // Restore ViewPager position after activity recreation so the user lands on the
+        // same page they were on before the config change, not always back on page 0.
+        if (restoredPage > 0 && restoredPage < pages.size) {
+            currentPage = restoredPage
+            previousPage = restoredPage
+            binding.viewPager.setCurrentItem(restoredPage, false)
+            restoredPage = 0
+        }
     }
 
     private val indicatorDotSize by lazy {
@@ -451,7 +500,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             }
         }
 
-        manageMediaPermissionLauncher.launch(intent)
+        SettingsIntentLauncher.launch(this, intent, PermissionHelper.REQUEST_CODE_MANAGE_MEDIA)
         return true
     }
 
@@ -474,7 +523,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
         }
 
-        allFilesAccessPermissionLauncher.launch(intent)
+        SettingsIntentLauncher.launch(this, intent, PermissionHelper.REQUEST_CODE_ALL_FILES_ACCESS)
         return true
     }
 
@@ -604,5 +653,29 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             ContextCompat.checkSelfPermission(this, permission) ==
                 android.content.pm.PackageManager.PERMISSION_GRANTED
         }
+    }
+
+    // S0043: Manage Media / All Files Access intents are launched via SettingsIntentLauncher
+    // (which carries setLaunchBounds for XR / freeform / foldable). The activity-result launcher
+    // path is bypassed because ActivityOptionsCompat cannot transport setLaunchBounds.
+    @Deprecated("Required for Settings panel bounds — see S0043")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PermissionHelper.REQUEST_CODE_MANAGE_MEDIA ||
+            requestCode == PermissionHelper.REQUEST_CODE_ALL_FILES_ACCESS) {
+            continueSpecialPermissionsFlowOrComplete()
+        }
+    }
+
+    companion object {
+        private const val TAG = "WelcomePerms"
+        private const val KEY_WAITING_PERMISSION = "key_waiting_permission_for_finish"
+        private const val KEY_REQUESTED_MANAGE_MEDIA = "key_requested_manage_media"
+        private const val KEY_REQUESTED_ALL_FILES = "key_requested_all_files"
+        private const val KEY_REQUESTED_BATTERY = "key_requested_battery"
+        private const val KEY_REQUESTED_NOTIFICATIONS = "key_requested_notifications"
+        private const val KEY_TRIGGERED_PERMISSION_REQUEST = "key_triggered_permission_request"
+        private const val KEY_CURRENT_PAGE = "key_current_page"
     }
 }

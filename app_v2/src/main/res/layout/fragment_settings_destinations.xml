@@ -18,7 +18,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableSafeMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/enable_safe_mode" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_safe_mode_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -31,7 +31,7 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmDelete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/confirm_delete_safe_mode" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_delete_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_delete_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -44,7 +44,7 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmMove" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/confirm_move_safe_mode" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_move_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_move_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -73,7 +73,7 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableCopying" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_copying" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_copying" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_copying_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -85,7 +85,7 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchOverwriteOnCopy" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/overwrite_on_copy" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/overwrite_on_copy" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_overwrite_on_copy_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -99,7 +99,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchGoToNextAfterCopy" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/go_to_next_after_copy" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/go_to_next_after_copy" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_go_to_next_after_copy_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -115,7 +115,7 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableMoving" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_moving" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_moving" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_moving_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -127,7 +127,7 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchOverwriteOnMove" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/overwrite_on_move" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/overwrite_on_move" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_overwrite_on_move_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -230,9 +230,8 @@
                             android:layout_marginEnd="@dimen/margin_small" />
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:orientation="vertical">
 
                             <TextView

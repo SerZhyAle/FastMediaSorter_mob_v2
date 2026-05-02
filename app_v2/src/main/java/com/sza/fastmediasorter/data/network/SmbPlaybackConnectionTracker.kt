@@ -26,7 +26,11 @@ class SmbPlaybackConnectionTracker @Inject constructor() {
     private val watchdogTimestamps = ConcurrentHashMap<ConnectionKey, Long>()
 
     companion object {
-        private const val WATCHDOG_WINDOW_MS = 60_000L
+        // Window during which a fired watchdog blocks retries to the same server.
+        // Short enough that a quickly-recovered server does not punish the user for
+        // a full minute; long enough that a truly-stalled server does not get four
+        // 12-second open() hangs in a row.
+        private const val WATCHDOG_WINDOW_MS = 15_000L
     }
 
     fun onConnectionCreated(key: ConnectionKey) {
@@ -54,10 +58,22 @@ class SmbPlaybackConnectionTracker @Inject constructor() {
         watchdogTimestamps.remove(key)
     }
 
-    /** True if a watchdog fired for [key] within the last 60 s — triggers fail-fast. */
+    /** True if a watchdog fired for [key] within the watchdog window — triggers fail-fast. */
     fun isRecentWatchdog(key: ConnectionKey): Boolean {
         val ts = watchdogTimestamps[key] ?: return false
         return (System.currentTimeMillis() - ts) < WATCHDOG_WINDOW_MS
+    }
+
+    /**
+     * Drop all watchdog timestamps without touching connection states.
+     * Called on user-initiated navigation: the user explicitly asked for a retry,
+     * so the fail-fast lockout from a previous stall should not block them.
+     */
+    fun clearAllWatchdogs() {
+        if (watchdogTimestamps.isNotEmpty()) {
+            Timber.d("[SMB-PLAY] watchdogs cleared by user-initiated navigation")
+        }
+        watchdogTimestamps.clear()
     }
 
     /** Called on network reset or manual pool clear — allows fresh attempts after recovery. */

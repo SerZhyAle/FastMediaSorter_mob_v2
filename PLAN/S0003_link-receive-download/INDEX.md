@@ -4,9 +4,9 @@
 **Feature:** Ad-hoc — Auto-download a file from an incoming Share-sheet link
 **Tier:** 3 — Moderate (ad-hoc)
 **Priority:** 50
-**Status:** Not started
-**Phases:** 0 / 6 done
-**Last updated:** 2026-04-29
+**Status:** Done
+**Phases:** 6 / 6 done
+**Last updated:** 2026-05-01
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
 
@@ -16,12 +16,12 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | settings-foundation | — | ⬜ Not started | 0/6 | [PHASE_01__settings-foundation.md](PHASE_01__settings-foundation.md) |
-| 02 | url-channel-branch | 01 | ⬜ Not started | 0/5 | [PHASE_02__url-channel-branch.md](PHASE_02__url-channel-branch.md) |
-| 03 | direct-file-extractor | 01 | ⬜ Not started | 0/5 | [PHASE_03__direct-file-extractor.md](PHASE_03__direct-file-extractor.md) |
-| 04 | html-page-extractor | 03 | ⬜ Not started | 0/4 | [PHASE_04__html-page-extractor.md](PHASE_04__html-page-extractor.md) |
-| 05 | writer-progress-autoopen | 02, 03, 04 | ⬜ Not started | 0/6 | [PHASE_05__writer-progress-autoopen.md](PHASE_05__writer-progress-autoopen.md) |
-| 06 | docs-catalog-cleanup | all | ⬜ Not started | 0/4 | [PHASE_06__docs-catalog-cleanup.md](PHASE_06__docs-catalog-cleanup.md) |
+| 01 | settings-foundation | — | ✅ Done | 6/6 | [PHASE_01__settings-foundation.md](PHASE_01__settings-foundation.md) |
+| 02 | url-channel-branch | 01 | ✅ Done | 5/5 | [PHASE_02__url-channel-branch.md](PHASE_02__url-channel-branch.md) |
+| 03 | direct-file-extractor | 01 | ✅ Done | 5/5 | [PHASE_03__direct-file-extractor.md](PHASE_03__direct-file-extractor.md) |
+| 04 | html-page-extractor | 03 | ✅ Done | 4/4 | [PHASE_04__html-page-extractor.md](PHASE_04__html-page-extractor.md) |
+| 05 | writer-progress-autoopen | 02, 03, 04 | ✅ Done | 6/6 | [PHASE_05__writer-progress-autoopen.md](PHASE_05__writer-progress-autoopen.md) |
+| 06 | docs-catalog-cleanup | all | ✅ Done | 4/4 | [PHASE_06__docs-catalog-cleanup.md](PHASE_06__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 

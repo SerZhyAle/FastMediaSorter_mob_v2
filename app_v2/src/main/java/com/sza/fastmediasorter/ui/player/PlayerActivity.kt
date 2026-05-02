@@ -322,6 +322,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 
     @Inject
+    @com.sza.fastmediasorter.core.di.ApplicationScope
+    lateinit var fileOpsAppScope: kotlinx.coroutines.CoroutineScope
+
+    @Inject
     lateinit var backgroundMusicManager: com.sza.fastmediasorter.ui.player.helpers.BackgroundMusicManager
 
     @Inject
@@ -347,6 +351,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply the LargePlayerControls theme overlay (when "Compact elements" is OFF)
+        // BEFORE super.onCreate → setContentView. DefaultTimeBar reads bar/touch/scrubber
+        // sizes from XML once at inflate; switching layouts requires app restart.
+        com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.applyControlsThemeOverlay(this)
         // PlayerActivity uses Edge-to-Edge ALWAYS to allow precise manual insets control.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
@@ -677,8 +685,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal fun extractTextFromCurrentImage() =
         imageOcrManager.extractTextFromCurrentImage(viewModel.state.value.currentFile)
 
-    override fun onResume() {
-        super.onResume()
+    override fun onResumeWithViews() {
         lifecycleManager.onResume()
         audioEmptyStateController?.onResume()
         nowPlayingManager?.onStart(

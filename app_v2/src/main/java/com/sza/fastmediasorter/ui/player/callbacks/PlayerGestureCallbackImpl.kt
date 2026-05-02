@@ -34,7 +34,7 @@ class PlayerGestureCallbackImpl(
             else -> {
                 // Other files: Swipe left = next file
                 Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Swipe LEFT (GestureHelper)")
-                viewModel.nextFile()
+                viewModel.nextFile(manual = true)
             }
         }
     }
@@ -53,7 +53,7 @@ class PlayerGestureCallbackImpl(
             else -> {
                 // Other files: Swipe right = previous file
                 Timber.tag("TOUCH_ZONE_DEBUG").d("PREVIOUS triggered by: Swipe RIGHT (GestureHelper)")
-                viewModel.previousFile()
+                viewModel.previousFile(manual = true)
             }
         }
     }

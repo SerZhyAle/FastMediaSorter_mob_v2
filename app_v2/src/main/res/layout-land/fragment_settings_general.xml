@@ -6,13 +6,13 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding">
 
         <!-- INTERFACE SECTION -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <TextView android:id="@+id/headerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_interface" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
                     <!-- Language -->
                     <LinearLayout android:id="@+id/layoutLanguageSelection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
@@ -30,9 +30,9 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/all_files" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/all_files" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/all_files" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_all_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpAllFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_all_files_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -43,9 +43,9 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowHiddenFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/show_hidden_files" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hidden_files" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_hidden_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hidden_files" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_hidden_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpShowHiddenFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_show_hidden_files" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -61,9 +61,9 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/show_subfolders_as_items" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_subfolders_as_items" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_subfolders_as_items_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_subfolders_as_items" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_subfolders_as_items_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpShowSubfolders" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/show_subfolders_as_items" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -74,9 +74,9 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSmallControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/small_controls" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/small_controls" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_small_controls_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/small_controls" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_small_controls_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpCompactControls" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_compact_controls_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -90,9 +90,9 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableFavorites" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_favorites" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_favorites" android:textSize="@dimen/resource_card_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_favorites_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_favorites" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_favorites_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                         <ImageButton android:id="@+id/iconHelpFavorites" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_favorites_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -104,13 +104,13 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- PERMISSIONS SECTION -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <TextView android:id="@+id/headerPermissions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_permissions" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
                     <!-- Permissions -->
                     <LinearLayout android:id="@+id/containerPermissions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
@@ -140,22 +140,22 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- APP DATA & BACKUPS SECTION -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <TextView android:id="@+id/headerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_app_data" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <LinearLayout android:id="@+id/containerAppData" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
                     <!-- Remember File List -->
                     <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDefaultRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/default_remember_file_list" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/default_remember_file_list" android:textSize="@dimen/resource_card_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_default_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/default_remember_file_list" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_default_remember_file_list_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                         <ImageButton android:id="@+id/btnHelpRememberFileList" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -239,22 +239,22 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- SYSTEM SECTION -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <TextView android:id="@+id/headerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_system" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                <LinearLayout android:id="@+id/containerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <LinearLayout android:id="@+id/containerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
                     <!-- Prevent Sleep -->
                     <LinearLayout android:id="@+id/layoutPreventSleep" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPreventSleep" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/prevent_sleep" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/prevent_sleep" android:textSize="@dimen/resource_card_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_prevent_sleep_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/prevent_sleep" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_prevent_sleep_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                         <ImageButton android:id="@+id/iconHelpPreventSleep" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_prevent_sleep_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -308,9 +308,9 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableBackgroundSync" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_background_sync" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_background_sync" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_background_sync_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_background_sync" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_background_sync_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpBackgroundSync" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/background_sync_description" android:tooltipText="@string/background_sync_description" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
@@ -363,13 +363,13 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- DEBUG SECTION -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginTop="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                 <TextView android:id="@+id/headerDebugSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/debug_settings_title" android:textSize="@dimen/text_size_normal" android:textStyle="bold" android:visibility="gone" />
 
-                <LinearLayout android:id="@+id/containerDebugSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+                <LinearLayout android:id="@+id/containerDebugSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard" android:visibility="gone">
 
                     <!-- Show Log + Session Log -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">

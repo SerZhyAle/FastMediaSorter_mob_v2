@@ -102,7 +102,7 @@ class SftpClient @Inject constructor(
         return pool.getConnectionForExoPlayer(connectionInfo)
     }
 
-    fun releaseExoPlayerConnection() = pool.releaseExoPlayerConnection()
+    fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) = pool.releaseExoPlayerConnection(channel, broken)
 
     /**
      * List files and directories in remote path

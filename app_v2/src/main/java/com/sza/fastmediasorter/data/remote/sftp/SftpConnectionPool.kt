@@ -330,8 +330,31 @@ class SftpConnectionPool {
         }
     }
 
+    private fun evictExoPlayerChannel(channel: ChannelSftp) {
+        synchronized(exoPlayerPoolLock) {
+            for (pooled in connectionPool.values) {
+                val index = pooled.channels.indexOf(channel)
+                if (index >= 0) {
+                    try {
+                        channel.disconnect()
+                    } catch (e: Exception) {
+                        Timber.w("SFTP ExoPlayer: Eviction disconnect failed: ${e.message}")
+                    }
+                    pooled.channels.removeAt(index)
+                    pooled.channelMutexes.removeAt(index)
+                    Timber.d("SFTP ExoPlayer: Evicted broken channel from pool")
+                    return
+                }
+            }
+            Timber.d("SFTP ExoPlayer: Eviction skipped — channel not in pool")
+        }
+    }
+
     /** Release semaphore slot after ExoPlayer is done. Triggers idle-pool sweep. */
-    fun releaseExoPlayerConnection() {
+    fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) {
+        if (broken && channel != null) {
+            evictExoPlayerChannel(channel)
+        }
         connectionSemaphore.release()
         cleanupIdleConnections()
     }

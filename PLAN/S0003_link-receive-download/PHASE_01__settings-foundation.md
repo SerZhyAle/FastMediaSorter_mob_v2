@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0003_link-receive-download.md`](../S0003_link-receive-download.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02, Phase 03, Phase 05
-**Steps done:** 0 / 6
-**Started:** —
-**Completed:** —
+**Steps done:** 6 / 6
+**Started:** 2026-04-29
+**Completed:** 2026-04-29
 
 ---
 
@@ -31,7 +31,8 @@ Add three persisted settings (top toggle, optional destination resource, auto-op
 |------|:--------------:|------------:|
 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | Modified | ≤ 220 |
 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | Modified | ≤ 750 |
-| `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt` | Modified | ≤ 500 |
+| `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | Modified | ≤ 250 |
+| `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | Modified | ≤ 500 |
 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | Modified | ≤ 500 |
 | `app_v2/src/main/res/layout/fragment_operations_settings.xml` | Modified | — |
 | `app_v2/src/main/res/values/strings.xml` | Modified | — |
@@ -112,22 +113,35 @@ Add three persisted settings (top toggle, optional destination resource, auto-op
 
 ---
 
-### Step 01.4 — Extend backup/restore JSON schema
+### Step 01.4 — Extend backup/restore data model
 
-**Files:** `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt`
+**Files:**
+`app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt`,
+`app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt`
 **Depends on:** Step 01.3
 
 **Prompt for developer:**
 
-> Locate the JSON serializer/deserializer where `videoSnapshotResourceId` is read and written, and add three sibling lines for the new fields. Forward-compat: when restoring an older backup that lacks the keys, fall back to the `AppSettings` defaults (`true`, `null`, `true`) — do not throw.
+> Backup serialization lives in `domain/usecase/BackupData.kt` (the data class persisted to JSON) and `domain/usecase/BackupMapper.kt` (the `AppSettings` ↔ `BackupData` projection). `GeneralSettingsBackupHelper.kt` is a UI helper, not the persistence layer.
+>
+> 1. In `BackupData.kt` add three sibling fields next to `videoSnapshotResourceId`, all nullable with default `null`:
+>    - `val linkAutoDownloadEnabled: Boolean? = null`
+>    - `val linkAutoDownloadResourceId: Long? = null`
+>    - `val linkAutoDownloadOpenInPlayer: Boolean? = null`
+> 2. In `BackupMapper.kt` mirror them in the `AppSettings → BackupData` projection (write current value, no transform) and in the `BackupData → AppSettings` projection (fall back to `current.<field>` for the booleans, take `null` directly for the resource id since `AppSettings.linkAutoDownloadResourceId` itself is nullable).
+>
+> Forward-compat: nullable backup fields ensure older bundles missing the keys keep loading without throwing.
 
 **Verification:**
 
-- `Grep -n "linkAutoDownloadEnabled"` in `GeneralSettingsBackupHelper.kt` returns ≥ 2 hits (write + read).
-- `Grep -n "linkAutoDownloadResourceId"` in `GeneralSettingsBackupHelper.kt` returns ≥ 2 hits.
-- `Grep -n "linkAutoDownloadOpenInPlayer"` in `GeneralSettingsBackupHelper.kt` returns ≥ 2 hits.
+- `Grep -n "linkAutoDownloadEnabled"` in `BackupData.kt` matches at least once.
+- `Grep -n "linkAutoDownloadResourceId"` in `BackupData.kt` matches at least once.
+- `Grep -n "linkAutoDownloadOpenInPlayer"` in `BackupData.kt` matches at least once.
+- `Grep -n "linkAutoDownloadEnabled"` in `BackupMapper.kt` returns ≥ 2 hits (project + apply).
+- `Grep -n "linkAutoDownloadResourceId"` in `BackupMapper.kt` returns ≥ 2 hits.
+- `Grep -n "linkAutoDownloadOpenInPlayer"` in `BackupMapper.kt` returns ≥ 2 hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
 
 ---
 

@@ -294,24 +294,21 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         return super.onGenericMotionEvent(event)
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (::initializer.isInitialized) {
-            initializer.cloudAuthManager.onResume()
-            initializer.lifecycleHelper.checkAndRequestStoragePermission(
-                resource = viewModel.state.value.resource,
-                onReloadFiles = { viewModel.reloadFiles(clearList = true) }
-            )
-            if (isFirstResume) {
-                isFirstResume = false
-            } else {
-                viewModel.checkAndReloadIfResourceChanged()
-                initializer.lifecycleHelper.restoreScrollOnResume(viewModel.state.value)
-            }
-            viewModel.clearExpiredUndoOperation()
-            if (viewModel.state.value.resource?.type != null) {
-                initializer.mediaStoreObserver.start(viewModel.state.value.resource?.type)
-            }
+    override fun onResumeWithViews() {
+        initializer.cloudAuthManager.onResume()
+        initializer.lifecycleHelper.checkAndRequestStoragePermission(
+            resource = viewModel.state.value.resource,
+            onReloadFiles = { viewModel.reloadFiles(clearList = true) }
+        )
+        if (isFirstResume) {
+            isFirstResume = false
+        } else {
+            viewModel.checkAndReloadIfResourceChanged()
+            initializer.lifecycleHelper.restoreScrollOnResume(viewModel.state.value)
+        }
+        viewModel.clearExpiredUndoOperation()
+        if (viewModel.state.value.resource?.type != null) {
+            initializer.mediaStoreObserver.start(viewModel.state.value.resource?.type)
         }
     }
 

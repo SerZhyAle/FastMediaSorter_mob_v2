@@ -27,6 +27,8 @@
     <color name="welcome_page_4_background">#E65100</color>
     <color name="welcome_page_5_background">#33691E</color>
     <color name="welcome_page_6_background">#263238</color>
+    <color name="welcome_page_7_background">#283593</color>    <!-- Indigo 800 -->
+    <color name="welcome_page_8_background">#4527A0</color>    <!-- Deep Purple 800 (VR page) -->
 
     <!-- Resource item backgrounds for dark theme (zebra striping) -->
     <color name="resource_item_bg_even">#FF252525</color>    <!-- Dark gray for even rows -->

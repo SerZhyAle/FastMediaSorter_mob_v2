@@ -302,8 +302,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         // Show the button; it is hidden by default in toolbar_icon_action.xml
         binding.pickIconAction.btnPickIcon.visibility = android.view.View.VISIBLE
 
-        // Display initial icon preview using the OTHER set default
-        val initialIconId = ResourceIconRegistry.firstIdFor(ResourceIconSet.OTHER)
+        // Pick a random icon from the Other set so each new resource starts with a unique look
+        val initialIconId = ResourceIconRegistry.randomIdFor(ResourceIconSet.OTHER)
         ResourceIconRegistry.resolveDrawable(initialIconId)?.let { binding.pickIconAction.btnPickIcon.setImageResource(it) }
 
         binding.pickIconAction.btnPickIcon.setOnClickListener {
@@ -361,8 +361,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         connectionManager.observeAuthEvents()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onResumeWithViews() {
         connectionManager.handleResume()
     }
 

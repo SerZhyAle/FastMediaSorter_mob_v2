@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0003_link-receive-download.md`](../S0003_link-receive-download.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, 02, 03, 04, 05
 **Blocks:** none — final phase
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-04-29
+**Completed:** 2026-05-01  (Step 06.3 role assignments completed by `/spec-fix S0003` on 2026-05-01)
 
 ---
 
@@ -99,8 +99,10 @@ Land the user-facing documentation entry across all three locales, regenerate th
 > For each new class, fill the manual fields via the catalogue CLI:
 >
 > ```powershell
-> pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Class <ClassName> -Role <role> -Status active
+> pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "<path-substring>" -Role <role> -Status tested
 > ```
+>
+> `set.ps1`'s `-Path` is the canonical selector (fuzzy substring match) — it does not accept a `-Class` flag. `-Status` is one of `new | tested | legacy | todo | unknown`; pick `tested` for shipped & verified classes.
 >
 > Suggested roles (single short token):
 >

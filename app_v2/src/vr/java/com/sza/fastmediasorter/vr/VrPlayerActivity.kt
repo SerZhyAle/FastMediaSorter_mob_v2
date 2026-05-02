@@ -302,7 +302,7 @@ class VrPlayerActivity : PlayerActivity() {
         // Layer E: hand-tracking ray manager. Constructed early so it can be wired
         // into VrControllerInputManager before the input callback reaches the XR
         // runtime. release() is called alongside the other managers in onDestroy.
-        val handRay = VrHandRayManager(this)
+        val handRay = VrHandRayManager(this, audioManager)
         vrHandRayManager = handRay
         val inputManager = VrControllerInputManager(
             mainHandler = mainHandler,
@@ -908,7 +908,8 @@ class VrPlayerActivity : PlayerActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.e("VR_BOOT", "VrPlayerActivity.onNewIntent new=${intent.toUri(0)}")
+        // WHY: S0038 — Log.e is prohibited (Timber only). Downgraded to Timber.d.
+        Timber.d("VrPlayerActivity: onNewIntent raw uri=%s", intent.toUri(0))
         Timber.i("VrPlayerActivity: onNewIntent — new video requested, recreating activity. intent=%s", intent.toUri(0))
         forceStopVrPlayback("new-intent-recreate")
         // setIntent() replaces the activity's current intent so that after recreate()
@@ -1439,8 +1440,10 @@ class VrPlayerActivity : PlayerActivity() {
             isPlaying = false,
             isSlideshowEnabled = state.isSlideshowEnabled
         )
-        // Ensure standard panel is forced unconditionally
-        playerIntent.putExtra("extra_user_forced_panel", true)
+        // WHY: S0038 — use canonical EXTRA_FORCE_PANEL key so VrRouteDecisionHelper correctly
+        // reads forcePanelThisLaunch=true and stays in panel mode without re-entering immersive.
+        // The old key "extra_user_forced_panel" was silently ignored (wrong string).
+        playerIntent.putExtra(EXTRA_FORCE_PANEL, true)
         // S0019: explicit user-driven exit-to-flat-player path. Carries playback context
         // (resource/file/position) so the user lands on the same file in the 2D player
         // rather than on the file-browser root.

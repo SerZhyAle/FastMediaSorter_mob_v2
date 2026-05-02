@@ -105,7 +105,8 @@ class ReceiveShareActivity : AppCompatActivity() {
                     val url = UrlInTextDetector.firstHttpUrl(text)
                     val settings = settingsRepository.getSettings().first()
                     if (url != null && settings.linkAutoDownloadEnabled) {
-                        processLinkAutoDownload(url, loadingDialog)
+                        loadingDialog.dismiss()
+                        processLinkAutoDownload(url)
                         return@launch
                     }
                 }
@@ -141,35 +142,37 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     /**
-     * S0003: drive the link auto-download coordinator, mapping its terminal Result
-     * to user-facing toasts/strings. Phase 05 will replace the stub progress dialog
-     * with a dedicated cancellable LinkAutoDownloadProgressDialog.
+     * S0003 §05.3: drive the link auto-download coordinator behind the dedicated
+     * cancellable progress dialog, mapping the terminal Result to user-facing toasts.
      */
-    private fun processLinkAutoDownload(url: String, loadingDialog: AlertDialog) {
-        loadingDialog.setMessage(getString(R.string.link_autodownload_progress_starting))
+    private fun processLinkAutoDownload(url: String) {
+        Timber.i("ReceiveShareActivity: link auto-download enter url=%s", url)
+        val progressDialog = LinkAutoDownloadProgressDialog(
+            activity = this,
+            onCancel = { linkDownloadJob?.cancel() },
+        )
+        progressDialog.show()
         linkDownloadJob = lifecycleScope.launch {
             val result = try {
                 linkAutoDownloadCoordinator.handle(
                     url,
                     object : LinkAutoDownloadCoordinator.Callbacks {
                         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) {
-                            runOnUiThread {
-                                val msg = when (state) {
-                                    LinkAutoDownloadCoordinator.ProgressState.Probing ->
-                                        getString(R.string.link_autodownload_progress_starting)
-                                    is LinkAutoDownloadCoordinator.ProgressState.Downloading ->
-                                        getString(R.string.link_autodownload_progress_downloading)
-                                }
-                                runCatching { loadingDialog.setMessage(msg) }
-                            }
+                            runOnUiThread { runCatching { progressDialog.update(state) } }
                         }
                     }
                 )
+            } catch (ce: kotlinx.coroutines.CancellationException) {
+                Timber.i("ReceiveShareActivity: link auto-download cancelled by user")
+                progressDialog.dismiss()
+                cleanupAndFinish()
+                throw ce
             } catch (t: Throwable) {
                 Timber.e(t, "ReceiveShareActivity: link auto-download crashed")
                 LinkAutoDownloadCoordinator.Result.Failed.Other(t)
             }
-            loadingDialog.dismiss()
+            Timber.i("ReceiveShareActivity: link auto-download result=%s", result::class.java.simpleName)
+            progressDialog.dismiss()
             handleLinkAutoDownloadResult(result)
             cleanupAndFinish()
         }
@@ -192,7 +195,10 @@ class ReceiveShareActivity : AppCompatActivity() {
             is LinkAutoDownloadCoordinator.Result.Failed.Other ->
                 getString(R.string.receive_share_cache_failed, result.cause.message ?: result.cause::class.java.simpleName)
         }
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        // Use applicationContext: this transparent activity finishes immediately after the
+        // toast is queued, and Toasts anchored to a finishing/transparent host don't always
+        // render on Android 8.1 — the application context survives the teardown.
+        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
 
         val openUri: Uri? = when (result) {
             is LinkAutoDownloadCoordinator.Result.Saved -> result.openInPlayerUri

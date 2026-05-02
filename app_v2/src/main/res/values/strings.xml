@@ -741,6 +741,7 @@
     <string name="restart_app_title">Restart Application</string>
     <string name="restart_app_message">To apply the new language (%1$s), the application needs to restart. Continue?</string>
     <string name="restart_app_cache_message">To apply the new cache size (%1$d MB), the application needs to restart. Continue?</string>
+    <string name="restart_app_compact_elements_message">To apply the new player controls size, the application needs to restart. Continue?</string>
     <string name="restart">Restart</string>
 
     <!-- Error Dialog -->
@@ -1024,6 +1025,7 @@
     <string name="link_autodownload_open_in_player_summary">After a successful download the file opens automatically in the built-in player.</string>
     <string name="link_autodownload_progress_starting">Preparing download..</string>
     <string name="link_autodownload_progress_downloading">Downloading..</string>
+    <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
     <string name="link_autodownload_cancel">Cancel</string>
     <string name="link_autodownload_done_resource">Saved to %s</string>
     <string name="link_autodownload_done_downloads">Saved to Downloads</string>
@@ -1188,6 +1190,16 @@
     <!-- File Information Dialog -->
     <string name="file_information">File Information</string>
     <string name="file_info_section">File Information</string>
+    <string name="file_info_host_label">Host: %1$s</string>
+    <string name="file_info_share_label">Share: %1$s</string>
+    <string name="file_info_directory_label">Directory: %1$s</string>
+    <string name="file_info_filename_label">File: %1$s</string>
+    <string name="file_info_extension_mime_label">Format: %1$s · %2$s</string>
+    <string name="file_info_last_modified_label">Modified: %1$s</string>
+    <string name="file_info_read_only_label">Read-only</string>
+    <string name="file_info_hidden_label">Hidden</string>
+    <string name="file_info_copy_path">Copy path</string>
+    <string name="file_info_copy_path_done">Path copied</string>
     <string name="exif_info_section">EXIF Metadata</string>
     <string name="video_info_section">Video Metadata</string>
     <string name="file_name_label">Name: %1$s</string>
@@ -1254,6 +1266,13 @@
     <string name="audio_duration_label">Duration: %1$s</string>
     <string name="audio_album_label">Album: %1$s</string>
     <string name="audio_sample_rate_label">Sample Rate: %1$d Hz</string>
+    <string name="audio_bit_depth_label">Bit Depth: %1$d-bit</string>
+    <string name="audio_lossless_label">Quality: %1$s</string>
+    <string name="audio_lossless_value_lossless">Lossless</string>
+    <string name="audio_lossless_value_lossy">Lossy</string>
+    <string name="audio_replaygain_track_label">ReplayGain (track): %1$.2f dB</string>
+    <string name="audio_replaygain_album_label">ReplayGain (album): %1$.2f dB</string>
+    <string name="audio_cover_art_cd">Album cover art</string>
     <string name="loading_placeholder">..</string>
     <string name="open_in_default_player">Open in Default Player</string>
     <string name="download_and_open">Download and Open</string>

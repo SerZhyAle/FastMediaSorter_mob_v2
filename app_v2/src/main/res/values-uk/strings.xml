@@ -134,6 +134,16 @@
     <!-- File Information Dialog -->
     <string name="file_information">Інформація про файл</string>
     <string name="file_info_section">Інформація про файл</string>
+    <string name="file_info_host_label">Хост: %1$s</string>
+    <string name="file_info_share_label">Шара: %1$s</string>
+    <string name="file_info_directory_label">Каталог: %1$s</string>
+    <string name="file_info_filename_label">Файл: %1$s</string>
+    <string name="file_info_extension_mime_label">Формат: %1$s · %2$s</string>
+    <string name="file_info_last_modified_label">Змінено: %1$s</string>
+    <string name="file_info_read_only_label">Тільки читання</string>
+    <string name="file_info_hidden_label">Прихований</string>
+    <string name="file_info_copy_path">Копіювати шлях</string>
+    <string name="file_info_copy_path_done">Шлях скопійовано</string>
     <string name="exif_info_section">EXIF метадані</string>
     <string name="video_info_section">Метадані відео</string>
     <string name="file_name_label">Ім\'я: %1$s</string>
@@ -199,6 +209,13 @@
     <string name="audio_duration_label">Тривалість: %1$s</string>
     <string name="audio_album_label">Альбом: %1$s</string>
     <string name="audio_sample_rate_label">Частота дискретизації: %1$d Гц</string>
+    <string name="audio_bit_depth_label">Бітова глибина: %1$d-біт</string>
+    <string name="audio_lossless_label">Якість: %1$s</string>
+    <string name="audio_lossless_value_lossless">Без втрат</string>
+    <string name="audio_lossless_value_lossy">Зі втратами</string>
+    <string name="audio_replaygain_track_label">ReplayGain (трек): %1$.2f дБ</string>
+    <string name="audio_replaygain_album_label">ReplayGain (альбом): %1$.2f дБ</string>
+    <string name="audio_cover_art_cd">Обкладинка альбому</string>
     <string name="loading_placeholder">..</string>
 
     <!-- Common -->
@@ -684,6 +701,7 @@
     <string name="restart_app_title">Перезапуск додатку</string>
     <string name="restart_app_message">Для застосування нової мови (%1$s) потрібен перезапуск додатку. Продовжити?</string>
     <string name="restart_app_cache_message">Для застосування нового розміру кешу (%1$d МБ) потрібен перезапуск додатку. Продовжити?</string>
+    <string name="restart_app_compact_elements_message">Для застосування нового розміру елементів плеєра потрібен перезапуск додатку. Продовжити?</string>
     <string name="restart">Перезапустити</string>
 
     <!-- Welcome Screen -->
@@ -892,6 +910,7 @@
     <string name="link_autodownload_open_in_player_summary">Після успішного завантаження файл одразу відкривається у вбудованому плеєрі.</string>
     <string name="link_autodownload_progress_starting">Підготовка до завантаження..</string>
     <string name="link_autodownload_progress_downloading">Завантаження..</string>
+    <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
     <string name="link_autodownload_cancel">Скасувати</string>
     <string name="link_autodownload_done_resource">Збережено в %s</string>
     <string name="link_autodownload_done_downloads">Збережено в Downloads</string>

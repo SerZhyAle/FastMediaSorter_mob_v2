@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--  Landscape-specific dimensions for better use of horizontal space -->
-    
+
     <!-- Slightly reduce vertical padding/margins to maximize content area -->
     <dimen name="empty_state_padding">24dp</dimen>
     <dimen name="dialog_padding_large">20dp</dimen>
-    
+
     <!-- Player controls - more compact vertically in landscape -->
     <dimen name="player_controls_padding">6dp</dimen>
     <dimen name="player_cmd_padding_vertical">0dp</dimen>
     <dimen name="player_cmd_padding_top">24dp</dimen>
-    
+
     <!-- Item layouts - reduce vertical padding -->
     <dimen name="item_padding_vertical">8dp</dimen>
 
@@ -25,4 +25,16 @@
 
     <!-- Dialogs -->
     <dimen name="dialog_file_info_min_width">560dp</dimen>
+
+    <!-- Settings landscape compaction -->
+    <dimen name="settings_fragment_padding">2dp</dimen>
+    <dimen name="settings_item_min_height">32dp</dimen>
+    <dimen name="settings_item_margin_bottom">1dp</dimen>
+    <dimen name="settings_switch_margin_end">8dp</dimen>
+    <dimen name="settings_help_icon_margin">2dp</dimen>
+    <dimen name="settings_nested_margin_start">20dp</dimen>
+    <dimen name="settings_padding">6dp</dimen>
+    <dimen name="settings_margin_standard">6dp</dimen>
+    <dimen name="settings_padding_vertical_small">6dp</dimen>
+    <dimen name="settings_text_input_width">132dp</dimen>
 </resources>

@@ -42,6 +42,7 @@ class SftpDataSource(
     private var opened = false
     private var totalBytesRead = 0L
     private var connectionAcquired = false
+    private var channelBroken: Boolean = false
 
     override fun open(dataSpec: DataSpec): Long {
         try {
@@ -115,6 +116,7 @@ class SftpDataSource(
                 bytesRemaining
             }
         } catch (e: Exception) {
+            if (connectionAcquired) channelBroken = true
             Timber.e(e, "SftpDataSource: Error opening SFTP file")
             close()
             throw IOException("Failed to open SFTP file: ${e.message}", e)
@@ -165,6 +167,7 @@ class SftpDataSource(
 
             return bytesRead
         } catch (e: Exception) {
+            channelBroken = true
             Timber.e(e, "SftpDataSource: Error reading from SFTP file")
             throw IOException("Failed to read from SFTP file: ${e.message}", e)
         }
@@ -179,6 +182,7 @@ class SftpDataSource(
         try {
             inputStream?.close()
         } catch (e: Exception) {
+            channelBroken = true
             Timber.e(e, "SftpDataSource: Error closing InputStream")
         } finally {
             inputStream = null
@@ -186,12 +190,13 @@ class SftpDataSource(
 
         // DO NOT close session or channel - they are pooled!
         // Just clear references
+        val released = channel
         channel = null
         session = null
 
         // Release connection slot back to pool
         if (connectionAcquired) {
-            sftpClient.releaseExoPlayerConnection()
+            sftpClient.releaseExoPlayerConnection(released, channelBroken)
             connectionAcquired = false
         }
 

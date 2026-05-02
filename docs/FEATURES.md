@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Complete Feature List
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-05-02*
 
 This document is the canonical, up-to-date inventory of all user-facing features implemented in the application. It serves as a comprehensive guide to what the application can do, how each feature works, and why it is useful for the user.
 
@@ -38,16 +38,12 @@ This document is the canonical, up-to-date inventory of all user-facing features
 ## 1. Resource / Source Management
 
 - **Add multiple resource types**: Connect and manage various storage types including Local folders, SMB (Windows share/NAS), FTP, SFTP, Google Drive, Dropbox, and OneDrive. This unifies all your local, network, and cloud files into a single accessible interface.
-- **Edit resource settings after creation**: Readjust settings, update network credentials, or change display preferences for any existing resource at any time without needing to recreate it.
-- **Delete a resource**: Easily remove any connected resource from your library when it is no longer needed, keeping your workspace clean and relevant.
 - **Resource profiles (quick-setup presets)**: Effortlessly set up new folders using tailored presets like Audio Library, Video Library, Photo Storage, Documents, or All Files. These presets automatically apply optimal sorting, filtering, and display settings for the chosen media type.
 - **Camera Photos Virtual Folder**: Instantly access and browse all photos and videos taken by your device's camera through a dedicated, automatically configured virtual folder.
 - **Virtual resource language sync**: Virtual resources (All Images, All Videos, All Music, etc.) are automatically renamed when the app language changes, provided their name has not been manually edited.
 - **Per-resource settings**: Customize how each individual folder behaves with options like supported media types, default sort mode, display mode, thumbnail loading, PIN access, and whether subdirectories are scanned. This allows fine-grained control over how different types of content are presented.
 - **Resource ordering**: Rearrange your connected resources on the main screen using a simple drag-and-drop gesture. This lets you position your most frequently accessed folders at the top for quicker access.
 - **Themed resource icons**: Every resource is displayed with a themed icon (music note, film reel, image, document, etc.) automatically chosen by type and connection source, with a connection badge in the corner. You can pick a specific icon per resource via the toolbar selector when creating or editing a resource.
-- **Filter resources**: Quickly find a specific folder using the search and filter bar on the main screen. This is especially useful for users managing dozens of different network and local directories.
-- **List / Grid view switch**: Toggle between a detailed list view and a visual grid view directly on the main screen. This adapts the interface either for reading lengthy folder names or scanning through folder types.
 - **Connection test**: Instantly verify if a network or cloud resource is accessible before trying to open it. This helps diagnose connectivity or credential issues on the spot without waiting for timeouts.
 - **Read-only mode**: Protect critical folders from accidental modifications by enabling read-only mode for specific resources. When active, all file editing, deleting, and moving operations are completely disabled.
 - **PIN protection**: Add an extra layer of privacy by requiring a PIN code whenever a specific resource is opened. This keeps sensitive photos or confidential documents safe from prying eyes.
@@ -57,12 +53,11 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ## 2. Media Browsing
 
-- **List and Grid display modes**: Choose how you want to browse your files. Use List mode for detailed file strings and metadata, or Grid mode to visually navigate through image and video thumbnails.
 - **Extensive sort modes**: Organize files exactly how you need them using sorting options like Name, Date, Size, Type, Artist, Title, Duration, Date Taken, Random, or Manual order. Every sort mode supports ascending and descending directions.
+- **Sort mode memory**: The sort mode chosen in Browse or Slideshow is automatically saved per resource and restored on the next visit — no manual reconfiguration needed.
 - **Advanced filter panel**: Narrow down massive folders by filtering items using a filename substring, date ranges, size limits, or specific media types. This is essential for quickly locating a particular file in a cluttered directory.
 - **Random file jump in player**: Audio Library and Photo Storage profiles show a dedicated dice button in the player command bar, letting you jump to a random file from the current library without enabling a full shuffle mode.
-- **Multi-select**: Perform actions on multiple files at once to save time. Select continuous ranges or individual files to batch copy, move, delete, or share them simultaneously.
-- **Subfolder navigation**: Seamlessly dive deep into nested folder structures while maintaining a clear back-stack. This allows straightforward navigation back to higher-level directories without losing context.
+- **Multi-select**: Select continuous ranges or individual files to batch copy, move, delete, or share them simultaneously.
 - **Show subfolders as items**: Treat subdirectories as clickable entries mixed directly into your file list. Unchecking this option flattens the view, which is useful when you only care about the media files inside.
 - **Subfolder operations**: Select, copy, move, rename, and delete subfolders directly in Browse when 'Show subfolders as items' is enabled; works for local, network (SMB/SFTP/FTP), and cloud resources.
 - **Create subfolder from Browse menu**: Create a new subfolder directly from the Browse resource menu (local, network, cloud); available when "Show subfolders as items" is enabled and the resource is writable. The new folder appears in the list immediately without navigating into it.
@@ -72,47 +67,39 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Intelligent thumbnail loading**: Enjoy rich visual previews for photos and videos. To maintain performance, thumbnail generation can be manually disabled per resource, which is recommended for extremely large directories.
 - **Video thumbnails**: Identify video files quickly by previewing a generated thumbnail of their first frame. This feature can be disabled for network folders to heavily conserve bandwidth and improve loading times.
 - **File metadata overlay**: See crucial file details at a glance without opening the properties dialog. Information like EXIF data, video duration, image resolution, and file size is overlaid directly on the list items.
-- **Scan progress indicator**: Track the progress of large folder scans with a non-intrusive indicator that appears after 5 seconds. You can securely cancel long-running operations using the built-in STOP button.
-- **Pagination**: Navigate incredibly large catalogs smoothly without memory crashes. The app automatically switches to paged loading to ensure the interface remains highly responsive regardless of folder size.
+- **Cancellable scan with progress**: Large folder scans show a non-intrusive progress indicator after 5 seconds with a STOP button to cancel long-running operations.
 - **Inline audio mini-player**: Start playing music tracks seamlessly directly from the file browser. This avoids disrupting your navigation flow and lets you preview audio files instantly.
 - **Full keyboard navigation on all screens**: Every screen — file browser, player, standalone viewer, settings, all dialogs, add-resource form, cloud-picker flows, resource editor, receive-share, and widget configurator — responds to hardware keyboard input. **Enter** activates the focused item, **Escape** exits or dismisses, **Arrow keys** move focus, **Backspace** navigates one folder up in Browse and cloud pickers. Enables a desktop-like workflow on tablets, Android TV, and devices with Bluetooth keyboards.
 - **NC-style file-management shortcuts and TV color keys**: On Browse and cloud-picker surfaces, keyboard shortcuts follow the classic Norton Commander layout: **F5** copies, **F6** moves, **F7** creates a subfolder, **F8** deletes. Android TV remote color keys map the same four operations: Red = Delete, Green = Copy, Yellow = Move, Blue = Rename. **Ctrl+F** opens document-search in text/PDF/EPUB viewers; **Ctrl+S** saves edits in the resource editor.
 - **F1 help dialog and visible keyboard focus**: Press **F1** on any hardware keyboard to open a surface-specific shortcut reference with a link to the online docs — every screen has its own tailored hint list. The active item also receives a visible focus ring during keyboard navigation.
 - **Gamepad support (Xbox / DualSense / 8BitDo)**: A standard Bluetooth or USB gamepad drives the file browser, both standard and VR players. **D-pad / left stick** move focus, **A** opens or confirms, **B** goes back or exits the player, **X** skips to the next file (or toggles multi-select in the browser), **Y** opens the previous file or the context menu, **L1/R1** seek ±10s or switch views, **Start** toggles the HUD / opens search, **Select** toggles on-screen hints. Analog seek on the right stick scales by deflection; dead-zone and rate-limiting keep volume and seek smooth.
 - **Manual drag-to-reorder**: In Manual sort mode, drag files using the handle that appears next to each item to set a custom display order. The order is persisted per directory and automatically restored on the next visit.
+- **Extended file-info dialog**: The file-info dialog now shows full audio metadata (artist, album, title, year, sample rate, bit depth, channels, lossless marker, ReplayGain, embedded cover art) for FLAC/MP3/M4A/OGG over local, SFTP, SMB, FTP, and SAF — read by streaming only the first ~64 KB of the file, without downloading it in full. The file-information block lays out network paths into host, share, directory, and filename rows, with extension + MIME, a separate last-modified line, and a Copy-path button.
 
 ## 3. File Operations
 
-- **Robust copying**: Duplicate files to any pre-configured destination, whether it's local storage, an SMB share, or an FTP/SFTP server.
-- **Effortless moving**: Transfer files easily from their current location to a new configured destination, cleanly organizing your media across different storage protocols.
 - **Flexible deleting**: Choose between permanently erasing a file or moving it to a recoverable Trash bin. This safety net prevents accidental data loss and can be customized in settings.
-- **In-place renaming**: Quickly alter the name of any file without needing to move it. This makes correcting typos or reorganizing naming conventions incredibly fast.
 - **Standalone player renaming**: Rename a file directly from the "Open with" standalone player (supported for SAF documents with write access and MediaStore files). A simple dialog pre-fills the current filename; changes are applied via DocumentsContract or ContentResolver without reloading the content already in memory.
 - **Trash recovery**: Instantly restore erroneously deleted files back to their original folder from the in-app Trash bin, providing peace of mind during massive cleanups.
 - **Operation undo**: Revert your last copy, move, or delete action with a single tap. This undo stack acts as an immediate failsafe if you realize you made a mistake managing your files.
-- **Batch processing**: Apply copy, move, or delete actions to multiple selected files simultaneously. This drastically reduces the tedious manual work involved in managing large collections.
-- **System sharing**: Open or send files to external applications installed on your device. This standard Android intent allows for quick sharing via email, messaging, or specialized editors.
 - **Safe Mode**: Prevent disastrous accidents by enabling mandatory confirmation dialogs before moving or deleting files. This global master toggle gives you tight control over sensitive file operations.
 - **Overwrite policies**: Specify on a per-direction basis how the app should handle copying or moving files that already exist in the destination. This helps automate conflict resolution without stalling your progress.
-- **Detailed progress dialogs**: Monitor lengthy transfers with precision. The dialog displays byte-level progress, real-time transfer speeds, and time estimates, allowing you to track heavy network operations.
 - **Cross-protocol transfers**: Seamlessly copy or move files between entirely different connection types. Directly transfer data between Local, SMB, FTP, and SFTP endpoints effortlessly, using the app as a robust intermediary.
 - **Duplicate file detection**: Locate and permanently remove identical files scattered across your massive local, network, or cloud storage. The highly optimized 3-phase scanning engine (Size -> Partial Hash -> Full SHA-256) guarantees perfect byte-for-byte matches while minimizing slow network reads. Two menu modes available: **Find Duplicates** — scan and review results, then manually select files for deletion via the FAB; **Find and Delete Duplicates** — scan and automatically delete all detected duplicates (keeping the oldest copy per group) without additional confirmation. Both modes pre-select the current resource and move it to the top of the resource picker.
 - **ZIP archiving**: Pack any number of selected local files into a single ZIP archive directly from the file browser. Choose a custom name and destination folder; the archive is created asynchronously in background with a real-time file-by-file progress indicator. Duplicate archive names are resolved automatically (e.g., `archive_1.zip`).
 - **ZIP extraction on click**: Tap a ZIP archive in Browse to extract it in one flow: confirmation dialog, real-time percentage progress, and a one-tap action to open the extracted folder. Extraction supports local and SD-card SAF resources, applies secure path validation, and auto-resolves destination folder conflicts via `_1.._99` suffixes.
 - **Select folder for copy/move**: Tap the "Select folder" button in the copy/move dialog to pick any local directory with the system folder picker, bypassing the pre-configured destination list. The last chosen folder is remembered per resource type. Per-item copy/move buttons are always shown regardless of whether destinations are configured.
-- **Camera capture**: Tap the camera icon in the Browse command bar to take a new photo or video with the device's default camera app. The captured file is saved directly to the current resource root (local, SMB, SFTP, FTP, or Cloud) or to the standard DCIM/Camera folder when browsing the "All Videos", "All Photos", or "Camera Photos" virtual collections. After capture a filename dialog lets you rename the file before saving; this dialog can be skipped via Settings → Behaviour → "Don't ask for filename". The entire command can be hidden globally via Settings → Behaviour → "Disable camera capture button". After saving the file list refreshes automatically and scrolls to the new entry.
+- **Camera capture**: Tap the camera icon in the Browse command bar to take a new photo or video with the device's default camera app. The captured file is saved directly to the current resource root (local, SMB, SFTP, FTP, or Cloud) or to the standard DCIM/Camera folder when browsing the "All Videos", "All Photos", or "Camera Photos" virtual collections. After capture a filename dialog lets you rename the file before saving; this dialog can be skipped via Settings → Behaviour → "Don't ask for filename". The entire command can be hidden globally via Settings → Behaviour → "Disable camera capture button". On devices without a compatible camera app the command is hidden automatically, and launch or save failures surface localized in-app error messages instead of silently failing. After saving the file list refreshes automatically and scrolls to the new entry.
 
 ## 4. Destination Management
 
 - **Color-coded destination buttons**: Configure up to 10 distinct, color-coded shortcut buttons displayed directly inside the player. These buttons represent your favorite folders, drastically speeding up the organization process.
-- **Universal compatibility**: Assign any writable local, network, or cloud resource as a target destination. This unified approach removes restrictions on where you can route your files.
 - **Auto-advance after copy/move**: Enable the option to automatically jump to the next file as soon as a copy or move operation completes. This creates an incredibly fast, uninterrupted workflow when sorting through a queue of media.
 - **Collapsible command panel**: Keep your screen uncluttered by collapsing the copy/move destination panel when it's not needed. This maximizes viewing space while keeping routing tools just a tap away.
 - **Quick Favorites toggle**: Immediately mark or unmark the currently viewed file as a Favorite directly from the player screen, allowing you to curate a collection without returning to the file browser.
 
 ## 5. Image Viewer
 
-- **Pinch-to-zoom**: Examine fine details in your photos with smooth, responsive full-screen zooming capabilities, supporting high-resolution images natively.
 - **Crop to fullscreen**: Optimize standard photos for widescreen displays. This feature automatically fills the screen by cropping out black bars when the image and device orientations are matched.
 - **Dynamic background effect**: Enjoy a highly immersive viewing experience. The viewer mathematically analyzes the current image to generate a beautifully blurred ambient color background that seamlessly matches the photo's tone.
 - **In-place rotation**: Easily fix misoriented photos by rotating them clockwise or counter-clockwise. The rotation is permanently saved to the file without requiring a heavy external photo editor.
@@ -125,21 +112,17 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ## 6. GIF Viewer
 
-- **Native animated playback**: Loop and view animated GIF files perfectly with full hardware acceleration and correct timing.
 - **Speed adjustment**: Dynamically slow down (0.25×) or speed up (4×) GIF playback on the fly. This adjusted speed setting is uniquely saved per file for future viewings.
 - **First frame extraction**: Easily convert a distracting animated GIF into a static image by extracting and saving just its very first frame.
 - **Complete frame extraction**: Deconstruct complex GIFs by extracting every single frame and saving them all as individual static images, allowing you to inspect specific moments.
 
 ## 7. Video Player
 
-- **ExoPlayer integration**: Benefit from a robust, state-of-the-art playback engine based on ExoPlayer, capable of flawlessly handling various codecs and network stream formats.
-- **Full-screen mode**: Immerse yourself completely as the system UI automatically hides, dedicating every pixel of your screen to the video content.
 - **Playback position save & restore**: Stop watching securely in the knowledge that your exact playback position is saved per file. You will perfectly resume from where you left off the next time you open the video.
 - **Watched-to-end auto-clear**: When a file plays to its end, the saved position is cleared so the next open starts from zero. Resume from a saved position now applies only to files paused mid-playback.
 - **Resume Next Time**: Return to your media instantly. Upon a cold app start, the app automatically navigates through network and cloud resources to restore your absolute last active video dynamically.
 - **Picture-in-Picture (PiP)**: Multitask without pausing. On Android 12+ devices, the video automatically shrinks into a floating window when you press the home button, letting you use other apps.
 - **Configurable touch zones**: Personalize your player controls. Define exactly which invisible tap regions of the screen trigger previous, next, play/pause, or skip/seek commands.
-- **Touch zones hint overlay**: Avoid confusion with a visual overlay that subtly highlights your configured touch zones during the very first launch, teaching you the control scheme intuitively.
 - **Video Control dialog**: Open a single bottom-bar `Control` button placed immediately after `Next track` to adjust volume, audio track, subtitles, HUE rotation, GPU brightness, and playback speed from one tabbed dialog with reset actions. The same dialog model now works in both the main player and the standalone `Open with` video player.
 - **Sleep timer**: Safely fall asleep while watching videos. Set a timer (from 15 up to 120 minutes) with an onscreen countdown badge that automatically halts playback when time expires.
 - **Save Frame**: Capture the current video frame as a PNG with a single tap on the overflow menu. The frame is saved to a configurable destination resource (local path); falls back to the Downloads folder if no destination is selected or the resource is unavailable. Works for any video source: local, SMB, SFTP, FTP, and cloud.
@@ -165,6 +148,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Immersive mode toggle**: A dedicated button on the video player command bar (VR edition only) switches between immersive OpenXR mode and the flat panel player for any video — including ordinary 2D content. Tapping it re-opens the current file in the opposite mode while preserving playback position. In immersive mode the same button returns to the panel player; the left thumbstick click performs the same action.
 - **VR Immersive Controls**: Touch Plus/Pro controllers, Bluetooth keyboard, and Bluetooth mouse are fully operable inside the immersive 3D session. Playback (pause, seek, volume, next/previous file, zoom, re-center), the settings dialog, and the full file operations set (copy, move, delete, rename, info) are accessible without removing the headset. A first-run cheatsheet auto-appears for 4 seconds; long-press Y on the left controller or press F1 on a BT keyboard to bring it back.
 - **VR Immersive HUD**: Inside the immersive session a head-locked HUD pops up on every controller action — progress bar with current position, buffer and duration, plus indicators for pause, seek, volume, zoom, file change, recenter, immersive-mode toggle and repeat mode. The HUD is rendered through a dedicated OpenXR composition layer and auto-dismisses after a few seconds of idle. While the dedicated UI composition slot for full panels is not yet available, full file-operations and playback-control panels stay in panel-layout mode — exit immersive to open them; in immersive a short HUD banner explains where to find them and the player no longer pauses on the Y button when the panel would have been invisible.
+- **VR HUD button affordance**: VR HUD buttons now display a rounded-rect background, making them visually distinct from text labels.
 - **Cinema mode for 2D content in VR**: When navigating to a plain 2D video while inside an immersive session, the app automatically displays it on a virtual cinema screen (QUAD_CINEMA layer) without destroying the XR session or exiting to the standard player.
 - **Auto-immersive toggle for stereo content**: The VR settings block exposes an `Auto-enter immersive on stereo content` switch (on by default). When off, opening a stereo file keeps the player on the flat screen — switch to VR via the existing 3DVR button on the player command bar.
 - **VR hand tracking**: When controllers are set aside, the VR player automatically switches to OpenXR hand-tracking input (`XR_EXT_hand_tracking` + Meta aim/microgesture extensions). The dominant hand's aiming ray targets UI elements — pinch to click, double pinch to toggle play/pause, thumb swipes to seek or adjust volume. Controllers resume priority instantly when a button is pressed. A cursor dot and audio click feedback replace haptic feedback.
@@ -173,10 +157,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ## 9. Audio Player
 
-- **Robust engine**: Rely on ExoPlayer for high-fidelity audio decoding, perfectly parsing both local and high-latency network music tracks.
 - **Background playback**: Keep the music going even when you leave the app or lock the screen. A persistent foreground service with rich notification controls ensures uninterrupted listening.
 - **Configurable exit behavior**: Choose what happens when you press Back while audio plays in background — ask every time (default), always stop, or always keep playing. Set once in Settings → Audio and the choice is remembered permanently.
-- **Notification media controls**: Quickly play, pause, or skip tracks directly from your system's notification shade or lock screen without continuously reopening the app.
 - **Intelligent album cover art**: Enjoy a visually rich music player that automatically retrieves album art from embedded ID3 metadata tags, or falls back to an online search (with an optional Wi-Fi-only restriction to save mobile data).
 - **Local audio metadata cache**: downloaded covers and track info saved to `audio_metadata_cache/` folder; reused on subsequent plays without network requests; included in cache size display and "Clear Cache" action
 - **Lyrics search and display**: View synchronized lyrics in a full-screen, distraction-free overlay. The app conducts a smart online search to provide read-along text for your current song.
@@ -186,7 +168,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Rich empty state animations**: Prevent a boring black screen if no cover art is found. Choose from mesmerizing audio visualizers including Canvas bars, Canvas waves, AVD pulses, and spectrum analyzers that react to the music. Canvas Waves now re-rolls a full 360-degree flow direction on each fresh start, with particles biased to match the scene while staying lightweight for Android 8.1+ devices.
 - **Vinyl record indicator**: Identify active playback instantly with a stylish, animated rotating vinyl record icon positioned in the corner of your screen.
 - **Sleep timer**: Drift off to music peacefully. This shared sleep timer will automatically pause playback when the defined countdown finishes, ensuring your battery—and your sleep—aren't drained.
-- **Track metadata display**: Clearly read essential track information natively pulled from the file, properly displaying the artist, title, album, and track duration.
 - **Resume Next Time**: Seamlessly pickup your listening session. Upon a cold start, the app restores your last active audio track and perfectly reconstructs your entire historical playlist and queue.
 - **Now Playing UI**: While audio plays in the background, a persistent mini bar at the bottom of the player shows the current track title and play/pause button. Tapping it opens a full bottom sheet with album art, seek bar, prev/next controls, and a scrollable queue panel where you can tap any track to jump directly to it.
 
@@ -196,16 +177,13 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Random sequence order**: Ensure a fresh experience every time by shuffling your photos and GIFs randomly rather than following strict alphabetical or date sorting.
 - **Integrated background music**: Elevate your visual slideshows by assigning a dedicated folder to play random background music continuously while images transition.
 - **Play video/audio to end**: Intelligently mix static photos with videos and audio tracks. Enabling this forces the slideshow to wait until a playing video or song finishes entirely before moving to the next file, overriding the strict timer.
-- **Countdown display**: Anticipate transitions easily with a subtle, non-intrusive "3 – 2 – 1" countdown badge that appears just before advancing to the slide.
 - **Per-resource interval configuration**: Tailor slideshows to individual folders. Easily set a unique transition interval for a specific directory that safely overrides the app's global default settings.
 
 ## 11. PDF Viewer
 
-- **Render and display multi-page PDF documents**: Open and read your PDF files natively within the app without needing third-party viewers. The built-in engine guarantees smooth scrolling and sharp rendering even for graphics-heavy documents.
 - **Page mode (flip) and vertical scroll mode**: Choose the reading style that suits your content best. Flip through pages horizontally just like a physical book, or use continuous vertical scrolling for reports and articles.
 - **Navigation panel with PDF page thumbnails**: Instantly jump to any specific section of a large document. The expandable side panel shows visual previews of all pages, allowing you to visually navigate long files.
 - **Color modes (Normal, Night, Sepia)**: Reduce eye strain and adapt to your environment's lighting. Switch to Night mode in dark rooms or choose Sepia for a warmer, paper-like reading experience.
-- **Zoom**: Magnify documents to comfortably inspect fine print, detailed diagrams, or high-resolution images. Standard two-finger pinch gestures adjust the zoom level precisely.
 - **OCR + Translation (Google Lens style overlay)**: Read foreign-language documents without constantly switching to a dictionary app. The app recognizes the text on the page and neatly overlays the translation directly on top of the original words.
 - **Text selection mode**: Tap the "T" button in the PDF controls bar to extract the current page's text (via OCR on most devices; natively on Android 15+) into a selectable overlay. Long-press any word to get selection handles, then choose **Translate** (sends only your selection to the translator), **Read Aloud** (speaks the selected fragment via TTS), or **Search in Google** from the floating action menu.
 - **Read Aloud (TTS)**: Tap Read Aloud in the command panel to have the current PDF page spoken through the system text-to-speech engine. Works natively on Android 15+ (no OCR delay) and falls back to ML Kit OCR on earlier versions. TTS pauses automatically when you navigate to another page.
@@ -214,11 +192,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ## 12. EPUB Viewer
 
-- **Comprehensive EPUB rendering**: Read standard EPUB e-books beautifully. The epub4j-powered engine deeply parses metadata, chapters, and styling to provide a highly polished native reading application.
-- **Chapter navigation**: Swiftly move between narrative breaks using dedicated previous and next chapter gestures or buttons, avoiding tedious scrolling.
 - **Table of contents navigation panel**: Understand the structure of your book instantly. A fully interactive table of contents panel lets you jump to any specific chapter or section immediately.
 - **Advanced search**: Locate specific character mentions, quotes, or keywords efficiently. The engine can return up to 500 results found both within your current chapter or across the entire book.
-- **Font size adjustment**: Tailor the text readability perfectly to your vision. Granular font size controls ensure you never have to strain your eyes or squint.
 - **Font family selection**: Match the typeface to the genre of your book. Toggle effortlessly between standard Default, classic Serif, or typewriter-style Monospace fonts.
 - **Reader themes**: Set the perfect reading ambiance with carefully designed Light, Dark, Sepia, or OLED Black themes. Choose the mode that best suits your environment and reduces eye strain.
 - **Line height multiplier**: Control the breathing room of the text. Increase or decrease the line-height multiplier (from 1.0× to 3.0×) to make dense blocks of text much easier to digest.
@@ -230,7 +205,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ## 13. Text Viewer / Editor
 
-- **Universal text and code viewer**: Read plain text files, logs, and programming code natively. An intelligent automatic charset detection system guarantees files decode properly without garbled symbols.
+- **Automatic charset detection**: Plain text files, logs, and code decode correctly without garbled symbols regardless of source encoding.
 - **Markdown rendering**: View documentation and readme files exactly how they were intended. The powerful Markwon library parses markdown syntax and beautifully renders headers, lists, and tables natively.
 - **Syntax highlighting**: Analyze scripts and configuration files effortlessly. Native code highlighting colorizes distinct syntax elements, heavily improving code legibility directly from your phone.
 - **Line numbers**: Identify specific points in tall scripts quickly by toggling the sequential line numbers display down the left side of the editor.
@@ -240,7 +215,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Auto-save and undo history**: Experiment with edits safely. The editor automatically saves states and features a deep Undo/Redo stack, ensuring a typo never destroys your work.
 - **Full translation**: Convert whole text files or partial selections from their native language into your target language smoothly within the viewer interface.
 - **Selection action menu**: Long-press any word to get selection handles. The floating action menu includes **Translate** (translates only the highlighted fragment) and **Search in Google**, in addition to the system's Copy / Share / Select All actions.
-- **Copy all text**: Extract contents rapidly with a single-tap button tailored to pull the entirety of a heavy document onto your system clipboard.
 - **Inline search panel (standalone parity)**: Tap-to-search with Next/Prev navigation works in both the internal file browser and the standalone "Open with" mode for PDF, EPUB (current chapter), and TXT files.
 
 ## 14. Translation & OCR (cross-viewer feature)
@@ -254,7 +228,6 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Standalone mode parity**: Translation toggle (portrait/landscape-aware) works in both the internal file browser and the standalone "Open with" mode — opening a PDF or EPUB from an external app gives the same translator access as opening it from within FastMediaSorter.
 - **Explicit target configurations**: Override automated selections securely by forcing specific source and target languages within the settings menu when parsing heavily distorted or mixed-language texts.
 - **Result typography styling**: Choose exactly how your OCR results and overlapping translation blocks look by configuring their native font size and dedicated font family.
-- **Text copying**: Effortlessly lift the deeply recognized text, or its resultant translation, directly into the system clipboard for immediate usage in emails, notes, or messages.
 
 ## 15. Network Sources
 
@@ -279,8 +252,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ## 17. Favorites
 
-- **One-tap marking**: Save important media files rapidly. Utilize the dedicated favorite star icon situated within the player and viewer interfaces to instantly flag or un-flag files as Favorites.
-- **Dedicated accessible list**: Revisit essential files dynamically. Navigate seamlessly to the distinct Favorites List anchored on the app's main screen, compiling flagged files universally from all connected directories and protocols.
+- **Cross-source aggregation**: Files flagged as Favorites from any local, network, or cloud resource are compiled into a single dedicated list on the main screen — regardless of where they live.
 - **Interactive home screen widget**: Bring crucial media directly to your home launcher. Deploy an actively scrollable widget that elegantly lists exclusively favorite files heavily prioritizing immediate launching.
 
 ## 18. Home Screen Widgets
@@ -330,8 +302,6 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Automated image slideshows**: Convert your watch into a vibrant digital frame. Trigger deeply integrated automated image cycling natively right on your wrist for ambient viewing.
 - **Audio player integration**: Control your music library natively. Command the playback, pause, and skipping mechanism of your configured audio natively utilizing the watch interface.
 - **Video player capabilities**: View media uniquely natively. Command and render playable video files explicitly directly over your smartwatch's display hardware.
-- **Tailored setting configuration**: Regulate the companion strictly. Access deeply localized setting panels native to the smartwatch application enforcing discrete behavior distinct from the primary Android phone.
-- **Appropriate permission flows**: Handle security protocols correctly natively. Ensure all deep file and network capability permissions orchestrate gracefully, clearly querying the exact permission dialogues over the wrist interface correctly.
 - **One-tap network source sync**: Push all configured SMB/FTP/SFTP sources from your phone to your watch in a single tap via Wearable Data Layer. The watch displays an animated transfer screen and vibrates on completion with a detailed summary (added/updated counts).
 - **On-watch source management**: Add SMB, FTP, and SFTP sources directly on the watch with a protocol-aware setup flow, and remove misconfigured sources from the watch list with a long press and confirmation dialog.
 - **Polished on-watch controls and localization**: The watch companion now uses localized loading, empty-state, error, and retry labels, replaces emoji-only home shortcuts with native icons, and provides an on-watch slideshow interval stepper for quick tuning.

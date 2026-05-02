@@ -20,7 +20,7 @@ answer "where does X happen?" questions without scanning the whole codebase.
 
 | Field | Source | Meaning |
 |-------|--------|---------|
-| `path` | auto | Relative path under `<module>/src/main/java`. |
+| `path` | auto | Relative path under a supported Kotlin source root (`<module>/src/main/java` or `<module>/src/vr/java`). |
 | `class` | auto | Primary class/object/interface name. |
 | `layer` | auto | `ui` / `domain` / `data` / `di` / `core` / `utils` / `worker` / `widget` / `service` / `vr` / `other`. |
 | `loc` | auto | Line count. |
@@ -49,6 +49,7 @@ pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2
 
 Creates new records for new files, drops records for deleted files, refreshes
 auto-fields (`loc`, `lastTouched`, `injected`, flags, function list).
+For `app_v2`, the scanner covers both `src/main/java` and `src/vr/java`.
 **Manual fields (`role`, `status`, `noFlavors`, function descriptions) are
 preserved** by merging on `path + class` and function `name`.
 

@@ -417,6 +417,14 @@ class VrStereoRenderer {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, oesTextureId)
         GLES20.glUniform1i(fUTextureLoc, 0)
+        // WHY: VR_QUALITY_DEBUG — one-shot log for S0041 investigation (fisheye render params).
+        // Remove after root cause is confirmed (Phase 3 of S0041 investigation).
+        if (dbgRenderEyeCount == 0L) {
+            Timber.d(
+                "VR_QUALITY_DEBUG: fisheye first frame uOffset=%.2f target=%dx%d fisheyeProgram=%d",
+                fisheyeUOffset, targetWidthPx, targetHeightPx, fisheyeProgram
+            )
+        }
         GLES20.glUniform1f(fUFisheyeUOffsetLoc, fisheyeUOffset)
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, quadVbo)

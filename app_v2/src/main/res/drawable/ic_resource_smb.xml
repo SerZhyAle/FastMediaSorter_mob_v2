@@ -3,7 +3,26 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Folder body with tab -->
     <path
-    android:fillColor="#1565C0"
-        android:pathData="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2zM9 13.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v1h1c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5h1v-1z"/>
+        android:fillColor="#2196F3"
+        android:pathData="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4Z" />
+    <!-- Network connector lines between three nodes -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M9,16 L13.5,12 M13.5,12 L18,16" />
+    <!-- Left node -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,16 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" />
+    <!-- Center top node -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M13.5,12 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" />
+    <!-- Right node -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,16 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" />
 </vector>

@@ -145,7 +145,7 @@ Trigger event → диспетчер → callback зарегистрирован
 - **S0019** (Approved) — главный потребитель. Без S0024 интерактивная часть HUD из S0019 не реализуется; S0019 фазы 01–04 реализуют самостоятельный объём, фазы интерактивности отложены до приземления S0024.
 - **S0009** (Partial) — поставляет HUD-канвас и композитор содержимого. S0024 расширяет роль композитора реестром интерактивных элементов. Возможно, для применения P-1 (см. proposed structural changes в S0019) потребуется разблокировка S0009 через `/spec-update S0009 --force-locked`.
 - **S0007** (Partial) — `spec_vr-hand-tracking`. Поставляет controller pose + pinch-event для hand-tracking. S0024 потребляет как источник.
-- **S0033** (Approved, blocking) — discovered by `/spec-all S0024` 2026-04-29: Phase 02 правит `OpenXrNative.cpp` (3487 LOC) и `VrPlayerActivity.kt` (1956 LOC), оба над лимитом 1000 LOC (CLAUDE.md rule 2) и над фазным бюджетом. До приземления S0033 (декомпозиция VR-монолитов) Phase 02 ray-hud-intersection не стартует. После S0033 — `update.ps1 -Status "In Progress"` и `/spec-dev S0024` с Phase 02 Step 02.1.
+- **S0033** (In Progress) — discovered by `/spec-all S0024` 2026-04-29: Phase 02 правит `OpenXrNative.cpp` (3487 LOC) и `VrPlayerActivity.kt` (1956 LOC), оба над лимитом 1000 LOC (CLAUDE.md rule 2) и над фазным бюджетом. До приземления S0033 (декомпозиция VR-монолитов) Phase 02 ray-hud-intersection не стартует. После S0033 — `update.ps1 -Status "In Progress"` и `/spec-dev S0024` с Phase 02 Step 02.1.
 
 ---
 
@@ -162,3 +162,29 @@ Trigger event → диспетчер → callback зарегистрирован
 ## 12. Ссылка на тактическую спецификацию
 
 После приземления S0019 фаз 01–04 — перейти к `/spec-tech S0024` для тактической декомпозиции interactive ray-input подсистемы. До этого момента S0024 остаётся Approved-but-not-Tactical.
+
+---
+
+## 13. Полевые наблюдения (field-log)
+
+**2026-05-02 — Quest 3 capture, файл `logs/fastmediasorter_20260502_035656.log`.**
+
+Воспроизведение `18VR_The_Best_is_Yet_to_Come_7K_180_180x180_3dh.mp4` в иммерсиве:
+
+- `OpenXrNative: createControllerAimSpaces: L=1 R=1` — aim-spaces созданы корректно.
+- `OpenXrNative: setupActionSet: suggested bindings for /interaction_profiles/oculus/touch_controller (17)` и `/interaction_profiles/meta/touch_plus_controller (17)` — bindings зарегистрированы.
+- `VrControllerRay: hover hand=1 px=(685,8 41,0)` — ~1449 hover-событий в одну сессию: ray-vs-plane математика (§5.1 второй столп) **работает**, hit-точки доходят до пиксельных координат HUD-канваса.
+- `VrPlayerActivity: HUD scene driver active (immersive)` — HUD-композитор живой.
+- НО: каждая команда контроллера в иммерсиве заглушается `cmd=… source=CONTROLLER locked=true hudVisible=scene-driver descriptor=EQUIRECT_2 → no-op reason=immersive-ui-locked`. Реестр интерактивных элементов (§5.1 первый столп) либо пуст, либо элементы маркированы `locked` для текущего layer.
+- В логе нет ни одной строки рендеринга визуального индикатора луча (например, `aim ray draw`, `cursor render`, `pointer dot`). **Visual feedback луча в immersive отсутствует** — пользователь не видит, куда направлен контроллер.
+
+**Импликация для §11 критериев:**
+- Критерий 1 («виден hover-эффект») — не достижим без визуального индикатора луча; §3.1.2 («hover-подсветка субтильная») должен включать обязательный курсор/dot, а не только подсветку target-элемента.
+- Критерий 4 («без активного HUD не считаем intersection») — в текущем коде расчёт идёт даже когда команды HUD заблокированы (1449 hover-событий за сессию при `immersive-ui-locked`). При unblock от S0033 пересмотреть условие выполнения math-pass.
+
+---
+
+## Revision History
+
+- **2026-05-02** — by `/spec-update` (`claude-sonnet-4-6`, focus: consistency + completeness).
+  Applied: 2 ACCEPT (§10 S0033 status: Approved → In Progress; §13 — поле наблюдений 2026-05-02 с указанием на отсутствие visual indicator луча и активный math-pass при `immersive-ui-locked`). Proposed (DISCUSS): 0.

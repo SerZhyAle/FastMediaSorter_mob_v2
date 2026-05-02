@@ -6,11 +6,11 @@
     <LinearLayout android:id="@+id/containerImagesGif" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
         <!-- Support static images -->
-        <LinearLayout android:id="@+id/layoutSupportImages" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+        <LinearLayout android:id="@+id/layoutSupportImages" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportImages" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_images_description" android:textSize="@dimen/toggler_title_text_size" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_images_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
             </LinearLayout>
@@ -20,11 +20,11 @@
         </LinearLayout>
 
         <!-- Support GIF animation -->
-        <LinearLayout android:id="@+id/layoutSupportGifs" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_help_icon_margin" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+        <LinearLayout android:id="@+id/layoutSupportGifs" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_help_icon_margin" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportGifs" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_gif_description" android:textSize="@dimen/toggler_title_text_size" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_gifs_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
             </LinearLayout>
@@ -34,11 +34,11 @@
     </LinearLayout>
 
     <!-- Load full size images -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchLoadFullSizeImages" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/load_full_size_images" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_load_full_size_images_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -48,11 +48,11 @@
     </LinearLayout>
 
     <!-- Crop images to fill screen -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchCropImagesToFullscreen" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_crop_images_fullscreen_title" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_crop_images_to_fullscreen_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -62,11 +62,11 @@
     </LinearLayout>
 
     <!-- Dynamic Background Extension -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDynamicBackground" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_dynamic_background_title" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_dynamic_background_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -96,11 +96,11 @@
     </LinearLayout>
 
     <!-- Slideshow Background Music -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSlideshowBackgroundMusic" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_slideshow_background_music" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_slideshow_background_music_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>

@@ -1,5 +1,9 @@
 # IV.1 — Decompose Giant Files
 
+**Status:** Approved
+**Priority:** 50
+**Tactical plan:** _none — strategic-only loop tracker_
+
 **Target:** every `.kt` file ≤ 700 LOC (hard cap: ≤ 1000 per CLAUDE.md). **Importance weights:** Activity/Fragment = 5, ViewModel = 4, Manager/Helper/Handler/Adapter = 3, Data Client/Repository/UseCase/Strategy = 2. **Score** = LOC × weight.
 
 **Last measured:** 2026-04-24
@@ -322,3 +326,46 @@ Next dynamic-loop candidates (sub-1500 LOC, easy quick wins toward the 1000 cap)
 | `ImageLoadingManager.kt` | 1 239 | 1 617 |
 
 The loop continues from the smallest-margin file each iteration.
+
+---
+
+## Revision History
+
+- **2026-04-30** — by `/spec-update` (`claude-opus-4-7`, focus: language, structure, verifiability, consistency, completeness, style)
+  - Applied: 2. Proposed (DISCUSS): 4.
+
+---
+
+## Proposed Structural Changes
+
+### Proposal P-1 — Strategic body language is English, must be Russian  (proposed 2026-04-30 by `claude-opus-4-7`)
+
+**Status:** Proposed
+**Affected:** entire document body
+**Rationale:** CLAUDE.md mandates "Strategic body: Russian. Tactical body: English." This file is fully English. Auto-translation is forbidden by `/spec-update` constraints, so the rewrite must be authored manually (or the spec re-classified — see P-3).
+**Suggested edit:**
+> Translate sections "Completed (Waves 1–N)", "Current sizes", "Priority list", "Loop status" headings and prose to Russian; keep code identifiers, file paths, and helper class names in English.
+
+### Proposal P-2 — Missing mandatory strategic sections  (proposed 2026-04-30 by `claude-opus-4-7`)
+
+**Status:** Proposed
+**Affected:** document skeleton
+**Rationale:** Strategic specs in this repo follow a `## 1. Проблема / ## 2. Цели / Non-goals / ## N. Риски / ## N. Критерии приёмки` skeleton (cf. `S0003_link-receive-download.md`). S0002 carries none of these — only an implementation log and a priority table. Without a Goals + Acceptance-Criteria framing, the spec offers no observable success condition beyond "every `.kt` file ≤ 700 LOC", which is implicit in the title.
+**Suggested edit:**
+> Add empty section skeleton: `## 1. Проблема`, `## 2. Цели`, `## 3. Non-goals`, `## 4. Ограничения и инварианты`, `## 5. Открытые вопросы (Research)`, `## 6. ADR`, `## 7. Риски`, `## 8. Критерии приёмки`. Adding empty skeletons in this case is structural (would split the document and demand authoring work) so it is filed as DISCUSS rather than auto-applied.
+
+### Proposal P-3 — Wave logs are implementation reporting, not strategy  (proposed 2026-04-30 by `claude-opus-4-7`)
+
+**Status:** Proposed
+**Affected:** "Completed (Waves 1–21)", "Wave N — in progress", "Wave 6 — deferred", "Loop status" sections
+**Rationale:** Per CLAUDE.md "Strategic: no class names, file paths, line budgets". The wave tables list ~50 file paths, dozens of helper class names, and per-file LOC budgets — every one of which violates the rule. The content is valuable but belongs in a tactical sibling (`PLAN/S0002_decompose-giant-files/INDEX.md`) or a dedicated implementation log. Strategic spec should retain only the goal, score formula, and acceptance criteria.
+**Suggested edit:**
+> Move every "Wave N result" table and the "Current sizes" / "Priority list" / "Loop status" tables out of the strategic file into a tactical INDEX (or `IMPLEMENTATION_LOG.md` under the spec folder). Keep the score formula and weights in strategic §4 (Constraints).
+
+### Proposal P-4 — Dynamic-loop ordering rule should be an ADR  (proposed 2026-04-30 by `claude-opus-4-7`)
+
+**Status:** Proposed
+**Affected:** "Wave 6 — deferred" section, last paragraph
+**Rationale:** The decision "(LOC − 700) × weight, smallest delta first" overrides the headline score formula and is currently buried in a deferred-wave note. It is a load-bearing architectural choice for the loop and deserves an explicit ADR with rationale (avoid stalling on giant document viewers) and consequences (giant viewers slip late).
+**Suggested edit:**
+> Lift the "smallest-margin first" rule into a dedicated ADR under §6 ADR with: Context (giant viewers block the loop), Decision (smallest-delta first under 1500 LOC), Consequences (priority table is informational, not execution order).

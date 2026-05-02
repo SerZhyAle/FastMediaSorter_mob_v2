@@ -1,102 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/welcome_page_1_background">
 
     <!-- Skip Button (Top Right) -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSkip"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        android:layout_marginEnd="@dimen/margin_small"
-        android:text="@string/skip"
-        android:textColor="?attr/colorOnSurface"
-        android:textSize="@dimen/welcome_button_text_size"
-        android:alpha="0.7"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnSkip" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:text="@string/skip" android:textColor="?attr/colorOnSurface" android:textSize="@dimen/welcome_button_text_size" android:alpha="0.7" app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- ViewPager2 for Welcome Pages -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
-        android:layout_width="@dimen/match_constraint"
-        android:layout_height="0dp"
-        android:layout_marginTop="@dimen/margin_small"
-        android:layout_marginBottom="@dimen/margin_small"
-        app:layout_constraintTop_toBottomOf="@id/btnSkip"
-        app:layout_constraintBottom_toTopOf="@id/layoutBottomNav"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <androidx.viewpager2.widget.ViewPager2 android:id="@+id/viewPager" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:layout_constraintTop_toBottomOf="@id/btnSkip" app:layout_constraintBottom_toTopOf="@id/layoutBottomNav" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Bottom Navigation Area -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutBottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="@dimen/welcome_top_nav_padding"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/layoutBottomNav" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/welcome_top_nav_padding" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Previous Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPrevious"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/previous"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/welcome_button_text_size"
-            android:alpha="0.7"
-            android:visibility="invisible"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnPrevious" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/previous" android:textColor="?attr/colorOnSurface" android:textSize="@dimen/welcome_button_text_size" android:alpha="0.7" android:visibility="invisible" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
 
         <!-- Page Indicator -->
-        <LinearLayout
-            android:id="@+id/layoutIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            app:layout_constraintStart_toEndOf="@id/btnPrevious"
-            app:layout_constraintEnd_toStartOf="@id/btnNext"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+        <LinearLayout android:id="@+id/layoutIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" app:layout_constraintStart_toEndOf="@id/btnPrevious" app:layout_constraintEnd_toStartOf="@id/btnNext" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
         <!-- Next Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnNext"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/next"
-            android:textSize="@dimen/welcome_button_text_size"
-            android:textColor="@color/white"
-            app:backgroundTint="?attr/colorPrimary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnNext" style="@style/Widget.MaterialComponents.Button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/next" android:textSize="@dimen/welcome_button_text_size" android:textColor="@color/white" app:backgroundTint="?attr/colorPrimary" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
 
         <!-- Finish Button (same position as Next) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFinish"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/finish"
-            android:textSize="@dimen/welcome_button_text_size"
-            android:textColor="@color/white"
-            app:backgroundTint="?attr/colorPrimary"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnFinish" style="@style/Widget.MaterialComponents.Button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/finish" android:textSize="@dimen/welcome_button_text_size" android:textColor="@color/white" app:backgroundTint="?attr/colorPrimary" android:visibility="gone" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

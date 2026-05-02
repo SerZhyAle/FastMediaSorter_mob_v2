@@ -195,6 +195,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 kotlinx.coroutines.delay(2000) // Wait for UI to render first
                 val settings = settingsRepository.getSettings().first()
                 logSettingsInfo(settings)
+                // Sync the synchronous SP mirror so the player picks the right controls layout
+                // on first inflate after upgrade from a build that didn't write the SP file yet.
+                com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.setCompact(
+                    this@FastMediaSorterApp,
+                    settings.useCompactElements
+                )
                 if (settings.enableBackgroundSync) {
                     workManagerScheduler.scheduleResourcesSync(
                         settings.backgroundSyncIntervalHours.toLong()

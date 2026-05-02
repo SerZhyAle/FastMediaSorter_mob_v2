@@ -481,6 +481,9 @@ class VideoPlayerManager(
             val videoFormat = tracks.groups
                 .firstOrNull { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }
                 ?.getTrackFormat(0)
+            // WHY: VR_QUALITY_DEBUG — log selected track to diagnose S0041 pixelization regression.
+            // Remove after root cause is confirmed (Phase 2 of S0041 investigation).
+            Timber.d("VR_QUALITY_DEBUG: selected track format=%s", videoFormat)
             if (videoFormat != null) {
                 val detectionPath = currentFilePath ?: return
                 managerScope.launch {

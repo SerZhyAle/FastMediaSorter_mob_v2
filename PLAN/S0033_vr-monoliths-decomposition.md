@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0033 — Декомпозиция VR-монолитов перед расширением ray-input/HUD
 
 **Ticket:** S0033
-**Status:** Tactical
+**Status:** In Progress
 **Date:** 2026-04-29
 **Tier:** 3 — Moderate
 **Roadmap entry:** Discovered by `/spec-all S0024` — Phase 02 ray-hud-intersection требует пред-обработки JNI-слоя и VR-Activity-плеера, оба превышают жёсткий лимит CLAUDE.md rule 2 (1000 LOC).

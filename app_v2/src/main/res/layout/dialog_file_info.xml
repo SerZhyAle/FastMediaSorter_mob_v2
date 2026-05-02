@@ -96,6 +96,87 @@
                 android:lineSpacingMultiplier="1.2"
                 android:paddingBottom="@dimen/padding_small" />
 
+            <TextView
+                android:id="@+id/tvFileHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvFileShare"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvFileDirectory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvFileNameLine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvFileExtensionMime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvFileLastModified"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvFileReadOnly"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvFileHidden"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="@dimen/padding_small"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCopyPath"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/padding_small"
+                android:text="@string/file_info_copy_path"
+                android:visibility="gone"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
             <!-- Image EXIF Section -->
             <LinearLayout
                 android:id="@+id/sectionExif"
@@ -245,6 +326,22 @@
                     android:paddingTop="@dimen/padding_large"
                     android:paddingBottom="@dimen/padding_normal" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_horizontal"
+                    android:paddingBottom="@dimen/padding_small">
+
+                    <ImageView
+                        android:id="@+id/ivAudioCoverArt"
+                        android:layout_width="@dimen/file_info_cover_art_size"
+                        android:layout_height="@dimen/file_info_cover_art_size"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/audio_cover_art_cd"
+                        android:visibility="gone" />
+                </LinearLayout>
+
                 <TextView
                     android:id="@+id/tvAudioTitle"
                     android:layout_width="match_parent"
@@ -309,6 +406,42 @@
 
                 <TextView
                     android:id="@+id/tvAudioSampleRate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvAudioBitDepth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvAudioLossless"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvAudioReplayGainTrack"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvAudioReplayGainAlbum"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="@style/TextAppearance.Material3.BodyLarge"

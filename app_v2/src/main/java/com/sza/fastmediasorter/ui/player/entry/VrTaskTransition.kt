@@ -82,7 +82,10 @@ object VrTaskTransition {
         val panelIntent = resumePlayerIntent ?: Intent(ctx, MainActivity::class.java).apply {
             action = Intent.ACTION_MAIN
         }
-        panelIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // WHY: S0038 — FLAG_ACTIVITY_SINGLE_TOP prevents HorizonOS from creating a new window
+        // when a panel VrPlayerActivity already exists at the top of its task (calls onNewIntent instead).
+        // FLAG_ACTIVITY_NEW_TASK is kept: required for HorizonOS cross-process PendingIntent (vrshell fires it).
+        panelIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pending = PendingIntent.getActivity(
             ctx,
             0,

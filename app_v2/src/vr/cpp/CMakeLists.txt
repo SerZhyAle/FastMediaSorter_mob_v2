@@ -29,6 +29,12 @@ if(ENABLE_OPENXR)
 
     add_library(openxr_native SHARED
         OpenXrNative.cpp
+        OpenXrFrame.cpp
+        OpenXrHandTracking.cpp
+        OpenXrInput.cpp
+        OpenXrLifecycle.cpp
+        OpenXrSwapchain.cpp
+        OpenXrLog.cpp
     )
 
     target_include_directories(openxr_native PRIVATE

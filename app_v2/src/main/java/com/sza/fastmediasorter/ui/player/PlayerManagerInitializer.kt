@@ -228,6 +228,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.fileOperationsHandler = FileOperationsHandler(
             context = activity,
             lifecycleScope = activity.lifecycleScope,
+            appScope = activity.fileOpsAppScope,
             settingsRepository = activity.settingsRepository,
             fileOperationUseCase = activity.viewModel.fileOperationUseCase,
             callback = object : FileOperationsHandler.FileOperationCallback {

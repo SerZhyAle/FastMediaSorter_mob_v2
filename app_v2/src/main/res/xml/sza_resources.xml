@@ -57,6 +57,18 @@
 
     <resource name="SFTP" path="sftp://193.178.50.43:22/data" type="SFTP" username="sza" password="SerZhyA25SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" scanSubdirectories="true" showHiddenFiles="true" showFoldersInList="true" addToDestinations="true" displayMode="LIST" allFiles="true" />
 
+    <resource name="local_MOV" path="sftp://192.168.1.110:22022/J:/MEDIA/MOV" type="SFTP" username="media-svc" password="SerZhyA25" supportedMediaTypes="VIDEO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
+
+    <resource name="local_apeflac" path="sftp://192.168.1.110:22022/J:/MEDIA/apeflac" type="SFTP" username="media-svc" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
+
+    <resource name="local_mp3" path="sftp://192.168.1.110:22022/J:/MEDIA/mp3" type="SFTP" username="media-svc" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="true" rememberTheFileList="true" />
+
+    <resource name="Home MOV" path="sftp://46.54.0.135:22022/J:/MEDIA/MOV" type="SFTP" username="sza" password="SerZhyA25" supportedMediaTypes="VIDEO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
+
+    <resource name="Home ApeFlac" path="sftp://46.54.0.135:22022/J:/MEDIA/apeflac" type="SFTP" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
+
+    <resource name="Home MP3" path="sftp://46.54.0.135:22022/J:/MEDIA/mp3" type="SFTP" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="true" rememberTheFileList="true" />
+
     <resource name="FTP" path="ftp://193.178.50.43:21/" type="FTP" username="sza" password="SerZhyA25SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" allFiles="true" addToDestinations="true" sortMode="SIZE_DESC" displayMode="LIST" />
 
 </media-resources>

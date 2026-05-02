@@ -11,7 +11,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -21,9 +21,8 @@
                 android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
@@ -65,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:minHeight="@dimen/button_height"
+                android:minHeight="@dimen/settings_item_min_height"
                 android:layout_marginBottom="@dimen/margin_small">
 
                 <TextView
@@ -100,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:minHeight="@dimen/button_height">
+                android:minHeight="@dimen/settings_item_min_height">
 
                 <TextView
                     android:layout_width="0dp"
@@ -124,7 +123,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:visibility="gone"
             android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
 
@@ -136,9 +135,8 @@
                 android:checked="false" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
@@ -170,7 +168,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -181,9 +179,8 @@
                 android:checked="false" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
@@ -205,7 +202,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height">
+            android:minHeight="@dimen/settings_item_min_height">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchEnableOcr"
@@ -239,7 +236,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:visibility="gone"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
@@ -265,7 +262,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:visibility="gone"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">

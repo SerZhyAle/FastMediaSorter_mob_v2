@@ -111,13 +111,13 @@ object PermissionHelper {
                 val intent = Intent(Settings.ACTION_REQUEST_MANAGE_MEDIA).apply {
                     data = Uri.parse("package:${activity.packageName}")
                 }
-                activity.startActivityForResult(intent, REQUEST_CODE_MANAGE_MEDIA)
+                SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_MANAGE_MEDIA)
             } catch (e: Exception) {
                 // Fallback to app settings
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", activity.packageName, null)
                 }
-                activity.startActivityForResult(intent, REQUEST_CODE_MANAGE_MEDIA)
+                SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_MANAGE_MEDIA)
             }
         }
     }
@@ -166,20 +166,20 @@ object PermissionHelper {
                 val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                     data = Uri.parse("package:${activity.packageName}")
                 }
-                activity.startActivityForResult(intent, REQUEST_CODE_ALL_FILES_ACCESS)
+                SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_ALL_FILES_ACCESS)
             } catch (e: Exception) {
                 Timber.w(e, "Failed to open app-specific all files access settings, trying general settings")
                 // Fallback to general all files access settings
                 try {
                     val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    activity.startActivityForResult(intent, REQUEST_CODE_ALL_FILES_ACCESS)
+                    SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_ALL_FILES_ACCESS)
                 } catch (e2: Exception) {
                     Timber.e(e2, "Failed to open all files access settings")
                     // Last fallback - app details
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", activity.packageName, null)
                     }
-                    activity.startActivityForResult(intent, REQUEST_CODE_ALL_FILES_ACCESS)
+                    SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_ALL_FILES_ACCESS)
                 }
             }
         }
@@ -277,15 +277,15 @@ object PermissionHelper {
                     val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                         data = Uri.parse("package:${activity.packageName}")
                     }
-                    activity.startActivityForResult(intent, REQUEST_CODE_MANAGE_STORAGE)
+                    SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_MANAGE_STORAGE)
                 } catch (e: Exception) {
                     Timber.w(e, "Failed to open app-specific all files access settings, using fallback")
                     // Fallback: general all files access settings
                     val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    activity.startActivityForResult(intent, REQUEST_CODE_MANAGE_STORAGE)
+                    SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_MANAGE_STORAGE)
                 }
             }
-            
+
             // API 29 (Android 10): Open app settings (Storage section)
             // User should see "Storage" entry → "Clear storage" and permission toggles
             Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
@@ -293,25 +293,25 @@ object PermissionHelper {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", activity.packageName, null)
                 }
-                activity.startActivityForResult(intent, REQUEST_CODE_STORAGE)
+                SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_STORAGE)
             }
-            
+
             // API 28 (Android 9) and below: Open app settings for runtime permissions
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.P -> {
                 Timber.i("PermissionHelper: Routing to app settings (API ${Build.VERSION.SDK_INT})")
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", activity.packageName, null)
                 }
-                activity.startActivityForResult(intent, REQUEST_CODE_STORAGE)
+                SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_STORAGE)
             }
-            
+
             // API 23-27 (Android 6-8): Open app settings for runtime permissions
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
                 Timber.i("PermissionHelper: Routing to app settings (API ${Build.VERSION.SDK_INT})")
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", activity.packageName, null)
                 }
-                activity.startActivityForResult(intent, REQUEST_CODE_STORAGE)
+                SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_STORAGE)
             }
             
             else -> {

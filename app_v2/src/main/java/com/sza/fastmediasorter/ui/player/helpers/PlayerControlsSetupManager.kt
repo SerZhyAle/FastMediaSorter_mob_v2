@@ -70,13 +70,13 @@ class PlayerControlsSetupManager(
     private fun setupNavigationControls() {
         binding.btnPrevious.setOnClickListener {
             UserActionLogger.logButtonClick("Previous", "PlayerActivity")
-            viewModel.previousFile()
+            viewModel.previousFile(manual = true)
             activity.scheduleHideControls()
         }
 
         binding.btnNext.setOnClickListener {
             UserActionLogger.logButtonClick("Next", "PlayerActivity")
-            viewModel.nextFile()
+            viewModel.nextFile(manual = true)
             activity.scheduleHideControls()
         }
     }

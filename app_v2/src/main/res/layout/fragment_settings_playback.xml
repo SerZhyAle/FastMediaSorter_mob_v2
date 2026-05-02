@@ -34,11 +34,11 @@
                     </LinearLayout>
 
                     <!-- Play Video to End (Moved from containerRenamePlay) -->
-                    <LinearLayout android:id="@+id/layoutPlayToEnd" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_small">
+                    <LinearLayout android:id="@+id/layoutPlayToEnd" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_small">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPlayToEnd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/play_video_to_end" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_play_to_end_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -58,11 +58,11 @@
                 <LinearLayout android:id="@+id/containerFileOperations" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
                     <!-- Allow Rename (Moved from containerRenamePlay) -->
-                    <LinearLayout android:id="@+id/layoutAllowRename" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/layoutAllowRename" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAllowRename" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/allow_rename" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_allow_rename_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -72,22 +72,22 @@
                     <!-- Delete + ConfirmDelete Row Container -->
                     <LinearLayout android:id="@+id/containerDeleteConfirm" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_small">
 
-                        <LinearLayout android:id="@+id/layoutAllowDelete" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginEnd="@dimen/resource_field_margin_end">
+                        <LinearLayout android:id="@+id/layoutAllowDelete" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginEnd="@dimen/resource_field_margin_end">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAllowDelete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/allow_delete" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_allow_delete_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                         </LinearLayout>
 
-                        <LinearLayout android:id="@+id/layoutConfirmDelete" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/settings_help_icon_margin">
+                        <LinearLayout android:id="@+id/layoutConfirmDelete" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:layout_marginStart="@dimen/settings_help_icon_margin">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmDelete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_delete" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_delete_player_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -131,7 +131,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchHideGridActionButtons" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/hide_grid_action_buttons" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_hide_grid_action_buttons_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -154,7 +154,7 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchHideSystemUiInFullscreen" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/hide_system_ui_in_fullscreen" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_hide_system_ui_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -164,11 +164,11 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <!-- Show Command Panel -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowCommandPanel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_command_panel_by_default" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_command_panel_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -178,11 +178,11 @@
                         </LinearLayout>
 
                         <!-- Show Detailed Errors -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDetailedErrors" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_detailed_errors" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_detailed_errors_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -192,11 +192,11 @@
                     </LinearLayout>
 
                     <!-- Picture-in-Picture (API 31+) -->
-                    <LinearLayout android:id="@+id/layoutPip" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/layoutPip" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnablePip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_pip" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_pip_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -204,11 +204,11 @@
                     </LinearLayout>
 
                     <!-- Panel Stereo Single-Eye View (spec_panel-stereo-single-eye) -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPanelStereoSingleEye" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_panel_stereo_single_eye_title" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:id="@+id/textPanelStereoSingleEyeSummary" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_panel_stereo_single_eye_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -232,11 +232,11 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <!-- Show Player Hint -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowPlayerHint" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_player_hint" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_player_hint_description" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -244,7 +244,7 @@
                         </LinearLayout>
 
                         <!-- Always Show Touch Zones -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAlwaysShowTouchZones" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
@@ -277,7 +277,7 @@
 
                         <ImageView android:layout_width="0dp" android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height" android:layout_weight="1" android:contentDescription="@string/touch_zones_scheme" android:scaleType="fitCenter" android:src="@drawable/touch_zones_scheme" android:layout_marginEnd="@dimen/margin_small"/>
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
 
                             <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zones_legend_title" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:textColor="?attr/colorPrimary" android:layout_marginBottom="@dimen/margin_tiny"/>
 
@@ -311,11 +311,11 @@
                     <LinearLayout android:id="@+id/layoutDefaultPlayerToggles" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
                         <!-- Toggle: Use as primary media player -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPrimaryMediaPlayer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_primary_media_player" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_primary_media_player_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -323,11 +323,11 @@
                         </LinearLayout>
 
                         <!-- Toggle: Accept shared media files -->
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAcceptSharedFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_accept_shared_files" android:textSize="@dimen/toggler_title_text_size" />
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_accept_shared_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
@@ -337,11 +337,11 @@
                     </LinearLayout>
 
                     <!-- S0003: Link auto-download — master toggle -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_link_autodownload_enabled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_master_label" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_master_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -349,7 +349,7 @@
                     </LinearLayout>
 
                     <!-- S0003: Link auto-download — destination resource (label-only stub; picker wired in Phase 05) -->
-                    <LinearLayout android:id="@+id/row_link_autodownload_resource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
+                    <LinearLayout android:id="@+id/row_link_autodownload_resource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
 
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_resource_label" android:textSize="@dimen/toggler_title_text_size" />
                         <TextView android:id="@+id/tv_link_autodownload_resource_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_resource_not_set" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
@@ -357,11 +357,11 @@
                     </LinearLayout>
 
                     <!-- S0003: Link auto-download — open in player toggle -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_link_autodownload_open_in_player" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_open_in_player_label" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/link_autodownload_open_in_player_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -369,11 +369,11 @@
                     </LinearLayout>
 
                     <!-- Toggle: Resume on next launch -->
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchResumeOnNextLaunch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_resume_on_next_launch" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_resume_on_next_launch_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -381,11 +381,11 @@
                     </LinearLayout>
 
                     <!-- Toggle: Disable 3D/VR (VR flavor only — hidden in standard/lite/photos/legacy) -->
-                    <LinearLayout android:id="@+id/layoutDisable3dVr" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal" android:visibility="gone">
+                    <LinearLayout android:id="@+id/layoutDisable3dVr" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal" android:visibility="gone">
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDisable3dVr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_vr_disable_3d" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_vr_disable_3d_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -393,9 +393,9 @@
                     </LinearLayout>
 
                     <!-- Camera Capture: disable + skip-filename on one row, with help -->
-                    <LinearLayout android:id="@+id/layoutCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+                    <LinearLayout android:id="@+id/layoutCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDisableCameraCapture" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
@@ -436,9 +436,8 @@
                 android:paddingEnd="@dimen/margin_small">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView

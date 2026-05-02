@@ -2,11 +2,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/settings_padding">
 
     <!-- Support video -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportVideos" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_video_description" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_videos_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -15,11 +15,11 @@
     </LinearLayout>
 
     <!-- Show video thumbnails -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowVideoThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_video_thumbnails" android:textSize="@dimen/toggler_title_text_size" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_video_thumbnails_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
         </LinearLayout>
@@ -72,9 +72,8 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/video_snapshot_resource_label"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -189,9 +188,8 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/settings_vr_section_title"
                 android:textSize="@dimen/settings_group_header_text_size"
                 android:textStyle="bold" />
@@ -213,7 +211,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -224,9 +222,8 @@
                 android:checked="true" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
@@ -343,7 +340,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -354,9 +351,8 @@
                 android:checked="true" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
@@ -380,7 +376,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -391,9 +387,8 @@
                 android:checked="true" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
@@ -417,7 +412,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -428,9 +423,8 @@
                 android:checked="false" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
@@ -463,7 +457,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
             android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
+            android:minHeight="@dimen/settings_item_min_height"
             android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -474,9 +468,8 @@
                 android:checked="false" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView

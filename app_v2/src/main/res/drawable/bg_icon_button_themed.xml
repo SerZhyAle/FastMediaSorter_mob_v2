@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Theme-aware circular background for the pick-icon button in the toolbar.
+     Inherits the device theme surface color: light surface in light theme,
+     dark surface in dark theme (S0037 P5, revised). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="?attr/colorSurface" />
+</shape>
