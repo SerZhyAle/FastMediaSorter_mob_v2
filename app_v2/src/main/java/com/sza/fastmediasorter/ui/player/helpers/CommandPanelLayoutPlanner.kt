@@ -14,11 +14,7 @@ import com.sza.fastmediasorter.ui.player.PlayerViewModel
  *
  * Fixed button groups are NOT subject to adaptive width planning:
  *   – Back (left anchor)
- *   – Delete, Fullscreen, Previous, Next (always-visible right group)
- *   – Share, Info, Slideshow, Favorite (conditional right group; Phase 6 decision:
- *     kept in the fixed right-side button group, not subject to adaptive width
- *     planning, so they remain always visible per their individual predicates
- *     and do not need overflow parity).
+ *   – Previous, Next (right anchor — always visible)
  */
 class CommandPanelLayoutPlanner {
 
@@ -38,8 +34,22 @@ class CommandPanelLayoutPlanner {
         val titleResId: Int,
         val iconResId: Int
     ) {
+        // ── Group 1 : high-priority adaptive commands (priorities 10–70) ──────────
+        // Lowest priority numbers = first on bar (leftmost), last to overflow.
+        // Previous/Next are fixed right anchors — not in this group.
+
+        DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete),
+        FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline),
+        SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share),
+        INFO(40, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info),
+        FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen),
+        SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play),
+        RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav),
+
         // ── Group 2 : current command-bar commands (priorities 200–499) ──────────────
 
+        BLACK_SCREEN(195, R.id.menu_black_screen, true,
+            R.string.black_screen_button_title, R.drawable.ic_black_screen),
         RENAME(200, R.id.menu_rename, true, R.string.rename, R.drawable.ic_rename),
         EDIT(210, R.id.menu_edit, true, R.string.edit, android.R.drawable.ic_menu_edit),
         // VR flavor only: placed directly after EDIT so it sits next to the Control dialog button.
@@ -133,15 +143,19 @@ class CommandPanelLayoutPlanner {
      * Build the ordered list of adaptive commands that are currently active for this
      * [state]. Overflow-only commands are always included when their conditions are met.
      *
-     * @param canWrite Whether the current resource is writable.
-     * @param canRead  Whether the current resource is readable.
+     * @param canWrite        Whether the current resource is writable.
+     * @param canRead         Whether the current resource is readable.
      * @param isWifiConnected Whether a Wi-Fi connection is currently available.
+     * @param showFavorite    Whether the Favorite button should be included (async setting).
+     * @param showRandom      Whether the Random navigation button should be included.
      */
     fun buildActiveCommands(
         state: PlayerViewModel.PlayerState,
         canWrite: Boolean,
         canRead: Boolean,
-        isWifiConnected: Boolean
+        isWifiConnected: Boolean,
+        showFavorite: Boolean = true,
+        showRandom: Boolean = false
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
@@ -153,7 +167,17 @@ class CommandPanelLayoutPlanner {
         val isReadOnly = state.resource?.isReadOnly == true
 
         return buildList {
+            // ── Group 1 : high-priority adaptive buttons ──────────────────────────────
+            if (canWrite && state.allowDelete) add(PlayerCommand.DELETE)
+            if (showFavorite) add(PlayerCommand.FAVORITE)
+            add(PlayerCommand.SHARE)
+            add(PlayerCommand.INFO)
+            if (isImage || isVideo || isPdf || isText || isEpub) add(PlayerCommand.FULLSCREEN)
+            if (isImage || isVideo) add(PlayerCommand.SLIDESHOW)
+            if (showRandom) add(PlayerCommand.RANDOM)
+
             // ── Group 2 ──────────────────────────────────────────────────────────────
+            if ((isAudio || isVideo) && state.showBlackScreenButton) add(PlayerCommand.BLACK_SCREEN)
             if (canWrite && state.allowRename) add(PlayerCommand.RENAME)
             if ((isImage && canWrite) || isVideo || isPdf) add(PlayerCommand.EDIT)
             if (state.lastOperation != null && canWrite) add(PlayerCommand.UNDO)

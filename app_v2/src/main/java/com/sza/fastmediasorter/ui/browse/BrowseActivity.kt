@@ -207,7 +207,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.markListAsSubmitted(state.mediaFiles)
                 lastSubmittedSortMode = state.sortMode
                 initializer.mediaFileAdapter.setSkipInitialThumbnailLoad(true)
+                // isSorting stays true through DiffUtil: only clear on the submission that
+                // carries the sorted mediaFiles (sortChanged = false at that point).
+                val isSortingSubmit = state.isSorting && !sortChanged
                 initializer.mediaFileAdapter.submitList(state.mediaFiles) {
+                    if (isSortingSubmit) viewModel.clearSorting()
                     initializer.listSubmitManager.onListSubmitted(state)
                 }
             }

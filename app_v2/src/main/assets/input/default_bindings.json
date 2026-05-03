@@ -687,6 +687,18 @@
       }
     },
     {
+      "command_id": "player.black_screen",
+      "group": "SYSTEM_UI",
+      "label_key": "cmd_black_screen_label",
+      "flavor_gate": "audio_required",
+      "triggers": {
+        "keyboard": ["key:30:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
       "command_id": "vr.recenter",
       "group": "VR_ONLY",
       "label_key": "cmd_vr_recenter",

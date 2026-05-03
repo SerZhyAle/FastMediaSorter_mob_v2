@@ -578,8 +578,9 @@ class EpubViewerManager(
                 val processedHtml = preprocessHtml(htmlContent, resource)
                 
                 withContext(Dispatchers.Main) {
-                    // Load into WebView
-                    webView?.loadDataWithBaseURL(
+                    // Load into WebView (getOrCreateWebView ensures it is initialised and
+                    // WebViewClient is wired up before loadDataWithBaseURL is called)
+                    getOrCreateWebView().loadDataWithBaseURL(
                         "file:///android_asset/", // Base URL for resource loading
                         processedHtml,
                         "text/html",

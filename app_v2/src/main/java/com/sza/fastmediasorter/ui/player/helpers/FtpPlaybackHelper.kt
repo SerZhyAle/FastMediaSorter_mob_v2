@@ -69,12 +69,13 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
 
     exoPlayer = ExoPlayer.Builder(context)
         .setMediaSourceFactory(
-            DefaultMediaSourceFactory(dataSourceFactory as DataSource.Factory)
+            DefaultMediaSourceFactory((dataSourceFactory as DataSource.Factory).wrapForBdTs(path))
         )
         .setLoadControl(loadControl)
         .setAudioAttributes(audioAttributes, true)
         .build()
 
+    exoPlayer?.addListener(loadControl)
     exoPlayer?.addListener(playerListener)
     currentPlayerView?.player = exoPlayer
 

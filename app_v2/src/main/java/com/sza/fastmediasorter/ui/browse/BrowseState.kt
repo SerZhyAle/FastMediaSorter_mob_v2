@@ -20,6 +20,7 @@ data class BrowseState(
     val lastOperation: UndoOperation? = null,
     val undoOperationTimestamp: Long? = null, // Timestamp when undo operation was saved (for expiry check)
     val loadingProgress: Int = 0, // Number of files found during scan (0 = not scanning)
+    val isSorting: Boolean = false, // True while in-memory sort is running (shows "Sorting..")
     val isCloudResource: Boolean = false, // True for cloud resources (to show animated dots)
     val isScanCancellable: Boolean = false, // True when scan runs >5 seconds, shows STOP button
     val showSmallControls: Boolean = false, // True if "Small controls" setting is enabled

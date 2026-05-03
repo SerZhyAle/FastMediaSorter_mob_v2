@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0050_player-black-screen-mode.md`](../S0050_player-black-screen-mode.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 03
 **Blocks:** Phase 05
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-05-02
+**Completed:** 2026-05-02
 
 ---
 
@@ -52,7 +52,11 @@ Register `player.black_screen` as a named command in the keybinding system: add 
 
 - `Grep` — `player.black_screen` in `default_bindings.json`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 1/1 PASS. Files: default_bindings.json (+12 lines, key:30:0 = B, flavor_gate audio_required). Dev log recorded.
 
 ---
 
@@ -76,7 +80,11 @@ Register `player.black_screen` as a named command in the keybinding system: add 
 - `Grep` — `cmd_black_screen_label` in `values-ru/strings.xml`.
 - `Grep` — `cmd_black_screen_label` in `values-uk/strings.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 3/3 PASS. Files: strings.xml×3 (+1 each). Dev log recorded.
 
 ---
 
@@ -95,9 +103,17 @@ Register `player.black_screen` as a named command in the keybinding system: add 
 
 **Verification:**
 
-- `Grep` — `player.black_screen` in `PlayerActivity.kt` (or the delegate manager file that handles the command dispatch).
+- `Grep` — `player.black_screen` in `CommandId.kt` (constant declaration).
+- `Grep` — `CommandId.BLACK_SCREEN` in `PlayerKeyboardHandler.kt` (handleCommand dispatch branch).
+- `Grep` — `onToggleBlackScreen` in `PlayerKeyboardCallbackImpl.kt` (implementation calls activity.toggleBlackScreenOverlay()).
 
-**Status:** `[ ]` not done
+> _Spec patch: dispatch is in `PlayerKeyboardHandler.kt` (delegate manager), implemented via `PlayerKeyboardCallbackImpl.kt`. `PlayerActivity.kt` owns `toggleBlackScreenOverlay()` (added in Phase 03)._
+
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 3/3 PASS (patched predicates). Files: CommandId.kt (+1 const), PlayerKeyboardHandler.kt (+1 callback method, +1 handleCommand branch), PlayerKeyboardCallbackImpl.kt (+1 override). Dev log recorded.
 
 ---
 
@@ -114,16 +130,20 @@ Register `player.black_screen` as a named command in the keybinding system: add 
 
 - `Grep` — if a hard-coded command list exists, `player.black_screen` is in it. If no hard-coded list exists, this step is satisfied by the presence of the `default_bindings.json` entry from Step 4.1.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification PASS (no hard-coded allowlist; remap adapter iterates all `observeResolvedBindings()` entries from default_bindings.json). No code change needed.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every Step 4.* above is `[x] done`.
-- [ ] Project compiles — run `/build`.
-- [ ] `Grep` for `TODO(phase-04)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
+- [x] Every Step 4.* above is `[x] done`.
+- [x] Project compiles — run `/build`. (auto-build — PASS)
+- [x] `Grep` for `TODO(phase-04)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
 
 ---
 

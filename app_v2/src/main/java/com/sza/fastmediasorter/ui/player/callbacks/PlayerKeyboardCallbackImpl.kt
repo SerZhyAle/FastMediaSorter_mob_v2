@@ -195,4 +195,5 @@ class PlayerKeyboardCallbackImpl(
     override fun onPreviousFile() = viewModel.previousFile(manual = true)
     override fun onToggleFavourite() = viewModel.toggleFavorite()
     override fun onUndoOperation() = viewModel.undoLastOperation()
+    override fun onToggleBlackScreen() = activity.toggleBlackScreenOverlay()
 }

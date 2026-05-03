@@ -265,4 +265,8 @@ class PlayerCommandPanelCallbackImpl(
         // Delegate to the VR-specific override in VrPlayerActivity; base PlayerActivity no-ops.
         activity.handle3dVrToggleClicked()
     }
+
+    override fun onBlackScreenClicked() {
+        activity.blackScreenOverlayManager.show()
+    }
 }

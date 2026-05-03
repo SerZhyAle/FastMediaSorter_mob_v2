@@ -2,6 +2,56 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- Core actions -->
+    <item
+        android:id="@+id/menu_delete"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/delete"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_favorite"
+        android:icon="@drawable/ic_star_outline"
+        android:title="@string/favorite"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_share"
+        android:icon="@drawable/ic_share"
+        android:title="@string/share"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_info"
+        android:icon="@drawable/ic_info"
+        android:title="@string/file_information"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_fullscreen"
+        android:icon="@drawable/ic_fullscreen"
+        android:title="@string/fullscreen_mode"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_slideshow"
+        android:icon="@drawable/ic_play"
+        android:title="@string/slideshow"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_random"
+        android:icon="@drawable/ic_random_nav"
+        android:title="@string/random_file_description"
+        app:showAsAction="never" />
+
+    <!-- S0050: Black Screen mode (AUDIO/VIDEO only) -->
+    <item
+        android:id="@+id/menu_black_screen"
+        android:icon="@drawable/ic_black_screen"
+        android:title="@string/black_screen_button_title"
+        app:showAsAction="never" />
+
     <!-- Print (PDF/TXT/IMAGE) -->
     <item
         android:id="@+id/menu_print"

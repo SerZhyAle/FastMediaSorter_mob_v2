@@ -90,14 +90,14 @@ class BrowseObserverManager(
 
             if (!isLoading) binding.swipeRefreshLayout.isRefreshing = false
 
-            binding.tvProgressMessage.text = if (state.loadingProgress > 0) {
-                binding.root.context.getString(
+            binding.tvProgressMessage.text = when {
+                state.isSorting -> binding.root.context.getString(R.string.sorting_in_progress)
+                state.loadingProgress > 0 -> binding.root.context.getString(
                     R.string.loading_with_progress,
                     binding.root.context.getString(R.string.loading),
                     state.loadingProgress
                 )
-            } else {
-                binding.root.context.getString(R.string.loading)
+                else -> binding.root.context.getString(R.string.loading)
             }
 
             if (!isLoading) {

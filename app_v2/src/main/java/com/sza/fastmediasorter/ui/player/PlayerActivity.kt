@@ -11,7 +11,10 @@ import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.distinctUntilChanged
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -171,6 +174,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal lateinit var touchZoneSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
     internal lateinit var audioMetadataManager: com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
     internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
+    internal lateinit var blackScreenOverlayManager: com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 
     internal val googleSignInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -369,6 +373,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             slideshowModeRequested = true
             Timber.d("PlayerActivity: Resume slideshow requested via resumeSlideshowEnabled")
         }
+        blackScreenOverlayManager = com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager(java.lang.ref.WeakReference(this))
         initializeManagers()
         setupToolbar()
         setupControls()
@@ -416,6 +421,17 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     override fun observeData() {
         observerManager = PlayerObserverManager(this, settingsRepository)
         observerManager.startObserving()
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state
+                    .map { it.currentFile?.type }
+                    .distinctUntilChanged()
+                    .collect { type ->
+                        val isAudioOrVideo = type == MediaType.AUDIO || type == MediaType.VIDEO
+                        blackScreenOverlayManager.onFileTypeChanged(isAudioOrVideo)
+                    }
+            }
+        }
     }
 
     // Open so VrPlayerActivity can route exit through VrTaskTransition instead of a plain finish(),
@@ -558,6 +574,11 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal fun hideLyricsViewer() = lyricsManager.hideLyricsViewer()
 
     internal open fun saveCurrentFrame() = saveVideoFrameManager.saveCurrentFrame()
+
+    fun toggleBlackScreenOverlay() {
+        if (blackScreenOverlayManager.isVisible) blackScreenOverlayManager.hide()
+        else blackScreenOverlayManager.show()
+    }
 
     /**
      * Called when user taps the immersive toggle button. Overridden in VrPlayerActivity.
@@ -730,6 +751,21 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (blackScreenOverlayManager.isVisible) {
+            return when (event.keyCode) {
+                KeyEvent.KEYCODE_VOLUME_UP,
+                KeyEvent.KEYCODE_VOLUME_DOWN,
+                KeyEvent.KEYCODE_VOLUME_MUTE,
+                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                KeyEvent.KEYCODE_MEDIA_NEXT,
+                KeyEvent.KEYCODE_MEDIA_PREVIOUS,
+                KeyEvent.KEYCODE_MEDIA_STOP -> super.dispatchKeyEvent(event)
+                else -> {
+                    blackScreenOverlayManager.hide()
+                    super.dispatchKeyEvent(event)
+                }
+            }
+        }
         // Gamepad buttons are intercepted before onKeyDown to keep input routing in one place.
         // BT keyboard / remote keys fall through to super → onKeyDown → keyboardHandler.
         val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.PLAYER)

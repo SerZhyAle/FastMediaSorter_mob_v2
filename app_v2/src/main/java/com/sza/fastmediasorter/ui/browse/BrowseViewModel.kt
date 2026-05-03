@@ -527,9 +527,9 @@ class BrowseViewModel @Inject constructor(
 
     fun renameDirectory(path: String, newName: String) = directoryOpsManager.renameDirectory(path, newName)
 
-    fun reloadFiles(clearList: Boolean = false) {
+    fun reloadFiles(clearList: Boolean = false, syncMediaStore: Boolean = true) {
         reloadFilesJob?.cancel()
-        reloadFilesJob = refreshManager.launchReload(clearList)
+        reloadFilesJob = refreshManager.launchReload(clearList, syncMediaStore)
     }
 
     fun scrollToFileAfterRefresh(fileName: String) {
@@ -582,6 +582,12 @@ class BrowseViewModel @Inject constructor(
     fun setSortMode(sortMode: SortMode) = sortFilterManager.setSortMode(sortMode)
     fun reshuffleRandom() = sortFilterManager.reshuffleRandom()
     fun toggleDisplayMode() = sortFilterManager.toggleDisplayMode()
+
+    /** Called from BrowseActivity's submitList callback after DiffUtil finishes for a sort. */
+    fun clearSorting() {
+        updateState { it.copy(isSorting = false) }
+        setLoading(false)
+    }
 
     fun selectFile(filePath: String) {
         selectionManager.toggleSelection(filePath)

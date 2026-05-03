@@ -144,7 +144,9 @@ class BrowseManagerInitializer(
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
             override fun onMediaStoreChanged() {
                 if (!viewModel.isIgnoringFileChanges()) {
-                    viewModel.reloadFiles()
+                    // syncMediaStore=false: OS already knows the change; running sync would fire
+                    // more ContentObserver events and cause an infinite reload loop.
+                    viewModel.reloadFiles(syncMediaStore = false)
                 }
             }
         })

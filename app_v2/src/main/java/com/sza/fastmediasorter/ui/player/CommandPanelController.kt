@@ -83,6 +83,7 @@ class CommandPanelController(
         fun onPrintClicked()
         fun onSaveFrameClicked()
         fun on3dVrToggleClicked()
+        fun onBlackScreenClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -270,55 +271,47 @@ class CommandPanelController(
         val showInLandscape = effectiveShowCommandPanel && isLandscapeMode
         val showInPortrait = effectiveShowCommandPanel && !isLandscapeMode
         
-        // Random stays limited to library-like profiles where stochastic browsing makes sense.
         val showRandomNavigation = shouldShowRandomNavigation(resource?.profile)
 
-        // Back, Delete, Fullscreen, Previous, Next: always visible in command panel mode
+        // Back + Previous/Next are fixed anchors — always visible when command panel is shown.
         binding.btnBack.isVisible = effectiveShowCommandPanel
-        // Hide delete button if not writable or not allowed
-        binding.btnDeleteCmd.isVisible = effectiveShowCommandPanel && canWrite && state.allowDelete
-        binding.btnDeleteCmd.isEnabled = canWrite && canRead && state.allowDelete
         binding.btnPreviousCmd.isVisible = effectiveShowCommandPanel
-        binding.btnRandomCmd.isVisible = effectiveShowCommandPanel && showRandomNavigation
         binding.btnNextCmd.isVisible = effectiveShowCommandPanel
-        
-        // Fullscreen: not applicable for audio; visible in both modes for image/video/document
-        binding.btnFullscreenCmd.isVisible = effectiveShowCommandPanel && 
-            (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF ||
-             currentFile.type == MediaType.VIDEO || 
-             currentFile.type == MediaType.PDF || currentFile.type == MediaType.TEXT ||
-             currentFile.type == MediaType.EPUB)
-        
-        // Slideshow: visible in both modes for supported types (including AUDIO for background photos)
-        binding.btnSlideshowCmd.isVisible = effectiveShowCommandPanel && 
-             (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF ||
-              currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO)
 
-        // Common Action Buttons (Visible in both Portrait and Landscape)
+        // Sync: update favorite icon before planner/landscape branch runs
         if (effectiveShowCommandPanel) {
-            // Check enableFavorites setting (async)
+            binding.btnFavorite.setImageResource(
+                if (currentFile.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+            )
+        }
+
+        // Async: resolve enableFavorites from settings; re-run layout if visibility changes
+        if (effectiveShowCommandPanel) {
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
-                
                 withContext(Dispatchers.Main) {
+                    val changed = lastKnownFavoriteVisible != shouldShowFavorite
                     lastKnownFavoriteVisible = shouldShowFavorite
-                    binding.btnFavorite.isVisible = shouldShowFavorite
-                    binding.btnFavorite.setImageResource(if (currentFile.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline)
+                    if (changed) {
+                        // Re-run full update so the planner/landscape branch sees the correct value
+                        updateCommandAvailability(state)
+                    } else if (isLandscapeMode) {
+                        binding.btnFavorite.isVisible = shouldShowFavorite
+                    }
                 }
             }
-            
-            binding.btnShareCmd.isVisible = true
-            binding.btnInfoCmd.isVisible = true
         }
         
         // Center buttons visibility
         if (showInPortrait) {
             // Adaptive portrait layout: planner decides which commands fit on bar vs overflow
             val activeCommands = planner.buildActiveCommands(
-                state, canWrite, canRead, isWifiConnected(binding.root.context)
+                state, canWrite, canRead, isWifiConnected(binding.root.context),
+                showFavorite = lastKnownFavoriteVisible,
+                showRandom = showRandomNavigation
             )
-            val availablePx = resolveAvailableCenterWidthPx(state, canWrite)
+            val availablePx = resolveAvailableCenterWidthPx()
             val density = binding.root.resources.displayMetrics.density
             val buttonPx = (40 * density).toInt()
             val overflowPx = (40 * density).toInt()
@@ -338,62 +331,51 @@ class CommandPanelController(
         } else if (showInLandscape) {
             safeViews.btnOverflowMenu.isVisible = false
             latestOverflowCommands = emptyList()
-            // Show center buttons based on logic
             val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
             val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
             val isPdf = currentFile.type == MediaType.PDF
             val isText = currentFile.type == MediaType.TEXT
             val isEpub = currentFile.type == MediaType.EPUB
 
-            // Common actions
+            // Group 1: inside HorizontalScrollView (Previous/Next set in common section)
+            binding.btnRandomCmd.isVisible = showRandomNavigation
+            binding.btnDeleteCmd.isVisible = canWrite && state.allowDelete
+            binding.btnFavorite.isVisible = lastKnownFavoriteVisible
+            binding.btnShareCmd.isVisible = true
+            binding.btnInfoCmd.isVisible = true
+            binding.btnFullscreenCmd.isVisible = isImage || isVideo || isPdf || isText || isEpub
+            binding.btnSlideshowCmd.isVisible = isImage || isVideo
+
+            // Group 2: type-specific adaptive commands
             safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
-            // Hide rename if not writable or not allowed
             safeViews.btnRenameCmd.isVisible = canWrite && state.allowRename
-            
             safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
             safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             safeViews.btnCastCmd.isVisible = BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected(binding.root.context)
-            // Edit is visible for images (if writable) OR video (always, as it's controls)
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
-            // Save Frame is a direct video-only command in the command panel.
             safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
-            // Immersive toggle: VR flavor only, visible for all video files including flat 2D.
             if (BuildConfig.SUPPORT_VR_PLAYER) {
                 safeViews.btn3dVrCmd.isVisible = currentFile.type == MediaType.VIDEO
             }
-
-            // Update button contentDescription based on file type
-            if (isVideo) {
-                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
-            } else {
-                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.edit)
-            }
-            
-            // PDF Actions
+            safeViews.btnEditCmd.contentDescription = binding.root.context.getString(
+                if (isVideo) R.string.control else R.string.edit
+            )
             safeViews.btnGoogleLensPdfCmd.isVisible = isPdf
             safeViews.btnOcrPdfCmd.isVisible = isPdf
             safeViews.btnTranslatePdfCmd.isVisible = isPdf
             safeViews.btnSearchPdfCmd.isVisible = isPdf
             safeViews.btnPdfThumbnailsCmd.isVisible = isPdf
-            
-            // Text Actions
-            safeViews.btnCopyTextCmd.isVisible = (isText || isPdf)
-            safeViews.btnEditTextCmd.isVisible = isText && canWrite // Edit text requires write
+            safeViews.btnCopyTextCmd.isVisible = isText || isPdf
+            safeViews.btnEditTextCmd.isVisible = isText && canWrite
             safeViews.btnTranslateTextCmd.isVisible = isText
             safeViews.btnTextSettingsCmd.isVisible = isText
             safeViews.btnSearchTextCmd.isVisible = isText
-            
-            // EPUB Actions
             safeViews.btnSearchEpubCmd.isVisible = isEpub
             safeViews.btnTranslateEpubCmd.isVisible = isEpub
             safeViews.btnEpubTextSettingsCmd.isVisible = isEpub
             safeViews.btnOcrEpubCmd.isVisible = isEpub
-            
-            // PDF Actions
             safeViews.btnPdfTextSettingsCmd.isVisible = isPdf
-            
-            // Image Actions (for IMAGE/GIF)
             if (isImage) {
                 safeViews.btnTranslateImageCmd.isVisible = state.enableTranslation
                 safeViews.btnOcrImageCmd.isVisible = state.enableOcr
@@ -406,8 +388,6 @@ class CommandPanelController(
                 safeViews.btnOcrImageCmd.isVisible = false
                 safeViews.btnGoogleLensImageCmd.isVisible = false
             }
-
-            // Print: visible for PDF, TEXT, and IMAGE/GIF; not for video/audio/epub
             safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage
         } else {
             // Command panel hidden
@@ -416,11 +396,12 @@ class CommandPanelController(
             getOverflowableButtons().forEach { it.isVisible = false }
         }
         
-        // Enable state for always-enabled buttons
+        // Enable states (set regardless of visibility — overflow menu uses the same callbacks)
         binding.btnBack.isEnabled = true
         binding.btnPreviousCmd.isEnabled = true
-        binding.btnRandomCmd.isEnabled = state.files.size > 1
         binding.btnNextCmd.isEnabled = true
+        binding.btnRandomCmd.isEnabled = state.files.size > 1
+        binding.btnDeleteCmd.isEnabled = canWrite && canRead && state.allowDelete
         binding.btnSlideshowCmd.isEnabled = true
         
         // Update slideshow button color based on active state
@@ -772,15 +753,32 @@ class CommandPanelController(
                 context.getString(cmd.titleResId)
             }
             val item = popup.menu.add(android.view.Menu.NONE, cmd.menuItemId, cmd.priority, title)
-            if (cmd.iconResId != 0) {
-                val drawable = androidx.core.content.ContextCompat.getDrawable(context, cmd.iconResId)
+            // Dynamic favorite icon reflects current file state
+            val iconRes = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.FAVORITE && currentFile.isFavorite) {
+                R.drawable.ic_star_filled
+            } else {
+                cmd.iconResId
+            }
+            if (iconRes != 0) {
+                val drawable = androidx.core.content.ContextCompat.getDrawable(context, iconRes)
                 drawable?.setTint(iconColor)
                 item.icon = drawable
+            }
+            // Random is only enabled when there are multiple files to navigate
+            if (cmd == CommandPanelLayoutPlanner.PlayerCommand.RANDOM) {
+                item.isEnabled = (cachedState?.files?.size ?: 0) > 1
             }
         }
 
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
+                R.id.menu_delete -> callback.onDeleteClicked()
+                R.id.menu_favorite -> callback.onFavoriteClicked()
+                R.id.menu_share -> callback.onShareClicked()
+                R.id.menu_info -> callback.onInfoClicked()
+                R.id.menu_fullscreen -> callback.onFullscreenClicked()
+                R.id.menu_slideshow -> callback.onSlideshowClicked()
+                R.id.menu_random -> callback.onRandomClicked()
                 R.id.menu_rename -> callback.onRenameClicked()
                 R.id.menu_lyrics -> callback.onLyricsClicked()
                 R.id.menu_search_youtube_music -> callback.onSearchYoutubeMusicClicked()
@@ -807,6 +805,7 @@ class CommandPanelController(
                 R.id.menu_print -> callback.onPrintClicked()
                 R.id.menu_save_frame -> callback.onSaveFrameClicked()
                 R.id.menu_3d_vr -> callback.on3dVrToggleClicked()
+                R.id.menu_black_screen -> callback.onBlackScreenClicked()
             }
             true
         }
@@ -868,6 +867,15 @@ class CommandPanelController(
      */
     private fun getOverflowableButtons(): List<View> {
         val list = mutableListOf<View>(
+            // Group 1: high-priority adaptive buttons
+            binding.btnDeleteCmd,
+            binding.btnFavorite,
+            binding.btnShareCmd,
+            binding.btnInfoCmd,
+            binding.btnFullscreenCmd,
+            binding.btnSlideshowCmd,
+            binding.btnRandomCmd,
+            // Group 2+
             safeViews.btnRenameCmd,
             safeViews.btnLyricsCmd,
             safeViews.btnSearchYoutubeMusicCmd,
@@ -904,6 +912,13 @@ class CommandPanelController(
      */
     private fun barViewForCommand(cmd: CommandPanelLayoutPlanner.PlayerCommand): View? {
         return when (cmd) {
+            CommandPanelLayoutPlanner.PlayerCommand.DELETE -> binding.btnDeleteCmd
+            CommandPanelLayoutPlanner.PlayerCommand.FAVORITE -> binding.btnFavorite
+            CommandPanelLayoutPlanner.PlayerCommand.SHARE -> binding.btnShareCmd
+            CommandPanelLayoutPlanner.PlayerCommand.INFO -> binding.btnInfoCmd
+            CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN -> binding.btnFullscreenCmd
+            CommandPanelLayoutPlanner.PlayerCommand.SLIDESHOW -> binding.btnSlideshowCmd
+            CommandPanelLayoutPlanner.PlayerCommand.RANDOM -> binding.btnRandomCmd
             CommandPanelLayoutPlanner.PlayerCommand.RENAME -> safeViews.btnRenameCmd
             CommandPanelLayoutPlanner.PlayerCommand.EDIT -> safeViews.btnEditCmd
             CommandPanelLayoutPlanner.PlayerCommand.SAVE_FRAME -> safeViews.btnSaveFrameCmd
@@ -936,49 +951,15 @@ class CommandPanelController(
         }
     }
 
-    /**
-     * Count how many fixed right-group buttons will be visible for the given [state].
-     * Used to calculate the space left for the adaptive center group in portrait mode.
-     *
-     * Counts: Previous, Random, Next (fixed nav group) + Delete, Fullscreen, Slideshow, Share, Info,
-     * Favorite (conditional). Favorite uses [lastKnownFavoriteVisible] because its
-     * visibility is resolved asynchronously.
-     */
-    private fun countVisibleRightGroupButtons(
-        state: PlayerViewModel.PlayerState,
-        canWrite: Boolean
-    ): Int {
-        val file = state.currentFile ?: return 2 // at least Previous + Next
-        var count = 2 // btnPreviousCmd + btnNextCmd always
-        if (shouldShowRandomNavigation(state.resource?.profile)) count++
-        if (canWrite && state.allowDelete) count++
-        val type = file.type
-        if (type == MediaType.IMAGE || type == MediaType.GIF || type == MediaType.VIDEO ||
-            type == MediaType.PDF || type == MediaType.TEXT || type == MediaType.EPUB
-        ) count++ // btnFullscreenCmd
-        if (type == MediaType.IMAGE || type == MediaType.GIF ||
-            type == MediaType.VIDEO || type == MediaType.AUDIO
-        ) count++ // btnSlideshowCmd
-        count++ // btnShareCmd (always visible when panel shown)
-        count++ // btnInfoCmd (always visible when panel shown)
-        if (lastKnownFavoriteVisible) count++ // btnFavorite (async; use last known state)
-        return count
-    }
-
     private fun shouldShowRandomNavigation(profile: ResourceProfile?): Boolean {
         return profile == ResourceProfile.AUDIO_LIBRARY || profile == ResourceProfile.PHOTO_STORAGE
     }
 
     /**
-     * Estimate the pixel width available for the center button group in portrait mode.
-     *
-     * Uses [binding.topCommandPanel.width] when the view is already laid out (after a
-     * [post] call from [updateOrientation]), or falls back to display width otherwise.
+     * Pixel width available for the center adaptive group in portrait mode.
+     * Fixed anchors: Back (left) + Previous + Next (right) = 3 × 40dp.
      */
-    private fun resolveAvailableCenterWidthPx(
-        state: PlayerViewModel.PlayerState,
-        canWrite: Boolean
-    ): Int {
+    private fun resolveAvailableCenterWidthPx(): Int {
         val dm = binding.root.resources.displayMetrics
         val buttonPx = (40 * dm.density).toInt()
         val panelWidth = if (binding.topCommandPanel.width > 0) {
@@ -986,9 +967,7 @@ class CommandPanelController(
         } else {
             dm.widthPixels
         }
-        val leftGroupPx = buttonPx  // btnBack only
-        val rightGroupPx = buttonPx * countVisibleRightGroupButtons(state, canWrite)
-        return (panelWidth - leftGroupPx - rightGroupPx).coerceAtLeast(0)
+        return (panelWidth - buttonPx * 3).coerceAtLeast(0) // Back + Previous + Next
     }
 
     private fun isWifiConnected(context: android.content.Context): Boolean {

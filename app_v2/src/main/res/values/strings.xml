@@ -187,6 +187,10 @@
     <string name="error_connection_refused">Cannot connect to \"%1$s\" - server %2$s refused connection</string>
     <string name="error_connection_failed_generic">Cannot connect to \"%1$s\" - connection failed</string>
 
+    <!-- BD-TS Playback Error -->
+    <string name="error_bdts_format_title">Format Not Supported</string>
+    <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) cannot be played from this network source.\n\nTip: transcode the file to MP4/MKV with a tool such as HandBrake or ffmpeg.</string>
+
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Cannot access \"%1$s\" - authentication expired or session timed out</string>
     <string name="error_cloud_auth_suggestion">Please re-authenticate your cloud storage account in Settings → Edit Resource</string>
@@ -1348,6 +1352,7 @@
     <string name="navigate_into_folder">Navigate into folder</string>
     <string name="loading">Loading…</string>
     <string name="loading_with_progress" translatable="false">%1$s (%2$d)</string>
+    <string name="sorting_in_progress">Sorting..</string>
 
     <!-- Sort modes -->
     <string name="sort_by_name_asc">by Name ↑</string>
@@ -2868,10 +2873,10 @@
     <!-- Camera Capture Settings -->
     <string name="setting_disable_camera_capture">Disable camera capture button</string>
     <string name="setting_disable_camera_capture_summary">Hides the camera capture command in Browse</string>
-    <string name="setting_skip_camera_filename_dialog">Don\'t ask for filename</string>
+    <string name="setting_skip_camera_filename_dialog">Don\'t ask for filename for captured photo and video</string>
     <string name="setting_skip_camera_filename_dialog_summary">Use timestamp filename without prompting after capture</string>
     <string name="tooltip_camera_capture_title">Camera capture</string>
-    <string name="tooltip_camera_capture_message">The camera button in Browse lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
+    <string name="tooltip_camera_capture_message">The camera button in Browse lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
 
     <!-- Controls & Keybindings -->
     <string name="settings_controls_keybindings_title">Controls &amp; Keybindings</string>
@@ -3025,6 +3030,12 @@
     <string name="keybinding_capture_conflict">Already bound to: %s</string>
     <!-- S0017: shown after SMB scan when metadata extraction failed for some files -->
     <string name="smb_metadata_errors_warning">%d file(s) indexed without metadata (read error)</string>
+
+    <!-- S0050: Black Screen mode settings -->
+    <string name="settings_black_screen_button_title">Show \"Black Screen\" button</string>
+    <string name="settings_black_screen_button_desc">Display a button in the player toolbar to blank the screen while audio or video continues playing</string>
+    <string name="black_screen_button_title">Black screen</string>
+    <string name="cmd_black_screen_label">Black Screen</string>
 
     <!-- S0034 Phase 06: icon picker UI strings -->
     <string name="cd_pick_resource_icon">Pick resource icon</string>

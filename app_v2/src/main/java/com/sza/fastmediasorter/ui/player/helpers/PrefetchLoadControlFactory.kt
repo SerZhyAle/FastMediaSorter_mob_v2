@@ -20,7 +20,7 @@ import timber.log.Timber
  */
 internal object PrefetchLoadControlFactory {
 
-    fun build(plan: PrefetchPlan?, useCloudDefaults: Boolean = false, tag: String = ""): LoadControl {
+    fun build(plan: PrefetchPlan?, useCloudDefaults: Boolean = false, tag: String = ""): PauseAwareLoadControl {
         val minMs: Int
         val maxMs: Int
         val playbackMs: Int
@@ -49,9 +49,10 @@ internal object PrefetchLoadControlFactory {
             Timber.d("PrefetchLoadControl[%s]: fallback standard defaults", tag)
         }
 
-        return DefaultLoadControl.Builder()
+        val defaultLoadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(minMs, maxMs, playbackMs, rebufferMs)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
+        return PauseAwareLoadControl(defaultLoadControl)
     }
 }

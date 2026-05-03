@@ -87,7 +87,7 @@ class PlayerUiStateCoordinatorCallbackImpl(
         // Disable touch zones for PDF - use PDF navigation controls instead
         activity.safeViews.touchZonesOverlay.isVisible = false
         activity.safeViews.touchZones3Overlay.isVisible = false
-        if (activity._pdfViewerManager != null) activity.pdfViewerManager.displayPdf(file)
+        activity.pdfViewerManager.displayPdf(file)
     }
 
     override fun displayEpub(file: MediaFile) {
@@ -95,7 +95,7 @@ class PlayerUiStateCoordinatorCallbackImpl(
         // Disable touch zones for EPUB - use EPUB navigation controls instead
         activity.safeViews.touchZonesOverlay.isVisible = false
         activity.safeViews.touchZones3Overlay.isVisible = false
-        if (activity._epubViewerManager != null) activity.epubViewerManager.displayEpub(file)
+        activity.epubViewerManager.displayEpub(file)
     }
 
     override fun adjustTouchZonesForVideo(isVideo: Boolean) =

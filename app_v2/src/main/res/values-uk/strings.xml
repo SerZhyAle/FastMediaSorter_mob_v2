@@ -272,6 +272,10 @@
     <string name="error_connection_refused">Не вдається підключитися до \"%1$s\" - сервер %2$s відхилив підключення</string>
     <string name="error_connection_failed_generic">Не вдається підключитися до \"%1$s\" - помилка з\'єднання</string>
 
+    <!-- BD-TS Playback Error -->
+    <string name="error_bdts_format_title">Формат не підтримується</string>
+    <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) не може відтворюватись з цього мережевого ресурсу.\n\nПорада: перекодуйте файл у MP4/MKV за допомогою HandBrake або ffmpeg.</string>
+
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Не вдається отримати доступ до \"%1$s\" - автентифікація втрачена або сесія завершилась</string>
     <string name="error_cloud_auth_suggestion">Будь ласка, повторно увійдіть у ваш хмарний обліковий запис у Налаштування → Редагувати ресурс</string>
@@ -1120,6 +1124,7 @@
     <string name="selected_folder">Вибрано: %1$s</string>
     <string name="folder_icon">Значок папки</string>
     <string name="loading">Завантаження…</string>
+    <string name="sorting_in_progress">Сортування..</string>
 
     <!-- Sort modes -->
     <string name="sort_by_name_asc">за іменем ↑</string>
@@ -2920,6 +2925,12 @@
     <string name="keybinding_capture_conflict">Вже призначено: %s</string>
     <!-- S0017: показується після SMB-сканування, якщо витяг метаданих не вдався для частини файлів -->
     <string name="smb_metadata_errors_warning">%d файл(ів) проіндексовано без метаданих (помилка читання)</string>
+
+    <!-- S0050: налаштування режиму «Чорний екран» -->
+    <string name="settings_black_screen_button_title">Показувати кнопку «Чорний екран»</string>
+    <string name="settings_black_screen_button_desc">Відображати кнопку на панелі плеєра для вмикання чорного екрана без зупинки відтворення</string>
+    <string name="black_screen_button_title">Чорний екран</string>
+    <string name="cmd_black_screen_label">Чорний екран</string>
 
     <!-- S0034 Phase 06: рядки UI вибору іконки -->
     <string name="cd_pick_resource_icon">Вибрати іконку ресурсу</string>

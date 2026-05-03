@@ -182,7 +182,10 @@ data class AppSettings(
     // Adaptive pre-cache strategy (spec §5)
     val prefetchCacheMultiplier: PrefetchCacheMultiplier = PrefetchCacheMultiplier.AUTO,
     val streamingCacheCleanupMode: StreamingCacheCleanupMode = StreamingCacheCleanupMode.ASK,
-    val streamingCacheTtlDays: Int = 7          // 0 = off, 1, 3, 7, 30
+    val streamingCacheTtlDays: Int = 7,          // 0 = off, 1, 3, 7, 30
+
+    // S0050: Black Screen mode — show/hide the black-screen toolbar button in audio/video players
+    val showBlackScreenButton: Boolean = false
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

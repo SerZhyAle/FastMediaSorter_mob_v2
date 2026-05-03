@@ -1,6 +1,37 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.422.246** (April 2026)
+**Current release: 2.60.5030.230** (May 2026)
+
+> Changes since version 2.60.422.246
+
+---
+
+## What's New
+
+- **Keybinding remapper** — reassign any control in Settings; conflict detection, hierarchical reset; 70 built-in defaults
+- **Full keyboard, mouse & gamepad support** — all screens (Browse, Player, Settings, dialogs); F1 help overlay per surface; D-pad list navigation
+- **Camera capture in Browse** — take a photo and save it directly to the current resource
+- **Play Random in Browse** — one-tap random playback for single-type libraries; Ctrl+P shortcut
+- **Quick start from resource icon** — tap the resource type badge to instantly begin playback or slideshow
+- **Link auto-download** — share any http(s) URL to the app; the media file is downloaded automatically
+- **Single-eye 3D mode** — new setting to crop stereo content to one eye for flat-screen viewing (video + images)
+- **Settings restructured** — "Files & Data" split into "Permissions" + "App Data"; "File Operations" → "Copy & Move"; Safe Mode moved to Operations
+
+## What's Fixed
+
+- Video hue/brightness effects not applying on track change (Media3 effects-deferral fix)
+- RANDOM sort not reshuffling on repeated taps
+- Camera upload failing on network resources (SMB / FTP / SFTP)
+- ScheduledOperationsWorker freeze on WAKE_LOCK race condition
+- Print crash on Android 8 (API 26–27)
+- SMB scan errors now shown as a Snackbar with error count instead of being silently discarded
+- WebView for EPUB now created lazily (prevents OOM on low-memory devices)
+- ExoPlayer recreated every 4 tracks to prevent native heap OOM in long sessions
+- Default player chooser: fixed self-resolution loop (app was probing its own file)
+
+---
+
+## Previous Release: 2.60.422.246 (April 2026)
 
 > Changes since version 2.60.4150.019
 

@@ -766,7 +766,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             translationManager = activity.translationManager,
             translationButtonManager = activity.translationButtonManager,
             exoPlayerControlsManager = activity.exoPlayerControlsManager,
-            searchControlsManager = activity.searchControlsManager
+            searchControlsManager = activity.searchControlsManager,
+            blackScreenOverlayManager = activity.blackScreenOverlayManager
         )
 
         activity.gestureSetupManager = PlayerGestureSetupManager(

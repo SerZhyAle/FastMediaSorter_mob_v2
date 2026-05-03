@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0050_player-black-screen-mode.md`](../S0050_player-black-screen-mode.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 04
 **Blocks:** — (final phase)
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-05-02
+**Completed:** 2026-05-02
 
 ---
 
@@ -53,7 +53,11 @@ Update the trilingual feature documentation, regenerate the module catalog, and 
 
 - `Grep` — `Black Screen mode` in `docs/FEATURES.md` (2 hits: one in §7, one in §9).
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 1/1 PASS (2 hits in FEATURES.md: §7 and §9). Files: docs/FEATURES.md (+2 bullets). Dev log recorded.
 
 ---
 
@@ -72,7 +76,11 @@ Update the trilingual feature documentation, regenerate the module catalog, and 
 
 - `Grep` — `Режим «Чёрный экран»` in `docs/FEATURES_RU.md` (2 hits).
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 1/1 PASS (2 hits). Files: docs/FEATURES_RU.md (+2 bullets). Dev log recorded.
 
 ---
 
@@ -91,7 +99,11 @@ Update the trilingual feature documentation, regenerate the module catalog, and 
 
 - `Grep` — `Режим «Чорний екран»` in `docs/FEATURES_UK.md` (2 hits).
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 1/1 PASS (2 hits). Files: docs/FEATURES_UK.md (+2 bullets). Dev log recorded.
 
 ---
 
@@ -118,15 +130,19 @@ Update the trilingual feature documentation, regenerate the module catalog, and 
 - `Grep` — `BlackScreenOverlayManager` in `dev/CATALOG/app_v2.md`.
 - `Grep` — `BlackScreenOverlayManager` in `dev/CATALOG/app_v2.jsonl`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: dev/CATALOG/app_v2.jsonl (regen 883 files), dev/CATALOG/app_v2.md (render). BlackScreenOverlayManager role=overlay-manager, status=new set via set.ps1. Dev log recorded.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every Step 5.* above is `[x] done`.
-- [ ] `Grep` for `TODO(phase-05)` returns zero hits.
-- [ ] Dev log entries present for all modified files (verify `dev/CHANGELOG.md` tail).
+- [x] Every Step 5.* above is `[x] done`.
+- [x] `Grep` for `TODO(phase-05)` returns zero hits.
+- [x] Dev log entries present for all modified files (verify `dev/CHANGELOG.md` tail).
 - [ ] Run `/spec-check S0050` — expect `Verified` or `Partial` (partial only if a strategic criterion is explicitly deferred).
 
 ---

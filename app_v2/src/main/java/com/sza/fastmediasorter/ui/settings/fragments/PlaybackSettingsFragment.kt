@@ -270,6 +270,12 @@ class PlaybackSettingsFragment : Fragment() {
             }
         }
 
+        binding.switchShowBlackScreenButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
+        }
+
         binding.btnResetPlaybackSection.setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.reset_playback_section_title)
@@ -450,6 +456,10 @@ class PlaybackSettingsFragment : Fragment() {
                         if (binding.switchDisable3dVr.isChecked != settings.disable3dVr) {
                             binding.switchDisable3dVr.isChecked = settings.disable3dVr
                         }
+                    }
+
+                    if (binding.switchShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
+                        binding.switchShowBlackScreenButton.isChecked = settings.showBlackScreenButton
                     }
 
                     isUpdatingFromSettings = false

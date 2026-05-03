@@ -392,18 +392,35 @@
 
                     </LinearLayout>
 
-                    <!-- Camera Capture: disable + skip-filename on one row, with help -->
-                    <LinearLayout android:id="@+id/layoutCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
-                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDisableCameraCapture" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                    <!-- Camera Capture: disable (row 1) + skip-filename (row 2) -->
+                    <LinearLayout android:id="@+id/layoutCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
+
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDisableCameraCapture" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
+                            <ImageButton android:id="@+id/iconHelpCameraCapture" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_camera_capture_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/layoutSkipCameraFilename" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSkipCameraFilenameDialog" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/setting_skip_camera_filename_dialog" android:textSize="@dimen/toggler_title_text_size" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- S0050: Show Black Screen button toggle -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowBlackScreenButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture" android:textSize="@dimen/toggler_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_disable_camera_capture_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_black_screen_button_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_black_screen_button_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
-                        <LinearLayout android:id="@+id/layoutSkipCameraFilename" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
-                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSkipCameraFilenameDialog" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_skip_camera_filename_dialog" android:textSize="@dimen/toggler_title_text_size" />
-                        </LinearLayout>
-                        <ImageButton android:id="@+id/iconHelpCameraCapture" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_camera_capture_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+
                     </LinearLayout>
 
                 </LinearLayout>

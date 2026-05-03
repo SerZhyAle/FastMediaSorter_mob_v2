@@ -87,6 +87,7 @@ class PlayerKeyboardHandler(
         fun onUndoOperation() {}
         fun canCopyCurrent(): Boolean = false
         fun canMoveCurrent(): Boolean = false
+        fun onToggleBlackScreen() {}
     }
 
     // ── pointer / wheel input ────────────────────────────────────────────────
@@ -249,6 +250,7 @@ class PlayerKeyboardHandler(
             CommandId.FAVOURITE -> { callback.onToggleFavourite(); true }
             CommandId.FILE_OPS -> { callback.onShowContextMenu(); true }
             CommandId.SAVE -> { callback.onSaveCurrent(); true }
+            CommandId.BLACK_SCREEN -> { callback.onToggleBlackScreen(); true }
             else -> false
         }
     }

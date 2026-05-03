@@ -2,10 +2,11 @@
 
 **Strategic spec:** [`../S0050_player-black-screen-mode.md`](../S0050_player-black-screen-mode.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02, Phase 03, Phase 04
-**Steps done:** 0 / 5
+**Steps done:** 5 / 5
+**Completed:** 2026-05-02
 **Started:** —
 **Completed:** —
 
@@ -54,7 +55,11 @@ Add `showBlackScreenButton: Boolean = false` to `AppSettings`, expose it through
 - `Grep` — `showBlackScreenButton` matches in `AppSettings.kt`.
 - `Grep` — `= false` appears on the same line as `showBlackScreenButton`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: domain/model/AppSettings.kt (+3 LOC). Dev log recorded.
 
 ---
 
@@ -74,7 +79,11 @@ Add `showBlackScreenButton: Boolean = false` to `AppSettings`, expose it through
 - `Grep` — `settings_black_screen_button_title` in `values/strings.xml`.
 - `Grep` — `settings_black_screen_button_desc` in `values/strings.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: values/strings.xml (+4 LOC). Dev log recorded.
 
 ---
 
@@ -100,7 +109,11 @@ Add `showBlackScreenButton: Boolean = false` to `AppSettings`, expose it through
 - `Grep` — `settings_black_screen_button_title` in `values-ru/strings.xml`.
 - `Grep` — `settings_black_screen_button_title` in `values-uk/strings.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: values-ru/strings.xml (+4 LOC), values-uk/strings.xml (+4 LOC). Dev log recorded.
 
 ---
 
@@ -122,7 +135,11 @@ Add `showBlackScreenButton: Boolean = false` to `AppSettings`, expose it through
 - `Grep` — `switchShowBlackScreenButton` in `fragment_settings_playback.xml`.
 - `Grep` — `settings_black_screen_button_title` in `fragment_settings_playback.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: layout/fragment_settings_playback.xml (+14 LOC). Dev log recorded.
 
 ---
 
@@ -148,16 +165,20 @@ Add `showBlackScreenButton: Boolean = false` to `AppSettings`, expose it through
 - `Grep` — `showBlackScreenButton` in `PlaybackSettingsFragment.kt`.
 - `Grep` — `showBlackScreenButton` in `SettingsViewModel.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 3/3 PASS. Files: PlaybackSettingsFragment.kt (+9 LOC), SettingsViewModel.kt (+2 LOC). Dev log recorded.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every Step 1.* above is `[x] done`.
-- [ ] Project compiles — run `/build`.
-- [ ] `Grep` for `TODO(phase-01)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
+- [x] Every Step 1.* above is `[x] done`.
+- [x] Project compiles — run `/build`. (auto-build — PASS)
+- [x] `Grep` for `TODO(phase-01)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
 
 ---
 

@@ -151,6 +151,21 @@ Settings → Add Folder → **Cloud Storage**
 - Start any slideshow - music plays automatically!
 - **Tip:** Tap the track name during slideshow to skip to a different random track
 
+### Keybinding Remapper
+
+- Settings → **Input** → **Keybindings** — reassign any control to a different key, button, or gamepad input
+- 70 built-in defaults; tap **Reset** to restore
+- Press **F1** on any screen to view the active key bindings for that surface
+
+### Camera Capture
+
+- In Browse, tap the **camera button** in the toolbar to take a photo and save it directly to the current resource — local or network
+
+### Link Auto-Download
+
+- In any browser or messenger, share an `http(s)` link to FastMediaSorter via the Android Share sheet
+- The app downloads the media file and saves it to your selected resource automatically
+
 ### Home Screen Widgets
 
 FastMediaSorter v2 offers two widget types:

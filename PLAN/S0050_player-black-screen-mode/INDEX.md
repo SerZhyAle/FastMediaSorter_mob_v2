@@ -4,8 +4,8 @@
 **Feature:** Black Screen button in audio/video player
 **Tier:** 3 — Moderate
 **Priority:** 50
-**Status:** Not started
-**Phases:** 0 / 5 done
+**Status:** Implemented
+**Phases:** 5 / 5 done
 **Last updated:** 2026-05-02
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
@@ -16,11 +16,11 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | settings-foundation | — | ⬜ Not started | 0/5 | [PHASE_01__settings-foundation.md](PHASE_01__settings-foundation.md) |
-| 02 | command-panel-button | 01 | ⬜ Not started | 0/6 | [PHASE_02__command-panel-button.md](PHASE_02__command-panel-button.md) |
-| 03 | black-screen-overlay | 02 | ⬜ Not started | 0/5 | [PHASE_03__black-screen-overlay.md](PHASE_03__black-screen-overlay.md) |
-| 04 | keybinding-registration | 03 | ⬜ Not started | 0/4 | [PHASE_04__keybinding-registration.md](PHASE_04__keybinding-registration.md) |
-| 05 | docs-catalog-cleanup | all | ⬜ Not started | 0/4 | [PHASE_05__docs-catalog-cleanup.md](PHASE_05__docs-catalog-cleanup.md) |
+| 01 | settings-foundation | — | ✅ Done | 5/5 | [PHASE_01__settings-foundation.md](PHASE_01__settings-foundation.md) |
+| 02 | command-panel-button | 01 | ✅ Done | 6/6 | [PHASE_02__command-panel-button.md](PHASE_02__command-panel-button.md) |
+| 03 | black-screen-overlay | 02 | ✅ Done | 5/5 | [PHASE_03__black-screen-overlay.md](PHASE_03__black-screen-overlay.md) |
+| 04 | keybinding-registration | 03 | ✅ Done | 4/4 | [PHASE_04__keybinding-registration.md](PHASE_04__keybinding-registration.md) |
+| 05 | docs-catalog-cleanup | all | ✅ Done | 4/4 | [PHASE_05__docs-catalog-cleanup.md](PHASE_05__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 

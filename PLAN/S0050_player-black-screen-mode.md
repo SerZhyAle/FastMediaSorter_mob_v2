@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0050 — Режим «Чёрный экран» в плеере
 
 **Ticket:** S0050
-**Status:** Tactical
+**Status:** Verified
 **Priority:** 50
 **Date:** 2026-05-02
 **Tier:** 3 — Moderate
@@ -214,3 +214,17 @@
 - **2026-05-02** — by `/spec-update` (`claude-sonnet-4-6`, focus: all)
   - Applied: 10. Proposed (DISCUSS): 0.
   - Исправлено `ё` в §3.1; добавлен тег `text` к fence в §5.2; удалены API/метод-имена из §7 и §9; все три вопроса §6 закрыты с ответами пользователя (Resolved); §5.1.C дополнен явным запретом авто-реактивации.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-02
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 21 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] §11.4 — Playback (audio/video) continues without interruption before, during, and after black screen activation. Smoke test: toggle setting ON → press Black Screen button → verify audio/video plays through overlay → tap to dismiss → confirm playback uninterrupted.

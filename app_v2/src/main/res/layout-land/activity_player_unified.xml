@@ -88,15 +88,15 @@
 
                 <ImageButton android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_play" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 
+                <!-- Navigation at end of scrollable area (same set as portrait, all part of adaptive system) -->
+                <ImageButton android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_previous" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
+
+                <ImageButton android:id="@+id/btnRandomCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_random_nav" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/random_file_description" />
+
+                <ImageButton android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_next" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
+
             </LinearLayout>
         </HorizontalScrollView>
-
-        <!-- Navigation Buttons at End -->
-        <ImageButton android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_previous" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
-
-        <ImageButton android:id="@+id/btnRandomCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_random_nav" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/random_file_description" />
-
-        <ImageButton android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_next" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 
     </LinearLayout>
 

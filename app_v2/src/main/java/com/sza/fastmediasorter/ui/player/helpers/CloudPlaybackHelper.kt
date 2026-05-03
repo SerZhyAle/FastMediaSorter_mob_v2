@@ -57,6 +57,7 @@ internal fun VideoPlayerManager.playCloudVideo(path: String, playWhenReady: Bool
         .setAudioAttributes(audioAttributes, true)
         .build()
 
+    exoPlayer?.addListener(loadControl)
     exoPlayer?.addListener(playerListener)
     currentPlayerView?.player = exoPlayer
 

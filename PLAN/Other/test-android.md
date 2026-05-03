@@ -3,13 +3,14 @@
 **Цель:** собрать достаточные эмпирические данные для перевода спек из `Implemented`
 в `Verified` — S0004, S0025, S0029, S0030, S0048; подтвердить восстановление
 SFTP-канала S0047 (`BlockNeedUserTest`).
+
+**S0003** (link-receive-download) — **Verified** ✓, в этот сценарий не входит.
 Каждый кейс пишется в отдельный лог; `/log-reader` применяется post-mortem.
 
 **Связь со спецификациями:**
 
 | Спека | Название | Статус |
 |-------|----------|--------|
-| S0003 | link-receive-download | ~~Implemented~~ **Verified** ✓ |
 | S0004 | resource-icon-quick-slideshow | Implemented |
 | S0025 | smb-fast-fail | Implemented |
 | S0029 | bugfix-resume-position-end-of-file | Implemented |
@@ -277,24 +278,6 @@ adb install -r -d app_v2/build/outputs/apk/standard/debug/app_v2-standard-debug.
 
 ---
 
-### S0003 — Link Receive Download ✓ (Verified, кейсы для справки)
-
-> S0003 переведён в `Verified` 2026-05-01. Кейсы ниже оставлены для регресс-тестирования
-> при изменениях в Share-цепочке.
-
-| ID | Конфигурация настройки | Входные данные | Ожидание |
-|----|------------------------|----------------|----------|
-| T1 | Мастер-тумблер **ВЫКЛ** | Share текста-URL | Создаётся `.txt`, плеер не открывается |
-| T2 | Мастер-тумблер **ВКЛ**, ресурс не выбран | Share прямой `https://*.jpg` | Файл падает в Downloads, Toast с причиной fallback |
-| T3 | Мастер ВКЛ, ресурс выбран | Share той же `.jpg` | Файл в ресурсе-получателе |
-| T4 | Мастер ВКЛ, авто-открытие **ВКЛ** | Share `.jpg` (успех) | После загрузки плеер открывается с файлом |
-| T5 | Мастер ВКЛ, авто-открытие **ВЫКЛ** | Share `.jpg` (успех) | Только Toast, плеер не открывается |
-| T6 | Мастер ВКЛ | Share URL с 302-редиректом на `file:///` | Ошибка `link_autodownload_error_mime_blocked` |
-| T7 | Мастер ВКЛ | Share HTML-страница без `<video>`/`<img>` ≥ 1 МБ | Ошибка `link_autodownload_error_no_media` |
-| T8 | Мастер ВКЛ | Share `.mp4`, нажать Back в процессе загрузки | Нет временного файла, нет «битого» entry в ресурсе |
-| T9 | Мастер ВКЛ | Share `.jpg` (устройство на RU locale) | Все строки (Toast, ошибки) на русском |
-
----
 
 ## 4. Что собирать в каждом логе
 
@@ -357,9 +340,6 @@ Select-String -Path temp\test-android\*.log `
 - I4 Structured path: PASS / FAIL — <хост/путь на отдельных строках?>
 - I5 Copy button: PASS / FAIL — <содержимое буфера>
 - I6 Local regression: PASS / FAIL
-
-## S0003 — Link Receive Download (Verified, регресс)
-- T2..T3: PASS / FAIL — <при необходимости>
 
 ## Регрессии
 - <список несоответствий ожиданиям>

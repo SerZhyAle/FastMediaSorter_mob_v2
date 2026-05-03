@@ -46,8 +46,12 @@ class BrowseRefreshManager(
 ) {
     /**
      * Launches refresh pipeline and returns the running [Job] so caller can cancel/debounce.
+     *
+     * @param syncMediaStore When false, skips the MediaStore sync step. Pass false when this
+     *   reload is triggered by a MediaStore ContentObserver — the OS already knows about the
+     *   change, so running sync would produce more ContentObserver events and cause a loop.
      */
-    fun launchReload(clearList: Boolean): Job {
+    fun launchReload(clearList: Boolean, syncMediaStore: Boolean = true): Job {
         return scope.launch(ioDispatcher) {
             val currentResource = stateFlow.value.resource
 
@@ -88,7 +92,7 @@ class BrowseRefreshManager(
                 }
             }
 
-            if (currentResource?.type == ResourceType.LOCAL) {
+            if (currentResource?.type == ResourceType.LOCAL && syncMediaStore) {
                 setIgnoringFileChanges(true)
                 try {
                     Timber.i("BrowseRefreshManager.reload: syncing MediaStore for '${currentResource.name}'")
@@ -104,6 +108,8 @@ class BrowseRefreshManager(
                         setIgnoringFileChanges(false)
                     }
                 }
+            } else if (currentResource?.type == ResourceType.LOCAL) {
+                Timber.d("BrowseRefreshManager.reload: skipping MediaStore sync (observer-triggered)")
             }
 
             withContext(Dispatchers.Main) {

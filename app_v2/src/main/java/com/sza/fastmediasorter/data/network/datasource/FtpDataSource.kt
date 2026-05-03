@@ -30,16 +30,23 @@ class FtpDataSource(
     private val password: String
 ) : BaseDataSource(true) {
 
+    companion object {
+        private const val LOG_INITIAL_CALLS = 3L
+        private const val LOG_PERIODIC_INTERVAL = 1000L
+    }
+
     // Connection from pool - DO NOT disconnect, managed by pool
     private var client: FTPClient? = null
-    
+
     // Only this should be closed
     private var inputStream: InputStream? = null
-    
+
     private var uri: Uri? = null
     private var bytesRemaining: Long = 0
     private var opened = false
     private var totalBytesRead = 0L
+    private var readCallCount = 0L
+    private var openTimeMs = 0L
     private var connectionAcquired = false
 
     override fun open(dataSpec: DataSpec): Long {
@@ -132,6 +139,8 @@ class FtpDataSource(
             }
 
             opened = true
+            readCallCount = 0L
+            openTimeMs = System.currentTimeMillis()
             transferStarted(dataSpec)
 
             Timber.d(
@@ -180,10 +189,10 @@ class FtpDataSource(
 
             // bytesRead > 0: successful read
             totalBytesRead += bytesRead
-            // Log first 10KB (debug start), then every 500KB (reduce spam ~20x)
-            if (totalBytesRead <= 10000 || (totalBytesRead / 500000) > ((totalBytesRead - bytesRead) / 500000)) {
-                Timber.d(
-                    "FtpDataSource: READ - requested=$bytesToRead actual=$bytesRead total=$totalBytesRead remaining=$bytesRemaining file=${uri?.lastPathSegment}"
+            readCallCount++
+            if (readCallCount <= LOG_INITIAL_CALLS || readCallCount % LOG_PERIODIC_INTERVAL == 0L) {
+                Timber.v(
+                    "FtpDataSource: read #$readCallCount — requested=$bytesToRead actual=$bytesRead total=${totalBytesRead}B file=${uri?.lastPathSegment}"
                 )
             }
 
@@ -228,7 +237,10 @@ class FtpDataSource(
             transferEnded()
         }
 
-        Timber.d("FtpDataSource: Closed (connection returned to pool)")
+        val elapsedMs = System.currentTimeMillis() - openTimeMs
+        Timber.d(
+            "FtpDataSource: Closed — totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
+        )
     }
 }
 

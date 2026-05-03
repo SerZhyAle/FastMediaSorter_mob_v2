@@ -106,7 +106,8 @@ class PlayerMediaFilesLoader(
                             audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId,
                             enablePersistentAudioPlayback = settings.enablePersistentAudioPlayback,
                             backgroundAudioExitBehavior = settings.backgroundAudioExitBehavior,
-                            showNowPlayingPanel = settings.showNowPlayingPanel
+                            showNowPlayingPanel = settings.showNowPlayingPanel,
+                            showBlackScreenButton = settings.showBlackScreenButton
                         )
                     }
                 }

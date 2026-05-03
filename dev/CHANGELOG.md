@@ -5255,3 +5255,140 @@ Format: | datetime | file | target | description |
 | 2026-05-02 05:20:09 | `PLAN/S0048_info-dialog-extended-metadata/INDEX.md` | `S0048/INDEX` | All 5 phases complete (S0048) |
 | 2026-05-02 05:31:43 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec-check` | Audit S0048 -> Verified; PASS 40/WARN 1 (fixed inline)/FAIL 0; Status Implemented -> Verified |
 | 2026-05-02 05:31:44 | `PLAN/S0048_info-dialog-extended-metadata/INDEX.md` | `spec-check` | Fix INDEX Status: Not started -> Done (stale metadata) |
+| 2026-05-02 06:04:16 | `app_v2/src/main/res/layout/fragment_settings_general.xml, app_v2/src/main/res/layout/fragment_settings_destinations.xml, app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `Settings UI` | Remove inconsistent marginTop/marginBottom between section cards in Settings General and Operations tabs (portrait and landscape) — all groups now flush, equal collapsed height |
+| 2026-05-02 06:14:46 | `scripts/utils/search-log.ps1` | `search-log.ps1` | Fix crash in Summary mode for JSON-format .logcat files from emulators: handle missing physicalDevice property (emulators use emulatorDevice), add emulator device info display |
+| 2026-05-02 06:19:38 | `PLAN/S0051_bugfix-network-datasource-pause-cancel.md` | `spec` | Add strategic spec S0051: network DataSource not cancelled on player pause |
+| 2026-05-02 06:19:38 | `PLAN/S0052_bugfix-sftp-datasource-log-spam.md` | `spec` | Add strategic spec S0052: SFTP DataSource per-byte read log spam |
+| 2026-05-02 06:19:38 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback.md` | `spec` | Add strategic spec S0053: m2ts BDMV playback failure on network sources |
+| 2026-05-02 12:54:25 | `PLAN/S0052_bugfix-sftp-datasource-log-spam/INDEX.md` | `spec-all` | Tactical spec: S0052 — Phase audit done, phases 2-4 planned |
+| 2026-05-02 12:56:51 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback/INDEX.md` | `spec-tech` | Create tactical plan for S0053 |
+| 2026-05-02 12:56:51 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback/PHASE_01__informative-error.md` | `spec-tech` | Phase 01: informative-error |
+| 2026-05-02 12:56:51 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback/PHASE_02__bd-ts-strip-datasource.md` | `spec-tech` | Phase 02: bd-ts-strip-datasource |
+| 2026-05-02 12:56:51 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback/PHASE_03__wire-bd-ts-playback.md` | `spec-tech` | Phase 03: wire-bd-ts-playback |
+| 2026-05-02 12:56:51 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-02 12:56:51 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback.md` | `spec-tech` | Status: Draft -> Approved -> Tactical |
+| 2026-05-02 12:58:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `SftpDataSource` | S0052: replace per-read DEBUG spam with counter-based Timber.v(); add close() summary |
+| 2026-05-02 12:58:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/FtpDataSource.kt` | `FtpDataSource` | S0052: replace per-read DEBUG spam with counter-based Timber.v(); add close() summary |
+| 2026-05-02 12:58:55 | `app_v2/src/main/res/values/strings.xml` | `S0053` | Add error_bdts_format_title/message (EN) |
+| 2026-05-02 12:58:55 | `app_v2/src/main/res/values-ru/strings.xml` | `S0053` | Add error_bdts_format_title/message (RU) |
+| 2026-05-02 12:58:55 | `app_v2/src/main/res/values-uk/strings.xml` | `S0053` | Add error_bdts_format_title/message (UK) |
+| 2026-05-02 12:59:32 | `PLAN/S0052_bugfix-sftp-datasource-log-spam.md` | `spec-all` | Pipeline Verified: S0052 — SFTP+FTP read() log spam eliminated |
+| 2026-05-02 13:01:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0053` | BD-TS format error detection in onPlayerError + onBdTsFormatError() in PlayerCallback interface |
+| 2026-05-02 13:01:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `S0053` | Implement onBdTsFormatError(): show AlertDialog with BD-TS format error info |
+| 2026-05-02 18:35:46 | `PLAN/S0051_bugfix-network-datasource-pause-cancel.md` | `spec-all` | Strategic spec approved: S0051 bugfix-network-datasource-pause-cancel |
+| 2026-05-02 18:43:27 | `PLAN/S0051_bugfix-network-datasource-pause-cancel/INDEX.md` | `spec-all` | Tactical plan created: S0051 (2 phases) |
+| 2026-05-02 18:44:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PauseAwareLoadControl.kt` | `spec-all/S0051` | Add PauseAwareLoadControl — stops network buffering on player pause |
+| 2026-05-02 18:44:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PrefetchLoadControlFactory.kt` | `spec-all/S0051` | Wrap DefaultLoadControl in PauseAwareLoadControl in factory |
+| 2026-05-02 18:47:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/BdTsStripDataSource.kt` | `S0053` | New: BD-TS 192-byte packet stripper DataSource |
+| 2026-05-02 18:47:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/BdTsStripDataSourceFactory.kt` | `S0053` | New: factory for BdTsStripDataSource |
+| 2026-05-02 18:49:21 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0050 Phase 01 Step 1.1` | Add showBlackScreenButton field to AppSettings data class |
+| 2026-05-02 18:49:51 | `app_v2/src/main/res/values/strings.xml` | `S0050 Phase 01 Step 1.2` | Add settings_black_screen_button_title and _desc strings (EN) |
+| 2026-05-02 18:50:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `spec-all/S0051` | Register PauseAwareLoadControl as ExoPlayer listener for pause-aware buffering |
+| 2026-05-02 18:50:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `spec-all/S0051` | Register PauseAwareLoadControl as ExoPlayer listener for pause-aware buffering |
+| 2026-05-02 18:50:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `spec-all/S0051` | Register PauseAwareLoadControl as ExoPlayer listener for pause-aware buffering |
+| 2026-05-02 18:50:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt` | `spec-all/S0051` | Register PauseAwareLoadControl as ExoPlayer listener for pause-aware buffering |
+| 2026-05-02 18:50:26 | `app_v2/src/main/res/values-ru/strings.xml` | `S0050 Phase 01 Step 1.3` | Add settings_black_screen_button_title and _desc strings (RU) |
+| 2026-05-02 18:50:26 | `app_v2/src/main/res/values-uk/strings.xml` | `S0050 Phase 01 Step 1.3` | Add settings_black_screen_button_title and _desc strings (UK) |
+| 2026-05-02 18:51:12 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `S0050 Phase 01 Step 1.4` | Add switchShowBlackScreenButton toggle row to containerBehaviour |
+| 2026-05-02 18:51:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelper.kt` | `S0053` | New: wrapForBdTs extension for DataSource.Factory |
+| 2026-05-02 18:51:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `S0053` | Wire BdTsStripDataSourceFactory for .m2ts paths |
+| 2026-05-02 18:51:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `S0053` | Wire BdTsStripDataSourceFactory for .m2ts paths |
+| 2026-05-02 18:51:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `S0053` | Wire BdTsStripDataSourceFactory for .m2ts paths |
+| 2026-05-02 18:52:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `S0050 Phase 01 Step 1.5` | Bind switchShowBlackScreenButton in setupViews() and observeData() |
+| 2026-05-02 18:52:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `S0050 Phase 01 Step 1.5` | Add showBlackScreenButton to resetPlaybackSection() |
+| 2026-05-02 18:52:31 | `PLAN/S0051_bugfix-network-datasource-pause-cancel.md` | `spec-all` | Pipeline BlockNeedUserTest: S0051 — on-device SFTP/logcat check required |
+| 2026-05-02 18:56:40 | `docs/FEATURES.md` | `S0053` | Add .m2ts BD-TS playback entry (Network Sources section) |
+| 2026-05-02 18:56:40 | `docs/FEATURES_RU.md` | `S0053` | Add .m2ts BD-TS playback entry (RU) |
+| 2026-05-02 18:56:40 | `docs/FEATURES_UK.md` | `S0053` | Add .m2ts BD-TS playback entry (UK) |
+| 2026-05-02 18:56:40 | `dev/CATALOG/app_v2.jsonl` | `S0053` | Catalog regen: BdTsStripDataSource, BdTsStripDataSourceFactory, BdTsPlaybackHelper |
+| 2026-05-02 18:57:59 | `app_v2/src/main/res/drawable/ic_black_screen.xml` | `S0050 Phase 02 Step 2.1` | Create black screen button icon drawable (filled square, colorOnSurface) |
+| 2026-05-02 18:58:44 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `S0050 Phase 02 Step 2.2` | Add menu_black_screen overflow item |
+| 2026-05-02 18:58:44 | `app_v2/src/main/res/values/strings.xml` | `S0050 Phase 02 Step 2.2` | Add black_screen_button_title string (EN) |
+| 2026-05-02 18:58:44 | `app_v2/src/main/res/values-ru/strings.xml` | `S0050 Phase 02 Step 2.2` | Add black_screen_button_title string (RU) |
+| 2026-05-02 18:58:44 | `app_v2/src/main/res/values-uk/strings.xml` | `S0050 Phase 02 Step 2.2` | Add black_screen_button_title string (UK) |
+| 2026-05-02 18:59:10 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0050 Phase 02 Step 2.3` | Add btnBlackScreenCmd ImageButton as first child of center group |
+| 2026-05-02 18:59:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0050 Phase 02 Step 2.4` | Add BLACK_SCREEN command (priority 195) and buildActiveCommands condition |
+| 2026-05-02 18:59:46 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback.md` | `spec-check` | Audit S0053 -> Verified; PASS/WARN/FAIL 30/0/0 |
+| 2026-05-02 19:00:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0050 Phase 02 Step 2.5` | Add showBlackScreenButton to PlayerState data class |
+| 2026-05-02 19:00:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `S0050 Phase 02 Step 2.5` | Map showBlackScreenButton from AppSettings into PlayerState |
+| 2026-05-02 19:01:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerControlsSetupManager.kt` | `S0050 Phase 02 Step 2.6` | Add btnBlackScreenCmd click stub in setupCommandButtons() |
+| 2026-05-02 19:01:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0050 Phase 02 Step 2.6` | Add onBlackScreenClicked() to CommandPanelCallback interface and overflow dispatch |
+| 2026-05-02 19:01:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0050 Phase 02 Step 2.6` | Implement onBlackScreenClicked() stub (TODO phase-03) |
+| 2026-05-02 19:11:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BlackScreenOverlayManager.kt` | `BlackScreenOverlayManager` | S0050 Phase 03: new helper — show/hide full-screen black overlay on DecorView, touch-dismiss, file-type-auto-dismiss |
+| 2026-05-02 19:12:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0050 Phase 03: declare and instantiate BlackScreenOverlayManager; observe currentFile type for overlay auto-dismiss |
+| 2026-05-02 19:13:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerControlsSetupManager.kt` | `PlayerControlsSetupManager` | S0050 Phase 03: add BlackScreenOverlayManager constructor param; replace phase-03 stub with show() |
+| 2026-05-02 19:13:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | S0050 Phase 03: pass activity.blackScreenOverlayManager to PlayerControlsSetupManager constructor |
+| 2026-05-02 19:13:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | S0050 Phase 03: replace phase-03 stub in onBlackScreenClicked with real show() call |
+| 2026-05-02 19:14:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0050 Phase 03: add toggleBlackScreenOverlay() public method; extend dispatchKeyEvent for volume/media key passthrough |
+| 2026-05-02 19:21:48 | `app_v2/src/main/assets/input/default_bindings.json` | `default_bindings` | S0050 Phase 04: add player.black_screen command binding (key B, flavor audio_required) |
+| 2026-05-02 19:21:48 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0050 Phase 04: add cmd_black_screen_label EN |
+| 2026-05-02 19:21:48 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0050 Phase 04: add cmd_black_screen_label RU |
+| 2026-05-02 19:21:48 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0050 Phase 04: add cmd_black_screen_label UK |
+| 2026-05-02 19:21:48 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/input/CommandId.kt` | `CommandId` | S0050 Phase 04: add BLACK_SCREEN constant |
+| 2026-05-02 19:21:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerKeyboardHandler.kt` | `PlayerKeyboardHandler` | S0050 Phase 04: add onToggleBlackScreen to callback interface; dispatch BLACK_SCREEN in handleCommand |
+| 2026-05-02 19:21:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerKeyboardCallbackImpl.kt` | `PlayerKeyboardCallbackImpl` | S0050 Phase 04: implement onToggleBlackScreen → activity.toggleBlackScreenOverlay() |
+| 2026-05-02 19:27:06 | `docs/FEATURES.md` | `FEATURES` | S0050 Phase 05: add Black Screen mode bullet to §7 Video Player and §9 Audio Player |
+| 2026-05-02 19:27:06 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0050 Phase 05: add Black Screen mode bullet (RU) to §7 and §9 |
+| 2026-05-02 19:27:06 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0050 Phase 05: add Black Screen mode bullet (UK) to §7 and §9 |
+| 2026-05-02 19:27:06 | `dev/CATALOG/app_v2.jsonl` | `app_v2-catalog` | S0050 Phase 05: regen catalog + set BlackScreenOverlayManager role=overlay-manager |
+| 2026-05-02 19:33:15 | `PLAN/S0050_player-black-screen-mode.md` | `spec-check` | Audit S0050 → Verified; PASS/WARN/FAIL 21/0/0; 1 manual (on-device playback continuity) |
+| 2026-05-02 21:27:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseRefreshManager.kt` | `BrowseRefreshManager` | Add syncMediaStore param to launchReload; skip MediaStore sync when triggered by ContentObserver to break infinite reload loop |
+| 2026-05-02 21:27:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Propagate syncMediaStore param through reloadFiles() |
+| 2026-05-02 21:27:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | Pass syncMediaStore=false in onMediaStoreChanged callback to prevent sync feedback loop |
+| 2026-05-02 21:27:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileObserverManager.kt` | `BrowseFileObserverManager` | Replace volatile boolean ignoringFileChanges with AtomicInteger counter to fix race condition with NonCancellable finally blocks |
+| 2026-05-02 22:16:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PauseAwareLoadControl.kt` | `PauseAwareLoadControl` | Fix StackOverflowError: explicit onTracksSelected overrides break LoadControl.java:62-72 default-method mutual recursion caused by Kotlin by-delegate calling DefaultImpls instead of delegate |
+| 2026-05-02 22:28:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt` | `createPlayer` | Register PauseAwareLoadControl as Player.Listener so isPlayWhenReady flag stays in sync with player state |
+| 2026-05-02 22:46:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PauseAwareLoadControl.kt` | `PauseAwareLoadControl` | Fix StackOverflowError crash: add explicit shouldStartPlayback overrides (both overloads) to prevent infinite mutual recursion via Kotlin by-delegate for cross-calling Java default methods in LoadControl |
+| 2026-05-02 22:58:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PauseAwareLoadControl.kt` | `PauseAwareLoadControl` | Fix shouldStartPlayback signature: Media3 1.2.1 uses (Timeline, MediaPeriodId, Long, Float, Boolean, Long), no Timeline.Window parameter |
+| 2026-05-02 23:19:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerUiStateCoordinatorCallbackImpl.kt` | `PlayerUiStateCoordinatorCallbackImpl` | fix: remove null guard in displayEpub() that prevented lazy init of EpubViewerManager, causing black screen for epub files |
+| 2026-05-02 23:30:14 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `layoutCameraCapture` | Fix portrait overflow: split camera-capture row into two vertical rows (main toggle + skip-filename sub-toggle) to prevent 0-width measurement gap between camera and black-screen toggles |
+| 2026-05-02 23:32:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager.showChapter` | fix: call getOrCreateWebView() instead of webView?.loadDataWithBaseURL() — webView was always null, causing blank content and infinite loading spinner |
+| 2026-05-02 23:40:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerUiStateCoordinatorCallbackImpl.kt` | `PlayerUiStateCoordinatorCallbackImpl` | fix: remove null guard in displayPdf() that prevented lazy init of PdfViewerManager, causing black screen (same root cause as displayEpub fix) |
+| 2026-05-03 00:01:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Add Group 1 PlayerCommands (PREVIOUS/NEXT/DELETE/FAVORITE/SHARE/INFO/FULLSCREEN/SLIDESHOW/RANDOM, prio 10-90); add showFavorite/showRandom params to buildActiveCommands |
+| 2026-05-03 00:01:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Fix architectural gap: all buttons except Back now go through adaptive priority system; remove fixed right group; remove countVisibleRightGroupButtons; simplify resolveAvailableCenterWidthPx |
+| 2026-05-03 00:01:27 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Move right-group buttons (Prev/Next/Delete/Fav/Share/Info/Fullscreen/Slideshow/Random) into center adaptive LinearLayout; remove fixed right group |
+| 2026-05-03 00:01:27 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified-land` | Move Prev/Random/Next into HorizontalScrollView; remove fixed right navigation section |
+| 2026-05-03 00:01:27 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `overflow_menu_player` | Add menu items for Group 1 commands: menu_previous/next/delete/favorite/share/info/fullscreen/slideshow/random |
+| 2026-05-03 00:03:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt` | `BrowseActivity` | Show sorting progress indicator (isSorting flag + setLoading) while in-memory sort runs on IO thread; sort moved to coroutine to avoid blocking caller |
+| 2026-05-03 01:04:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Clear isSorting flag after DiffUtil completes (not after sort itself); fixes 9-11 sec no-feedback window for 12k+ file lists |
+| 2026-05-03 01:24:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Remove PREVIOUS/NEXT from adaptive enum; restore priority order DELETE=10..RANDOM=70 |
+| 2026-05-03 01:24:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Fix visual order: Previous/Next fixed right anchors, subtract 3 buttons from center width |
+| 2026-05-03 01:24:46 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Move btnPreviousCmd/btnNextCmd from center group to fixed right anchors in portrait |
+| 2026-05-03 01:24:47 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `overflow_menu_player` | Remove menu_previous and menu_next (now fixed anchors, never overflow) |
+| 2026-05-03 01:32:55 | `app_v2/src/main/res/layout/dialog_playback_control.xml` | `dialog_playback_control` | Fix volume preset buttons losing text in portrait: changed button row from horizontal to vertical layout so Mute/50%/MAX fit in the narrow right panel |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_02_005.xml` | `ico_02_005` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_04_010.xml` | `ico_04_010` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_05_005.xml` | `ico_05_005` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_03_010.xml` | `ico_03_010` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_02_006.xml` | `ico_02_006` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_04_008.xml` | `ico_04_008` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_05_007.xml` | `ico_05_007` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_04_003.xml` | `ico_04_003` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_03_003.xml` | `ico_03_003` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_02_007.xml` | `ico_02_007` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_03_001.xml` | `ico_03_001` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_03_009.xml` | `ico_03_009` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_03_005.xml` | `ico_03_005` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_02_008.xml` | `ico_02_008` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_02_004.xml` | `ico_02_004` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_03_004.xml` | `ico_03_004` | Replaced with valid Material Icon |
+| 2026-05-03 01:47:17 | `app_v2/src/main/res/drawable/ico_05_019.xml` | `ico_05_019` | Replaced with valid Material Icon |
+| 2026-05-03 01:48:15 | `temp/icon_catalog_for_designer.md` | `icon_catalog_for_designer.md` | Updated catalog reflecting 17 new valid Material icons and grammar corrections |
+| 2026-05-03 01:57:37 | `temp/icon_catalog_for_designer.md` | `icon_catalog_for_designer.md` | Fixed text descriptions for ico-02-006 and ico-04-008 |
+| 2026-05-03 02:04:51 | `app_v2/build.gradle.kts` | `SFTP / JSch` | Bump com.github.mwiede:jsch 0.2.16 -> 0.2.26 to fix ArrayIndexOutOfBoundsException in ChannelSftp\.read() during ExoPlayer skip() |
+| 2026-05-03 02:08:51 | `PLAN/S0054_m2ts-playback-support.md` | `spec` | Add strategic spec S0054 for m2ts-playback-support |
+| 2026-05-03 02:16:05 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Renamed 'Don't ask for filename' setting string |
+| 2026-05-03 02:16:05 | `docs/FEATURES.md` | `FEATURES.md` | Renamed 'Don't ask for filename' setting string |
+| 2026-05-03 02:22:49 | `PLAN/S0054_m2ts-playback-support.md` | `S0054` | Research complete: enriched §4 (confirmed LOCAL/Cloud gaps, wrapForBdTs extension-only risk, no tests), updated §6 (Q1 closed, Q2 refined, added Q5/Q6), updated §7 risk table with new HIGH risks |
+| 2026-05-03 02:29:44 | `PLAN/S0054_m2ts-playback-support.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) — removed 14 class/method names from strategic spec, replaced with architectural terms |
+| 2026-05-03 02:41:07 | `docs/WHATS_NEW.md` | `v2.60.5030.230 release notes` | Added What's New block for v2.60.5030.230 (May 2026): new features and fixes sections; previous release archived below |
+| 2026-05-03 02:41:12 | `README.md` | `v2.60.5030.230 release notes` | Added compact What's New block for v2.60.5030.230 with links to full notes |
+| 2026-05-03 02:42:52 | `docs/WHATS_NEW_RU.md` | `v2.60.5030.230 release notes (RU)` | Added Russian What's New block for v2.60.5030.230; previous release archived below |
+| 2026-05-03 02:42:53 | `docs/WHATS_NEW_UK.md` | `v2.60.5030.230 release notes (UK)` | Added Ukrainian What's New block for v2.60.5030.230; previous release archived below |
+| 2026-05-03 03:03:28 | `docs/README.md` | `v2.60.5030.230 doc update` | Updated Keyboard bullet (all screens + gamepad); added Camera Capture, Link Auto-Download, Single-Eye 3D bullets to Key Features |
+| 2026-05-03 03:03:28 | `docs/QUICK_START.md` | `v2.60.5030.230 doc update` | Added Keybinding Remapper, Camera Capture, Link Auto-Download sections to Advanced Features |
+| 2026-05-03 03:03:28 | `docs/FAQ.md` | `v2.60.5030.230 doc update` | Added Input & Controls FAQ section (keyboard/gamepad, keybindings, link download) |
+| 2026-05-03 03:03:28 | `docs/QUICK_START_RU.md` | `v2.60.5030.230 doc update` | RU: same Advanced Features additions as EN |
+| 2026-05-03 03:03:28 | `docs/QUICK_START_UK.md` | `v2.60.5030.230 doc update` | UK: same Advanced Features additions as EN |
+| 2026-05-03 03:03:28 | `docs/FAQ_RU.md` | `v2.60.5030.230 doc update` | RU: Управление и ввод — new FAQ section |
+| 2026-05-03 03:03:28 | `docs/FAQ_UK.md` | `v2.60.5030.230 doc update` | UK: Керування та введення — new FAQ section |

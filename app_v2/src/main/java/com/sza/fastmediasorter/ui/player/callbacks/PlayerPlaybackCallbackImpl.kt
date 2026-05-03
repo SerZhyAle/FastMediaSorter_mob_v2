@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
 import android.os.Handler
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
@@ -104,6 +106,15 @@ class PlayerPlaybackCallbackImpl(
     
     override fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) {
         activity.showUnsupportedFormatError(message, filePath, isLocalFile)
+    }
+
+    override fun onBdTsFormatError() {
+        if (activity.isDestroyed || activity.isFinishing) return
+        AlertDialog.Builder(activity)
+            .setTitle(activity.getString(R.string.error_bdts_format_title))
+            .setMessage(activity.getString(R.string.error_bdts_format_message))
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     override fun onBeforeVideoLoad(path: String) {

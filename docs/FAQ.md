@@ -153,6 +153,19 @@ Yes, just use the **command panel buttons** instead. Touch Zones are optional.
 
 ---
 
+## Input & Controls
+
+### Does it support physical keyboards and gamepads?
+**Yes!** Full keyboard, mouse, and gamepad input is available across all screens. Press **F1** on any screen to see the active key bindings for that surface.
+
+### How do I remap controls / change keybindings?
+Settings → **Input** → **Keybindings** — reassign any action to a different key, button, or gamepad input. The app ships with 70 built-in defaults; tap **Reset** to restore them. Conflicts are highlighted automatically.
+
+### How do I download a media file from a URL?
+Share any `http(s)` link to FastMediaSorter via the Android **Share sheet** (from a browser, messenger, or any app). FastMediaSorter will download the file and offer to save it to any of your configured resources.
+
+---
+
 ## Performance & Storage
 
 ### How do I find a specific file by name?

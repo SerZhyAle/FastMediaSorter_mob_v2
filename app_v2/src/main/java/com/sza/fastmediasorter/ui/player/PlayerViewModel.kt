@@ -108,7 +108,8 @@ class PlayerViewModel @Inject constructor(
         val lastOperation: UndoOperation? = null,
         val undoOperationTimestamp: Long? = null,
         val isCasting: Boolean = false,
-        val castDeviceName: String? = null
+        val castDeviceName: String? = null,
+        val showBlackScreenButton: Boolean = false
     ) {
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         // Circular navigation: always allow prev/next if files.size > 1

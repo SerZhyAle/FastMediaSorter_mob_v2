@@ -50,6 +50,7 @@ object CommandId {
     const val SUBTITLE_DELAY = "audio.subtitle_delay"
 
     // --- SYSTEM_UI ---
+    const val BLACK_SCREEN = "player.black_screen"
     const val TOGGLE_CONTROLS = "system.toggle_controls"
     const val TOGGLE_OVERLAY = "system.toggle_overlay"
     const val TOGGLE_INFO = "system.toggle_info"

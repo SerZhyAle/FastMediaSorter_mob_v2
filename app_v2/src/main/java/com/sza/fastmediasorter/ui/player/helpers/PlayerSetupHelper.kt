@@ -61,6 +61,7 @@ internal fun VideoPlayerManager.createPlayer(playerView: PlayerView): ExoPlayer 
         .build()
 
     player.addListener(playerListener)
+    player.addListener(loadControl)
     playerView.player = player
     currentPlayerView = playerView
     exoPlayer = player

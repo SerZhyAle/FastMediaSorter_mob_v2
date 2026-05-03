@@ -370,10 +370,14 @@ if ($Summary) {
     # For JSON format — show device metadata from the .logcat header
     if ($logFormat -eq "JSON") {
         $jsonMeta = (Get-Content -Path $LogFile -Raw -Encoding UTF8 | ConvertFrom-Json).metadata
-        if ($jsonMeta.device.physicalDevice) {
+        if ($jsonMeta.device -and ($jsonMeta.device.PSObject.Properties.Name -contains 'physicalDevice')) {
             $dev = $jsonMeta.device.physicalDevice
             Write-Out "`n[Device (JSON metadata)]" "White"
             Write-Out ("  $($dev.manufacturer) $($dev.model)  Android $($dev.release)  API $($dev.featureLevel)") "Gray"
+        } elseif ($jsonMeta.device -and ($jsonMeta.device.PSObject.Properties.Name -contains 'emulatorDevice')) {
+            $dev = $jsonMeta.device.emulatorDevice
+            Write-Out "`n[Device (JSON metadata)]" "White"
+            Write-Out ("  Emulator: $($dev.avdName)  Android $($dev.release)  API $($dev.featureLevel)  serial=$($dev.serialNumber)") "Gray"
         }
         if ($jsonMeta.filter) {
             Write-Out ("  Filter: $($jsonMeta.filter.Trim())") "Gray"

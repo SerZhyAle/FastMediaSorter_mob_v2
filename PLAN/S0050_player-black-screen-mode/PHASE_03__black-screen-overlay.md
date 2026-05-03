@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0050_player-black-screen-mode.md`](../S0050_player-black-screen-mode.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 02
 **Blocks:** Phase 04
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-05-02
+**Completed:** 2026-05-02
 
 ---
 
@@ -68,7 +68,11 @@ Implement `BlackScreenOverlayManager` — a helper that adds a full-screen black
 - `Grep` — `fun hide()` in `BlackScreenOverlayManager.kt`.
 - `Grep` — `fun onFileTypeChanged` in `BlackScreenOverlayManager.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 5/5 PASS. Files: BlackScreenOverlayManager.kt (new, 54 LOC). Dev log recorded.
 
 ---
 
@@ -95,7 +99,11 @@ Implement `BlackScreenOverlayManager` — a helper that adds a full-screen black
 - `Grep` — `BlackScreenOverlayManager` in `PlayerActivity.kt` (at least 2 hits).
 - `Grep` — `onFileTypeChanged` in `PlayerActivity.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: PlayerActivity.kt (+12 LOC: property, instantiation, observeData collector). Dev log recorded.
 
 ---
 
@@ -110,10 +118,17 @@ Implement `BlackScreenOverlayManager` — a helper that adds a full-screen black
 
 **Verification:**
 
-- `Grep` — `TODO(phase-03)` in `PlayerControlsSetupManager.kt` returns **zero** hits.
-- `Grep` — `blackScreenOverlayManager.show()` in `PlayerControlsSetupManager.kt` (2 hits: bar button + menu item).
+- `Grep` — `TODO(phase-03)` across all player files returns **zero** hits.
+- `Grep` — `blackScreenOverlayManager.show()` in `PlayerControlsSetupManager.kt` (1 hit: bar button).
+- `Grep` — `blackScreenOverlayManager.show()` in `PlayerCommandPanelCallbackImpl.kt` (1 hit: overflow callback via onBlackScreenClicked).
 
-**Status:** `[ ]` not done
+> _Spec patch: overflow dispatch lives in `PlayerCommandPanelCallbackImpl.kt` (Phase 02 architecture), not a second hit in `PlayerControlsSetupManager.kt`._
+
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 3/3 PASS (patched predicates). Files: PlayerControlsSetupManager.kt (+1 param, stub→show()), PlayerManagerInitializer.kt (+1 arg), PlayerCommandPanelCallbackImpl.kt (stub→show()). Dev log recorded.
 
 ---
 
@@ -134,7 +149,11 @@ Implement `BlackScreenOverlayManager` — a helper that adds a full-screen black
 - `Grep` — `KEYCODE_MEDIA_NEXT` in `PlayerActivity.kt`.
 - `Grep` — `isVisible` in `PlayerActivity.kt` (referencing `blackScreenOverlayManager.isVisible`).
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 3/3 PASS. Files: PlayerActivity.kt (dispatchKeyEvent extended +14 LOC). Dev log recorded.
 
 ---
 
@@ -158,17 +177,21 @@ Implement `BlackScreenOverlayManager` — a helper that adds a full-screen black
 
 - `Grep` — `fun toggleBlackScreenOverlay` in `PlayerActivity.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 1/1 PASS. Files: PlayerActivity.kt (+4 LOC: toggleBlackScreenOverlay()). Dev log recorded.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every Step 3.* above is `[x] done`.
-- [ ] Project compiles — run `/build`.
-- [ ] `Grep` for `TODO(phase-03)` across all files returns **zero** hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated: `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
+- [x] Every Step 3.* above is `[x] done`.
+- [x] Project compiles — run `/build`. (auto-build — PASS)
+- [x] `Grep` for `TODO(phase-03)` across all files returns **zero** hits.
+- [x] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated: `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
 
 ---
 

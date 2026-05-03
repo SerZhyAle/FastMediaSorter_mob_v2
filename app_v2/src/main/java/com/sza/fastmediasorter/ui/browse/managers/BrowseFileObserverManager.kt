@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Manages [MediaFileObserver] lifecycle for local resource monitoring.
@@ -47,14 +48,12 @@ class BrowseFileObserverManager(
     private var pendingRenameTo: String? = null
     private var pendingRenameJob: Job? = null
 
-    /**
-     * When `true`, all FileObserver callbacks are silently ignored.
-     * Set to `true` before programmatic file operations (delete, move, rename) and
-     * back to `false` when complete to avoid spurious UI reloads.
-     */
-    @Volatile
-    var ignoringFileChanges: Boolean = false
-        private set
+    // Counter-based guard: allows nested/concurrent callers without race conditions.
+    // Each call to setIgnoringFileChanges(true) increments; setIgnoringFileChanges(false) decrements.
+    // ignoringFileChanges == true when count > 0.
+    private val ignoringCount = AtomicInteger(0)
+
+    val ignoringFileChanges: Boolean get() = ignoringCount.get() > 0
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -171,9 +170,9 @@ class BrowseFileObserverManager(
         Timber.d("FileObserver: stopped")
     }
 
-    /** Set/clear the programmatic-change suppression flag. */
+    /** Increment or decrement the suppression counter. */
     fun setIgnoringFileChanges(ignoring: Boolean) {
-        ignoringFileChanges = ignoring
+        if (ignoring) ignoringCount.incrementAndGet() else ignoringCount.decrementAndGet()
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

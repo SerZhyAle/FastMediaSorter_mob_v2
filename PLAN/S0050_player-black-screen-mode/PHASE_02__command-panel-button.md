@@ -2,10 +2,11 @@
 
 **Strategic spec:** [`../S0050_player-black-screen-mode.md`](../S0050_player-black-screen-mode.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01
 **Blocks:** Phase 03
-**Steps done:** 0 / 6
+**Steps done:** 6 / 6
+**Completed:** 2026-05-02
 **Started:** —
 **Completed:** —
 
@@ -54,7 +55,11 @@ Add a `BLACK_SCREEN` adaptive command to the player command panel: icon drawable
 - `Glob` — `app_v2/src/main/res/drawable/ic_black_screen.xml` exists.
 - `Grep` — `colorOnSurface` in `ic_black_screen.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: drawable/ic_black_screen.xml (new, 10 LOC). Dev log recorded.
 
 ---
 
@@ -82,7 +87,11 @@ Add a `BLACK_SCREEN` adaptive command to the player command panel: icon drawable
 - `Grep` — `black_screen_button_title` in `values-ru/strings.xml`.
 - `Grep` — `black_screen_button_title` in `values-uk/strings.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 4/4 PASS. Files: overflow_menu_player.xml (+5 LOC), strings.xml×3 (+1 each). Dev log recorded.
 
 ---
 
@@ -114,7 +123,11 @@ Add a `BLACK_SCREEN` adaptive command to the player command panel: icon drawable
 - `Grep` — `btnBlackScreenCmd` in `activity_player_unified.xml`.
 - `Grep` — `ic_black_screen` in `activity_player_unified.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: activity_player_unified.xml (+3 LOC). Dev log recorded.
 
 ---
 
@@ -142,7 +155,11 @@ Add a `BLACK_SCREEN` adaptive command to the player command panel: icon drawable
 - `Grep` — `BLACK_SCREEN(195` in `CommandPanelLayoutPlanner.kt`.
 - `Grep` — `showBlackScreenButton` in `CommandPanelLayoutPlanner.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS. Files: CommandPanelLayoutPlanner.kt (+2 LOC enum, +1 LOC buildActiveCommands). Dev log recorded.
 
 ---
 
@@ -158,9 +175,16 @@ Add a `BLACK_SCREEN` adaptive command to the player command panel: icon drawable
 
 **Verification:**
 
-- `Grep` — `showBlackScreenButton` in `PlayerViewModel.kt` (at least 2 hits: declaration + assignment).
+- `Grep` — `showBlackScreenButton` in `PlayerViewModel.kt` (declaration in PlayerState).
+- `Grep` — `showBlackScreenButton` in `PlayerMediaFilesLoader.kt` (assignment from settings — loadSettings() was extracted there).
 
-**Status:** `[ ]` not done
+> _Spec patch: assignment lives in `PlayerMediaFilesLoader.kt` (Wave 4.1 extraction), not `PlayerViewModel.kt`._
+
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS (patched predicates). Files: PlayerViewModel.kt (+1 LOC), PlayerMediaFilesLoader.kt (+1 LOC). Dev log recorded.
 
 ---
 
@@ -182,19 +206,25 @@ Add a `BLACK_SCREEN` adaptive command to the player command panel: icon drawable
 **Verification:**
 
 - `Grep` — `btnBlackScreenCmd` in `PlayerControlsSetupManager.kt`.
-- `Grep` — `menu_black_screen` in `PlayerControlsSetupManager.kt`.
+- `Grep` — `menu_black_screen` in `CommandPanelController.kt` (overflow dispatch lives there, not in SetupManager).
 
-**Status:** `[ ]` not done
+> _Spec patch: overflow click dispatch follows existing architecture in `CommandPanelController.kt` via `CommandPanelCallback`._
+
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-02 — Verification 2/2 PASS (patched predicates). Files: PlayerControlsSetupManager.kt (+4 LOC), CommandPanelController.kt (+2 LOC), PlayerCommandPanelCallbackImpl.kt (+4 LOC). Dev log recorded.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every Step 2.* above is `[x] done`.
-- [ ] Project compiles — run `/build`.
-- [ ] `Grep` for `TODO(phase-01)` returns zero hits (no leftover phase-01 markers).
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated: `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
+- [x] Every Step 2.* above is `[x] done`.
+- [x] Project compiles — run `/build`. (auto-build — PASS)
+- [x] `Grep` for `TODO(phase-01)` returns zero hits (no leftover phase-01 markers).
+- [x] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated: `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
 
 ---
 

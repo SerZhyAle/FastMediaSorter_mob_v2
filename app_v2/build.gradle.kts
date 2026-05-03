@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260502053
-        versionName = "2.60.5020.533"
+        versionCode = 260503025
+        versionName = "2.60.5030.252"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -676,7 +676,7 @@ dependencies {
     implementation("com.hierynomus:smbj:0.12.1")
     
     // Network - SFTP (JSch for Android - better KEX support than SSHJ)
-    implementation("com.github.mwiede:jsch:0.2.16")
+    implementation("com.github.mwiede:jsch:0.2.26")
     
     // Network - FTP
     implementation("commons-net:commons-net:3.10.0")

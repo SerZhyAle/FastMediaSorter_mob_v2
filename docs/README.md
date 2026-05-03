@@ -119,7 +119,7 @@ Full-size images:
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
 - 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files" mode.
-- ⌨️ **Keyboard & Mouse Support:** Full keyboard navigation (arrow keys, shortcuts like Ctrl+A/C/X, F2, F5, Delete, Backspace) and mouse support (right-click context menu, hover effects, focus indicators) for ChromeOS and desktop mode.
+- ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens — Browse, Player, Settings, dialogs. Fully remappable via Settings → Input → Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
 - 🎨 **Modern Interface:** Support for light and dark themes, intuitive controls, Material Design 3.
@@ -137,6 +137,9 @@ Full-size images:
 - 🔊 **DTS/DTS-HD Audio:** DTS and DTS-HD audio tracks are decoded in software via a custom FFmpeg build — no special hardware required.
 - 🎨 **Video Color & Brightness:** Adjust Hue and Brightness in real time using Media3 GPU effects. Settings persist across video files during the session.
 - 📤 **Share to FastMediaSorter:** Receive files from any app via the standard Android Share sheet and copy them to a selected resource with a single tap.
+- 📷 **Camera Capture in Browse:** Take a photo with the device camera and save it directly to the current resource — local or network — without leaving the app.
+- 🔗 **Link Auto-Download:** Share any http(s) URL to the app via the Android Share sheet; the media file is downloaded and saved to a selected resource automatically.
+- 👁️ **Single-Eye 3D Mode:** Crop stereo (SBS/OU) content to one eye for comfortable viewing on flat screens; works for both video and images.
 
 ## Supported Media Formats 🎞️
 

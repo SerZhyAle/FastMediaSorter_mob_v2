@@ -89,12 +89,18 @@ class BrowseSortFilterManager(
                 return
             }
             Timber.d("BrowseSortFilterManager.setSortMode: re-sorting cache (${cachedFiles.size} files)")
-            val currentFilter = stateFlow.value.filter ?: FileFilter()
-            val filteredFiles = applyFilterToList(cachedFiles, currentFilter)
-            val sortedFiles = sortFiles(filteredFiles, sortMode, forceSort = true)
-            val sortedCache = sortFiles(cachedFiles, sortMode, forceSort = true)
-            MediaFilesCacheManager.setCachedList(resourceId, sortedCache)
-            updateState { it.copy(mediaFiles = sortedFiles) }
+            setLoading(true)
+            updateState { it.copy(isSorting = true) }
+            scope.launch(ioDispatcher) {
+                val currentFilter = stateFlow.value.filter ?: FileFilter()
+                val filteredFiles = applyFilterToList(cachedFiles, currentFilter)
+                val sortedFiles = sortFiles(filteredFiles, sortMode, forceSort = true)
+                val sortedCache = sortFiles(cachedFiles, sortMode, forceSort = true)
+                MediaFilesCacheManager.setCachedList(resourceId, sortedCache)
+                // Keep isSorting = true — cleared by BrowseActivity.clearSorting()
+                // after DiffUtil finishes computing the diff for the sorted list.
+                updateState { it.copy(mediaFiles = sortedFiles) }
+            }
         } else {
             if (cachedFiles != null && cachedFiles.isEmpty()) {
                 Timber.w("BrowseSortFilterManager.setSortMode: empty cache — clearing before reload")
@@ -117,18 +123,28 @@ class BrowseSortFilterManager(
 
         val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
         if (cachedFiles != null && cachedFiles.isNotEmpty()) {
-            val currentFilter = stateFlow.value.filter ?: FileFilter()
-            val filteredFiles = applyFilterToList(cachedFiles, currentFilter)
-            val reshuffledFiles = reshuffleVisibleFiles(filteredFiles)
-            val reshuffledCache = sortFiles(cachedFiles, SortMode.RANDOM, forceSort = true)
-            MediaFilesCacheManager.setCachedList(resourceId, reshuffledCache)
-            updateState { it.copy(mediaFiles = reshuffledFiles) }
+            setLoading(true)
+            updateState { it.copy(isSorting = true) }
+            scope.launch(ioDispatcher) {
+                val currentFilter = stateFlow.value.filter ?: FileFilter()
+                val filteredFiles = applyFilterToList(cachedFiles, currentFilter)
+                val reshuffledFiles = reshuffleVisibleFiles(filteredFiles)
+                val reshuffledCache = sortFiles(cachedFiles, SortMode.RANDOM, forceSort = true)
+                MediaFilesCacheManager.setCachedList(resourceId, reshuffledCache)
+                // Keep isSorting = true — cleared by BrowseActivity.clearSorting() after DiffUtil.
+                updateState { it.copy(mediaFiles = reshuffledFiles) }
+            }
             return
         }
 
         val currentFiles = stateFlow.value.mediaFiles
         if (currentFiles.isNotEmpty()) {
-            updateState { it.copy(mediaFiles = reshuffleVisibleFiles(currentFiles)) }
+            setLoading(true)
+            updateState { it.copy(isSorting = true) }
+            scope.launch(ioDispatcher) {
+                // Keep isSorting = true — cleared by BrowseActivity.clearSorting() after DiffUtil.
+                updateState { it.copy(mediaFiles = reshuffleVisibleFiles(currentFiles)) }
+            }
             return
         }
 

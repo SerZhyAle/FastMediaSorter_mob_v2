@@ -40,7 +40,8 @@ class PlayerControlsSetupManager(
     private val translationManager: TranslationManager,
     private val translationButtonManager: TranslationButtonManager,
     private val exoPlayerControlsManager: ExoPlayerControlsManager,
-    private val searchControlsManager: SearchControlsManager
+    private val searchControlsManager: SearchControlsManager,
+    private val blackScreenOverlayManager: BlackScreenOverlayManager
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     
@@ -200,6 +201,11 @@ class PlayerControlsSetupManager(
             UserActionLogger.logButtonClick("Delete", "PlayerActivity")
             activity.fileOperationsHandler.deleteCurrentFile()
             activity.scheduleHideControls()
+        }
+
+        binding.btnBlackScreenCmd?.setOnClickListener {
+            UserActionLogger.logButtonClick("BlackScreenCmd", "PlayerActivity")
+            blackScreenOverlayManager.show()
         }
     }
     

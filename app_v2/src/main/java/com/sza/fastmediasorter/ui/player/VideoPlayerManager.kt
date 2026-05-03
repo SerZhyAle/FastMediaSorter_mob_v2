@@ -109,6 +109,7 @@ class VideoPlayerManager(
         fun showFileNotFound(fileName: String)
         fun isActivityDestroyed(): Boolean
         fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean)
+        fun onBdTsFormatError()
         /** Fired before a new video starts loading so session-only 3D state can reset per file. */
         fun onBeforeVideoLoad(path: String) {}
         /** Fired once per video load when a stereo format is detected. Default no-op. */
@@ -450,6 +451,12 @@ class VideoPlayerManager(
             }
             if (isFormatError && currentFilePath != null && !isLocalPath) {
                 Timber.w("VideoPlayerManager: ExoPlayer format error on network path — MediaPlayer fallback skipped")
+                val lowerPath = currentFilePath!!.lowercase()
+                if (lowerPath.endsWith(".m2ts") || lowerPath.endsWith(".m2t")) {
+                    Timber.i("VideoPlayerManager: BD-TS format error — showing informative dialog")
+                    playerCallback.onBdTsFormatError()
+                    return
+                }
             }
 
             playerCallback.onBuffering(false)

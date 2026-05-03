@@ -47,4 +47,8 @@
 {"id":"S0047","name":"bugfix-sftp-pool-broken-channel","status":"BlockNeedUserTest","priority":90,"tier":1,"file":"PLAN/S0047_bugfix-sftp-pool-broken-channel.md","created":"2026-05-02","updated":"2026-05-02 03:09"}
 {"id":"S0048","name":"info-dialog-extended-metadata","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0048_info-dialog-extended-metadata.md","created":"2026-05-02","updated":"2026-05-02 05:31"}
 {"id":"S0049","name":"bugfix-icon-pick-save-disabled","status":"Verified","priority":70,"tier":1,"file":"PLAN/S0049_bugfix-icon-pick-save-disabled.md","created":"2026-05-02","updated":"2026-05-02 04:05"}
-{"id":"S0050","name":"player-black-screen-mode","status":"Tactical","priority":50,"tier":3,"file":"PLAN/S0050_player-black-screen-mode.md","created":"2026-05-02","updated":"2026-05-02 05:05"}
+{"id":"S0050","name":"player-black-screen-mode","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0050_player-black-screen-mode.md","created":"2026-05-02","updated":"2026-05-02 19:33"}
+{"id":"S0051","name":"bugfix-network-datasource-pause-cancel","status":"BlockNeedUserTest","priority":75,"tier":2,"file":"PLAN/S0051_bugfix-network-datasource-pause-cancel.md","created":"2026-05-02","updated":"2026-05-02 18:52"}
+{"id":"S0052","name":"bugfix-sftp-datasource-log-spam","status":"Verified","priority":50,"tier":1,"file":"PLAN/S0052_bugfix-sftp-datasource-log-spam.md","created":"2026-05-02","updated":"2026-05-02 12:58"}
+{"id":"S0053","name":"bugfix-m2ts-bdmv-network-playback","status":"Verified","priority":65,"tier":3,"file":"PLAN/S0053_bugfix-m2ts-bdmv-network-playback.md","created":"2026-05-02","updated":"2026-05-02 18:59"}
+{"id":"S0054","name":"m2ts-playback-support","status":"Draft","priority":50,"tier":3,"file":"PLAN/S0054_m2ts-playback-support.md","created":"2026-05-03","updated":"2026-05-03 02:29"}
