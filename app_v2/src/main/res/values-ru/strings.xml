@@ -243,6 +243,7 @@
     <string name="virtual_all_video">Все видео</string>
     <string name="virtual_all_images">Все изображения</string>
     <string name="virtual_all_docs">Все документы</string>
+    <string name="resource_name_downloads">Загрузки</string>
     <string name="virtual_comment_recent">Недавно открытые локальные медиафайлы</string>
     <string name="virtual_comment_all_music">Локальные аудиофайлы (mp3, flac, ogg, aac…)</string>
     <string name="virtual_comment_all_video">Локальные видеофайлы (mp4, mkv, mov, wmv…)</string>
@@ -273,9 +274,15 @@
     <string name="error_connection_refused">Не удаётся подключиться к \"%1$s\" - сервер %2$s отклонил подключение</string>
     <string name="error_connection_failed_generic">Не удаётся подключиться к \"%1$s\" - сбой соединения</string>
 
+    <!-- DVD VOB Route Error -->
+    <string name="error_vob_route_title">Воспроизведение DVD VOB недоступно</string>
+    <string name="error_vob_route_message">Этот DVD Program Stream (.vob) не удалось воспроизвести по сети.\n\nСкопируйте файл локально или используйте проигрыватель с поддержкой DVD PS через SMB/SFTP/FTP.</string>
+
     <!-- BD-TS Playback Error -->
     <string name="error_bdts_format_title">Формат не поддерживается</string>
-    <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) не может воспроизводиться с этого сетевого ресурса.\n\nСовет: перекодируйте файл в MP4/MKV с помощью HandBrake или ffmpeg.</string>
+    <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) не удалось воспроизвести.\n\nЕсли все аудиодорожки используют только TrueHD или DTS-HD MA, выберите другую дорожку или перекодируйте файл в MP4/MKV (HandBrake, ffmpeg).</string>
+    <string name="warning_m2ts_audio_unsupported">Аудиодорожки недоступны в этой сборке: %1$s.\nВоспроизведение без звука. Поддерживаются: AC-3, E-AC-3, DTS (core), AAC.</string>
+    <string name="warning_m2ts_audio_unsupported_title">Неподдерживаемые аудиодорожки</string>
 
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Не удаётся получить доступ к \"%1$s\" - аутентификация утрачена или сессия завершена</string>
@@ -830,6 +837,10 @@
     <string name="reset_smb_connections_message">Это закроет все SMB соединения и сбросит состояние ошибок. Используйте, если возникают проблемы с подключением.</string>
     <string name="reset_smb_success">SMB соединения сброшены успешно</string>
     <string name="smb_auto_reset_notification">SMB соединения сброшены автоматически</string>
+    <string name="gms_update_required">Для полной работы приложения необходимо обновить Google Play Services. Некоторые функции могут работать некорректно.</string>
+    <string name="gms_unavailable">Google Play Services недоступны. Некоторые функции могут работать некорректно.</string>
+    <string name="gms_update_action">Обновить</string>
+    <string name="network_unstable_snackbar">Сеть нестабильна — проверьте Wi-Fi</string>
     <string name="cache_size_limit">Размер кэша</string>
     <string name="cache_size_limit_mb">%d МБ</string>
     <string name="cache_size_calculating">Вычисление…</string>
@@ -1333,6 +1344,12 @@
     <string name="msg_no_shares_found">Общие папки не найдены. Введите имя вручную.</string>
     <string name="msg_share_scan_failed">Ошибка сканирования: %1$s</string>
     <string name="msg_select_share">Папки на %1$s</string>
+    <!-- S0064: диалог ручного ввода имени шары -->
+    <string name="smb_enter_share_manually">+ Ввести имя папки вручную..</string>
+    <string name="smb_manual_share_dialog_title">Введите имя папки</string>
+    <string name="smb_manual_share_hint">например Photos, Media, Backup</string>
+    <string name="smb_manual_share_section_previous">Ранее использованные:</string>
+    <string name="smb_share_name_invalid">Недопустимое имя папки. Используйте буквы, цифры, дефисы или подчёркивания.</string>
     <string name="label_test_result">Результат теста</string>
     <string name="msg_dropbox_auth_cancelled">Авторизация Dropbox отменена</string>
     <string name="msg_onedrive_auth_success">Успешная авторизация OneDrive</string>
@@ -1569,6 +1586,8 @@
     <string name="use_trash">Использовать корзину (.trash)</string>
     <string name="use_trash_summary">Перемещать удалённые файлы в .trash вместо окончательного удаления. Позволяет восстановить до закрытия ресурса.</string>
     <string name="disable_trash_warning">Файлы будут удаляться окончательно без возможности восстановления</string>
+    <string name="tooltip_use_trash_title">Удаление в корзину</string>
+    <string name="tooltip_use_trash_message">При включённой опции удалённые локальные файлы перемещаются в скрытую папку .trash и могут быть восстановлены через Undo. При выключённой — файлы удаляются немедленно и место освобождается сразу. Сетевые и облачные файлы всегда удаляются окончательно.</string>
 
     <!-- Folder Selection & Permissions -->
     <string name="all_files_access_required">Требуется полный доступ к папкам</string>
@@ -1576,6 +1595,7 @@
     <string name="continue_limited">Продолжить (Ограниченно)</string>
     <string name="folder_selection_limitations">⚠️ Ограниченный доступ к папкам\n\nБез разрешения \"Доступ ко всем файлам\" вы можете выбрать только стандартные папки Android.\n\nЧтобы выбрать любую папку на устройстве, пожалуйста, предоставьте разрешение когда будет предложено.</string>
     <string name="select_folder">Выбрать папку</string>
+    <string name="btn_select_folder_description">Выбрать папку назначения</string>
     <string name="folder_path_hint">напр. /storage/emulated/0/МояПапка</string>
     <string name="browse_folders">Просмотр папок</string>
     <string name="folder_not_found">Папка не найдена</string>
@@ -1736,6 +1756,8 @@
     <string name="dialog_file_info_tvVideoResolution_lineSpacingMultiplier">1.2</string>
     <string name="dialog_file_info_tvVideoRotation_lineSpacingMultiplier">1.2</string>
     <string name="dialog_file_operation_progress_btnCancel_text">Отмена</string>
+    <string name="transfer_overall_progress_desc">Общий прогресс передачи</string>
+    <string name="transfer_eta_desc">Оставшееся время</string>
     <string name="dialog_file_operation_progress_tvCurrentFile_text">file.jpg</string>
     <string name="dialog_file_operation_progress_tvProgressText_text">0 / 10</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов…</string>
@@ -2312,7 +2334,8 @@
     <string name="welcome_default_player_btn_images">Изображения</string>
     <string name="welcome_default_player_btn_video">Видео</string>
     <string name="welcome_default_player_description">Назначить FastMediaSorter медиаплеером по умолчанию</string>
-    <string name="welcome_default_player_hint">Нажмите кнопку ниже — появится системный диалог. Выберите FastMediaSorter и нажмите <b>Всегда</b>.</string>
+    <string name="welcome_default_player_hint">Нажмите кнопку ниже — появится системный диалог. Выберите FastMediaSorter и нажмите <b>Всегда</b>.
+    </string>
     <string name="welcome_default_player_title">Плеер по умолчанию</string>
 
     <!-- Permissions -->
@@ -2981,4 +3004,14 @@
     <string name="icon_set_image">Изображения</string>
     <string name="icon_set_docs">Документы</string>
     <string name="icon_set_other">Другое</string>
+
+    <!-- S0061: уведомление о нестабильной сети SMB -->
+    <string name="smb_network_unstable">Сеть нестабильна.. проверьте Wi-Fi.</string>
+
+    <!-- S0070: информация о доступном месте на устройстве -->
+    <string name="device_storage_available">На устройстве доступно:</string>
+    <string name="btn_refresh_storage">Обновить информацию о месте</string>
+
+    <!-- S0077: optical-disc network thumbnail placeholder -->
+    <string name="thumbnail_unavailable_network_format">%1$s — видеофайл, превью по сети недоступно</string>
 </resources>
