@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.vr.di
 
 import android.app.Application
+import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
+import com.sza.fastmediasorter.vr.capture.VrBrowsePassthroughCaptureManager
 import com.sza.fastmediasorter.vr.commands.VrFullscreenCommandOverride
 import com.sza.fastmediasorter.vr.commands.VrSaveFrameCommandOverride
 import com.sza.fastmediasorter.vr.commands.VrSystemUiCommandOverride
@@ -42,6 +44,12 @@ abstract class VrModule {
     @Singleton
     @Binds
     abstract fun bindVrSystemUiCommandOverride(impl: VrSystemUiCommandOverride): SystemUiCommandOverride
+
+    @Singleton
+    @Binds
+    abstract fun bindPassthroughCaptureProvider(
+        impl: VrBrowsePassthroughCaptureManager,
+    ): BrowsePassthroughCaptureProvider
 
     companion object {
         /**

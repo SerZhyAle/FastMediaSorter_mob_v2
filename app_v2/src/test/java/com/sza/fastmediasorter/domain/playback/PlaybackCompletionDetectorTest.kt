@@ -55,6 +55,17 @@ class PlaybackCompletionDetectorTest {
     }
 
     @Test
+    fun `zeroDuration_positionZero_isNotNearEnd`() {
+        assertFalse(PlaybackCompletionDetector.isNearEnd(0L, 0L))
+    }
+
+    @Test
+    fun `exactlyAtThreshold_isNearEnd`() {
+        val threshold = PlaybackCompletionDetector.nearEndThresholdMs(10_000L)
+        assertTrue(PlaybackCompletionDetector.isNearEnd(10_000L - threshold, 10_000L))
+    }
+
+    @Test
     fun `nearEndThresholdMs returns 0 for non-positive duration`() {
         assertEquals(0L, PlaybackCompletionDetector.nearEndThresholdMs(0L))
         assertEquals(0L, PlaybackCompletionDetector.nearEndThresholdMs(-1L))

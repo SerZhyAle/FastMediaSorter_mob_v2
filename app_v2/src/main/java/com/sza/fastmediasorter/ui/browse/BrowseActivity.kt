@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
+import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -68,6 +69,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
+    @Inject lateinit var passthroughCaptureProvider: java.util.Optional<BrowsePassthroughCaptureProvider>
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -177,7 +179,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             showPdfThumbnailsGetter = { showPdfThumbnails },
             updateShowVideoThumbnails = { showVideoThumbnails = it },
             updateShowPdfThumbnails = { showPdfThumbnails = it },
-            isSkipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
+            isSkipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false),
+            passthroughProvider = passthroughCaptureProvider.orElse(null),
         )
 
         initializer.initialize()
@@ -342,6 +345,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             initializer.stateManager.saveScrollPosition()
             initializer.stateManager.saveLastViewedFile()
             initializer.listSubmitManager.shouldScrollToLastViewed = true
+            initializer.blackScreenManager.hide()
         }
         viewModel.cancelBackgroundThumbnailLoading()
     }
@@ -385,7 +389,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             Timber.w("S0022-CAM: BrowseActivity.onCameraCaptureClicked ABORT — viewModel resource is null")
             return
         }
-        cameraCaptureManager.launch(resource)
+        val passthrough = passthroughCaptureProvider.orElse(null)
+        if (passthrough != null) {
+            Timber.i("S0058: routing camera capture to passthrough provider")
+            passthrough.launch(this, resource) { fileName -> onCapturedFileSaved(fileName) }
+        } else {
+            cameraCaptureManager.launch(resource)
+        }
     }
 
     private fun onCapturedFileSaved(fileName: String) {

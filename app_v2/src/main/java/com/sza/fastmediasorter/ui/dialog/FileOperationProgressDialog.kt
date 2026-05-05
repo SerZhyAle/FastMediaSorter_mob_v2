@@ -140,6 +140,7 @@ class FileOperationProgressDialog(
             is FileOperationProgress.Completed -> {
                 Timber.d("FileOperationProgressDialog: Completed")
                 if (isShowing && hasSummaryViews()) {
+                    progressBar.progress = 100
                     tvOverallPercent.text = "100%"
                     tvEta.text = ""
                 }

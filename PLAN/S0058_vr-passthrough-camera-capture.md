@@ -1,12 +1,13 @@
 # Стратегическая спецификация: S0058 — Захват кадра через Passthrough Camera API на Quest 3
 
 **Ticket:** S0058
-**Status:** Draft
+**Status:** Verified
+**Implemented date:** 2026-05-05
 **Priority:** 55
 **Date:** 2026-05-03
 **Tier:** 4 — Hard
 **Roadmap entry:** Ad-hoc — обсуждение 2026-05-03 по итогам анализа лога Quest 3 (`logs/fastmediasorter_20260503_031502.log`); владелец выбрал вариант C (Passthrough Camera) среди A/B/C/D в чате.
-**Tactical spec:** `PLAN/S0058_vr-passthrough-camera-capture/` (будет создан через `/spec-tech` после закрытия research-items §6).
+**Tactical spec:** [`PLAN/S0058_vr-passthrough-camera-capture/INDEX.md`](S0058_vr-passthrough-camera-capture/INDEX.md)
 
 > **Scope:** STRATEGIC + RESEARCH-FIRST. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов. Тактическая фаза — только после ответа на §6.1–§6.5.
 
@@ -259,4 +260,16 @@ Meta Passthrough Camera API (с 2025 года, Horizon OS v74+) экспонир
 
 ## Last Audit
 
-_Не проводился._
+**Date:** 2026-05-05
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 37 · WARN 0 · FAIL 0 · MANUAL 5 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] §11.1 — Quest 3 (Horizon OS v74+): camera button visible in Browse, tap → JPEG saved to current local resource.
+- [ ] §11.2 — Permission flow: system prompt on first tap; deny-no-ask → Snackbar with Settings deeplink.
+- [ ] §11.3 — Non-Quest / old Horizon OS: button hidden, zero `CameraCapture: no handlers` warnings in log.
+- [ ] §11.4 — Capture during active immersive session: no measurable frame-rate drop in XR player.
+- [ ] §11.5 — Captured file valid JPEG; opens in-app and in system gallery.

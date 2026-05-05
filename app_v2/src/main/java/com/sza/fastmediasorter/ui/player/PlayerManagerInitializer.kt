@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
+import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
@@ -165,6 +166,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
 
         activity.systemBarsManager = SystemBarsManager(activity = activity)
+        activity.blackScreenOverlayManager = BlackScreenOverlayManager(
+            activityRef = java.lang.ref.WeakReference(activity),
+            systemBarsManager = activity.systemBarsManager
+        )
         activity.imageTranslationManager = PlayerImageTranslationManager(activity = activity)
         activity.shareManager = PlayerShareManager(activity = activity)
         activity.printManager = DocumentPrintManager(activity = activity)
@@ -205,8 +210,18 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     activity.mediaLoaderManager.reloadCurrentImage()
                     Toast.makeText(activity, R.string.gif_edit_completed, Toast.LENGTH_SHORT).show()
                 }
-                override fun onRenameComplete() {
-                    activity.viewModel.reloadAfterRename()
+                override fun onBeforeRenameDialog(oldPath: String) {
+                    if (oldPath != activity.viewModel.state.value.currentFile?.path) return
+                    activity.stopVideoPlayback()
+                    activity.viewModel.state.value.resource?.let { resource ->
+                        MediaFilesCacheManager.removeFile(resource.id, oldPath)
+                    }
+                }
+                override fun onRenameComplete(oldPath: String, newPath: String) {
+                    val found = activity.viewModel.updateRenamedFilePath(oldPath, newPath)
+                    if (!found) {
+                        activity.viewModel.reloadAfterRename()
+                    }
                 }
             },
             videoPlayerManagerProvider = { activity.videoPlayerManager },
@@ -232,23 +247,40 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             settingsRepository = activity.settingsRepository,
             fileOperationUseCase = activity.viewModel.fileOperationUseCase,
             callback = object : FileOperationsHandler.FileOperationCallback {
+                override fun onBeforeMove(movedFilePath: String) {
+                    if (movedFilePath != activity.viewModel.state.value.currentFile?.path) return
+                    activity.stopVideoPlayback()
+                    activity.viewModel.state.value.resource?.let { resource ->
+                        MediaFilesCacheManager.removeFile(resource.id, movedFilePath)
+                    }
+                    activity.navigationManager.navigateNextAfterOperation("Pre-move: stop and optimistic advance")
+                }
+
+                override fun onBeforeDelete(deletedFilePath: String) {
+                    if (deletedFilePath != activity.viewModel.state.value.currentFile?.path) return
+                    activity.stopVideoPlayback()
+                    activity.viewModel.state.value.resource?.let { resource ->
+                        MediaFilesCacheManager.removeFile(resource.id, deletedFilePath)
+                    }
+                    activity.navigationManager.navigateNextAfterOperation("Pre-delete: stop and optimistic advance")
+                }
+
                 override fun onCopySuccess(destination: com.sza.fastmediasorter.domain.model.MediaResource, goToNext: Boolean) {
                     if (goToNext) {
                         activity.navigationManager.navigateNextAfterOperation("Copy success with goToNext=true")
                     }
                 }
 
-                override fun onMoveSuccess(destination: com.sza.fastmediasorter.domain.model.MediaResource, movedFilePath: String, goToNext: Boolean) {
+                override fun onMoveSuccess(
+                    destination: com.sza.fastmediasorter.domain.model.MediaResource,
+                    movedFilePath: String,
+                    @Suppress("UNUSED_PARAMETER") goToNext: Boolean
+                ) {
+                    activity.fileOperationsHandler.resetMoveInProgress()
                     activity.lifecycleManager.trackModifiedFile(movedFilePath)
-                    activity.viewModel.state.value.resource?.let { resource ->
-                        MediaFilesCacheManager.removeFile(resource.id, movedFilePath)
-                    }
                     val hasRemainingFiles = activity.viewModel.removeMovedFile(movedFilePath)
-                    if (!hasRemainingFiles) {
-                        activity.finish()
-                    } else if (goToNext) {
-                        activity.navigationManager.navigateNextAfterOperation("Move success with goToNext=true")
-                    }
+                    if (!hasRemainingFiles) activity.finish()
+                    // Navigation already performed pre-move in onBeforeMove — do not navigate again.
                 }
 
                 override fun onCopyToPathSuccess(destinationPath: String, goToNext: Boolean) {
@@ -257,21 +289,26 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     }
                 }
 
-                override fun onMoveToPathSuccess(destinationPath: String, movedFilePath: String, goToNext: Boolean) {
+                override fun onMoveToPathSuccess(
+                    destinationPath: String,
+                    movedFilePath: String,
+                    @Suppress("UNUSED_PARAMETER") goToNext: Boolean
+                ) {
+                    activity.fileOperationsHandler.resetMoveInProgress()
                     activity.lifecycleManager.trackModifiedFile(movedFilePath)
-                    activity.viewModel.state.value.resource?.let { resource ->
-                        MediaFilesCacheManager.removeFile(resource.id, movedFilePath)
-                    }
                     val hasRemainingFiles = activity.viewModel.removeMovedFile(movedFilePath)
-                    if (!hasRemainingFiles) {
-                        activity.finish()
-                    } else if (goToNext) {
-                        activity.navigationManager.navigateNextAfterOperation("MoveToPath success with goToNext=true")
-                    }
+                    if (!hasRemainingFiles) activity.finish()
+                    // Navigation already performed pre-move in onBeforeMove — do not navigate again.
                 }
 
                 override fun onDeleteSuccess(deletedFilePath: String) {
-                    activity.handleDeleteSuccess(deletedFilePath)
+                    activity.fileOperationsHandler.resetDeleteInProgress()
+                    activity.lifecycleManager.trackModifiedFile(deletedFilePath)
+                    val hasRemainingFiles = activity.viewModel.removeDeletedFile(deletedFilePath)
+                    if (!hasRemainingFiles) activity.finish()
+                    // Navigation already performed pre-delete in onBeforeDelete — do not navigate again.
+                    // Note: handleDeleteSuccess in PlayerLifecycleManager is retained for
+                    // the Android batch-delete / RecoverableSecurityException permission flows.
                 }
 
                 override fun onOperationError(message: String, throwable: Throwable?) {

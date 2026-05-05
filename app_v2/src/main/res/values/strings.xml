@@ -821,7 +821,7 @@
     <string name="skip">Skip</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
-    <string name="random_file_description">Jump to a random file</string>
+    <string name="random_file_description">Random Jump</string>
     <string name="finish">Finish</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
     <string name="welcome_description_1">Your all-in-one media organizer.\nBrowse, sort, and manage files across local, network, and cloud storage — all with intuitive touch gestures.</string>
@@ -1069,6 +1069,13 @@
     <string name="vr_save_frame_unavailable">VR stereo snapshot is unavailable right now</string>
     <string name="vr_save_frame_timeout">VR stereo snapshot timed out</string>
     <string name="vr_save_frame_open_failed">No app can open the saved snapshot</string>
+    <string name="passthrough_capture_saved">Passthrough snapshot saved to %s</string>
+    <string name="passthrough_capture_unavailable">Passthrough camera unavailable on this device</string>
+    <string name="passthrough_capture_error">Failed to open passthrough camera</string>
+    <string name="passthrough_capture_timeout">Passthrough capture timed out — try again</string>
+    <string name="passthrough_capture_error_save">Failed to save passthrough snapshot</string>
+    <string name="passthrough_capture_permission_denied">Camera access required — open app settings to grant permission</string>
+    <string name="passthrough_capture_permission_needed">Camera permission is needed to capture passthrough snapshots</string>
     <string name="snapshot_format_label">Frame file type:</string>
     <string name="snapshot_format_png">PNG</string>
     <string name="snapshot_format_jpg">JPG</string>

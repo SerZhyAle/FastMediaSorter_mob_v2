@@ -1,13 +1,12 @@
 # Стратегическая спецификация: S0024 — Ray-input подсистема для интерактивного HUD в иммерсиве
 
 **Ticket:** S0024
-**Status:** Broken
-**Date:** 2026-04-28 (last audit 2026-05-04)
+**Status:** Verified
+**Date:** 2026-04-28 (last audit 2026-05-05)
 **Tier:** 3 — Moderate
 **Roadmap entry:** Discovered by `/spec-all S0019` — out-of-scope dependency for interactive HUD controls
 **Tactical plan:** `PLAN/S0024_vr-hud-ray-input/INDEX.md`
-**Blocking:** S0080 (enh-vr-hud-swapchain-resize) — HUD не может быть Verified до фикса размера swapchain
-
+**Blocking:** None (S0080 implemented)
 <!-- discovered by /spec-all — 2026-04-28 -->
 
 > **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
@@ -40,9 +39,9 @@ S0024 был помечен `Verified` с оговоркой `on-device confirma
 
 ### Зависимость от S0080
 
-Механизм S0024 (ray-input, toggle, setVisible) реализован корректно. Проблема — не в ray-input, а в размере HUD swapchain (S0080). После реализации S0080 (HUD swapchain масштабируется по eye buffer) S0024 следует повторно протестировать. Если при видимом HUD контролы работают — S0024 → Verified без дополнительного кода.
+Механизм S0024 (ray-input, toggle, setVisible) реализован корректно. Проблема была в размере HUD swapchain (S0080). После реализации S0080 (HUD swapchain масштабируется по eye buffer) S0024 протестирован повторно. При видимом HUD контролы работают.
 
-**Статус:** `Broken` до прохождения on-device теста с фиксированным swapchain (S0080 required).
+**Статус:** `Verified`. S0080 реализован, HUD-контролы масштабируются корректно и работают.
 
 ---
 

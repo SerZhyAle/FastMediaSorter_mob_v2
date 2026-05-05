@@ -638,43 +638,58 @@ class PlayerViewModel @Inject constructor(
     fun removeDeletedFile(deletedFilePath: String): Boolean {
         return removeFileFromList(deletedFilePath, "deleted")
     }
-    
+
+    fun updateRenamedFilePath(oldPath: String, newPath: String): Boolean {
+        val currentState = state.value
+        val updatedFiles = currentState.files.toMutableList()
+        val fileIndex = updatedFiles.indexOfFirst { it.path == oldPath }
+        if (fileIndex == -1) {
+            Timber.w("updateRenamedFilePath: file not found by path '$oldPath'")
+            return false
+        }
+        updatedFiles[fileIndex] = updatedFiles[fileIndex].copy(
+            path = newPath,
+            name = java.io.File(newPath).name
+        )
+        updateState { it.copy(files = updatedFiles) }
+        saveResumeState()
+        Timber.d("File renamed in list at index=$fileIndex: '$oldPath' → '$newPath'")
+        return true
+    }
+
     /**
-     * Common logic to remove a file from the list and update state
-     * @param filePath Path of the file to remove (used for logging context)
+     * Common logic to remove a file from the list and update state.
+     * Identifies the target by path, not by currentIndex, so it is safe to call
+     * after optimistic navigation has already advanced currentIndex.
+     * @param filePath Path of the file to remove
      * @param operation Description of operation for logging
      * @return true if there are files remaining, false if list is empty
      */
-    @Suppress("UNUSED_PARAMETER")
     private fun removeFileFromList(filePath: String, operation: String): Boolean {
         val currentState = state.value
         val updatedFiles = currentState.files.toMutableList()
-        val fileIndex = currentState.currentIndex
-        
-        if (fileIndex in updatedFiles.indices) {
-            updatedFiles.removeAt(fileIndex)
-            
-            if (updatedFiles.isEmpty()) {
-                return false // No files left
-            }
-            
-            // Check if we removed the last file
-            val newIndex = if (fileIndex >= updatedFiles.size) {
-                // Removed last file - loop back to first
-                Timber.d("File $operation (was last), looping to first file")
-                0
-            } else {
-                // Navigate to next file (which is now at the same index)
-                fileIndex
-            }
-            
-            updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
-            saveResumeState()
-            Timber.d("File $operation successfully, new list size: ${updatedFiles.size}")
-            return true
+        val removeIndex = updatedFiles.indexOfFirst { it.path == filePath }
+
+        if (removeIndex == -1) {
+            Timber.w("removeFileFromList: '$filePath' not found in list (already removed?)")
+            return updatedFiles.isNotEmpty()
         }
-        
-        return false
+
+        updatedFiles.removeAt(removeIndex)
+
+        if (updatedFiles.isEmpty()) return false
+
+        val currentIndex = currentState.currentIndex
+        val newIndex = when {
+            currentIndex > removeIndex -> (currentIndex - 1).coerceAtLeast(0)
+            currentIndex >= updatedFiles.size -> 0
+            else -> currentIndex
+        }
+
+        updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+        saveResumeState()
+        Timber.d("File $operation removed by path at index=$removeIndex, new size=${updatedFiles.size}, currentIndex=$newIndex")
+        return true
     }
 
     fun toggleFavorite() {

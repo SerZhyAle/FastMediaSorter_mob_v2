@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- S0096: audio-only — shown/hidden at runtime -->
+    <item
+        android:id="@+id/action_black_screen"
+        android:title="@string/black_screen_button_title" />
     <item
         android:id="@+id/action_find_duplicates"
         android:title="@string/action_find_duplicates" />

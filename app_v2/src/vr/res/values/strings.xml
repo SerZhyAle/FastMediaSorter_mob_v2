@@ -17,4 +17,5 @@
     <string name="vr_phone_fallback_message">FastMediaSorter VR is designed for Meta Quest headsets.\nPlease use the standard edition on your phone.</string>
     <string name="vr_phone_fallback_close">Close</string>
     <string name="vr_phone_fallback_open_standard">Open standard edition</string>
+
 </resources>

@@ -21,7 +21,7 @@
 {"id":"S0021","name":"panel-fps-overlay-landscape","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0021_panel-fps-overlay-landscape.md","created":"2026-04-28","updated":"2026-04-28 14:27"}
 {"id":"S0022","name":"bugfix-camera-capture-crash","status":"Verified","priority":90,"tier":2,"file":"PLAN/S0022_bugfix-camera-capture-crash.md","created":"2026-04-28","updated":"2026-04-30 15:22"}
 {"id":"S0023","name":"bugfix-vr-player-activity-stale-references","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0023_bugfix-vr-player-activity-stale-references.md","created":"2026-04-28","updated":"2026-04-28 12:55"}
-{"id":"S0024","name":"vr-hud-ray-input","status":"Broken","priority":50,"tier":3,"file":"PLAN/S0024_vr-hud-ray-input.md","created":"2026-04-28","updated":"2026-05-04 03:06"}
+{"id":"S0024","name":"vr-hud-ray-input","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0024_vr-hud-ray-input.md","created":"2026-04-28","updated":"2026-05-05 17:56"}
 {"id":"S0025","name":"smb-fast-fail","status":"Implemented","priority":50,"tier":2,"file":"PLAN/S0025_smb-fast-fail.md","created":"2026-04-29","updated":"2026-05-03 18:49"}
 {"id":"S0026","name":"bugfix-vr-stereo-route-flicker","status":"BlockNeedUserTest","priority":85,"tier":3,"file":"PLAN/S0026_bugfix-vr-stereo-route-flicker.md","created":"2026-04-29","updated":"2026-04-29 10:18"}
 {"id":"S0027","name":"bugfix-vr-immersive-orientation-inverted","status":"Verified","priority":80,"tier":3,"file":"PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md","created":"2026-04-29","updated":"2026-05-05 01:41"}
@@ -55,7 +55,7 @@
 {"id":"S0055","name":"diagnostic-noise-cleanup","status":"Implemented","priority":60,"tier":2,"file":"PLAN/S0055_diagnostic-noise-cleanup.md","created":"2026-05-03","updated":"2026-05-03 18:49"}
 {"id":"S0056","name":"smb-scan-slowness-investigation","status":"BlockNeedUserTest","priority":70,"tier":3,"file":"PLAN/S0056_smb-scan-slowness-investigation.md","created":"2026-05-03","updated":"2026-05-03 17:49"}
 {"id":"S0057","name":"bugfix-vr-hud-autohide-timeout","status":"Verified","priority":60,"tier":2,"file":"PLAN/S0057_bugfix-vr-hud-autohide-timeout.md","created":"2026-05-03","updated":"2026-05-03 11:36"}
-{"id":"S0058","name":"vr-passthrough-camera-capture","status":"Draft","priority":55,"tier":4,"file":"PLAN/S0058_vr-passthrough-camera-capture.md","created":"2026-05-03","updated":"2026-05-03 03:44"}
+{"id":"S0058","name":"vr-passthrough-camera-capture","status":"Verified","priority":55,"tier":4,"file":"PLAN/S0058_vr-passthrough-camera-capture.md","created":"2026-05-03","updated":"2026-05-05 18:13"}
 {"id":"S0059","name":"predefined-recent-downloads-all-files","status":"Implemented","priority":50,"tier":2,"file":"PLAN/S0059_predefined-recent-downloads-all-files.md","created":"2026-05-03","updated":"2026-05-03 14:59"}
 {"id":"S0060","name":"bugfix-smb-thumbnail-share-race","status":"Implemented","priority":75,"tier":3,"file":"PLAN/S0060_bugfix-smb-thumbnail-share-race.md","created":"2026-05-03","updated":"2026-05-03 18:49"}
 {"id":"S0061","name":"bugfix-smb-stale-connection-invalidation","status":"Implemented","priority":85,"tier":3,"file":"PLAN/S0061_bugfix-smb-stale-connection-invalidation.md","created":"2026-05-03","updated":"2026-05-03 18:49"}
@@ -91,3 +91,6 @@
 {"id":"S0091","name":"bugfix-file-op-progress-startup-race","status":"Implemented","priority":95,"tier":1,"file":"PLAN/S0091_bugfix-file-op-progress-startup-race.md","created":"2026-05-05","updated":"2026-05-05 10:15"}
 {"id":"S0092","name":"bugfix-sftp-range-read-retry-overflow","status":"Implemented","priority":92,"tier":1,"file":"PLAN/S0092_bugfix-sftp-range-read-retry-overflow.md","created":"2026-05-05","updated":"2026-05-05 10:17"}
 {"id":"S0093","name":"vr-single-playback-authority","status":"Implemented","priority":80,"tier":3,"file":"PLAN/S0093_vr-single-playback-authority.md","created":"2026-05-05","updated":"2026-05-05 11:15"}
+{"id":"S0094","name":"player-move-currently-playing","status":"Verified","priority":55,"tier":3,"file":"PLAN/S0094_player-move-currently-playing.md","created":"2026-05-05","updated":"2026-05-05 15:44"}
+{"id":"S0095","name":"integration-test-review","status":"Verified","priority":40,"tier":3,"file":"PLAN/S0095_integration-test-review.md","created":"2026-05-05","updated":"2026-05-05 16:03"}
+{"id":"S0096","name":"browse-audio-black-screen","status":"Verified","priority":50,"file":"PLAN/S0096_browse-audio-black-screen.md","created":"2026-05-05","updated":"2026-05-05 17:11"}

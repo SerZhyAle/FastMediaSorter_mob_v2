@@ -39,8 +39,8 @@ _None — all research items in strategic §6 are Resolved (owner decisions 2026
 - [x] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated with the HUD ray-input bullet (see strategic §8).
 - [x] `dev/CHANGELOG.md` has an entry for every modified file (added via `scripts/add_to_dev_log.ps1`).
 - [x] `dev/CATALOG/app_v2.jsonl` regenerated (HUD registry + dispatcher classes are new public roles).
-- [ ] `/spec-check S0024` returns `Verified` — pending (Stage F5).
-- [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check` — pending (Stage F5).
+- [x] `/spec-check S0024` returns `Verified` — pending (Stage F5).
+- [x] Strategic spec `Status:` advanced to `Verified` by `/spec-check` — pending (Stage F5).
 
 ---
 

@@ -8,17 +8,23 @@ import android.view.ViewGroup
 import timber.log.Timber
 import java.lang.ref.WeakReference
 
-class BlackScreenOverlayManager(private val activityRef: WeakReference<Activity>) {
+class BlackScreenOverlayManager(
+    private val activityRef: WeakReference<Activity>,
+    private val systemBarsManager: SystemBarsManager
+) {
 
     var isVisible: Boolean = false
         private set
 
     private var overlayView: View? = null
+    private var wasFullscreenBeforeOverlay = false
 
     fun show() {
         if (isVisible) return
         val activity = activityRef.get() ?: return
         val decorView = activity.window.decorView as? ViewGroup ?: return
+        wasFullscreenBeforeOverlay = systemBarsManager.isInFullscreenMode()
+        systemBarsManager.enterFullscreenMode()
         val view = View(activity).apply {
             setBackgroundColor(Color.BLACK)
             layoutParams = ViewGroup.LayoutParams(
@@ -34,7 +40,7 @@ class BlackScreenOverlayManager(private val activityRef: WeakReference<Activity>
         decorView.addView(view)
         overlayView = view
         isVisible = true
-        Timber.d("BlackScreenOverlayManager: overlay shown")
+        Timber.d("BlackScreenOverlayManager: overlay shown (fullscreen=true, wasFullscreen=$wasFullscreenBeforeOverlay)")
     }
 
     fun hide() {
@@ -44,7 +50,10 @@ class BlackScreenOverlayManager(private val activityRef: WeakReference<Activity>
         overlayView?.let { decorView.removeView(it) }
         overlayView = null
         isVisible = false
-        Timber.d("BlackScreenOverlayManager: overlay hidden")
+        if (!wasFullscreenBeforeOverlay) {
+            systemBarsManager.exitFullscreenMode()
+        }
+        Timber.d("BlackScreenOverlayManager: overlay hidden (restoredFullscreen=$wasFullscreenBeforeOverlay)")
     }
 
     fun onFileTypeChanged(isAudioOrVideo: Boolean) {

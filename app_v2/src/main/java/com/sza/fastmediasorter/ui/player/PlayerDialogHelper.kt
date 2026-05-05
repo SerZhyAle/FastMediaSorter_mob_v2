@@ -152,7 +152,8 @@ class PlayerDialogHelper(
     interface DialogCallback {
         fun onImageEditComplete()
         fun onGifEditComplete()
-        fun onRenameComplete()
+        fun onBeforeRenameDialog(oldPath: String)
+        fun onRenameComplete(oldPath: String, newPath: String)
     }
     
     /**
@@ -337,10 +338,8 @@ class PlayerDialogHelper(
             files = listOf(file),
             sourceFolderName = resource?.name ?: "Current folder",
             fileOperationUseCase = viewModel.fileOperationUseCase,
-            onComplete = { _, _ ->
-                // Reload file in player after rename
-                dialogCallback.onRenameComplete()
-            }
+            onComplete = { oldPath, newFile -> dialogCallback.onRenameComplete(oldPath, newFile.path) },
+            onBeforeRename = { oldPath -> dialogCallback.onBeforeRenameDialog(oldPath) },
         ).also { safeShow(it) }
     }
     

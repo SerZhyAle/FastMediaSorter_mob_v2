@@ -722,7 +722,7 @@
     <string name="skip">Пропустити</string>
     <string name="previous">Назад</string>
     <string name="next">Далі</string>
-    <string name="random_file_description">Перейти до випадкового файлу</string>
+    <string name="random_file_description">Випадковий перехід</string>
     <string name="finish">Готово</string>
     <string name="welcome_title_1">Ласкаво просимо до FastMediaSorter!</string>
     <string name="welcome_description_1">Ваш універсальний медіаорганайзер.\nПереглядайте, сортуйте та керуйте файлами на локальних, мережевих та хмарних сховищах — все за допомогою інтуїтивних жестів.</string>
@@ -951,6 +951,13 @@
     <string name="vr_save_frame_unavailable">Стереознімок VR зараз недоступний</string>
     <string name="vr_save_frame_timeout">Не вдалося дочекатися стереознімка VR</string>
     <string name="vr_save_frame_open_failed">Немає застосунку для відкриття збереженого знімка</string>
+    <string name="passthrough_capture_saved">Знімок passthrough збережено в %s</string>
+    <string name="passthrough_capture_unavailable">Passthrough-камера недоступна на цьому пристрої</string>
+    <string name="passthrough_capture_error">Не вдалося відкрити passthrough-камеру</string>
+    <string name="passthrough_capture_timeout">Час захвату passthrough вичерпано — спробуйте ще раз</string>
+    <string name="passthrough_capture_error_save">Не вдалося зберегти знімок passthrough</string>
+    <string name="passthrough_capture_permission_denied">Потрібен доступ до камери — відкрийте налаштування застосунку, щоб дозволити</string>
+    <string name="passthrough_capture_permission_needed">Для захоплення passthrough-знімків потрібен дозвіл камери</string>
     <string name="snapshot_format_label">Тип файлу кадру:</string>
     <string name="snapshot_format_png">PNG</string>
     <string name="snapshot_format_jpg">JPG</string>

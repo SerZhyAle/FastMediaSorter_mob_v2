@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
@@ -49,6 +50,9 @@ import kotlinx.coroutines.launch
 import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import timber.log.Timber
 import java.io.File
+import java.lang.ref.WeakReference
+import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
+import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 
 class BrowseManagerInitializer(
     private val activity: BrowseActivity,
@@ -74,7 +78,8 @@ class BrowseManagerInitializer(
     private val showPdfThumbnailsGetter: () -> Boolean,
     private val updateShowVideoThumbnails: (Boolean) -> Unit,
     private val updateShowPdfThumbnails: (Boolean) -> Unit,
-    private val isSkipAvailabilityCheck: Boolean
+    private val isSkipAvailabilityCheck: Boolean,
+    private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
 ) {
     lateinit var mediaFileAdapter: MediaFileAdapter
     lateinit var dialogHelper: BrowseDialogHelper
@@ -98,6 +103,8 @@ class BrowseManagerInitializer(
     lateinit var folderPickerHandler: BrowseFolderPickerHandler
     lateinit var observerManager: BrowseObserverManager
     lateinit var listSubmitManager: BrowseListSubmitManager
+    // S0096: black screen overlay for audio libraries
+    internal lateinit var blackScreenManager: BlackScreenOverlayManager
 
     fun initialize() {
         dialogHelper = BrowseDialogHelper(activity, object : BrowseDialogHelper.DialogCallbacks {
@@ -509,6 +516,11 @@ class BrowseManagerInitializer(
             }
         )
 
+        blackScreenManager = BlackScreenOverlayManager(
+            WeakReference(activity),
+            SystemBarsManager(activity)
+        )
+
         buttonSetupHelper = BrowseButtonSetupHelper(
             binding = binding,
             adapter = mediaFileAdapter,
@@ -582,7 +594,8 @@ class BrowseManagerInitializer(
                     val isCameraVisibleByState = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings)
                     val isCameraVisible = isCameraVisibleByState &&
                         viewModel.state.value.resource?.let { res ->
-                            BrowseCameraCaptureManager.hasCameraHandler(activity, res)
+                            passthroughProvider?.isAvailable(activity) == true ||
+                                BrowseCameraCaptureManager.hasCameraHandler(activity, res)
                         } ?: false
                     resourceOpsMenuManager.showMenu(
                         anchor = anchor,
@@ -600,7 +613,11 @@ class BrowseManagerInitializer(
                         onArchive = { showArchiveDestinationPicker() },
                         isDestinationsFull = isDestinationsFull,
                         onCameraCapture = { activity.onCameraCaptureClicked() },
-                        isCameraVisible = isCameraVisible
+                        isCameraVisible = isCameraVisible,
+                        isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
+                        onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) {
+                            { blackScreenManager.show() }
+                        } else null
                     )
                 }
             }

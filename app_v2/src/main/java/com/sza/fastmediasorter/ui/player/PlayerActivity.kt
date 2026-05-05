@@ -388,7 +388,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             slideshowModeRequested = true
             Timber.d("PlayerActivity: Resume slideshow requested via resumeSlideshowEnabled")
         }
-        blackScreenOverlayManager = com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager(java.lang.ref.WeakReference(this))
         initializeManagers()
         setupToolbar()
         setupControls()

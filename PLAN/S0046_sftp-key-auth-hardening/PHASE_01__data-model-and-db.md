@@ -34,7 +34,7 @@ Add `hostKeyFingerprint` field to `MediaResource` domain model and persist it in
 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | Modified | ≤ 800 |
 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | Modified | ≤ 600 |
 
-> `AppDatabase.kt` is currently 718 LOC. After adding `MIGRATION_26_27` it will exceed 500 LOC — backup step required (timestamped copy in `temp/`).
+> `AppDatabase.kt` is currently 728 LOC. After adding `MIGRATION_27_28` it will exceed 500 LOC — backup step required (timestamped copy in `temp/`).
 
 ---
 
@@ -83,12 +83,12 @@ Add `hostKeyFingerprint` field to `MediaResource` domain model and persist it in
 **Prompt for developer:**
 
 > 1. In `ResourceEntity.kt` add `@ColumnInfo(name = "host_key_fingerprint") val hostKeyFingerprint: String? = null` to the entity constructor (after the last existing field; default-null so existing inserts keep working). Update mapping helpers (`toDomain` / `fromDomain` if present) to round-trip the new field.
-> 2. In `AppDatabase.kt` change `version = 26` to `version = 27`. Add `MIGRATION_26_27 = object : Migration(26, 27) { override fun migrate(db) = db.execSQL("ALTER TABLE resources ADD COLUMN host_key_fingerprint TEXT DEFAULT NULL") }` next to the other migrations. Register the new migration in the Hilt module that builds the database (search for `addMigrations(MIGRATION_25_26` and append `, MIGRATION_26_27`).
+> 2. In `AppDatabase.kt` change `version = 27` to `version = 28`. Add `MIGRATION_27_28 = object : Migration(27, 28) { override fun migrate(db) = db.execSQL("ALTER TABLE resources ADD COLUMN host_key_fingerprint TEXT DEFAULT NULL") }` next to the other migrations. Register the new migration in the Hilt module that builds the database (search for `addMigrations` and append `, MIGRATION_27_28`).
 
 **Verification:**
 
-- `Grep` — `version = 27` matches in `AppDatabase.kt`.
-- `Grep` — `MIGRATION_26_27` matches in `AppDatabase.kt` and at least one Hilt module file (search the project for `addMigrations`).
+- `Grep` — `version = 28` matches in `AppDatabase.kt`.
+- `Grep` — `MIGRATION_27_28` matches in `AppDatabase.kt` and at least one Hilt module file (search the project for `addMigrations`).
 - `Grep` — `host_key_fingerprint` matches in `ResourceEntity.kt` and `AppDatabase.kt`.
 - `Grep -n "Log\.d\("` returns zero hits in both modified files.
 
@@ -132,4 +132,4 @@ Add `hostKeyFingerprint` field to `MediaResource` domain model and persist it in
 
 ## Rollback Plan
 
-Revert phase commit(s); migration `MIGRATION_26_27` is additive (one nullable column) — downgrade not needed.
+Revert phase commit(s); migration `MIGRATION_27_28` is additive (one nullable column) — downgrade not needed.

@@ -500,7 +500,7 @@ class AudioMetadataLoader @Inject constructor(
                 coverExtension = coverExtension
             )
         } catch (e: Exception) {
-            Timber.w(e, "AudioMetadataLoader: Media3 MetadataRetriever failed on ${bytes.size} bytes")
+            Timber.w("AudioMetadataLoader: Media3 MetadataRetriever failed on ${bytes.size} bytes: ${e.cause?.javaClass?.simpleName ?: e.javaClass.simpleName}")
             null
         } finally {
             try {

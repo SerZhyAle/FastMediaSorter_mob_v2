@@ -28,7 +28,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 - [x] **Research §6.2:** Add `android.hardware.touchscreen android:required="false"` — **Resolved.** Keyboard/mouse/remote support is already in place; no degradation expected. Phase 01 Step 1.2 unblocked.
 - [x] **Research §6.1:** Baseline excluded-device count — **Resolved.** Count is not required before the fix; proceeding without measurement.
-- [ ] **Research §6.3:** Determine how to maximize VR flavor device reach (Meta Horizon Store vs Google Play rules; which OpenXR `<uses-feature>` can be relaxed). Does **not** block Phase 01 — VR manifest changes are a separate follow-up. See strategic §6.3.
+- [x] **Research §6.3:** Determine how to maximize VR flavor device reach (Meta Horizon Store vs Google Play rules; which OpenXR `<uses-feature>` can be relaxed). **Resolved.** (VR Union Manifest already handles `required="false"` correctly for both channels, no further changes required).
 
 ---
 
@@ -57,6 +57,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 - 2026-05-04 — INDEX created.
 - 2026-05-04 — §6.1 and §6.2 resolved by owner; Phase 01 blockers cleared. §6.3 (VR) remains open but does not block Phase 01.
+- 2026-05-05 — §6.3 resolved (Union Manifest handles channels gracefully, no manifest changes needed).
 
 ---
 

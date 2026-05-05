@@ -104,7 +104,7 @@ Plumb `MediaResource.hostKeyFingerprint` from the resource layer through `SftpCl
 
 **Prompt for developer:**
 
-> Find `testSftpConnection` (around line 320) — it already accepts `privateKey` and `keyPassphrase`. Add `expectedFingerprint: String? = null` parameter (default-null preserves all existing call-sites). Forward it to `SftpClient.testConnectionWithPrivateKey` / `testConnection`. Also find the runtime use-paths around lines 628 / 696 where credentials are read — pull `MediaResource.hostKeyFingerprint` from the resource and pass it through. Existing password-only call-sites continue to work without changes.
+> Find `testSftpConnection` (around line 327) — it already accepts `privateKey` and `keyPassphrase`. Add `expectedFingerprint: String? = null` parameter (default-null preserves all existing call-sites). Forward it to `SftpClient.testConnectionWithPrivateKey` / `testConnection`. Also find the runtime use-paths in `listSftpFilesWithCredentials`, `checkTrashFolders`, and `cleanupTrash` where SFTP connections are built — pull `MediaResource.hostKeyFingerprint` from the caller or resource and pass it through. Note: you may need to update the method signatures to accept the expected fingerprint, or retrieve the resource first. Existing password-only call-sites continue to work without changes.
 
 **Verification:**
 

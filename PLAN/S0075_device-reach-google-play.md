@@ -105,8 +105,8 @@ Google Play автоматически фильтрует устройства �
 
 3. **VR-манифест (`src/vr/`) — охват устройств**
    - **Вопрос:** Как максимизировать охват устройств для VR-флавёра без потери функциональности? VR-флавёр может распространяться через Meta Horizon Store и/или Google Play — правила фильтрации различаются.
-   - **Нужно выяснить:** (а) через какие магазины распространяется VR-флавёр; (б) какие `<uses-feature>` обязательны для OpenXR/Meta Quest; (в) какие объявления можно смягчить до `required=false` без потери совместимости с гарнитурой.
-   - **Статус:** Open — не блокирует Phase 01; требует отдельного исследования перед правкой VR-манифеста.
+   - **Резолюция:** Анализ `app_v2/src/vr/AndroidManifest.xml` показывает, что используется концепция "Union Manifest" для обоих каналов (Google Play и Meta Horizon Store). Все XR-специфичные фичи (`android.hardware.vr.headtracking`, `android.hardware.xr.immersive`, `oculus.software.handtracking`) уже задекларированы как `required="false"`. Это обеспечивает установку APK через Google Play (не отсекая не-VR устройства) и успешно распознаётся Meta Horizon OS для активации иммерсивного режима (фокус-авареность управляется через `com.oculus.intent.category.VR` и `<meta-data>`).
+   - **Статус:** Resolved — дополнительных правок манифеста не требуется.
 
 ---
 
@@ -168,7 +168,7 @@ Google Play автоматически фильтрует устройства �
 
 ### Action items
 
-1. **[WARN §6.3]** VR manifest reach research still Open — determine distribution channel (Meta Horizon Store vs Google Play) and which `<uses-feature>` can be relaxed for VR flavor. Create a follow-up spec when research complete.
+1. **[INFO]** All open questions and research items have been resolved.
 
 ### Manual / on-device
 

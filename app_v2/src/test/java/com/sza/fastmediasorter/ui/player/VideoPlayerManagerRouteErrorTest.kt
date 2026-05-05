@@ -48,4 +48,10 @@ class VideoPlayerManagerRouteErrorTest {
         val hint = NetworkPlaybackContainerHint.fromPath("smb://nas/movies/film.mkv")
         assertEquals(NetworkPlaybackContainerHint.OTHER, hint)
     }
+
+    @Test
+    fun `emptyPath_mapsToOther`() {
+        val hint = NetworkPlaybackContainerHint.fromPath("")
+        assertEquals(NetworkPlaybackContainerHint.OTHER, hint)
+    }
 }

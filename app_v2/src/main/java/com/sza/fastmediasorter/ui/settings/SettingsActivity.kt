@@ -207,7 +207,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
         val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-        val ime = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())
         statusBarInsetPx = statusBar.top
 
         // Toolbar container below status bar
@@ -216,11 +215,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
         )
 
-        // ViewPager content above nav bar or IME (whichever is taller) so focused
-        // fields are not obscured by the soft keyboard in edge-to-edge mode.
+        // ViewPager above nav bar only; adjustPan handles keyboard avoidance via window panning.
+        // IME insets are unreliable on API<30 and cause content clipping when keyboard is hidden.
         binding.viewPager.setPadding(
             binding.viewPager.paddingLeft, binding.viewPager.paddingTop,
-            binding.viewPager.paddingRight, maxOf(navBar.bottom, ime.bottom)
+            binding.viewPager.paddingRight, navBar.bottom
         )
 
         // Re-apply compact toolbar height now that the inset is known

@@ -23,6 +23,18 @@ class BrowseFileListManagerTest {
         assertNotEquals(firstShuffle.map { it.path }, differentSeedShuffle.map { it.path })
     }
 
+    @Test
+    fun `sortFiles_emptyList_returnsEmpty`() {
+        val result = fileListManager.sortFiles(emptyList(), SortMode.NAME_ASC, forceSort = true, randomSeed = 0L)
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `sortFiles_emptyList_randomMode_returnsEmpty`() {
+        val result = fileListManager.sortFiles(emptyList(), SortMode.RANDOM, forceSort = true, randomSeed = 0L)
+        assertTrue(result.isEmpty())
+    }
+
     private fun buildFiles(): List<MediaFile> {
         return listOf(
             mediaFile("alpha.mp3", 1L),

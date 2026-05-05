@@ -368,6 +368,15 @@ class VideoPlayerManager(
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            // ExoPlayer interrupts the IO thread during its own shutdown (e.g. fast track switch,
+            // file-move while switching). That InterruptedException is not a real playback failure.
+            val isThreadInterrupted = generateSequence<Throwable>(error) { it.cause }
+                .any { it is InterruptedException }
+            if (isThreadInterrupted) {
+                Timber.d("VideoPlayerManager: ignoring playback error caused by thread interrupt (ExoPlayer shutdown)")
+                return
+            }
+
             val isEOFException = error.cause is java.io.EOFException ||
                 error.cause?.cause is java.io.EOFException
             val isMediaCodecError = error.errorCode >= 4000 && error.errorCode < 5000
@@ -376,11 +385,6 @@ class VideoPlayerManager(
                 playbackRetryCount++
                 lastPlaybackPosition = exoPlayer?.currentPosition ?: 0L
                 Timber.w("VideoPlayerManager: EOFException, retry $playbackRetryCount/$MAX_EOF_RETRIES, position=$lastPlaybackPosition")
-                Toast.makeText(
-                    context,
-                    "Network stream interrupted, retrying.. ($playbackRetryCount/$MAX_EOF_RETRIES)",
-                    Toast.LENGTH_SHORT
-                ).show()
                 retryRunnable?.let { retryHandler.removeCallbacks(it) }
                 retryRunnable = Runnable {
                     if (!playerCallback.isActivityDestroyed()) retryPlayback()

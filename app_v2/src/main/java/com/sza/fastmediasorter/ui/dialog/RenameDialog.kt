@@ -30,7 +30,8 @@ class RenameDialog(
     private val files: List<File>,
     private val sourceFolderName: String,
     private val fileOperationUseCase: FileOperationUseCase,
-    private val onComplete: (oldPath: String, newFile: File) -> Unit
+    private val onComplete: (oldPath: String, newFile: File) -> Unit,
+    private val onBeforeRename: ((oldPath: String) -> Unit)? = null,
 ) : Dialog(context) {
 
     private lateinit var binding: DialogRenameBinding
@@ -118,7 +119,10 @@ class RenameDialog(
             dismiss()
             return
         }
-        
+
+        val oldPath = file.absolutePath
+        onBeforeRename?.invoke(oldPath)
+
         lifecycleOwner.lifecycleScope.launch {
             try {
                 val operation = FileOperation.Rename(file, newName)
@@ -132,8 +136,6 @@ class RenameDialog(
                             Toast.LENGTH_SHORT
                         ).show()
                         
-                        // Pass old path and new file to callback for instant update
-                        val oldPath = file.absolutePath
                         // For network paths, manually construct new path
                         val filePath = file.path
                         val newFile = if (filePath.startsWith("smb://") || filePath.startsWith("sftp://") || filePath.startsWith("ftp://")) {
@@ -194,6 +196,8 @@ class RenameDialog(
                 if (newName.isEmpty() || newName == file.name) {
                     return@forEachIndexed
                 }
+
+                onBeforeRename?.invoke(file.absolutePath)
 
                 try {
                     val operation = FileOperation.Rename(file, newName)

@@ -44,7 +44,10 @@ class ResourceOpsMenuManager @Inject constructor(
         isCameraVisible: Boolean = false,
         // S0028: multi-window entry point — open resource Browse in a new window
         allowSeparateWindow: Boolean = false,
-        openBrowseInNewWindow: ((Long) -> Unit)? = null
+        openBrowseInNewWindow: ((Long) -> Unit)? = null,
+        // S0096: black screen for audio — shown only for audio-only libraries
+        isAudioOnly: Boolean = false,
+        onBlackScreenClicked: (() -> Unit)? = null
     ) {
         val popup = PopupMenu(context, anchor)
         popup.inflate(R.menu.menu_resource_ops)
@@ -82,6 +85,9 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
         popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
             BuildConfig.SUPPORT_VR_PLAYER && allowSeparateWindow && openBrowseInNewWindow != null
+
+        popup.menu.findItem(R.id.action_black_screen)?.isVisible =
+            isAudioOnly && onBlackScreenClicked != null
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -128,6 +134,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_open_in_separate_window -> {
                     resource?.id?.let { openBrowseInNewWindow?.invoke(it) }
+                    true
+                }
+                R.id.action_black_screen -> {
+                    onBlackScreenClicked?.invoke()
                     true
                 }
                 else -> false

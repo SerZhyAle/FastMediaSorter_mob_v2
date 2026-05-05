@@ -18,6 +18,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.TestFixtures
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsSectionsHelper
 import org.junit.After
 import org.junit.Before
@@ -26,10 +27,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class DefaultCredentialsInputTest {
-
-    private companion object {
-        const val DEFAULT_USER_ACCEPTS_INLINE_TEXT_INPUT = "default user accepts inline text input"
-    }
 
     private lateinit var context: Context
 
@@ -52,7 +49,7 @@ class DefaultCredentialsInputTest {
 
     @Test
     fun defaultUserAcceptsInlineTextInput() {
-        check(DEFAULT_USER_ACCEPTS_INLINE_TEXT_INPUT.isNotEmpty())
+        check(TestFixtures.DEFAULT_USER.isNotEmpty())
 
         val intent = Intent(context, SettingsActivity::class.java).apply {
             putExtra(SettingsActivity.EXTRA_INITIAL_TAB, 0)
@@ -64,12 +61,12 @@ class DefaultCredentialsInputTest {
                 scrollTo(),
                 click(),
                 clearText(),
-                typeText("s0090-user"),
+                typeText(TestFixtures.DEFAULT_USER),
                 pressImeActionButton(),
                 closeSoftKeyboard(),
             )
 
-            onView(withId(R.id.etDefaultUser)).check(matches(withText("s0090-user")))
+            onView(withId(R.id.etDefaultUser)).check(matches(withText(TestFixtures.DEFAULT_USER)))
             onView(withId(R.id.searchOverlay)).check(matches(withEffectiveVisibility(Visibility.GONE)))
         }
     }

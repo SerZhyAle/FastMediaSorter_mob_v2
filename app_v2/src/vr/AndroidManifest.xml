@@ -138,6 +138,14 @@
     -->
     <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
 
+    <!-- S0058: Meta passthrough camera — user-grantable dangerous permission (Horizon OS v74+) -->
+    <uses-permission android:name="horizonos.permission.HEADSET_CAMERA" />
+
+    <!-- Declare camera feature as optional so the app installs on non-Quest Android devices -->
+    <uses-feature
+        android:name="android.hardware.camera2"
+        android:required="false" />
+
     <uses-feature
         android:name="oculus.software.handtracking"
         android:required="false" />

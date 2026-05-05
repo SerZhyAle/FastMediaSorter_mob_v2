@@ -47,6 +47,12 @@ class FileOperationsHandler(
      */
     private val appCtx: Context get() = context.applicationContext
 
+    @Volatile private var moveInProgress = false
+    @Volatile private var deleteInProgress = false
+
+    fun resetMoveInProgress() { moveInProgress = false }
+    fun resetDeleteInProgress() { deleteInProgress = false }
+
     /**
      * True if `context` is an Activity that is finishing or destroyed.
      * Used to skip UI callbacks (Toasts, dialogs, navigation) on dead Activities
@@ -57,6 +63,8 @@ class FileOperationsHandler(
         return act.isFinishing || act.isDestroyed
     }
     interface FileOperationCallback {
+        fun onBeforeMove(movedFilePath: String)
+        fun onBeforeDelete(deletedFilePath: String)
         fun onCopySuccess(destination: MediaResource, goToNext: Boolean)
         fun onMoveSuccess(destination: MediaResource, movedFilePath: String, goToNext: Boolean)
         fun onCopyToPathSuccess(destinationPath: String, goToNext: Boolean)
@@ -169,6 +177,9 @@ class FileOperationsHandler(
      */
     fun performMove(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
+        if (moveInProgress) return
+        moveInProgress = true
+        callback.onBeforeMove(currentFile.path)
 
         // Same scope reasoning as performCopy: outlive Activity destruction.
         appScope.launch {
@@ -246,9 +257,13 @@ class FileOperationsHandler(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Move operation failed")
+                moveInProgress = false
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message), e)
+                        callback.onOperationError(
+                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message ?: e.javaClass.simpleName),
+                            e
+                        )
                     }
                 }
             }
@@ -308,6 +323,10 @@ class FileOperationsHandler(
 
     fun performMoveToPath(destinationPath: String) {
         val currentFile = callback.getCurrentFile() ?: return
+        if (moveInProgress) return
+        moveInProgress = true
+        callback.onBeforeMove(currentFile.path)
+
         appScope.launch {
             val settings = settingsRepository.getSettings().first()
             withContext(Dispatchers.Main) {
@@ -348,9 +367,13 @@ class FileOperationsHandler(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: performMoveToPath failed")
+                moveInProgress = false
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message), e)
+                        callback.onOperationError(
+                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message ?: e.javaClass.simpleName),
+                            e
+                        )
                     }
                 }
             }
@@ -367,9 +390,12 @@ class FileOperationsHandler(
             callback.onOperationError("No file selected for deletion")
             return
         }
-        
+        if (deleteInProgress) return
+        deleteInProgress = true
+        callback.onBeforeDelete(currentFile.path)
+
         Timber.d("FileOperationsHandler.performDelete: Starting delete for ${currentFile.path}")
-        
+
         lifecycleScope.launch {
             try {
                 val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
@@ -400,10 +426,12 @@ class FileOperationsHandler(
                     is FileOperationResult.PermissionRequired -> {
                         // Android 11+ batch delete - launch permission dialog
                         Timber.i("FileOperationsHandler.performDelete: Batch delete permission required, launching intent")
+                        deleteInProgress = false
                         callback.onBatchDeletePermissionRequired(result.pendingIntent)
                     }
                     is FileOperationResult.Failure -> {
                         Timber.e("FileOperationsHandler.performDelete: Delete FAILED - ${result.error}")
+                        deleteInProgress = false
                         val message = if (result.errorRes != null) {
                             context.getString(result.errorRes, *result.formatArgs.toTypedArray())
                         } else {
@@ -413,18 +441,21 @@ class FileOperationsHandler(
                     }
                     else -> {
                         Timber.e("FileOperationsHandler.performDelete: Unexpected result type: ${result::class.simpleName}")
+                        deleteInProgress = false
                         callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
                     }
                 }
             } catch (securityException: android.app.RecoverableSecurityException) {
                 // Android 10+ requires user permission to delete from shared storage
                 Timber.w("FileOperationsHandler: RecoverableSecurityException caught, requesting user permission")
+                deleteInProgress = false
                 callback.onOperationError(
                     context.getString(com.sza.fastmediasorter.R.string.error_delete_permission_required),
                     securityException
                 )
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Delete operation failed with exception")
+                deleteInProgress = false
                 callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_failed, e.message), e)
             }
         }

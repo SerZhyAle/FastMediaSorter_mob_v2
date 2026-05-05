@@ -6301,3 +6301,103 @@ Format: | datetime | file | target | description |
 | 2026-05-05 11:30:40 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/settings/DefaultCredentialsInputTest.kt` | `DefaultCredentialsInputTest` | S0090 Phase 03.2: New instrumentation test - default user accepts inline text input without triggering search overlay |
 | 2026-05-05 11:45:26 | `dev/CATALOG/app_v2.jsonl` | `GeneralSettingsLogHelper` | Regenerated catalog post-commit S0086 — lastTouched updated to 2026-05-05 |
 | 2026-05-05 11:45:26 | `PLAN/spec-catalog.jsonl` | `S0086` | Status Partial -> Implemented after commit 455cabd |
+| 2026-05-05 13:38:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `SettingsActivity` | fix: remove ime.bottom from ViewPager2 inset padding — on API<30 IME insets return stale keyboard height even when keyboard is hidden, causing content to render in top half only; adjustPan mode handles keyboard avoidance via window panning |
+| 2026-05-05 14:20:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BlackScreenOverlayManager.kt` | `BlackScreenOverlayManager` | Enter immersive fullscreen on overlay show, restore bars on hide |
+| 2026-05-05 14:20:42 | `app_v2/src/main/res/values/strings.xml, values-ru/strings.xml, values-uk/strings.xml` | `random_file_description` | Rename 'Jump to a random file' to 'Random Jump' (EN/RU/UK) |
+| 2026-05-05 14:27:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager.onPlayerError` | Suppress spurious toast and track-skip when SFTP IOException is caused by InterruptedException (ExoPlayer own thread shutdown during fast track switch / file-move) |
+| 2026-05-05 14:32:14 | `PLAN/S0094_player-move-currently-playing.md` | `spec` | Add strategic spec S0094 for player-move-currently-playing |
+| 2026-05-05 14:42:50 | `PLAN/S0094_player-move-currently-playing/INDEX.md` | `spec-tech` | Create tactical plan for S0094 |
+| 2026-05-05 14:42:50 | `PLAN/S0094_player-move-currently-playing/PHASE_01__path-based-removal.md` | `spec-tech` | Phase 01: path-based-removal |
+| 2026-05-05 14:42:50 | `PLAN/S0094_player-move-currently-playing/PHASE_02__pre-move-stop-navigate.md` | `spec-tech` | Phase 02: pre-move-stop-navigate |
+| 2026-05-05 14:42:50 | `PLAN/S0094_player-move-currently-playing/PHASE_03__service-silent-io-skip.md` | `spec-tech` | Phase 03: service-silent-io-skip |
+| 2026-05-05 14:42:50 | `PLAN/S0094_player-move-currently-playing/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-05 14:42:50 | `PLAN/S0094_player-move-currently-playing.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-05 14:56:26 | `PLAN/S0094_player-move-currently-playing/PHASE_02__pre-move-stop-navigate.md` | `S0094` | Patch phase 02: add debounce flag, onBeforeMove guard, @Suppress UNUSED_PARAMETER, resetMoveInProgress, missing verifications |
+| 2026-05-05 15:04:36 | `PLAN/S0094_player-move-currently-playing/PHASE_05__pre-delete-stop-navigate.md` | `S0094` | Add Phase 05: pre-delete stop + optimistic navigate (delete-while-playing) |
+| 2026-05-05 15:04:36 | `PLAN/S0094_player-move-currently-playing/PHASE_06__pre-rename-in-place-update.md` | `S0094` | Add Phase 06: pre-rename stop + in-place path update (rename-while-playing) |
+| 2026-05-05 15:04:36 | `PLAN/S0094_player-move-currently-playing/INDEX.md` | `S0094` | Update index: phase count 4→6, add Phase 05 and 06 |
+| 2026-05-05 15:04:36 | `PLAN/S0094_player-move-currently-playing/PHASE_04__docs-catalog-cleanup.md` | `S0094` | Update deps: Phase 04 now depends on 01-03, 05, 06 |
+| 2026-05-05 15:08:08 | `PLAN/S0094_player-move-currently-playing.md` | `S0094` | Expand scope to delete+rename operations and all resource types (local, SMB, FTP, SFTP, Cloud); update §1,§2,§3.2,§4,§5,§8,§11 |
+| 2026-05-05 15:08:08 | `PLAN/S0094_player-move-currently-playing/PHASE_04__docs-catalog-cleanup.md` | `S0094` | Expand FEATURES bullets to cover move+delete+rename in all three locales |
+| 2026-05-05 15:12:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0094 Phase 01` | Fix removeFileFromList to use path-based lookup instead of currentIndex |
+| 2026-05-05 15:16:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `S0094 Phase 02` | Add onBeforeMove to interface; moveInProgress debounce; call onBeforeMove before IO; fix null exception message in error toast |
+| 2026-05-05 15:18:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0094 Phase 02` | Implement onBeforeMove (stop+navigate); remove redundant navigation from onMoveSuccess/onMoveToPathSuccess |
+| 2026-05-05 15:20:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BackgroundMusicManager.kt` | `S0094 Phase 03` | Silent IO skip in onPlayerError: log to Timber only, no toast when file is moved/unavailable |
+| 2026-05-05 15:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `S0094 Phase 05` | Add onBeforeDelete callback + deleteInProgress debounce; call before IO in performDelete |
+| 2026-05-05 15:25:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0094 Phase 05` | Implement onBeforeDelete (stop+navigate); remove redundant navigation from onDeleteSuccess |
+| 2026-05-05 15:35:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0094 Phase 06` | Add updateRenamedFilePath: in-place path update by oldPath, keeps currentIndex |
+| 2026-05-05 15:35:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/RenameDialog.kt` | `S0094 Phase 06` | Add onBeforeRename hook: called before IO starts, stops playback pre-rename |
+| 2026-05-05 15:35:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `S0094 Phase 06` | Pass onBeforeRename hook and capture oldPath/newPath in onComplete |
+| 2026-05-05 15:35:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0094 Phase 06` | Implement onBeforeRenameDialog (stop) and onRenameComplete (in-place update) |
+| 2026-05-05 15:36:52 | `PLAN/S0095_integration-test-review.md` | `spec` | Add strategic spec S0095 for integration-test-review |
+| 2026-05-05 15:40:44 | `docs/FEATURES.md` | `S0094 Phase 04` | Add player-move/delete/rename feature bullets (EN/RU/UK) |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/INDEX.md` | `spec-tech` | Create tactical plan for S0095 |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/PHASE_01__test-constants-registry.md` | `spec-tech` | Phase 01: test-constants-registry |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/PHASE_02__refactor-existing-tests.md` | `spec-tech` | Phase 02: refactor-existing-tests |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/PHASE_03__player-instrumentation-tests.md` | `spec-tech` | Phase 03: player-instrumentation-tests |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/PHASE_04__settings-ui-tests.md` | `spec-tech` | Phase 04: settings-ui-tests |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/PHASE_05__bd-ts-player-test.md` | `spec-tech` | Phase 05: bd-ts-player-test |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/PHASE_06__unit-edge-cases.md` | `spec-tech` | Phase 06: unit-edge-cases |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
+| 2026-05-05 15:41:55 | `PLAN/S0095_integration-test-review.md` | `spec-tech` | Status → Tactical |
+| 2026-05-05 15:43:02 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/TestFixtures.kt` | `test` | Add TestFixtures object — centralized androidTest constants and createTempFile helper |
+| 2026-05-05 15:43:55 | `app_v2/src/androidTest/TESTING_PREREQUISITES.md` | `test` | Add TESTING_PREREQUISITES.md — documents device setup and @NetworkRequired convention |
+| 2026-05-05 15:44:03 | `PLAN/S0094_player-move-currently-playing.md` | `spec-check` | Audit S0094 → Verified; PASS/WARN/FAIL 45/0/0 |
+| 2026-05-05 15:45:19 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/data/FileOperationsInstrumentationTest.kt` | `test` | Refactor to use TestFixtures.createTempFile; remove private createTestFile helper |
+| 2026-05-05 15:45:58 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/settings/DefaultCredentialsInputTest.kt` | `test` | Replace hardcoded s0090-user with TestFixtures.DEFAULT_USER; remove companion constant |
+| 2026-05-05 15:48:53 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/player/PlayerFileOperationsInstrumentationTest.kt` | `test` | Add PlayerFileOperationsInstrumentationTest — file-move invariant tests for player area |
+| 2026-05-05 15:49:34 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/player/PlayerOrientationInstrumentationTest.kt` | `test` | Add PlayerOrientationInstrumentationTest — recreate() does not crash, RESUMED state asserted |
+| 2026-05-05 15:51:58 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorCredentialsInstrumentationTest.kt` | `test` | Add ResourceEditorCredentialsInstrumentationTest — etName/etUsername SMB form input verification |
+| 2026-05-05 15:52:45 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/settings/CloudAuthLifecycleInstrumentationTest.kt` | `test` | Add CloudAuthLifecycleInstrumentationTest — verifies SettingsActivity RESUMED with cleared cloud auth prefs |
+| 2026-05-05 15:54:13 | `app_v2/src/androidTest/assets/test_media/minimal.ts` | `test` | Add minimal.ts — 576-byte MPEG-TS probe with sync bytes at 0/188/376 for STANDARD_188 classification |
+| 2026-05-05 15:55:01 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/player/BdTsPlaybackInstrumentationTest.kt` | `test` | Add BdTsPlaybackInstrumentationTest — TsPacketFormatDetector STANDARD_188 assertion on assets probe |
+| 2026-05-05 15:56:09 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/filelist/BrowseFileListManagerTest.kt` | `test` | Add empty-list sort edge cases: sortFiles_emptyList_returnsEmpty + sortFiles_emptyList_randomMode_returnsEmpty |
+| 2026-05-05 15:56:41 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/playback/PlaybackCompletionDetectorTest.kt` | `test` | Add zero-duration and exactlyAtThreshold edge cases to PlaybackCompletionDetectorTest |
+| 2026-05-05 15:57:18 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VideoPlayerManagerRouteErrorTest.kt` | `test` | Add emptyPath_mapsToOther edge case — guards against NPE on empty path in NetworkPlaybackContainerHint |
+| 2026-05-05 16:03:39 | `PLAN/S0095_integration-test-review.md` | `spec-check` | Audit S0095 → Verified; PASS 35 / WARN 0 / FAIL 0 |
+| 2026-05-05 16:14:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationProgressDialog.kt` | `FileOperationProgressDialog` | S0074: fix progressBar not reaching 100% on Completed — bar was stuck at last rendered value (~24%) when skipped files processed within one frame |
+| 2026-05-05 16:36:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `PlayerActivity / SFTP playback` | Remove toast from EOF retry loop — silent retry until exhausted, then error_loading_media toast on skip |
+| 2026-05-05 16:50:43 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `AudioMetadataLoader` | suppress full stack trace on Media3 MetadataRetriever failure; log exception class name only |
+| 2026-05-05 17:06:52 | `PLAN/S0096_browse-audio-black-screen.md` | `spec-all` | Compact spec: S0096 browse-audio-black-screen |
+| 2026-05-05 17:10:06 | `app_v2/src/main/res/menu/menu_resource_ops.xml` | `menu_resource_ops` | S0096: add action_black_screen item (audio-only, first position) |
+| 2026-05-05 17:10:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManager.kt` | `ResourceOpsMenuManager` | S0096: add isAudioOnly/onBlackScreenClicked params and item handler |
+| 2026-05-05 17:10:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | S0096: instantiate BlackScreenOverlayManager, pass callback to showMenu |
+| 2026-05-05 17:10:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | S0096: hide blackScreenManager overlay in onPause |
+| 2026-05-05 17:11:13 | `PLAN/S0096_browse-audio-black-screen.md` | `spec-all` | Pipeline Verified: S0096 browse-audio-black-screen |
+| 2026-05-05 17:32:32 | `PLAN/S0075_device-reach-google-play.md` | `Spec S0075` | Resolved open question §6.3 regarding VR manifest device reach |
+| 2026-05-05 17:32:41 | `PLAN/S0075_device-reach-google-play/INDEX.md` | `Spec S0075` | Resolved §6.3 in INDEX Blockers Log |
+| 2026-05-05 17:38:12 | `PLAN/S0024_vr-hud-ray-input.md` | `S0024` | Updated status to Verified after S0080 implementation |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture/INDEX.md` | `spec-tech` | Create tactical plan for S0058 |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture/PHASE_01__interface-hilt-wiring.md` | `spec-tech` | Phase 01: interface-hilt-wiring |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture/PHASE_02__vr-manifest-binding.md` | `spec-tech` | Phase 02: vr-manifest-binding |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture/PHASE_03__camera-capture.md` | `spec-tech` | Phase 03: camera-capture |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture/PHASE_04__save-ux-feedback.md` | `spec-tech` | Phase 04: save-ux-feedback |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture/PHASE_05__strings-localization.md` | `spec-tech` | Phase 05: strings-localization |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-05 17:38:22 | `PLAN/S0058_vr-passthrough-camera-capture.md` | `spec-tech` | Status Approved -> Tactical |
+| 2026-05-05 17:38:37 | `PLAN/S0024_vr-hud-ray-input/INDEX.md` | `S0024` | Updated completion gate checkboxes |
+| 2026-05-05 17:39:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowsePassthroughCaptureProvider.kt` | `S0058-Phase01` | Create BrowsePassthroughCaptureProvider interface |
+| 2026-05-05 17:40:04 | `app_v2/src/main/java/com/sza/fastmediasorter/di/BrowsePassthroughOptionalModule.kt` | `S0058-Phase01` | Create BrowsePassthroughOptionalModule Hilt @BindsOptionalOf |
+| 2026-05-05 17:41:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0058-Phase01` | Add passthroughProvider param to BrowseManagerInitializer |
+| 2026-05-05 17:41:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0058-Phase01` | Inject Optional<BrowsePassthroughCaptureProvider> + pass to BrowseManagerInitializer |
+| 2026-05-05 17:41:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0058-Phase01` | Route camera visibility check through passthroughProvider |
+| 2026-05-05 17:41:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0058-Phase01` | Route onCameraCaptureClicked to passthrough provider when present |
+| 2026-05-05 17:48:52 | `app_v2/src/vr/AndroidManifest.xml` | `S0058-Phase02` | Add horizonos.permission.HEADSET_CAMERA + camera2 feature |
+| 2026-05-05 17:49:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/capture/VrBrowsePassthroughCaptureManager.kt` | `S0058-Phase02` | Create VrBrowsePassthroughCaptureManager skeleton with isAvailable() Camera2 detection |
+| 2026-05-05 17:49:56 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/di/VrModule.kt` | `S0058-Phase02` | Bind VrBrowsePassthroughCaptureManager as BrowsePassthroughCaptureProvider |
+| 2026-05-05 17:53:15 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/capture/VrBrowsePassthroughCaptureManager.kt` | `S0058-Phase03` | Add permission check + VrPermissionBridgeFragment |
+| 2026-05-05 17:56:53 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Updated S0024 status to Verified |
+| 2026-05-05 17:59:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/capture/VrBrowsePassthroughCaptureManager.kt` | `spec-dev S0058 step-03.4` | Add shutter flash overlay: white View animated alpha 0.85→0 over 220ms after capture trigger |
+| 2026-05-05 18:02:40 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/capture/VrBrowsePassthroughCaptureManager.kt` | `spec-dev S0058 step-04.1` | Implement onJpegCaptured(): LOCAL path direct write, virtual/network via MediaStore IS_PENDING pattern |
+| 2026-05-05 18:03:04 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/capture/VrBrowsePassthroughCaptureManager.kt` | `spec-dev S0058 step-04.2` | Show Snackbar with passthrough_capture_saved message after successful JPEG save |
+| 2026-05-05 18:04:45 | `app_v2/src/vr/res/values/strings.xml` | `spec-dev S0058 step-04.3` | Add 7 passthrough_capture_* placeholder strings (Phase 05 will localize EN/RU/UK) |
+| 2026-05-05 18:06:47 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0058 step-05.1` | Add 7 passthrough_capture_* strings (EN) near vr_save_frame block |
+| 2026-05-05 18:06:47 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0058 step-05.1` | Add 7 passthrough_capture_* strings (RU) near vr_save_frame block |
+| 2026-05-05 18:06:47 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0058 step-05.1` | Add 7 passthrough_capture_* strings (UK) near vr_save_frame block |
+| 2026-05-05 18:06:47 | `app_v2/src/vr/res/values/strings.xml` | `spec-dev S0058 step-05.1` | Remove 7 passthrough_capture_* placeholder strings (moved to main res) |
+| 2026-05-05 18:09:14 | `docs/FEATURES.md` | `S0058` | Add passthrough snapshot bullet to VR Features |
+| 2026-05-05 18:09:14 | `docs/FEATURES_RU.md` | `S0058` | Add passthrough snapshot bullet to VR Features (RU) |
+| 2026-05-05 18:09:14 | `docs/FEATURES_UK.md` | `S0058` | Add passthrough snapshot bullet to VR Features (UK) |
+| 2026-05-05 18:10:54 | `dev/CATALOG/app_v2.jsonl` | `S0058` | Catalog regen after passthrough capture classes added; roles set for 3 new files |
+| 2026-05-05 18:10:54 | `dev/CATALOG/app_v2.md` | `S0058` | Catalog render after passthrough capture classes added |
+| 2026-05-05 18:13:41 | `PLAN/S0058_vr-passthrough-camera-capture.md` | `spec-check` | Audit S0058 → Verified; PASS 37 / WARN 0 / FAIL 0 / MANUAL 5 |
