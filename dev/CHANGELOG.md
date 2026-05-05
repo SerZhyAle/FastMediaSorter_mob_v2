@@ -6401,3 +6401,4 @@ Format: | datetime | file | target | description |
 | 2026-05-05 18:10:54 | `dev/CATALOG/app_v2.jsonl` | `S0058` | Catalog regen after passthrough capture classes added; roles set for 3 new files |
 | 2026-05-05 18:10:54 | `dev/CATALOG/app_v2.md` | `S0058` | Catalog render after passthrough capture classes added |
 | 2026-05-05 18:13:41 | `PLAN/S0058_vr-passthrough-camera-capture.md` | `spec-check` | Audit S0058 → Verified; PASS 37 / WARN 0 / FAIL 0 / MANUAL 5 |
+| 2026-05-05 19:13:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `FtpClient` | S0002 Wave 22: extract FtpConnectedOperations (876 -> 247 LOC); all stateful file ops moved to FtpConnectedOperations (484 LOC) |

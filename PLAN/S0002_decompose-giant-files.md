@@ -166,6 +166,14 @@
 
 `FtpClient.kt` is now under the 1000-line hard cap. External call sites in `FtpDataSource` and `NetworkMediaDataSource` were updated to use `FtpExoPlayerPool.FtpConnectionInfo` / `FtpExoPlayerPool.ExoPlayerFtpConnection` instead of the old nested types.
 
+**Wave 22 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `data/remote/ftp/FtpClient.kt` | 876 | 247 | −629 | `FtpConnectedOperations` (all 14 stateful operations that require an active `FTPClient`: `listFilesWithMetadata`, `listFilesWithMetadataPaged`, `listFiles` with passive→active fallback, `readFileBytes`, `readFileBytesRange`, `downloadFile`, `uploadFile`, `deleteFile`, `deleteDirectory`, `renameFile`, `moveFile`, `createDirectory`, `directoryExists`) |
+
+`FtpClient.kt` is now well under the 700-line stretch target. Connection lifecycle (`connect`, `disconnect`, `isConnected`), ExoPlayer pool delegation, and all `…WithNewConnection` delegations remain in `FtpClient`.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -192,7 +200,7 @@
 | 18 | `app_v2/data/network/FtpFileOperationHandler.kt` | 938 | ≤ 700 | 3 | 2 814 |
 | 19 | `app_v2/ui/player/StandalonePlayerActivity.kt` | 933 | ≤ 700 | 5 | 4 665 |
 | 20 | `app_v2/ui/main/MainActivity.kt` | 928 | ≤ 700 | 5 | 4 640 |
-| 21 | `app_v2/data/remote/ftp/FtpClient.kt` | 906 | ≤ 700 | 2 | 1 812 |
+| 21 | `app_v2/data/remote/ftp/FtpClient.kt` | 247 | ✅ | 2 | — |
 | 22 | `app_v2/data/cloud/OneDriveRestClient.kt` | 896 | ≤ 700 | 2 | 1 792 |
 | 23 | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 822 | ≤ 700 | 2 | 1 644 |
 | 24 | `app_v2/ui/player/PlayerActivity.kt` | 816 | ≤ 700 | 5 | 4 080 |
@@ -246,7 +254,7 @@
 | 25 | `TouchZoneGestureManager.kt` | 719 | 2 157 |
 | 26 | `DropboxClient.kt` | 981 | 1 962 |
 | 27 | `SmbClient.kt` | 954 | 1 908 |
-| 28 | `FtpClient.kt` | 906 | 1 812 |
+| 28 | `FtpClient.kt` | 247 | ✅ |
 | 29 | `OneDriveRestClient.kt` | 896 | 1 792 |
 | 30 | `SmbOperationStrategy.kt` | 822 | 1 644 |
 | 31 | `SearchLyricsUseCase.kt` | 804 | 1 608 |
@@ -305,7 +313,6 @@ Next dynamic-loop candidates (sub-1500 LOC, easy quick wins toward the 1000 cap)
 | File | LOC | Margin |
 | --- | ---: | ---: |
 | `OneDriveRestClient.kt` | 896 | 392 |
-| `FtpClient.kt` | 906 | 412 |
 | `SmbClient.kt` | 954 | 508 |
 | `DropboxClient.kt` | 981 | 562 |
 | `PlayerActivity.kt` | 816 | 580 |
