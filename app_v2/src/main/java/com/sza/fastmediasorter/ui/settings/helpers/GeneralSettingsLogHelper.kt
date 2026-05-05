@@ -49,10 +49,19 @@ class GeneralSettingsLogHelper(
     }
 
     fun launchSaveLogs() {
-        try {
+        // Guard: check upfront whether any activity can handle ACTION_CREATE_DOCUMENT on this device.
+        // Some custom/minimal AOSP firmware (e.g. SPRD) ships without a document picker, which would
+        // cause ActivityNotFoundException if we launch the launcher directly. Using resolveActivity
+        // avoids the exception being used as flow-control and keeps the log free of spurious stacks.
+        val testIntent = android.content.Intent(android.content.Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(android.content.Intent.CATEGORY_OPENABLE)
+            type = "application/zip"
+        }
+        val canSave = testIntent.resolveActivity(fragment.requireActivity().packageManager) != null
+        if (canSave) {
             saveLogsLauncher.launch("fastmediasorter_logs.zip")
-        } catch (e: android.content.ActivityNotFoundException) {
-            Timber.w(e, "LogExport: CREATE_DOCUMENT not supported — falling back to share")
+        } else {
+            Timber.d("LogExport: CREATE_DOCUMENT not supported on this device — using share fallback")
             showSaveLogsNotSupportedDialog()
         }
     }
