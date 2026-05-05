@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
 import com.sza.fastmediasorter.data.transfer.FileExistsException
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
@@ -15,8 +17,8 @@ import java.io.FileOutputStream
  * Strategy for local file system operations.
  * Handles standard file:// and local path operations.
  */
-class LocalOperationStrategy(
-    private val context: Context
+class LocalOperationStrategy @Inject constructor(
+    @ApplicationContext private val context: Context
 ) : FileOperationStrategy {
     
     override suspend fun copyFile(

@@ -305,7 +305,7 @@ class GetMediaFilesUseCase @Inject constructor(
                     )
                 } else {
                     StructuredLogger.d("Using standard loading")
-                    val metricsToken = ScanMetricsRecorder.beginScan(resource.id, resource.type)
+                    val metricsToken = ScanMetricsRecorder.beginScan(resource.id, resource.type, expectedFileCount = resource.fileCount)
                     val result = scanner.scanFolder(
                         path = effectivePath,
                         supportedTypes = flavorFilteredTypes,

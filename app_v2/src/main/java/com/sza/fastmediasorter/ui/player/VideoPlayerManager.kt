@@ -110,6 +110,8 @@ class VideoPlayerManager(
         fun isActivityDestroyed(): Boolean
         fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean)
         fun onBdTsFormatError()
+        /** Fired when a network VOB/DVD route error is detected; bypasses generic auto-next skip. */
+        fun onNetworkContainerRouteError(path: String, hint: com.sza.fastmediasorter.ui.player.helpers.NetworkPlaybackContainerHint)
         /** Fired before a new video starts loading so session-only 3D state can reset per file. */
         fun onBeforeVideoLoad(path: String) {}
         /** Fired once per video load when a stereo format is detected. Default no-op. */
@@ -207,6 +209,9 @@ class VideoPlayerManager(
     // Reset on every load of a new media file so re-opening the same path re-arms the path.
     @Volatile
     private var lastCompletedPath: String? = null
+
+    // Guards the one-shot audio-unsupported toast; reset per file load in playVideo().
+    @Volatile private var audioUnsupportedShownForPath: String? = null
 
     private var wasPlayingBeforePause = false
 
@@ -457,6 +462,14 @@ class VideoPlayerManager(
                     playerCallback.onBdTsFormatError()
                     return
                 }
+                if (lowerPath.endsWith(".vob")) {
+                    Timber.i("VideoPlayerManager: DVD_PS_VOB route error — stopping cascade on current file")
+                    playerCallback.onNetworkContainerRouteError(
+                        currentFilePath!!,
+                        com.sza.fastmediasorter.ui.player.helpers.NetworkPlaybackContainerHint.DVD_PS_VOB
+                    )
+                    return
+                }
             }
 
             playerCallback.onBuffering(false)
@@ -501,6 +514,29 @@ class VideoPlayerManager(
                     if (detectionPath == currentFilePath && detected != StereoMode.UNKNOWN) {
                         Timber.d("VideoPlayerManager: onTracksChanged → detected stereo=$detected path=$detectionPath")
                         playerCallback.onStereoDetected(detected, detectionPath)
+                    }
+                }
+            }
+            val path = currentFilePath ?: return
+            val isMts = path.endsWith(".m2ts", ignoreCase = true) || path.endsWith(".m2t", ignoreCase = true)
+            if (isMts && audioUnsupportedShownForPath != path) {
+                val audioGroups = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+                if (audioGroups.isNotEmpty()) {
+                    val allUnsupported = audioGroups.all { group ->
+                        (0 until group.length).none { i -> group.isTrackSupported(i) }
+                    }
+                    if (allUnsupported) {
+                        audioUnsupportedShownForPath = path
+                        val codecs = audioGroups
+                            .flatMap { group -> (0 until group.length).map { i -> group.getTrackFormat(i).sampleMimeType ?: "?" } }
+                            .distinct()
+                            .joinToString(", ")
+                        val msg = context.getString(R.string.warning_m2ts_audio_unsupported, codecs)
+                        Timber.w("VideoPlayerManager: all audio tracks unsupported for $path — codecs=$codecs")
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    } else {
+                        // DefaultTrackSelector already skips unsupported tracks; log confirms this.
+                        Timber.d("VideoPlayerManager: .m2ts has decodable audio — DefaultTrackSelector handles selection")
                     }
                 }
             }
@@ -645,6 +681,7 @@ class VideoPlayerManager(
         currentFilePath = path
         posterExtractor.reset()
         lastCompletedPath = null
+        audioUnsupportedShownForPath = null
         lastSavedPosition = -1L
         stopPositionSaving()
 

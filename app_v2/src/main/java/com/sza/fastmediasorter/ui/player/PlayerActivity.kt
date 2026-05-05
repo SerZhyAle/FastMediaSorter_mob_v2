@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
@@ -88,6 +89,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     private var playerFpsCollectorStarted: Boolean = false
 
     internal lateinit var fileOperationsHandler: FileOperationsHandler
+    internal lateinit var playerFolderPickerHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerFolderPickerHandler
     internal lateinit var destinationButtonsManager: DestinationButtonsManager
     internal lateinit var navigationManager: PlayerNavigationManager
     internal lateinit var commandPanelController: CommandPanelController
@@ -192,6 +194,12 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             result.resultCode,
             viewModel.state.value.currentFile?.path
         )
+    }
+
+    internal val folderPickerLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (::playerFolderPickerHandler.isInitialized) playerFolderPickerHandler.onFolderPicked(uri)
     }
 
     // Android 10 single-file delete permission (RecoverableSecurityException)
@@ -352,6 +360,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     }
     private lateinit var imageTouchGestureDetector: GestureDetector
 
+    // S0028: per-window resume state isolation
+    internal lateinit var windowId: String
+
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -361,6 +372,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.applyControlsThemeOverlay(this)
         // PlayerActivity uses Edge-to-Edge ALWAYS to allow precise manual insets control.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        // S0028: resolve windowId before any use-case call
+        windowId = savedInstanceState?.getString(EXTRA_WINDOW_ID)
+            ?: intent.getStringExtra(EXTRA_WINDOW_ID)
+            ?: ResumeStateRepository.WINDOW_ID_MAIN
         super.onCreate(savedInstanceState)
         lifecycleManager = com.sza.fastmediasorter.ui.player.helpers.PlayerLifecycleManager(
             activity = this,
@@ -390,6 +405,11 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     /** Initialize all helper managers — delegates to PlayerManagerInitializer. */
     private fun initializeManagers() {
         PlayerManagerInitializer(this).initialize()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::windowId.isInitialized) outState.putString(EXTRA_WINDOW_ID, windowId)
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -614,6 +634,19 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal fun launchImmersiveOnCurrentFile(reason: String) {
         Timber.i("PlayerActivity: launchImmersiveOnCurrentFile reason=%s", reason)
         handle3dVrToggleClicked()
+    }
+
+    // S0028: tear off current Player to a new window slot; current player finishes (returns to Browse)
+    internal fun tearOffPlayer() {
+        val filePath = currentFilePath ?: return
+        val newWindowId = java.util.UUID.randomUUID().toString()
+        val intent = Intent(this, PlayerActivity::class.java).apply {
+            putExtra("initialFilePath", filePath)
+            putExtra(EXTRA_WINDOW_ID, newWindowId)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
+        startActivity(intent)
+        finish()
     }
 
     internal fun handleDeleteSuccess(deletedFilePath: String) = lifecycleManager.handleDeleteSuccess(deletedFilePath)
@@ -918,6 +951,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
         const val EXTRA_MODIFIED_FILES = "modified_files"
+        // S0028: per-window resume state isolation
+        const val EXTRA_WINDOW_ID = "extra_window_id"
 
         // S0026: detected stereo mode hint. Browse fills this when launching VR; VrPlayerActivity
         // primes PlayerStereoModeCoordinator with this value before applying user-settings, so the
@@ -953,6 +988,32 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                 if (shuffleOnStart) putExtra("shuffleOnStart", true)
                 detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
             }
+        }
+
+        /**
+         * S0019 / S0038: build an intent that targets the **2D** panel [PlayerActivity]
+         * directly, bypassing the per-flavor [BuildConfig.PLAYER_ACTIVITY_CLASS] override.
+         * Used by VR-flavor user-driven «exit to flat player» path so the user lands on
+         * the actual 2D player rather than a panel-mode VrPlayerActivity that immediately
+         * relaunches via STANDARD_PANEL_FALLBACK (the clone-window regression).
+         */
+        fun createPanelIntent(
+            context: Context,
+            resourceId: Long,
+            initialIndex: Int = 0,
+            skipAvailabilityCheck: Boolean = false,
+            initialFilePath: String? = null,
+            isPlaying: Boolean? = null,
+            isSlideshowEnabled: Boolean = false,
+            detectedStereoMode: StereoMode? = null,
+        ): Intent = Intent(context, PlayerActivity::class.java).apply {
+            putExtra("resourceId", resourceId)
+            putExtra("initialIndex", initialIndex)
+            putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
+            initialFilePath?.let { putExtra("initialFilePath", it) }
+            isPlaying?.let { putExtra("resumeIsPlaying", it) }
+            if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
+            detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
         }
     }
 }

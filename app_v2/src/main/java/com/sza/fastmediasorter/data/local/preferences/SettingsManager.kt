@@ -105,7 +105,7 @@ class SettingsManager @Inject constructor(
             translationLensStyle = preferences[TRANSLATION_LENS_STYLE] ?: true,
             enableSlideshowBackgroundMusic = preferences[ENABLE_SLIDESHOW_BACKGROUND_MUSIC] ?: false,
             slideshowMusicResourceId = preferences[SLIDESHOW_MUSIC_RESOURCE_ID],
-            useTrash = preferences[USE_TRASH] ?: true,
+            useTrash = preferences[USE_TRASH] ?: false,
             cropImagesToFullscreen = preferences[CROP_IMAGES_TO_FULLSCREEN] ?: true
         )
     }

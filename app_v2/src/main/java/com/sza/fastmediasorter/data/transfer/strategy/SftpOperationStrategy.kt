@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -19,8 +21,8 @@ import java.io.FileOutputStream
  * Strategy for SFTP (SSH File Transfer Protocol) file operations.
  * Handles sftp:// protocol operations using SftpClient.
  */
-class SftpOperationStrategy(
-    private val context: Context,
+class SftpOperationStrategy @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val sftpClient: SftpClient,
     private val credentialsRepository: NetworkCredentialsRepository
 ) : FileOperationStrategy {
@@ -221,13 +223,10 @@ class SftpOperationStrategy(
                 
                 // sftpClient returns absolute paths on server e.g. /home/user/file.txt
                 // We construct full URI. Note: remote path includes leading slash usually.
-                val paths = listResult.getOrNull()?.map { remoteFilePath ->
-                     // Avoid double slash if basePrefix ends with / or remoteFilePath starts with /?
-                     // basePrefix is sftp://host...
-                     // remoteFilePath is /path/to/file
-                     // sftp://host/path/to/file is correct.
-                     // But if remoteFilePath starts with /, we just concat.
-                     "$basePrefix$remoteFilePath"
+                val paths = listResult.getOrNull()?.map { listing ->
+                     // listing.path is absolute on server e.g. /home/user/file.txt
+                     // Construct full URI: sftp://host/path/to/file
+                     "$basePrefix${listing.path}"
                 } ?: emptyList()
                 Result.success(paths)
             } else {
@@ -521,15 +520,11 @@ class SftpOperationStrategy(
     ) {
         val listResult = sftpClient.listFiles(connectionInfo, remotePath, recursive = false)
         if (listResult.isSuccess) {
-            for (filePath in listResult.getOrNull() ?: emptyList()) {
-                val attrsResult = sftpClient.stat(connectionInfo, filePath)
-                if (attrsResult.isSuccess) {
-                    val attrs = attrsResult.getOrNull()
-                    if (attrs?.isDirectory == true) {
-                        collectSftpFiles(connectionInfo, filePath, result)
-                    }
-                    result.add(filePath)
+            for (listing in listResult.getOrNull() ?: emptyList()) {
+                if (listing.isDirectory) {
+                    collectSftpFiles(connectionInfo, listing.path, result)
                 }
+                result.add(listing.path)
             }
         }
     }
@@ -631,15 +626,11 @@ class SftpOperationStrategy(
     ) {
         val listResult = sftpClient.listFiles(connectionInfo, remotePath, recursive = false)
         if (listResult.isSuccess) {
-            for (filePath in listResult.getOrNull() ?: emptyList()) {
-                val attrsResult = sftpClient.stat(connectionInfo, filePath)
-                if (attrsResult.isSuccess) {
-                    val attrs = attrsResult.getOrNull()
-                    if (attrs?.isDirectory == true) {
-                        collectSftpFilesOnly(connectionInfo, filePath, result)
-                    } else {
-                        result.add(filePath)
-                    }
+            for (listing in listResult.getOrNull() ?: emptyList()) {
+                if (listing.isDirectory) {
+                    collectSftpFilesOnly(connectionInfo, listing.path, result)
+                } else {
+                    result.add(listing.path)
                 }
             }
         }

@@ -25,7 +25,7 @@ import com.sza.fastmediasorter.data.input.InputBindingEntity
         StreamingCacheEntry::class,
         InputBindingEntity::class
     ],
-    version = 26,
+    version = 27,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -652,6 +652,15 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 if (!hasColumn(db, "resources", "icon_id")) {
                     db.execSQL("ALTER TABLE resources ADD COLUMN icon_id TEXT DEFAULT NULL")
+                }
+            }
+        }
+
+        /** S0064: per-server history of manually entered SMB share names (pipe-separated). */
+        val MIGRATION_26_27 = object : Migration(26, 27) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                if (!hasColumn(db, "network_credentials", "manual_share_names")) {
+                    db.execSQL("ALTER TABLE network_credentials ADD COLUMN manual_share_names TEXT NOT NULL DEFAULT ''")
                 }
             }
         }

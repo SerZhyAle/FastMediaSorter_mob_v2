@@ -5,10 +5,10 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.SftpDataSourceFactory
+import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
@@ -50,7 +50,8 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
         credentials.server,
         credentials.port,
         credentials.username,
-        credentials.password
+        credentials.password,
+        context
     )
 
     val loadControl = PrefetchLoadControlFactory.build(
@@ -63,18 +64,6 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
-
-    exoPlayer = ExoPlayer.Builder(context)
-        .setMediaSourceFactory(
-            DefaultMediaSourceFactory((dataSourceFactory as DataSource.Factory).wrapForBdTs(path))
-        )
-        .setLoadControl(loadControl)
-        .setAudioAttributes(audioAttributes, true)
-        .build()
-
-    exoPlayer?.addListener(loadControl)
-    exoPlayer?.addListener(playerListener)
-    currentPlayerView?.player = exoPlayer
 
     // Construct SFTP URI with properly encoded path segments
     val rawUri = if (path.startsWith("sftp://")) {
@@ -96,6 +85,26 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
         .build()
 
     Timber.d("VideoPlayerManager: SFTP URI=$sftpUri")
+
+    val routeHint = NetworkPlaybackContainerHint.fromPath(path)
+    Timber.d("VideoPlayerManager: SFTP routeHint=$routeHint path=$path")
+    val format = if (routeHint == NetworkPlaybackContainerHint.M2TS_TS_CANDIDATE) {
+        (dataSourceFactory as DataSource.Factory).detectTsFormatSuspend(sftpUri)
+    } else {
+        TsPacketFormat.UNKNOWN
+    }
+
+    exoPlayer = ExoPlayer.Builder(context)
+        .setMediaSourceFactory(
+            (dataSourceFactory as DataSource.Factory).buildBdTsMediaSourceFactory(format)
+        )
+        .setLoadControl(loadControl)
+        .setAudioAttributes(audioAttributes, true)
+        .build()
+
+    exoPlayer?.addListener(loadControl)
+    exoPlayer?.addListener(playerListener)
+    currentPlayerView?.player = exoPlayer
 
     val mediaItem = createMediaItem(sftpUri.toString(), path)
     exoPlayer?.setMediaItem(mediaItem)

@@ -44,6 +44,15 @@ class NetworkServerErrorException(val statusCode: Int = 500, message: String = "
     NetworkException("HTTP $statusCode: $message", cause)
 
 /**
+ * OS blocked the socket because ACCESS_LOCAL_NETWORK permission is not granted (Android 17+).
+ * Distinct from [NetworkAccessDeniedException] which covers auth/ACL failures.
+ */
+class LocalNetworkPermissionDeniedException(
+    message: String = "Local network access permission not granted",
+    cause: Throwable? = null
+) : NetworkException(message, cause)
+
+/**
  * HTTP 429 Rate limit exceeded; may carry Retry-After delay hint (seconds).
  */
 class NetworkRateLimitException(

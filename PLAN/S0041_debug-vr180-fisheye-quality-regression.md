@@ -36,10 +36,22 @@
 
 Стерео-детектирование, выбор режима рендеринга и XR layer — корректны. `ExoPlayer` сообщает `onVideoSizeChanged 7168x3584` — декодирует в полном разрешении.
 
-**Ключевой пробел:** в логе отсутствуют:
-- Выбранный ExoPlayer видео-трек (codec, bitrate, width/height в треке)
-- Параметры fisheye шейдера (FOV, UV offset, distortion coefficients)
-- XR swapchain format (только `0x8c43` = `GL_SRGB8_ALPHA8`)
+**Свежее подтверждение в логе** `logs/fastmediasorter_20260503_031502.log`:
+
+```
+[1762] StereoDetector: filename match → VR180_FISHEYE_SBS
+[1956] VR_QUALITY_DEBUG: selected track format=Format(... video/hevc ... [7168, 3584, 59.94005 ...])
+[1964] VideoPlayerManager: onVideoSizeChanged 7168x3584 — size known
+[2357] VrPlayerActivity: stereoMode → VR180_FISHEYE_SBS → renderer=VR180_FISHEYE_SBS
+[2361] VrPlayerActivity: layer descriptor → EQUIRECT_2 (reason=stereo-mode, stereo=VR180_FISHEYE_SBS, renderMode=CINEMA)
+```
+
+Свежий лог фактически закрывает гипотезу «ExoPlayer выбрал низкое разрешение»: выбран HEVC-трек 7168×3584, и размер кадра подтверждён повторно уже в свежей Quest 3 сессии.
+
+**Ключевой пробел:** в свежем логе по-прежнему отсутствуют:
+- one-shot fisheye debug строка (`VR_QUALITY_DEBUG: fisheye first frame ..`) — она отсутствует и в `logs/fastmediasorter_20260503_031502.log`, и в `logs/fastmediasorter_20260503_032115.log`
+- параметры fisheye шейдера (FOV, UV offset, distortion coefficients)
+- XR swapchain format (кроме уже известного `0x8c43` = `GL_SRGB8_ALPHA8`)
 
 ---
 
@@ -48,7 +60,7 @@
 | # | Гипотеза | Вероятность | Проверка |
 |---|---|---|---|
 | **A** | Fisheye шейдер: UV параметры (FOV, crop) изменились — изображение рендерится с неверным масштабированием, создавая эффект «zoom в центр» | **Высокая** | Лог `VrStereoRenderer` params; сравнить git blame на shader/VrStereoRenderer |
-| **B** | ExoPlayer выбрал низкокачественный трек (multi-track MP4, adaptive fallback) | **Средняя** | Добавить лог `Format.toString()` в `onTracksChanged` |
+| **B** | ExoPlayer выбрал низкокачественный трек (multi-track MP4, adaptive fallback) | **Низкая** | Частично закрыто свежим логом 2026-05-03: выбран HEVC-трек 7168×3584 |
 | **C** | Не применяются видео-эффекты ExoPlayer, из-за чего SurfaceTexture получает данные с масштабированием | **Низкая** | Проверить `applyConfiguredVideoEffects` — в логе `no effects, pipeline already clean` |
 | **D** | `VideoLayerGeometry.centralAngle=π` не соответствует реальному FOV линзы 180° fisheye — изображение растянуто | **Средняя** | Сравнить centralAngle с 18VR camera spec; попробовать меньший angle |
 | **E** | `GL_SRGB8_ALPHA8` swapchain format применяет gamma-correction к уже gamma-encoded видео → яркость + quantization artifacts | **Низкая** | Попробовать `GL_RGBA8` (без sRGB) |
@@ -162,6 +174,38 @@ Timber.d(
 
 **Next step (manual):** install `app_v2/build/outputs/apk/vr/debug/FastMediaSorter_vr_debug_v2.60.4301.700-VR-DEBUG.apk` on Quest 3, run the 7K VR180 fisheye file, capture `adb logcat` filtered on `VR_QUALITY_DEBUG`, share the log lines so Phase 03 analysis can resume.
 
+**2026-05-03 — Quest 3, свежий полевой лог `logs/fastmediasorter_20260503_031502.log`.**
+
+- Пользователь повторно подтвердил симптом: качество VR180 всё ещё визуально воспринимается как заниженное.
+- Свежий лог уже содержит ключевую строку `VR_QUALITY_DEBUG: selected track format=Format(... video/hevc ... [7168, 3584 ..])`, плюс `onVideoSizeChanged 7168x3584`.
+- Стерео-маршрут снова корректный: `StereoDetector: filename match → VR180_FISHEYE_SBS`, затем `stereoMode → VR180_FISHEYE_SBS → renderer=VR180_FISHEYE_SBS`, затем `layer descriptor → EQUIRECT_2`.
+- При этом one-shot fisheye debug строка (`VR_QUALITY_DEBUG: fisheye first frame ..`) в этой сессии **по-прежнему отсутствует**, поэтому видимость полного трека не снимает гипотезу про fisheye shader / geometry / FOV path.
+
+**Вывод:** проблема больше не выглядит как downscale на уровне selected track. Следующая итерация должна либо чинить/расширять fisheye one-shot logging, либо сразу проверять shader/uniform path по гипотезам A и D.
+
+**2026-05-03 — second same-day field refresh (`logs/fastmediasorter_20260503_032115.log` + matching screenshots).**
+
+- В 03:48 local run тот же локальный `18VR_The_Best_is_Yet_to_Come_7K_180_180x180_3dh.mp4` снова выбрал full-res track `7168x3584`, снова дал `StereoDetector: filename match → VR180_FISHEYE_SBS`, снова сообщил `VideoPlayerManager: onVideoSizeChanged 7168x3584 — size known`, и на `renderVrFrame #301` остался на `layer=EQUIRECT_2` + `stereo=VR180_FISHEYE_SBS`.
+- Скриншоты `logs/com.sza.fastmediasorter.vr.debug-20260503-034855.jpg` и `logs/com.sza.fastmediasorter.vr.debug-20260503-034906.jpg` относятся к этой же полевой сессии; при этом по пользовательской обратной связи качество всё ещё воспринимается как плохое.
+- `VR_QUALITY_DEBUG: fisheye first frame ..` в этом втором same-day reproduce тоже отсутствует.
+- Вывод усиливается: это уже не похоже на selected-track downscale. Фокус остаётся на fisheye shader / geometry / FOV path.
+
+**2026-05-03 — `/spec-test-device S0041` (Quest 3 online run + расширение Phase 1 instrumentation).**
+
+- *Резолюция аномалии 2026-05-03 (фильтр):* в логе `logs/Oculus-Quest-3-Android-14_2026-05-03_033217.logcat` зафиксировано `"projectApplicationIds": ["com.sza.fastmediasorter.debug"]` и `"filter": "package:mine"`, тогда как установленный билд — `com.sza.fastmediasorter.vr.debug`. Android Studio отфильтровал весь VR-пакет; диагностика в APK была, в лог не попала. **Дефекта в коде нет — это была проблема фильтра в IDE.**
+- *Phase 1 instrumentation verified live on-device:* во время run 03:49–03:50 в фоновом `adb logcat -v time *:V` зафиксировано три `VR_QUALITY_DEBUG: selected track format=…` (файлы `VRHush_…OculusRift_3dv.mp4` (OU, 3360×3360, avc1.640034) и `Wake.Up.Dead.Man…2160p.4K.SDR.x265.mkv` (MONO, 3840×2160, hevc)). **Phase 1 §3.1 подтверждён.**
+- *Phase 1 расширение (новый VR debug билд `v2.60.5030.358-VR-DEBUG`):* добавлены три новые `VR_QUALITY_DEBUG`-строки под общий grep-токен —
+  - `VrStereoRenderer.setStereoMode` → `VR_QUALITY_DEBUG: setStereoMode previous=… new=…` плюс сброс one-shot guard'ов на каждой смене режима.
+  - `VrStereoRenderer.renderEye` для не-fisheye путей → `VR_QUALITY_DEBUG: renderQuad first stereo=… layer=… eye=… uOffset uScale viewport target` (one-shot per mode transition).
+  - `VrStereoRenderer.renderFisheyeQuad` → расширен one-shot: добавлены `shaderHalfFovRad=π/2`, `shaderFullFovRad=π` (захардкоженные константы шейдера — для сравнения с реальным FOV линзы 18VR).
+  - `OpenXrSessionManager.applyLayerDescriptor` → дублирующая `VR_QUALITY_DEBUG: layerGeom type centralAngle upper lower radius width height distance reason` (тот же payload, что у существующего `VideoLayerGeometry: …`, но под общий грепом).
+- *Side-find (вне S0041):* SMB thumbnail/share race для `VRHush_…3dv.mp4` и соседних SMB preview/playback overlap теперь вынесен в **S0060** (`bugfix-smb-thumbnail-share-race`). Этот side-find больше не ведётся внутри S0041.
+- *Status remains `BlockNeedUserTest`:* пользователь воспроизводит сценарий (играет 7K VR180 fisheye в иммерсиве на свежем билде) и присылает logcat. После получения лога с полным блоком `VR_QUALITY_DEBUG` (track format + setStereoMode + layerGeom + fisheye first frame с FOV-константами) Phase 02 Step 2.2 закрывается, далее Phase 03 — narrow A–E.
+
+*Артефакты прогона:* `temp/S0041_mobile_test_scenario_20260503_0349.md`, `temp/S0041_run_20260503_0349.log`, `temp/S0041_screens/step_01_after.png`, `temp/logcat_vr_20260503_035908.log` (фоновый, авто-старт `build-vr-device.ps1`).
+
+**Постзакрытие run 03:49 (харвест на wakeup):** Целевой 7K-файл `18VR_…7K_180_180x180_3dh.mp4` был **только в lobby-биндинге** (8 хитов в `MediaFileAdapter.onBindViewHolder`), не открывался на воспроизведение. Однако был сыгран **другой** VR180 fisheye файл — `smb://…/mov/p/wankzvr-sharing-is-caring-180_180x180_3dh_LR.mp4` (2160×1080, avc1.640032). Трасса: `StereoDetector: VR180_FISHEYE_SBS` → `applyStereoEffect VR180_FISHEYE_SBS` → `fisheye GL program initialized program=6` → `applyLayerDescriptor → QUAD_CINEMA` → **`stereo mode set to OU`** → **`applyLayerDescriptor → PROJECTION (centralAngle=6.2832, ~2π)`**. **Новая зацепка для Phase 03:** в 2026-04-30 baseline VR180 fisheye уходил в `EQUIRECT_2` с `centralAngle=π`; в этом прогоне VR180 fisheye оказался на `PROJECTION` с `centralAngle=2π`, плюс stereo был перебит на `OU` через ~10 с после `zoom-rebase`. Если layer-routing действительно ушёл в `PROJECTION+OU`, fisheye-undistortion шейдер не задействуется — изображение растягивается как обычный over-under stereo, что объясняет визуальный артефакт. Также в этом логе **ни одной** строки `VR_QUALITY_DEBUG: fisheye first frame …` — причина: одноразовый guard `dbgRenderEyeCount == 0L` сжигается на ранних QUAD_CINEMA рендерах до перехода в иммерсивный VR180, поэтому строка молча пропускается. **Расширенный билд `v2.60.5030.358-VR-DEBUG` сбрасывает guard внутри `setStereoMode`** — следующий лог должен это подтвердить.
+
 ---
 
 ## Revision History
@@ -170,3 +214,6 @@ Timber.d(
   Applied: 5 ACCEPT+REVIEW. Proposed (DISCUSS): 1 (structure deviation from standard template — acceptable for investigation spec).
 - **2026-05-02** — by `/spec-update` (`claude-sonnet-4-6`, focus: verifiability + consistency).
   Applied: 2 ACCEPT (§3.2 first-frame guard уточнение по результатам log capture 2026-05-02; §6 S0033 status: Tactical → In Progress). Proposed (DISCUSS): 0.
+- **2026-05-03** — by `/spec-test-device` (`claude-opus-4-7[1m]`, device: 2G0YC5ZG5608DL Quest 3 / Android 14).
+  Run: scenario `temp/S0041_mobile_test_scenario_20260503_0349.md`. Status unchanged (`BlockNeedUserTest`). PASS/PARTIAL/SKIPPED 1/1/1, log errors 2 (errorCode=2000 SMB NPE, errorCode=1004 — оба вне scope S0041). Findings: предыдущий 2026-05-03 «отсутствие VR_QUALITY_DEBUG» — артефакт IDE-фильтра (`com.sza.fastmediasorter.debug` vs реально `…vr.debug`), а не баг сборки; Phase 1 §3.1 instrumentation подтверждён живым логом (6 хитов `selected track format`); shipped расширение Phase 1 (setStereoMode, renderQuad first-mode, fisheye shader FOV constants, layerGeom под общий VR_QUALITY_DEBUG-grep) в VR debug `v2.60.5030.358-VR-DEBUG`. Новая Phase 03 зацепка: VR180 fisheye файл (2160×1080) ушёл в `PROJECTION` слой с `centralAngle=2π` и stereo `OU` (вместо ожидаемого `EQUIRECT_2` + `VR180_FISHEYE_SBS`); fisheye one-shot guard сжигался на QUAD_CINEMA до VR180 — расширенный билд это исправляет.
+- **2026-05-03** — manual evidence refresh: §1 и `## Last Audit` обновлены по `logs/fastmediasorter_20260503_031502.log`; гипотеза про low-res selected track понижена до `Низкая`, fisheye one-shot gap зафиксирован как актуальный.

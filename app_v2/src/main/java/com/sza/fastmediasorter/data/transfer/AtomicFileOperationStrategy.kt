@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.transfer
 
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -34,6 +35,12 @@ class AtomicFileOperationStrategy(
     private val delegate: FileOperationStrategy,
     private var enableAtomic: Boolean = true
 ) : FileOperationStrategy by delegate {
+
+    private sealed interface AtomicCopyOutcome {
+        data object Success : AtomicCopyOutcome
+        data class Cancelled(val error: CancellationException) : AtomicCopyOutcome
+        data class Failed(val error: Throwable) : AtomicCopyOutcome
+    }
     
     /**
      * Enable or disable atomic transfer mode at runtime.
@@ -71,7 +78,7 @@ class AtomicFileOperationStrategy(
         val tempDestination = TempFileNamingStrategy.getTempPath(destination)
         Timber.d("  Temp destination: $tempDestination")
         
-        return try {
+        val outcome = try {
             // Step 0: Check destination exists BEFORE copying if overwrite=false
             // This prevents unnecessary data transfer if file already exists
             if (!overwrite) {
@@ -105,56 +112,20 @@ class AtomicFileOperationStrategy(
             
             if (copyResult.isFailure) {
                 Timber.e("AtomicFileOperationStrategy: Copy to temp destination failed")
-                // Cleanup temp file on failure
-                cleanupTempFile(tempDestination)
-                return copyResult
+                AtomicCopyOutcome.Failed(
+                    copyResult.exceptionOrNull() ?: Exception("Copy to temp destination failed")
+                )
+            } else {
+                Timber.d("AtomicFileOperationStrategy: Copy to temp completed, size check...")
+                finalizeSuccessfulCopy(source, tempDestination, destination, overwrite)
             }
-            
-            Timber.d("AtomicFileOperationStrategy: Copy to temp completed, size check...")
-            
-            // Step 3: Verify temp file exists
-            val tempExistsAfterCopy = pathExists(tempDestination).getOrNull() ?: false
-            if (!tempExistsAfterCopy) {
-                Timber.e("AtomicFileOperationStrategy: Temp file doesn't exist after copy!")
-                return Result.failure(Exception("Temp file not found after copy: $tempDestination"))
-            }
-            
-            // Step 4: Handle destination overwrite if needed
-            if (overwrite) {
-                val destExists = pathExists(destination).getOrNull() ?: false
-                if (destExists) {
-                    Timber.d("AtomicFileOperationStrategy: Destination exists, deleting before rename")
-                    val deleteResult = deletePath(destination)
-                    if (deleteResult.isFailure) {
-                        Timber.e("AtomicFileOperationStrategy: Failed to delete existing destination")
-                        cleanupTempFile(tempDestination)
-                        return Result.failure(
-                            Exception("Failed to delete existing destination: ${deleteResult.exceptionOrNull()?.message}")
-                        )
-                    }
-                }
-            }
-            
-            // Step 5: Rename temp to final destination
-            Timber.d("AtomicFileOperationStrategy: Renaming temp to final destination")
-            val renameResult = renamePath(tempDestination, destination)
-            
-            if (renameResult.isFailure) {
-                Timber.e("AtomicFileOperationStrategy: Rename failed: ${renameResult.exceptionOrNull()?.message}")
-                // Cleanup temp file on failure
-                cleanupTempFile(tempDestination)
-                return renameResult.map { destination }
-            }
-            
-            Timber.i("AtomicFileOperationStrategy: Atomic copy completed successfully")
-            Result.success(destination)
-            
+        } catch (e: CancellationException) {
+            handleCancelledCopy(tempDestination, e)
         } catch (e: Exception) {
-            Timber.e(e, "AtomicFileOperationStrategy: Unexpected error during atomic copy")
-            // Attempt cleanup
-            cleanupTempFile(tempDestination)
-            Result.failure(e)
+            handleFailedCopy(tempDestination, e)
         }
+
+        return completeCopyOutcome(tempDestination, destination, outcome)
     }
     
     /**
@@ -238,6 +209,109 @@ class AtomicFileOperationStrategy(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    private suspend fun finalizeSuccessfulCopy(
+        source: String,
+        tempDestination: String,
+        destination: String,
+        overwrite: Boolean
+    ): AtomicCopyOutcome {
+        val postConditionResult = verifyTempPostCondition(tempDestination)
+        if (postConditionResult.isFailure) {
+            Timber.e(
+                "AtomicFileOperationStrategy: temp-missing-invariant source=$source temp=$tempDestination destination=$destination"
+            )
+            return AtomicCopyOutcome.Failed(
+                postConditionResult.exceptionOrNull() ?: Exception("Temp file not found after copy: $tempDestination")
+            )
+        }
+
+        if (overwrite) {
+            val destExists = pathExists(destination).getOrNull() ?: false
+            if (destExists) {
+                Timber.d("AtomicFileOperationStrategy: Destination exists, deleting before rename")
+                val deleteResult = deletePath(destination)
+                if (deleteResult.isFailure) {
+                    Timber.e("AtomicFileOperationStrategy: Failed to delete existing destination")
+                    return AtomicCopyOutcome.Failed(
+                        Exception("Failed to delete existing destination: ${deleteResult.exceptionOrNull()?.message}")
+                    )
+                }
+            }
+        }
+
+        Timber.d("AtomicFileOperationStrategy: Renaming temp to final destination")
+        val renameResult = renamePath(tempDestination, destination)
+
+        if (renameResult.isFailure) {
+            Timber.e("AtomicFileOperationStrategy: Rename failed: ${renameResult.exceptionOrNull()?.message}")
+            return AtomicCopyOutcome.Failed(
+                renameResult.exceptionOrNull() ?: Exception("Rename failed: $tempDestination -> $destination")
+            )
+        }
+
+        Timber.i("AtomicFileOperationStrategy: Atomic copy completed successfully")
+        return AtomicCopyOutcome.Success
+    }
+
+    private suspend fun verifyTempPostCondition(tempPath: String): Result<Unit> {
+        return if (isLocalPath(tempPath)) {
+            try {
+                val tempFile = File(tempPath)
+                if (!tempFile.exists()) {
+                    return Result.failure(Exception("Temp file not found after copy: $tempPath"))
+                }
+
+                val tempLength = tempFile.length()
+                if (tempLength < 0L) {
+                    return Result.failure(Exception("Temp file length unavailable after copy: $tempPath"))
+                }
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        } else {
+            val tempExists = pathExists(tempPath).getOrNull() ?: false
+            if (tempExists) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Temp file not found after copy: $tempPath"))
+            }
+        }
+    }
+
+    private suspend fun handleCancelledCopy(
+        tempDestination: String,
+        error: CancellationException
+    ): AtomicCopyOutcome {
+        Timber.i("AtomicFileOperationStrategy: Atomic copy cancelled")
+        return AtomicCopyOutcome.Cancelled(error)
+    }
+
+    private suspend fun handleFailedCopy(
+        tempDestination: String,
+        error: Exception
+    ): AtomicCopyOutcome {
+        Timber.e(error, "AtomicFileOperationStrategy: Unexpected error during atomic copy")
+        return AtomicCopyOutcome.Failed(error)
+    }
+
+    private suspend fun completeCopyOutcome(
+        tempDestination: String,
+        destination: String,
+        outcome: AtomicCopyOutcome
+    ): Result<String> {
+        if (outcome !is AtomicCopyOutcome.Success) {
+            cleanupTempFile(tempDestination)
+        }
+
+        return when (outcome) {
+            AtomicCopyOutcome.Success -> Result.success(destination)
+            is AtomicCopyOutcome.Cancelled -> Result.failure(outcome.error)
+            is AtomicCopyOutcome.Failed -> Result.failure(outcome.error)
         }
     }
 

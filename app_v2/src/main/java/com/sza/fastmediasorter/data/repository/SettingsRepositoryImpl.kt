@@ -187,6 +187,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // Resume on next launch
         private val KEY_RESUME_ON_NEXT_LAUNCH = booleanPreferencesKey("resume_on_next_launch")
 
+        // S0050: Black Screen button visibility in player toolbar
+        private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
+
         // VR settings (spec §5.7)
         private val KEY_VR_AUTO_DETECT_FORMAT = booleanPreferencesKey("vr_auto_detect_format")
         private val KEY_VR_FORCED_FORMAT = stringPreferencesKey("vr_forced_format")
@@ -201,6 +204,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_PANEL_STEREO_SINGLE_EYE = booleanPreferencesKey("panel_stereo_single_eye")
         private val KEY_VR_SHOW_FPS = booleanPreferencesKey("vr_show_fps")
         private val KEY_PLAYER_SHOW_FPS = booleanPreferencesKey("player_show_fps")
+
+        // S0028: Multi-window mode
+        private val KEY_ALLOW_SEPARATE_WINDOW = booleanPreferencesKey("allow_separate_window")
 
         // Adaptive pre-cache strategy (spec §5)
         private val KEY_PREFETCH_CACHE_MULTIPLIER = stringPreferencesKey("prefetch_cache_multiplier")
@@ -435,6 +441,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     // (absent key → null → default true, matching the user's existing behaviour)
                     resumeOnNextLaunch = preferences[KEY_RESUME_ON_NEXT_LAUNCH] ?: true,
 
+                    // S0050: absent key → false (opt-in feature, disabled by default)
+                    showBlackScreenButton = preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] ?: false,
+
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
                         .fromName(preferences[KEY_PREFETCH_CACHE_MULTIPLIER]),
@@ -442,7 +451,10 @@ class SettingsRepositoryImpl @Inject constructor(
                         .fromName(preferences[KEY_STREAMING_CACHE_CLEANUP_MODE]),
                     streamingCacheTtlDays = preferences[KEY_STREAMING_CACHE_TTL_DAYS]
                         ?.takeIf { it in STREAMING_CACHE_TTL_VALID }
-                        ?: 7
+                        ?: 7,
+
+                    // S0028: Multi-window mode
+                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: BuildConfig.SUPPORT_VR_PLAYER
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -657,11 +669,17 @@ class SettingsRepositoryImpl @Inject constructor(
             // Resume on next launch
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
 
+            // S0050: Black Screen button
+            preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
+
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
             preferences[KEY_STREAMING_CACHE_CLEANUP_MODE] = settings.streamingCacheCleanupMode.name
             preferences[KEY_STREAMING_CACHE_TTL_DAYS] = settings.streamingCacheTtlDays
                 .takeIf { it in STREAMING_CACHE_TTL_VALID } ?: 7
+
+            // S0028: Multi-window mode
+            preferences[KEY_ALLOW_SEPARATE_WINDOW] = settings.allowSeparateWindow
         }
     }
 

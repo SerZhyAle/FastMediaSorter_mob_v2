@@ -4,9 +4,9 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.cloud.datasource.CloudDataSourceFactory
+import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
@@ -20,7 +20,7 @@ import timber.log.Timber
  * Cloud buffer tuning: larger min/max buffers than local/SMB because cloud throughput
  * is variable and HTTP HEAD/redirect latency is higher on first request.
  */
-internal fun VideoPlayerManager.playCloudVideo(path: String, playWhenReady: Boolean) {
+internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenReady: Boolean) {
     val fileId = path.substringAfterLast("/")
     if (fileId.isEmpty() || fileId == path) {
         Timber.e("VideoPlayerManager: Invalid cloud path, no fileId")
@@ -49,9 +49,18 @@ internal fun VideoPlayerManager.playCloudVideo(path: String, playWhenReady: Bool
         .setUsage(C.USAGE_MEDIA)
         .build()
 
+    val cloudUri = PathUtils.safeParseUri(path)
+    val routeHint = NetworkPlaybackContainerHint.fromPath(path)
+    Timber.d("VideoPlayerManager: Cloud routeHint=$routeHint path=$path")
+    val tsFormat: TsPacketFormat = if (routeHint == NetworkPlaybackContainerHint.M2TS_TS_CANDIDATE) {
+        CloudDataSourceFactory(clients).detectTsFormatSuspend(cloudUri)
+    } else {
+        TsPacketFormat.STANDARD_188
+    }
+
     exoPlayer = ExoPlayer.Builder(context)
         .setMediaSourceFactory(
-            DefaultMediaSourceFactory(dataSourceFactory as DataSource.Factory)
+            (dataSourceFactory as DataSource.Factory).buildBdTsMediaSourceFactory(tsFormat)
         )
         .setLoadControl(loadControl)
         .setAudioAttributes(audioAttributes, true)
@@ -61,7 +70,6 @@ internal fun VideoPlayerManager.playCloudVideo(path: String, playWhenReady: Bool
     exoPlayer?.addListener(playerListener)
     currentPlayerView?.player = exoPlayer
 
-    val cloudUri = PathUtils.safeParseUri(path)
     val mediaItem = createMediaItem(cloudUri.toString(), path)
     exoPlayer?.setMediaItem(mediaItem)
     exoPlayer?.prepare()

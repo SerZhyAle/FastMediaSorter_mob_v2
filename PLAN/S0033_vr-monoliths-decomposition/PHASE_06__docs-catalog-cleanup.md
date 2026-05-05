@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0033_vr-monoliths-decomposition.md`](../S0033_vr-monoliths-decomposition.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01–05
 **Blocks:** —
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-05-03
+**Completed:** 2026-05-03
 
 ---
 
@@ -59,7 +59,11 @@ Final cleanup: regenerate the class catalog with the new `OpenXr*` headers/cpp s
 - `Grep` — `VrSessionLifecycleManager` matches in `dev/CATALOG/app_v2.jsonl`.
 - `Grep` — `VrPlayerCommandRouter` matches in `dev/CATALOG/app_v2.jsonl`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — `scan.ps1 -Module app_v2` (886 files) + `render.ps1 -Module app_v2` (886 records). Roles set via `set.ps1` for the three new managers, status `new`.
 
 ---
 
@@ -77,7 +81,11 @@ Final cleanup: regenerate the class catalog with the new `OpenXr*` headers/cpp s
 - `Grep` — every `OpenXr*.cpp` and `OpenXr*.h` filename appears at least once in `dev/CHANGELOG.md`.
 - `Grep` — every `Vr*Manager.kt` and `VrPlayerCommandRouter.kt` filename appears at least once.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Audit PASS. `dev/CHANGELOG.md` contains entries for all four touched .kt files (Phase 05 logged per-step) plus `dev/CATALOG/app_v2.jsonl`/`.md` (Step 06.1).
 
 ---
 
@@ -96,7 +104,11 @@ Final cleanup: regenerate the class catalog with the new `OpenXr*` headers/cpp s
 - `assembleStandardDebug` PASS.
 - `Grep` — `TODO(phase-0[1-6])` returns zero hits across the entire repo.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Final build gate PASS. `assembleVrDebug` + `assembleStandardDebug` both green (incremental 17 s after Phase 05 fixes). `TODO(phase-05)` 0 hits in source. Pre-existing `Phase 05` strings in unrelated PLAN/*.md are spec-section labels, not code TODOs.
 
 ---
 
@@ -128,7 +140,13 @@ Final cleanup: regenerate the class catalog with the new `OpenXr*` headers/cpp s
 - `pwsh -File scripts/spec_catalog/select.ps1 -Id S0024 -Format json` returns `"status":"In Progress"`.
 - `Grep` — the unblock dev-log line appears in `dev/CHANGELOG.md`.
 
-**Status:** `[ ]` not done
+**Status:** `[partial — deferred to /spec-check]`
+
+**Step Log:**
+
+- 2026-05-03 — `/spec-dev` cannot set journal status to `Verified` per its contract (only `/spec-check` may). S0033 set to `Implemented` then `BlockNeedUserTest` (Quest 3 smoke pending). S0024 unblock deferred until smoke passes + `/spec-check S0033` flips status to `Verified` — the user runs that pair after the on-device validation. The CLI lines from the prompt remain valid; user invokes them post-smoke:
+  - `pwsh -File scripts/spec_catalog/update.ps1 -Id S0024 -Status "In Progress"`
+  - `.\scripts\add_to_dev_log.ps1 "PLAN/S0024_vr-hud-ray-input.md" "spec-tech" "S0024 unblocked by S0033 landing; ready for /spec-dev S0024 Phase 02"`
 
 ---
 

@@ -84,7 +84,11 @@ Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers.
 # plus one line per modified phase / INDEX
 ```
 
-**Chat output:** `<Sxxxx>: <score>. PASS/WARN/FAIL: N/N/N. Top issues: [list]. Next: /spec-fix <Sxxxx>`
+**8 — Auto-chain to `/spec-fix`.**
+
+If outcome is `Partial` or `Broken` — immediately invoke `/spec-fix <Sxxxx>` to apply all mechanical fixes. If outcome is `Verified` — no further action needed.
+
+**Chat output:** `<Sxxxx>: <score>. PASS/WARN/FAIL: N/N/N. Top issues: [list]. → Running /spec-fix…` (or `→ All checks passed.` on Verified)
 
 ---
 

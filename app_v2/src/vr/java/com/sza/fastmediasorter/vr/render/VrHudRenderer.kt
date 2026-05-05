@@ -17,15 +17,24 @@ import timber.log.Timber
  *  - Call [setVisible] to toggle inclusion of the HUD layer in xrEndFrame.
  *  - Call [release] when the XR session ends.
  *
- * Resolution: 1024×256 by default (≈ 4:1 strip). Caller may override via the
- * constructor when a different aspect ratio is desired — but resizing requires
- * release + recreate on the native side, so prefer one fixed size per session.
+ * Resolution: computed at construction time from the eye buffer dimensions using
+ * [HUD_WIDTH_RATIO] × [HUD_HEIGHT_RATIO]. Defaults to 1024×256 on non-XR devices
+ * where eye dimensions are unavailable. Fixed for the lifetime of the session —
+ * resizing requires release + recreate on the native side.
  */
 class VrHudRenderer(
     private val sessionManager: OpenXrSessionManager,
-    val width: Int = DEFAULT_WIDTH,
-    val height: Int = DEFAULT_HEIGHT,
 ) {
+    val width: Int
+    val height: Int
+
+    init {
+        val eyeW = sessionManager.eyeWidth(0)
+        val eyeH = sessionManager.eyeHeight(0)
+        width = if (eyeW > 0) (eyeW * HUD_WIDTH_RATIO).toInt() else DEFAULT_WIDTH
+        height = if (eyeH > 0) (eyeH * HUD_HEIGHT_RATIO).toInt() else DEFAULT_HEIGHT
+        Timber.i("VrHudRenderer: size %dx%d (eye %dx%d)", width, height, eyeW, eyeH)
+    }
 
     private var swapchainReady: Boolean = false
     private var bitmap: Bitmap? = null
@@ -107,6 +116,8 @@ class VrHudRenderer(
     }
 
     companion object {
+        const val HUD_WIDTH_RATIO = 0.80f
+        const val HUD_HEIGHT_RATIO = 0.22f
         const val DEFAULT_WIDTH = 1024
         const val DEFAULT_HEIGHT = 256
     }

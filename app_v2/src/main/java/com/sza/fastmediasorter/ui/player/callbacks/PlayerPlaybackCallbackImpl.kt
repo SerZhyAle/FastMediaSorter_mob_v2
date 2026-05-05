@@ -117,6 +117,19 @@ class PlayerPlaybackCallbackImpl(
             .show()
     }
 
+    override fun onNetworkContainerRouteError(
+        path: String,
+        hint: com.sza.fastmediasorter.ui.player.helpers.NetworkPlaybackContainerHint
+    ) {
+        if (activity.isDestroyed || activity.isFinishing) return
+        Timber.w("PlayerPlaybackCallbackImpl: VOB route error, stopping on current file: $path")
+        AlertDialog.Builder(activity)
+            .setTitle(activity.getString(R.string.error_vob_route_title))
+            .setMessage(activity.getString(R.string.error_vob_route_message))
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
     override fun onBeforeVideoLoad(path: String) {
         // Keep explicit per-file behaviour predictable: every new video starts from a clean
         // detection state, but remembered VR format may still seed the effective renderer mode.

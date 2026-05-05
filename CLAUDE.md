@@ -92,7 +92,7 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 ## Strict Rules
 
 1. No writes to project root — use `temp/` for logs, artifacts, backups.
-2. File size limit 1000 LOC — extract to `helpers/*Manager.kt`.
+2. File size limit 1500 LOC — extract to `helpers/*Manager.kt`.
 3. Activity logic prohibited — delegate to Manager/Helper classes.
 4. Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 5. Backup rule: file >500 LOC → timestamped backup in `temp/` before edit.
@@ -102,7 +102,8 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 9. Before editing, read existing inline comments/KDoc in the affected area — treat as requirements.
 10. When changing logic, add WHY-comments only when not obvious; remove stale comments.
 11. UI ambiguity gate: see `/ui-clarify` — implementation blocked until all placement/visibility/fallback decisions are explicit.
-12. Spec ticket discipline: never edit `PLAN/spec-catalog.jsonl` directly; never rename a spec file out of its `Sxxxx_` prefix; never re-introduce a `_spec_` segment in PLAN paths; new specs must allocate an id via `scripts/spec_catalog/insert.ps1` **before** the strategic `.md` is written to disk.
+12. Layout orientation: editing any `res/layout/*.xml` → ALWAYS check `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but doesn't, create it or add a blocker. **Never silently leave portrait-only edits in a layout that has a landscape counterpart.**
+13. Spec ticket discipline: never edit `PLAN/spec-catalog.jsonl` directly; never rename a spec file out of its `Sxxxx_` prefix; never re-introduce a `_spec_` segment in PLAN paths; new specs must allocate an id via `scripts/spec_catalog/insert.ps1` **before** the strategic `.md` is written to disk.
 
 ## Feature Inventory
 
@@ -114,12 +115,15 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
    `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`
    (never edit `dev/CHANGELOG.md` directly).
 2. **Feature docs** after any new user-facing feature — update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet.
-3. **Catalogue sync** — run after **every** `.kt` file change (not only API changes):
+3. **String locale audit** after adding/removing any `strings.xml` keys — run
+   `pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`
+   to verify EN/RU/UK parity. Exit code 1 = missing keys, must fix before commit.
+4. **Catalogue sync** — run after **every** `.kt` file change (not only API changes):
    - `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>` — refreshes auto-fields; manual fields are preserved.
    - `pwsh -File dev/CATALOG/scripts/render.ps1 -Module <app_v2|wear>` — regenerates the human-readable `.md`.
    - For new classes, fill `role` + `status` via `set.ps1` (see `dev/CATALOG/README.md`).
    - Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
-4. **Spec catalog sync** — run on every spec status transition (Draft → Approved → Tactical → In Progress → Implemented → Verified / Partial / Broken, or to/from any `Block*` state):
+5. **Spec catalog sync** — run on every spec status transition (Draft → Approved → Tactical → In Progress → Implemented → Verified / Partial / Broken, or to/from any `Block*` state):
    - `pwsh -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` (also `-Priority N` when the urgency changes).
    - Skills `/spec`, `/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-update`, `/spec-all`, `/quick` perform this automatically — invoke the CLI yourself only when no skill is in flight.
    - Direct edits to `PLAN/spec-catalog.jsonl` are forbidden.

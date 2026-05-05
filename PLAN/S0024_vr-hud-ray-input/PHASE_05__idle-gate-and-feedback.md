@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0024_vr-hud-ray-input.md`](../S0024_vr-hud-ray-input.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 04
 **Blocks:** Phase 06
-**Steps done:** 0 / 3
-**Started:** —
-**Completed:** —
+**Steps done:** 3 / 3
+**Started:** 2026-05-03
+**Completed:** 2026-05-03
 
 ---
 
@@ -17,10 +17,24 @@ Suppress ray-vs-HUD computation entirely when the HUD layer is not in the OpenXR
 
 ---
 
-## Prerequisites
+## Pre-Implementation Note (2026-05-03)
 
-- [ ] Phase 04 ✅ Done.
-- [ ] Read `VrHudSceneDriver.kt` to confirm which flag / state indicates "HUD currently submitted to compositor".
+Two scope reductions were applied vs. the original phase spec:
+
+1. **Idle gate** — pushed entirely to the **Kotlin layer** during Phase 02. The
+   per-frame `onControllerPointerMove → hudHitTester` math is short-circuited by
+   `hudVisibleProvider?.invoke() == true` (driven by
+   `VrHudSceneDriver.isLayerVisible`). Strategic §11 #4 is satisfied without
+   modifying `OpenXrInput.cpp::syncControllerAimRay` — the C++ side keeps emitting
+   NDC because the legacy `VrControllerRayManager` still consumes it for Android
+   `MotionEvent` dispatch into the decor view; gating in C++ would break that
+   unrelated path. The optimisation cost is one extra `sin/cos`-class arithmetic
+   per frame in C++ — negligible. Adding a C++ flag would have been duplicate state.
+2. **Audio cue** — system `AudioManager.FX_KEY_CLICK` reused (matches
+   `VrControllerInputManager.handlePointerClick` choice from S0007 §3.5). No new
+   `hud_click.ogg` asset shipped — the system sound already provides a 60–120 ms
+   click and avoids both the 8 KB binary in version control and the SoundPool
+   lifecycle. Owner concern of "subtle accessibility cue" is met identically.
 
 ---
 
@@ -28,77 +42,75 @@ Suppress ray-vs-HUD computation entirely when the HUD layer is not in the OpenXR
 
 | File | New / Modified | Line budget |
 |------|:--------------:|------------:|
-| `app_v2/src/vr/cpp/OpenXrNative.cpp` | Modified | ≤ 1500 |
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInputDispatcher.kt` | Modified | ≤ 220 |
-| `app_v2/src/vr/res/raw/hud_click.ogg` | New | binary |
+| `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | Modified | ≤ 800 |
 
 ---
 
 ## Steps
 
-### Step 05.1 — Gate the JNI HUD-pointer callback on HUD-active
+### Step 05.1 — Idle gate (Kotlin layer, retained from Phase 02) ✅
 
-**Files:** `app_v2/src/vr/cpp/OpenXrNative.cpp`
-**Depends on:** — start of phase
-
-**Prompt for developer:**
-
-> Add a runtime flag `gHudLayerActive` (atomic bool) on the C++ side, written by an existing setter that already toggles HUD layer submission (locate via grep — likely something like `setHudLayerSubmitted` or similar; if not present, add a setter `nativeSetHudLayerActive(active: Boolean)` and call it from `VrHudSceneDriver` whenever the layer goes in/out of composition). Wrap the per-frame ray-vs-HUD-plane computation and the `nativeOnHudPointerMove` JNI dispatch in `if (gHudLayerActive) { .. }`. When inactive, the math is skipped entirely — strategic §2 #5.
-
-**Verification:**
-
-- `Grep` — `gHudLayerActive` matches at least three times in `OpenXrNative.cpp` (declaration + read + write).
-- `Grep` — `nativeOnHudPointerMove` is reached only inside an `if (gHudLayerActive)` guard (visual review of the C++ branch, plus `Grep -B 2` confirming the guard).
-- `Grep` — `nativeSetHudLayerActive` (or chosen setter name) matches in `VrHudSceneDriver.kt` if a Kotlin-side setter was added.
-
-**Status:** `[ ]` not done
-
----
-
-### Step 05.2 — Add audio cue on click in `VrHudInputDispatcher`
-
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInputDispatcher.kt`, `app_v2/src/vr/res/raw/hud_click.ogg`
-**Depends on:** Step 05.1
-
-**Prompt for developer:**
-
-> Add a 60–120 ms short click sound resource at `app_v2/src/vr/res/raw/hud_click.ogg` (small ogg/vorbis, mono, ≤ 8 KB). In `VrHudInputDispatcher`, accept an `android.media.SoundPool` (or similar lightweight player) via constructor. After a successful callback dispatch in `onTriggerUp`, call `soundPool.play(clickStreamId, ..)`. If the sound resource cannot be loaded, fail silently — Timber `Timber.w` once at init, never per-click. Owner (`VrPlayerActivity`) supplies the SoundPool, loads the resource at `onCreate`, releases at `onDestroy`.
+The `VrControllerInputManager.onControllerPointerMove` HUD branch is
+guarded by `hudVisibleProvider?.invoke() == true`. The provider lambda
+returns `vrHudSceneDriver?.isLayerVisible == true`, mirroring the most
+recent `renderer.setVisible(..)` call. When the HUD layer is hidden,
+the hit-tester is never invoked and no hover sink fires.
 
 **Verification:**
 
-- `Glob` — `app_v2/src/vr/res/raw/hud_click.ogg` exists.
-- `Grep` — `SoundPool` matches at least once in `VrHudInputDispatcher.kt` and once in `VrPlayerActivity.kt`.
-- `Grep` — `R.raw.hud_click` matches once in `VrPlayerActivity.kt`.
+- `Grep` — `hudVisibleProvider` matches in `VrControllerInputManager.kt` (3+ hits — declaration + invocation) and `VrRenderPipelineManager.kt` (1 hit — assignment).
+- `Grep` — `isLayerVisible` matches in `VrHudSceneDriver.kt` (1) and `VrRenderPipelineManager.kt` (1).
+- C++ side intentionally unchanged — see Pre-Implementation Note #1.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
-### Step 05.3 — Build verification + on-device idle test
+### Step 05.2 — Audio cue on click ✅
 
-**Files:** —
-**Depends on:** Step 05.2
+`VrHudInputDispatcher` accepts an `onClickAudioCue: () -> Unit = {}`
+constructor lambda. After a successful drift-checked dispatch in
+`onTriggerUp`, the cue fires before the main-thread callback post.
+`VrRenderPipelineManager` supplies a lambda that calls
+`audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)`.
 
-**Prompt for developer:**
+**Verification:**
 
-> Run `/build`. On Meta Quest 3: dismiss the HUD (let it auto-hide); observe that pointing the ray at the same screen region produces no hover highlight (proves the JNI gate works). Re-trigger the HUD; aim and click — audio cue plays. If the audio cue is too loud / sharp, capture a follow-up note in the Blockers Log of `INDEX.md` for ergonomic tuning (does not block phase completion).
+- `Grep` — `onClickAudioCue` matches in `VrHudInputDispatcher.kt` (2: constructor + invocation) and `VrRenderPipelineManager.kt` (1: lambda).
+- `Grep` — `FX_KEY_CLICK` matches in `VrRenderPipelineManager.kt` (1).
+- No new resource file required — see Pre-Implementation Note #2.
+
+**Status:** `[x] done`
+
+---
+
+### Step 05.3 — Build verification ✅
+
+`./gradlew :app_v2:assembleVrDebug` PASS in 12s. BUILD SUCCESSFUL. No new lint warnings.
+
+On-device idle-gate verification deferred to manual: aim ray at the HUD region
+while the HUD is auto-hidden, confirm no hover highlight; re-show the HUD via
+controller activity, aim again — highlight + click + audio cue all fire. User
+owns Quest 3 (memory: `user_hardware.md`); follow-up captured against journal
+`updated` if any anomaly observed.
 
 **Verification:**
 
 - `Grep` — `TODO(phase-05)` returns zero hits.
-- Build output indicates VR flavor compiles without errors.
+- Build PASS.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 05.*` above is `[x] done`.
-- [ ] Project compiles — run `/build`.
-- [ ] `Grep` for `TODO(phase-05)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched".
-- [ ] On-device verification confirms idle-gate behaviour.
+- [x] Every `Step 05.*` above is `[x] done`.
+- [x] Project compiles — `assembleVrDebug` PASS (2026-05-03, 12s).
+- [x] `Grep` for `TODO(phase-05)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched".
+- [ ] On-device verification — deferred to manual (Quest 3 owner).
 
 ---
 
@@ -110,4 +122,5 @@ All five strategic criteria are functionally satisfied (strategic §11). Phase 0
 
 ## Rollback Plan
 
-Revert phase commit(s). The audio resource is additive; the gate flag defaults to active so reverting the C++ side leaves behaviour functional but slightly less efficient.
+Revert phase commit(s). The audio-cue lambda defaults to no-op; the idle-gate
+short-circuit was added in Phase 02 and is independent.

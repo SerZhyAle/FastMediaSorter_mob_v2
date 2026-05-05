@@ -56,6 +56,8 @@ class NetworkSpeedTestUseCase @Inject constructor(
     sealed class SpeedTestStatus {
         data class Progress(val messageResId: Int) : SpeedTestStatus()
         data class Complete(val result: SpeedTestResult) : SpeedTestStatus()
+        // No usable measurement returned (e.g. empty/truncated server response) — not a real failure
+        data class MeasurementUnavailable(val reason: String) : SpeedTestStatus()
         data class Error(val message: String) : SpeedTestStatus()
     }
 
@@ -118,10 +120,29 @@ class NetworkSpeedTestUseCase @Inject constructor(
             emit(SpeedTestStatus.Complete(result))
             
         } catch (e: Exception) {
-            Timber.e(e, "Speed test failed")
-            emit(SpeedTestStatus.Error(e.message ?: "Unknown error"))
+            if (isEmptyMeasurementError(e)) {
+                // Benign: server returned no parseable measurement — not a real failure
+                Timber.d("Speed test: measurement unavailable for ${resource.name} — ${e.message}")
+                emit(SpeedTestStatus.MeasurementUnavailable(e.message ?: "no data"))
+            } else {
+                // Unexpected error — one short WARNING, no stack-trace, no ERROR channel noise
+                Timber.w("Speed test failed for ${resource.name}: ${e.message}")
+                emit(SpeedTestStatus.Error(e.message ?: "Unknown error"))
+            }
         }
     }.flowOn(ioDispatcher)
+
+    /**
+     * Returns true for exceptions that indicate a missing/incomplete measurement
+     * rather than a genuine failure: null/blank message or known FTP parser
+     * 'Conversion = End of String' patterns from Apache Commons Net.
+     */
+    private fun isEmptyMeasurementError(e: Exception): Boolean {
+        val msg = e.message ?: return true
+        return msg.isBlank() ||
+            msg.contains("End of String", ignoreCase = true) ||
+            msg.startsWith("Conversion", ignoreCase = true)
+    }
 
     private suspend fun testSmbSpeed(resource: MediaResource): SpeedTestResult {
         val credentialsId = resource.credentialsId ?: throw Exception("No credentials")

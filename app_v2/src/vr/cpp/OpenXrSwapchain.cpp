@@ -3,6 +3,7 @@
 #include "OpenXrHandTracking.h"
 #include "OpenXrInput.h"
 #include "OpenXrLog.h"
+#include "OpenXrRayDraw.h"
 
 #include <dlfcn.h>
 
@@ -276,6 +277,11 @@ bool xrnative::createSessionAndSwapchains(XrCtx &ctx)
         {
             LOGW("createSessionAndSwapchains: HUD swapchain creation failed — HUD disabled");
         }
+    }
+
+    if (!initRayResources(ctx))
+    {
+        LOGW("createSessionAndSwapchains: ray resources init failed — controller ray will not render");
     }
 
     LOGI("createSessionAndSwapchains: complete — session ready for runtime events");

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.network.datasource
 
+import android.content.Context
 import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.datasource.BaseDataSource
@@ -11,8 +12,10 @@ import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.smbj.share.File
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.SmbErrorClassifier
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.network.model.ConnectionKey
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import timber.log.Timber
@@ -37,7 +40,8 @@ import java.util.concurrent.TimeoutException
  */
 class SmbDataSource(
     private val smbClient: SmbClient,
-    private val connectionInfo: SmbConnectionInfo
+    private val connectionInfo: SmbConnectionInfo,
+    private val context: Context
 ) : BaseDataSource(true) {
     companion object {
         private const val CHUNK_LOG_BYTES = 10_000_000L // ~10 MB summaries
@@ -111,6 +115,9 @@ class SmbDataSource(
     private var internalBufferValidBytes = 0
 
     override fun open(dataSpec: DataSpec): Long {
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            throw LocalNetworkPermissionDeniedException()
+        }
         val key = connectionKey()
         val tracker = smbClient.playbackConnectionTracker
         // Fail-fast: if a watchdog fired on the previous attempt for this server/share,
@@ -601,7 +608,8 @@ class SmbDataSource(
  */
 class SmbDataSourceFactory(
     private val smbClient: SmbClient,
-    private val connectionInfo: SmbConnectionInfo
+    private val connectionInfo: SmbConnectionInfo,
+    private val context: Context
 ) : DataSource.Factory {
-    override fun createDataSource(): DataSource = SmbDataSource(smbClient, connectionInfo)
+    override fun createDataSource(): DataSource = SmbDataSource(smbClient, connectionInfo, context)
 }

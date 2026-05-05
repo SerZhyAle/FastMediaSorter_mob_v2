@@ -8,7 +8,7 @@
 
 **Last measured:** 2026-04-24
 
-**Loop status:** running automated decomposition loop — pick the largest file by score, extract helpers until it is ≤ 1000 LOC, build standard debug, fix compile errors, commit, then advance to the next file.
+**Loop status:** running automated decomposition loop — pick the largest file by score, extract helpers until it is ≤ 1500OC, build standard debug, fix compile errors, commit, then advance to the next file.
 
 ---
 
@@ -294,7 +294,7 @@ To keep the loop productive, the dynamic loop now picks the next file by **(LOC 
 
 ## Loop status
 
-Already brought under the 1000 LOC hard cap (waves 4, 5, 7):
+Already brought under the 1500OC hard cap (waves 4, 5, 7):
 
 - `ui/player/PlayerViewModel.kt` (688)
 - `ui/main/MainActivity.kt` (887)

@@ -96,7 +96,7 @@ class EpubViewerManager(
     // Selection bridge: captures the latest selected text from WebView via JS interface
     private val selectionBridge = EpubSelectionBridge()
 
-    // TTS Read Aloud delegate (extracted because EpubViewerManager exceeds 1000 lines)
+    // TTS Read Aloud delegate (extracted because EpubViewerManager exceeds 1500ines)
     private val ttsDelegate = EpubTtsDelegate(binding.root.context)
 
     /**

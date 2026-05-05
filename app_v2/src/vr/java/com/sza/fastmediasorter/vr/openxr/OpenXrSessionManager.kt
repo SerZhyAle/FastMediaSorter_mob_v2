@@ -521,6 +521,22 @@ class OpenXrSessionManager(
             descriptor.radiusMeters,
             reason,
         )
+        // S0041 cross-grep companion — same payload behind the VR_QUALITY_DEBUG marker so
+        // a single `grep VR_QUALITY_DEBUG` catches geometry, track format, render UV, and
+        // fisheye uniform lines together.
+        Timber.d(
+            "VR_QUALITY_DEBUG: layerGeom type=%s centralAngle=%.4f upper=%.4f lower=%.4f" +
+                " radius=%.4f width=%.4f height=%.4f distance=%.4f (reason=%s)",
+            descriptor.type,
+            descriptor.centralHorizontalAngleRadians,
+            descriptor.upperVerticalAngleRadians,
+            descriptor.lowerVerticalAngleRadians,
+            descriptor.radiusMeters,
+            descriptor.widthMeters,
+            descriptor.heightMeters,
+            descriptor.distanceMeters,
+            reason,
+        )
         try {
             OpenXrNative.nativeConfigureLayer(
                 layerType = descriptor.type.nativeValue,

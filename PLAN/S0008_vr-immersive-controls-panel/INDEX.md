@@ -3,11 +3,11 @@
 **Strategic spec:** [`../S0008_vr-immersive-controls-panel.md`](../S0008_vr-immersive-controls-panel.md)
 **Feature:** VR Immersive Controls Panel — controller rays, interactive HUD, seek/volume/brightness/track/format
 **Tier:** 4 — Strategic (8h+, high risk)
-**Status:** Broken (regressed by feature flag — see Field-log 2026-05-02 below)
-**Phases:** 6 / 6 done (code-level), 0 / 7 §11 criteria PASS on device
-**Last updated:** 2026-05-02
+**Status:** BlockNeedUserTest (panel reachable after 2026-05-03 flag flip; visible-ray = S0065)
+**Phases:** 6 / 6 done (code-level), §11 criteria pending on-device verification
+**Last updated:** 2026-05-03
 
-> **Scope of this document:** tactical, English, developer handoff. Every step has an explicit verification predicate. Strategic rationale lives in `../spec_vr-immersive-controls-panel.md`.
+> **Scope of this document:** tactical, English, developer handoff. Every step has an explicit verification predicate. Strategic rationale lives in `../S0008_vr-immersive-controls-panel.md`.
 
 ---
 
@@ -55,11 +55,13 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 The feature is Done when **every** item below is ticked:
 
-- [ ] All 6 phases show ✅ Done in the Phase Overview.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (see strategic §8).
+- [x] All 6 phases show ✅ Done in the Phase Overview.
+- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (see strategic §8) — verify after on-device run.
 - [ ] `dev/CHANGELOG.md` has an entry for every modified file.
 - [ ] `dev/CATALOG/app_v2.jsonl` regenerated (new classes: `VrControllerRayManager`, `VrInteractivePanelRenderer`, `VrInteractivePanelComposer`, `VrInteractivePanelDriver`, `VrRayPanelHitTester`, `VrPanelHitZoneResolver`).
-- [ ] `/spec-check vr-immersive-controls-panel` returns `Verified`.
+- [ ] On-device verification of §11.1, §11.3-7 on Quest 3 PASS (see Re-evaluation table).
+- [ ] **S0065** (visible controller ray) reaches `Verified` — closes §11.2 / Goal §2.2.
+- [ ] `/spec-check S0008` returns `Verified`.
 - [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
 
 ---
@@ -77,9 +79,11 @@ The feature is Done when **every** item below is ticked:
 ## Blockers Log
 
 - **2026-05-02 — Feature flag kills the entire feature.** Quest 3 capture (`logs/fastmediasorter_20260502_035656.log`) shows that `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED=false` ([`app_v2/build.gradle.kts:261`](../../app_v2/build.gradle.kts#L261), [`:310`](../../app_v2/build.gradle.kts#L310)) makes `isImmersiveUiLocked()` return `true` whenever `vrRenderingActive` is on ([`VrPlayerActivity.kt:1024-1025`](../../app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt#L1024)). Every `OpenControls`/`OpenFileOps` command no-ops and shows `vr_hud_guard_controls`/`_file_ops` banner instead of the interactive panel. The user only sees the «Exit immersive to open it» message. **Fix path:** flip the flag for VR debug flavor, or remove the guard once Phase 03 / 04 / 05 are validated end-to-end.
+- **2026-05-03 — RESOLVED (flag flip).** Both `vr` and `vrUnlicensed` flavors now ship with `VR_UI_COMPOSITION_LAYER_ENABLED = "true"` ([`app_v2/build.gradle.kts:261`](../../app_v2/build.gradle.kts#L261), [`:312`](../../app_v2/build.gradle.kts#L312)). `isImmersiveUiLocked()` returns `false` in immersive — guard removed. Build PASS (standardDebug + vrDebug, 6s, 2026-05-03 14:30 via `/spec-all S0008 force`).
 - **2026-05-02 — Visual ray indicator missing.** `VrControllerRayManager` ([`VrControllerRayManager.kt:18-21`](../../app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControllerRayManager.kt#L18-L21)) declares «No cursor dot — Touch controller users receive hardware LED + haptic feedback.» On Quest 3 with focused XR session no hardware LED is visible to the user. Goal §2.2 «Луч от контроллера виден» fails. **Fix path:** add a billboard quad / line strip rendered from aim-pose to hit point (`Столп A` of strategic §5.1). Phase 02 already wires hit-testing (1449 hover events captured 2026-05-02) — only the visual draw step is missing.
+- **2026-05-03 — RESCOPED to S0065.** Visible controller-ray work allocated as standalone ticket [`S0065 vr-controller-ray-visual`](../S0065_vr-controller-ray-visual.md) (Approved). Includes the deferred GLES3 VBO + passthrough shader from `OpenXrInput.cpp:573-575` TODO. S0024 hover-highlight (Verified 2026-05-03) provides partial visual feedback when aim is on the HUD plane. S0008 PARTIAL on §11.2 / Goal §2.2 until S0065 lands.
 
-### Field-log — Quest 3 2026-05-02
+### Field-log — Quest 3 2026-05-02 (snapshot before flag flip)
 
 | § | Goal | Code present | Behaviour on device | Verdict |
 |---|------|:-----------:|---------------------|---------|
@@ -90,6 +94,25 @@ The feature is Done when **every** item below is ticked:
 | §11.5 | Stereo-format indicator + manual switch | yes | unreachable | FAIL |
 | §11.6 | Auto-hide after 10 s | n/a | unreachable | FAIL |
 | §11.7 | FPS ≥ 72 with panel open | n/a | cannot measure | MANUAL |
+
+### Re-evaluation 2026-05-03 (post-flag-flip + S0024 landing)
+
+| § | Goal | Code present | Reachable in code? | Verdict |
+|---|------|:-----------:|:------------------:|---------|
+| §11.1 | X opens HUD with interactive elements | yes | ✅ guard removed | MANUAL — Quest 3 confirm |
+| §11.2 | Controller ray visible | partial (math + S0024 hover-highlight) | partial — visual ray pending | PARTIAL → S0065 |
+| §11.3 | Seek slider movable by ray | yes | ✅ | MANUAL |
+| §11.4 | Volume / brightness / track / speed in immersive | yes | ✅ | MANUAL |
+| §11.5 | Stereo-format indicator + manual switch | yes | ✅ | MANUAL |
+| §11.6 | Auto-hide after 10 s | yes (driver `IDLE_HIDE_DELAY_MS = 15_000L`) | ⚠ note: actual delay 15 s, spec says 10 s — see follow-up | MANUAL |
+| §11.7 | FPS ≥ 72 with panel open | n/a | now measurable | MANUAL |
+
+> **Follow-up (§11.6 timing):** strategic §3.1.4 specifies «10 секунд», but
+> [`VrHudSceneDriver.IDLE_HIDE_DELAY_MS`](../../app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt) is `15_000L` (15 s).
+> Driver constant is the live behaviour. Decision deferred — either change spec
+> wording from "10s" to "15s" (matches code) or drop the constant to 10 s
+> (matches user-visible spec). Not a blocker for verification — captured here
+> so it doesn't get lost.
 
 ---
 

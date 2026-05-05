@@ -89,10 +89,14 @@ class BrowseViewModel @Inject constructor(
         private const val PAGE_SIZE = 50 // Load 50 files per page
     }
 
-    private val resourceId: Long = savedStateHandle.get<Long>("resourceId") 
-        ?: savedStateHandle.get<String>("resourceId")?.toLongOrNull() 
+    private val resourceId: Long = savedStateHandle.get<Long>("resourceId")
+        ?: savedStateHandle.get<String>("resourceId")?.toLongOrNull()
         ?: 0L
-    
+    // S0028: per-window resume state isolation
+    private val windowId: String = savedStateHandle.get<String>("extra_window_id")
+        ?: com.sza.fastmediasorter.domain.repository.ResumeStateRepository.WINDOW_ID_MAIN
+    private val windowIdProvider: () -> String = { windowId }
+
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
     
     // Resume extras (from MainActivity resume logic)
@@ -214,6 +218,7 @@ class BrowseViewModel @Inject constructor(
         smbClient = smbClient,
         smbOperationsUseCase = smbOperationsUseCase,
         saveResumeStateUseCase = saveResumeStateUseCase,
+        windowIdProvider = windowIdProvider,
         scope = viewModelScope,
         stateFlow = state,
         onNavigateToFolder = { path -> navigateToFolder(path) }
@@ -238,6 +243,7 @@ class BrowseViewModel @Inject constructor(
     // --- Delete (delegated to BrowseDeleteManager) ---
     private val deleteManager = com.sza.fastmediasorter.ui.browse.managers.BrowseDeleteManager(
         context = context,
+        settingsRepository = settingsRepository,
         fileOperationUseCase = fileOperationUseCase,
         deleteDirectoriesUseCase = deleteDirectoriesUseCase,
         deleteByFileSizeUseCase = deleteByFileSizeUseCase,
@@ -404,6 +410,7 @@ class BrowseViewModel @Inject constructor(
         getResourcesUseCase = getResourcesUseCase,
         addResourceAsDestinationUseCase = addResourceAsDestinationUseCase,
         clearResumeStateUseCase = clearResumeStateUseCase,
+        windowIdProvider = windowIdProvider,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         exceptionHandler = exceptionHandler,
@@ -440,6 +447,7 @@ class BrowseViewModel @Inject constructor(
         undoManager = undoManager,
         getResumeStateUseCase = getResumeStateUseCase,
         clearResumeStateUseCase = clearResumeStateUseCase,
+        windowIdProvider = windowIdProvider,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         exceptionHandler = exceptionHandler,

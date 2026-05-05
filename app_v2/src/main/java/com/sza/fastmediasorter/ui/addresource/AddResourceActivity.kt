@@ -354,7 +354,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     helper.preFillResourceData(event.resource, event.username, event.password, event.domain, event.sshKey, event.sshPassphrase)
                 }
                 AddResourceEvent.ResourcesAdded -> finish()
-                is AddResourceEvent.ShowSharePicker -> connectionManager.showSharePickerDialog(event.server, event.shares)
+                is AddResourceEvent.ShowSharePicker -> connectionManager.showSharePickerDialog(event.server, event.shares, event.manualShares)
+                AddResourceEvent.ShowLocalNetworkPermission -> connectionManager.showLocalNetworkPermissionRationale()
             }
         }
 

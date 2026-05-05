@@ -236,7 +236,7 @@
       "label_key": "cmd_navigation_next_file",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:22:0", "key:93:0"],
+        "keyboard": ["key:22:0", "key:93:0", "key:166:0"],
         "gamepad": ["gamepad_btn:99"],
         "mouse": ["mouse_btn:16"],
         "vr": ["vr:7"]
@@ -248,7 +248,7 @@
       "label_key": "cmd_navigation_previous_file",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:21:0", "key:92:0"],
+        "keyboard": ["key:21:0", "key:92:0", "key:167:0"],
         "gamepad": ["gamepad_btn:100"],
         "mouse": ["mouse_btn:8"],
         "vr": ["vr:6"]
@@ -500,7 +500,7 @@
       "label_key": "cmd_system_toggle_info",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:133:0", "key:37:4096"],
+        "keyboard": ["key:133:0", "key:37:4096", "key:165:0"],
         "gamepad": [],
         "mouse": [],
         "vr": []
@@ -584,7 +584,7 @@
       "label_key": "cmd_sorting_move",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:136:0", "key:52:4096"],
+        "keyboard": ["key:136:0", "key:52:4096", "key:185:0"],
         "gamepad": [],
         "mouse": [],
         "vr": []
@@ -596,7 +596,7 @@
       "label_key": "cmd_sorting_copy",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:135:0", "key:31:4096"],
+        "keyboard": ["key:135:0", "key:31:4096", "key:184:0"],
         "gamepad": [],
         "mouse": [],
         "vr": []
@@ -608,7 +608,7 @@
       "label_key": "cmd_sorting_delete",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:138:0", "key:67:0"],
+        "keyboard": ["key:138:0", "key:67:0", "key:183:0"],
         "gamepad": [],
         "mouse": [],
         "vr": []
@@ -620,7 +620,7 @@
       "label_key": "cmd_sorting_rename",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:132:0", "key:46:4096"],
+        "keyboard": ["key:132:0", "key:46:4096", "key:186:0"],
         "gamepad": [],
         "mouse": [],
         "vr": []

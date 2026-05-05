@@ -1,11 +1,15 @@
 package com.sza.fastmediasorter.data.network
 
+import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.util.LruCache
 import androidx.exifinterface.media.ExifInterface
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -35,8 +39,8 @@ import javax.inject.Singleton
 @Singleton
 class SmbMediaScanner @Inject constructor(
     private val smbClient: SmbClient,
-    private val credentialsRepository: NetworkCredentialsRepository
-    // Metadata extraction removed - loaded on-demand
+    private val credentialsRepository: NetworkCredentialsRepository,
+    @ApplicationContext private val context: Context
 ) : MediaScanner {
 
     private data class ExifMetadata(
@@ -92,6 +96,9 @@ class SmbMediaScanner @Inject constructor(
         showHiddenFiles: Boolean,
         progressCallback: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            throw LocalNetworkPermissionDeniedException()
+        }
         try {
             // Parse path format: smb://server:port/share/path
             val connectionInfo = parseSmbPath(path, credentialsId) ?: run {

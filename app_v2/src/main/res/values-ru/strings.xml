@@ -620,6 +620,9 @@
     <!-- S0021: panel-fps-overlay -->
     <string name="settings_player_show_fps">Показывать FPS поверх плеера</string>
     <string name="settings_player_show_fps_desc">Отображать диагностический счётчик FPS поверх плоского 2D-плеера</string>
+    <!-- S0028: multi-window -->
+    <string name="action_open_in_separate_window">В отдельном окне</string>
+    <string name="setting_allow_separate_window">Разрешить запуск в отдельном окне</string>
 
     <!-- Edit Folder -->
     <string name="edit_resource">Редактирование папки</string>
@@ -824,6 +827,12 @@
     <string name="permission_storage_rationale_r">FastMediaSorter требуется разрешение на управление всеми файлами для доступа к локальным папкам и медиафайлам.</string>
     <string name="permission_internet_title">Сетевой доступ</string>
     <string name="permission_internet_rationale">FastMediaSorter требуется доступ к сети для подключения к SMB/SFTP и облачным хранилищам.</string>
+    <string name="local_network_permission_rationale_title">Доступ к локальной сети</string>
+    <string name="local_network_permission_rationale_message">FastMediaSorter требует доступ к локальной сети для подключения к серверам SMB, SFTP, FTP и обнаружения устройств Chromecast.</string>
+    <string name="local_network_permission_grant">Разрешить доступ к локальной сети</string>
+    <string name="local_network_permission_granted">Доступ к локальной сети разрешён</string>
+    <string name="local_network_permission_denied">Доступ к локальной сети недоступен</string>
+    <string name="local_network_permission_open_settings">Открыть настройки</string>
     <string name="grant_permission">Предоставить</string>
     <string name="grant_local_files_permission">Доступ к файлам</string>
     <string name="grant_network_permission">Сетевые разрешения</string>
@@ -3014,4 +3023,10 @@
 
     <!-- S0077: optical-disc network thumbnail placeholder -->
     <string name="thumbnail_unavailable_network_format">%1$s — видеофайл, превью по сети недоступно</string>
+
+    <!-- S0082: баннер первого запуска на Chrome OS -->
+    <string name="chromeos_banner_title">Запуск на Chrome OS</string>
+    <string name="chromeos_banner_body">Доступ к папкам — через системный диалог. Cast и вибрация могут быть недоступны.</string>
+    <string name="chromeos_banner_action">Понятно</string>
+    <string name="chromeos_banner_shown_pref_key">chromeos_banner_shown</string>
 </resources>

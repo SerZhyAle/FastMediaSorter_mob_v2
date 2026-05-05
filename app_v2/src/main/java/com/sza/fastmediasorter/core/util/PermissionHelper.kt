@@ -24,6 +24,12 @@ object PermissionHelper {
     const val REQUEST_CODE_MANAGE_MEDIA = 103
     const val REQUEST_CODE_ALL_FILES_ACCESS = 104
 
+    // String literal used intentionally: Manifest.permission.ACCESS_LOCAL_NETWORK is only
+    // available in compileSdk 37+. Keeping compileSdk at 35 until the separate SDK-uplift ticket
+    // lands; this guard lets S0035 ship without pulling in the SDK bump prematurely.
+    const val LOCAL_NETWORK_API = 37
+    const val LOCAL_NETWORK_PERMISSION = "android.permission.ACCESS_LOCAL_NETWORK"
+
     /**
      * Check if MANAGE_MEDIA permission is granted (Android 12+ / API 31+).
      * This permission allows apps to modify/delete media files without user confirmation dialogs.
@@ -319,4 +325,44 @@ object PermissionHelper {
             }
         }
     }
+
+    const val REQUEST_CODE_LOCAL_NETWORK = 105
+
+    fun isLocalNetworkRuntimePermissionExpected(): Boolean =
+        Build.VERSION.SDK_INT >= LOCAL_NETWORK_API
+
+    fun hasLocalNetworkPermission(context: Context): Boolean {
+        if (!isLocalNetworkRuntimePermissionExpected()) return true
+        return ContextCompat.checkSelfPermission(
+            context,
+            LOCAL_NETWORK_PERMISSION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun shouldShowLocalNetworkRationale(activity: Activity): Boolean {
+        if (!isLocalNetworkRuntimePermissionExpected()) return false
+        return ActivityCompat.shouldShowRequestPermissionRationale(
+            activity,
+            LOCAL_NETWORK_PERMISSION
+        )
+    }
+
+    fun requestLocalNetworkPermission(activity: Activity) {
+        if (!isLocalNetworkRuntimePermissionExpected()) return
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(LOCAL_NETWORK_PERMISSION),
+            REQUEST_CODE_LOCAL_NETWORK
+        )
+    }
+
+    fun routeToLocalNetworkSettings(activity: Activity) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", activity.packageName, null)
+        }
+        SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_LOCAL_NETWORK)
+    }
+
+    fun getLocalNetworkPermissionMessage(context: Context): String =
+        context.getString(com.sza.fastmediasorter.R.string.local_network_permission_rationale_message)
 }

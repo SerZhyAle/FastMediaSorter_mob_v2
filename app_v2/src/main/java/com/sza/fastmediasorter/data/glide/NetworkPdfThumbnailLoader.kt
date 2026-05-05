@@ -17,6 +17,8 @@ import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -130,12 +132,17 @@ private class NetworkPdfDataFetcher(
         val totalStartMs = System.currentTimeMillis()
         var usedCache = false
         val downloadStartMs = System.currentTimeMillis()
-        
+
         if (isCancelled) {
             callback.onLoadFailed(Exception("Cancelled before start"))
             return
         }
-        
+
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            callback.onLoadFailed(LocalNetworkPermissionDeniedException())
+            return
+        }
+
         try {
             // Check UnifiedFileCache first (reuses files from player/metadata)
             val cachedFile = unifiedCache.getCachedFile(data.path, data.size)

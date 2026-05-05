@@ -522,17 +522,22 @@ class PlayerControlsSetupManager(
             insets
         }
 
-        // Apply WindowInsets to topCommandPanel
+        // Apply WindowInsets to topCommandPanel.
+        // Use statusBars | captionBar so the panel is also pushed below the Chrome OS window
+        // title bar (captionBar), which is not reported under statusBars() in windowed mode.
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val statusBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val topInsets = insets.getInsets(
+                androidx.core.view.WindowInsetsCompat.Type.statusBars() or
+                androidx.core.view.WindowInsetsCompat.Type.captionBar()
+            )
             val navBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             view.setPadding(
                 navBarInsets.left,
-                statusBarInsets.top,
+                topInsets.top,
                 navBarInsets.right,
                 view.paddingBottom
             )
-            Timber.d("TopCommandPanel: Applied insets - statusBar.top=${statusBarInsets.top}, navBar.left=${navBarInsets.left}, navBar.right=${navBarInsets.right}")
+            Timber.d("TopCommandPanel: Applied insets - top=${topInsets.top}, navBar.left=${navBarInsets.left}, navBar.right=${navBarInsets.right}")
             insets
         }
 

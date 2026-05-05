@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.data.network
 
-// TODO(phase-decompose-smb): file at 1004 LOC after S0025 — split via Manager pattern in a follow-up spec.
-
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
@@ -15,19 +13,13 @@ import com.sza.fastmediasorter.data.network.model.ConnectionKey
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import timber.log.Timber
 import java.io.IOException
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -114,7 +106,11 @@ class SmbConnectionManager @Inject constructor(
         // Connection staleness thresholds
         private const val CONNECTION_STALE_THRESHOLD_MS = 2 * 60 * 1000L // 2 minutes - mark as stale (reduced from 4)
         private const val CONNECTION_FORCE_RESET_MS = 3 * 60 * 1000L // 3 minutes - force full reset (reduced from 5)
-        
+
+        // S0061 Phase 02: idle threshold after which a quick health probe is run before reuse.
+        // 30 s is cheap (local state only) and catches servers that close idle TCP after 1-2 minutes.
+        private const val IDLE_HEALTH_RECHECK_MS = 30_000L
+
         // Timeout degradation tracking
         private const val TIMEOUT_WARNING_THRESHOLD = 5
         private const val TIMEOUT_CRITICAL_THRESHOLD = 20
@@ -132,29 +128,17 @@ class SmbConnectionManager @Inject constructor(
         private var lastAutoResetTime = 0L
     }
     
-    // Connection pool
-    // Tracks which subsystem originally created the pooled connection.
-    // ExoPlayer must not reuse a SCANNER connection: directory-scan sessions have been
-    // observed silently dropping their TCP socket between scan completion and playback
-    // start, and SMBJ's isConnected flag cannot detect that — the subsequent openFile()
-    // then blocks indefinitely inside the socket write (see SmbDataSource.open watchdog).
-    enum class ConnectionConsumer { SCANNER, PLAYER }
-
-    data class PooledConnection(
-        val connection: Connection,
-        val session: Session,
-        val share: DiskShare,
-        var lastUsed: Long = System.currentTimeMillis(),
-        val usageCount: AtomicInteger = AtomicInteger(0),
-        val isPendingClose: AtomicBoolean = AtomicBoolean(false),
-        val consumer: ConnectionConsumer = ConnectionConsumer.SCANNER
-    )
-    
-    private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
+    // S0061: pool ownership extracted to SmbConnectionPool; PooledConnection and
+    // ConnectionConsumer are now top-level types in that file.
+    private val pool = SmbConnectionPool()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
-    // Cleanup scope for async connection closes (ML-009)
-    private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    
+
+    // S0061 Phase 01: health probe wired here; invoked in Phase 02.
+    private val healthProbe = SmbConnectionHealthProbe()
+
+    // S0061 Phase 05: reconnect-event metric (extracted to SmbReconnectMetric helper).
+    private val reconnectMetric = SmbReconnectMetric()
+
     // Callback for auto-reset notifications
     @Volatile
     private var resetCallback: SmbResetCallback? = null
@@ -301,8 +285,19 @@ class SmbConnectionManager @Inject constructor(
         }
         
         // Attempt 1: Try pooled connection
-        val pooled = connectionPool[key]
-        if (pooled != null && isConnectionValid(pooled)) {
+        val pooled = pool.get(key)
+        // S0061 Phase 02: pre-acquire health probe. If the entry looks dead (local state check
+        // only — no I/O), drop it before opening session/share on top of a stale socket.
+        if (pooled != null && !healthProbe.isAlive(pooled)) {
+            pool.removeAndCloseAsync(key)
+            Timber.i("SMB pool entry dead — removing, key=${key.server}:${key.port}/${key.shareName}")
+            // Fall through to fresh-connect path below.
+        } else if (pooled != null && timeSinceLastSuccess > IDLE_HEALTH_RECHECK_MS && !healthProbe.isAlive(pooled)) {
+            // Secondary idle-path check: if the app was idle long enough, run the probe
+            // even if the entry passed the first guard above (harmless double-check).
+            pool.removeAndCloseAsync(key)
+            Timber.i("SMB pool entry dead after idle ${timeSinceLastSuccess}ms — removing, key=${key.server}:${key.port}")
+        } else if (pooled != null && isConnectionValid(pooled)) {
             pooled.lastUsed = System.currentTimeMillis()
             
             // Track usage
@@ -326,7 +321,7 @@ class SmbConnectionManager @Inject constructor(
                 val count = pooled.usageCount.decrementAndGet()
                 if (count == 0 && pooled.isPendingClose.get()) {
                     Timber.d("Closing pending connection after use (key=${key.server})")
-                    closeConnectionAsync(pooled)
+                    pool.closeConnectionAsync(pooled)
                 }
             }
         }
@@ -371,7 +366,7 @@ class SmbConnectionManager @Inject constructor(
                     val count = newPooled.usageCount.decrementAndGet()
                     if (count == 0 && newPooled.isPendingClose.get()) {
                         Timber.d("Closing pending fresh connection after use")
-                        closeConnectionAsync(newPooled)
+                        pool.closeConnectionAsync(newPooled)
                     }
                 }
             } catch (e: Exception) {
@@ -384,7 +379,8 @@ class SmbConnectionManager @Inject constructor(
                     break
                 }
                 if (freshConnectionAttempts < maxAttempts) {
-                    Timber.w("Fresh connection attempt $freshConnectionAttempts failed, retrying with longer timeout")
+                    // S0061: log the actual reason instead of misleading "longer timeout" message.
+                    Timber.i("SMB fresh-connect attempt $freshConnectionAttempts failed (reason=${healthProbe.classify(e)}) — retrying")
                     delay(RETRY_DELAY_MS)
                 }
             }
@@ -433,6 +429,14 @@ class SmbConnectionManager @Inject constructor(
         } catch (e: com.hierynomus.mssmb2.SMBApiException) {
             Timber.e("SMB STATUS_LOGON_FAILURE for user='${connectionInfo.username}', pwdLen=$pwdLen, domain=${finalDomain ?: "<none>"}, server=${connectionInfo.server}:${connectionInfo.port}")
             throw e
+        } catch (e: Exception) {
+            // S0061 Phase 02: purge SMBJ client cache on transport error during auth so the
+            // outer retry in withConnection gets a genuinely fresh TCP socket.
+            val reason = healthProbe.classify(e)
+            if (reason == DeadReason.BROKEN_PIPE || reason == DeadReason.SERVER_RESET || reason == DeadReason.SOCKET_CLOSED) {
+                purgeClientForHost(connectionInfo.server, connectionInfo.port)
+            }
+            throw e
         }
         if (BuildConfig.DEBUG) {
             Timber.d("SMB authenticate took ${System.currentTimeMillis() - authStartTime}ms")
@@ -453,7 +457,7 @@ class SmbConnectionManager @Inject constructor(
             domain = connectionInfo.domain
         )
         val newPooled = PooledConnection(connection, session, share)
-        connectionPool[key] = newPooled
+        pool.put(key, newPooled)
         
         return newPooled
     }
@@ -506,8 +510,7 @@ class SmbConnectionManager @Inject constructor(
         
         // After 3 timeouts, force fresh reconnect
         if (consecutiveTimeouts >= 3) {
-            connectionPool.remove(key)
-            closeConnectionAsync(pooled)
+            pool.removeAndCloseAsync(key)
         }
     }
     
@@ -540,14 +543,7 @@ class SmbConnectionManager @Inject constructor(
             val errorType = if (isCreditError) "CREDITS EXHAUSTED" else "PROTOCOL PARSE ERROR"
             Timber.e("SMB $errorType on pooled connection - forcing connection reset")
             // Close all connections to this server to free up credits/clean corrupted state
-            connectionPool.entries.removeIf { (poolKey, pooledConn) ->
-                if (poolKey.server == key.server) {
-                    closeConnectionAsync(pooledConn)
-                    true
-                } else {
-                    false
-                }
-            }
+            pool.removeMatchingAndCloseAsync { poolKey -> poolKey.server == key.server }
         }
         
         // Check if this is a configuration/authentication error (not a network issue)
@@ -591,8 +587,7 @@ class SmbConnectionManager @Inject constructor(
         }
         
         // Remove and close async
-        connectionPool.remove(key)
-        closeConnectionAsync(pooled)
+        pool.removeAndCloseAsync(key)
     }
     
     /**
@@ -620,14 +615,7 @@ class SmbConnectionManager @Inject constructor(
             val errorType = if (isCreditError) "CREDITS EXHAUSTED" else "PROTOCOL PARSE ERROR"
             Timber.e("SMB $errorType - forcing connection reset for ${connectionInfo.server}")
             // Close all connections to this server to free up credits/clean corrupted state
-            connectionPool.entries.removeIf { (poolKey, pooled) ->
-                if (poolKey.server == connectionInfo.server) {
-                    closeConnectionAsync(pooled)
-                    true
-                } else {
-                    false
-                }
-            }
+            pool.removeMatchingAndCloseAsync { poolKey -> poolKey.server == connectionInfo.server }
             // Small delay to let server recover
             Thread.sleep(500)
         }
@@ -696,61 +684,25 @@ class SmbConnectionManager @Inject constructor(
     }
     
     /**
-     * Remove connection from pool and close it.
-     * Each resource is closed independently so a dead transport on one
-     * step does not prevent the remaining resources from being released.
+     * Remove connection from pool and close it synchronously (cascade: share → session → connection).
+     * Delegated to [SmbConnectionPool] which owns the lifecycle.
      */
     private fun removeConnection(key: ConnectionKey) {
-        connectionPool.remove(key)?.let { pooled ->
-            try { pooled.share.close() } catch (e: Exception) {
-                Timber.w("SMB share close error (likely dead connection): ${e.message}")
-            }
-            try { pooled.session.close() } catch (e: Exception) {
-                Timber.w("SMB session close error (likely dead connection): ${e.message}")
-            }
-            try { pooled.connection.close() } catch (e: Exception) {
-                Timber.w("SMB connection close error (likely dead connection): ${e.message}")
-            }
-        }
+        pool.removeAndCloseSync(key)
     }
     
     /**
-     * Close connection asynchronously (don't block caller).
+     * Close connection asynchronously — delegated to [SmbConnectionPool].
      */
     private fun closeConnectionAsync(pooled: PooledConnection) {
-        // Mark as pending close so it won't be reused and will be closed after current use
-        pooled.isPendingClose.set(true)
-        
-        cleanupScope.launch {  // Use managed scope (ML-009)
-            // Only close if not in use
-            if (pooled.usageCount.get() == 0) {
-                try {
-                    pooled.share.close()
-                    pooled.session.close()
-                    pooled.connection.close()
-                    Timber.d("Connection closed successfully")
-                } catch (e: Exception) {
-                    // Ignore errors during forced cleanup
-                }
-            } else {
-                Timber.d("Connection marked for close but currently in use (count=${pooled.usageCount.get()}). Will be closed after use.")
-            }
-        }
+        pool.closeConnectionAsync(pooled)
     }
     
     /**
-     * Close all pooled connections asynchronously.
-     * Uses closeConnectionAsync to avoid blocking the caller when the server
-     * has already dropped connections (idle timeout scenario).
+     * Close all pooled connections asynchronously — delegated to [SmbConnectionPool].
      */
     private fun closeAllConnections() {
-        val keys = connectionPool.keys().toList()
-        keys.forEach { key ->
-            connectionPool.remove(key)?.let { pooled ->
-                closeConnectionAsync(pooled)
-            }
-        }
-        Timber.d("Initiated async close of ${keys.size} pooled connections")
+        pool.closeAll()
     }
 
     private fun isNonRetriableConnectionError(e: Exception): Boolean =
@@ -773,13 +725,11 @@ class SmbConnectionManager @Inject constructor(
             username = connectionInfo.username,
             domain = connectionInfo.domain
         )
-        val stale = connectionPool.remove(key) ?: return
+        val stale = pool.remove(key) ?: return
         Timber.d("SmbConnectionManager: Invalidating stale ExoPlayer connection for ${connectionInfo.server}")
         // Close all layers so SMBJ's internal connection cache is also purged.
         // SMBJ's SMBClient keeps a map of Connection objects; closing the Connection removes it.
-        try { stale.share.close() } catch (_: Exception) {}
-        try { stale.session.close() } catch (_: Exception) {}
-        try { stale.connection.close() } catch (_: Exception) {}
+        pool.closeConnectionAsync(stale)
     }
 
     /**
@@ -861,7 +811,40 @@ class SmbConnectionManager @Inject constructor(
             Timber.d("SMB clients reset")
         }
     }
-    
+
+    /**
+     * S0061 Phase 04: Release SCANNER + PLAYER connections when the app moves to background.
+     * BACKGROUND_WORKER connections are preserved so in-flight WorkManager transfers can
+     * continue. Called by [SmbBackgroundLifecycleManager] via the lifecycle observer.
+     */
+    fun closeUiConnections() {
+        pool.closeAllExceptWorker()
+        Timber.i("SMB UI connections released (background lifecycle)")
+    }
+
+    /**
+     * S0061 Phase 02: Purge all pool entries for [host]:[port] AND reset the SMBJ client
+     * so its internal Connection cache is also discarded.
+     *
+     * Called when a transport-level error (Broken pipe, Connection reset) is detected on any
+     * operation path. Forces the next [client.connect()] to open a real new TCP socket instead
+     * of reusing the stale one that SMBJ keeps in its connection table.
+     *
+     * Safe to call concurrently — pool operations are atomic; client nullification is done
+     * under [resetClients] which is synchronised on `this`.
+     */
+    private fun purgeClientForHost(host: String, port: Int) {
+        // Remove every pool entry for this host:port (async close so we don't block the caller).
+        val removed = pool.removeMatchingAndCloseAsync { key -> key.server == host && key.port == port }
+        Timber.i("SMB purge: host=$host:$port — connection cache cleared ($removed entries)")
+        // Reset all SMBClient instances so their internal Connection tables are discarded.
+        // The next getClient() lazy-init produces a fresh SMBClient with an empty table.
+        resetClients()
+        // S0061 Phase 05: track reconnect events; helper notifies on flaky network.
+        reconnectMetric.record()
+    }
+
+
     /**     * Force full reset: close all connections and reset clients.
      * Used when user manually refreshes or encounters persistent issues.
      */
@@ -897,8 +880,10 @@ class SmbConnectionManager @Inject constructor(
         // Only reuse if the pool entry was created on the PLAYER path — scanner-sourced
         // connections have been observed hanging on the first SMB2 CREATE for ExoPlayer
         // (TCP socket silently dropped while idle between scan end and playback start).
-        val pooled = connectionPool[key]
-        if (pooled != null && pooled.consumer == ConnectionConsumer.PLAYER && isConnectionValid(pooled)) {
+        // S0061: also gate on healthProbe.isAlive to catch server-side FIN before session-setup.
+        val pooled = pool.get(key)
+        if (pooled != null && pooled.consumer == ConnectionConsumer.PLAYER
+            && healthProbe.isAlive(pooled) && isConnectionValid(pooled)) {
             pooled.lastUsed = System.currentTimeMillis()
             Timber.d("SmbConnectionManager: Reusing pooled connection for ExoPlayer")
             return pooled
@@ -912,11 +897,8 @@ class SmbConnectionManager @Inject constructor(
         // Closing the stale Connection purges it from that cache so the next
         // client.connect() establishes a genuine new TCP socket.
         if (pooled != null) {
-            connectionPool.remove(key)
+            pool.removeAndCloseAsync(key)
             Timber.d("SmbConnectionManager: Evicting stale pooled connection before fresh ExoPlayer connect")
-            try { pooled.share.close() } catch (_: Exception) {}
-            try { pooled.session.close() } catch (_: Exception) {}
-            try { pooled.connection.close() } catch (_: Exception) {}
         }
 
         // Create fresh connection (blocking), retrying once on broken-pipe / transport errors.
@@ -956,21 +938,21 @@ class SmbConnectionManager @Inject constructor(
                     share = share,
                     consumer = ConnectionConsumer.PLAYER
                 )
-                connectionPool[key] = newPooled
+                pool.put(key, newPooled)
 
                 onSuccess()
                 return newPooled
             } catch (e: Exception) {
                 lastException = e
-                // On a transport/socket error the SMBJ-cached Connection is stale.
-                // Close it so SMBJ evicts it from its internal map; the second attempt
-                // will then establish a real new TCP socket.
+                // S0061 Phase 02: on transport/socket error, purge SMBJ's internal Connection
+                // cache so attempt 2 opens a real new TCP socket instead of reusing the stale one.
                 if (isTransportOrBrokenPipe(e) && attempt == 1) {
-                    Timber.w("SmbConnectionManager: Broken pipe on ExoPlayer connect attempt $attempt — closing stale SMBJ connection and retrying")
+                    Timber.i("SMB connect dead, reason=${healthProbe.classify(e)} — purging cache and retrying once")
                     try { candidateConnection?.close() } catch (_: Exception) {}
+                    purgeClientForHost(connectionInfo.server, connectionInfo.port)
                     continue
                 }
-                Timber.e(e, "SmbConnectionManager: Failed to create connection for ExoPlayer (attempt $attempt)")
+                Timber.w("SMB ExoPlayer connect failed (attempt $attempt, reason=${healthProbe.classify(e)})")
                 break
             }
         }

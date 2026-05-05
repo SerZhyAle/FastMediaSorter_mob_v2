@@ -85,7 +85,7 @@ class BrowseSmallControlsManager(
         
         binding.layoutControls.setPadding(
             (binding.layoutControls.paddingLeft * SMALL_CONTROLS_SCALE).roundToInt(),
-            (binding.layoutControls.paddingTop * SMALL_CONTROLS_SCALE).roundToInt(),
+            binding.layoutControls.paddingTop, // Do NOT scale — contains statusBar/captionBar inset; scaling hides buttons under OS bar
             (binding.layoutControls.paddingRight * SMALL_CONTROLS_SCALE).roundToInt(),
             (binding.layoutControls.paddingBottom * SMALL_CONTROLS_SCALE).roundToInt()
         )

@@ -20,7 +20,7 @@ import org.junit.Test
  * 4. setStereoMode precondition — rejects AUTO and UNKNOWN
  * 5. No-op on same-mode set (idempotency)
  * 6. release() resets state to MONO
- * 7. GL effect contract — SBS/OU return a Crop effect; MONO/AUTO/UNKNOWN return null
+ * 7. GL effect contract — SBS/OU/EQUIRECT stereo return a Crop effect; mono/unresolved return null
  */
 class StereoVideoProcessorTest {
 
@@ -226,5 +226,43 @@ class StereoVideoProcessorTest {
     @Test
     fun `buildGlEffect returns null for UNKNOWN`() {
         assertNull(processor.buildGlEffect(StereoMode.UNKNOWN))
+    }
+
+    @Test
+    fun `buildGlEffect returns Crop for EQUIRECT_360_SBS right-eye crop`() {
+        val effect = processor.buildGlEffect(StereoMode.EQUIRECT_360_SBS)
+        assertNotNull(effect)
+        assertTrue(effect is Crop)
+    }
+
+    @Test
+    fun `buildGlEffect returns Crop for EQUIRECT_180_SBS right-eye crop`() {
+        val effect = processor.buildGlEffect(StereoMode.EQUIRECT_180_SBS)
+        assertNotNull(effect)
+        assertTrue(effect is Crop)
+    }
+
+    @Test
+    fun `buildGlEffect returns Crop for VR180_FISHEYE_SBS right-eye crop`() {
+        val effect = processor.buildGlEffect(StereoMode.VR180_FISHEYE_SBS)
+        assertNotNull(effect)
+        assertTrue(effect is Crop)
+    }
+
+    @Test
+    fun `buildGlEffect returns Crop for EQUIRECT_360_OU bottom-eye crop`() {
+        val effect = processor.buildGlEffect(StereoMode.EQUIRECT_360_OU)
+        assertNotNull(effect)
+        assertTrue(effect is Crop)
+    }
+
+    @Test
+    fun `buildGlEffect returns null for EQUIRECT_360_MONO`() {
+        assertNull(processor.buildGlEffect(StereoMode.EQUIRECT_360_MONO))
+    }
+
+    @Test
+    fun `buildGlEffect returns null for EQUIRECT_180_MONO`() {
+        assertNull(processor.buildGlEffect(StereoMode.EQUIRECT_180_MONO))
     }
 }

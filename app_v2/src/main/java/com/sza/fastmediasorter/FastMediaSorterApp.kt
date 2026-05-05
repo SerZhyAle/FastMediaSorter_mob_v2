@@ -15,9 +15,12 @@ import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
+import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.network.SmbConnectionManager
+import com.sza.fastmediasorter.data.network.SmbBackgroundLifecycleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
@@ -71,14 +74,26 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
     
     @Inject
-    lateinit var smbConnectionManager: com.sza.fastmediasorter.data.network.SmbConnectionManager
-    
+    lateinit var smbConnectionManager: SmbConnectionManager
+
+    @Inject
+    lateinit var smbBackgroundLifecycleManager: SmbBackgroundLifecycleManager
+
+    @Inject
+    lateinit var networkLifecycleObserver: com.sza.fastmediasorter.core.lifecycle.NetworkLifecycleObserver
+
     @Inject
     lateinit var tempFileManager: com.sza.fastmediasorter.domain.transfer.TempFileManager
 
     @Inject
     lateinit var renameVirtualResourcesUseCase: com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
-    
+
+    @Inject
+    lateinit var inputBindingRepository: com.sza.fastmediasorter.data.input.InputBindingRepository
+
+    @Inject
+    lateinit var defaultsMapLoader: com.sza.fastmediasorter.data.input.DefaultsMapLoader
+
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     
@@ -97,7 +112,8 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         setupDebugStrictMode()
-        
+        GmsAvailabilityChecker.check(this)
+
         // Initialize static context for Glide ModelLoader
         appContext = applicationContext
         
@@ -117,6 +133,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 onAppForegrounded()
             }
         })
+        // S0061 Phase 04: close UI SMB connections on background (preserves BACKGROUND_WORKER).
+        ProcessLifecycleOwner.get().lifecycle.addObserver(smbBackgroundLifecycleManager)
+
+        // S0067 Phase 06: protocol-neutral lifecycle gates (SMB / SFTP / FTP / Cloud).
+        networkLifecycleObserver.attach()
         
         // PDF Support: Using built-in Android PdfRenderer (API 21+)
         // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
@@ -180,7 +201,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             playbackPositionRepository = playbackPositionRepository,
             thumbnailCacheRepository = thumbnailCacheRepository,
             applicationScope = applicationScope,
-            renameVirtualResourcesUseCase = renameVirtualResourcesUseCase
+            renameVirtualResourcesUseCase = renameVirtualResourcesUseCase,
+            inputBindingRepository = inputBindingRepository,
+            defaultsMapLoader = defaultsMapLoader,
         )
         startupInitializer.initialize()
         

@@ -37,14 +37,15 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         val settings = settingsRepository.getSettings().first()
         var displayOrder = 0
 
-        // 1. Recent
+        // 1. Recent — show all files by default (S0059: users expect full file history, not media-only)
         createVirtualResource(
             name = context.getString(R.string.recent_media),
             comment = context.getString(R.string.virtual_comment_recent),
             path = LocalMediaScanner.VIRTUAL_PATH_RECENT,
             supportedMediaTypes = settings.getGloballyEnabledMediaTypes(),
             profile = ResourceProfile.NONE,
-            displayOrder = displayOrder++
+            displayOrder = displayOrder++,
+            allFiles = true
         )
 
         // 2. All Music
@@ -141,7 +142,8 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         profile: ResourceProfile,
         displayOrder: Int,
         displayMode: DisplayMode = DisplayMode.LIST,
-        sortMode: SortMode = SortMode.NAME_ASC
+        sortMode: SortMode = SortMode.NAME_ASC,
+        allFiles: Boolean = false
     ) {
         val resource = MediaResource(
             id = 0,
@@ -159,7 +161,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             sortMode = sortMode,
             profile = profile,
             displayMode = displayMode,
-            allFiles = false,
+            allFiles = allFiles,
             displayOrder = displayOrder,
             // Assign a fixed icon for predefined virtual resources on first provisioning
             iconId = resolveResourceIconUseCase(path = path, profile = profile, type = ResourceType.LOCAL)

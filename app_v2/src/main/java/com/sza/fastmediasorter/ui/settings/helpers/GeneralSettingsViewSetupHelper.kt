@@ -1,10 +1,14 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.content.Context
 import android.content.Intent
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -28,6 +32,9 @@ class GeneralSettingsViewSetupHelper(
     private val logHelper: GeneralSettingsLogHelper,
     private val resetHelper: GeneralSettingsResetHelper,
 ) {
+    private var lastCommittedDefaultUser: String = ""
+    private var lastCommittedDefaultPassword: String = ""
+
     fun setup() {
         setupLanguageSpinner()
         setupSwitches()
@@ -260,32 +267,95 @@ class GeneralSettingsViewSetupHelper(
     }
 
     private fun setupDefaultCredentials() {
-        binding.etDefaultUser.setText(viewModel.settings.value.defaultUser)
-        binding.etDefaultUser.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val current = viewModel.settings.value
-                val newUser = binding.etDefaultUser.text.toString()
-                if (current.defaultUser != newUser) {
-                    viewModel.updateSettings(current.copy(defaultUser = newUser))
-                    if (BuildConfig.OWNER_TRIGGER.isNotEmpty() && newUser.equals(BuildConfig.OWNER_TRIGGER, ignoreCase = true)) {
-                        AlertDialog.Builder(fragment.requireContext())
-                            .setTitle(R.string.import_resources_title)
-                            .setMessage(R.string.import_resources_message)
-                            .setPositiveButton(R.string.yes) { _, _ -> viewModel.importSzaResources(fragment.requireContext()) }
-                            .setNegativeButton(R.string.no, null)
-                            .show()
-                    }
-                }
+        val currentSettings = viewModel.settings.value
+        lastCommittedDefaultUser = currentSettings.defaultUser
+        lastCommittedDefaultPassword = currentSettings.defaultPassword
+
+        binding.etDefaultUser.setText(lastCommittedDefaultUser)
+        binding.etDefaultUser.imeOptions = EditorInfo.IME_ACTION_NEXT
+        binding.tilDefaultUser.setOnClickListener { activateCredentialEditor(binding.etDefaultUser) }
+        binding.etDefaultUser.setOnClickListener { activateCredentialEditor(binding.etDefaultUser) }
+        binding.etDefaultUser.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == binding.etDefaultUser.imeOptions) {
+                commitDefaultUserIfChanged()
+                activateCredentialEditor(binding.etDefaultPassword)
+                true
+            } else {
+                false
             }
         }
-        binding.etDefaultPassword.setText(viewModel.settings.value.defaultPassword)
-        binding.etDefaultPassword.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val current = viewModel.settings.value
-                val newPassword = binding.etDefaultPassword.text.toString()
-                if (current.defaultPassword != newPassword)
-                    viewModel.updateSettings(current.copy(defaultPassword = newPassword))
+        binding.etDefaultUser.setOnFocusChangeListener { view, hasFocus ->
+            if (hasFocus) {
+                val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
             }
+            if (!hasFocus) {
+                commitDefaultUserIfChanged()
+            }
+        }
+        binding.etDefaultPassword.setText(lastCommittedDefaultPassword)
+        binding.etDefaultPassword.imeOptions = EditorInfo.IME_ACTION_DONE
+        binding.tilDefaultPassword.setOnClickListener { activateCredentialEditor(binding.etDefaultPassword) }
+        binding.etDefaultPassword.setOnClickListener { activateCredentialEditor(binding.etDefaultPassword) }
+        binding.etDefaultPassword.setOnEditorActionListener { view, actionId, _ ->
+            if (actionId == binding.etDefaultPassword.imeOptions) {
+                commitDefaultPasswordIfChanged()
+                view.clearFocus()
+                val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(view.windowToken, 0)
+                true
+            } else {
+                false
+            }
+        }
+        binding.etDefaultPassword.setOnFocusChangeListener { view, hasFocus ->
+            if (hasFocus) {
+                val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+            }
+            if (!hasFocus) {
+                commitDefaultPasswordIfChanged()
+            }
+        }
+    }
+
+    private fun activateCredentialEditor(target: TextInputEditText) {
+        target.requestFocus()
+        target.setSelection(target.text?.length ?: 0)
+        target.post {
+            val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(target, InputMethodManager.SHOW_IMPLICIT)
+        }
+    }
+
+    private fun commitDefaultUserIfChanged() {
+        val newUser = binding.etDefaultUser.text.toString()
+        if (lastCommittedDefaultUser == newUser) return
+
+        lastCommittedDefaultUser = newUser
+        val current = viewModel.settings.value
+        val ownerTrigger = BuildConfig.OWNER_TRIGGER
+        if (current.defaultUser != newUser) {
+            viewModel.updateSettings(current.copy(defaultUser = newUser))
+        }
+        if (ownerTrigger.isNotEmpty() && newUser.equals(ownerTrigger, ignoreCase = true)) {
+            AlertDialog.Builder(fragment.requireContext())
+                .setTitle(R.string.import_resources_title)
+                .setMessage(R.string.import_resources_message)
+                .setPositiveButton(R.string.yes) { _, _ -> viewModel.importSzaResources(fragment.requireContext()) }
+                .setNegativeButton(R.string.no, null)
+                .show()
+        }
+    }
+
+    private fun commitDefaultPasswordIfChanged() {
+        val newPassword = binding.etDefaultPassword.text.toString()
+        if (lastCommittedDefaultPassword == newPassword) return
+
+        lastCommittedDefaultPassword = newPassword
+        val current = viewModel.settings.value
+        if (current.defaultPassword != newPassword) {
+            viewModel.updateSettings(current.copy(defaultPassword = newPassword))
         }
     }
 

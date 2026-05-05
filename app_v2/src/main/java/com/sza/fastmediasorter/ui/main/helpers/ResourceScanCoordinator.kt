@@ -226,7 +226,7 @@ class ResourceScanCoordinator(
             needsUpdate = true
         }
         
-        // Update file count (fast count with 1000 limit)
+        // Update file count (fast count with 1500imit)
         val fileCount = getFileCount(scanner, resource)
         
         if (fileCount != resource.fileCount) {

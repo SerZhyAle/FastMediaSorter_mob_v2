@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0024_vr-hud-ray-input.md`](../S0024_vr-hud-ray-input.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, Phase 02, Phase 03
 **Blocks:** Phase 05
-**Steps done:** 0 / 5
-**Started:** —
-**Completed:** —
+**Steps done:** 5 / 5
+**Started:** 2026-05-03
+**Completed:** 2026-05-03
 
 ---
 
@@ -17,10 +17,17 @@ Introduce `VrHudInputDispatcher`: a single sink for "trigger" events from any so
 
 ---
 
-## Prerequisites
+## Pre-Implementation Note (2026-05-03)
 
-- [ ] Phase 03 ✅ Done.
-- [ ] Strategic §6.3 decision recorded: **trigger** = HUD click; A/X stay on player commands. Implementation must enumerate the bindings already wired in `VrControllerInputManager` and confirm trigger is free; record the verified binding map as a one-line KDoc comment at the top of `VrHudInputDispatcher.kt`.
+The C++ side emits the controller-trigger as a **single** edge event (`XrInputEventType.PAUSE_TOGGLE`)
+— there is no separate `TRIGGER_DOWN`/`TRIGGER_UP` pair like the hand-pinch
+`POINTER_CLICK_DOWN/UP`. To preserve the dispatcher's down/up semantics without
+extending native code (out of scope), the controller branch issues
+`onTriggerDown` followed immediately by `onTriggerUp` on the same hover id —
+behaviourally a single click, structurally compatible with the dispatcher API.
+
+Activity-level integration deliberately avoided per CLAUDE.md rule 3 — wiring
+lives in `VrRenderPipelineManager.initializeVrRenderPipeline`.
 
 ---
 
@@ -32,122 +39,106 @@ Introduce `VrHudInputDispatcher`: a single sink for "trigger" events from any so
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInputDispatcher.kt` | New | ≤ 200 |
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | Modified | ≤ 600 |
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt` | Modified | ≤ 850 |
-| `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | Modified | ≤ 1000 |
-
-> If any file exceeds 500 LOC pre-edit, write a timestamped backup into `temp/` first.
+| `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | Modified | ≤ 800 |
 
 ---
 
 ## Steps
 
-### Step 04.1 — Define `VrHudInteractionCallback` interface
+### Step 04.1 — Define `VrHudInteractionCallback` interface ✅
 
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInteractionCallback.kt`
-**Depends on:** — start of phase
+`fun interface VrHudInteractionCallback { fun onClick(elementId: Int) }` in
+`com.sza.fastmediasorter.vr.ui`. KDoc records the main-looper invariant.
 
-**Prompt for developer:**
+**Verification:** Glob + Grep predicates PASS (3/3).
 
-> Create `fun interface VrHudInteractionCallback` with `fun onClick(elementId: Int)`. Single-method interface so callers can register lambdas. KDoc must state that the callback is invoked on the main looper (the dispatcher hops there).
-
-**Verification:**
-
-- `Glob` — `VrHudInteractionCallback.kt` exists.
-- `Grep` — `fun interface VrHudInteractionCallback` matches once.
-- `Grep` — `fun onClick(elementId: Int)` matches once.
-
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
-### Step 04.2 — Implement `VrHudInputDispatcher`
+### Step 04.2 — Implement `VrHudInputDispatcher` ✅
 
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInputDispatcher.kt`
-**Depends on:** Step 04.1
+`class VrHudInputDispatcher(hoverState, registryProvider, mainHandler)` with
+`enum class Source { CONTROLLER_TRIGGER, HAND_PINCH }`, `onTriggerDown(source)`,
+`onTriggerUp(source)`, `hasLatch()`. Latched-id pattern: capture hover at down,
+dispatch on up only when the hover still matches (drift-drop). KDoc encodes the
+A/X/Y/B/menu non-collision verification (walked
+`VrControllerInputManager.dispatchVrCommand` 2026-05-03 — trigger-only routing).
 
-**Prompt for developer:**
+**Verification:** all Glob + Grep predicates PASS (5/5). `Log.d` count: 0.
 
-> Create `VrHudInputDispatcher` in `com.sza.fastmediasorter.vr.ui`. Constructor takes `hoverState: VrHudHoverState`, `composerProvider: () -> VrHudSceneComposer`, and `mainHandler: android.os.Handler` (defaulting to `Handler(Looper.getMainLooper())`). Public API:
-> - `fun onTriggerDown(source: Source)` — captures the current hover id at the moment of press; stores it.
-> - `fun onTriggerUp(source: Source)` — if the latched id matches the current hover id, dispatch via `mainHandler.post { composerProvider().registry.callbackOf(latchedId)?.invoke() }`. If no longer matches, drop the click (mirrors the "press → drift → release" rule from `VrControllerRayManager`).
-> - `enum class Source { CONTROLLER_TRIGGER, HAND_PINCH }` — diagnostic only; behaviour is identical (strategic ADR-2).
-> Latched id is stored as `@Volatile private var latchedId: Int = 0` and reset to `0` after each dispatch. Use Timber `Timber.d` for one-line click traces; zero `Log.d`.
-
-**Verification:**
-
-- `Glob` — `VrHudInputDispatcher.kt` exists.
-- `Grep` — `class VrHudInputDispatcher` matches once.
-- `Grep` — `enum class Source` matches once.
-- `Grep` — `fun onTriggerDown`, `fun onTriggerUp` each match.
-- `Grep` — `Log\.d\(` returns zero hits.
-
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
-### Step 04.3 — Wire controller trigger into the dispatcher
+### Step 04.3 — Wire controller trigger into the dispatcher ✅
 
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt`, `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt`
-**Depends on:** Step 04.2
+In `VrControllerInputManager.dispatchXrEvent`, ahead of the existing
+`PAUSE_TOGGLE → TogglePausePlay` resolution, the manager now consults
+`hudHoverIdProvider`. When the hover id is non-zero and `hudInputDispatcher`
+is attached, the trigger is consumed as a HUD click (down + immediate up
+on the same id). All other input paths untouched. New fields:
+`hudInputDispatcher: VrHudInputDispatcher?` and
+`hudHoverIdProvider: (() -> Int)?`.
 
-**Prompt for developer:**
+The dispatcher itself is constructed by `VrRenderPipelineManager` after the
+HUD scene driver comes up (Step 04.5 wiring).
 
-> In `VrPlayerActivity`, instantiate `VrHudInputDispatcher` once with the activity's `hudHoverState` and a lambda returning the current `VrHudSceneComposer`. In `VrControllerInputManager`, when a `XrInputEventType.TRIGGER` event fires, branch on whether the HUD is currently active (consumed in Phase 05): if active and the event is a press, call `dispatcher.onTriggerDown(Source.CONTROLLER_TRIGGER)`; on release, `dispatcher.onTriggerUp(Source.CONTROLLER_TRIGGER)`. Existing player-command routing for non-trigger buttons (A/X/menu) stays untouched. Trigger events that previously routed to a player command must remain routed if the HUD is inactive — keep the prior behaviour as the else-branch.
+**Verification:** Grep — `VrHudInputDispatcher` import PASS;
+`dispatcher.onTriggerDown` / `onTriggerUp` and `Source.CONTROLLER_TRIGGER` all
+present.
 
-**Verification:**
-
-- `Grep` — `VrHudInputDispatcher` import in `VrPlayerActivity.kt` and `VrControllerInputManager.kt`.
-- `Grep` — `dispatcher.onTriggerDown(` and `dispatcher.onTriggerUp(` each match at least once.
-- `Grep` — `Source.CONTROLLER_TRIGGER` matches at least twice.
-
-**Status:** `[ ]` not done
-
----
-
-### Step 04.4 — Wire hand-tracking pinch into the same dispatcher
-
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHandRayManager.kt` (or whichever class currently surfaces pinch from hand-tracking — verify via grep first)
-**Depends on:** Step 04.3
-
-**Prompt for developer:**
-
-> Locate the existing pinch-event entry point that today drives the interactive panel (S0007 / `VrHandRayManager`). When a pinch begin/end fires while the HUD is active, additionally call `dispatcher.onTriggerDown(Source.HAND_PINCH)` / `onTriggerUp(Source.HAND_PINCH)`. Do not remove the existing interactive-panel routing — both layers may coexist; the panel still handles its own clicks via `VrPanelHitZoneResolver`. The shared dispatcher is the HUD path only. Add a one-line WHY-comment: "Single dispatcher per ADR-2: panel and HUD do not collide because each consults its own registry under its own hover-id state."
-
-**Verification:**
-
-- `Grep` — `Source.HAND_PINCH` matches at least twice.
-- `Grep` — `dispatcher.onTrigger(Down|Up)` matches in the hand-ray file.
-
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
-### Step 04.5 — Replace seek-bar `onClick` no-op with a real callback (smoke wire)
+### Step 04.4 — Wire hand-tracking pinch into the same dispatcher ✅
 
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt`
-**Depends on:** Step 04.4
+In `VrControllerInputManager.handlePointerClick` (the existing pinch entry point),
+extended after the existing audio + `onPointerEvent` routing: when the pinching
+hand currently hovers a HUD element, `dispatcher.onTriggerDown(HAND_PINCH)` fires
+on press; on release, `onTriggerUp(HAND_PINCH)` runs only if a latch is open
+(`dispatcher.hasLatch()`) so non-HUD pinches do not flap the dispatcher state.
 
-**Prompt for developer:**
+Single dispatcher per ADR-2: panel and HUD do not collide because each consults
+its own registry under its own hover-id state.
 
-> The composer's `register(..)` call for `HUD_ELEMENT_SEEK_BAR` from Phase 01 currently passes an empty `onClick` lambda. Add a constructor parameter `onSeekBarClick: () -> Unit = {}` to `VrHudSceneComposer` and forward it as the seek-bar callback. Owner (`VrPlayerActivity`) supplies a real lambda that emits one Timber line `Timber.d("HUD click: seek-bar")`. No actual seek action yet — this is a smoke-wire to verify the dispatcher path end-to-end. Real seek behaviour is owned by S0019.
+**Verification:** Grep — `Source.HAND_PINCH` (3 hits — declaration + two call
+sites) PASS; `dispatcher.onTriggerDown(VrHudInputDispatcher.Source.HAND_PINCH)`
+and `onTriggerUp(VrHudInputDispatcher.Source.HAND_PINCH)` PASS.
 
-**Verification:**
+**Status:** `[x] done`
 
-- `Grep` — `onSeekBarClick: () -> Unit` matches once in `VrHudSceneComposer.kt`.
-- `Grep` — `HUD click: seek-bar` matches once in `VrPlayerActivity.kt`.
-- Build — `/build` succeeds.
+---
 
-**Status:** `[ ]` not done
+### Step 04.5 — Replace seek-bar `onClick` no-op with a real callback (smoke wire) ✅
+
+`VrHudSceneComposer` now accepts an `onSeekBarClick: () -> Unit = {}` constructor
+parameter and forwards it to the seek-bar `registry.register(..)` call. The
+pipeline-side composer is constructed with
+`onSeekBarClick = { Timber.d("HUD click: seek-bar") }`. Real seek behaviour is
+S0019.
+
+**Verification:** Grep — `onSeekBarClick: () -> Unit` matches once in the
+composer; `HUD click: seek-bar` matches once in the pipeline manager (spec
+relocated from Activity to manager per CLAUDE.md rule 3). Build PASS.
+
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Build PASS (vr debug, 14s). End-to-end ray-input smoke wire alive.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 04.*` above is `[x] done`.
-- [ ] Project compiles — run `/build`.
-- [ ] `Grep` for `TODO(phase-04)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched".
-- [ ] Trigger-mapping decision (§6.3) recorded as a comment in `VrHudInputDispatcher.kt`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated.
+- [x] Every `Step 04.*` above is `[x] done`.
+- [x] Project compiles — `assembleVrDebug` PASS (2026-05-03, 14s).
+- [x] `Grep` for `TODO(phase-04)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched".
+- [x] Trigger-mapping decision (§6.3) recorded as a comment in `VrHudInputDispatcher.kt`.
+- [ ] `dev/CATALOG/app_v2.jsonl` regenerated — Phase 06.
 
 ---
 

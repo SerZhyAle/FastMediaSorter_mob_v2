@@ -5,6 +5,17 @@
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding">
 
+        <!-- S0070: Device storage info row -->
+        <LinearLayout android:id="@+id/containerDeviceStorageInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/device_storage_padding_vertical" android:paddingBottom="@dimen/device_storage_padding_vertical">
+
+            <TextView android:id="@+id/textDeviceStorageLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/device_storage_available" android:textSize="@dimen/device_storage_text_size" android:textColor="@color/text_color_secondary" />
+
+            <TextView android:id="@+id/textDeviceStorageValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_tiny" android:text=".." android:textSize="@dimen/device_storage_text_size" android:textColor="@color/text_color_secondary" />
+
+            <ImageButton android:id="@+id/btnDeviceStorageRefresh" android:layout_width="@dimen/device_storage_button_size" android:layout_height="@dimen/device_storage_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/btn_refresh_storage" android:src="@drawable/ic_refresh" app:tint="@color/text_color_secondary" />
+
+        </LinearLayout>
+
         <!-- INTERFACE SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 

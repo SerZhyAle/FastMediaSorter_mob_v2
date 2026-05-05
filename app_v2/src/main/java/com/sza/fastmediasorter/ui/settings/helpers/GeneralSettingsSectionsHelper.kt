@@ -82,7 +82,7 @@ class GeneralSettingsSectionsHelper(
             mapOf(
                 KEY_INTERFACE_EXPANDED to prefs.getBoolean(KEY_INTERFACE_EXPANDED, false),
                 KEY_PERMISSIONS_EXPANDED to prefs.getBoolean(KEY_PERMISSIONS_EXPANDED, false),
-                KEY_APP_DATA_EXPANDED to prefs.getBoolean(KEY_APP_DATA_EXPANDED, false),
+                KEY_APP_DATA_EXPANDED to prefs.getBoolean(KEY_APP_DATA_EXPANDED, true),
                 KEY_SYSTEM_EXPANDED to prefs.getBoolean(KEY_SYSTEM_EXPANDED, false),
                 KEY_DEBUG_EXPANDED to prefs.getBoolean(KEY_DEBUG_EXPANDED, false)
             )

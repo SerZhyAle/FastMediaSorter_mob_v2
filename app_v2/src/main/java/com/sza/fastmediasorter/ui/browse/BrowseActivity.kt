@@ -12,6 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
+import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -33,6 +35,7 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -61,6 +64,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
     @Inject lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
     @Inject lateinit var gamepadInputManager: GamepadInputManager
+    @Inject lateinit var keyBindingManager: KeyBindingManager
     @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
@@ -69,9 +73,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private var showPdfThumbnails = false
     private var isFirstResume = true
     private var lastSubmittedSortMode: com.sza.fastmediasorter.domain.model.SortMode? = null
+    // S0028: per-window resume state isolation
+    private var windowId: String = ResumeStateRepository.WINDOW_ID_MAIN
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
+        // S0028: resolve windowId before any use-case call (ViewModel reads same key from SavedStateHandle)
+        windowId = savedInstanceState?.getString(EXTRA_WINDOW_ID)
+            ?: intent.getStringExtra(EXTRA_WINDOW_ID)
+            ?: ResumeStateRepository.WINDOW_ID_MAIN
         launcherManager = BrowseLauncherManager(this, object : BrowseLauncherCallbacks {
             override fun handleGoogleSignInResult(data: Intent?) {
                 if (::initializer.isInitialized) {
@@ -264,7 +274,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // A/B/X/Y/Start/L1/R1 are intercepted here via GamepadInputManager.
         val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.BROWSER)
         if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            val commandId = keyBindingManager.resolveKeyAction(event.keyCode, event.metaState, InputSurface.BROWSER)
+            if (commandId != null && routeBrowserCommandId(commandId)) return true
+        }
         return super.dispatchKeyEvent(event)
+    }
+
+    private fun routeBrowserCommandId(commandId: String): Boolean {
+        if (!::initializer.isInitialized) return false
+        return initializer.keyboardNavigationManager.dispatchCommandId(commandId)
     }
 
     private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
@@ -349,6 +368,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun onSaveInstanceState(outState: android.os.Bundle) {
         super.onSaveInstanceState(outState)
+        outState.putString(EXTRA_WINDOW_ID, windowId)
         // Persist pending camera-capture context so it survives process death.
         if (::cameraCaptureManager.isInitialized) {
             cameraCaptureManager.saveState(outState)
@@ -379,6 +399,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         const val EXTRA_INITIAL_FOLDER_PATH = "initialFolderPath"
         const val EXTRA_INITIAL_FILE_PATH = "initialFilePath"
         const val EXTRA_RESUME_IS_PLAYING = "resumeIsPlaying"
+        // S0028: multi-window — window identity and tear-off state
+        const val EXTRA_WINDOW_ID = "extra_window_id"
+        const val EXTRA_SCROLL_POSITION = "extra_scroll_position"
 
         fun createIntent(context: Context, resourceId: Long, skipAvailabilityCheck: Boolean = false, initialFolderPath: String? = null, initialFilePath: String? = null, isPlaying: Boolean? = null): Intent {
             return Intent(context, BrowseActivity::class.java).apply {

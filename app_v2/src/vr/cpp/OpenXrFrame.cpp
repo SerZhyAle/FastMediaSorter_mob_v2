@@ -3,6 +3,7 @@
 #include "OpenXrHandTracking.h"
 #include "OpenXrInput.h"
 #include "OpenXrLog.h"
+#include "OpenXrRayDraw.h"
 
 #include <vector>
 
@@ -141,6 +142,8 @@ void xrnative::renderFrame(XrCtx &ctx, JNIEnv *env)
                                      static_cast<int>(chain.images[imageIdx].fbo),
                                      static_cast<int>(chain.width),
                                      static_cast<int>(chain.height));
+
+                drawControllerRays(ctx, views[eye].pose, views[eye].fov);
 
                 if (ctx.stereoSnapshot.requested.load())
                 {

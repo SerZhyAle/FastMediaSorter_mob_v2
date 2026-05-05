@@ -13,6 +13,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -361,12 +362,87 @@ internal class AddResourceConnectionManager(
 
     // ========== Dialog Helpers ==========
 
-    fun showSharePickerDialog(server: String, shares: List<String>) {
+    fun showSharePickerDialog(server: String, shares: List<String>, manualShares: List<String> = emptyList()) {
+        // Build a combined item list:
+        //   [previously used / manual]  — deduplicated against auto-discovered
+        //   [auto-discovered]
+        //   "+ Enter share name manually.."
+        val autoSet = shares.map { it.lowercase() }.toSet()
+        val uniqueManual = manualShares.filter { it.lowercase() !in autoSet }
+
+        val displayItems = mutableListOf<String>()
+        if (uniqueManual.isNotEmpty()) {
+            // Section header (non-selectable appearance via a prefix marker)
+            displayItems.addAll(uniqueManual.map { "\u2713 $it" })  // ✓ prefix for previously-used entries
+        }
+        displayItems.addAll(shares)
+        displayItems.add(activity.getString(R.string.smb_enter_share_manually))
+
+        // Map display index → actual share name (null = "enter manually" option)
+        val resolvedNames: List<String?> = buildList {
+            uniqueManual.forEach { add(it) }
+            shares.forEach { add(it) }
+            add(null)  // "enter manually" sentinel
+        }
+
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.msg_select_share, server))
-            .setItems(shares.toTypedArray()) { _, which -> binding.etSmbShareName.setText(shares[which]) }
+            .setItems(displayItems.toTypedArray()) { _, which ->
+                val resolved = resolvedNames[which]
+                if (resolved == null) {
+                    // User tapped "Enter manually" — show input dialog
+                    showManualShareInputDialog(server)
+                } else {
+                    binding.etSmbShareName.setText(resolved)
+                }
+            }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /**
+     * S0064: Shows a validated EditText dialog for manual SMB share name entry.
+     * On confirm, fills the share name field and persists the name to history.
+     */
+    private fun showManualShareInputDialog(server: String) {
+        val editText = android.widget.EditText(activity).apply {
+            hint = activity.getString(R.string.smb_manual_share_hint)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            setSingleLine(true)
+            // Accessibility: min touch target height handled by dialog padding; contentDescription set for TalkBack
+            contentDescription = activity.getString(R.string.smb_manual_share_dialog_title)
+            val padPx = (12 * activity.resources.displayMetrics.density).toInt()
+            setPadding(padPx, padPx, padPx, padPx)
+        }
+        val port = binding.etSmbPort.text?.toString()?.toIntOrNull() ?: 445
+
+        val dialog = AlertDialog.Builder(activity)
+            .setTitle(activity.getString(R.string.smb_manual_share_dialog_title))
+            .setView(editText)
+            .setPositiveButton(android.R.string.ok, null) // set below to prevent auto-dismiss on invalid input
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val input = editText.text?.toString()?.trim().orEmpty()
+                // Client-side validation: SMB share names — letters, digits, spaces, hyphens, underscores; 1–80 chars
+                val valid = input.isNotBlank() && input.length <= 80 &&
+                    input.matches(Regex("[A-Za-z0-9][A-Za-z0-9 _\\-]{0,79}"))
+                if (!valid) {
+                    editText.error = activity.getString(R.string.smb_share_name_invalid)
+                    return@setOnClickListener
+                }
+                binding.etSmbShareName.setText(input)
+                // Persist to history immediately — user confirmed intent; connection may still fail.
+                viewModel.rememberManualShareName(server, port, input)
+                dialog.dismiss()
+            }
+        }
+        dialog.show()
+        // Request focus and show keyboard
+        editText.requestFocus()
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
     }
 
     fun showError(message: String) {
@@ -389,6 +465,21 @@ internal class AddResourceConnectionManager(
         val title = if (isSuccess) activity.getString(R.string.connection_test_success_title)
                     else activity.getString(R.string.connection_test_failed_title)
         DialogUtils.showScrollableDialog(activity, title, message, activity.getString(android.R.string.ok))
+    }
+
+    fun showLocalNetworkPermissionRationale() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.local_network_permission_rationale_title)
+            .setMessage(R.string.local_network_permission_rationale_message)
+            .setPositiveButton(R.string.local_network_permission_open_settings) { _, _ ->
+                if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
+                    PermissionHelper.requestLocalNetworkPermission(activity)
+                } else {
+                    PermissionHelper.routeToLocalNetworkSettings(activity)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     fun showRememberFileListHelpDialog() {

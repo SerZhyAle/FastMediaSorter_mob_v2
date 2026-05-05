@@ -37,6 +37,10 @@ data class NetworkCredentialsEntity(
     val shareName: String? = null, // For SMB: share name
     val sshPrivateKey: String? = null, // For SFTP: SSH private key (encrypted, PEM format)
     val accountId: String = "", // Used for Cloud Auth Multi-Account mapping (e.g. Google Drive / OneDrive email)
+    // S0064: pipe-separated list of share names entered manually by the user for this server.
+    // Stored on every credential entity for the same server so the history survives partial deletions.
+    @ColumnInfo(name = "manual_share_names")
+    val manualShareNames: String = "",
     val createdDate: Long = System.currentTimeMillis()
 ) {
     /**

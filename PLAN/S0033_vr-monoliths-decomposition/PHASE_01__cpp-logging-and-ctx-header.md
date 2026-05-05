@@ -35,7 +35,7 @@ Extract the logging utilities (lines 167–220) and diagnostic name helpers (lin
 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | Modified | starts 3487 → ends ≤ 3380 |
 | `app_v2/src/vr/cpp/CMakeLists.txt` | Modified | unchanged ≤ 60 |
 
-> File `OpenXrNative.cpp` >1000 LOC throughout this phase — additions are forbidden; only deletions + small re-includes are allowed. Verify with `wc -l` before and after.
+> File `OpenXrNative.cpp` >1500OC throughout this phase — additions are forbidden; only deletions + small re-includes are allowed. Verify with `wc -l` before and after.
 
 ---
 

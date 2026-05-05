@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.InputBinding
 import com.sza.fastmediasorter.domain.input.InputTrigger
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -47,6 +48,26 @@ class InputBindingRepository @Inject constructor(
 
     suspend fun clearAll() {
         dao.deleteAll()
+    }
+
+    suspend fun hasOverrides(): Boolean = dao.observeAll().first().isNotEmpty()
+
+    suspend fun insertAllAsOverrides(bindings: List<InputBinding>) {
+        bindings.forEach { binding ->
+            val device = when (binding.trigger) {
+                is InputTrigger.Key -> "keyboard"
+                is InputTrigger.MouseButton -> "mouse"
+                is InputTrigger.GamepadButton, is InputTrigger.GamepadAxis -> "gamepad"
+                is InputTrigger.VrEvent -> "vr"
+            }
+            dao.upsert(InputBindingEntity(
+                commandId = binding.commandId,
+                device = device,
+                slot = 0,
+                trigger = binding.trigger.serialize(),
+                updatedAt = System.currentTimeMillis()
+            ))
+        }
     }
 
     private fun merge(

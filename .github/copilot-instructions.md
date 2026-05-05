@@ -105,7 +105,7 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
 
   <strict_constraints>
     <constraint>ROOT_CLEANLINESS: MANDATORY. Never write files to root. Use `temp/`.</constraint>
-    <constraint>FILE_SIZE: Max 1000 lines. SPLIT large logic into `helpers/*.kt`.</constraint>
+    <constraint>FILE_SIZE: Max 1500ines. SPLIT large logic into `helpers/*.kt`.</constraint>
     <constraint>ACTIVITY_LOGIC: PROHIBITED. Delegate complex logic to `helpers/*Manager`.</constraint>
     <constraint>LOGGING: Use `Timber`. `Log.d()` is PROHIBITED. Write physical output to `temp/*.log`.</constraint>
     <constraint>READ_ONLY_ZONES: DO NOT MODIFY `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.</constraint>
@@ -117,6 +117,7 @@ Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc
     <constraint>COMMENTS_WRITE_ON_MODIFY: MANDATORY. When adding or changing logic, add an inline comment explaining WHY (not what) whenever the reason is not immediately obvious from the code. Remove or update stale comments that no longer reflect reality. Applies to ALL agents.</constraint>
     <constraint>UI_TRIGGER_ROW: MANDATORY. All toggle/switch and checkbox rows MUST follow the canonical patterns defined in `docs/ARCHITECTURE.md` § "UI Patterns — Trigger Row". SWITCH rows: title=`toggler_title_text_size` (14sp), help-text=`toggler_desc_text_size` (12sp), help-icon `ic_help_outline_24` always rightmost child. CHECKBOX rows: help-text=`text_size_small` (14sp), indent=`checkbox_subtitle_margin_start`. Help text is ALWAYS 2sp smaller than the trigger label. NEVER hardcode sp values. Applies to ALL agents.</constraint>
     <constraint>UI_AMBIGUITY_GATE: MANDATORY. For ANY user-facing change touching layout, command placement, settings UI, menus, button visibility, portrait/landscape behavior, overflow rules, labels, icons, help text, confirmation/fallback UX, or empty/error states, DO NOT start implementation until all ambiguous UI decisions are explicitly resolved. Minimum checklist: exact placement per orientation, direct button vs overflow vs top menu, visibility predicates by file/media type, priority relative to existing actions, icon/text/tooltip, disabled/hidden behavior, empty/error/loading states, confirmation/overwrite/fallback behavior, and accessibility implications. If the request, spec, or current code leaves any item unclear, stop in Step 0 or Step 2, ask targeted questions, and wait for alignment or explicit delegated assumptions.</constraint>
+    <constraint>LAYOUT_ORIENTATION: MANDATORY. Any edit to `res/layout/*.xml` MUST be paired with a check of `res/layout-land/*.xml`. If the landscape variant exists → apply the equivalent change in the same step. If it does not exist but the screen supports landscape → add a separate step to create it or add an explicit blocker note. Never close a step that modifies a portrait layout without verifying the landscape counterpart. Applies to ALL agents. NO exceptions.</constraint>
   </strict_constraints>
 
   <workflow_stages>

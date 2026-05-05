@@ -117,7 +117,9 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
 
             val sharesList = shares.toList().sorted()
             if (sharesList.size < 3) {
-                Timber.w("Only ${sharesList.size} share(s) found. There may be more shares with custom names.")
+                // Informational only — thin results are normal on NAS/custom configurations;
+                // the UI now offers manual entry as fallback (S0064).
+                Timber.i("Only ${sharesList.size} share(s) found. There may be more shares with custom names.")
             }
             SmbResult.Success(sharesList)
         } catch (e: Exception) {

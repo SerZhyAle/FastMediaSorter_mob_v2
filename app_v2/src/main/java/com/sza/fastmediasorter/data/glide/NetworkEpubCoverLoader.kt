@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.bumptech.glide.Priority
+import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.data.DataFetcher
@@ -102,12 +104,17 @@ private class NetworkEpubDataFetcher(
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in Bitmap>) {
         val fileName = data.path.substringAfterLast('/')
         Timber.d("NetworkEpubDataFetcher.loadData: Starting EPUB download for $fileName")
-        
+
         if (isCancelled) {
             callback.onLoadFailed(Exception("Cancelled before start"))
             return
         }
-        
+
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            callback.onLoadFailed(LocalNetworkPermissionDeniedException())
+            return
+        }
+
         try {
             // Create temp file in cache directory
             val cacheDir = File(context.cacheDir, "epub_covers")

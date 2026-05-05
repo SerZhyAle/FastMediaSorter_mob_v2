@@ -1,3 +1,5 @@
+> **SUPERSEDED** — replaced by [PHASE_07__docs-catalog-cleanup.md](PHASE_07__docs-catalog-cleanup.md) (2026-05-04 redesign). Do not use.
+
 # Phase 05 — Docs and Catalog Cleanup
 
 **Strategic spec:** [`../S0028_vr-multi-window-playback.md`](../S0028_vr-multi-window-playback.md)

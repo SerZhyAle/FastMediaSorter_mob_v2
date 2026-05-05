@@ -52,13 +52,25 @@ class VrStereoRenderer {
     /** Throttle counter for per-eye render debug logs — not persisted across GL contexts. */
     private var dbgRenderEyeCount = 0L
 
+    /** Guard: log full UV/viewport params once per stereo-mode transition for non-fisheye renderQuad. */
+    private var dbgFirstNonFisheyeLogged = false
+
+    /** Guard: log fisheye shader params once per stereo-mode transition. */
+    private var dbgFirstFisheyeLogged = false
+
     /**
      * Set the stereo mode for the current media.
      * Called by VrPlayerActivity when StereoDetectionFacade returns a result.
      */
     fun setStereoMode(mode: StereoMode) {
+        val previous = currentStereoMode
         Timber.d("VrStereoRenderer: stereo mode set to $mode")
+        Timber.d("VR_QUALITY_DEBUG: setStereoMode previous=%s new=%s", previous, mode)
         currentStereoMode = mode
+        // Reset one-shot guards so the first render under the new mode logs full params again.
+        dbgRenderEyeCount = 0L
+        dbgFirstNonFisheyeLogged = false
+        dbgFirstFisheyeLogged = false
     }
 
     fun getCurrentStereoMode(): StereoMode = currentStereoMode
@@ -269,6 +281,18 @@ class VrStereoRenderer {
             )
         } else {
             val plan = planner.buildRenderPlan(context, descriptor)
+            if (!dbgFirstNonFisheyeLogged && context.eye == VrEye.LEFT) {
+                Timber.d(
+                    "VR_QUALITY_DEBUG: renderQuad first stereo=%s layer=%s eye=%s" +
+                        " uOffset=%.4f vOffset=%.4f uScale=%.4f vScale=%.4f" +
+                        " viewport=(x=%d y=%d w=%d h=%d) target=%dx%d",
+                    context.stereoMode, context.layerType, context.eye,
+                    plan.uv.uOffset, plan.uv.vOffset, plan.uv.uScale, plan.uv.vScale,
+                    plan.viewport.x, plan.viewport.y, plan.viewport.width, plan.viewport.height,
+                    context.targetWidthPx, context.targetHeightPx,
+                )
+                dbgFirstNonFisheyeLogged = true
+            }
             renderQuad(
                 oesTextureId = oesTextureId,
                 uOffset = plan.uv.uOffset,
@@ -418,11 +442,20 @@ class VrStereoRenderer {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, oesTextureId)
         GLES20.glUniform1i(fUTextureLoc, 0)
         // WHY: VR_QUALITY_DEBUG — one-shot log for S0041 investigation (fisheye render params).
+        // dbgRenderEyeCount is incremented in renderEye *before* this call, so it is always ≥1
+        // here — a dedicated boolean flag is required.
         // Remove after root cause is confirmed (Phase 3 of S0041 investigation).
-        if (dbgRenderEyeCount == 0L) {
+        if (!dbgFirstFisheyeLogged) {
+            dbgFirstFisheyeLogged = true
+            // Shader hardcodes equidistant fisheye with full half-FOV = PI/2 (rho clip),
+            // and full mapped FOV = PI (theta range from -PI/2..+PI/2). If the source
+            // lens FOV deviates from 180°, the picture appears scaled — record the
+            // shader-side constants to compare against capture lens spec.
             Timber.d(
-                "VR_QUALITY_DEBUG: fisheye first frame uOffset=%.2f target=%dx%d fisheyeProgram=%d",
-                fisheyeUOffset, targetWidthPx, targetHeightPx, fisheyeProgram
+                "VR_QUALITY_DEBUG: fisheye first frame uOffset=%.2f target=%dx%d fisheyeProgram=%d" +
+                    " shaderHalfFovRad=%.6f shaderFullFovRad=%.6f stereo=%s",
+                fisheyeUOffset, targetWidthPx, targetHeightPx, fisheyeProgram,
+                Math.PI / 2.0, Math.PI, currentStereoMode
             )
         }
         GLES20.glUniform1f(fUFisheyeUOffsetLoc, fisheyeUOffset)

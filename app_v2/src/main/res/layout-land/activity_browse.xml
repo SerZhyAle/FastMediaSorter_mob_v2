@@ -11,6 +11,9 @@
         <!-- Breadcrumb path (visible during subfolder navigation) -->
         <com.sza.fastmediasorter.ui.common.BreadcrumbView android:id="@+id/breadcrumbView" android:layout_width="0dp" android:layout_height="@dimen/control_button_size" android:layout_weight="1" android:visibility="gone" />
 
+        <!-- Small space after Back (only visible when breadcrumb is hidden) -->
+        <Space android:id="@+id/spaceAfterBack" android:layout_width="@dimen/match_constraint" android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
+
         <!-- Sort Button (shows current mode, popup menu on click) -->
         <TextView android:id="@+id/btnSort" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" app:drawableEndCompat="@drawable/ic_arrow_drop_down" app:drawableTint="?attr/colorControlNormal" android:ellipsize="end" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingStart="8dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingEnd="4dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:singleLine="true" android:textColor="?attr/colorControlNormal" android:textSize="12sp" tools:text="Date ↓" />
 
@@ -28,12 +31,18 @@
         <!-- Grid/List toggle -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnToggleView" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:text="@string/toggle_view_short" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@drawable/ic_view_list" app:iconTint="?attr/colorControlNormal" />
 
+        <!-- Small space -->
+        <Space android:layout_width="@dimen/match_constraint" android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
+
         <!-- Select All -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectAll" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:text="@string/select_all_short" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@drawable/ic_select_all" app:iconTint="?attr/colorControlNormal" />
 
         <!-- Deselect All (No text requested, keeping as icon but MaterialButton for consistency) -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnDeselectAll" style="?attr/materialIconButtonStyle" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/deselect_all" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:textSize="12sp" app:icon="@drawable/ic_deselect_all" app:iconTint="?attr/colorControlNormal" />
 
+
+        <!-- Small space -->
+        <Space android:layout_width="@dimen/match_constraint" android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
         <!-- Resource Operations -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnResourceOps" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/cd_resource_ops_menu" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@drawable/ic_more_vert" app:iconTint="?attr/colorControlNormal" />
@@ -91,7 +100,7 @@
         <ImageButton android:id="@+id/btnUndo" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/undo" android:src="@drawable/ic_undo" app:tint="?attr/colorControlNormal" android:visibility="gone" />
 
         <!-- Share -->
-        <ImageButton android:id="@+id/btnShare" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnShare" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="@color/selector_themed_button_tint" android:visibility="gone" />
 
         <!-- Archive selected files to ZIP -->
         <ImageButton android:id="@+id/btnArchive" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/archive_files" android:src="@drawable/ic_cloud_upload" app:tint="?attr/colorControlNormal" android:visibility="gone" />

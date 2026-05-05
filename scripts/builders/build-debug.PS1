@@ -64,6 +64,25 @@ function Remove-BuildPathIfExists {
 }
 
 
+function Get-GradleExecutionHistoryRelativePath {
+    $gradleDir = Join-Path $projectRoot ".gradle"
+    if (-not (Test-Path -Path $gradleDir)) {
+        return $null
+    }
+
+    $versionDir = Get-ChildItem -Path $gradleDir -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^\d+\.\d+(\.\d+)?$' } |
+        Sort-Object Name -Descending |
+        Select-Object -First 1
+
+    if ($null -eq $versionDir) {
+        return $null
+    }
+
+    return ".gradle\$($versionDir.Name)\executionHistory"
+}
+
+
 function Invoke-DebugBuild {
     param(
         [switch]$DisableBuildCache,
@@ -95,31 +114,27 @@ function Invoke-DebugBuild {
 }
 
 $buildResult = Invoke-DebugBuild
+$gradleExecutionHistoryPath = Get-GradleExecutionHistoryRelativePath
 
 if ($buildResult.ExitCode -ne 0) {
-    $isKotlinCachePackError =
+    $isGradleCachePackError =
     ($buildResult.Output -match "Failed to store cache entry") -and
-    ($buildResult.Output -match "Could not pack tree") -and
-    ($buildResult.Output -match "lookups\.tab\.values")
+    ($buildResult.Output -match "Could not pack tree")
 
     $isKaptIncrementalDataLockError =
     ($buildResult.Output -match "Unable to delete directory") -and
     ($buildResult.Output -match "kapt3[\\/]incrementalData[\\/]standardDebug")
 
-    if ($isKotlinCachePackError) {
-        Write-Host "`nDetected Kotlin/Gradle cache packing issue. Cleaning local caches and retrying once..." -ForegroundColor Yellow
+    if ($isGradleCachePackError) {
+        Write-Host "`nDetected Gradle cache packing issue. Stopping daemons, cleaning volatile cache state, and retrying once..." -ForegroundColor Yellow
 
-        $localGradleCachePath = Join-Path $projectRoot ".gradle"
-        $moduleKotlinCachePath = Join-Path $projectRoot "app_v2\build\kotlin"
-
-        if (Test-Path -Path $localGradleCachePath) {
-            Remove-Item -Path $localGradleCachePath -Recurse -Force -ErrorAction SilentlyContinue
+        Stop-GradleDaemons
+        if ($null -ne $gradleExecutionHistoryPath) {
+            Remove-BuildPathIfExists -RelativePath $gradleExecutionHistoryPath
         }
-        if (Test-Path -Path $moduleKotlinCachePath) {
-            Remove-Item -Path $moduleKotlinCachePath -Recurse -Force -ErrorAction SilentlyContinue
-        }
+        Remove-BuildPathIfExists -RelativePath "app_v2\build\kotlin"
 
-        $buildResult = Invoke-DebugBuild -DisableBuildCache
+        $buildResult = Invoke-DebugBuild -DisableBuildCache -NoDaemon
     }
 
     if (($buildResult.ExitCode -ne 0) -and $isKaptIncrementalDataLockError) {
@@ -127,7 +142,9 @@ if ($buildResult.ExitCode -ne 0) {
 
         Stop-GradleDaemons
         # Clear only the volatile kapt/kotlin outputs because stale locked stubs block the next incremental run.
-        Remove-BuildPathIfExists -RelativePath ".gradle\8.11.1\executionHistory"
+        if ($null -ne $gradleExecutionHistoryPath) {
+            Remove-BuildPathIfExists -RelativePath $gradleExecutionHistoryPath
+        }
         Remove-BuildPathIfExists -RelativePath "app_v2\build\tmp\kapt3"
         Remove-BuildPathIfExists -RelativePath "app_v2\build\kotlin"
 

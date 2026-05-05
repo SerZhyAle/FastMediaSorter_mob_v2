@@ -1,6 +1,6 @@
 # Phase 04 — Ray HUD Hit-Test
 
-**Strategic spec:** [`../spec_vr-immersive-controls-panel.md`](../spec_vr-immersive-controls-panel.md)
+**Strategic spec:** [`../S0008_vr-immersive-controls-panel.md`](../S0008_vr-immersive-controls-panel.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
 **Status:** ⬜ Not started
 **Depends on:** Phase 02, Phase 03

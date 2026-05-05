@@ -4,9 +4,9 @@
 **Feature:** Ray-input subsystem for the interactive immersive HUD (controller aim + hand-tracking pinch → click on HUD elements registered by the HUD content composer).
 **Tier:** 3 — Moderate
 **Priority:** 50
-**Status:** In Progress (blocked on Phase 02 dependency)
-**Phases:** 1 / 6 done
-**Last updated:** 2026-04-29
+**Status:** Implemented
+**Phases:** 6 / 6 done
+**Last updated:** 2026-05-03
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
 
@@ -17,11 +17,11 @@
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
 | 01 | hud-element-registry | — | ✅ Done | 5/5 | [PHASE_01__hud-element-registry.md](PHASE_01__hud-element-registry.md) |
-| 02 | ray-hud-intersection | 01 | ⬜ Not started | 0/4 | [PHASE_02__ray-hud-intersection.md](PHASE_02__ray-hud-intersection.md) |
-| 03 | hover-state-and-redraw | 01, 02 | ⬜ Not started | 0/4 | [PHASE_03__hover-state-and-redraw.md](PHASE_03__hover-state-and-redraw.md) |
-| 04 | input-dispatcher | 01, 02, 03 | ⬜ Not started | 0/5 | [PHASE_04__input-dispatcher.md](PHASE_04__input-dispatcher.md) |
-| 05 | idle-gate-and-feedback | 04 | ⬜ Not started | 0/3 | [PHASE_05__idle-gate-and-feedback.md](PHASE_05__idle-gate-and-feedback.md) |
-| 06 | docs-catalog-cleanup | all | ⬜ Not started | 0/4 | [PHASE_06__docs-catalog-cleanup.md](PHASE_06__docs-catalog-cleanup.md) |
+| 02 | ray-hud-intersection | 01 | ✅ Done | 4/4 | [PHASE_02__ray-hud-intersection.md](PHASE_02__ray-hud-intersection.md) |
+| 03 | hover-state-and-redraw | 01, 02 | ✅ Done | 4/4 | [PHASE_03__hover-state-and-redraw.md](PHASE_03__hover-state-and-redraw.md) |
+| 04 | input-dispatcher | 01, 02, 03 | ✅ Done | 5/5 | [PHASE_04__input-dispatcher.md](PHASE_04__input-dispatcher.md) |
+| 05 | idle-gate-and-feedback | 04 | ✅ Done | 3/3 | [PHASE_05__idle-gate-and-feedback.md](PHASE_05__idle-gate-and-feedback.md) |
+| 06 | docs-catalog-cleanup | all | ✅ Done | 4/4 | [PHASE_06__docs-catalog-cleanup.md](PHASE_06__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 
@@ -35,12 +35,12 @@ _None — all research items in strategic §6 are Resolved (owner decisions 2026
 
 ## Completion Gate
 
-- [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated with the HUD ray-input bullet (see strategic §8).
-- [ ] `dev/CHANGELOG.md` has an entry for every modified file (added via `scripts/add_to_dev_log.ps1`).
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated (HUD registry + dispatcher classes are new public roles).
-- [ ] `/spec-check S0024` returns `Verified`.
-- [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
+- [x] All phases show ✅ Done.
+- [x] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated with the HUD ray-input bullet (see strategic §8).
+- [x] `dev/CHANGELOG.md` has an entry for every modified file (added via `scripts/add_to_dev_log.ps1`).
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated (HUD registry + dispatcher classes are new public roles).
+- [ ] `/spec-check S0024` returns `Verified` — pending (Stage F5).
+- [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check` — pending (Stage F5).
 
 ---
 
@@ -57,6 +57,7 @@ _None — all research items in strategic §6 are Resolved (owner decisions 2026
 ## Blockers Log
 
 - **2026-04-29 — Phase 02 blocked by S0033.** `OpenXrNative.cpp` 3487 LOC (> 1000 hard limit, > 1500 phase budget) и `VrPlayerActivity.kt` 1956 LOC (> 1000 hard limit). Phase 02 явно требует декомпозиции до правок. Allocated dependency: `S0033_vr-monoliths-decomposition` (Approved). S0024 status flipped to `BlockByOtherTask`. Resume after S0033 lands: `update.ps1 -Status "In Progress"` + `/spec-dev S0024`.
+- **2026-05-03 — RESOLVED.** S0033 reached `Verified`. Post-decomposition sizes: `OpenXrNative.cpp` 675 LOC, `VrPlayerActivity.kt` 619 LOC — both within phase budget. Status flipped back to `In Progress`; pipeline resumed via `/spec-all S0024 force`.
 
 ---
 

@@ -3,15 +3,23 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.ContentUris
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSourceFactory
+import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
+import com.sza.fastmediasorter.data.network.datasource.TsPacketFormatDetector
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.FileInputStream
 
 /**
  * Local-file playback helpers and MIME-type / MediaItem utilities.
@@ -63,6 +71,38 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
             return
         }
         Timber.d("VideoPlayerManager: File exists and readable: ${file.name}, size=${fileCheck.third} bytes")
+    }
+
+    if ((normalizedPath.endsWith(".m2ts", ignoreCase = true) || normalizedPath.endsWith(".m2t", ignoreCase = true))
+        && !normalizedPath.startsWith("content://")) {
+        val format = withContext(Dispatchers.IO) {
+            try {
+                FileInputStream(normalizedPath).use { fis ->
+                    val probe = ByteArray(TsPacketFormatDetector.PROBE_BYTES)
+                    val read = fis.read(probe)
+                    TsPacketFormatDetector.detect(if (read > 0) probe.copyOf(read) else probe)
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "VideoPlayerManager: BD-TS probe failed for $normalizedPath")
+                TsPacketFormat.UNKNOWN
+            }
+        }
+        if (format != TsPacketFormat.STANDARD_188) {
+            releasePlayer()
+            val localFactory: DataSource.Factory = DefaultDataSourceFactory(context)
+            val audioAttr = AudioAttributes.Builder()
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .setUsage(C.USAGE_MEDIA)
+                .build()
+            exoPlayer = ExoPlayer.Builder(context)
+                .setMediaSourceFactory(
+                    localFactory.buildBdTsMediaSourceFactory(TsPacketFormat.BD_192)
+                )
+                .setAudioAttributes(audioAttr, true)
+                .build()
+            exoPlayer?.addListener(playerListener)
+            currentPlayerView?.player = exoPlayer
+        }
     }
 
     if (exoPlayer == null && currentPlayerView != null) {

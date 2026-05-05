@@ -18,6 +18,7 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -40,7 +41,10 @@ class ResourceOpsMenuManager @Inject constructor(
         onArchive: (() -> Unit)? = null,
         isDestinationsFull: Boolean = false,
         onCameraCapture: (() -> Unit)? = null,
-        isCameraVisible: Boolean = false
+        isCameraVisible: Boolean = false,
+        // S0028: multi-window entry point — open resource Browse in a new window
+        allowSeparateWindow: Boolean = false,
+        openBrowseInNewWindow: ((Long) -> Unit)? = null
     ) {
         val popup = PopupMenu(context, anchor)
         popup.inflate(R.menu.menu_resource_ops)
@@ -76,6 +80,8 @@ class ResourceOpsMenuManager @Inject constructor(
             !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
 
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
+        popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
+            BuildConfig.SUPPORT_VR_PLAYER && allowSeparateWindow && openBrowseInNewWindow != null
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -118,6 +124,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
                 R.id.action_camera_capture -> {
                     onCameraCapture?.invoke()
+                    true
+                }
+                R.id.action_open_in_separate_window -> {
+                    resource?.id?.let { openBrowseInNewWindow?.invoke(it) }
                     true
                 }
                 else -> false

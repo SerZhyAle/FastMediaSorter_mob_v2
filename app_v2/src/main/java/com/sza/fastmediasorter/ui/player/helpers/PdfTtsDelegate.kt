@@ -15,7 +15,7 @@ import timber.log.Timber
  * Handles TTS "Read Aloud" for PdfViewerManager.
  * Extracts text from the current page via PdfTextSelectionManager, then delegates
  * to TtsReadAloudManager.  Kept as a separate delegate because PdfViewerManager
- * already exceeds 1000 lines.
+ * already exceeds 1500ines.
  */
 class PdfTtsDelegate(
     private val context: Context,

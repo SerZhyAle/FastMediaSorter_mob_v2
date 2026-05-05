@@ -59,6 +59,8 @@ class FileOperationsHandler(
     interface FileOperationCallback {
         fun onCopySuccess(destination: MediaResource, goToNext: Boolean)
         fun onMoveSuccess(destination: MediaResource, movedFilePath: String, goToNext: Boolean)
+        fun onCopyToPathSuccess(destinationPath: String, goToNext: Boolean)
+        fun onMoveToPathSuccess(destinationPath: String, movedFilePath: String, goToNext: Boolean)
         fun onDeleteSuccess(deletedFilePath: String)
         fun onOperationError(message: String, throwable: Throwable? = null)
         fun onAuthenticationRequired(provider: String, message: String)
@@ -244,6 +246,108 @@ class FileOperationsHandler(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Move operation failed")
+                if (!isActivityGone()) {
+                    withContext(Dispatchers.Main) {
+                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message), e)
+                    }
+                }
+            }
+        }
+    }
+
+    fun performCopyToPath(destinationPath: String) {
+        val currentFile = callback.getCurrentFile() ?: return
+        appScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            withContext(Dispatchers.Main) {
+                if (!isActivityGone()) {
+                    val folderName = java.io.File(destinationPath).name
+                    Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_started, folderName), Toast.LENGTH_LONG).show()
+                }
+            }
+            try {
+                val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
+                val operation = FileOperation.Copy(
+                    sources = listOf(sourceFile),
+                    destination = java.io.File(destinationPath),
+                    overwrite = settings.overwriteOnCopy,
+                    sourceCredentialsId = callback.getCurrentResource()?.credentialsId
+                )
+                val result = fileOperationUseCase.execute(operation)
+                withContext(Dispatchers.Main) {
+                    if (isActivityGone()) return@withContext
+                    val folderName = java.io.File(destinationPath).name
+                    when (result) {
+                        is FileOperationResult.Success -> {
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_success, folderName), Toast.LENGTH_SHORT).show()
+                            callback.onCopyToPathSuccess(destinationPath, settings.goToNextAfterCopy)
+                        }
+                        is FileOperationResult.PartialSuccess -> {
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_success_count, result.processedCount, folderName), Toast.LENGTH_SHORT).show()
+                            if (settings.goToNextAfterCopy) callback.onCopyToPathSuccess(destinationPath, true)
+                        }
+                        is FileOperationResult.Failure -> {
+                            val msg = if (result.errorRes != null) appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
+                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, result.error)
+                            callback.onOperationError(msg, null)
+                        }
+                        is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
+                        is FileOperationResult.PermissionRequired -> callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "FileOperationsHandler: performCopyToPath failed")
+                if (!isActivityGone()) {
+                    withContext(Dispatchers.Main) {
+                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, e.message), e)
+                    }
+                }
+            }
+        }
+    }
+
+    fun performMoveToPath(destinationPath: String) {
+        val currentFile = callback.getCurrentFile() ?: return
+        appScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            withContext(Dispatchers.Main) {
+                if (!isActivityGone()) {
+                    val folderName = java.io.File(destinationPath).name
+                    Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_started, folderName), Toast.LENGTH_LONG).show()
+                }
+            }
+            try {
+                val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
+                val operation = FileOperation.Move(
+                    sources = listOf(sourceFile),
+                    destination = java.io.File(destinationPath),
+                    overwrite = settings.overwriteOnMove,
+                    sourceCredentialsId = callback.getCurrentResource()?.credentialsId
+                )
+                val result = fileOperationUseCase.execute(operation)
+                withContext(Dispatchers.Main) {
+                    if (isActivityGone()) return@withContext
+                    val folderName = java.io.File(destinationPath).name
+                    when (result) {
+                        is FileOperationResult.Success -> {
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success, folderName), Toast.LENGTH_SHORT).show()
+                            callback.onMoveToPathSuccess(destinationPath, currentFile.path, true)
+                        }
+                        is FileOperationResult.PartialSuccess -> {
+                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success_count, result.processedCount, folderName), Toast.LENGTH_SHORT).show()
+                            callback.onMoveToPathSuccess(destinationPath, currentFile.path, true)
+                        }
+                        is FileOperationResult.Failure -> {
+                            val msg = if (result.errorRes != null) appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
+                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, result.error)
+                            callback.onOperationError(msg, null)
+                        }
+                        is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
+                        is FileOperationResult.PermissionRequired -> callback.onBatchDeletePermissionRequired(result.pendingIntent)
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "FileOperationsHandler: performMoveToPath failed")
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
                         callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message), e)

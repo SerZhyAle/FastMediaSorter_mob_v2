@@ -24,12 +24,11 @@ internal class BdTsStripDataSource(private val upstream: DataSource) : DataSourc
 
     override fun open(dataSpec: DataSpec): Long {
         // Translate logical TS position → BD-TS byte position in the upstream.
-        // Invariant: tsPos/TS_PACKET_SIZE gives the packet index; tsPos%TS_PACKET_SIZE
-        // gives the byte within that packet's payload. BD byte = index*192 + 4 + intraPacket.
+        // Open at the BD-packet boundary so read() correctly strips bytes [0..3] as the BD header.
         val tsPos = dataSpec.position
         val packetIndex = tsPos / TS_PACKET_SIZE
         val byteWithinPacket = (tsPos % TS_PACKET_SIZE).toInt()
-        val bdPos = packetIndex * BD_PACKET_SIZE + BD_HEADER_SIZE + byteWithinPacket
+        val bdPos = packetIndex * BD_PACKET_SIZE
 
         val translatedSpec = dataSpec.buildUpon().setPosition(bdPos).build()
         val upstreamLength = upstream.open(translatedSpec)

@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import com.sza.fastmediasorter.BuildConfig
 import androidx.activity.viewModels
 import androidx.activity.OnBackPressedCallback
@@ -48,6 +49,17 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         override fun openSearchOverlay() = this@SettingsActivity.openSearchOverlay()
         override fun closeSearchOverlay() = this@SettingsActivity.closeSearchOverlay()
         override fun isSearchVisible(): Boolean = binding.searchOverlay.isVisible
+        override fun isTextEditorFocused(): Boolean =
+            (currentFocus as? android.widget.TextView)?.onCheckIsTextEditor() == true
+        override fun clearFocusedTextEditor(): Boolean {
+            val focusedView = currentFocus ?: return false
+            if ((focusedView as? android.widget.TextView)?.onCheckIsTextEditor() != true) return false
+
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(focusedView.windowToken, 0)
+            focusedView.clearFocus()
+            return true
+        }
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
         override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, InputSurface.SETTINGS) }
         override fun activateFocused() { currentFocus?.performClick() }
@@ -195,6 +207,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
         val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+        val ime = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())
         statusBarInsetPx = statusBar.top
 
         // Toolbar container below status bar
@@ -203,10 +216,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
         )
 
-        // ViewPager content above nav bar
+        // ViewPager content above nav bar or IME (whichever is taller) so focused
+        // fields are not obscured by the soft keyboard in edge-to-edge mode.
         binding.viewPager.setPadding(
             binding.viewPager.paddingLeft, binding.viewPager.paddingTop,
-            binding.viewPager.paddingRight, navBar.bottom
+            binding.viewPager.paddingRight, maxOf(navBar.bottom, ime.bottom)
         )
 
         // Re-apply compact toolbar height now that the inset is known

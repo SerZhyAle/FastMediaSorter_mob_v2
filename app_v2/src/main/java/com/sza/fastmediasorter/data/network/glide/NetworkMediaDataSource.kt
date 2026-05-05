@@ -37,7 +37,23 @@ class NetworkMediaDataSource(
     }
 
     private var isClosed = false
-    
+
+    /**
+     * Set to true if a DiskShare-already-closed or transport error is caught during readAt().
+     * Read by NetworkVideoFrameDecoder after extraction to classify the failure as transient
+     * (SMB share race between thumbnail IO and active playback). S0060.
+     */
+    @Volatile var encounteredStaleShare: Boolean = false
+        private set
+
+    /**
+     * Protocol-agnostic transient-failure reason populated by readAt() detectors. S0066.
+     * Read by NetworkVideoFrameDecoder after extraction to classify the failure as transient
+     * for SMB / SFTP / FTP uniformly. Null = no transient signal observed.
+     */
+    @Volatile var transientFailureReason: TransientReason? = null
+        private set
+
     // Buffering for reducing network round trips
     private var cachedChunkStart = -1L
     private var cachedChunkEnd = -1L
@@ -100,15 +116,36 @@ class NetworkMediaDataSource(
             bytesToCopy
         } catch (e: Exception) {
             // Expected during video thumbnail timeout cancellation - log without stack trace
-            if (e is InterruptedException || e.cause is InterruptedException || 
+            if (e is InterruptedException || e.cause is InterruptedException ||
                 e is java.util.concurrent.CancellationException || e.cause is java.util.concurrent.CancellationException) {
                 Timber.d("Network read interrupted at position $position (expected during cancellation)")
             } else if (e is SocketTimeoutException || e.cause is SocketTimeoutException ||
                 e.message?.contains("timed out", ignoreCase = true) == true) {
                 Timber.w("Network read timeout at position $position, size $size")
+            } else if (isSmbStaleShareError(e)) {
+                // SMB DiskShare lifecycle race: the playback path invalidated the share while
+                // thumbnail was still reading. Mark for transient classification in decoder. S0060.
+                encounteredStaleShare = true
+                Timber.w("[scope=thumbnail failureClass=stale-share] DiskShare race at position=$position: ${e.message}")
             } else {
                 // Unexpected errors get full stack trace
                 Timber.e(e, "Error reading from network at position $position, size $size")
+            }
+            // S0066: protocol-aware transient classification (uniform for SMB / SFTP / FTP).
+            when {
+                path.startsWith("smb://") -> if (isSmbStaleShareError(e)) {
+                    transientFailureReason = TransientReason.STALE_SHARE
+                }
+                path.startsWith("sftp://") -> transientFailureReason = classifySftpTransient(e)
+                path.startsWith("ftp://") -> transientFailureReason = classifyFtpTransient(e)
+            }
+            if (transientFailureReason == null && classifyTimeoutTransient(e)) {
+                transientFailureReason = TransientReason.TIMEOUT
+            }
+            transientFailureReason?.let { reason ->
+                if (!path.startsWith("smb://")) {
+                    Timber.w("[scope=thumbnail S0066 protocol=${path.substringBefore("://")} failureClass=$reason] Transient at position=$position: ${e.message}")
+                }
             }
             -1
         }
@@ -133,6 +170,63 @@ class NetworkMediaDataSource(
             }
             pooledFtpConnection = null
         }
+    }
+
+    /**
+     * Detects SMB DiskShare-lifecycle errors that occur when the playback path
+     * invalidates a share while thumbnail extraction is still reading from it.
+     * These are transient race conditions (S0060), NOT permanent file failures.
+     */
+    private fun classifySftpTransient(e: Throwable): TransientReason? {
+        var current: Throwable? = e
+        var depth = 0
+        while (current != null && depth < 5) {
+            val msg = current.message?.lowercase().orEmpty()
+            val cls = current.javaClass.simpleName
+            if (cls == "TransportException" || msg.contains("transport")) return TransientReason.TRANSPORT
+            if (msg.contains("channel") && msg.contains("closed")) return TransientReason.BROKEN_CHANNEL
+            if (msg.contains("session is down") || msg.contains("session closed")) return TransientReason.BROKEN_CHANNEL
+            if (current is java.net.SocketException) return TransientReason.TRANSPORT
+            current = current.cause
+            depth++
+        }
+        return null
+    }
+
+    private fun classifyFtpTransient(e: Throwable): TransientReason? {
+        var current: Throwable? = e
+        var depth = 0
+        while (current != null && depth < 5) {
+            val msg = current.message?.lowercase().orEmpty()
+            if (msg.contains("broken pipe") || msg.contains("connection reset")) return TransientReason.BROKEN_PIPE
+            if (current is java.net.SocketException) return TransientReason.TRANSPORT
+            if (msg.contains("replycode=421") || msg.contains("reply='421") ||
+                msg.contains("replycode=426") || msg.contains("reply='426")) return TransientReason.BROKEN_PIPE
+            current = current.cause
+            depth++
+        }
+        return null
+    }
+
+    private fun classifyTimeoutTransient(e: Throwable): Boolean {
+        return e is java.net.SocketTimeoutException ||
+            e.cause is java.net.SocketTimeoutException ||
+            e.message?.contains("timed out", ignoreCase = true) == true
+    }
+
+    private fun isSmbStaleShareError(e: Exception): Boolean {
+        var current: Throwable? = e
+        var depth = 0
+        while (current != null && depth < 5) {
+            val msg = current.message?.lowercase() ?: ""
+            if (msg.contains("diskshare has already been closed") ||
+                (msg.contains("share") && msg.contains("closed"))) {
+                return true
+            }
+            current = current.cause
+            depth++
+        }
+        return false
     }
 
     private fun readBytesFromNetwork(offset: Long, length: Long): ByteArray {

@@ -269,4 +269,8 @@ class PlayerCommandPanelCallbackImpl(
     override fun onBlackScreenClicked() {
         activity.blackScreenOverlayManager.show()
     }
+
+    override fun onOpenInSeparateWindowClicked() {
+        activity.tearOffPlayer()
+    }
 }

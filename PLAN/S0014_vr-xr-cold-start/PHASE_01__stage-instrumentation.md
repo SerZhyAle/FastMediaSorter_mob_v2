@@ -33,7 +33,7 @@ Add per-stage wall-clock timing markers to `OpenXrSessionManager.initialize()` a
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | Modified | ≤ 1790 |
 
 > `OpenXrSessionManager.kt` is currently 563 lines (> 500) — backup required before edit.
-> `VrPlayerActivity.kt` is currently 1767 lines (> 1000). Per CLAUDE.md, files > 1000 LOC must be split before editing; the split is tracked in `PLAN/spec_decompose-giant-files.md`. For this phase only, a narrow exception applies: changes are limited to 2 `@Volatile` field declarations and 7 `Timber.i` call-sites — no new business logic. A timestamped backup is mandatory.
+> `VrPlayerActivity.kt` is currently 1767 lines (> 1000). Per CLAUDE.md, files > 1500OC must be split before editing; the split is tracked in `PLAN/spec_decompose-giant-files.md`. For this phase only, a narrow exception applies: changes are limited to 2 `@Volatile` field declarations and 7 `Timber.i` call-sites — no new business logic. A timestamped backup is mandatory.
 
 ---
 

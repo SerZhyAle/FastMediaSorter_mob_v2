@@ -54,10 +54,14 @@ sealed class AddResourceEvent {
         val providerName: String,
         val accounts: List<String>
     ) : AddResourceEvent()
+    /** Missing ACCESS_LOCAL_NETWORK permission — UI must show rationale dialog before retrying. */
+    data object ShowLocalNetworkPermission : AddResourceEvent()
     /** Emitted after a successful share scan; UI should show a picker and fill the share name field. */
     data class ShowSharePicker(
         val server: String,
-        val shares: List<String>
+        val shares: List<String>,
+        /** S0064: previously used / manually entered share names for this server. */
+        val manualShares: List<String> = emptyList()
     ) : AddResourceEvent()
     object ResourcesAdded : AddResourceEvent()
 }
@@ -101,7 +105,8 @@ class AddResourceViewModel @Inject constructor(
     )
 
     private val networkScanCoordinator = AddResourceNetworkScanCoordinator(
-        context, discoverNetworkResourcesUseCase, smbOperationsUseCase, bridge
+        context, discoverNetworkResourcesUseCase, smbOperationsUseCase,
+        networkCredentialsRepository, bridge
     )
 
     private val smbCoordinator = AddResourceSmbCoordinator(
@@ -251,6 +256,16 @@ class AddResourceViewModel @Inject constructor(
         domain: String,
         port: Int
     ) = networkScanCoordinator.scanShares(server, username, password, domain, port)
+
+    /**
+     * S0064: Persists a manually entered share name to the per-server history so it
+     * reappears in the share picker on the next session.
+     */
+    fun rememberManualShareName(server: String, port: Int, shareName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            networkCredentialsRepository.addManualShareName(server, port, shareName)
+        }
+    }
 
     // ==================== Selection / per-resource toggles ====================
 
@@ -515,8 +530,13 @@ class AddResourceViewModel @Inject constructor(
                     is NetworkSpeedTestUseCase.SpeedTestStatus.Complete -> {
                         Timber.d("Speed test complete for ${resource.name}: Read=${status.result.readSpeedMbps} Mbps")
                     }
+                    is NetworkSpeedTestUseCase.SpeedTestStatus.MeasurementUnavailable -> {
+                        // Normal: no usable data returned (e.g. empty server response) — logged at DEBUG only
+                        Timber.d("Speed test: measurement unavailable for ${resource.name}: ${status.reason}")
+                    }
                     is NetworkSpeedTestUseCase.SpeedTestStatus.Error -> {
-                        Timber.e("Speed test error for ${resource.name}: ${status.message}")
+                        // Unexpected error — WARNING only, not ERROR, to keep ERROR channel clean
+                        Timber.w("Speed test error for ${resource.name}: ${status.message}")
                     }
                     is NetworkSpeedTestUseCase.SpeedTestStatus.Progress -> Unit
                 }

@@ -9,6 +9,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import timber.log.Timber
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.SettingsIntentLauncher
 
@@ -29,6 +31,10 @@ class MainStoragePermissionsHelper(
     fun hasFullLocalPermissions(): Boolean = PermissionHelper.checkStoragePermissions(activity)
 
     fun checkLocalPermissionsOnStartup() {
+        if (ChromeOsCompat.isChromeOs(activity)) {
+            Timber.d("MainStoragePermissionsHelper: skipping MANAGE_EXTERNAL_STORAGE on Chrome OS")
+            return
+        }
         if (permissionCheckDoneThisSession) return
         permissionCheckDoneThisSession = true
 

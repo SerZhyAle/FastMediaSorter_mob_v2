@@ -27,6 +27,13 @@ class VrHudSceneComposer(
     @Suppress("unused") private val context: Context,
     private val width: Int = VrHudRenderer.DEFAULT_WIDTH,
     private val height: Int = VrHudRenderer.DEFAULT_HEIGHT,
+    /**
+     * S0024 Phase 04 smoke wire: invoked when the dispatcher resolves a click
+     * on the seek-bar element. Real seek behaviour belongs to S0019 — this
+     * lambda only confirms the end-to-end ray-input path. Default no-op so
+     * non-VR consumers and unit tests stay unaffected.
+     */
+    private val onSeekBarClick: () -> Unit = {},
 ) {
 
     val registry: VrHudElementRegistry = VrHudElementRegistry(width, height)
@@ -91,7 +98,15 @@ class VrHudSceneComposer(
 
     private val tmpRect = RectF()
 
-    fun draw(state: VrHudState, canvas: Canvas) {
+    // S0024 Phase 03: subtle 2-px stroked rounded-rect drawn around the hovered
+    // element bounds. Subdued ARGB per strategic §3.1 #2 (must not distract).
+    private val hoverPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(120, 120, 200, 255)
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
+    }
+
+    fun draw(state: VrHudState, canvas: Canvas, hoverId: Int = 0) {
         registry.beginFrame()
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         // WHY: GL textures have Y=0 at the bottom (opposite to Android Canvas Y=0 at top).
@@ -115,6 +130,13 @@ class VrHudSceneComposer(
         drawImmersiveBadge(state, canvas, now)
         drawBanner(state, canvas, now)
         drawRecenterFlash(state, canvas, now)
+        // Hover highlight painted last so it overlays the element it belongs to.
+        // Skipped when hoverId == 0 or the element is not registered this frame.
+        if (hoverId != 0) {
+            registry.boundsOf(hoverId)?.let { bounds ->
+                canvas.drawRoundRect(bounds, 6f, 6f, hoverPaint)
+            }
+        }
         canvas.restore()
     }
 
@@ -132,7 +154,7 @@ class VrHudSceneComposer(
         // Background
         tmpRect.set(marginX, barY, marginX + barW, barY + barH)
         canvas.drawRoundRect(tmpRect, 4f, 4f, progressBgPaint)
-        registry.register(HUD_ELEMENT_SEEK_BAR, tmpRect, "seek") {}
+        registry.register(HUD_ELEMENT_SEEK_BAR, tmpRect, "seek", onSeekBarClick)
         // Buffered
         val bufW = barW * buf.toFloat() / total.toFloat()
         if (bufW > 0f) {

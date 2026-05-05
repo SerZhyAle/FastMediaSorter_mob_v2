@@ -217,10 +217,14 @@ class PlayerMediaFilesLoader(
                 val allFiles = if (cachedFiles != null && cachedFiles.isNotEmpty() && !cacheHasOnlyDirectories && cacheMatchesInitialFile) {
                     cachedFiles
                 } else {
-                    if (!cacheMatchesInitialFile) {
-                        Timber.w("Cache does not contain initialFilePath=$initialFilePath (subfolder mismatch), reloading from $initialFileDir")
+                    // Split cold-start (cache absent) from true scope mismatch (cache exists but wrong folder).
+                    // Cold start is normal — downgrade to debug to avoid misleading "subfolder mismatch" noise.
+                    if (cachedFiles == null) {
+                        Timber.d("PlayerMediaFilesLoader: cache empty (cold start), loading from $initialFileDir")
+                    } else if (!cacheMatchesInitialFile) {
+                        Timber.w("PlayerMediaFilesLoader: cache scope mismatch — cached ${cachedFiles.size} files do not contain initialFilePath=$initialFilePath, reloading from $initialFileDir")
                     } else if (cacheHasOnlyDirectories) {
-                        Timber.w("Cache contains only directories (${cachedFiles?.size} items), loading actual files from current path")
+                        Timber.w("Cache contains only directories (${cachedFiles.size} items), loading actual files from current path")
                     } else {
                         Timber.w("Cache miss! Loading files via UseCase (slow path)")
                     }

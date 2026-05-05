@@ -9,12 +9,10 @@ class DefaultVrLayerFactory @Inject constructor() : VrLayerFactory {
     override fun describe(stereo: StereoMode, renderingMode: VrRenderingMode): VrLayerDescriptor {
         return when {
             stereo == StereoMode.MONO && renderingMode == VrRenderingMode.CINEMA -> quadCinemaDescriptor()
-            // OU is inherently stereoscopic — route to projection regardless of renderingMode.
-            // Previously fell through to QUAD_CINEMA when renderingMode == CINEMA.
+            // OU/SBS are inherently stereoscopic — route to projection regardless of renderingMode.
+            // S0078: SBS_FULL/SBS_HALF fell through to QUAD_CINEMA when renderingMode == CINEMA (same bug as OU before its fix).
             stereo == StereoMode.OU -> projectionDescriptor(stereo)
-            stereo in PROJECTION_STEREO_MODES && renderingMode == VrRenderingMode.FULL_STEREO -> {
-                projectionDescriptor(stereo)
-            }
+            stereo in PROJECTION_STEREO_MODES -> projectionDescriptor(stereo)
             stereo in EQUIRECT_360_MODES -> equirectDescriptor(stereo, isHalfSphere = false)
             stereo in EQUIRECT_180_MODES -> equirectDescriptor(stereo, isHalfSphere = true)
             stereo == StereoMode.CYLINDER_180 -> cylinderDescriptor()

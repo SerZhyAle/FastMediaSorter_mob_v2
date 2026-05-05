@@ -54,7 +54,7 @@ class FtpClient @Inject constructor(
     fun releaseExoPlayerConnection(client: FTPClient?) =
         exoPlayerPool.releaseExoPlayerConnection(client)
 
-    private fun cleanupIdleFtpConnections() = exoPlayerPool.cleanupIdleFtpConnections()
+    fun cleanupIdleFtpConnections() = exoPlayerPool.cleanupIdleFtpConnections()
 
     /**
      * Connect to FTP server with password authentication

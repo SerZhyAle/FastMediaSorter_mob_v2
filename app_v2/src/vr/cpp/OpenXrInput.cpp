@@ -521,17 +521,20 @@ void xrnative::syncControllerAimRay(XrCtx &ctx, JNIEnv *env)
         return;
 
     constexpr float kPlaneDistance = 1.5f;
+    const bool rayEnabled = ctx.controllerRayEnabled.load();
 
     auto processHand = [&](XrSpace aimSpace, int handIdx)
     {
         if (aimSpace == XR_NULL_HANDLE)
         {
+            if (rayEnabled) { ctx.rayState[handIdx].active = false; }
             emitControllerPointerMove(ctx, env, handIdx, 2.0f, 2.0f);
             return;
         }
         XrSpaceLocation loc{XR_TYPE_SPACE_LOCATION};
         if (XR_FAILED(xrLocateSpace(aimSpace, ctx.viewSpace, t, &loc)))
         {
+            if (rayEnabled) { ctx.rayState[handIdx].active = false; }
             emitControllerPointerMove(ctx, env, handIdx, 2.0f, 2.0f);
             return;
         }
@@ -540,6 +543,7 @@ void xrnative::syncControllerAimRay(XrCtx &ctx, JNIEnv *env)
             (loc.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT);
         if (!valid)
         {
+            if (rayEnabled) { ctx.rayState[handIdx].active = false; }
             emitControllerPointerMove(ctx, env, handIdx, 2.0f, 2.0f);
             return;
         }
@@ -551,12 +555,14 @@ void xrnative::syncControllerAimRay(XrCtx &ctx, JNIEnv *env)
         const XrVector3f &origin = loc.pose.position;
         if (std::fabs(rz) < 1e-6f)
         {
+            if (rayEnabled) { ctx.rayState[handIdx].active = false; }
             emitControllerPointerMove(ctx, env, handIdx, 2.0f, 2.0f);
             return;
         }
         float hitT = (-kPlaneDistance - origin.z) / rz;
         if (hitT < 0.0f)
         {
+            if (rayEnabled) { ctx.rayState[handIdx].active = false; }
             emitControllerPointerMove(ctx, env, handIdx, 2.0f, 2.0f);
             return;
         }
@@ -570,10 +576,33 @@ void xrnative::syncControllerAimRay(XrCtx &ctx, JNIEnv *env)
         float ndcY = (hitY - kHudCentreY) / kHudHalfH;
         emitControllerPointerMove(ctx, env, handIdx, ndcX, ndcY);
 
-        // TODO(Phase 03): draw a visual ray using a GLES3 VBO + passthrough shader.
-        // GLES3 has no fixed-function pipeline; a proper vertex+fragment program is
-        // required. Deferred — NDC emission above is the Phase 02 deliverable.
-        (void)ctx.controllerRayEnabled.load();
+        if (rayEnabled)
+        {
+            ctx.rayState[handIdx].active = true;
+            ctx.rayState[handIdx].originX = origin.x;
+            ctx.rayState[handIdx].originY = origin.y;
+            ctx.rayState[handIdx].originZ = origin.z;
+            const bool insideHud = (std::fabs(ndcX) <= 1.0f) && (std::fabs(ndcY) <= 1.0f);
+            if (insideHud)
+            {
+                ctx.rayState[handIdx].endX = hitX;
+                ctx.rayState[handIdx].endY = hitY;
+                ctx.rayState[handIdx].endZ = -kPlaneDistance;
+                ctx.rayState[handIdx].hasCursor = true;
+                ctx.rayState[handIdx].cursorX = hitX;
+                ctx.rayState[handIdx].cursorY = hitY;
+                ctx.rayState[handIdx].cursorZ = -kPlaneDistance;
+            }
+            else
+            {
+                constexpr float kMaxRayMeters = 5.0f;
+                ctx.rayState[handIdx].endX = origin.x + kMaxRayMeters * rx;
+                ctx.rayState[handIdx].endY = origin.y + kMaxRayMeters * ry;
+                ctx.rayState[handIdx].endZ = origin.z + kMaxRayMeters * rz;
+                ctx.rayState[handIdx].hasCursor = false;
+            }
+        }
+        // Ray endpoints written above; rendering happens in OpenXrRayDraw::drawControllerRays.
     };
 
     processHand(io.aimSpaceL, 0);

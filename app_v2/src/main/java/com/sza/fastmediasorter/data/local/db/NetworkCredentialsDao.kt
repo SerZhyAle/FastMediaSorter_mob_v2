@@ -25,6 +25,10 @@ interface NetworkCredentialsDao {
     
     @Query("SELECT * FROM network_credentials WHERE type = :type COLLATE NOCASE AND server = :server AND port = :port LIMIT 1")
     suspend fun getByTypeServerAndPort(type: String, server: String, port: Int): NetworkCredentialsEntity?
+
+    /** S0064: returns ALL credentials for a given type+server+port (for building manual-name history). */
+    @Query("SELECT * FROM network_credentials WHERE type = :type COLLATE NOCASE AND server = :server AND port = :port")
+    suspend fun getAllByTypeServerAndPort(type: String, server: String, port: Int): List<NetworkCredentialsEntity>
     
     @Query("SELECT * FROM network_credentials WHERE server = :host LIMIT 1")
     suspend fun getCredentialsByHost(host: String): NetworkCredentialsEntity?

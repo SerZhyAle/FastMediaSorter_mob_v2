@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
 import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
@@ -31,8 +33,8 @@ import java.io.File
  * - This strategy focuses on Cloud<->Local and Cloud<->Cloud operations.
  * - Cross-protocol Cloud<->(SMB/SFTP/FTP) transfers are expected to be handled by the handler via temp files.
  */
-class CloudOperationStrategy(
-    private val context: Context,
+class CloudOperationStrategy @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
     private val oneDriveClient: OneDriveRestClient

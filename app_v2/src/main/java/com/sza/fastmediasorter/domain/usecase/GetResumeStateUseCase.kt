@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetResumeStateUseCase @Inject constructor(
     private val repository: ResumeStateRepository
 ) {
-    suspend operator fun invoke(): ResumeState? {
-        return repository.getState()
+    suspend operator fun invoke(windowId: String): ResumeState? {
+        return repository.getState(windowId)
     }
 }

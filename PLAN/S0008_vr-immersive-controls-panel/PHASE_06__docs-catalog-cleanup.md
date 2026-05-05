@@ -1,6 +1,6 @@
 # Phase 06 — Docs & Catalog Cleanup
 
-**Strategic spec:** [`../spec_vr-immersive-controls-panel.md`](../spec_vr-immersive-controls-panel.md)
+**Strategic spec:** [`../S0008_vr-immersive-controls-panel.md`](../S0008_vr-immersive-controls-panel.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
 **Status:** ⬜ Not started
 **Depends on:** all previous phases
@@ -33,7 +33,7 @@ Update the trilingual FEATURES docs with the new VR panel capability. Regenerate
 | `docs/FEATURES_RU.md` | Modified | add 1–2 bullets |
 | `docs/FEATURES_UK.md` | Modified | add 1–2 bullets |
 | `dev/CATALOG/app_v2.jsonl` | Modified (regenerated) | auto |
-| `PLAN/spec_vr-immersive-controls-panel.md` | Modified | Status field only |
+| `PLAN/S0008_vr-immersive-controls-panel.md` | Modified | Status field only |
 
 ---
 
@@ -153,8 +153,8 @@ Update the trilingual FEATURES docs with the new VR panel capability. Regenerate
 > .\scripts\add_to_dev_log.ps1 "app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt" "feature" "Phase 05: full zone dispatch table, seek-drag debounce, live state feed to panel"
 > .\scripts\add_to_dev_log.ps1 "app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudSink.kt" "feature" "Phase 05: add panel state feed default methods"
 > # Tactical plan files
-> .\scripts\add_to_dev_log.ps1 "PLAN/spec_vr-immersive-controls-panel/INDEX.md" "spec-tech" "Tactical plan for vr-immersive-controls-panel"
-> .\scripts\add_to_dev_log.ps1 "PLAN/spec_vr-immersive-controls-panel.md" "spec-tech" "Move strategic status to Implemented after all phases complete"
+> .\scripts\add_to_dev_log.ps1 "PLAN/S0008_vr-immersive-controls-panel/INDEX.md" "spec-tech" "Tactical plan for vr-immersive-controls-panel"
+> .\scripts\add_to_dev_log.ps1 "PLAN/S0008_vr-immersive-controls-panel.md" "spec-tech" "Move strategic status to Implemented after all phases complete"
 > ```
 
 **Verification:**
@@ -169,12 +169,12 @@ Update the trilingual FEATURES docs with the new VR panel capability. Regenerate
 
 ### Step 6.4 — Advance strategic spec Status to Implemented
 
-**Files:** `PLAN/spec_vr-immersive-controls-panel.md`
+**Files:** `PLAN/S0008_vr-immersive-controls-panel.md`
 **Depends on:** Step 6.3
 
 **Prompt for developer:**
 
-> Open `PLAN/spec_vr-immersive-controls-panel.md`. Change the frontmatter field:
+> Open `PLAN/S0008_vr-immersive-controls-panel.md`. Change the frontmatter field:
 >
 > ```markdown
 > **Status:** Tactical
@@ -189,15 +189,15 @@ Update the trilingual FEATURES docs with the new VR panel capability. Regenerate
 > Also ensure the tactical plan link line is present (should have been added when the tactical plan was created):
 >
 > ```markdown
-> **Tactical plan:** `PLAN/spec_vr-immersive-controls-panel/INDEX.md`
+> **Tactical plan:** `PLAN/S0008_vr-immersive-controls-panel/INDEX.md`
 > ```
 >
 > If the link line is absent, add it below the `**Status:**` line.
 
 **Verification:**
 
-- `Grep` — `Status: Implemented` in `PLAN/spec_vr-immersive-controls-panel.md`.
-- `Grep` — `Tactical plan:` link line present in `PLAN/spec_vr-immersive-controls-panel.md`.
+- `Grep` — `Status: Implemented` in `PLAN/S0008_vr-immersive-controls-panel.md`.
+- `Grep` — `Tactical plan:` link line present in `PLAN/S0008_vr-immersive-controls-panel.md`.
 
 **Status:** `[ ]` not done
 
@@ -209,7 +209,7 @@ Update the trilingual FEATURES docs with the new VR panel capability. Regenerate
 - [ ] `docs/FEATURES.md`, `docs/FEATURES_RU.md`, `docs/FEATURES_UK.md` each contain the new VR panel bullet.
 - [ ] `dev/CATALOG/app_v2.jsonl` contains all six new class entries with `role` and `status` set.
 - [ ] `dev/CHANGELOG.md` contains entries for every file in the "Files Touched" tables of Phases 01–05.
-- [ ] `PLAN/spec_vr-immersive-controls-panel.md` `Status: Implemented`.
+- [ ] `PLAN/S0008_vr-immersive-controls-panel.md` `Status: Implemented`.
 - [ ] Run `/spec-check vr-immersive-controls-panel` — result must be `Verified` or `Partial` (no `Broken`). If `Partial`, document gaps in INDEX Blockers Log.
 
 ---

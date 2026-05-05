@@ -636,7 +636,12 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 )
             }
 
-            // API 23-32: requires both READ and WRITE at runtime
+            // API 29-32: WRITE_EXTERNAL_STORAGE not grantable on targetSdk 29+; READ only
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+
+            // API 23-28: both READ and WRITE required at runtime
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
                 arrayOf(
                     Manifest.permission.READ_EXTERNAL_STORAGE,

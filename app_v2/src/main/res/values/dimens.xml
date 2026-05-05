@@ -668,4 +668,9 @@
     <dimen name="icon_picker_grid_spacing">4dp</dimen>
     <dimen name="icon_picker_bottom_sheet_peek">300dp</dimen>
 
+    <!-- S0070: Device storage info row -->
+    <dimen name="device_storage_text_size">8sp</dimen>
+    <dimen name="device_storage_button_size">18dp</dimen>
+    <dimen name="device_storage_padding_vertical">0dp</dimen>
+
 </resources>

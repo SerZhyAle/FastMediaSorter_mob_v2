@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.network.datasource
 
+import android.content.Context
 import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.datasource.BaseDataSource
@@ -7,27 +8,25 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.Session
+import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 
 /**
- * Custom DataSource for streaming video from SFTP server via ExoPlayer.
- * Allows video playback without downloading entire file.
- * 
- * Uses connection pooling via SftpClient.getConnectionForExoPlayer() to prevent
- * connection exhaustion during rapid file switching.
- * 
- * IMPORTANT: Session and channel are managed by SftpClient pool.
- * This DataSource only manages the InputStream lifecycle.
+ * ExoPlayer DataSource for SFTP streaming via connection pool.
+ * On a transient read error performs one transparent reconnect before propagating to ExoPlayer.
  */
 class SftpDataSource(
     private val sftpClient: SftpClient,
     private val host: String,
     private val port: Int,
     private val username: String,
-    private val password: String
+    private val password: String,
+    private val context: Context
 ) : BaseDataSource(true) {
 
     companion object {
@@ -35,11 +34,11 @@ class SftpDataSource(
         private const val LOG_PERIODIC_INTERVAL = 1000L
     }
 
-    // Connection from pool - DO NOT close these, managed by pool
+    // Connection from pool — DO NOT close; lifecycle managed by SftpClient pool
     private var session: Session? = null
     private var channel: ChannelSftp? = null
 
-    // Only this should be closed
+    // Only this is owned and closed by this DataSource
     private var inputStream: InputStream? = null
 
     private var uri: Uri? = null
@@ -48,59 +47,41 @@ class SftpDataSource(
     private var totalBytesRead = 0L
     private var readCallCount = 0L
     private var openTimeMs = 0L
+    private var openPosition: Long = 0L        // absolute file offset when open() was called
     private var connectionAcquired = false
     private var channelBroken: Boolean = false
 
     override fun open(dataSpec: DataSpec): Long {
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            throw LocalNetworkPermissionDeniedException()
+        }
         try {
             uri = dataSpec.uri
-            // Use encodedPath to prevent automatic decoding, then manually decode
             val encodedPath = uri?.encodedPath ?: throw IOException("Invalid URI path")
             val remotePath = Uri.decode(encodedPath)
 
             Timber.d("SftpDataSource: Opening SFTP file - encoded=$encodedPath, decoded=$remotePath")
 
-            // Get connection from pool (blocking call for ExoPlayer compatibility)
             val connectionInfo = SftpClient.SftpConnectionInfo(
-                host = host,
-                port = port,
-                username = username,
-                password = password
+                host = host, port = port, username = username, password = password
             )
-            
             val pooledConnection = sftpClient.getConnectionForExoPlayer(connectionInfo)
             session = pooledConnection.session
             channel = pooledConnection.channel
             connectionAcquired = true
-            
+
             Timber.d("SftpDataSource: Got pooled connection - session=${session?.isConnected}, channel=${channel?.isConnected}")
 
             if (channel == null || !channel!!.isConnected) {
                 throw IOException("Failed to get connected SFTP channel from pool")
             }
 
-            // Get file size
             val fileAttributes = channel?.stat(remotePath)
             val rawLength = fileAttributes?.size ?: 0L
             val fileLength = if (rawLength > 0) rawLength else C.LENGTH_UNSET.toLong()
 
-            // Handle range request (for seeking)
             val position = dataSpec.position
-            var rawStream: java.io.InputStream? = null
-            try {
-                rawStream = channel?.get(remotePath, null, position)
-                
-                // Apply adaptive buffering
-                val resourceKey = "sftp://$host:$port"
-                val bufferSize = com.sza.fastmediasorter.data.network.ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
-                inputStream = java.io.BufferedInputStream(rawStream, bufferSize)
-                rawStream = null  // ← Transfer ownership to inputStream (BufferedInputStream wraps it)
-                Timber.d("SftpDataSource: Using BufferedInputStream with size ${bufferSize / 1024} KB")
-            } catch (e: Exception) {
-                // Close rawStream if inputStream was never constructed (ML-004 fix)
-                rawStream?.close()
-                throw e
-            }
+            inputStream = openStream(channel!!, remotePath, position)
 
             bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
                 dataSpec.length
@@ -111,19 +92,14 @@ class SftpDataSource(
             }
 
             opened = true
+            openPosition = position
             readCallCount = 0L
             openTimeMs = System.currentTimeMillis()
             transferStarted(dataSpec)
 
-            Timber.d(
-                "SftpDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength"
-            )
+            Timber.d("SftpDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength")
 
-            return if (bytesRemaining == C.LENGTH_UNSET.toLong()) {
-                fileLength
-            } else {
-                bytesRemaining
-            }
+            return if (bytesRemaining == C.LENGTH_UNSET.toLong()) fileLength else bytesRemaining
         } catch (e: Exception) {
             if (connectionAcquired) channelBroken = true
             Timber.e(e, "SftpDataSource: Error opening SFTP file")
@@ -133,53 +109,43 @@ class SftpDataSource(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        if (length == 0) {
-            return 0
-        }
+        if (length == 0) return 0
+        if (bytesRemaining == 0L) return C.RESULT_END_OF_INPUT
 
-        if (bytesRemaining == 0L) {
-            return C.RESULT_END_OF_INPUT
-        }
+        val bytesToRead = if (bytesRemaining == C.LENGTH_UNSET.toLong()) length
+            else minOf(bytesRemaining, length.toLong()).toInt()
 
-        try {
-            val bytesToRead = if (bytesRemaining == C.LENGTH_UNSET.toLong()) {
-                length
-            } else {
-                minOf(bytesRemaining, length.toLong()).toInt()
-            }
-
-            val bytesRead = inputStream?.read(buffer, offset, bytesToRead) ?: C.RESULT_END_OF_INPUT
-
-            if (bytesRead < 0) {
-                // End of stream reached
-                return C.RESULT_END_OF_INPUT
-            }
-
-            if (bytesRead == 0) {
-                // No data available but not end of stream yet
-                return 0
-            }
-
-            // bytesRead > 0: successful read
-            totalBytesRead += bytesRead
-            readCallCount++
-            if (readCallCount <= LOG_INITIAL_CALLS || readCallCount % LOG_PERIODIC_INTERVAL == 0L) {
-                Timber.v(
-                    "SftpDataSource: read #$readCallCount — requested=$bytesToRead actual=$bytesRead total=${totalBytesRead}B file=${uri?.lastPathSegment}"
-                )
-            }
-
-            if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
-                bytesRemaining -= bytesRead.toLong()
-            }
-            bytesTransferred(bytesRead)
-
-            return bytesRead
+        val bytesRead = try {
+            inputStream?.read(buffer, offset, bytesToRead) ?: C.RESULT_END_OF_INPUT
         } catch (e: Exception) {
-            channelBroken = true
-            Timber.e(e, "SftpDataSource: Error reading from SFTP file")
-            throw IOException("Failed to read from SFTP file: ${e.message}", e)
+            // One transparent reconnect — same strategy as SftpClientFirstResult on SftpException 4.
+            // If the reconnect also fails, propagate so ExoPlayer handles it.
+            Timber.w("SftpDataSource: transient read error, reconnecting — ${e.message}")
+            try {
+                reconnectStream(openPosition + totalBytesRead)
+                inputStream!!.read(buffer, offset, bytesToRead)
+            } catch (retryEx: Exception) {
+                channelBroken = true
+                Timber.e(retryEx, "SftpDataSource: Error reading from SFTP file")
+                throw IOException("Failed to read from SFTP file: ${retryEx.message}", retryEx)
+            }
         }
+
+        if (bytesRead < 0) return C.RESULT_END_OF_INPUT
+        if (bytesRead == 0) return 0
+
+        totalBytesRead += bytesRead
+        readCallCount++
+        if (readCallCount <= LOG_INITIAL_CALLS || readCallCount % LOG_PERIODIC_INTERVAL == 0L) {
+            Timber.v(
+                "SftpDataSource: read #$readCallCount — requested=$bytesToRead actual=$bytesRead total=${totalBytesRead}B file=${uri?.lastPathSegment}"
+            )
+        }
+        if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
+            bytesRemaining -= bytesRead.toLong()
+        }
+        bytesTransferred(bytesRead)
+        return bytesRead
     }
 
     override fun getUri(): Uri? = uri
@@ -187,23 +153,24 @@ class SftpDataSource(
     override fun close() {
         uri = null
 
-        // Only close the InputStream - session and channel are managed by pool
+        // Only close the InputStream — session and channel are managed by the pool
+        val wasAlreadyBroken = channelBroken
         try {
             inputStream?.close()
         } catch (e: Exception) {
             channelBroken = true
-            Timber.e(e, "SftpDataSource: Error closing InputStream")
+            // Pipe closed / similar are expected cascades when the channel already broke in read()
+            if (wasAlreadyBroken) Timber.d("SftpDataSource: InputStream close failed (channel already broken)")
+            else Timber.e(e, "SftpDataSource: Error closing InputStream")
         } finally {
             inputStream = null
         }
 
-        // DO NOT close session or channel - they are pooled!
-        // Just clear references
+        // DO NOT close session or channel — they are pooled!
         val released = channel
         channel = null
         session = null
 
-        // Release connection slot back to pool
         if (connectionAcquired) {
             sftpClient.releaseExoPlayerConnection(released, channelBroken)
             connectionAcquired = false
@@ -219,6 +186,57 @@ class SftpDataSource(
             "SftpDataSource: Closed — totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
         )
     }
+
+    /** Releases the broken connection and opens a fresh one at [resumePosition]. */
+    private fun reconnectStream(resumePosition: Long) {
+        try { inputStream?.close() } catch (_: Exception) {}
+        inputStream = null
+
+        val brokenChannel = channel
+        channel = null
+        session = null
+        if (connectionAcquired) {
+            sftpClient.releaseExoPlayerConnection(brokenChannel, true)
+            connectionAcquired = false
+        }
+
+        val connInfo = SftpClient.SftpConnectionInfo(host, port, username, password)
+        val pooled = sftpClient.getConnectionForExoPlayer(connInfo)
+        session = pooled.session
+        channel = pooled.channel
+        connectionAcquired = true
+
+        val ch = channel ?: throw IOException("SFTP reconnect: no channel available")
+        if (!ch.isConnected) throw IOException("SFTP reconnect: channel not connected")
+
+        val encodedPath = uri?.encodedPath ?: throw IOException("SFTP reconnect: URI unavailable")
+        inputStream = openStream(ch, Uri.decode(encodedPath), resumePosition)
+        channelBroken = false
+        Timber.d("SftpDataSource: Reconnected at position $resumePosition")
+    }
+
+    private fun openStream(ch: ChannelSftp, remotePath: String, position: Long): InputStream {
+        var rawStream: java.io.InputStream? = null
+        return try {
+            rawStream = ch.get(remotePath, null, position)
+            val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize("sftp://$host:$port")
+            Timber.d("SftpDataSource: Using BufferedInputStream with size ${bufferSize / 1024} KB (JSch chunk cap: 1024 B)")
+            // JSch's ChannelSftp stream crashes with ArrayIndexOutOfBoundsException when a
+            // read() is issued with len > its internal SFTP packet size (1024 bytes): it calls
+            // this.skip() internally, which allocates a skipBuf of min(n,2048) bytes, then does
+            // arraycopy(src[1024], 0, skipBuf[2048], 0, 2048) → AIOOBE. Capping each individual
+            // read at 1024 keeps JSch's skip buffer ≤ 1024, avoiding the bug.
+            val safeJschStream = object : java.io.FilterInputStream(rawStream) {
+                override fun read(b: ByteArray, off: Int, len: Int): Int =
+                    `in`.read(b, off, minOf(len, 1024))
+            }
+            rawStream = null
+            java.io.BufferedInputStream(safeJschStream, bufferSize)
+        } catch (e: Exception) {
+            rawStream?.close()
+            throw e
+        }
+    }
 }
 
 /**
@@ -229,9 +247,10 @@ class SftpDataSourceFactory(
     private val host: String,
     private val port: Int,
     private val username: String,
-    private val password: String
+    private val password: String,
+    private val context: Context
 ) : DataSource.Factory {
     override fun createDataSource(): DataSource = SftpDataSource(
-        sftpClient, host, port, username, password
+        sftpClient, host, port, username, password, context
     )
 }

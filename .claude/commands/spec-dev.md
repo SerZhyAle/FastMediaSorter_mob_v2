@@ -23,8 +23,9 @@ Execute a tactical specification step by step. Reads `PLAN/Sxxxx_<short-name>/IN
 | `In Progress` | Allowed — continue. |
 | `Draft` / `Approved` | Abort: no tactical folder. Run `/spec-tech` first. |
 | `Implemented` / `Verified` | Abort: feature closed. |
-| `Partial` / `Broken` | Abort: audit found problems. Run `/spec-fix` or `/spec-update --force-locked`. |
-| `BlockByOtherTask` / `BlockNeedUserTest` / `BlockQuestions` / `BlockExternal` | Abort: blocked. Resolve the block first (see §10 of strategic spec), then `update.ps1 -Status <prev>`. |
+| `Partial` / `Broken` | **Auto-fix pass:** run `/spec-fix <Sxxxx>` to apply all mechanical fixes, then re-read status. If status is still `Partial`/`Broken` after the fix pass, list the remaining FAIL items and stop — manual resolution required. If all issues resolved, continue. |
+| `BlockNeedUserTest` | Note in chat and stop. User must confirm on-device test result before re-running. |
+| `BlockByOtherTask` / `BlockQuestions` / `BlockExternal` | Abort: blocked. Resolve the block first (see §10 of strategic spec), then `update.ps1 -Status <prev>`. |
 
 ---
 
@@ -47,7 +48,8 @@ For each step in plan order:
 5. **Pre-edit guards:**
    - Read-only zone (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`) → abort.
    - File >500 lines and not yet backed up → create timestamped copy in `temp/` first.
-   - Projected post-edit size >1000 lines → abort: "line budget violation, split via Manager pattern."
+   - Projected post-edit size >1500 lines → abort: "line budget violation, split via Manager pattern."
+   - File is in `res/layout/` → **check `res/layout-land/` counterpart**. If landscape variant exists and is NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step — update `Files Touched` and prompt before proceeding."
 6. **Flip step to `[~] in progress`** in phase file.
 7. **Apply the edit** — `Edit` or `Write` per the Prompt. Scope strictly to what the prompt specifies: no surrounding refactors, no extra comments, no unrelated import cleanup.
 8. **Run `Verification:` predicates** (Glob/Grep/value equality/size checks).
@@ -60,7 +62,7 @@ After all planned steps in the current phase complete:
 
 - **Phase Done Criteria check.** For each checkbox:
   - Mechanically verifiable → run check, tick if PASS.
-  - Build required (`Project compiles`) → leave unticked, mark `BUILD-REQUIRED`, hard stop.
+  - Build required (`Project compiles`) → run `.\build-debug.PS1` automatically via PowerShell (no permission prompt). Exit code 0 → tick criterion. Non-zero → append last 30 lines of output, hard stop: "Build FAILED".
   - Manual review required → leave unticked, mark `MANUAL-REQUIRED`.
 - If every criterion ticked → flip phase `Status:` to `✅ Done`, set `Completed:`, update INDEX row + counter.
 - If any criterion unticked → leave `🚧 In Progress`, update step counter only. Hard stop.
@@ -69,8 +71,9 @@ After all phases done:
 
 - Flip strategic `Status:` to `Implemented`. Add `**Implemented date:** <YYYY-MM-DD>`.
 - If on-device verification is part of the acceptance — also flip journal status to `BlockNeedUserTest`.
+- **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` — in that case note: `→ Awaiting on-device test. Run /spec-check <Sxxxx> after verification.`
 
-**Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any].`
+**Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any]. → Running /spec-check…`
 
 ---
 
@@ -81,10 +84,10 @@ Stop immediately and report — never guess or recover — on any of:
 1. **Ambiguous prompt** — placeholder text, missing class/method name, unspecified Hilt scope, unspecified dispatcher. Set status `BlockQuestions`.
 2. **Verification FAIL** after edit — step left `[~]`. User investigates.
 3. **Read-only zone touch.**
-4. **Line budget violation** — projected >1000 lines.
-5. **Build required** — Phase Done Criterion `Project compiles` cannot be ticked statically. Stop, run `/build`.
-6. **Room schema change** — prompt mentions bumping `@Database(version)` or adding `Migration`. Always stop for explicit confirmation — irreversible data change.
-7. **Hilt module graph change** — adds `@Module`, `@Provides`, or modifies Hilt graph beyond a single `@Inject constructor`. Stop, confirm scope/qualifier.
+4. **Line budget violation** — projected >1500 lines.
+5. **Build FAIL** — `.\build-debug.PS1` returned non-zero after auto-run for Phase Done Criteria. Stop with error excerpt.
+6. **Room schema change** — prompt mentions bumping `@Database(version)` or adding `Migration`. Stop only if the step does **not** specify the new version number and migration class name explicitly. If both are named in the step → proceed automatically, note the change in chat.
+7. **Hilt module graph change** — adds `@Module`, `@Provides`, or modifies Hilt graph beyond a single `@Inject constructor`. Stop only if scope/qualifier are not explicit in the prompt. If scope is named → proceed automatically, note in chat.
 8. **Missing symbol** — prompt names class/method not found at stated path and prompt does not also create it.
 9. **Dependency violation** — `Depends on:` step not `[x] done`.
 10. **Catalog-affecting change without regen step** — public API change in touched file but no catalog regen step in phase. Stop, suggest `/spec-update --tactical --phase NN`.
@@ -123,7 +126,7 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 
 ## Constraints
 
-- Never run `gradle`, `./gradlew`, `npm`, or build commands — delegate to `/build`.
+- Never invoke `gradle`, `./gradlew`, or `npm` directly. For Phase Done Criteria compile checks, run `.\build-debug.PS1` automatically via PowerShell — do not pause or ask for permission.
 - Never run `git commit`, `git push`, `git rebase`.
 - Never skip steps or combine consecutive steps into one edit.
 - Never refactor surrounding code, add comments, or adjust unrelated imports.
@@ -134,6 +137,7 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 - Never auto-revert a failed edit — user decides from Step Log.
 - Dev log per file, per step — run immediately after step completion.
 - Cursor recomputed from phase file `Status:` on every invocation — never from memory.
+- **Landscape parity (MANDATORY):** any step editing `res/layout/*.xml` MUST list the corresponding `res/layout-land/*.xml` in `Files Touched`. If the landscape variant exists and is absent from the step → abort (see Pre-edit guards). If the landscape variant does not exist but the screen supports rotation → add an explicit note in the step or a dedicated sub-step to create it.
 
 ---
 

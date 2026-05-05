@@ -1,14 +1,19 @@
 package com.sza.fastmediasorter.core.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import timber.log.Timber
 
@@ -20,6 +25,11 @@ import timber.log.Timber
  * - Applies locale
  */
 abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
+
+    companion object {
+        // Show GMS warning at most once per process lifetime
+        private var gmsWarningShown = false
+    }
 
     private var _binding: VB? = null
     protected val binding: VB
@@ -91,6 +101,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 resumePending = false
                 onResumeWithViews()
             }
+            showGmsWarningIfNeeded()
         }
     }
 
@@ -169,6 +180,26 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             }
         }
         return super.dispatchTouchEvent(ev)
+    }
+
+    private fun showGmsWarningIfNeeded() {
+        if (gmsWarningShown || GmsAvailabilityChecker.isOk) return
+        gmsWarningShown = true
+        val msgRes = if (GmsAvailabilityChecker.needsUpdate)
+            R.string.gms_update_required
+        else
+            R.string.gms_unavailable
+        Snackbar.make(binding.root, msgRes, Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.gms_update_action) {
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW,
+                        Uri.parse("market://details?id=com.google.android.gms")))
+                } catch (e: Exception) {
+                    startActivity(Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")))
+                }
+            }
+            .show()
     }
 
     private fun applyKeepScreenAwake() {

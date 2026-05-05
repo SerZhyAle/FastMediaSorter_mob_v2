@@ -1,3 +1,5 @@
+> **SUPERSEDED** — content moved to [PHASE_03__per-window-resume-state.md](PHASE_03__per-window-resume-state.md) (2026-05-04 redesign). Do not use.
+
 # Phase 02 — Per-Window Resume State
 
 **Strategic spec:** [`../S0028_vr-multi-window-playback.md`](../S0028_vr-multi-window-playback.md)

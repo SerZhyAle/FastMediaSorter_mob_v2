@@ -232,7 +232,7 @@ This appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` 
 ### Quality Rules
 
 - All temp artifacts, APK copies, and backups go to `temp/` — never to project root.
-- File size limit: 1000 lines max. Files >500 lines need a timestamped backup in `temp/` before modification.
+- File size limit: 1500 lines max. Files >500 lines need a timestamped backup in `temp/` before modification.
 - Never use `Log.d()` — use `Timber` only.
 - Activity/Fragment logic must be delegated to `helpers/*Manager.kt` classes.
 

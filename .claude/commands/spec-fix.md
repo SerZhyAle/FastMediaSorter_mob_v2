@@ -73,7 +73,11 @@ For each action item: prepend `[FIXED]`, `[PARTIAL]`, `[FOLLOW-UP]`, `[PRE-RESOL
 # plus one line per modified source file
 ```
 
-**Chat output:** `<Sxxxx>: auto-fixed N. Follow-ups: N — [title1, title2, ..]. Run /spec-check <Sxxxx> to confirm.`
+**6 — Auto-chain to `/spec-check`.**
+
+After at least one fix was applied — immediately invoke `/spec-check <Sxxxx>` to re-audit and update the status. Skip if `--dry-run`.
+
+**Chat output:** `<Sxxxx>: auto-fixed N. Follow-ups: N — [title1, title2, ..]. → Running /spec-check to confirm…`
 
 ---
 

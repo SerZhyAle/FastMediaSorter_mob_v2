@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -154,7 +155,10 @@ class PlayerViewModel @Inject constructor(
     val resumeIsPlaying: Boolean? = savedStateHandle.get<Boolean>("resumeIsPlaying")
     val resumeSlideshowEnabled: Boolean = savedStateHandle.get<Boolean>("resumeSlideshowEnabled") ?: false
     private val shuffleOnStart: Boolean = savedStateHandle.get<Boolean>("shuffleOnStart") ?: false
-    
+    // S0028: per-window resume state isolation
+    val windowId: String = savedStateHandle.get<String>(PlayerActivity.EXTRA_WINDOW_ID)
+        ?: ResumeStateRepository.WINDOW_ID_MAIN
+
     // ── Stereo / 3D video state ──────────────────────────────────────────────
     // Separate flow from PlayerState because the effective stereo mode needs to react
     // immediately to auto-detection, dialog overrides, and remembered VR format settings.
@@ -343,7 +347,7 @@ class PlayerViewModel @Inject constructor(
     fun clearResumeState() {
         viewModelScope.launch {
             Timber.d("PlayerViewModel: clearResumeState — user explicitly exited player")
-            clearResumeStateUseCase()
+            clearResumeStateUseCase(windowId)
         }
     }
 
@@ -371,7 +375,7 @@ class PlayerViewModel @Inject constructor(
                 // NonCancellable: DB write must complete even if this coroutine is cancelled
                 // (e.g. fast navigation to next file) to avoid silently losing resume position.
                 kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                    saveResumeStateUseCase(resumeState)
+                    saveResumeStateUseCase(windowId, resumeState)
                 }
             } catch (e: Exception) {
                 Timber.e(e, "PlayerViewModel: Failed to save resume state")

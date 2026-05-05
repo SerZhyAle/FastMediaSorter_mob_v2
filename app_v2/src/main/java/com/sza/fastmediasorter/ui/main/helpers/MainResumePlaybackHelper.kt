@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
@@ -73,7 +74,7 @@ class MainResumePlaybackHelper(
                 binding.navigationProgressLayout.isVisible = true
                 binding.tvNavigationMessage.text = activity.getString(R.string.resume_checking)
 
-                val state = getResumeStateUseCase()
+                val state = getResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
                 if (state == null) {
                     Timber.d("MainResumePlaybackHelper: No resume state found")
                     dismissResumeLoading()
@@ -84,7 +85,7 @@ class MainResumePlaybackHelper(
                 val elapsed = System.currentTimeMillis() - state.savedAt
                 if (elapsed > ResumeStateRepositoryImpl.RESUME_TTL_MS) {
                     Timber.d("MainResumePlaybackHelper: Resume state expired (${elapsed}ms > TTL)")
-                    clearResumeStateUseCase()
+                    clearResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
                     dismissResumeLoading()
                     Toast.makeText(activity, R.string.resume_unavailable, Toast.LENGTH_SHORT).show()
                     return@launch
@@ -94,7 +95,7 @@ class MainResumePlaybackHelper(
                 val resource = resourceRepository.getResourceById(state.resourceId)
                 if (resource == null) {
                     Timber.w("MainResumePlaybackHelper: Resume resource not found (id=${state.resourceId})")
-                    clearResumeStateUseCase()
+                    clearResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
                     dismissResumeLoading()
                     return@launch
                 }
@@ -112,7 +113,7 @@ class MainResumePlaybackHelper(
 
                 if (!isAvailable) {
                     Timber.d("MainResumePlaybackHelper: Resume target unavailable")
-                    clearResumeStateUseCase()
+                    clearResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
                     dismissResumeLoading()
                     Toast.makeText(activity, R.string.resume_unavailable, Toast.LENGTH_SHORT).show()
                     return@launch
@@ -133,7 +134,7 @@ class MainResumePlaybackHelper(
                 if (com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER
                     && state.screenType == com.sza.fastmediasorter.domain.model.ScreenType.PLAYER) {
                     Timber.d("MainResumePlaybackHelper: Skipping PLAYER resume on VR flavor — XR auto-entry not supported yet")
-                    clearResumeStateUseCase()
+                    clearResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN)
                     dismissResumeLoading()
                     return@launch
                 }
@@ -171,7 +172,7 @@ class MainResumePlaybackHelper(
                 Timber.d("MainResumePlaybackHelper: Resumed playback → ${state.screenType} for ${state.filePath}")
             } catch (e: Exception) {
                 Timber.e(e, "MainResumePlaybackHelper: Resume playback failed")
-                try { clearResumeStateUseCase() } catch (_: Exception) {}
+                try { clearResumeStateUseCase(ResumeStateRepository.WINDOW_ID_MAIN) } catch (_: Exception) {}
                 dismissResumeLoading()
             }
         }

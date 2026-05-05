@@ -140,6 +140,8 @@ void xrnative::syncHandTracking(XrCtx &ctx, JNIEnv *env)
     if (!h.initialized || !ctx.sessionRunning)
         return;
 
+    const bool rayEnabled = ctx.controllerRayEnabled.load();
+
     // Modality gate: suppress hand polling while controllers emit edge events.
     // This is the strict priority lock from §3.3 — controllers unconditionally
     // win; hand output is dropped during/for 2 s after any controller event.
@@ -156,6 +158,7 @@ void xrnative::syncHandTracking(XrCtx &ctx, JNIEnv *env)
             emitInputEvent(ctx, env, XR_EVT_POINTER_CLICK_UP, 1, 0.0f, XR_SRC_HAND);
         if (h.isPinchingL || h.isPinchingR || h.aimFrozenL || h.aimFrozenR)
         {
+            if (rayEnabled) { ctx.rayState[0].active = false; ctx.rayState[1].active = false; }
             emitPointerMove(ctx, env, 0, 2.0f, 2.0f);
             emitPointerMove(ctx, env, 1, 2.0f, 2.0f);
         }
@@ -226,6 +229,7 @@ void xrnative::syncHandTracking(XrCtx &ctx, JNIEnv *env)
             suppressClickRelease = false;
             frozen = false;
             prevGestures = 0;
+            if (rayEnabled) { ctx.rayState[handIdx].active = false; }
             emitPointerMove(ctx, env, handIdx, 2.0f, 2.0f);
             return;
         }
@@ -244,11 +248,16 @@ void xrnative::syncHandTracking(XrCtx &ctx, JNIEnv *env)
             pinchState = false;
             suppressClickRelease = false;
             frozen = false;
+            if (rayEnabled) { ctx.rayState[handIdx].active = false; }
             emitPointerMove(ctx, env, handIdx, 2.0f, 2.0f);
             return;
         }
 
         float ndcX = 2.0f, ndcY = 2.0f;
+        XrPosef aimPoseSnapshot{};
+        float forwardX = 0.0f, forwardY = 0.0f, forwardZ = 0.0f;
+        float planeDistSnapshot = 0.0f, halfWSnapshot = 0.0f, halfHSnapshot = 0.0f;
+        bool aimPoseValid = false;
         if (aimComputed && (aimState.status & XR_HAND_TRACKING_AIM_VALID_BIT_FB))
         {
             const XrPosef &p = aimState.aimPose;
@@ -277,6 +286,12 @@ void xrnative::syncHandTracking(XrCtx &ctx, JNIEnv *env)
                     }
                 }
             }
+            aimPoseSnapshot = p;
+            forwardX = fx; forwardY = fy; forwardZ = fz;
+            planeDistSnapshot = planeDist;
+            halfWSnapshot = halfW;
+            halfHSnapshot = halfH;
+            aimPoseValid = true;
         }
 
         // Aim-freeze: once pinch strength crosses mid-threshold, lock the NDC XY.
@@ -298,6 +313,43 @@ void xrnative::syncHandTracking(XrCtx &ctx, JNIEnv *env)
         }
 
         emitPointerMove(ctx, env, handIdx, ndcX, ndcY);
+
+        if (rayEnabled)
+        {
+            if (!aimPoseValid)
+            {
+                ctx.rayState[handIdx].active = false;
+            }
+            else
+            {
+                ctx.rayState[handIdx].active = true;
+                ctx.rayState[handIdx].originX = aimPoseSnapshot.position.x;
+                ctx.rayState[handIdx].originY = aimPoseSnapshot.position.y;
+                ctx.rayState[handIdx].originZ = aimPoseSnapshot.position.z;
+                const bool insideHud = (std::fabs(ndcX) <= 1.0f) && (std::fabs(ndcY) <= 1.0f);
+                if (insideHud && halfWSnapshot > 1e-4f && halfHSnapshot > 1e-4f && forwardZ < -1e-4f)
+                {
+                    const float tHit = (-planeDistSnapshot - aimPoseSnapshot.position.z) / forwardZ;
+                    const float ix = aimPoseSnapshot.position.x + tHit * forwardX;
+                    const float iy = aimPoseSnapshot.position.y + tHit * forwardY;
+                    ctx.rayState[handIdx].endX = ix;
+                    ctx.rayState[handIdx].endY = iy;
+                    ctx.rayState[handIdx].endZ = -planeDistSnapshot;
+                    ctx.rayState[handIdx].hasCursor = true;
+                    ctx.rayState[handIdx].cursorX = ix;
+                    ctx.rayState[handIdx].cursorY = iy;
+                    ctx.rayState[handIdx].cursorZ = -planeDistSnapshot;
+                }
+                else
+                {
+                    constexpr float kMaxRayMeters = 5.0f;
+                    ctx.rayState[handIdx].endX = aimPoseSnapshot.position.x + kMaxRayMeters * forwardX;
+                    ctx.rayState[handIdx].endY = aimPoseSnapshot.position.y + kMaxRayMeters * forwardY;
+                    ctx.rayState[handIdx].endZ = aimPoseSnapshot.position.z + kMaxRayMeters * forwardZ;
+                    ctx.rayState[handIdx].hasCursor = false;
+                }
+            }
+        }
 
         // Pinch hysteresis — CLICK_DOWN on rising edge past 0.9, CLICK_UP when
         // dropping below 0.6 (spec §5.1).

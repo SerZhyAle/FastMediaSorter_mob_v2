@@ -14,8 +14,13 @@ import timber.log.Timber
  * for non-VR viewing.
  *
  * [StereoMode.MONO] / [StereoMode.AUTO] / [StereoMode.UNKNOWN] → no GL effect (full-frame).
- * [StereoMode.SBS_FULL] / [StereoMode.SBS_HALF] → right-eye crop via `Crop(0, 1, -1, 1)`.
- * [StereoMode.OU] → bottom-eye crop via `Crop(-1, 1, -1, 0)`.
+ * Flat SBS: [StereoMode.SBS_FULL] / [StereoMode.SBS_HALF] → right-eye crop via `Crop(0, 1, -1, 1)`.
+ * Flat OU: [StereoMode.OU] → bottom-eye crop via `Crop(-1, 1, -1, 0)`.
+ * Equirect SBS: [StereoMode.EQUIRECT_360_SBS] / [StereoMode.EQUIRECT_180_SBS] /
+ *   [StereoMode.VR180_FISHEYE_SBS] → same right-eye half crop as flat SBS.
+ * Equirect OU: [StereoMode.EQUIRECT_360_OU] → same bottom-eye half crop as flat OU.
+ * In panel mode, equirect content is not sphere-projected, so the same half-frame crop
+ * applies as for flat stereo.
  *
  * Thread safety: [setStereoMode] is called from the main thread.
  * [buildGlEffect] is called from [VideoPlayerManager.applyConfiguredVideoEffects] on the main thread.
@@ -62,33 +67,37 @@ class StereoVideoProcessor {
     /**
      * Builds the [Effect] to apply for the given [mode].
      *
-     * SBS_FULL / SBS_HALF → crop the right eye (right half of frame) and let [PlayerView] scale
-     * it to fill the screen.  The right eye occupies x=[0, 1] in Media3 NDC, so `Crop(0, 1, -1, 1)`
-     * extracts exactly the right half. The resulting frame has half the original width, so the
-     * player renders it at the correct aspect ratio without any additional transformation.
+     * SBS_FULL / SBS_HALF / EQUIRECT_360_SBS / EQUIRECT_180_SBS / VR180_FISHEYE_SBS →
+     * crop the right eye (right half of frame) and let [PlayerView] scale it to fill the screen.
+     * The right eye occupies x=[0, 1] in Media3 NDC, so `Crop(0, 1, -1, 1)` extracts exactly
+     * the right half. In panel mode equirect content is not sphere-projected, so the same
+     * half-frame crop applies as for flat SBS — otherwise both eyes are shown side by side.
      *
-     * OU → crop the bottom eye (bottom half of frame).  In GL NDC y increases upward, so the
-     * bottom half is y=[-1, 0].  `Crop(-1, 1, -1, 0)` extracts the bottom half for standard-screen viewing.
+     * OU / EQUIRECT_360_OU → crop the bottom eye (bottom half of frame). In GL NDC y increases
+     * upward, so the bottom half is y=[-1, 0]. `Crop(-1, 1, -1, 0)` extracts the bottom half.
      *
-     * MONO / AUTO / UNKNOWN → null (full-frame pass-through, no GL work).
+     * MONO / AUTO / UNKNOWN / EQUIRECT_*_MONO / CYLINDER_180 → null (full-frame pass-through).
      *
      * Called by [VideoPlayerManager.applyStereoEffect] whenever the stereo mode changes.
      */
     fun buildGlEffect(mode: StereoMode): Effect? {
         return when (mode) {
-            StereoMode.SBS_FULL, StereoMode.SBS_HALF -> {
+            StereoMode.SBS_FULL, StereoMode.SBS_HALF,
+            StereoMode.EQUIRECT_360_SBS, StereoMode.EQUIRECT_180_SBS,
+            StereoMode.VR180_FISHEYE_SBS -> {
                 // Right eye is the right half of the SBS frame (NDC x = 0..1).
-                // Cropping to this region and letting the player scale it gives a standard
-                // mono view of one eye — the correct default for a regular phone screen.
+                // Equirect modes in panel mode are not sphere-rendered, so the same right-half
+                // crop applies — without it, both SBS eyes appear side by side on screen.
                 Timber.d("StereoVideoProcessor: buildGlEffect → SBS right-eye crop for $mode")
                 Crop(0f, 1f, -1f, 1f)
             }
-            StereoMode.OU -> {
+            StereoMode.OU, StereoMode.EQUIRECT_360_OU -> {
                 // Bottom eye occupies the bottom half of the OU frame (GL NDC y = -1..0).
-                Timber.d("StereoVideoProcessor: buildGlEffect → OU bottom-eye crop")
+                // Same logic as flat OU applies for equirect OU in panel mode.
+                Timber.d("StereoVideoProcessor: buildGlEffect → OU bottom-eye crop for $mode")
                 Crop(-1f, 1f, -1f, 0f)
             }
-            // No visual transformation for mono / unresolved modes
+            // No visual transformation for mono / monoscopic spherical / unresolved modes
             else -> {
                 Timber.d("StereoVideoProcessor: buildGlEffect → no effect for $mode")
                 null

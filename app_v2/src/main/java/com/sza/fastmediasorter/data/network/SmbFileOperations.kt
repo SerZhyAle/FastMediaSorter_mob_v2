@@ -74,6 +74,8 @@ class SmbFileOperations @Inject constructor(
                 }
                 SmbResult.Success(Unit)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to download file from SMB")
             SmbResult.Error("Failed to download file: ${e.message}", e)
@@ -271,6 +273,8 @@ class SmbFileOperations @Inject constructor(
                 }
                 SmbResult.Success(Unit)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to upload file to SMB")
             SmbResult.Error("Failed to upload file: ${e.message}", e)

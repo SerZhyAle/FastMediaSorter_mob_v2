@@ -35,6 +35,7 @@ if(ENABLE_OPENXR)
         OpenXrLifecycle.cpp
         OpenXrSwapchain.cpp
         OpenXrLog.cpp
+        OpenXrRayDraw.cpp
     )
 
     target_include_directories(openxr_native PRIVATE

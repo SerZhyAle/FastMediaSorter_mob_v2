@@ -64,14 +64,15 @@ sealed class FileOperationResult {
  * Progress updates for file operations
  */
 sealed class FileOperationProgress {
-    data class Starting(val operation: FileOperation, val totalFiles: Int) : FileOperationProgress()
+    data class Starting(val operation: FileOperation, val totalFiles: Int, val totalOperationBytes: Long = 0L) : FileOperationProgress()
     data class Processing(
         val currentFile: String,
         val currentIndex: Int,
         val totalFiles: Int,
         val bytesTransferred: Long = 0L,
         val totalBytes: Long = 0L,
-        val speedBytesPerSecond: Long = 0L
+        val speedBytesPerSecond: Long = 0L,
+        val completedOperationBytes: Long = 0L
     ) : FileOperationProgress()
     data class Completed(val result: FileOperationResult) : FileOperationProgress()
 }
@@ -126,9 +127,17 @@ class FileOperationUseCase @Inject constructor(
             is FileOperation.Delete -> operation.files.size
             is FileOperation.Rename -> 1
         }
-        
-        send(FileOperationProgress.Starting(operation, totalFiles))
-        
+
+        // Pre-compute per-file sizes for overall progress; network files return 0 (acceptable)
+        val fileSizes: List<Long> = when (operation) {
+            is FileOperation.Copy -> operation.sources.map { it.length() }
+            is FileOperation.Move -> operation.sources.map { it.length() }
+            else -> emptyList()
+        }
+        val totalOperationBytes = fileSizes.sum()
+
+        send(FileOperationProgress.Starting(operation, totalFiles, totalOperationBytes))
+
         // Update current file tracking based on operation type
         var currentFileIndex = 1
         var currentFileName = when (operation) {
@@ -137,8 +146,9 @@ class FileOperationUseCase @Inject constructor(
             is FileOperation.Delete -> operation.files.firstOrNull()?.name ?: ""
             is FileOperation.Rename -> operation.file.name
         }
-        
+
         // Create progress callback that sends to channel (thread-safe)
+        var completedFileBytes = 0L
         val progressCallback = object : ByteProgressCallback {
             override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
                 // Use trySend to avoid blocking if channel is full
@@ -148,13 +158,16 @@ class FileOperationUseCase @Inject constructor(
                     totalFiles = totalFiles,
                     bytesTransferred = bytesTransferred,
                     totalBytes = totalBytes,
-                    speedBytesPerSecond = speedBytesPerSecond
+                    speedBytesPerSecond = speedBytesPerSecond,
+                    completedOperationBytes = completedFileBytes + bytesTransferred
                 ))
             }
 
             override suspend fun onFileStarted(index: Int, fileName: String, total: Int) {
                 currentFileIndex = index
                 currentFileName = fileName
+                // Accumulate bytes from all files that completed before this one
+                completedFileBytes = fileSizes.take(index - 1).sum()
                 // Send an immediate Processing update so the dialog shows the new file
                 trySend(FileOperationProgress.Processing(
                     currentFile = fileName,
@@ -162,7 +175,8 @@ class FileOperationUseCase @Inject constructor(
                     totalFiles = total,
                     bytesTransferred = 0L,
                     totalBytes = 0L,
-                    speedBytesPerSecond = 0L
+                    speedBytesPerSecond = 0L,
+                    completedOperationBytes = completedFileBytes
                 ))
             }
         }

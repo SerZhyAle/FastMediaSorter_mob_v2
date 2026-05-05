@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
@@ -42,6 +43,7 @@ class DestinationButtonsManager(
     interface DestinationButtonsCallback {
         fun onCopyClicked(destination: MediaResource)
         fun onMoveClicked(destination: MediaResource)
+        fun onCustomPathPickerRequested(operationType: FileOperationType)
         fun getCurrentResourceId(): Long
         fun onUpdateCommandAvailability()
         /** Check if command panel should be visible (used to prevent race condition) */
@@ -158,19 +160,31 @@ class DestinationButtonsManager(
                     }
                 }
                 
-                // Hide panels if no destination buttons created
-                // Check destinationsList (after take(maxRecipients)), not destinations
-                val hasDestinations = destinationsList.isNotEmpty()
-                
+                // Append «..» to the last row of Copy grid; create a new row only when grid is empty
+                if (safeViews.copyToButtonsGrid.childCount > 0) {
+                    val lastRow = safeViews.copyToButtonsGrid.getChildAt(safeViews.copyToButtonsGrid.childCount - 1) as LinearLayout
+                    lastRow.addView(createCustomPathButton(isCopy = true))
+                } else {
+                    val dotDotRow = createButtonRow()
+                    dotDotRow.addView(createCustomPathButton(isCopy = true))
+                    safeViews.copyToButtonsGrid.addView(dotDotRow)
+                }
+
+                // Append «..» to the last row of Move grid; create a new row only when grid is empty
+                if (safeViews.moveToButtonsGrid.childCount > 0) {
+                    val lastRow = safeViews.moveToButtonsGrid.getChildAt(safeViews.moveToButtonsGrid.childCount - 1) as LinearLayout
+                    lastRow.addView(createCustomPathButton(isCopy = false))
+                } else {
+                    val dotDotRow = createButtonRow()
+                    dotDotRow.addView(createCustomPathButton(isCopy = false))
+                    safeViews.moveToButtonsGrid.addView(dotDotRow)
+                }
+
                 // CRITICAL: Check current state before showing panels
                 // This prevents race condition when user switches to fullscreen while buttons are loading
                 val shouldShowPanels = callback.isCommandPanelVisible()
-                
-                if (!hasDestinations) {
-                    Timber.d("DestinationButtonsManager: No valid destinations after filtering (count=0), hiding panels")
-                    safeViews.copyToPanel.isVisible = false
-                    safeViews.moveToPanel.isVisible = false
-                } else if (!shouldShowPanels) {
+
+                if (!shouldShowPanels) {
                     Timber.d("DestinationButtonsManager: Command panel not visible (fullscreen mode?), skipping panel show")
                     // Panels remain hidden - fullscreen mode or slideshow active
                 } else {
@@ -214,6 +228,40 @@ class DestinationButtonsManager(
         }
     }
     
+    private fun createCustomPathButton(isCopy: Boolean): MaterialButton {
+        val context = binding.root.context
+        val density = context.resources.displayMetrics.density
+        val screenWidthDp = context.resources.displayMetrics.widthPixels / density
+        val buttonHeightDp = if (screenWidthDp < 500f) 44f else 56f
+        val buttonHeight = (buttonHeightDp * density).toInt()
+        val cornerRadiusPx = (12 * density).toInt()
+        val marginPx = (2 * density).toInt()
+        val paddingHPx = (12 * density).toInt()
+        return MaterialButton(context).apply {
+            text = ".."
+            contentDescription = context.getString(R.string.btn_select_folder_description)
+            textSize = 12f
+            cornerRadius = cornerRadiusPx
+            backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#888888"))
+            setTextColor(Color.WHITE)
+            minWidth = 0
+            minHeight = 0
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                buttonHeight
+            ).apply {
+                setMargins(marginPx, marginPx, marginPx, marginPx)
+            }
+            setPadding(paddingHPx, 0, paddingHPx, 0)
+            gravity = Gravity.CENTER
+            setOnClickListener {
+                callback.onCustomPathPickerRequested(
+                    if (isCopy) FileOperationType.COPY else FileOperationType.MOVE
+                )
+            }
+        }
+    }
+
     /**
      * Clear cached settings - call when settings change
      */

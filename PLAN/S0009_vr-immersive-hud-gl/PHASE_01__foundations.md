@@ -36,7 +36,7 @@ Check each before starting Step 1:
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrNative.kt` | Modified | ≤ 200 |
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | Modified | ≤ 550 |
 
-> `OpenXrNative.cpp` already exceeds 1000 LOC and is a legacy native bridge — backups before every phase edit are mandatory until a follow-up refactor splits it.
+> `OpenXrNative.cpp` already exceeds 1500OC and is a legacy native bridge — backups before every phase edit are mandatory until a follow-up refactor splits it.
 > `OpenXrSessionManager.kt` is currently ~485 LOC and will cross 500 LOC after Step 1.5 — backup is mandatory per CLAUDE.md rule 5.
 
 ---

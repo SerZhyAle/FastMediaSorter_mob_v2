@@ -796,7 +796,7 @@ class BrowseFileOperationsManager(
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, R.string.toast_copy_cancelled, Toast.LENGTH_SHORT).show()
             }
-            throw CancellationException("User cancelled network share copy")
+            throw CancellationException("Share copy cancelled after cleanup")
         } finally {
             monitorJob.cancel()
             withContext(Dispatchers.Main) {

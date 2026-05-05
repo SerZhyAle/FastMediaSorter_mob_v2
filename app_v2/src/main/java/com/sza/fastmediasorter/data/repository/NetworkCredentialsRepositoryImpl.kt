@@ -158,7 +158,8 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
                 Timber.e(e, "TEST_CREDS: Error parsing test_credentials.json")
             }
         } else {
-            Timber.w("TEST_CREDS: Test credentials file not found at ${file.absolutePath}. Expected at: ${testMediaDir.absolutePath}/test_credentials.json")
+            // S0055-C: absent on end-user devices is normal \u2014 downgraded from w to d
+            Timber.d("TEST_CREDS: Test credentials file not found at ${file.absolutePath}")
         }
     }
 
@@ -231,6 +232,41 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     override suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity> {
         return dao.getOrphanedCredentials()
     }
+
+    // S0064 -----------------------------------------------------------------------
+
+    override suspend fun getManualShareNamesForServer(server: String, port: Int): List<String> {
+        val credentials = dao.getAllByTypeServerAndPort("SMB", server, port)
+        // Collect all previously saved share names + any names from the manualShareNames fields.
+        // shareName on each entity is already a known-good name for this server.
+        val names = mutableSetOf<String>()
+        for (cred in credentials) {
+            cred.shareName?.takeIf { it.isNotBlank() }?.let { names.add(it) }
+            cred.manualShareNames.split('|').forEach { n -> if (n.isNotBlank()) names.add(n) }
+        }
+        return names.toList().sorted()
+    }
+
+    override suspend fun addManualShareName(server: String, port: Int, shareName: String) {
+        if (shareName.isBlank()) return
+        val credentials = dao.getAllByTypeServerAndPort("SMB", server, port)
+        if (credentials.isEmpty()) {
+            // No credential entry for this server yet — nothing to attach the name to.
+            // The name will be persisted once the user completes an add (via saveCredentials).
+            return
+        }
+        // Append to the first credential for this server; all others will see it via the next
+        // call to getManualShareNamesForServer which scans all entries.
+        val target = credentials.first()
+        val existing = target.manualShareNames.split('|').filter { it.isNotBlank() }.toMutableSet()
+        if (!existing.contains(shareName)) {
+            existing.add(shareName)
+            shareCredentialCache.clear()
+            dao.update(target.copy(manualShareNames = existing.joinToString("|")))
+        }
+    }
+
+    // -----------------------------------------------------------------------------
 
     private suspend fun applyDefaultCredentialsIfNeeded(entity: NetworkCredentialsEntity?): NetworkCredentialsEntity? {
         if (entity == null) return null

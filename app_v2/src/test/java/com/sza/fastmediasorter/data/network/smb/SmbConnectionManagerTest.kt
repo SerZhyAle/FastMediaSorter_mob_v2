@@ -113,7 +113,7 @@ class SmbConnectionManagerTest {
             assertTrue("Result should be Success", result is SmbResult.Success)
             
             // Verify connection was created
-            verify(exactly = 1) { anyConstructed<SMBClient>().connect("testserver", 445) }
+            verify(exactly = 1) { mockSmbClient.connect("testserver", 445) }
             verify(exactly = 1) { mockConnection.authenticate(any()) }
             verify(exactly = 1) { mockSession.connectShare("testshare") }
         }
@@ -144,7 +144,7 @@ class SmbConnectionManagerTest {
             }
             
             // Verify connection was created only once
-            verify(exactly = 1) { anyConstructed<SMBClient>().connect("testserver", 445) }
+            verify(exactly = 1) { mockSmbClient.connect("testserver", 445) }
             verify(exactly = 1) { mockConnection.authenticate(any()) }
             verify(exactly = 1) { mockSession.connectShare("testshare") }
         }
@@ -236,7 +236,7 @@ class SmbConnectionManagerTest {
             }
             
             // Verify connection was created twice (once fresh, once after stale)
-            verify(atLeast = 2) { anyConstructed<SMBClient>().connect("testserver", 445) }
+            verify(atLeast = 2) { mockSmbClient.connect("testserver", 445) }
         }
     }
     
@@ -338,7 +338,9 @@ class SmbConnectionManagerTest {
         
         mockkObject(connectionManager) {
             every { connectionManager.getClient(any(), any()) } returns mockSmbClient
-            every { anyConstructed<SMBClient>().connect(any(), any()) } throws 
+            every { mockSmbClient.connect(any(), any()) } throws 
+                java.util.concurrent.TimeoutException("Connection timeout")
+            every { anyConstructed<SMBClient>().connect(any(), any()) } throws
                 java.util.concurrent.TimeoutException("Connection timeout")
             
             val result = connectionManager.withConnection(connectionInfo) { share ->

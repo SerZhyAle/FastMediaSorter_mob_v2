@@ -1,6 +1,6 @@
 # Tactical Specification Writer
 
-Break an approved strategic spec into sequenced phases. Requires `Status: Approved` or later.
+Requires `Status: Approved` or later (see auto-promote rule below).
 Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imperative, no rationale prose.
 
 ## Usage
@@ -11,7 +11,9 @@ Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imp
 /spec-tech <Sxxxx-or-slug> --dry-run
 ```
 
-Aborts if `Status: Draft`. The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
+**Draft auto-promote:** if `Status: Draft`, automatically advance to `Approved` before proceeding (the spec was just written — manual approval gate adds no value). Note the promotion in chat. Block states (`Block*`) are the only statuses that cause a hard abort — they require explicit resolution.
+
+The strategic spec must exist at `PLAN/Sxxxx_<short-name>.md`.
 
 ---
 
@@ -34,7 +36,18 @@ No `_spec_` segment in any path. Phase-slug: kebab-case, ≤4 words. Examples: `
 
 **1 — Validate strategic spec.**
 
-Resolve `Sxxxx` and slug via `select.ps1`. Read `PLAN/Sxxxx_<short-name>.md`. Abort if missing or `Status: Draft` / `Block*` (Block states require resolution first).
+Resolve `Sxxxx` and slug via `select.ps1`. Read `PLAN/Sxxxx_<short-name>.md`. Abort if missing or `Status: Block*` (block states require resolution first).
+
+If `Status: Draft` → auto-promote to `Approved`:
+
+```powershell
+(Get-Content "PLAN/${ticketId}_<short-name>.md") -replace '^(\*\*Status:\*\*\s*)Draft', '${1}Approved' |
+    Set-Content "PLAN/${ticketId}_<short-name>.md"
+pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
+```
+
+Note in chat: `Status was Draft — auto-promoted to Approved.`
+
 Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars (§5.1), open research items (§6), ADRs (§9), criteria (§11).
 
 **2 — Read project context.**
@@ -82,7 +95,11 @@ Target 3–8 phases. >10 → split the feature into multiple specs.
 .\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-tech" "Status → Tactical"
 ```
 
-**Chat output:** `<Sxxxx>: N phases. Blockers: [list or none]. Index: PLAN/Sxxxx_<short-name>/INDEX.md`
+**8 — Auto-chain to `/spec-dev`.**
+
+If there are no unchecked Pre-Implementation Blockers in INDEX — immediately invoke `/spec-dev <Sxxxx>` to start implementation. If any blocker is unchecked — list them and stop: implementation cannot proceed until they are resolved.
+
+**Chat output:** `<Sxxxx>: N phases. Blockers: [list or none]. → Running /spec-dev…` (or `→ Blocked: [list]. Resolve and run /spec-dev <Sxxxx>` if blockers present.)
 
 ---
 
@@ -195,7 +212,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 | `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<File>.kt` | New | ≤ 250 |
 | `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<Existing>.kt` | Modified | ≤ 500 |
 
-> File projected >500 lines after change → backup step required (timestamped copy in `temp/`). File >1000 lines → split via Manager pattern first.
+> File projected >500 lines after change → backup step required (timestamped copy in `temp/`). File >1500 lines → split via Manager pattern first.
 
 ---
 
@@ -265,7 +282,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - One step = one atomic unit: committable in isolation without breaking the build.
 - Every step Verification must be static (Glob/Grep/value equality) — no "works correctly".
 - No step references read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- File >500 lines after edit → backup step required. File >1000 lines → refuse; split via Manager pattern first.
+- File >500 lines after edit → backup step required. File >1500ines → refuse; split via Manager pattern first.
 - Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 - Room schema change: bump `@Database(version)`, add `Migration`, never rename prior migrations. One phase per schema change.
 - Hilt bindings: every new `@Inject`/`@Provides` names the `@Module` file in the step body.
@@ -274,6 +291,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Final phase always `PHASE_NN__docs-catalog-cleanup.md`.
 - Do not duplicate strategic content — tactical says *what*, not *why*.
 - Never write phase steps that create audit / fix files in `PLAN/` — those are abolished.
+- **Landscape parity (MANDATORY):** any step that edits `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent — not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
 
 ---
 

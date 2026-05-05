@@ -23,6 +23,8 @@ class SettingsKeyboardNavigationManager(
         fun openSearchOverlay()
         fun closeSearchOverlay()
         fun isSearchVisible(): Boolean
+        fun isTextEditorFocused(): Boolean
+        fun clearFocusedTextEditor(): Boolean
         fun navigateBack()
         fun showHelp()
         fun activateFocused()
@@ -36,7 +38,12 @@ class SettingsKeyboardNavigationManager(
 
     /** Returns true if the event was consumed. */
     fun handleKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (event != null && shortcutHandler.handleKeyEvent(keyCode, event)) return true
+        if (event == null) return false
+        if (callback.isTextEditorFocused()) {
+            if (keyCode == KeyEvent.KEYCODE_ESCAPE) return callback.clearFocusedTextEditor()
+            return false
+        }
+        if (shortcutHandler.handleKeyEvent(keyCode, event)) return true
         return false
     }
 

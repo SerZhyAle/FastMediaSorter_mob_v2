@@ -130,7 +130,10 @@ class CommandPanelLayoutPlanner {
             R.string.epub_search_all_chapters, android.R.drawable.ic_menu_search),
         // Low-priority bar-capable command: appears on bar only when all higher-priority
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).
-        PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print);
+        PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
+        // S0028: multi-window — overflow-only; shown only when VR+setting allows it
+        OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, false,
+            R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse);
     }
 
     data class LayoutResult(
@@ -155,7 +158,8 @@ class CommandPanelLayoutPlanner {
         canRead: Boolean,
         isWifiConnected: Boolean,
         showFavorite: Boolean = true,
-        showRandom: Boolean = false
+        showRandom: Boolean = false,
+        allowSeparateWindow: Boolean = false
     ): List<PlayerCommand> {
         val file = state.currentFile ?: return emptyList()
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF
@@ -225,6 +229,8 @@ class CommandPanelLayoutPlanner {
             if (file.type == MediaType.VIDEO) add(PlayerCommand.SAVE_FRAME)
             // 3DVR toggle: VR flavor only, video files only
             if (BuildConfig.SUPPORT_VR_PLAYER && file.type == MediaType.VIDEO) add(PlayerCommand.VR_3D)
+            // S0028: multi-window tear-off — VR+setting guard already applied by controller
+            if (allowSeparateWindow) add(PlayerCommand.OPEN_IN_SEPARATE_WINDOW)
         }.sortedBy { it.priority }
     }
 

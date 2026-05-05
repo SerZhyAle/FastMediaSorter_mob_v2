@@ -80,7 +80,9 @@ class NetworkFileModelLoader(
     
     companion object {
         private val VIDEO_EXTENSIONS = setOf(
-            "mp4", "mov", "avi", "mkv", "webm", "3gp", "flv", "wmv", "m4v", "mpg", "mpeg"
+            "mp4", "mov", "avi", "mkv", "webm", "3gp", "flv", "wmv", "m4v", "mpg", "mpeg",
+            // DVD / transport-stream formats — MPEG2 PS/TS headers are not valid image data
+            "vob", "ts", "m2ts", "mts", "m2t", "ifo", "bup"
         )
     }
 }
@@ -128,6 +130,12 @@ class NetworkFileDataFetcher(
         )
         private const val MAX_FAILED_CACHE = 5000
 
+        // S0060: Transient thumbnail failures — SMB share-race or timeout-during-active-playback.
+        // These are NOT written to the persistent VideoExtractionFailurePersistence and expire via TTL.
+        // Cleared eagerly per-path in NetworkVideoFrameDecoder when playback stops for that server.
+        private val transientFailedVideos = java.util.concurrent.ConcurrentHashMap<String, Long>() // path → timestampMs
+        private const val TRANSIENT_TTL_MS = 120_000L // safety net: 2 minutes max
+
         @Volatile private var persistenceInitialized = false
 
         private fun ensurePersistenceLoaded() {
@@ -150,12 +158,70 @@ class NetworkFileDataFetcher(
         }
 
         /**
-         * Check if video file is in failed cache.
+         * Check if video file is in failed cache (permanent OR non-expired transient).
          * PUBLIC API for NetworkVideoFrameDecoder.
          */
         fun isVideoFailed(path: String): Boolean {
             ensurePersistenceLoaded()
+            if (failedVideos.containsKey(path)) return true
+            // Also check transient failures (S0060)
+            val ts = transientFailedVideos[path] ?: return false
+            if (System.currentTimeMillis() - ts > TRANSIENT_TTL_MS) {
+                transientFailedVideos.remove(path)
+                return false
+            }
+            return true
+        }
+
+        /**
+         * True only if the path is in the permanent (persisted) failed cache.
+         * Used by NetworkVideoFrameDecoder to distinguish permanent vs transient. S0060.
+         */
+        fun isVideoPermanentlyFailed(path: String): Boolean {
+            ensurePersistenceLoaded()
             return failedVideos.containsKey(path)
+        }
+
+        /**
+         * Mark video file as transiently failed due to SMB share-race or timeout-during-playback.
+         * NOT persisted. Cleared eagerly when playback stops, or via TTL. S0060.
+         */
+        fun markVideoAsTransientlyFailed(path: String) {
+            transientFailedVideos[path] = System.currentTimeMillis()
+            Timber.d("Added to TRANSIENT failed cache: ${path.substringAfterLast('/')}")
+        }
+
+        /**
+         * Remove a single path from the transient failed cache, allowing retry.
+         * Called from NetworkVideoFrameDecoder when playback has stopped for that server. S0060.
+         */
+        fun clearTransientFailure(path: String) {
+            transientFailedVideos.remove(path)
+        }
+
+        /**
+         * Remove all transient failures for any network resource (SMB / SFTP / FTP).
+         * Called from playback-stop hooks for the deactivated resource. S0066.
+         * [resourceKey] is the normalized "<scheme>://host:port" produced by extractNetworkResourceKey.
+         */
+        fun clearTransientFailuresForResource(resourceKey: String) {
+            val cleared = transientFailedVideos.keys.filter { path ->
+                pathBelongsToResource(path, resourceKey)
+            }.toList()
+            cleared.forEach { transientFailedVideos.remove(it) }
+            if (cleared.isNotEmpty()) {
+                Timber.i("[scope=thumbnail S0066 resource=$resourceKey] Cleared ${cleared.size} transient failures")
+            }
+        }
+
+        @Deprecated(
+            "S0066 — use clearTransientFailuresForResource(resourceKey)",
+            ReplaceWith("clearTransientFailuresForResource(resourceKey)")
+        )
+        fun clearTransientFailuresForHost(smbHost: String) {
+            // Caller passed only host — try the two well-known SMB ports.
+            clearTransientFailuresForResource("smb://$smbHost:445")
+            clearTransientFailuresForResource("smb://$smbHost:139")
         }
 
         /**
@@ -390,6 +456,10 @@ class NetworkFileDataFetcher(
                         null
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // S0055-B: normal scroll/recycle cancellation — re-throw to propagate coroutine cancellation
+                Timber.v("fetchBytesFromSmb CANCELLED: $fileName")
+                throw e
             } catch (e: Exception) {
                 Timber.w("fetchBytesFromSmb TIMEOUT: $fileName - ${e.message}")
                 null
@@ -693,9 +763,7 @@ class NetworkFileDataFetcher(
     }
     
     override fun cancel() {
-        val fileName = data.path.substringAfterLast('/')
-        // Use Exception to capture stack trace of who called cancel
-        Timber.d(Exception("Trace"), "NetworkFileDataFetcher.cancel() called for $fileName")
+        // S0055-A: debug stack trace removed — cancel() is called on every RecyclerView scroll recycle
         isCancelled = true
         loadJob?.cancel()
     }

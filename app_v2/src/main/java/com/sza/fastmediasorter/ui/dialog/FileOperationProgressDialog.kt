@@ -28,8 +28,12 @@ class FileOperationProgressDialog(
     private lateinit var tvCurrentFile: TextView
     private lateinit var tvProgress: TextView
     private lateinit var tvSpeed: TextView
+    private lateinit var tvOverallPercent: TextView
+    private lateinit var tvEta: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var btnCancel: android.widget.Button
+
+    private var totalOperationBytes: Long = 0L
     
     private val sizeFormatter = DecimalFormat("#,##0.##")
 
@@ -37,7 +41,7 @@ class FileOperationProgressDialog(
     private var lastUpdateTime: Long = 0
     private var isStarted: Boolean = false
     private val SHOW_DELAY_MS = 2000L
-    private val UPDATE_INTERVAL_MS = 500L // Update UI every 500ms to be more responsive
+    private val UPDATE_INTERVAL_MS = 3000L
 
     private val showHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private val showRunnable = Runnable {
@@ -64,6 +68,8 @@ class FileOperationProgressDialog(
         tvCurrentFile = view.findViewById(R.id.tvCurrentFile)
         tvProgress = view.findViewById(R.id.tvProgressText)
         tvSpeed = view.findViewById(R.id.tvSpeed)
+        tvOverallPercent = view.findViewById(R.id.tvOverallPercent)
+        tvEta = view.findViewById(R.id.tvEta)
         progressBar = view.findViewById(R.id.progressBar)
         btnCancel = view.findViewById(R.id.btnCancel)
         
@@ -89,8 +95,15 @@ class FileOperationProgressDialog(
         super.dismiss()
     }
 
+    private val speedSamples = ArrayDeque<Long>(10)
+    private val MAX_SPEED_SAMPLES = 10
+
     // Cache last received progress so we can apply it when dialog finally shows
     private var pendingProgress: FileOperationProgress.Processing? = null
+
+    // Delayed show means progress callbacks can arrive before onCreate inflates the layout.
+    private fun hasSummaryViews(): Boolean =
+        ::tvOverallPercent.isInitialized && ::tvEta.isInitialized
 
     fun updateProgress(progress: FileOperationProgress) {
         when (progress) {
@@ -98,6 +111,12 @@ class FileOperationProgressDialog(
                 Timber.d("FileOperationProgressDialog: Starting - ${progress.totalFiles} files")
                 startTime = System.currentTimeMillis()
                 isStarted = true
+                totalOperationBytes = progress.totalOperationBytes
+                lastUpdateTime = 0L
+                if (hasSummaryViews()) {
+                    tvOverallPercent.text = ""
+                    tvEta.text = ""
+                }
             }
             is FileOperationProgress.Processing -> {
                 if (!isStarted) {
@@ -120,6 +139,10 @@ class FileOperationProgressDialog(
             }
             is FileOperationProgress.Completed -> {
                 Timber.d("FileOperationProgressDialog: Completed")
+                if (isShowing && hasSummaryViews()) {
+                    tvOverallPercent.text = "100%"
+                    tvEta.text = ""
+                }
                 dismiss()
             }
         }
@@ -127,19 +150,42 @@ class FileOperationProgressDialog(
 
     private fun applyProgressToUI(progress: FileOperationProgress.Processing) {
         Timber.d("FileOperationProgressDialog: Processing ${progress.currentFile} (${progress.currentIndex + 1}/${progress.totalFiles})")
-        
+
+        if (progress.speedBytesPerSecond > 0) {
+            speedSamples.addLast(progress.speedBytesPerSecond)
+            if (speedSamples.size > MAX_SPEED_SAMPLES) speedSamples.removeFirst()
+        }
+
+        val overallPercent = if (totalOperationBytes > 0L) {
+            (progress.completedOperationBytes * 100L / totalOperationBytes).toInt().coerceIn(0, 99)
+        } else null
+
+        val avgSpeed = if (speedSamples.isNotEmpty()) speedSamples.average().toLong() else 0L
+        val remainingBytes = if (totalOperationBytes > 0L) totalOperationBytes - progress.completedOperationBytes else 0L
+        val etaSeconds = if (avgSpeed > 0L && remainingBytes > 0L) remainingBytes / avgSpeed else -1L
+
         progressBar.isIndeterminate = false
-        progressBar.max = progress.totalFiles
-        progressBar.progress = progress.currentIndex + 1
-        
+        progressBar.max = 100
+        progressBar.progress = overallPercent ?: (progress.currentIndex * 100 / progress.totalFiles.coerceAtLeast(1))
+
         tvProgress.text = "${progress.currentIndex + 1} / ${progress.totalFiles}"
         tvCurrentFile.text = progress.currentFile
-        
-        // Show speed if available
+        tvOverallPercent.text = if (overallPercent != null) "$overallPercent%" else ""
+        tvEta.text = if (etaSeconds > 0L && overallPercent != null) formatEta(etaSeconds) else ""
+        tvOverallPercent.contentDescription = "${overallPercent ?: "—"}%"
+
         if (progress.speedBytesPerSecond > 0) {
             tvSpeed.text = formatSpeed(progress.speedBytesPerSecond)
         } else {
             tvSpeed.text = ""
+        }
+    }
+
+    private fun formatEta(etaSeconds: Long): String {
+        return when {
+            etaSeconds < 60L -> "< 1 min"
+            etaSeconds < 3600L -> "~${etaSeconds / 60}m ${etaSeconds % 60}s"
+            else -> "~${etaSeconds / 3600}h ${(etaSeconds % 3600) / 60}m"
         }
     }
 

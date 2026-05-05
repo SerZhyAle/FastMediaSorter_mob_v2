@@ -50,6 +50,16 @@ class KeyboardNavigationManager(
         dispatcher = KeyboardShortcutHandler.ActionDispatcher { action -> dispatchAction(action) },
     )
 
+    internal fun dispatchCommandId(commandId: String): Boolean = when (commandId) {
+        "sorting.delete"            -> dispatchAction(InputAction.DeleteSelection)
+        "sorting.copy"              -> dispatchAction(InputAction.CopySelection)
+        "sorting.move"              -> dispatchAction(InputAction.MoveSelection)
+        "sorting.rename"            -> dispatchAction(InputAction.RenameSelection)
+        "navigation.next_file"      -> dispatchAction(InputAction.MoveFocus(FocusDirection.DOWN))
+        "navigation.previous_file"  -> dispatchAction(InputAction.MoveFocus(FocusDirection.UP))
+        else                        -> false
+    }
+
     fun handleKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (event != null && shortcutHandler.handleKeyEvent(keyCode, event)) return true
         return false

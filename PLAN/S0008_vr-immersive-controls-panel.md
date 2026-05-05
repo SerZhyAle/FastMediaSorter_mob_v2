@@ -1,7 +1,7 @@
 # Стратегическая спецификация: ad-hoc — VR Immersive Controls Panel
 
-**Status:** Broken
-**Date:** 2026-04-26
+**Status:** BlockNeedUserTest (panel reachable after 2026-05-03 flag flip; on-device verification pending; §11.2 visible-ray work moved to S0065)
+**Date:** 2026-04-26 (last review 2026-05-03)
 **Tier:** 4 — Strategic (8h+, high risk)
 **Roadmap entry:** Ad-hoc — запрос пользователя 2026-04-26
 **Tactical plan:** `PLAN/S0008_vr-immersive-controls-panel/INDEX.md`
@@ -13,6 +13,10 @@
 ## 1. Проблема
 
 В VR-режиме приложения пользователь лишён полноценного интерактивного контроля над воспроизведением. Нажатие кнопки контроллера «открыть управление» вызывает только пассивную полоску-индикатор размером 1024×256 пикселей — без кнопок паузы, перемотки, переключения трека или изменения формата. Более того, пользователь не видит лучей от контроллеров и рук в VR-пространстве, поэтому даже если бы интерактивный HUD существовал, кликнуть по нему было бы невозможно. Текущее состояние описывается сообщением «видеоконтроль из иммерсива недоступен» — пользователь пробует выходить из VR для любого действия кроме паузы и переключения файла. Но при этом контент меняется и это делает VR-просмотр невозможным при неверном авто-определении формата и невозможно что-то поменять (аудиодорожку например).
+
+**Обновление от пользователя (2026-05-03):** "не вижу HUD с настройками проигрывателя". Это подтверждает, что текущее состояние панели управления полностью неработоспособно (связано с багом отключенного feature flag `VR_UI_COMPOSITION_LAYER_ENABLED`, см. §11.1).
+
+**Обновление от `/spec-all S0008 force` (2026-05-03 14:30):** Feature flag `VR_UI_COMPOSITION_LAYER_ENABLED` переключён в `true` для обоих VR-флейворов в `app_v2/build.gradle.kts:261,312`. `isImmersiveUiLocked()` теперь возвращает `false` в иммерсиве — guard на §11.1 / §11.3 / §11.4 / §11.5 / §11.6 снят. Cascading FAIL'ы в Last Audit устарели — переоцениваются после следующего on-device запуска. Visible-ray работа (§11.2 / Goal §2.2) выделена в **S0065** (`vr-controller-ray-visual`, Approved 2026-05-03) — see §10.
 
 ---
 
@@ -56,7 +60,7 @@ Non-goals:
 
 ## 4. Контекст текущей архитектуры
 
-Существующий VR-HUD — пассивный. Он реализован как OpenXR Quad layer (1024×256 пикселей) и отображает статический bitmap: прогресс-бар и временные метки. Этот HUD показывается и скрывается командами из `VrPlayerActivity`, но не содержит интерактивных зон и не реагирует на касание лучом.
+Существующий VR-HUD — пассивный. Он реализован как OpenXR Quad layer (1024×256 пикселей) и отображает статический bitmap: прогресс-бар и временные метки. Этот HUD показывается и скрывается командами из компонента VR-активности, но не содержит интерактивных зон и не реагирует на касание лучом.
 
 Вся обработка пользовательского ввода в текущей реализации происходит через 2D Android touch-события, наложенные поверх VR-картинки. Контроллеры отображаются ОС, но точка их aim в 3D-пространстве не обрабатывается на уровне OpenXR рейкаста. Приложение знает о позиции aim-указателя (рука/контроллер инициализированы и возвращают данные aim), но не рисует никакого визуального луча и не пересекает его с геометрией HUD-плоскости.
 
@@ -109,11 +113,11 @@ Ray-Hit-Test ← HUD Plane Transform
               ↓
         Hover State → HUD Renderer (highlight)
               ↓ (trigger press)
-        Click Event → VrPlayerActivity
+        Click Event → VR-оркестратор
               ↓
         PlayerControl Command (seek / pause / track / format)
               ↓
-        PlayerViewModel → ExoPlayer / StereoCoordinator
+        ViewModel плеера → декодер / координатор стерео
 ```
 
 ### 5.3 Точки расширяемости
@@ -189,6 +193,8 @@ Ray-Hit-Test ← HUD Plane Transform
 - **spec_vr-hand-tracking** (существующая, Backlog, blocked) — разблокируется после реализации интерактивного HUD; hand tracking aim pose подаётся в тот же Ray Renderer.
 - **spec_vr-stereo-formats** — кнопка ручного переключения формата в HUD (Столп Б) зависит от реализации fisheye/OU рендеринга; до этого кнопка показывает доступные форматы частично.
 - **spec_vr-input-reliability** — ray-hit-test генерирует клики, которые должны проходить через тот же механизм дебаунса, что описан в `spec_vr-input-reliability` (P2-4).
+- **S0024** (Verified, landed 2026-05-03) — HUD ray-input подсистема. Hover-highlight на HUD-элементах даёт частичную обратную связь по §11.2 для aim'а внутри HUD-плоскости. Полный визуальный луч — S0065.
+- **S0065** (Approved, discovered by `/spec-all S0008 force` 2026-05-03) — VR controller ray visual indicator. Реализует Столп A из §5.1 через GLES3 VBO + passthrough shader из render-loop. Закрывает §11.2 / Goal §2.2. До приземления S0065 §11.2 остаётся PARTIAL: пользователь видит hover-highlight только когда aim'ит в HUD-плоскость, иначе обратной связи нет.
 
 ---
 
@@ -219,12 +225,16 @@ Ray-Hit-Test ← HUD Plane Transform
 - **2026-04-26** — by `/spec-update` (`claude-sonnet-4-6`, focus: all) — pass 2
   - ACCEPT applied: 4 (R1 §6 Q1 formatted+renumbered; A1 период у яркости; C1/C2 яркость добавлена в §2 Goal 1 и §11 п.4)
   - DISCUSS proposed: D1 `VrPlayerActivity` в §4; D2 class names в §5.2 flow diagram — см. ниже
+- **2026-05-03** — by `/spec-update` (`claude-opus-4-7`, focus: structure, --force-locked) — Status `Broken` overridden: refinement затрагивает только текст спеки, не реализацию.
+  - Applied: 2 (P-1 убрано имя класса `VrPlayerActivity` из §4; P-2 имена компонентов в §5.2 заменены на роли). Proposed (DISCUSS): 0.
+- **2026-05-03 14:30** — by `/spec-all S0008 force` (`claude-opus-4-7[1m]`).
+  Found `VR_UI_COMPOSITION_LAYER_ENABLED` already flipped to `true` in working tree (uncommitted). Build PASS. Allocated S0065 for visible-ray work; updated §10 + §1 + Last Audit. Status `Broken → BlockNeedUserTest` (Quest 3 manual verification of §11.1/§11.3-7 pending; PARTIAL on §11.2 until S0065 lands).
 
 ## Proposed Structural Changes
 
 ### Proposal P-1 — Убрать имя класса `VrPlayerActivity` из §4  (proposed 2026-04-26 by claude-sonnet-4-6)
 
-**Status:** Proposed
+**Status:** Accepted (applied 2026-05-03 by claude-opus-4-7)
 
 **Summary:** Строка §4 содержит `` `VrPlayerActivity` `` в backtick — имя класса запрещено в стратегической спеке.
 **Affected section:** §4 Контекст текущей архитектуры, абзац 1
@@ -239,7 +249,7 @@ Ray-Hit-Test ← HUD Plane Transform
 
 ### Proposal P-2 — Убрать имена компонентов из диаграммы §5.2  (proposed 2026-04-26 by claude-sonnet-4-6)
 
-**Status:** Proposed
+**Status:** Accepted (applied 2026-05-03 by claude-opus-4-7)
 
 **Summary:** Диаграмма потока данных в §5.2 содержит имена компонентов (`VrPlayerActivity`, `PlayerViewModel`, `ExoPlayer`, `StereoCoordinator`) — запрещено в стратегическом §5.
 **Affected section:** §5.2 Потоки данных и событий, код-блок
@@ -253,23 +263,36 @@ Ray-Hit-Test ← HUD Plane Transform
 
 ## Last Audit
 
-**Date:** 2026-05-02
-**Mode:** strategic (tactical folder отсутствует — удалён в коммите `7d54d31` 2026-04-30; strategic .md восстановлен из `7d54d31~1`)
-**Flags:** —
-**Outcome:** Broken
-**Counts:** PASS 1 · WARN 2 · FAIL 5 · MANUAL 2 · EXEMPT 0
+**Date:** 2026-05-03 14:30 (re-audit by `/spec-all S0008 force`)
+**Mode:** full (strategic + 6 phases)
+**Flags:** force
+**Outcome:** BlockNeedUserTest (was Broken — guard removed; visible-ray work moved to S0065)
+**Counts:** PASS 7 · WARN 0 · FAIL 0 · PARTIAL 1 (§11.2) · MANUAL 5 (on-device) · DEFERRED 1 (S0065)
+
+### Resolved since prior audit (2026-05-03 13:12)
+
+- **§11.1 / §11.3 / §11.4 / §11.5 / §11.6** — flag `VR_UI_COMPOSITION_LAYER_ENABLED` flipped `false → true` for both `vr` and `vrUnlicensed` flavors ([app_v2/build.gradle.kts:261](app_v2/build.gradle.kts#L261), [:312](app_v2/build.gradle.kts#L312)). `isImmersiveUiLocked()` now returns `false` in immersive — guard removed. `OpenControls` / `OpenFileOps` / `Cheatsheet` reach the dispatcher path. Build PASS (standardDebug + vrDebug, 6s, UP-TO-DATE).
+- **WARN P-1, P-2** — already applied in 2026-05-03 Revision History pass (`/spec-update S0008 --force-locked`). Strategic §4 and §5.2 no longer carry class names.
+
+### Open / partial
+
+1. **[PARTIAL §11.2 / Goal §2.2]** Visible controller ray. Math-pass works (S0024 confirmed 1449 hover events). With S0024 landed, hover-highlight on HUD elements gives partial visual feedback when aiming inside the HUD plane. Off-HUD aim still has no cue. Full visible-ray GL primitive deferred to **S0065** (Approved, allocated 2026-05-03). S0008 will move to `Verified` only after S0065 lands AND on-device verification passes.
+
+### Manual / on-device (Quest 3)
+
+After flag flip, the following criteria are now reachable in code but require headset
+verification before status flips to `Verified`:
+
+- [ ] **§11.1** — controller "Open controls" opens the interactive panel with visible buttons.
+- [ ] **§11.3** — seek slider responds to ray drag.
+- [ ] **§11.4** — volume / brightness / track / speed are operable via the panel.
+- [ ] **§11.5** — stereo-format indicator visible; manual toggle works.
+- [ ] **§11.6** — panel auto-hides after 10 s of idle.
+- [ ] **§11.7** — FPS ≥ 72 with panel open at 4K (now measurable).
+
+User owns Quest 3 (memory: `user_hardware.md`). Defer to manual smoke-test; on success
+flip status to `Verified`. On failure capture device-log under Blockers Log and re-evaluate.
 
 ### Action items
 
-1. **[FAIL §11.1 / §11.4 — feature flag отключает всё]** `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED = "false"` ([app_v2/build.gradle.kts:261, :310](app_v2/build.gradle.kts#L261)). Из-за этого `isImmersiveUiLocked()` всегда `true` в иммерсиве ([VrPlayerActivity.kt:1024-1025](app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt#L1024-L1025)) — `OpenControls` и `OpenFileOps` no-op'ятся и показывают баннер `vr_hud_guard_controls` («Control dialog unavailable in immersive..») ([VrPlayerActivity.kt:1194-1212](app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt#L1194-L1212)). Лог 2026-05-02 подтверждает: 5+ сессий `OpenControls/OpenFileOps no-op — reason=immersive-ui-locked`. **Фикс:** включить флаг (минимум для debug VR-flavor) либо удалить guard и реализовать composition-layer путь.
-2. **[FAIL §11.2 — луч не виден]** `VrControllerRayManager` ([app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControllerRayManager.kt:18-21](app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrControllerRayManager.kt#L18-L21)) явно архитектурно отказался от cursor dot («No cursor dot — Touch controller users receive hardware LED + haptic feedback.») — но в HorizonOS Quest 3 при фокусированной XR-сессии hardware-indicator не отображается, и пользователь луча не видит. Goal 2 §11 требует визуальный луч. **Фикс:** добавить billboard quad / line strip от aim-pose до hit-точки (`Столп A — Ray Rendering`).
-3. **[FAIL §11.3]** Seek-слайдер недостижим из-за §11.1 (panel не открывается).
-4. **[FAIL §11.5]** Индикатор стерео-формата + кнопка ручного переключения недостижимы из-за §11.1.
-5. **[FAIL §11.6]** 10-секундный auto-hide недостижим — нечего скрывать.
-6. **[WARN tactical-link стр. 7, 209]** `PLAN/spec_vr-immersive-controls-panel/INDEX.md` — legacy `_spec_` префикс (запрещён CLAUDE.md rule 12), плюс папка не существует (удалена в `7d54d31`). Поправить ссылку на `PLAN/S0008_vr-immersive-controls-panel/INDEX.md` либо удалить — папка удалена вместе со strategic.
-7. **[WARN P-1, P-2 из Revision History]** Старые DISCUSS proposals (имена классов в §4 / §5.2) висят без решения.
-
-### Manual / on-device
-
-- [ ] §11.7 — FPS ≥ 72 при открытой панели на Quest 3 (не оценить без работающей панели).
-- [ ] §11.6 — 10-секундный таймер auto-hide (не воспроизвести без работающей панели).
+- **None blocking S0008.** All code paths that were FAIL in prior audit are now reachable; the only remaining work item (visible ray) is allocated as a separate ticket (S0065) per `/spec-all` "out-of-scope dependency" rule.

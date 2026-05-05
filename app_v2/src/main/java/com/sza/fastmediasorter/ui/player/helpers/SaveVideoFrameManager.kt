@@ -9,8 +9,8 @@ import android.provider.MediaStore
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.FileOperation
@@ -38,7 +38,7 @@ private const val JPEG_QUALITY = 85  // standard quality for JPEG frame saves
  * 3. Copies the file to the configured destination resource via [FileOperationUseCase],
  *    which supports ALL resource types: Local, SMB, SFTP, FTP, Google Drive, Dropbox, OneDrive.
  * 4. Falls back to MediaStore Downloads if no destination is configured or copy fails.
- * 5. Shows a Snackbar with the actual save location or an error.
+ * 5. Shows a Toast with the actual save location or an error.
  *
  * Format: PNG (lossless) or JPG (85% quality) — controlled by videoSnapshotFormat setting.
  * Filename: {video_name}_{HH}h{MM}m{SS}s.{ext} — based on current video track position.
@@ -57,7 +57,7 @@ class SaveVideoFrameManager(
         // Capture bitmap synchronously on main thread (TextureView requires it)
         val bitmap = captureFrame()
         if (bitmap == null) {
-            showSnackbar(activity.getString(R.string.save_frame_no_video))
+            showToast(activity.getString(R.string.save_frame_no_video), Toast.LENGTH_LONG)
             return
         }
 
@@ -98,15 +98,15 @@ class SaveVideoFrameManager(
                 }
 
                 tempFile.delete()
-                showSnackbar(finalMessage)
+                showToast(finalMessage)
 
             } catch (t: Throwable) {
                 if (t is OutOfMemoryError) {
                     Timber.e(t, "SaveVideoFrameManager: OutOfMemoryError during save")
-                    showSnackbar("Not enough memory to capture frame")
+                    showToast(activity.getString(R.string.save_frame_error), Toast.LENGTH_LONG)
                 } else {
                     Timber.e(t, "SaveVideoFrameManager: unexpected error saving frame")
-                    showSnackbar(activity.getString(R.string.save_frame_error))
+                    showToast(activity.getString(R.string.save_frame_error), Toast.LENGTH_LONG)
                 }
             }
         }
@@ -130,7 +130,7 @@ class SaveVideoFrameManager(
         } catch (t: Throwable) {
             Timber.e(t, "SaveVideoFrameManager: getBitmap() failed")
             if (t is OutOfMemoryError) {
-                showSnackbar("Not enough memory to capture frame")
+                showToast(activity.getString(R.string.save_frame_error), Toast.LENGTH_LONG)
             }
             null
         }
@@ -278,7 +278,9 @@ class SaveVideoFrameManager(
         return "${base}_${pos}.${ext}"
     }
 
-    private fun showSnackbar(message: String) {
-        Snackbar.make(activity.activityBinding.root, message, Snackbar.LENGTH_LONG).show()
+    // Toast renders in a system overlay, immune to view hierarchy and edge-to-edge insets —
+    // critical for full-screen video player where Snackbar anchor is off-screen.
+    private fun showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+        Toast.makeText(activity, message, duration).show()
     }
 }

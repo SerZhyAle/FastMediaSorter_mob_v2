@@ -71,13 +71,30 @@ The `name` field in the journal is the **bare slug** — no `spec_` prefix. The 
 & pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -File "PLAN/${ticketId}_<short-name>.md"
 ```
 
-**6 — Run dev log.**
+**6 — Auto-approve and run dev log.**
+
+Immediately after writing the file, advance `Status: Draft` → `Status: Approved` in the spec file and in the journal:
+
+```powershell
+# patch Status line in spec file
+(Get-Content "PLAN/${ticketId}_<short-name>.md") -replace '^(\*\*Status:\*\*\s*)Draft', '${1}Approved' |
+    Set-Content "PLAN/${ticketId}_<short-name>.md"
+
+# patch journal
+pwsh -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
+```
+
+Then record the dev log:
 
 ```powershell
 .\scripts\add_to_dev_log.ps1 "PLAN/<Sxxxx>_<short-name>.md" "spec" "Add strategic spec <Sxxxx> for <id>"
 ```
 
-**Chat output:** `<Sxxxx> <short-name> — Tier N, Priority P. Next: /spec-tech <Sxxxx>`
+**7 — Auto-chain to `/spec-tech`.**
+
+Without waiting for the user, immediately invoke `/spec-tech <Sxxxx>` to break the approved spec into phases. The only exception: if any §6 Research item is marked `Status: Open` with a note that human research is required before implementation — list those items and ask whether to proceed. Otherwise proceed automatically.
+
+**Chat output:** `<Sxxxx> <short-name> — Tier N, Priority P. Status: Approved. → Running /spec-tech…`
 
 ---
 

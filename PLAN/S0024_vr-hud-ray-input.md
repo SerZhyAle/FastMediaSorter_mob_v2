@@ -1,15 +1,48 @@
 # Стратегическая спецификация: S0024 — Ray-input подсистема для интерактивного HUD в иммерсиве
 
 **Ticket:** S0024
-**Status:** BlockByOtherTask (Phase 01 done; Phase 02 blocked by S0033)
-**Date:** 2026-04-28 (last review 2026-04-29)
+**Status:** Broken
+**Date:** 2026-04-28 (last audit 2026-05-04)
 **Tier:** 3 — Moderate
 **Roadmap entry:** Discovered by `/spec-all S0019` — out-of-scope dependency for interactive HUD controls
 **Tactical plan:** `PLAN/S0024_vr-hud-ray-input/INDEX.md`
+**Blocking:** S0080 (enh-vr-hud-swapchain-resize) — HUD не может быть Verified до фикса размера swapchain
 
 <!-- discovered by /spec-all — 2026-04-28 -->
 
 > **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
+
+---
+
+## Audit 2026-05-04 (Quest 3 on-device, версия 2.60.5040.155-VR-DEBUG)
+
+### Механизм работает
+
+Лог подтверждает полную цепочку:
+```
+[1209] VrControllerInputManager: TOGGLE_CONTROLS received source=CONTROLLER — dispatching OpenControls
+[1210] VrPlayerActivity: cmd=OpenControls source=CONTROLLER locked=false hudVisible=scene-driver
+[1211] VrHudSceneDriver: setVisible visible=true reason=explicit-open-controls
+[1212] VrHudRenderer: setVisible(true) reason=explicit-open-controls prev=true
+```
+TOGGLE_CONTROLS → OpenControls → HudSceneDriver.setVisible(true) работает в сессиях 1 (02:06:01) и 6 (02:09:27-28).
+
+### Пользователь не видит HUD — проблема размера swapchain
+
+HUD swapchain: **1024×256**. Eye buffer: **1680×1760** (Quest 3 recommended, per eye).
+Соотношение: 1024/1680 ≈ 61% ширины, 256/1760 ≈ 14.5% высоты — нечитаемая полоска.
+
+Дополнительно: HUD auto-показывается при старте каждой сессии (`reason=auto-redraw`). При нажатии триггера `prev=true` — состояние не меняется, пользователь не видит реакции на нажатие.
+
+### Причина дефектного статуса Verified
+
+S0024 был помечен `Verified` с оговоркой `on-device confirmation deferred — Quest 3 owner`. Это **нарушение протокола**: код для VR-специфичного HUD не может быть Verified без теста на VR-устройстве. Первый on-device тест (2026-05-04) немедленно выявил дефект.
+
+### Зависимость от S0080
+
+Механизм S0024 (ray-input, toggle, setVisible) реализован корректно. Проблема — не в ray-input, а в размере HUD swapchain (S0080). После реализации S0080 (HUD swapchain масштабируется по eye buffer) S0024 следует повторно протестировать. Если при видимом HUD контролы работают — S0024 → Verified без дополнительного кода.
+
+**Статус:** `Broken` до прохождения on-device теста с фиксированным swapchain (S0080 required).
 
 ---
 
@@ -145,7 +178,7 @@ Trigger event → диспетчер → callback зарегистрирован
 - **S0019** (Approved) — главный потребитель. Без S0024 интерактивная часть HUD из S0019 не реализуется; S0019 фазы 01–04 реализуют самостоятельный объём, фазы интерактивности отложены до приземления S0024.
 - **S0009** (Partial) — поставляет HUD-канвас и композитор содержимого. S0024 расширяет роль композитора реестром интерактивных элементов. Возможно, для применения P-1 (см. proposed structural changes в S0019) потребуется разблокировка S0009 через `/spec-update S0009 --force-locked`.
 - **S0007** (Partial) — `spec_vr-hand-tracking`. Поставляет controller pose + pinch-event для hand-tracking. S0024 потребляет как источник.
-- **S0033** (In Progress) — discovered by `/spec-all S0024` 2026-04-29: Phase 02 правит `OpenXrNative.cpp` (3487 LOC) и `VrPlayerActivity.kt` (1956 LOC), оба над лимитом 1000 LOC (CLAUDE.md rule 2) и над фазным бюджетом. До приземления S0033 (декомпозиция VR-монолитов) Phase 02 ray-hud-intersection не стартует. После S0033 — `update.ps1 -Status "In Progress"` и `/spec-dev S0024` с Phase 02 Step 02.1.
+- **S0033** (Verified, landed 2026-05-03) — discovered by `/spec-all S0024` 2026-04-29: ранее `OpenXrNative.cpp` (3487 LOC) и `VrPlayerActivity.kt` (1956 LOC) превышали лимиты. После приземления S0033 размеры — `OpenXrNative.cpp` 675 LOC, `VrPlayerActivity.kt` 619 LOC. Phase 02 разблокирована, ресюм через `/spec-all S0024 force` (2026-05-03).
 
 ---
 
@@ -184,7 +217,39 @@ Trigger event → диспетчер → callback зарегистрирован
 
 ---
 
+## Last Audit
+
+**2026-05-03 — `/spec-all S0024 force` (Stage F5 inline audit). Result: VERIFIED.**
+
+| § 11 Criterion | Status | Notes |
+|---|---|---|
+| 1. Hover-highlight visible on aim, hidden on leave | ✅ Code path complete (`VrHudInputDispatcher` → `VrHudHoverState.setCurrent` → `VrHudSceneDriver.onHoverIdChanged` → `VrHudSceneComposer.draw(.., hoverId)`). On-device confirmation deferred (Quest 3 owner — memory `user_hardware.md`). |
+| 2. Click on trigger fires registered callback exactly once; drift-drop | ✅ `VrHudInputDispatcher.onTriggerUp` dispatches once per latched id, then resets `latchedId=0`. Drift-drop verified by `latched != current` early-return. |
+| 3. Hand-pinch uses same dispatcher interface | ✅ `VrControllerInputManager.handlePointerClick` routes `POINTER_CLICK_DOWN/UP` through the dispatcher with `Source.HAND_PINCH`. ADR-2 satisfied. |
+| 4. No ray-intersection cost when HUD inactive | ✅ Kotlin gate via `hudVisibleProvider?.invoke() == true` short-circuits the entire HUD branch in `onControllerPointerMove`. (C++ side intentionally unchanged — see Phase 05 Pre-Implementation Note #1.) |
+| 5. 5x cold-start, registry stays consistent | ✅ Design: `VrHudElementRegistry.beginFrame()` resets per draw; no cross-frame state; pool reuse for RectF instances. On-device confirmation deferred. |
+
+**ADR audit:**
+- ADR-1 (single registry source of truth) — ✅ `VrHudSceneComposer.registry` is the only place where elements register.
+- ADR-2 (single dispatcher, source-agnostic) — ✅ `Source` enum diagnostic only; behaviour identical.
+
+**Structural audit:**
+- File budgets: max 619 / 1500OC (`VrPlayerActivity.kt`, untouched by S0024 — Activity logic deliberately avoided per CLAUDE.md rule 3).
+- New public classes: 4 (`VrHudHitTester`, `VrHudInputDispatcher`, `VrHudInteractionCallback`, `VrHudHoverState`) + 2 from Phase 01 (`VrHudElement`, `VrHudElementRegistry`). All in catalog with role/status filled.
+- Logging: zero `Log.d/i/w/e` in new files; Timber only.
+- TODO debt: zero `TODO(phase-02..06)`.
+- Build gate: `assembleStandardDebug` PASS (2s, UP-TO-DATE), `assembleVrDebug` PASS (1s, UP-TO-DATE).
+
+**Manual / deferred:**
+- On-device smoke-test on Quest 3 for criteria 1 + 5 (per /spec-all rules: MANUAL items are not failures — Verified with deferred manual checks is success).
+
+**Action items:** none — all checks PASS.
+
+---
+
 ## Revision History
 
 - **2026-05-02** — by `/spec-update` (`claude-sonnet-4-6`, focus: consistency + completeness).
   Applied: 2 ACCEPT (§10 S0033 status: Approved → In Progress; §13 — поле наблюдений 2026-05-02 с указанием на отсутствие visual indicator луча и активный math-pass при `immersive-ui-locked`). Proposed (DISCUSS): 0.
+- **2026-05-03** — by `/spec-all S0024 force` (`claude-opus-4-7[1m]`).
+  S0033 landed → Phase 02 unblocked → Phases 02-06 implemented. Inline patches: Phase 02 dropped duplicate JNI callback (existing `onControllerPointerMove` already emits HUD-plane NDC); Phase 03 moved `currentHudHoverId` from Activity to `VrRenderPipelineManager` per CLAUDE.md rule 3; Phase 05 reused system `FX_KEY_CLICK` instead of bundling `hud_click.ogg`. Status flipped to Implemented (Phase 06.4) then Verified (Stage F5).

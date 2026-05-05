@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -26,6 +27,7 @@ class ProvisionDefaultResourcesUseCaseTest {
     private val context: Context = mockk(relaxed = true)
     private val resourceRepository: ResourceRepository = mockk(relaxed = true)
     private val settingsRepository: SettingsRepository = mockk(relaxed = true)
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase = ResolveResourceIconUseCase()
 
     private lateinit var useCase: ProvisionDefaultResourcesUseCase
 
@@ -34,7 +36,7 @@ class ProvisionDefaultResourcesUseCaseTest {
         // Stub string resources
         every { context.getString(any()) } returns "Stub"
 
-        useCase = ProvisionDefaultResourcesUseCase(context, resourceRepository, settingsRepository)
+        useCase = ProvisionDefaultResourcesUseCase(context, resourceRepository, settingsRepository, resolveResourceIconUseCase)
     }
 
     // ── Skip when DB is non-empty ────────────────────────────
@@ -245,6 +247,23 @@ class ProvisionDefaultResourcesUseCaseTest {
 
         val docsResource = captured.first { it.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS }
         assertEquals(setOf(MediaType.TEXT, MediaType.EPUB), docsResource.supportedMediaTypes)
+    }
+
+    // ── All resources use LOCAL type and isWritable=false ──────
+
+    @Test
+    fun `Recent resource is provisioned with allFiles true`() = runTest {
+        coEvery { resourceRepository.getAllResources() } returns flowOf(emptyList())
+        val settings = AppSettings(supportAudio = true, supportVideos = true)
+        coEvery { settingsRepository.getSettings() } returns flowOf(settings)
+
+        val captured = mutableListOf<MediaResource>()
+        coEvery { resourceRepository.addResource(capture(captured)) } returns 1L
+
+        useCase()
+
+        val recent = captured.first { it.path == LocalMediaScanner.VIRTUAL_PATH_RECENT }
+        assertTrue("Recent must have allFiles=true by default (S0059)", recent.allFiles)
     }
 
     // ── All resources use LOCAL type and isWritable=false ──────

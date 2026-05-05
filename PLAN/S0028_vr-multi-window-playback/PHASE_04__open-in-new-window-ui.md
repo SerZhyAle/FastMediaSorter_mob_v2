@@ -1,3 +1,5 @@
+> **SUPERSEDED** — replaced by [PHASE_05__browse-entry-points.md](PHASE_05__browse-entry-points.md) + [PHASE_06__player-tear-off.md](PHASE_06__player-tear-off.md) (2026-05-04 redesign). Do not use.
+
 # Phase 04 — "Open in New Window" UI
 
 **Strategic spec:** [`../S0028_vr-multi-window-playback.md`](../S0028_vr-multi-window-playback.md)

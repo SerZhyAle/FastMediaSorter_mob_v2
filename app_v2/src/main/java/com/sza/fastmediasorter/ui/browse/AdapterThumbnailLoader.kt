@@ -530,6 +530,19 @@ class AdapterThumbnailLoader(
                     showGeneratedPlaceholder(imageView, file)
                     return
                 }
+                // S0063: skip extraction immediately for formats known to fail on network streams.
+                // Avoids wasting a 10-second MediaMetadataRetriever timeout slot per file.
+                val ext = file.name.substringAfterLast('.', "").lowercase()
+                if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
+                        .shouldSkipNetworkExtraction(ext)) {
+                    Timber.d("[scope=thumbnail S0063] Blocked network format '$ext' — showing placeholder: ${file.name}")
+                    showGeneratedPlaceholder(imageView, file)
+                    imageView.contentDescription = context.getString(
+                        R.string.thumbnail_unavailable_network_format,
+                        ext.uppercase()
+                    )
+                    return
+                }
                 if (NetworkFileDataFetcher.isVideoFailed(file.path)) {
                     Timber.v("Skipping video thumbnail load for ${file.name} (cached as failed)")
                     showGeneratedPlaceholder(imageView, file)

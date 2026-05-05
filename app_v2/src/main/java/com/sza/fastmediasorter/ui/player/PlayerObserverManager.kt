@@ -70,7 +70,10 @@ internal class PlayerObserverManager(
                         activity.loadFullSizeImages = settings.loadFullSizeImages
 
                         activity.imageLoadingManager.setDynamicBackgroundEnabled(settings.dynamicBackgroundExtension)
-                        activity.pipManager?.setupPipButton(settings.enablePictureInPicture)
+                        // currentFile may be null at resource-switch time; updateUI() will correct
+                        // PiP visibility once the file type is known.
+                        val isAudio = state.currentFile?.type == MediaType.AUDIO
+                        activity.pipManager?.setupPipButton(settings.enablePictureInPicture, isAudio)
 
                         settings.enableFavorites || state.resource?.id == -100L
                     }.collect { shouldShow ->
@@ -83,9 +86,15 @@ internal class PlayerObserverManager(
 
     fun updateUI(state: PlayerViewModel.PlayerState) {
         activity.uiStateCoordinator.updateUI(state)
-        if (state.currentFile?.type != MediaType.AUDIO) {
+        val isAudio = state.currentFile?.type == MediaType.AUDIO
+        if (!isAudio) {
             activity.sleepTimerManager?.stopVinylAnimation()
         }
+        // Re-evaluate PiP button on every file change — audio files must not show PiP.
+        activity.pipManager?.setupPipButton(
+            activity.currentSettings?.enablePictureInPicture == true,
+            isAudio
+        )
         if (activity.audioSlideshowPhotoModeManager.isActive) {
             activity.audioSlideshowPhotoModeManager.enforceUI()
         }

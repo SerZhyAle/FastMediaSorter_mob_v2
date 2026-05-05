@@ -32,6 +32,17 @@ data class SftpFileAttributes(
 )
 
 /**
+ * Lightweight listing entry returned by [SftpClient.listFiles].
+ * Attributes are populated from [ChannelSftp.LsEntry.attrs] — no extra stat() call needed.
+ */
+data class SftpFileListing(
+    val path: String,
+    val size: Long,
+    val isDirectory: Boolean,
+    val modifiedDate: Long  // Unix timestamp in milliseconds (mtime * 1000)
+)
+
+/**
  * Low-level SFTP client wrapper using JSch library
  * JSch has built-in KEX implementations (including ECDH) without requiring EC KeyPairGenerator from BouncyCastle
  * This solves Android BouncyCastle limitations with modern SSH servers
@@ -102,24 +113,30 @@ class SftpClient @Inject constructor(
         return pool.getConnectionForExoPlayer(connectionInfo)
     }
 
+    /** S0067: close all pooled SFTP sessions (UI lifecycle hook). */
+    suspend fun disconnectAllPool() = pool.disconnectAll()
+
     fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) = pool.releaseExoPlayerConnection(channel, broken)
 
     /**
-     * List files and directories in remote path
+     * List files and directories in remote path.
      * @param recursive If true, scans all subdirectories recursively
+     * @param includeDirectories If true, directory entries are also included in the result (non-recursive mode only)
+     * @return List of [SftpFileListing] with path and attrs from the ls response — no extra stat() per file
      */
     suspend fun listFiles(
         connectionInfo: SftpConnectionInfo,
         remotePath: String = "/",
-        recursive: Boolean = true
-    ): Result<List<String>> = withConnection(connectionInfo) { channel ->
+        recursive: Boolean = true,
+        includeDirectories: Boolean = false
+    ): Result<List<SftpFileListing>> = withConnection(connectionInfo) { channel ->
         try {
-            val allFiles = mutableListOf<String>()
+            val allFiles = mutableListOf<SftpFileListing>()
             
             if (recursive) {
                 listFilesRecursive(channel, remotePath, allFiles)
             } else {
-                listFilesSingleLevel(channel, remotePath, allFiles)
+                listFilesSingleLevel(channel, remotePath, allFiles, includeDirectories)
             }
             
             Result.success(allFiles)
@@ -133,7 +150,8 @@ class SftpClient @Inject constructor(
     private fun listFilesSingleLevel(
         channel: ChannelSftp,
         remotePath: String,
-        results: MutableList<String>
+        results: MutableList<SftpFileListing>,
+        includeDirectories: Boolean = false
     ) {
         @Suppress("UNCHECKED_CAST")
         val entries = channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
@@ -146,10 +164,19 @@ class SftpClient @Inject constructor(
                     "$remotePath/${entry.filename}"
                 }
                 
-                // Only add files, skip directories
-                if (!entry.attrs.isDir) {
-                    results.add(fullPath)
+                if (entry.attrs.isDir && !includeDirectories) {
+                    // Skip directories in scan mode (caller does not want them)
+                    return@forEach
                 }
+                
+                results.add(
+                    SftpFileListing(
+                        path = fullPath,
+                        size = entry.attrs.size,
+                        isDirectory = entry.attrs.isDir,
+                        modifiedDate = entry.attrs.mTime.toLong() * 1000L
+                    )
+                )
             }
         }
     }
@@ -158,7 +185,7 @@ class SftpClient @Inject constructor(
     private fun listFilesRecursive(
         channel: ChannelSftp,
         remotePath: String,
-        results: MutableList<String>
+        results: MutableList<SftpFileListing>
     ) {
         @Suppress("UNCHECKED_CAST")
         val entries = channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
@@ -172,11 +199,17 @@ class SftpClient @Inject constructor(
                 }
                 
                 if (entry.attrs.isDir) {
-                    // Recursively scan subdirectory
+                    // Recursively scan subdirectory — directory itself is not added to results
                     listFilesRecursive(channel, fullPath, results)
                 } else {
-                    // Add file to results
-                    results.add(fullPath)
+                    results.add(
+                        SftpFileListing(
+                            path = fullPath,
+                            size = entry.attrs.size,
+                            isDirectory = false,
+                            modifiedDate = entry.attrs.mTime.toLong() * 1000L
+                        )
+                    )
                 }
             }
         }
@@ -324,10 +357,10 @@ class SftpClient @Inject constructor(
             withConnection(connectionInfo) { channel ->
                 try {
                     val buffer = ByteArray(length.toInt())
-                    val inputStream = channel.get(remotePath)
+                    // Retry must preserve direct-offset semantics; skip(offset) replays the failing path.
+                    val inputStream = channel.get(remotePath, null, offset)
                     
                     inputStream.use {
-                        it.skip(offset)
                         var totalRead = 0
                         while (totalRead < length) {
                             val read = it.read(buffer, totalRead, (length - totalRead).toInt())

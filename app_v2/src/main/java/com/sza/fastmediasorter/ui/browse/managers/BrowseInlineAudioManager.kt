@@ -39,6 +39,7 @@ class BrowseInlineAudioManager(
     private val smbClient: SmbClient,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val saveResumeStateUseCase: SaveResumeStateUseCase,
+    private val windowIdProvider: () -> String,
     private val scope: CoroutineScope,
     private val stateFlow: StateFlow<BrowseState>,
     /** Called when resume logic needs to navigate to a subfolder before starting playback. */
@@ -335,7 +336,7 @@ class BrowseInlineAudioManager(
                     mediaType = MediaType.AUDIO,
                     savedAt = System.currentTimeMillis()
                 )
-                saveResumeStateUseCase(resumeState)
+                saveResumeStateUseCase(windowIdProvider(), resumeState)
             } catch (e: Exception) {
                 Timber.e(e, "InlinePlayer: Failed to save resume state")
             }

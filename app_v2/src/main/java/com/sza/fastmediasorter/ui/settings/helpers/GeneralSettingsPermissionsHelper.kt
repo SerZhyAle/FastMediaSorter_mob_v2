@@ -30,13 +30,23 @@ class GeneralSettingsPermissionsHelper(
             fragment.getString(R.string.grant_local_files_permission)
         binding.btnLocalFilesPermission.setOnClickListener { handleLocalFilesPermissionAction() }
 
-        val hasNetworkPermission = PermissionHelper.hasInternetPermission(ctx)
+        val hasNetworkPermission = PermissionHelper.hasLocalNetworkPermission(ctx)
         binding.btnNetworkPermission.isEnabled = !hasNetworkPermission
         binding.btnNetworkPermission.alpha = if (hasNetworkPermission) 0.5f else 1.0f
         binding.btnNetworkPermission.text = if (hasNetworkPermission)
-            fragment.getString(R.string.network_permission_granted)
+            fragment.getString(R.string.local_network_permission_granted)
         else
-            fragment.getString(R.string.grant_network_permission)
+            fragment.getString(R.string.local_network_permission_grant)
+        binding.btnNetworkPermission.setOnClickListener {
+            val activity = fragment.requireActivity()
+            if (PermissionHelper.hasLocalNetworkPermission(ctx)) {
+                // already granted — nothing to do
+            } else if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
+                PermissionHelper.requestLocalNetworkPermission(activity)
+            } else {
+                PermissionHelper.routeToLocalNetworkSettings(activity)
+            }
+        }
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             val hasManageMedia = PermissionHelper.hasManageMediaPermission(ctx)

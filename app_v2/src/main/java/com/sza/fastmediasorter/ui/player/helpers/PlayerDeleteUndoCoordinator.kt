@@ -82,15 +82,17 @@ class PlayerDeleteUndoCoordinator(
                     File(currentFile.path)
                 }
 
-                val deleteOperation = FileOperation.Delete(files = listOf(file), softDelete = !isNetwork)
+                val settings = settingsRepository.getSettings().first()
+                val useTrash = settings.useTrash
+                val effectiveSoftDelete = useTrash && !isNetwork
+                val deleteOperation = FileOperation.Delete(files = listOf(file), softDelete = effectiveSoftDelete)
 
                 when (val result = fileOperationUseCase.execute(deleteOperation)) {
                     is FileOperationResult.Success,
                     is FileOperationResult.PartialSuccess -> {
                         sendEvent(PlayerViewModel.PlayerEvent.FileModified(currentFile.path))
 
-                        val settings = settingsRepository.getSettings().first()
-                        if (settings.enableUndo && !isNetwork) {
+                        if (settings.enableUndo && effectiveSoftDelete) {
                             val trashPaths = when (result) {
                                 is FileOperationResult.Success -> result.copiedFilePaths
                                 is FileOperationResult.PartialSuccess -> emptyList()

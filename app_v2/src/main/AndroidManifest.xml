@@ -19,8 +19,17 @@
 
     <!-- Network permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" android:minSdkVersion="37" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- Wi-Fi is used for network sources but not required for local files or cellular cloud access -->
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
+    <!-- Keyboard/mouse/remote navigation is already supported; touchscreen is not mandatory -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- DPAD/trackball-only devices (streaming sticks, some Android boxes) have no faketouch layer -->
+    <uses-feature android:name="android.hardware.faketouch" android:required="false" />
+    <!-- TV set-top boxes appear in Play Store without forcing leanback mode -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
 
     <!-- Keep screen on -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -40,21 +49,26 @@
 
     <!-- Screen sizes and densities supported -->
     <!-- Supports phones, tablets, and compact devices (480x480+) -->
-    <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:xlargeScreens="true" android:requiresSmallestWidthDp="320" />
+    <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:xlargeScreens="true" android:anyDensity="true" android:requiresSmallestWidthDp="320" />
 
     <!-- Package visibility: allow the system to resolve CREATE_DOCUMENT (SAF file picker) on API 30+ -->
+    <!-- Also declare camera intents so queryIntentActivities() can find camera apps on API 30+ -->
     <queries>
         <intent>
             <action android:name="android.intent.action.CREATE_DOCUMENT" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.VIDEO_CAPTURE" />
         </intent>
     </queries>
 
     <application android:name=".FastMediaSorterApp" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.FastMediaSorter" android:networkSecurityConfig="@xml/network_security_config" android:localeConfig="@xml/locales_config" android:enableOnBackInvokedCallback="true" tools:targetApi="34">
 
         <!-- Google Cast SDK: auto-discover Chromecast devices on the LAN -->
-        <meta-data
-            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.sza.fastmediasorter.core.cast.CastOptionsProvider" />
+        <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME" android:value="com.sza.fastmediasorter.core.cast.CastOptionsProvider" />
 
         <!-- Disable automatic WorkManager initialization -->
         <provider android:name="androidx.startup.InitializationProvider" android:authorities="${applicationId}.androidx-startup" android:exported="false" tools:node="merge">
@@ -69,19 +83,12 @@
               launches restore the last user-adjusted size natively. Has no visible effect on
               phones/tablets in non-freeform mode.
             -->
-            <layout
-                android:defaultWidth="1920dp"
-                android:defaultHeight="1080dp"
-                android:gravity="center"
-                android:minWidth="400dp"
-                android:minHeight="300dp" />
+            <layout android:defaultWidth="1920dp" android:defaultHeight="1080dp" android:gravity="center" android:minWidth="400dp" android:minHeight="300dp" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
 
         <activity android:name=".ui.browse.BrowseActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
@@ -90,7 +97,7 @@
 
         <activity android:name=".ui.player.PlayerActivity" android:exported="false" android:screenOrientation="sensor" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
-        <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
@@ -167,31 +174,19 @@
         </service>
 
         <!-- Quick Settings tile for audio play/pause toggle -->
-        <service
-            android:name=".core.AudioToggleTileService"
-            android:icon="@drawable/ic_tile_play"
-            android:label="@string/tile_audio_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
-            android:exported="true">
+        <service android:name=".core.AudioToggleTileService" android:icon="@drawable/ic_tile_play" android:label="@string/tile_audio_label" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
-            <meta-data
-                android:name="android.service.quicksettings.ACTIVE_TILE"
-                android:value="false" />
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
         </service>
 
         <!-- Wearable Data Layer — receives sync requests and acks from the watch companion -->
-        <service
-            android:name=".service.PhoneWearListenerService"
-            android:exported="true">
+        <service android:name=".service.PhoneWearListenerService" android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data
-                    android:host="*"
-                    android:pathPrefix="/fms/network_sources"
-                    android:scheme="wear" />
+                <data android:host="*" android:pathPrefix="/fms/network_sources" android:scheme="wear" />
             </intent-filter>
         </service>
 
@@ -212,25 +207,17 @@
         </receiver>
 
         <!-- Scheduled file operations: foreground service type for WorkManager (Android 14+) -->
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="mediaPlayback|dataSync"
-            tools:node="merge" />
+        <service android:name="androidx.work.impl.foreground.SystemForegroundService" android:foregroundServiceType="mediaPlayback|dataSync" tools:node="merge" />
 
         <!-- Scheduled file operations: reschedule on device boot -->
-        <receiver
-            android:name=".worker.ScheduledOperationsBootReceiver"
-            android:exported="true">
+        <receiver android:name=".worker.ScheduledOperationsBootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
         <!-- Media button receiver for cold service restart (enabled only when isPrimaryMediaPlayer=true) -->
-        <receiver
-            android:name=".ui.player.MediaButtonRestartReceiver"
-            android:enabled="false"
-            android:exported="true">
+        <receiver android:name=".ui.player.MediaButtonRestartReceiver" android:enabled="false" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
@@ -242,32 +229,17 @@
         </provider>
 
         <!-- Standalone Player for external intents -->
-        <activity
-            android:name=".ui.player.StandalonePlayerActivity"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
-            android:exported="true"
-            android:screenOrientation="sensor"
-            android:supportsPictureInPicture="true"
-            android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.StandalonePlayerActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="true" android:screenOrientation="sensor" android:supportsPictureInPicture="true" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <!-- Share Receiver: handles ACTION_SEND intents from the system Share sheet.
              Enabled/disabled dynamically via DefaultPlayerManager.applyShareReceiverState().
              Translucent theme ensures only the Copy-to dialog is visible (no blank window). -->
-        <activity
-            android:name=".ui.share.ReceiveShareActivity"
-            android:exported="false"
-            android:screenOrientation="sensor"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:theme="@style/Theme.FastMediaSorter.Transparent" />
+        <activity android:name=".ui.share.ReceiveShareActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 
         <!-- Audio alias: mp3, flac, aac, ogg, m4a, wma, opus, amr, etc. -->
-        <activity-alias
-            android:name=".StandaloneAudioPlayer"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <activity-alias android:name=".StandaloneAudioPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
             <!-- Open audio files from file managers / share sheets -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -296,11 +268,7 @@
         </activity-alias>
 
         <!-- Video alias: mp4, mkv, avi, mov, webm, flv, wmv, 3gp, etc. -->
-        <activity-alias
-            android:name=".StandaloneVideoPlayer"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <activity-alias android:name=".StandaloneVideoPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -322,11 +290,7 @@
         </activity-alias>
 
         <!-- Image alias: jpg, png, webp, heic, heif, bmp, avif (NO gif) -->
-        <activity-alias
-            android:name=".StandaloneImagePlayer"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <activity-alias android:name=".StandaloneImagePlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -345,11 +309,7 @@
         </activity-alias>
 
         <!-- Documents alias: pdf, epub, txt -->
-        <activity-alias
-            android:name=".StandaloneDocsPlayer"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
+        <activity-alias android:name=".StandaloneDocsPlayer" android:enabled="false" android:exported="true" android:targetActivity=".ui.player.StandalonePlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -367,11 +327,7 @@
              URI arrives as EXTRA_STREAM, so no scheme filter is needed here. -->
 
         <!-- Audio share receiver -->
-        <activity-alias
-            android:name=".StandaloneAudioSender"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.share.ReceiveShareActivity">
+        <activity-alias android:name=".StandaloneAudioSender" android:enabled="false" android:exported="true" android:targetActivity=".ui.share.ReceiveShareActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -390,11 +346,7 @@
         </activity-alias>
 
         <!-- Video share receiver -->
-        <activity-alias
-            android:name=".StandaloneVideoSender"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.share.ReceiveShareActivity">
+        <activity-alias android:name=".StandaloneVideoSender" android:enabled="false" android:exported="true" android:targetActivity=".ui.share.ReceiveShareActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -413,11 +365,7 @@
         </activity-alias>
 
         <!-- Image share receiver -->
-        <activity-alias
-            android:name=".StandaloneImageSender"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.share.ReceiveShareActivity">
+        <activity-alias android:name=".StandaloneImageSender" android:enabled="false" android:exported="true" android:targetActivity=".ui.share.ReceiveShareActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -434,11 +382,7 @@
 
         <!-- Text/Link share receiver: handles plain-text from Instagram, browsers, etc.
              Creates a .txt file in temp cache, then shows the Copy-to dialog. -->
-        <activity-alias
-            android:name=".StandaloneTextSender"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.share.ReceiveShareActivity">
+        <activity-alias android:name=".StandaloneTextSender" android:enabled="false" android:exported="true" android:targetActivity=".ui.share.ReceiveShareActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -446,6 +390,11 @@
                 <data android:mimeType="text/*" />
             </intent-filter>
         </activity-alias>
+
+        <!-- Remove ML Kit's Firebase DataTransport JobScheduler service to prevent ANR
+             on devices with outdated Google Play Services. DataTransport falls back to
+             AlarmManagerSchedulerBroadcastReceiver which does not block the main thread. -->
+        <service android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService" tools:node="remove" />
 
     </application>
 

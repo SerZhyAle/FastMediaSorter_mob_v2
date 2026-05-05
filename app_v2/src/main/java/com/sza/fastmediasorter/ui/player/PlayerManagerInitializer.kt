@@ -251,6 +251,25 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     }
                 }
 
+                override fun onCopyToPathSuccess(destinationPath: String, goToNext: Boolean) {
+                    if (goToNext) {
+                        activity.navigationManager.navigateNextAfterOperation("CopyToPath success with goToNext=true")
+                    }
+                }
+
+                override fun onMoveToPathSuccess(destinationPath: String, movedFilePath: String, goToNext: Boolean) {
+                    activity.lifecycleManager.trackModifiedFile(movedFilePath)
+                    activity.viewModel.state.value.resource?.let { resource ->
+                        MediaFilesCacheManager.removeFile(resource.id, movedFilePath)
+                    }
+                    val hasRemainingFiles = activity.viewModel.removeMovedFile(movedFilePath)
+                    if (!hasRemainingFiles) {
+                        activity.finish()
+                    } else if (goToNext) {
+                        activity.navigationManager.navigateNextAfterOperation("MoveToPath success with goToNext=true")
+                    }
+                }
+
                 override fun onDeleteSuccess(deletedFilePath: String) {
                     activity.handleDeleteSuccess(deletedFilePath)
                 }
@@ -283,6 +302,14 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             }
         )
 
+        activity.playerFolderPickerHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerFolderPickerHandler(
+            activity = activity,
+            coroutineScope = activity.lifecycleScope,
+            settingsRepository = activity.settingsRepository,
+            fileOperationsHandler = activity.fileOperationsHandler,
+            onLaunchPicker = { uri -> activity.folderPickerLauncher.launch(uri) }
+        )
+
         activity.destinationButtonsManager = DestinationButtonsManager(
             binding = activity.activityBinding,
             settingsRepository = activity.settingsRepository,
@@ -296,6 +323,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 override fun onMoveClicked(destination: com.sza.fastmediasorter.domain.model.MediaResource) {
                     Timber.d("PlayerActivity: onMoveClicked - destination=${destination.name}")
                     activity.fileOperationsHandler.performMove(destination)
+                }
+
+                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                    val credId = activity.viewModel.state.value.resource?.credentialsId
+                    activity.playerFolderPickerHandler.requestFolderPick(operationType, credId)
                 }
 
                 override fun getCurrentResourceId(): Long =
@@ -590,6 +622,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             }
         )
         activity.castMediaManager.init()
+        activity.commandPanelController.bindCastManager(activity.castMediaManager)
 
         activity.audioServiceController = AudioServiceController(activity)
         activity.nowPlayingManager = NowPlayingManager(

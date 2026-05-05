@@ -290,7 +290,7 @@ class FileOperationDestinationDialog(
                 context,
                 context.getString(progressTitleResId),
                 onCancel = { 
-                    Timber.w("performOperation: User cancelled operation")
+                    Timber.d("performOperation: cancel requested by user") // S0055-D
                     cancel() // Cancel this coroutine job
                 }
             )
@@ -362,8 +362,8 @@ class FileOperationDestinationDialog(
                 }
                 Timber.i("performOperation: executeWithProgress completed, flow ended")
             } catch (e: kotlinx.coroutines.CancellationException) {
-                // Operation cancelled by user
-                Timber.w(e, "performOperation: Operation cancelled by user")
+                // S0055-D: routine user cancellation — no stack needed
+                Timber.i("performOperation: Operation cancelled by user (${operationType.name})")
                 withContext(Dispatchers.Main) {
                     val cancelMsgResId = when (operationType) {
                         FileOperationType.COPY -> R.string.toast_copy_cancelled

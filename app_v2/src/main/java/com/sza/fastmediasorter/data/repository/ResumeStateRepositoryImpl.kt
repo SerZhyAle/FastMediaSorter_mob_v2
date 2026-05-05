@@ -12,15 +12,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class ResumeStateRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) : ResumeStateRepository {
 
     companion object {
-        private const val PREFS_NAME = "resume_state_prefs"
+        private const val PREFS_NAME_PREFIX = "resume_state_prefs"
 
         private const val KEY_FILE_PATH = "file_path"
         private const val KEY_RESOURCE_ID = "resource_id"
@@ -36,13 +34,12 @@ class ResumeStateRepositoryImpl @Inject constructor(
         const val RESUME_TTL_MS = 48L * 60 * 60 * 1000
     }
 
-    private val prefs: SharedPreferences by lazy {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    }
+    private fun prefs(windowId: String): SharedPreferences =
+        context.getSharedPreferences("resume_state_prefs_$windowId", Context.MODE_PRIVATE)
 
-    override suspend fun saveState(state: ResumeState) = withContext(Dispatchers.IO) {
-        Timber.d("ResumeStateRepository: saveState — file=${state.filePath}, resource=${state.resourceId}, screen=${state.screenType}, playing=${state.isPlaying}")
-        prefs.edit()
+    override suspend fun saveState(windowId: String, state: ResumeState) = withContext(Dispatchers.IO) {
+        Timber.d("ResumeStateRepository[$windowId]: saveState — file=${state.filePath}, resource=${state.resourceId}, screen=${state.screenType}, playing=${state.isPlaying}")
+        prefs(windowId).edit()
             .putString(KEY_FILE_PATH, state.filePath)
             .putLong(KEY_RESOURCE_ID, state.resourceId)
             .putString(KEY_CURRENT_FOLDER_PATH, state.currentFolderPath)
@@ -55,38 +52,35 @@ class ResumeStateRepositoryImpl @Inject constructor(
             .apply()
     }
 
-    override suspend fun getState(): ResumeState? = withContext(Dispatchers.IO) {
-        val filePath = prefs.getString(KEY_FILE_PATH, null) ?: return@withContext null
-        val resourceId = prefs.getLong(KEY_RESOURCE_ID, -1L)
+    override suspend fun getState(windowId: String): ResumeState? = withContext(Dispatchers.IO) {
+        val p = prefs(windowId)
+        val filePath = p.getString(KEY_FILE_PATH, null) ?: return@withContext null
+        val resourceId = p.getLong(KEY_RESOURCE_ID, -1L)
         if (resourceId == -1L) return@withContext null
 
         try {
             ResumeState(
                 filePath = filePath,
                 resourceId = resourceId,
-                currentFolderPath = prefs.getString(KEY_CURRENT_FOLDER_PATH, null),
-                screenType = ScreenType.valueOf(prefs.getString(KEY_SCREEN_TYPE, null) ?: return@withContext null),
-                sortMode = SortMode.valueOf(prefs.getString(KEY_SORT_MODE, null) ?: return@withContext null),
-                isPlaying = prefs.getBoolean(KEY_IS_PLAYING, false),
-                isSlideshowEnabled = prefs.getBoolean(KEY_IS_SLIDESHOW_ENABLED, false),
-                mediaType = MediaType.valueOf(prefs.getString(KEY_MEDIA_TYPE, null) ?: return@withContext null),
-                savedAt = prefs.getLong(KEY_SAVED_AT, 0L)
+                currentFolderPath = p.getString(KEY_CURRENT_FOLDER_PATH, null),
+                screenType = ScreenType.valueOf(p.getString(KEY_SCREEN_TYPE, null) ?: return@withContext null),
+                sortMode = SortMode.valueOf(p.getString(KEY_SORT_MODE, null) ?: return@withContext null),
+                isPlaying = p.getBoolean(KEY_IS_PLAYING, false),
+                isSlideshowEnabled = p.getBoolean(KEY_IS_SLIDESHOW_ENABLED, false),
+                mediaType = MediaType.valueOf(p.getString(KEY_MEDIA_TYPE, null) ?: return@withContext null),
+                savedAt = p.getLong(KEY_SAVED_AT, 0L)
             ).also {
-                Timber.d("ResumeStateRepository: getState — loaded state for file=${it.filePath}, savedAt=${it.savedAt}")
+                Timber.d("ResumeStateRepository[$windowId]: getState — loaded state for file=${it.filePath}, savedAt=${it.savedAt}")
             }
         } catch (e: IllegalArgumentException) {
-            Timber.w(e, "ResumeStateRepository: getState — invalid enum value in prefs, clearing")
-            clearStateInternal()
+            Timber.w(e, "ResumeStateRepository[$windowId]: getState — invalid enum value in prefs, clearing")
+            prefs(windowId).edit().clear().apply()
             null
         }
     }
 
-    override suspend fun clearState() = withContext(Dispatchers.IO) {
-        Timber.d("ResumeStateRepository: clearState")
-        clearStateInternal()
-    }
-
-    private fun clearStateInternal() {
-        prefs.edit().clear().apply()
+    override suspend fun clearState(windowId: String) = withContext(Dispatchers.IO) {
+        Timber.d("ResumeStateRepository[$windowId]: clearState")
+        prefs(windowId).edit().clear().apply()
     }
 }

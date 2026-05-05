@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
@@ -114,6 +115,8 @@ internal class AddResourceScanManager(
             R.id.btnInstagram to "/storage/emulated/0/Android/media/com.instagram.android/Instagram"
         )
 
+        val useSafOnly = ChromeOsCompat.needsSafFolderPicker(activity)
+
         quickFolders.forEach { (buttonId, path) ->
             dialogView.findViewById<com.google.android.material.button.MaterialButton>(buttonId)?.setOnClickListener {
                 Timber.i("Quick select: $path")
@@ -121,7 +124,8 @@ internal class AddResourceScanManager(
                     dialog.dismiss()
                     showFolderBrowserDialog(path)
                 } else {
-                    selectFolderByPath(path, dialog)
+                    if (useSafOnly) folderPickerLauncher.launch(null)
+                    else selectFolderByPath(path, dialog)
                 }
             }
         }
@@ -140,6 +144,11 @@ internal class AddResourceScanManager(
     }
 
     fun selectFolderByPath(path: String, dialog: Dialog) {
+        if (ChromeOsCompat.needsSafFolderPicker(activity)) {
+            Timber.d("AddResourceScanManager: redirecting to SAF picker on Chrome OS")
+            folderPickerLauncher.launch(null)
+            return
+        }
         Timber.w("FOLDER_PICKER: Attempting to select path: $path")
         if (path.isBlank()) {
             Toast.makeText(activity, R.string.folder_path_hint, Toast.LENGTH_SHORT).show()

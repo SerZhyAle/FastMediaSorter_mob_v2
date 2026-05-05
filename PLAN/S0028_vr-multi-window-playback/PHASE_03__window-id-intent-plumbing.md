@@ -1,3 +1,5 @@
+> **SUPERSEDED** — replaced by [PHASE_04__window-id-plumbing.md](PHASE_04__window-id-plumbing.md) (2026-05-04 redesign). Do not use.
+
 # Phase 03 — Window-ID Intent Plumbing
 
 **Strategic spec:** [`../S0028_vr-multi-window-playback.md`](../S0028_vr-multi-window-playback.md)

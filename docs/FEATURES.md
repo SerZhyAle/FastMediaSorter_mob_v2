@@ -4,7 +4,7 @@
 
 This document is the canonical, up-to-date inventory of all user-facing features implemented in the application. It serves as a comprehensive guide to what the application can do, how each feature works, and why it is useful for the user.
 
-**Platform requirements:** Android 8.0+ (API 26) for Standard, Lite, and Photos flavors. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same feature set but without cloud integrations.
+**Platform requirements:** Android 8.0+ (API 26) for Standard, Lite, and Photos flavors. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same feature set but without cloud integrations. Runs on phones, tablets, Android TV boxes / set-top boxes (touchscreen not required), and Android head units. Runs on Chrome OS via Google Play (ARC++): folder access uses the system document picker, Cast may be limited by container networking.
 
 ## Table of Contents
 
@@ -40,6 +40,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Add multiple resource types**: Connect and manage various storage types including Local folders, SMB (Windows share/NAS), FTP, SFTP, Google Drive, Dropbox, and OneDrive. This unifies all your local, network, and cloud files into a single accessible interface.
 - **Resource profiles (quick-setup presets)**: Effortlessly set up new folders using tailored presets like Audio Library, Video Library, Photo Storage, Documents, or All Files. These presets automatically apply optimal sorting, filtering, and display settings for the chosen media type.
 - **Camera Photos Virtual Folder**: Instantly access and browse all photos and videos taken by your device's camera through a dedicated, automatically configured virtual folder.
+- **Recent and Downloads show all file types by default**: The predefined "Recent" virtual folder and the "Downloads" quick-add shortcut are configured with "Show all files" enabled out of the box, so documents, archives, and other non-media files appear immediately without requiring manual settings changes.
 - **Virtual resource language sync**: Virtual resources (All Images, All Videos, All Music, etc.) are automatically renamed when the app language changes, provided their name has not been manually edited.
 - **Per-resource settings**: Customize how each individual folder behaves with options like supported media types, default sort mode, display mode, thumbnail loading, PIN access, and whether subdirectories are scanned. This allows fine-grained control over how different types of content are presented.
 - **Resource ordering**: Rearrange your connected resources on the main screen using a simple drag-and-drop gesture. This lets you position your most frequently accessed folders at the top for quicker access.
@@ -48,7 +49,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Read-only mode**: Protect critical folders from accidental modifications by enabling read-only mode for specific resources. When active, all file editing, deleting, and moving operations are completely disabled.
 - **PIN protection**: Add an extra layer of privacy by requiring a PIN code whenever a specific resource is opened. This keeps sensitive photos or confidential documents safe from prying eyes.
 - **Network credential management**: Securely store passwords and keys for your network shares in an encrypted vault. The built-in credential audit tracks when a login was last used, helping you eventually clean up obsolete credentials.
-- **Last browse position save & restore**: Never lose your place when switching between folders or closing the app. The system automatically saves and restores your exact scroll position and the last viewed file for every resource.
+- **Last browse position save & restore**: Never lose your place when switching between folders or closing the app. The system automatically saves and restores your exact scroll position and the last viewed file for every resource. When the last-played file was inside a subfolder, the app opens directly in that subfolder on resume, without reloading the parent directory first.
 - **File list caching**: Experience near-instant load times when reopening large network folders. The app persists the file index in a local database to bypass slow network fetching on subsequent visits.
 
 ## 2. Media Browsing
@@ -66,14 +67,18 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Recursive directory scan**: Automatically delve into all underlying subfolders and compile their contents into a single unified list. This allows you to view all files within a complex directory tree simultaneously.
 - **Intelligent thumbnail loading**: Enjoy rich visual previews for photos and videos. To maintain performance, thumbnail generation can be manually disabled per resource, which is recommended for extremely large directories.
 - **Video thumbnails**: Identify video files quickly by previewing a generated thumbnail of their first frame. This feature can be disabled for network folders to heavily conserve bandwidth and improve loading times.
+- **Fast placeholder for unsupported network video formats**: For video containers that cannot be decoded by the system frame extractor over a network stream (e.g. AVI), the app immediately shows a file-type icon instead of waiting 10 seconds for a guaranteed timeout. SMB folders with many AVI files load their list noticeably faster.
+- **Network thumbnail previews recover automatically after playback ends** for SMB, SFTP, and FTP connections — transient extraction failures during active streaming clear themselves once playback stops, so neighbouring previews reappear without a manual refresh.
 - **File metadata overlay**: See crucial file details at a glance without opening the properties dialog. Information like EXIF data, video duration, image resolution, and file size is overlaid directly on the list items.
-- **Cancellable scan with progress**: Large folder scans show a non-intrusive progress indicator after 5 seconds with a STOP button to cancel long-running operations.
+- **Cancellable scan with progress**: Large SMB scans now show a live file counter (`N` or `N / ~M` when a previous estimate exists), and network scans (SMB/SFTP/FTP) expose the STOP button immediately instead of waiting 5 seconds. Other slow scans keep the same lightweight progress indicator.
 - **Inline audio mini-player**: Start playing music tracks seamlessly directly from the file browser. This avoids disrupting your navigation flow and lets you preview audio files instantly.
 - **Full keyboard navigation on all screens**: Every screen — file browser, player, standalone viewer, settings, all dialogs, add-resource form, cloud-picker flows, resource editor, receive-share, and widget configurator — responds to hardware keyboard input. **Enter** activates the focused item, **Escape** exits or dismisses, **Arrow keys** move focus, **Backspace** navigates one folder up in Browse and cloud pickers. Enables a desktop-like workflow on tablets, Android TV, and devices with Bluetooth keyboards.
 - **NC-style file-management shortcuts and TV color keys**: On Browse and cloud-picker surfaces, keyboard shortcuts follow the classic Norton Commander layout: **F5** copies, **F6** moves, **F7** creates a subfolder, **F8** deletes. Android TV remote color keys map the same four operations: Red = Delete, Green = Copy, Yellow = Move, Blue = Rename. **Ctrl+F** opens document-search in text/PDF/EPUB viewers; **Ctrl+S** saves edits in the resource editor.
 - **F1 help dialog and visible keyboard focus**: Press **F1** on any hardware keyboard to open a surface-specific shortcut reference with a link to the online docs — every screen has its own tailored hint list. The active item also receives a visible focus ring during keyboard navigation.
 - **Gamepad support (Xbox / DualSense / 8BitDo)**: A standard Bluetooth or USB gamepad drives the file browser, both standard and VR players. **D-pad / left stick** move focus, **A** opens or confirms, **B** goes back or exits the player, **X** skips to the next file (or toggles multi-select in the browser), **Y** opens the previous file or the context menu, **L1/R1** seek ±10s or switch views, **Start** toggles the HUD / opens search, **Select** toggles on-screen hints. Analog seek on the right stick scales by deflection; dead-zone and rate-limiting keep volume and seek smooth.
 - **Manual drag-to-reorder**: In Manual sort mode, drag files using the handle that appears next to each item to set a custom display order. The order is persisted per directory and automatically restored on the next visit.
+- **TV remote key remapping**: Color buttons (Red/Green/Yellow/Blue) and Channel Up/Down on Android TV remotes can be reassigned to any command in Settings → Key bindings, just like keyboard shortcuts. Default actions (Delete/Copy/Move/Rename and Next/Previous file) apply when no custom binding is set.
+- **DPAD hold-to-scroll acceleration**: Holding the DPAD Up or Down on a remote or gamepad switches from single-step to page-jump after a brief delay, making navigation through long file lists significantly faster.
 - **Extended file-info dialog**: The file-info dialog now shows full audio metadata (artist, album, title, year, sample rate, bit depth, channels, lossless marker, ReplayGain, embedded cover art) for FLAC/MP3/M4A/OGG over local, SFTP, SMB, FTP, and SAF — read by streaming only the first ~64 KB of the file, without downloading it in full. The file-information block lays out network paths into host, share, directory, and filename rows, with extension + MIME, a separate last-modified line, and a Copy-path button.
 
 ## 3. File Operations
@@ -83,6 +88,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Trash recovery**: Instantly restore erroneously deleted files back to their original folder from the in-app Trash bin, providing peace of mind during massive cleanups.
 - **Operation undo**: Revert your last copy, move, or delete action with a single tap. This undo stack acts as an immediate failsafe if you realize you made a mistake managing your files.
 - **Safe Mode**: Prevent disastrous accidents by enabling mandatory confirmation dialogs before moving or deleting files. This global master toggle gives you tight control over sensitive file operations.
+- **Move to trash toggle** — choose between moving deleted local files to `.trash` (recoverable via Undo) or permanently deleting them immediately (frees disk space at once). Network and cloud files are always deleted permanently.
 - **Overwrite policies**: Specify on a per-direction basis how the app should handle copying or moving files that already exist in the destination. This helps automate conflict resolution without stalling your progress.
 - **Cross-protocol transfers**: Seamlessly copy or move files between entirely different connection types. Directly transfer data between Local, SMB, FTP, and SFTP endpoints effortlessly, using the app as a robust intermediary.
 - **Duplicate file detection**: Locate and permanently remove identical files scattered across your massive local, network, or cloud storage. The highly optimized 3-phase scanning engine (Size -> Partial Hash -> Full SHA-256) guarantees perfect byte-for-byte matches while minimizing slow network reads. Two menu modes available: **Find Duplicates** — scan and review results, then manually select files for deletion via the FAB; **Find and Delete Duplicates** — scan and automatically delete all detected duplicates (keeping the oldest copy per group) without additional confirmation. Both modes pre-select the current resource and move it to the top of the resource picker.
@@ -90,13 +96,16 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **ZIP extraction on click**: Tap a ZIP archive in Browse to extract it in one flow: confirmation dialog, real-time percentage progress, and a one-tap action to open the extracted folder. Extraction supports local and SD-card SAF resources, applies secure path validation, and auto-resolves destination folder conflicts via `_1.._99` suffixes.
 - **Select folder for copy/move**: Tap the "Select folder" button in the copy/move dialog to pick any local directory with the system folder picker, bypassing the pre-configured destination list. The last chosen folder is remembered per resource type. Per-item copy/move buttons are always shown regardless of whether destinations are configured.
 - **Camera capture**: Tap the camera icon in the Browse command bar to take a new photo or video with the device's default camera app. The captured file is saved directly to the current resource root (local, SMB, SFTP, FTP, or Cloud) or to the standard DCIM/Camera folder when browsing the "All Videos", "All Photos", or "Camera Photos" virtual collections. After capture a filename dialog lets you rename the file before saving; this dialog can be skipped via Settings → Behaviour → "Don't ask for filename for captured photo and video". The entire command can be hidden globally via Settings → Behaviour → "Disable camera capture button". On devices without a compatible camera app the command is hidden automatically, and launch or save failures surface localized in-app error messages instead of silently failing. After saving the file list refreshes automatically and scrolls to the new entry.
+- **Copy/move progress: percentage and ETA**: The copy/move progress dialog now shows the overall transfer percentage (byte-based, not file-count-based), current transfer speed, and estimated time remaining (ETA) with a moving-average speed for stability. All values refresh every 3 seconds to keep the UI responsive on slow network transfers.
 
 ## 4. Destination Management
 
 - **Color-coded destination buttons**: Configure up to 10 distinct, color-coded shortcut buttons displayed directly inside the player. These buttons represent your favorite folders, drastically speeding up the organization process.
 - **Auto-advance after copy/move**: Enable the option to automatically jump to the next file as soon as a copy or move operation completes. This creates an incredibly fast, uninterrupted workflow when sorting through a queue of media.
 - **Collapsible command panel**: Keep your screen uncluttered by collapsing the copy/move destination panel when it's not needed. This maximizes viewing space while keeping routing tools just a tap away.
+- **«..» folder-picker button in player panels**: Player Copy/Move panels include a «..» button to pick any local folder as the destination without leaving the player.
 - **Quick Favorites toggle**: Immediately mark or unmark the currently viewed file as a Favorite directly from the player screen, allowing you to curate a collection without returning to the file browser.
+- **Downloads destination pre-configured on install**: On a fresh install the Downloads folder is automatically added as the first destination, so the destination panel in the player is never empty out of the box.
 
 ## 5. Image Viewer
 
@@ -135,6 +144,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Diagnostic FPS counter overlay**: A separate setting `Settings → Video → Show FPS over player` enables a small bordered FPS bubble in the top-end corner of the flat 2D player while a video is actually playing. Independent from the existing VR-HUD-FPS setting and available on every flavor with a player; in VR-immersive mode the bubble is suppressed in favour of the existing immersive HUD counter.
 - **Resilient poster-frame extraction**: VR180 / 7K videos and low-native-heap devices fall back to cached thumbnail or a localized "Thumbnail unavailable" placeholder; never an empty preview.
 - **Black Screen mode**: A toolbar button (enabled in Settings › Behaviour) collapses the screen to solid black while playback continues uninterrupted — ideal for hands-free listening while driving. Volume keys and media controls (play/pause, next, previous) remain active; any other tap on the screen instantly restores the player UI. Assignable keyboard shortcut included.
+- **Network DVD VOB routing fix**: Network DVD `.vob` files no longer enter the Blu-ray TS route. On a route error the player shows one clear dialog on the current file instead of cascading silently through all neighbouring DVD segments.
 
 ## 8. VR Edition
 
@@ -150,11 +160,14 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **VR Immersive Controls**: Touch Plus/Pro controllers, Bluetooth keyboard, and Bluetooth mouse are fully operable inside the immersive 3D session. Playback (pause, seek, volume, next/previous file, zoom, re-center), the settings dialog, and the full file operations set (copy, move, delete, rename, info) are accessible without removing the headset. A first-run cheatsheet auto-appears for 4 seconds; long-press Y on the left controller or press F1 on a BT keyboard to bring it back.
 - **VR Immersive HUD**: Inside the immersive session a head-locked HUD pops up on every controller action — progress bar with current position, buffer and duration, plus indicators for pause, seek, volume, zoom, file change, recenter, immersive-mode toggle and repeat mode. The HUD is rendered through a dedicated OpenXR composition layer and auto-dismisses after a few seconds of idle. While the dedicated UI composition slot for full panels is not yet available, full file-operations and playback-control panels stay in panel-layout mode — exit immersive to open them; in immersive a short HUD banner explains where to find them and the player no longer pauses on the Y button when the panel would have been invisible.
 - **VR HUD button affordance**: VR HUD buttons now display a rounded-rect background, making them visually distinct from text labels.
+- **Immersive HUD ray-input**: In the immersive HUD, controller aim-ray and hand-tracking pinch click HUD elements; subtle hover highlight under the ray, audio cue on click. Ray math runs only while the HUD layer is visible, so idle frames stay free.
 - **Cinema mode for 2D content in VR**: When navigating to a plain 2D video while inside an immersive session, the app automatically displays it on a virtual cinema screen (QUAD_CINEMA layer) without destroying the XR session or exiting to the standard player.
 - **Auto-immersive toggle for stereo content**: The VR settings block exposes an `Auto-enter immersive on stereo content` switch (on by default). When off, opening a stereo file keeps the player on the flat screen — switch to VR via the existing 3DVR button on the player command bar.
 - **VR hand tracking**: When controllers are set aside, the VR player automatically switches to OpenXR hand-tracking input (`XR_EXT_hand_tracking` + Meta aim/microgesture extensions). The dominant hand's aiming ray targets UI elements — pinch to click, double pinch to toggle play/pause, thumb swipes to seek or adjust volume. Controllers resume priority instantly when a button is pressed. A cursor dot and audio click feedback replace haptic feedback.
 - **Interactive VR control panel**: In immersive VR mode, a full control panel with seek, volume, brightness, audio track selector and stereo-format indicator is available. Controlled by controller or hand ray — no need to exit VR.
 - **«Apply and 3D» combo button + immersive prev/next + flat-player exit target**: The playback control dialog has an «Apply and 3D» button that closes the dialog and re-launches immersive in one click. The Exit-from-immersive command keeps your file: it opens the same file at the same position in the flat 2D player rather than dropping you into the file browser. Prev/next inside immersive switches files within the resource without leaving the headset.
+- **Visible controller / hand aim-ray**: In immersive VR, the controller and hand aim-ray is now visible as a thin line ending in a small cursor at the hit point — visible feedback for HUD interaction.
+- **Multi-Window Mode (Quest 3+ / Samsung DeX and similar)**: The "Allow opening in a separate window" setting (enabled by default on VR) unlocks three entry points: resource card icon → opens Browse for that resource in a new window while the main window stays on the home screen; "In separate window" in the Browse top menu → tears off the current Browse (resource, file, scroll position) to a new window while the current window returns to the home screen; "In separate window" in the player overflow menu → opens the same file in a new player window from the beginning while the current player closes and returns to Browse. All windows are independent; closing one does not affect others. Playback position is not transferred when tearing off the player.
 
 ## 9. Audio Player
 
@@ -233,16 +246,20 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 ## 15. Network Sources
 
+- **SMB share picker with manual entry**: When connecting to an SMB server, discovered shares are shown in a picker dialog. If a share does not appear in the auto-discovered list (e.g. custom name, hidden NAS share), you can tap "+ Enter share name manually.." to type the name directly. Manually entered names are saved to per-server history and reappear in the picker on future sessions.
 - **SMB (Windows Share / NAS)**: Deeply interface with your local network storage safely utilizing standard SMB protocol, unlocking the ability to browse, manage, stream, and edit massive remote collections effortlessly.
 - **FTP integration**: Access traditional web servers and legacy systems via rigid File Transfer Protocol, empowering complete and compliant browse and file management pipelines.
-- **Secure SFTP**: Connect to highly protected servers leveraging SSH protocols. This guarantees every browse, copy, and streaming operation is cryptographically ciphered.
+- **Secure SFTP**: Connect to highly protected servers leveraging SSH protocols. This guarantees every browse, copy, and streaming operation is cryptographically ciphered. Scanning large SFTP libraries is significantly faster: file attributes (size, date) are read from the directory listing in a single protocol round-trip instead of one request per file. A progress counter is shown during the scan.
 - **Network auto-discovery**: Bypass frustrating IP typing. The app dynamically scans your current Local Subnet specifically checking ports 445, 21, and 22, streaming discovered Network Attached Storage endpoints to your screen natively in real time.
 - **Built-in Speed test**: Eliminate network guesswork definitively. This tool fires synthetic payloads across the connection to accurately measure read/write speeds, ultimately recommending the optimal parallel thread count to maximize data throughput safely.
 - **Configurable parallelism**: Harness the full capabilities of wide bandwidth limits. Specifically override single-thread operations by dividing copy jobs into 1, 2, 4, 8, 12, or 24 simultaneous synchronous connections.
 - **SMB Connection pooling**: Enhance network agility drastically. The app efficiently caches authenticated SMB sessions, completely eliminating the latency incurred during repeated queries or file copies.
+- **SMB auto-recovery after idle**: When a server closes the TCP connection during idle, the app detects the dead socket before the next operation, purges the SMBJ client cache, and transparently reopens the connection. File copy and playback continue without app restart.
 - **Connection throttling**: Protect aging servers from crippling under heavy load. The network layer actively limits requests appropriately to prevent stalling or crashing congested or weak NAS hardware.
 - **Periodic background sync**: Prevent navigating outdated file structures. Utilizing Android's WorkManager framework, the app wakes periodically (from 1 to 24 hours) strictly in the background to update the local database with remote changes.
 - **Blu-ray Transport Stream (.m2ts) playback**: Blu-ray disc files in BDMV/STREAM format can be played directly from network sources (SFTP, SMB, FTP) via a transparent 192-byte BD-TS packet adapter. If the device cannot decode the stream, an informative dialog explains the reason and suggests transcoding with HandBrake or ffmpeg.
+- Blu-ray Transport Stream (.m2ts): BD-TS 192-byte packet format auto-detected for local, SMB, SFTP, FTP, and cloud sources; 188-byte plain MPEG-TS files with .m2ts extension play without unnecessary stripping. Unsupported audio tracks (TrueHD, DTS-HD MA) are reported with a one-time notification listing detected codecs.
+- **Android 17+ local network permission**: On Android 17 and later, the app requests the `ACCESS_LOCAL_NETWORK` runtime permission before opening any SMB, SFTP, or FTP connection or initialising Chromecast discovery. If the permission is denied, a rationale dialog explains the requirement and provides a shortcut to the system settings page.
 
 ## 16. Cloud Integration
 
@@ -292,6 +309,8 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Settings groups reorganized**: General tab now exposes separate **Permissions & Access** and **App Data & Backups** groups (previously bundled under "Files & Data"); Operations tab gains a dedicated **Safety & Confirmation** group (Safe Mode + Confirm Delete + Confirm Move, moved from General); the former "System" group is renamed **Network & Cache**, the Playback group "Sorting & Slideshow" becomes **Sorting, Slideshow & Playback**, and the duplicated "File Operations" headers are eliminated (Operations tab → "Copy & Move", Playback tab → "File Access in Player"). Error messages referencing the old "File Operations" group are updated accordingly.
 - **Landscape-adaptive dialogs**: All dialogs across the app include dedicated landscape layout variants (`layout-land/`). In landscape orientation every dialog is constrained to 320 dp maximum height and made scrollable, with action buttons and close controls pinned at the top of content so they are always immediately reachable regardless of how far the user has scrolled. Applies to all product flavors (Standard, Lite, Photos, Legacy).
 - **Keyboard navigation**: Navigate the settings layout entirely by keyboard — **Arrow keys** and **Tab** move focus between rows, **Enter** activates the focused toggle or row, **Ctrl+F** opens the built-in settings search overlay inline, and **Escape** closes it. The same keyboard delegate keeps navigation live inside search results.
+- **Device storage info**: Quick access to available storage on your device from General Settings, with a manual refresh button — no need to dig into system settings.
+
 
 ## 20. Settings Search
 
@@ -552,6 +571,24 @@ FastMediaSorter consolidates functionality that typically requires 5–10 separa
 
 ---
 
+### Android TV Box / Set-Top Box
+
+**Popular alternatives:** Kodi, Plex, VLC on TV boxes (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes)
+
+| Capability | Typical media player on TV box | FMS |
+|---|---|---|
+| Play video from NAS (SMB) | Kodi: yes | Yes — native SMB, low latency |
+| Play video from cloud | Kodi/Plex: server required | Yes — Google Drive, Dropbox, OneDrive direct |
+| File sorting and organisation | No | Yes — copy, move, rename, create folders |
+| Audio player with background playback | Basic | Yes — full queue, sleep timer, lyrics |
+| Slideshow / photo frame on TV | No | Yes — NAS and cloud sources, background music |
+| Full keyboard and D-pad navigation | Partial | Yes — all screens, color keys, NC shortcuts |
+| Touchscreen required | Depends on app | No — fully operable via remote or keyboard |
+
+**Bottom line:** FMS turns an Android TV box into a complete media station — not just a video player. Browse your NAS, sort downloads, run a slideshow, and manage files, all controlled with a remote or keyboard and no touchscreen needed.
+
+---
+
 ### Summary: What FMS Replaces
 
 | App category | Example apps you can uninstall | FMS equivalent |
@@ -568,5 +605,6 @@ FastMediaSorter consolidates functionality that typically requires 5–10 separa
 | OCR tool | Google Lens, Text Scanner | OCR + AR translation in viewers |
 | Duplicate finder | Files by Google, Duplicate Files Fixer | SHA-256 cross-source finder |
 | Slideshow / frame | Fotoo, Photo Slides | Slideshow + background music from any source |
+| Android TV box / set-top box media | Kodi, Plex, VLC | Video + Audio + Slideshow + File ops, remote/keyboard-first |
 
 **One app instead of twelve.** FMS does not aim to be the absolute best in every single category — a dedicated equalizer app will always have more audio DSP options, and a dedicated photo editor will always have more filters. But for users who manage media across local storage, NAS, and cloud, FMS eliminates the constant app-switching and provides a consistent, unified experience with a depth of integration no single-purpose app can match.

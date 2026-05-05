@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.data.network.datasource
 
+import android.content.Context
 import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
+import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpExoPlayerPool
 import org.apache.commons.net.ftp.FTPClient
@@ -27,7 +30,8 @@ class FtpDataSource(
     private val host: String,
     private val port: Int,
     private val username: String,
-    private val password: String
+    private val password: String,
+    private val context: Context
 ) : BaseDataSource(true) {
 
     companion object {
@@ -50,6 +54,9 @@ class FtpDataSource(
     private var connectionAcquired = false
 
     override fun open(dataSpec: DataSpec): Long {
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            throw LocalNetworkPermissionDeniedException()
+        }
         try {
             uri = dataSpec.uri
             // Use encodedPath to prevent automatic decoding, then manually decode
@@ -252,9 +259,10 @@ class FtpDataSourceFactory(
     private val host: String,
     private val port: Int,
     private val username: String,
-    private val password: String
+    private val password: String,
+    private val context: Context
 ) : DataSource.Factory {
     override fun createDataSource(): DataSource = FtpDataSource(
-        ftpClient, host, port, username, password
+        ftpClient, host, port, username, password, context
     )
 }

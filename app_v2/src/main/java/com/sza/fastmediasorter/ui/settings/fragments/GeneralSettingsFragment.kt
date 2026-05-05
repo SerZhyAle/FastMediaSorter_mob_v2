@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.sza.fastmediasorter.R
@@ -167,6 +168,16 @@ class GeneralSettingsFragment : Fragment() {
         backupHelper.setupBackupButtons()
         backupHelper.observeBackupState()
         backupHelper.updateBackupAccountInfo()
+        collectOnLifecycle(viewModel.deviceStorage) { state ->
+            val text = when (state) {
+                is DeviceStorageState.Success -> String.format("%.1f GB", state.availableGb)
+                is DeviceStorageState.Error -> state.message
+            }
+            binding.textDeviceStorageValue?.text = text
+        }
+        binding.btnDeviceStorageRefresh?.setOnClickListener {
+            viewModel.refreshDeviceStorage()
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

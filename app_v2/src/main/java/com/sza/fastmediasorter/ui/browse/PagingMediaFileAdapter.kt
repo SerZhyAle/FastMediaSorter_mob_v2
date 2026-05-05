@@ -335,6 +335,17 @@ class PagingMediaFileAdapter(
                             showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
+                        // S0063: skip formats known to fail on network streams before issuing Glide request.
+                        // Avoids wasting a 10-second MediaMetadataRetriever timeout slot per file.
+                        val extCheck = file.name.substringAfterLast('.', "").lowercase()
+                        if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
+                                .shouldSkipNetworkExtraction(extCheck)) {
+                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' — showing placeholder: ${file.name}")
+                            showGeneratedPlaceholder(imageView, file)
+                            imageView.contentDescription = context.getString(
+                                R.string.thumbnail_unavailable_network_format, extCheck.uppercase())
+                            return
+                        }
                         Glide.with(context)
                             .load(NetworkFileData(path = file.path, credentialsId = credentialsId, size = file.size, createdDate = file.createdDate, highPriority = false))
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
@@ -687,6 +698,17 @@ class PagingMediaFileAdapter(
                             showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
+                        // S0063: skip formats known to fail on network streams before issuing Glide request.
+                        // Avoids wasting a 10-second MediaMetadataRetriever timeout slot per file.
+                        val extCheck = file.name.substringAfterLast('.', "").lowercase()
+                        if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
+                                .shouldSkipNetworkExtraction(extCheck)) {
+                            Timber.d("[scope=thumbnail S0063] Blocked network format '$extCheck' — showing placeholder: ${file.name}")
+                            showGeneratedPlaceholder(imageView, file)
+                            imageView.contentDescription = context.getString(
+                                R.string.thumbnail_unavailable_network_format, extCheck.uppercase())
+                            return
+                        }
                         Glide.with(context)
                             .load(NetworkFileData(path = file.path, credentialsId = credentialsId, size = file.size, createdDate = file.createdDate, highPriority = false))
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence

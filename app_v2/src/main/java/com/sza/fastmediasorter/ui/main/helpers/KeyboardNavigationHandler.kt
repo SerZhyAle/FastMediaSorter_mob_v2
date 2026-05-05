@@ -125,6 +125,15 @@ class KeyboardNavigationHandler(
         }
     }
 
+    internal fun dispatchCommandId(commandId: String): Boolean = when (commandId) {
+        "sorting.delete"            -> dispatchSharedAction(InputAction.DeleteSelection)
+        "sorting.copy"              -> dispatchSharedAction(InputAction.CopySelection)
+        "sorting.rename"            -> dispatchSharedAction(InputAction.RenameSelection)
+        "navigation.next_file"      -> dispatchSharedAction(InputAction.MoveFocus(FocusDirection.DOWN))
+        "navigation.previous_file"  -> dispatchSharedAction(InputAction.MoveFocus(FocusDirection.UP))
+        else                        -> false
+    }
+
     fun ensureFocus() {
         focusManager.ensureFocus()
     }

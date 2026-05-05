@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -17,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -34,6 +36,7 @@ import timber.log.Timber
  */
 class BrowseDeleteManager(
     private val context: Context,
+    private val settingsRepository: SettingsRepository,
     private val fileOperationUseCase: FileOperationUseCase,
     private val deleteDirectoriesUseCase: DeleteDirectoriesUseCase,
     private val deleteByFileSizeUseCase: DeleteByFileSizeUseCase,
@@ -90,6 +93,8 @@ class BrowseDeleteManager(
             }
 
             val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(selectedPaths)
+            val useTrash = settingsRepository.getSettings().first().useTrash
+            val effectiveSoftDelete = useTrash && canUseSoftDelete
 
             if (selectedPaths.size > 10) {
                 sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, selectedPaths.size)))
@@ -104,14 +109,14 @@ class BrowseDeleteManager(
             if (filesToDelete.isNotEmpty()) {
                 val deleteOperation = FileOperation.Delete(
                     files = filesToDelete,
-                    softDelete = canUseSoftDelete
+                    softDelete = effectiveSoftDelete
                 )
                 Timber.d("BrowseDeleteManager: deleting ${filesToDelete.size} files")
                 when (val result = fileOperationUseCase.execute(deleteOperation)) {
                     is FileOperationResult.Success -> {
                         totalFileCount += result.processedCount
                         Timber.i("BrowseDeleteManager: deleted ${result.processedCount} files")
-                        if (canUseSoftDelete) {
+                        if (effectiveSoftDelete) {
                             val undoOp = UndoOperation(
                                 type = FileOperationType.DELETE,
                                 sourceFiles = fileItems.map { it.path } + unresolvedFilePaths,

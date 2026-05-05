@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
+import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
@@ -40,6 +41,7 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
+import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
@@ -70,6 +72,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var passwordManager: ResourcePasswordManager
     private lateinit var resumeHelper: MainResumePlaybackHelper
     private lateinit var permissionsHelper: MainStoragePermissionsHelper
+    private lateinit var bannerManager: MainChromeOsBannerManager
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
 
@@ -101,6 +104,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var gamepadInputManager: GamepadInputManager
+
+    @Inject
+    lateinit var keyBindingManager: KeyBindingManager
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -181,6 +187,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             activity = this,
             storagePermissionLauncher = storagePermissionLauncher
         )
+        bannerManager = MainChromeOsBannerManager(this)
         layoutChrome = MainLayoutChromeManager(
             activity = this,
             binding = binding,
@@ -310,6 +317,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         permissionsHelper.checkLocalPermissionsOnStartup()
+        bannerManager.showIfNeeded()
     }
 
     override fun onPause() {
@@ -876,7 +884,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // default focus search (super), which already works with focusable="true" items.
         val action = gamepadInputManager.handleKeyEvent(event, GamepadInputManager.Surface.BROWSER)
         if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            val commandId = keyBindingManager.resolveKeyAction(event.keyCode, event.metaState, com.sza.fastmediasorter.domain.input.InputSurface.BROWSER)
+            if (commandId != null && routeMainCommandId(commandId)) return true
+        }
         return super.dispatchKeyEvent(event)
+    }
+
+    private fun routeMainCommandId(commandId: String): Boolean {
+        return if (::keyboardNavigationHandler.isInitialized) {
+            keyboardNavigationHandler.dispatchCommandId(commandId)
+        } else false
     }
 
     private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {

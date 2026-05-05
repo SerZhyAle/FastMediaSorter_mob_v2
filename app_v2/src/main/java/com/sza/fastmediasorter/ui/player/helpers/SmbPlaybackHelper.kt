@@ -3,11 +3,11 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.net.Uri
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.SmbDataSourceFactory
+import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.utils.SmbPathUtils
@@ -70,7 +70,7 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
     activeResourceKey = resourceKey
     ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
 
-    val dataSourceFactory = SmbDataSourceFactory(smbClient, connectionInfo)
+    val dataSourceFactory = SmbDataSourceFactory(smbClient, connectionInfo, context)
 
     val loadControl = PrefetchLoadControlFactory.build(
         plan = activePrefetchPlan,
@@ -82,18 +82,6 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
-
-    exoPlayer = ExoPlayer.Builder(context)
-        .setMediaSourceFactory(
-            DefaultMediaSourceFactory((dataSourceFactory as DataSource.Factory).wrapForBdTs(path))
-        )
-        .setLoadControl(loadControl)
-        .setAudioAttributes(audioAttributes, true)
-        .build()
-
-    exoPlayer?.addListener(loadControl)
-    exoPlayer?.addListener(playerListener)
-    currentPlayerView?.player = exoPlayer
 
     // Encode path segments (preserve @ and other special chars that are valid in share paths)
     val encodedPath = targetRemotePath.split("/")
@@ -109,6 +97,27 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
         .build()
 
     Timber.d("VideoPlayerManager: Created SMB URI=$smbUri")
+
+    val routeHint = NetworkPlaybackContainerHint.fromPath(path)
+    Timber.d("VideoPlayerManager: SMB routeHint=$routeHint path=$path")
+    val format = when (routeHint) {
+        NetworkPlaybackContainerHint.M2TS_TS_CANDIDATE ->
+            (dataSourceFactory as DataSource.Factory).detectTsFormatSuspend(smbUri)
+        NetworkPlaybackContainerHint.DVD_PS_VOB -> TsPacketFormat.UNKNOWN
+        else -> TsPacketFormat.UNKNOWN
+    }
+
+    exoPlayer = ExoPlayer.Builder(context)
+        .setMediaSourceFactory(
+            (dataSourceFactory as DataSource.Factory).buildBdTsMediaSourceFactory(format)
+        )
+        .setLoadControl(loadControl)
+        .setAudioAttributes(audioAttributes, true)
+        .build()
+
+    exoPlayer?.addListener(loadControl)
+    exoPlayer?.addListener(playerListener)
+    currentPlayerView?.player = exoPlayer
 
     val mediaItem = createMediaItem(smbUri.toString(), path)
     exoPlayer?.setMediaItem(mediaItem)

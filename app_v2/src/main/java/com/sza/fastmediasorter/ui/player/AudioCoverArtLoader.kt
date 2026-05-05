@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.HttpException
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
@@ -251,7 +252,11 @@ class AudioCoverArtLoader(
                             if (memoryTier == MemoryTier.LOW) request.format(DecodeFormat.PREFER_RGB_565).dontAnimate().override(512, 512)
                             request.listener(object : RequestListener<Drawable> {
                                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
-                                    Timber.w(e, "Cover art load failed")
+                                    if (is404NotFound(e)) {
+                                        Timber.d("loadAudioCoverArt[$callId]: cover art not found (404) — ${urlHost(model)}")
+                                    } else {
+                                        Timber.w("loadAudioCoverArt[$callId]: cover art load failed: ${e?.message}")
+                                    }
                                     audioEmptyStateController?.show(capturedMode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                                     return true
                                 }
@@ -337,7 +342,11 @@ class AudioCoverArtLoader(
                         if (memoryTier == MemoryTier.LOW) request.format(DecodeFormat.PREFER_RGB_565).dontAnimate().override(512, 512)
                         request.listener(object : RequestListener<Drawable> {
                             override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
-                                Timber.w(e, "searchOnlineAndDisplayCover[$callId]: Glide load FAILED")
+                                if (is404NotFound(e)) {
+                                    Timber.d("searchOnlineAndDisplayCover[$callId]: cover art not found (404) — ${urlHost(model)}")
+                                } else {
+                                    Timber.w("searchOnlineAndDisplayCover[$callId]: cover art load failed: ${e?.message}")
+                                }
                                 audioEmptyStateController?.show(mode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                                 return true
                             }
@@ -394,6 +403,17 @@ class AudioCoverArtLoader(
             } catch (e: Exception) { Timber.w(e, "pushArtworkToNotification: failed") }
         }
     }
+
+    /**
+     * Returns true if the GlideException root cause is HTTP 404 — expected "not found",
+     * not a real network failure. Suppressed to DEBUG to avoid log noise.
+     */
+    private fun is404NotFound(e: GlideException?): Boolean =
+        e?.rootCauses?.filterIsInstance<HttpException>()?.any { it.statusCode == 404 } == true
+
+    /** Extracts host from a URL model for log context; avoids logging full URLs (may contain tokens). */
+    private fun urlHost(model: Any?): String =
+        try { java.net.URI(model.toString()).host ?: "unknown" } catch (_: Exception) { "unknown" }
 
     private suspend fun downloadImageBytes(url: String): ByteArray? = withContext(Dispatchers.IO) {
         try {

@@ -7,6 +7,9 @@ import android.os.Build
 import android.os.Environment
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import com.sza.fastmediasorter.data.input.DefaultsMapLoader
+import com.sza.fastmediasorter.data.input.InputBindingRepository
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -31,7 +34,9 @@ class AppStartupInitializer(
     private val playbackPositionRepository: PlaybackPositionRepository,
     private val thumbnailCacheRepository: ThumbnailCacheRepository,
     private val applicationScope: CoroutineScope,
-    private val renameVirtualResourcesUseCase: RenameVirtualResourcesUseCase
+    private val renameVirtualResourcesUseCase: RenameVirtualResourcesUseCase,
+    private val inputBindingRepository: InputBindingRepository,
+    private val defaultsMapLoader: DefaultsMapLoader,
 ) {
     
     /**
@@ -48,6 +53,24 @@ class AppStartupInitializer(
         migrateThumbnailCache()
         cleanupOldThumbnails()
         initializeConnectionThrottleManager()
+        if (ChromeOsCompat.isChromeOs(context)) applyDefaultsChromeOsOnStart()
+    }
+
+    private fun applyDefaultsChromeOsOnStart() {
+        applicationScope.launch {
+            applyDefaultsChromeOsIfEmpty()
+        }
+    }
+
+    private suspend fun applyDefaultsChromeOsIfEmpty() {
+        try {
+            if (!inputBindingRepository.hasOverrides()) {
+                inputBindingRepository.insertAllAsOverrides(defaultsMapLoader.loadChromeOsDefaults())
+                Timber.i("AppStartupInitializer: Chrome OS keybinding defaults applied")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to apply Chrome OS keybinding defaults")
+        }
     }
     
     /**

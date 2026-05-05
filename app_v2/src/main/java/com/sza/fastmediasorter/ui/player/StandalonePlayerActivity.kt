@@ -644,11 +644,14 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         // Mirror PlayerActivity: opt out of auto-fit, handle insets manually
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // topCommandPanel: pad for status bar (top) + nav bar (left/right in landscape)
+        // topCommandPanel: pad for status bar (top) + caption bar (Chrome OS window title) + nav bar (left/right in landscape).
+        // statusBars() returns 0 in Chrome OS windowed mode; captionBar() carries the actual title-bar height.
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val statusBar = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            val navBar   = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(navBar.left, statusBar.top, navBar.right, view.paddingBottom)
+            val topInsets = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
+            )
+            val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(navBar.left, topInsets.top, navBar.right, view.paddingBottom)
             insets
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
@@ -933,7 +936,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     private fun observePipSettings() {
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
-            pipManager?.setupPipButton(settings.enablePictureInPicture)
+            val isAudio = viewModel.state.value.mediaType == MediaType.AUDIO
+            pipManager?.setupPipButton(settings.enablePictureInPicture, isAudio)
         }
     }
 

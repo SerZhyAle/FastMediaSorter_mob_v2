@@ -1,3 +1,5 @@
+> **SUPERSEDED** — replaced by [PHASE_02__manifest-multi-instance.md](PHASE_02__manifest-multi-instance.md) (2026-05-04 redesign). Do not use.
+
 # Phase 01 — Manifest: PlayerActivity Multi-Instance
 
 **Strategic spec:** [`../S0028_vr-multi-window-playback.md`](../S0028_vr-multi-window-playback.md)

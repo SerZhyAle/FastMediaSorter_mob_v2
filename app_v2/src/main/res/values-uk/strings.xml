@@ -621,6 +621,9 @@
     <!-- S0021: panel-fps-overlay -->
     <string name="settings_player_show_fps">Показувати FPS над плеєром</string>
     <string name="settings_player_show_fps_desc">Відображати діагностичний лічильник FPS над плоским 2D-плеєром</string>
+    <!-- S0028: multi-window -->
+    <string name="action_open_in_separate_window">В окремому вікні</string>
+    <string name="setting_allow_separate_window">Дозволити запуск в окремому вікні</string>
     <string name="resource_type_local">Локальні</string>
     <string name="resource_type_smb">Мережева папка SMB</string>
     <string name="resource_type_sftp">SFTP</string>
@@ -818,6 +821,12 @@
     <string name="permission_storage_rationale_r">FastMediaSorter потребує дозволу на управління всіма файлами для доступу до локальних папок та медіафайлів.</string>
     <string name="permission_internet_title">Мережевий доступ</string>
     <string name="permission_internet_rationale">FastMediaSorter потребує доступу до мережі для підключення до SMB/SFTP та хмарних сховищ.</string>
+    <string name="local_network_permission_rationale_title">Доступ до локальної мережі</string>
+    <string name="local_network_permission_rationale_message">FastMediaSorter потребує доступу до локальної мережі для підключення до серверів SMB, SFTP, FTP та виявлення пристроїв Chromecast.</string>
+    <string name="local_network_permission_grant">Надати доступ до локальної мережі</string>
+    <string name="local_network_permission_granted">Доступ до локальної мережі надано</string>
+    <string name="local_network_permission_denied">Доступ до локальної мережі недоступний</string>
+    <string name="local_network_permission_open_settings">Відкрити налаштування</string>
     <string name="grant_permission">Надати</string>
     <string name="grant_local_files_permission">Доступ до файлів</string>
     <string name="grant_network_permission">Мережеві дозволи</string>
@@ -2973,4 +2982,10 @@
 
     <!-- S0077: optical-disc network thumbnail placeholder -->
     <string name="thumbnail_unavailable_network_format">%1$s — відеофайл, прев\'ю по мережі недоступне</string>
+
+    <!-- S0082: банер першого запуску на Chrome OS -->
+    <string name="chromeos_banner_title">Запуск на Chrome OS</string>
+    <string name="chromeos_banner_body">Доступ до тек — через системний діалог. Cast і вібрація можуть бути недоступні.</string>
+    <string name="chromeos_banner_action">Зрозуміло</string>
+    <string name="chromeos_banner_shown_pref_key">chromeos_banner_shown</string>
 </resources>

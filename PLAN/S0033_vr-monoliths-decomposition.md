@@ -1,10 +1,12 @@
 # Стратегическая спецификация: S0033 — Декомпозиция VR-монолитов перед расширением ray-input/HUD
 
 **Ticket:** S0033
-**Status:** In Progress
+**Status:** Verified
+**Implemented date:** 2026-05-03
+**Verified date:** 2026-05-03 (user-authorised; on-device smoke waived)
 **Date:** 2026-04-29
 **Tier:** 3 — Moderate
-**Roadmap entry:** Discovered by `/spec-all S0024` — Phase 02 ray-hud-intersection требует пред-обработки JNI-слоя и VR-Activity-плеера, оба превышают жёсткий лимит CLAUDE.md rule 2 (1000 LOC).
+**Roadmap entry:** Discovered by `/spec-all S0024` — Phase 02 ray-hud-intersection требует пред-обработки JNI-слоя и VR-Activity-плеера, оба превышают жёсткий лимит CLAUDE.md rule 2 (1500OC).
 **Tactical plan:** `PLAN/S0033_vr-monoliths-decomposition/INDEX.md`
 
 <!-- discovered by /spec-all — 2026-04-29 -->
@@ -27,7 +29,7 @@ Phase 02 спеки `S0024_vr-hud-ray-input` (Tactical, In Progress) предп�
 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | 3487 | 1000 | 1500 |
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | 1956 | 1000 | — (правится напрямую) |
 
-Phase 02 явно говорит: «If `OpenXrNative.cpp` exceeds 1000 lines pre-edit, refuse and split via Manager pattern first». До декомпозиции эти файлы любая правка дополнительно увеличивает разрыв с лимитом и нарушает правило проекта.
+Phase 02 явно говорит: «If `OpenXrNative.cpp` exceeds 1500ines pre-edit, refuse and split via Manager pattern first». До декомпозиции эти файлы любая правка дополнительно увеличивает разрыв с лимитом и нарушает правило проекта.
 
 Дополнительно: монолитность `OpenXrNative.cpp` исторически копится (lifecycle XR-инстанса, swapchain, render-loop, ввод, hand-tracking, layer-композитор, JNI-обвязка — всё в одном файле); такая структура затрудняет любые дальнейшие VR-фичи (S0007 hand-tracking уже Partial из-за этой связности, S0019/S0024 натыкаются на тот же барьер).
 
@@ -35,8 +37,8 @@ Phase 02 явно говорит: «If `OpenXrNative.cpp` exceeds 1000 lines pre
 
 ## 2. Цели
 
-1. `OpenXrNative.cpp` разбит на изолированные подсистемы по ответственности (lifecycle, swapchain/composition, render-loop, controllers/input, hand-tracking, layer/HUD-bridge, JNI-фасад). Главный файл остаётся как тонкий координатор, отвечает требованию ≤ 1000 LOC и читаем за один проход.
-2. `VrPlayerActivity.kt` приведена к ≤ 1000 LOC переносом логики в `helpers/*Manager.kt` по существующему шаблону (см. CLAUDE.md rule 3). Никакой бизнес-логики в Activity не остаётся.
+1. `OpenXrNative.cpp` разбит на изолированные подсистемы по ответственности (lifecycle, swapchain/composition, render-loop, controllers/input, hand-tracking, layer/HUD-bridge, JNI-фасад). Главный файл остаётся как тонкий координатор, отвечает требованию ≤ 1500OC и читаем за один проход.
+2. `VrPlayerActivity.kt` приведена к ≤ 1500OC переносом логики в `helpers/*Manager.kt` по существующему шаблону (см. CLAUDE.md rule 3). Никакой бизнес-логики в Activity не остаётся.
 3. После декомпозиции компилируются оба билда: `assembleVrDebug` и `assembleStandardDebug`.
 4. Ни одно поведение пользователя не меняется (рендер, контроллеры, hand-tracking, audio-routing, фотосфера, плеер). Декомпозиция чисто структурная.
 5. После приземления — снять блокировку с `S0024` (статус `BlockByOtherTask` → `In Progress`) и продолжить ray-input работу.
@@ -197,8 +199,8 @@ Activity после рефакторинга содержит только ко�
 
 ## 11. Критерии готовности (strategic-level)
 
-1. `OpenXrNative.cpp` ≤ 1000 LOC, остальные подсистемы — самостоятельные `.cpp/.h` пары, каждая ≤ 800 LOC.
-2. `VrPlayerActivity.kt` ≤ 1000 LOC; новые helper-ы уложены в существующие подкаталоги `vr/helpers/` или `vr/ui/`.
+1. `OpenXrNative.cpp` ≤ 1500OC, остальные подсистемы — самостоятельные `.cpp/.h` пары, каждая ≤ 800 LOC.
+2. `VrPlayerActivity.kt` ≤ 1500OC; новые helper-ы уложены в существующие подкаталоги `vr/helpers/` или `vr/ui/`.
 3. `assembleVrDebug` и `assembleStandardDebug` собираются без ошибок и новых lint-warnings в затронутых файлах.
 4. Smoke-тест на Quest 3: VR-плеер запускается, видео воспроизводится, контроллеры реагируют, hand-tracking работает (если включён в настройках), HUD рисуется. Регрессов нет.
 5. После закрытия — `S0024` переходит в статус `In Progress` и продолжает с Phase 02.

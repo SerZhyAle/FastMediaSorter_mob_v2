@@ -57,9 +57,10 @@ class PictureInPictureManager(
     /**
      * Setup PiP button visibility and click handler.
      * Safe to call repeatedly when settings change.
+     * @param isAudio Hide the button for audio-only files (PiP has no visual content for audio).
      */
-    fun setupPipButton(enablePip: Boolean) {
-        isEnabled = enablePip && isSupported
+    fun setupPipButton(enablePip: Boolean, isAudio: Boolean = false) {
+        isEnabled = enablePip && isSupported && !isAudio
         val pipButton = binding.playerView.findViewById<ImageButton>(R.id.btnPictureInPicture)
         if (!isEnabled) {
             pipButton?.isVisible = false

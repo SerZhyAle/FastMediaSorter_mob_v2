@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.data.remote.ftp
 
+import android.content.Context
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -24,7 +28,8 @@ import javax.inject.Singleton
 @Singleton
 class FtpMediaScanner @Inject constructor(
     private val ftpClient: FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    @ApplicationContext private val context: Context
 ) : MediaScanner {
 
     override suspend fun scanFolder(
@@ -36,6 +41,9 @@ class FtpMediaScanner @Inject constructor(
         showHiddenFiles: Boolean,
         onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            throw LocalNetworkPermissionDeniedException()
+        }
         try {
             Timber.d("FTP scanFolder start: hasCredentials=${!credentialsId.isNullOrBlank()}")
             
@@ -143,6 +151,9 @@ class FtpMediaScanner @Inject constructor(
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            throw LocalNetworkPermissionDeniedException()
+        }
         try {
             val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
                 Timber.w("Invalid FTP path format: $path")

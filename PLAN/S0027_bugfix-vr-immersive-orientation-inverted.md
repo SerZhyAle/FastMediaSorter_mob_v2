@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0027 — Иммерсивный 180/360 контент перевёрнут и за затылком
 
 **Ticket:** S0027
-**Status:** Partial
+**Status:** Verified
 **Priority:** 80
 **Date:** 2026-04-29
 **Tier:** 3 — Moderate
@@ -237,6 +237,8 @@ Recenter: применяется ТОЛЬКО к видеослою; HUD не с
   - Applied: 2 (добавлен `**Priority:** 80` во frontmatter; code fence §5.2 — добавлен language tag `text`). Proposed (DISCUSS): 1.
 - **2026-04-29** — by `/spec-update` (`claude-opus-4-7`, focus: structure — P-1 accepted)
   - P-1 принят: таблица рисков перенесена в §7; нарратив Field evidence перенесён в §6.4 (Resolved); дублирующий заголовок `## 8. Field evidence` удалён; MD060 lint на разделителе таблицы исправлен. Applied: 4.
+- **2026-05-05** — by researcher (claude-sonnet-4-6)
+  - Код проверен: фикс V-axis (`vLens = 0.5 - 0.5 * r * sin(az)`) присутствует в `VrStereoRenderer.kt` с WHY-комментарием; ADR-1/2/3 реализованы в `OpenXrSessionManager.kt`. Изображение не инвертировано подтверждено пользователем. Статус → **Verified**. Регрессионный тест (§11.5) вынесен в S0088 (priority 15).
 
 ---
 
@@ -262,3 +264,8 @@ Recenter: применяется ТОЛЬКО к видеослою; HUD не с
 - [ ] §11.2 Верх кадра = верх для пользователя; левый глаз видит левую половину стерео-кадра.
 - [ ] §11.3 Recenter возвращает видео по центру; HUD остаётся перед лицом без смещения.
 - [ ] §11.6 Пять подряд cold-start иммерсивных сессий — `VideoLayerGeometry` лог идентичен.
+
+### Refresh 2026-05-03
+
+- `logs/fastmediasorter_20260503_180405.log` снова не заходит в иммерсивный orientation/render path: `VrRouteDecision` уводит sample через `STANDARD_PANEL_FALLBACK reason=plain-2d-video`, после чего `VrSessionLifecycleManager` форсированно останавливает VR playback через `standard-player-fallback:plain-2d-video`.
+- Последний полевой лог поэтому не даёт новой прямой evidence по геометрии/ориентации видеослоя. S0027 остаётся заблокированной routing/fallback chain, а не новым orientation-сигналом.

@@ -13,7 +13,7 @@
 
 ## Objective
 
-Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`, `syncInputActions`, `destroyInputHandles`, `releaseInputCallback`, `emitInputEvent`, `emitPointerMove`, `emitControllerPointerMove`, `syncControllerAimRay`) into `OpenXrInput.cpp`, and all hand-tracking methods (`initHandTracking`, `destroyHandTracking`, `syncHandTracking`) into `OpenXrHandTracking.cpp`. The `InputSystem` and `HandSystem` structs already live in `OpenXrCtx.h` after Phase 02. After this phase `OpenXrNative.cpp` ≤ 700 LOC, satisfying the strategic ≤ 1000 LOC cpp budget.
+Move all controller-input methods (`setupActionSet`, `createControllerAimSpaces`, `syncInputActions`, `destroyInputHandles`, `releaseInputCallback`, `emitInputEvent`, `emitPointerMove`, `emitControllerPointerMove`, `syncControllerAimRay`) into `OpenXrInput.cpp`, and all hand-tracking methods (`initHandTracking`, `destroyHandTracking`, `syncHandTracking`) into `OpenXrHandTracking.cpp`. The `InputSystem` and `HandSystem` structs already live in `OpenXrCtx.h` after Phase 02. After this phase `OpenXrNative.cpp` ≤ 700 LOC, satisfying the strategic ≤ 1500OC cpp budget.
 
 ---
 

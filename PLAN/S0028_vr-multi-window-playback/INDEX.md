@@ -1,12 +1,12 @@
 # Tactical Plan: S0028 — vr-multi-window-playback
 
 **Strategic spec:** [`../S0028_vr-multi-window-playback.md`](../S0028_vr-multi-window-playback.md)
-**Feature:** VR Multi-Window Playback (Quest 3 / HorizonOS)
+**Feature:** Multi-Window Mode (Quest 3 / Samsung DeX / any Android multi-window device)
 **Tier:** 4 — Strategic
 **Priority:** 75
 **Status:** Not started
-**Phases:** 0 / 5 done
-**Last updated:** 2026-04-30
+**Phases:** 7 / 7 done
+**Last updated:** 2026-05-04
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
 
@@ -16,11 +16,13 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | manifest-player-multi-instance | — | ⬜ Not started | 0/2 | [PHASE_01__manifest-player-multi-instance.md](PHASE_01__manifest-player-multi-instance.md) |
-| 02 | per-window-resume-state | 01 | ⬜ Not started | 0/5 | [PHASE_02__per-window-resume-state.md](PHASE_02__per-window-resume-state.md) |
-| 03 | window-id-intent-plumbing | 02 | ⬜ Not started | 0/4 | [PHASE_03__window-id-intent-plumbing.md](PHASE_03__window-id-intent-plumbing.md) |
-| 04 | open-in-new-window-ui | 03 | ⬜ Not started | 0/3 | [PHASE_04__open-in-new-window-ui.md](PHASE_04__open-in-new-window-ui.md) |
-| 05 | docs-catalog-cleanup | all | ⬜ Not started | 0/4 | [PHASE_05__docs-catalog-cleanup.md](PHASE_05__docs-catalog-cleanup.md) |
+| 01 | settings-platform-gate | — | ✅ Done | 4/4 | [PHASE_01__settings-platform-gate.md](PHASE_01__settings-platform-gate.md) |
+| 02 | manifest-multi-instance | 01 | ✅ Done | 2/2 | [PHASE_02__manifest-multi-instance.md](PHASE_02__manifest-multi-instance.md) |
+| 03 | per-window-resume-state | 02 | ✅ Done | 5/5 | [PHASE_03__per-window-resume-state.md](PHASE_03__per-window-resume-state.md) |
+| 04 | window-id-plumbing | 03 | ✅ Done | 5/5 | [PHASE_04__window-id-plumbing.md](PHASE_04__window-id-plumbing.md) |
+| 05 | browse-entry-points | 04 | ✅ Done | 4/4 | [PHASE_05__browse-entry-points.md](PHASE_05__browse-entry-points.md) |
+| 06 | player-tear-off | 04 | ✅ Done | 3/3 | [PHASE_06__player-tear-off.md](PHASE_06__player-tear-off.md) |
+| 07 | docs-catalog-cleanup | 05, 06 | ✅ Done | 4/4 | [PHASE_07__docs-catalog-cleanup.md](PHASE_07__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 
@@ -30,16 +32,17 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 Phase 01 must not start while any blocker is unchecked.
 
-- [ ] **S0038 resolved:** `bugfix-vr-exit-immersive-new-window` must reach `Verified` (currently `BlockNeedUserTest`). Without S0038, accidental multi-window from `exitImmersive` is indistinguishable from intentional. Run `/spec-check S0038` after user test passes. See strategic §11.
+- [x] **S0038 resolved:** `bugfix-vr-exit-immersive-new-window` is `Implemented` (2026-05-04). The fix that removed accidental `FLAG_ACTIVITY_NEW_TASK` from `exitImmersive` is in code. `Verified` user test can run in parallel with S0028. Blocker lifted.
+- [ ] **Q6 resolved (optional, unblocks Phase 01.3):** Platform detection API for non-VR multi-window (Samsung DeX / `isInMultiWindowMode()`). See strategic §6 Q6. Phase 01 can ship with setting always visible while Q6 is open; runtime gate can be added in Phase 01.3 later.
 
 ---
 
 ## Completion Gate
 
 - [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (see strategic §8).
+- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (Phase 07).
 - [ ] `dev/CHANGELOG.md` has an entry for every modified file.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated (public API changed: repository interface, use-cases).
+- [ ] `dev/CATALOG/app_v2.jsonl` regenerated (public API changed: `AppSettings`, `SettingsRepository`, `ResumeStateRepository`, use-cases).
 - [ ] `/spec-check S0028` returns `Verified`.
 - [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
 
@@ -57,10 +60,13 @@ Phase 01 must not start while any blocker is unchecked.
 
 ## Architecture Notes (read before Phase 01)
 
-- **ResumeStateRepositoryImpl** uses SharedPreferences (`"resume_state_prefs"` file), not Room. Per-window keying: name the prefs file `"resume_state_prefs_${windowId}"`. No DB migration required.
-- **AudioPlaybackService** already exists at `ui/player/AudioPlaybackService.kt` as a `MediaSessionService`. Background audio is already implemented for the standard single-window case. Phases 02–04 must not break its `isRunning` / `pendingDirection` static contract.
-- **VrPlayerActivity** keeps `launchMode="singleTask"` — only one immersive VR session at a time. Multi-instance applies only to panel `PlayerActivity` windows.
-- `WINDOW_ID_MAIN = "main"` is the conventional identifier for the primary Browse-rooted window. Pass it wherever existing callers read resume state without a new-window context.
+- **Settings pipeline:** `AppSettings` (domain model) → `SettingsRepository` (interface) → `SettingsRepositoryImpl` (DataStore directly — no `SettingsManager` intermediary). New booleans: add `KEY_xxx = booleanPreferencesKey(...)` to `SettingsRepositoryImpl` companion object, wire in `getSettings()` and `updateSettings()`. `SettingsRepository` interface needs no new per-field methods.
+- **Default by flavor:** `BuildConfig.SUPPORT_VR_PLAYER` is `true` for VR flavors, `false` for all others. Use it as the default value for `allowSeparateWindow`.
+- **ResumeStateRepositoryImpl** uses SharedPreferences (`"resume_state_prefs"` file), not Room. Per-window keying: prefs file name becomes `"resume_state_prefs_${windowId}"`. No DB migration required.
+- **AudioPlaybackService** already exists at `ui/player/AudioPlaybackService.kt`. Phases 03–06 must not break its static contract.
+- **VrPlayerActivity** keeps `launchMode="singleTask"` — only one immersive VR session at a time. Multi-instance applies only to panel `PlayerActivity` and `BrowseActivity` windows.
+- `WINDOW_ID_MAIN = "main"` is the conventional identifier for the primary Browse-rooted window.
+- **Browse tear-off state** is passed entirely via Intent extras (resource, file, scroll) — NOT via SharedPreferences resume state. Resume state mechanism is for per-window playback position (Phase 03–04).
 
 ---
 
@@ -72,4 +78,4 @@ Phase 01 must not start while any blocker is unchecked.
 
 ## Change Log
 
-- 2026-04-30 — Initial tactical plan authored by `/spec-tech`.
+- 2026-05-04 — Tactical plan rewritten by `/spec-tech` (redesign: settings toggle + 3 entry points + Browse multi-instance; supersedes 2026-04-30 plan).

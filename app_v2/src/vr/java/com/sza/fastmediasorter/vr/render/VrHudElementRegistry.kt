@@ -69,6 +69,18 @@ class VrHudElementRegistry(
         return null
     }
 
+    /**
+     * Bounds of the registered element with [id], or `null` if no element with that id
+     * was registered in the current frame. The returned RectF is owned by the registry's
+     * internal pool — callers must not mutate it.
+     */
+    fun boundsOf(id: Int): RectF? {
+        for (i in elements.indices) {
+            if (elements[i].id == id) return elements[i].bounds
+        }
+        return null
+    }
+
     companion object {
         private const val INITIAL_CAPACITY = 16
     }

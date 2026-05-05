@@ -5,6 +5,17 @@
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding" android:clipToPadding="false">
 
+        <!-- S0070: Device storage info row -->
+        <LinearLayout android:id="@+id/containerDeviceStorageInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/device_storage_padding_vertical" android:paddingBottom="@dimen/device_storage_padding_vertical">
+
+            <TextView android:id="@+id/textDeviceStorageLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/device_storage_available" android:textSize="@dimen/device_storage_text_size" android:textColor="@color/text_color_secondary" />
+
+            <TextView android:id="@+id/textDeviceStorageValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_tiny" android:text=".." android:textSize="@dimen/device_storage_text_size" android:textColor="@color/text_color_secondary" />
+
+            <ImageButton android:id="@+id/btnDeviceStorageRefresh" android:layout_width="@dimen/device_storage_button_size" android:layout_height="@dimen/device_storage_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/btn_refresh_storage" android:src="@drawable/ic_refresh" app:tint="@color/text_color_secondary" />
+
+        </LinearLayout>
+
         <!-- INTERFACE SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
@@ -186,13 +197,13 @@
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilDefaultUser" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/default_user" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="@+id/tilDefaultPassword" app:layout_constraintHorizontal_weight="1" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
-                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultUser" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/default_user" android:inputType="text" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultUser" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilDefaultPassword" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:hint="@string/default_password" app:endIconMode="password_toggle" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="@+id/iconHelpDefaultCredentials" app:layout_constraintHorizontal_weight="1" app:layout_constraintStart_toEndOf="@+id/tilDefaultUser" app:layout_constraintTop_toTopOf="parent" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
-                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/default_password" android:inputType="textPassword" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDefaultPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 

@@ -98,6 +98,24 @@
             android:exported="false"
             android:taskAffinity="" />
 
+        <!--
+          Browse: resizable so HorizonOS can host multiple BrowseActivity
+          windows side-by-side. launchMode inherits "standard" from main
+          manifest — each new-window intent creates a separate instance.
+          FLAG_ACTIVITY_MULTIPLE_TASK at call site creates a distinct task.
+        -->
+        <activity
+            android:name="com.sza.fastmediasorter.ui.browse.BrowseActivity"
+            android:resizeableActivity="true" />
+
+        <!--
+          Panel player: resizable for the same reason as BrowseActivity.
+          VrPlayerActivity (immersive) keeps singleTask and is NOT listed here.
+        -->
+        <activity
+            android:name="com.sza.fastmediasorter.ui.player.PlayerActivity"
+            android:resizeableActivity="true" />
+
     </application>
 
     <!-- Meta Horizon Store: head tracking (required=false — does not block Google Play install) -->

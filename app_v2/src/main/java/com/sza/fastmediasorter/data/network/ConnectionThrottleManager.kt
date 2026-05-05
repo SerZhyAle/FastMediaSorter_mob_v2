@@ -195,6 +195,14 @@ object ConnectionThrottleManager {
     fun deactivateVideoPlayerMode(resourceKey: String) {
         synchronized(videoPlayerResources) {
             videoPlayerResources.remove(resourceKey)
+            // S0066: clear transient thumbnail failures for this resource so previews recover
+            // automatically once playback ends — uniform across SMB / SFTP / FTP.
+            try {
+                com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+                    .clearTransientFailuresForResource(resourceKey)
+            } catch (e: Exception) {
+                Timber.w(e, "ConnectionThrottle: failed to clear transient failures for $resourceKey")
+            }
             if (videoPlayerResources.isEmpty()) {
                 // Cancel any pending resume
                 videoPlayerResumeJob?.cancel()
@@ -217,6 +225,17 @@ object ConnectionThrottleManager {
      * Check if video player is active for any resource.
      */
     fun isVideoPlayerActive(): Boolean = videoPlayerActive
+
+    /**
+     * True if video playback is active for [resourceKey] specifically (e.g. "smb://192.168.1.100:445").
+     * Used by thumbnail arbitration to classify SMB transient failures: a timeout or stale-share
+     * that occurred while playback was active for the same server is considered transient and must
+     * NOT be written to the permanent failed-cache. S0060.
+     */
+    fun isVideoPlayerActiveForResource(resourceKey: String): Boolean {
+        if (!videoPlayerActive) return false
+        return synchronized(videoPlayerResources) { videoPlayerResources.contains(resourceKey) }
+    }
 
     /**
      * Check if the connection is congested (degraded state or high active task count).

@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -264,6 +265,31 @@ class BrowseEventHandler(
             return stereoDetector.detectFromDimensions(file.width, file.height)
         }
         return StereoMode.UNKNOWN
+    }
+
+    // S0028: open BrowseActivity for a given resource in a new multi-window slot
+    fun openBrowseInNewWindow(resourceId: Long) {
+        val windowId = java.util.UUID.randomUUID().toString()
+        val intent = Intent(activity, BrowseActivity::class.java).apply {
+            putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
+            putExtra(BrowseActivity.EXTRA_WINDOW_ID, windowId)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
+        activity.startActivity(intent)
+    }
+
+    // S0028: tear off current Browse to a new window; current activity finishes (returns to home)
+    fun tearOffBrowse(resourceId: Long, currentFilePath: String?, scrollPosition: Int) {
+        val windowId = java.util.UUID.randomUUID().toString()
+        val intent = Intent(activity, BrowseActivity::class.java).apply {
+            putExtra(BrowseActivity.EXTRA_WINDOW_ID, windowId)
+            putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
+            currentFilePath?.let { putExtra(BrowseActivity.EXTRA_INITIAL_FILE_PATH, it) }
+            putExtra(BrowseActivity.EXTRA_SCROLL_POSITION, scrollPosition)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
+        activity.startActivity(intent)
+        activity.finish()
     }
 
     private fun showAddedAsDestinationSnackbar() {

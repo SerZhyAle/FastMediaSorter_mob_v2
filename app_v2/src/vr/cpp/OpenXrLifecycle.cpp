@@ -3,6 +3,7 @@
 #include "OpenXrHandTracking.h"
 #include "OpenXrInput.h"
 #include "OpenXrLog.h"
+#include "OpenXrRayDraw.h"
 #include "OpenXrSwapchain.h"
 
 #include <cstring>
@@ -321,6 +322,7 @@ void xrnative::releaseCallback(XrCtx &ctx, JNIEnv *env)
 
 void xrnative::destroyAll(XrCtx &ctx)
 {
+    destroyRayResources(ctx);
     destroyHandTracking(ctx);
     destroyInputHandles(ctx);
     destroyHudSwapchain(ctx);

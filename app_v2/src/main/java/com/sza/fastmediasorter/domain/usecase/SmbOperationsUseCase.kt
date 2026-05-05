@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -107,7 +108,8 @@ class SmbOperationsUseCase @Inject constructor(
             when (val result = smbClient.listShares(server, username, password, domain, port)) {
                 is SmbResult.Success -> Result.success(result.data)
                 is SmbResult.Error -> Result.failure(
-                    Exception(result.message, result.exception)
+                    (result.exception as? LocalNetworkPermissionDeniedException)
+                        ?: Exception(result.message, result.exception)
                 )
             }
         } catch (e: Exception) {
@@ -152,7 +154,8 @@ class SmbOperationsUseCase @Inject constructor(
                     Result.success(mediaFiles)
                 }
                 is SmbResult.Error -> Result.failure(
-                    Exception(result.message, result.exception)
+                    (result.exception as? LocalNetworkPermissionDeniedException)
+                        ?: Exception(result.message, result.exception)
                 )
             }
         } catch (e: Exception) {
@@ -193,6 +196,8 @@ class SmbOperationsUseCase @Inject constructor(
                     port = port
                 )
                 credentialsRepository.update(updatedEntity)
+                // S0064: persist share name in server history so it appears in the share picker next time.
+                credentialsRepository.addManualShareName(server, port, actualShareName)
                 Result.success(existingCredentials.credentialId)
             } else {
                 // Create new credentials
@@ -210,6 +215,8 @@ class SmbOperationsUseCase @Inject constructor(
                 )
                 
                 credentialsRepository.insert(entity)
+                // S0064: The newly inserted entity already carries shareName;
+                // addManualShareName will pick it up on the next scan.
                 Result.success(credentialId)
             }
         } catch (e: Exception) {
@@ -285,7 +292,8 @@ class SmbOperationsUseCase @Inject constructor(
                     Result.success(mediaFiles)
                 }
                 is SmbResult.Error -> Result.failure(
-                    Exception(result.message, result.exception)
+                    (result.exception as? LocalNetworkPermissionDeniedException)
+                        ?: Exception(result.message, result.exception)
                 )
             }
         } catch (e: Exception) {
@@ -527,14 +535,14 @@ class SmbOperationsUseCase @Inject constructor(
             }
             
             val filePaths = listResult.getOrNull() ?: emptyList()
-            val mediaFiles = filePaths.map { filePath ->
-                val fileName = filePath.substringAfterLast('/')
+            val mediaFiles = filePaths.map { listing ->
+                val fileName = listing.path.substringAfterLast('/')
                 MediaFile(
                     name = fileName,
-                    path = filePath,
+                    path = listing.path,
                     type = detectMediaType(fileName),
-                    size = 0L, // Size not available without additional stat() call
-                    createdDate = System.currentTimeMillis() // Date not available without additional stat() call
+                    size = listing.size,
+                    createdDate = listing.modifiedDate
                 )
             }
             
@@ -628,8 +636,8 @@ class SmbOperationsUseCase @Inject constructor(
                         privateKey = credentials.sshPrivateKey
                     )
                     val files = sftpClient.listFiles(connectionInfo, remotePath).getOrDefault(emptyList())
-                    val trashFolders = files.filter { it.substringAfterLast('/').startsWith(".trash_") }
-                    Result.success(Pair(trashFolders.isNotEmpty(), trashFolders))
+                    val trashFolders = files.filter { it.path.substringAfterLast('/').startsWith(".trash_") }
+                    Result.success(Pair(trashFolders.isNotEmpty(), trashFolders.map { it.path }))
                 }
                 com.sza.fastmediasorter.domain.model.ResourceType.FTP -> {
                     val credentials = credentialsRepository.getByCredentialId(credentialsId) ?: throw Exception("Credentials not found")

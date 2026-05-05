@@ -63,6 +63,7 @@
                 android:src="@drawable/ic_repeat"
                 app:tint="@color/selector_player_button_tint"
                 android:contentDescription="@string/repeat"
+                android:nextFocusLeft="@id/btnPlaybackControl"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -126,6 +127,7 @@
                 android:src="@drawable/ic_settings"
                 app:tint="@color/selector_player_button_tint"
                 android:contentDescription="@string/control"
+                android:nextFocusRight="@id/exo_repeat"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton

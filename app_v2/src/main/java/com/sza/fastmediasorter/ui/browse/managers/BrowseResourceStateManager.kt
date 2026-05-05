@@ -36,6 +36,7 @@ class BrowseResourceStateManager(
     private val getResourcesUseCase: GetResourcesUseCase,
     private val addResourceAsDestinationUseCase: AddResourceAsDestinationUseCase,
     private val clearResumeStateUseCase: ClearResumeStateUseCase,
+    private val windowIdProvider: () -> String,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val exceptionHandler: CoroutineContext,
@@ -111,7 +112,7 @@ class BrowseResourceStateManager(
     fun clearResumeState() {
         scope.launch {
             Timber.d("BrowseResourceStateManager: clearResumeState")
-            clearResumeStateUseCase()
+            clearResumeStateUseCase(windowIdProvider())
         }
     }
 

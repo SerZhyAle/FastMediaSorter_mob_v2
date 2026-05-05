@@ -8,8 +8,6 @@ import com.sza.fastmediasorter.vr.commands.VrFullscreenCommandOverride
 import com.sza.fastmediasorter.vr.commands.VrSaveFrameCommandOverride
 import com.sza.fastmediasorter.vr.commands.VrSystemUiCommandOverride
 import com.sza.fastmediasorter.vr.helpers.VrRecentDestinationsPrefs
-import com.sza.fastmediasorter.vr.playback.ExoVrPlaybackEngine
-import com.sza.fastmediasorter.vr.playback.VrPlaybackEngine
 import com.sza.fastmediasorter.vr.render.DefaultVrLayerFactory
 import com.sza.fastmediasorter.vr.render.VrLayerFactory
 import dagger.Binds
@@ -21,16 +19,12 @@ import javax.inject.Singleton
 
 /**
  * Hilt module for vr flavor.
- * Binds ExoPlayer-based VrPlaybackEngine — no second media engine per spec decision.
+ * Playback authority stays on the shared VideoPlayerManager / ExoPlayer path;
+ * this module binds only VR-specific overrides and helpers.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class VrModule {
-
-    /** ExoPlayer backend for VR playback. Surface is set in prepare() after XR swapchain is ready. */
-    @Singleton
-    @Binds
-    abstract fun bindVrPlaybackEngine(impl: ExoVrPlaybackEngine): VrPlaybackEngine
 
     /** Layer selection stays injectable so future phases can swap heuristics without touching the host. */
     @Singleton

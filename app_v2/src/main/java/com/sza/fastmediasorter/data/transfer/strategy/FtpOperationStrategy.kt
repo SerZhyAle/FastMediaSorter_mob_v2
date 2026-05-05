@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -20,8 +22,8 @@ import java.io.FileOutputStream
  * Handles ftp:// protocol operations using FtpClient.
  * Note: FTP connections are stateful - each instance maintains a persistent connection.
  */
-class FtpOperationStrategy(
-    private val context: Context,
+class FtpOperationStrategy @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository
 ) : FileOperationStrategy {

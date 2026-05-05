@@ -1,16 +1,22 @@
 # Full Spec Pipeline Orchestrator
 
 Execute the complete spec pipeline from idea to verified implementation, fully automated.
-Forward bias over correctness theatre — patch the spec and continue. Stop only when forward progress is genuinely impossible without a human.
+Forward bias over correctness theatre — patch the spec and continue. Stop only when forward progress is genuinely impossible without a human. Ready to pick up a spec at any stage, any status. Defers unresolvable human questions to the final report — never blocks mid-pipeline on something that can be skipped and revisited.
 
 ## Usage
 
 ```text
-/spec-all <idea text>
-/spec-all <path/to/idea_file.md>
+/spec-all <idea text>           # new spec from idea
+/spec-all <path/to/idea.md>     # new spec from file
+/spec-all <Sxxxx>               # resume existing spec by ticket id
+/spec-all <slug>                # resume existing spec by slug
 ```
 
-`$ARGUMENTS` is treated as a file path when it resolves to an existing file; otherwise used as idea text verbatim.
+`$ARGUMENTS` is treated as:
+1. Existing ticket id `S\d{4}` → resolve spec and **resume**.
+2. Path to an existing file → read idea from file, then determine if spec already exists by slug collision.
+3. Slug that matches an existing `PLAN/Sxxxx_<slug>.md` → **resume**.
+4. Otherwise → new spec from idea text.
 
 ---
 
@@ -25,17 +31,43 @@ MAX_FIX_ITERATIONS = 5. MAX_BUILD_RETRIES = 3.
 
 ---
 
-## Stage 0 — Bootstrap + Complexity
+## Stage 0 — Bootstrap + State Detection
 
 Parse `$ARGUMENTS`. If blank → abort: "No idea provided."
 
+### 0a — Resolve existing spec (resume mode)
+
+If argument looks like a ticket id or slug, resolve via:
+
+```powershell
+pwsh -File scripts/spec_catalog/select.ps1 -Id <Sxxxx> -Format json
+# or
+pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json
+```
+
+If resolved → read strategic spec file, read current `Status:` → **jump to the appropriate resume stage** per the Resume Map below. Do NOT re-create or re-validate what is already done.
+
+### 0b — Resume Map (existing spec)
+
+| Current `Status:` | Resume stage |
+| --- | --- |
+| `Draft` | F1 (finish/overwrite strategic spec) or S1 |
+| `Approved` | F2 (tactical plan) |
+| `Tactical` | F3 (implementation, first non-done step) |
+| `In Progress` | F3 (continue, `--resume`) |
+| `Implemented` | F5 (audit loop) |
+| `Partial` | F5 (fix loop then audit) |
+| `Broken` | F5 (fix loop then audit) |
+| `Verified` | Print final report — already done |
+| `BlockNeedUserTest` | Add to manual items, set status back to `Implemented`, jump to F5 |
+| `BlockQuestions` | Read §6 Open items; resolve any answerable from codebase; continue from last active stage; add unresolvable to manual list |
+| `BlockByOtherTask` | Read §10; check if blocking spec is `Verified`; if yes → unblock and continue from last stage; if no → add to manual list and continue non-blocked work |
+| `BlockExternal` | Add to manual items; continue non-blocked work from last stage |
+| `Archived` | Abort: spec is archived; suggest creating a new one. |
+
+### 0c — New spec flow
+
 Derive `short-name`: kebab-case slug, 3–5 words. Glob `PLAN/Sxxxx_*.md` for slug collisions — append `-v2`, `-v3` if needed. The id `Sxxxx` is allocated by `/spec` via `insert.ps1`.
-
-**Existing-spec guard:**
-
-- `Status: Approved` or later → abort: "Spec exists (Status: X). Use individual skills to continue."
-- `Status: Draft` → skip spec-writing stage, use existing draft.
-- `Status: Block*` → abort: "Spec is blocked. Resolve via the appropriate channel before re-running."
 
 **Complexity assessment** — classify as **Simple** or **Full**:
 
@@ -118,7 +150,8 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 - Verification fail → re-read file, correct edit, re-run predicates.
 - Trilingual gap → add `<!-- TODO translate: <EN text> -->` in missing locale; continue.
 - Line budget warning (>500 LOC) → timestamped backup in `temp/`; continue.
-- Unresolved after 2 attempts → hard-stop, jump to final report.
+- Ambiguous step (placeholder, missing name) → attempt to resolve from codebase; if resolved, patch step and continue; if still ambiguous after 1 attempt → mark step `[DEFERRED — ambiguous]`, add to manual list, skip to next step. Never stop the pipeline for one ambiguous step when others are unblocked.
+- Unresolvable after 2 attempts → mark `[DEFERRED]`, add to manual list, continue with remaining steps.
 
 **Spec self-correction:** spec wrong → patch tactical/strategic directly regardless of `Status:` lock. Status locks do not apply inside `/spec-all`.
 
@@ -173,31 +206,40 @@ Manual / unresolved:
 
 ## Hard-Stop Conditions
 
+These are the **only** reasons to stop before the final report. Everything else is resolved inline or deferred to the manual items list.
+
 | Trigger | Action |
 | ------- | ------ |
 | Build fails after MAX_BUILD_RETRIES | Final report — Blocked |
-| Room schema change required by spec | Stop — irreversible, requires human |
-| Room schema change avoidable | Patch spec, skip migration, continue |
-| Hilt — new scope/qualifier needed | Stop — requires human |
-| Hilt — only `@Inject constructor` wiring | Apply, continue |
-| Read-only zone reference | Stop — hard boundary |
+| Room schema change required AND version/migration class NOT named in step | Stop — irreversible, requires human |
+| Room schema change AND version/migration class explicit in step | Apply, note in chat, continue |
+| Hilt — new scope/qualifier AND scope NOT named in step | Stop — requires human |
+| Hilt — scope explicit in step or only `@Inject constructor` wiring | Apply, note in chat, continue |
+| Read-only zone reference | Stop — hard boundary, no exceptions |
 | MAX_FIX_ITERATIONS exhausted | Final report — Incomplete |
-| Stage F3 unresolvable after 2 attempts | Final report — Blocked |
-| Device/hardware verification required | Defer to manual items, set status `BlockNeedUserTest`, continue |
-| External dependency missing | Set status `BlockExternal`, final report — Blocked |
+| Stage F3 unresolvable after 2 inline attempts | Add to deferred list, continue remaining steps |
+| Device/hardware verification required | Defer to manual items, set status `BlockNeedUserTest`, continue pipeline |
+| External dependency missing | Add to deferred list, set status `BlockExternal`, final report — Blocked |
+| `Archived` status | Abort — spec is archived, create new one |
+| `$ARGUMENTS` blank | Abort — no input |
+
+**Defer-first rule:** if a stop condition would block the current step but other steps in the phase (or later phases) are independent — skip the blocked step, add it to the manual list, and continue from the next unblocked step. Only issue a final report stop if no forward progress is possible at all.
 
 ---
 
 ## Constraints
 
-- No user prompts between stages. Resolve ambiguity from code/docs context.
-- Specs are mutable inside `/spec-all` — patch and continue.
-- Build mandatory on code changes — skip only for docs-only diffs.
-- All sub-skill constraints in force (line budgets, Timber, trilingual, naming).
-- MANUAL items are not failures — `Verified` with deferred manual checks is success.
+- **No user prompts between stages.** Resolve ambiguity from code/docs context. If unresolvable, defer to manual items and keep moving.
+- **Resume-first.** When given an existing spec id or slug, always resume from current state — never recreate stages that are already done.
+- **Defer-first.** Blocked steps don't stop the pipeline. Skip and continue; collect all blocked items in the manual list for the final report.
+- **Specs are mutable inside `/spec-all`** — patch and continue. Status locks (`Implemented`, `Verified`) do not apply inside this skill.
+- **Build mandatory on code changes** — skip only for docs-only diffs.
+- **All sub-skill constraints in force** (line budgets, Timber, trilingual, naming).
+- **MANUAL items are not failures** — `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly — always via `.\scripts\add_to_dev_log.ps1`.
-- Read-only zones never touched.
+- Read-only zones never touched: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Never create audit / fix files in `PLAN/`. All audit findings live inside the spec's `## Last Audit` block.
+- **Progress output:** After each stage completes, print a one-line status: `[Stage X done] → next: Stage Y`. This gives the user a live progress trace without requiring interaction.
 
 ---
 

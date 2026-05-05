@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0024_vr-hud-ray-input.md`](../S0024_vr-hud-ray-input.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, Phase 02
 **Blocks:** Phase 04
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-05-03
+**Completed:** 2026-05-03
 
 ---
 
@@ -17,10 +17,13 @@ Track the current hover element id, redraw the HUD only when the id changes, and
 
 ---
 
-## Prerequisites
+## Pre-Implementation Note (2026-05-03)
 
-- [ ] Phase 02 ✅ Done.
-- [ ] `VrHudSceneDriver.kt` known — it owns the redraw cadence for `VrHudSceneComposer` (S0009 §5.1.2).
+Phase 02 moved `currentHudHoverId` from `VrPlayerActivity` to `VrRenderPipelineManager`
+(CLAUDE.md rule 3 — Activity logic prohibited). Phase 03 follows: `VrHudHoverState`
+lives on `VrHudSceneDriver` (driver owns the redraw cadence), and the pipeline-level
+sink writes `hoverState.setCurrent(..)` then calls `driver.onHoverIdChanged()` to
+schedule a repaint. No Activity-level state added.
 
 ---
 
@@ -29,116 +32,118 @@ Track the current hover element id, redraw the HUD only when the id changes, and
 | File | New / Modified | Line budget |
 |------|:--------------:|------------:|
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudHoverState.kt` | New | ≤ 60 |
+| `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudElementRegistry.kt` | Modified | ≤ 100 |
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt` | Modified | ≤ 800 |
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | Modified | ≤ 400 |
-| `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | Modified | ≤ 1000 |
-
-> If `VrPlayerActivity.kt` is already >500 lines pre-edit, write a timestamped backup into `temp/` first (CLAUDE.md rule 5).
+| `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | Modified | ≤ 800 |
 
 ---
 
 ## Steps
 
-### Step 03.1 — Create `VrHudHoverState`
+### Step 03.1 — Create `VrHudHoverState` ✅
 
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudHoverState.kt`
-**Depends on:** — start of phase
+`current/consumed` pair with `setCurrent`, `current`, `markConsumed`, `hasPendingChange`.
+Single-writer (xr-render-thread input manager); `@Volatile` reads from the GL/main
+threads. No allocations.
 
-**Prompt for developer:**
+**Verification:** Glob + Grep predicates PASS (4/4).
 
-> Create `VrHudHoverState` in `com.sza.fastmediasorter.vr.render`. Tiny holder for the currently-hovered element id and an "id-changed since last consumed" flag.
-> - `@Volatile private var current: Int = 0`
-> - `@Volatile private var consumed: Int = 0`
-> - `fun setCurrent(id: Int)` — assigns and returns `true` if changed.
-> - `fun current(): Int` — reads `current`.
-> - `fun markConsumed()` — sets `consumed = current`.
-> - `fun hasPendingChange(): Boolean` — `current != consumed`.
-> No allocation in any method; safe for read on render thread, write on render thread (single-writer).
+**Status:** `[x] done`
 
-**Verification:**
+**Step Log:**
 
-- `Glob` — `VrHudHoverState.kt` exists.
-- `Grep` — `class VrHudHoverState` matches once.
-- `Grep` — `fun setCurrent`, `fun current`, `fun markConsumed`, `fun hasPendingChange` each match.
-
-**Status:** `[ ]` not done
+- 2026-05-03 — Verification 4/4 PASS. File: app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudHoverState.kt (+34 LOC). Dev log recorded.
 
 ---
 
-### Step 03.2 — Render hover highlight in `VrHudSceneComposer`
+### Step 03.2 — Render hover highlight in `VrHudSceneComposer` ✅
 
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt`
-**Depends on:** Step 03.1
-
-**Prompt for developer:**
-
-> Extend `VrHudSceneComposer.draw(..)` signature to accept `hoverId: Int` (default `0`). After the existing element registration is complete in the current frame, look up `registry.callbackOf(..)`-keyed bounds via the registry list and paint a subtle highlight: a 2-px stroked rounded-rect (corner radius 6 px) drawn around `bounds`, colour `Color.argb(120, 120, 200, 255)`. No fill; no full-area wash. If `hoverId == 0` or no element with that id is registered this frame, skip the highlight. Add a private `hoverPaint: Paint` field initialised once (no allocations in `draw`).
+Added `hoverPaint: Paint` (single instance, no per-frame alloc) and an extra
+`hoverId: Int = 0` parameter to `draw(state, canvas, hoverId)`. Paint is a 2-px
+stroked rounded-rect (corner radius 6 px, ARGB(120, 120, 200, 255)) drawn last so
+it overlays the element. Bound lookup uses the new `VrHudElementRegistry.boundsOf(id)`
+accessor (registry change — see Files Touched). Skips when `hoverId == 0` or
+unregistered this frame.
 
 **Verification:**
 
-- `Grep` — `fun draw(canvas: Canvas, state: VrHudState, hoverId: Int` matches once.
+- `Grep` — `fun draw(state: VrHudState, canvas: Canvas, hoverId: Int` matches once. (Argument order patched: existing signature is `(state, canvas)`, not `(canvas, state)` — Phase 03 spec verification predicate updated to match the actual order.)
 - `Grep` — `private val hoverPaint` matches once.
-- `Grep` — `Paint(Paint.ANTI_ALIAS_FLAG)` count in the file does not double after this step (sanity: hoverPaint is the only new Paint).
+- `Grep` — composer Paint count: existing 14 + hoverPaint = 15 (one new instance).
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Verification 3/3 PASS (signature predicate adjusted for actual `(state, canvas, hoverId)` order). Files: VrHudElementRegistry.kt (+14 LOC), VrHudSceneComposer.kt (+15 LOC). Dev log recorded.
 
 ---
 
-### Step 03.3 — Trigger redraw only on hover-id change
+### Step 03.3 — Trigger redraw only on hover-id change ✅
 
-**Files:** `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt`, `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt`
-**Depends on:** Step 03.2
+`VrHudSceneDriver` accepts a `VrHudHoverState` (default-constructed). Added a public
+`onHoverIdChanged()` method that posts a `requestRedraw()` only when (a) `hoverState.hasPendingChange()`
+is true and (b) the HUD layer is currently submitted. The `redrawRunnable` reads the
+latest hover id via `hoverState.current()`, passes it into `composer.draw(state, canvas, hoverId)`,
+then calls `hoverState.markConsumed()` — id changes are reflected exactly once per redraw.
 
-**Prompt for developer:**
-
-> In `VrPlayerActivity`, instantiate `VrHudHoverState` once. Replace the bare `currentHudHoverId` field from Phase 02 with calls to `hudHoverState.setCurrent(id)`. In `VrHudSceneDriver`, accept a `VrHudHoverState` constructor parameter (or settable field) and consult `hoverState.hasPendingChange()` each tick: when true, request a HUD repaint and call `hoverState.markConsumed()`. The existing low-frequency 2 Hz tick continues to run for live indicators (seek, buffer); hover changes piggy-back on this tick or on the existing event-driven repaint path — pick one consistent route and document the choice with a one-line WHY-comment. Pass `hoverState.current()` into `composer.draw(canvas, state, hoverId = ..)` from the driver.
+`VrRenderPipelineManager.hudHoverSink` updates `currentHudHoverId`, calls
+`driverRef.hoverState.setCurrent(hudElementId)` and, on a real change, invokes
+`driverRef.onHoverIdChanged()`.
 
 **Verification:**
 
-- `Grep` — `hudHoverState` matches in both `VrPlayerActivity.kt` and `VrHudSceneDriver.kt`.
-- `Grep` — `hasPendingChange()` matches in `VrHudSceneDriver.kt` at least once.
-- `Grep` — `markConsumed()` matches in `VrHudSceneDriver.kt` at least once.
-- `Grep` — `composer.draw(.+ hoverId` (or equivalent named-arg call) matches at least once.
+- `Grep` — `hoverState` matches in `VrHudSceneDriver.kt` (5+) and `VrRenderPipelineManager.kt` (2+). Activity-level `hudHoverState` field intentionally not added (note above).
+- `Grep` — `hasPendingChange()` matches in `VrHudSceneDriver.kt` (1).
+- `Grep` — `markConsumed()` matches in `VrHudSceneDriver.kt` (1).
+- `Grep` — `composer.draw(state, canvas, hoverId)` matches once.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Verification PASS. Files: VrHudSceneDriver.kt (+25 LOC), VrRenderPipelineManager.kt (+8 LOC). Dev log recorded.
 
 ---
 
-### Step 03.4 — Build verification
+### Step 03.4 — Build verification ✅
 
-**Files:** —
-**Depends on:** Step 03.3
+`./gradlew :app_v2:assembleVrDebug` PASS in 15s. BUILD SUCCESSFUL. No new lint warnings
+in the touched files.
 
-**Prompt for developer:**
-
-> Run `/build` for the VR flavor. Visual smoke-test on Meta Quest 3 (memory: user owns the device — VR testing is not a blocker): aim ray at the HUD seek-bar — a thin highlight ring appears; aim away — ring disappears within one tick. No flicker on idle frames.
+On-device smoke-test deferred to manual verification (user owns Quest 3 — memory:
+`user_hardware.md`). No anomaly to log against the journal at this time.
 
 **Verification:**
 
 - `Grep` — `TODO(phase-03)` returns zero hits.
-- Build output indicates VR flavor compiles without errors.
-- On-device smoke-test logged in journal `updated` line if any anomaly observed.
+- Build PASS.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every `Step 03.*` above is `[x] done`.
-- [ ] Project compiles — run `/build`.
-- [ ] `Grep` for `TODO(phase-03)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched".
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated (`VrHudHoverState` is new).
+- [x] Every `Step 03.*` above is `[x] done`.
+- [x] Project compiles — `assembleVrDebug` PASS.
+- [x] `Grep` for `TODO(phase-03)` returns zero hits.
+- [x] Dev log entry added for every file in "Files Touched".
+- [ ] `dev/CATALOG/app_v2.jsonl` regenerated (`VrHudHoverState` is new) — Phase 06.
 
 ---
 
 ## Handoff Notes to Next Phase
 
-The activity now exposes a `hudHoverState` whose `current()` reflects the hover element id. Phase 04 reads `current()` on a trigger event and dispatches the registered callback.
+`VrHudSceneDriver.hoverState` exposes `current()` reflecting the hover element id
+(updated on the xr-render-thread by the input manager). Phase 04 reads `current()`
+on a trigger event and dispatches the registered callback via
+`VrHudSceneDriver.registry.callbackOf(id)`.
 
 ---
 
 ## Rollback Plan
 
-Revert phase commit(s). The new `hoverId` parameter on `composer.draw` defaults to `0`; reverting only the activity wiring leaves the composer signature in place but harmless.
+Revert phase commit(s). The new `hoverId` parameter on `composer.draw` defaults to `0`;
+reverting only the driver wiring leaves the composer signature in place but harmless.

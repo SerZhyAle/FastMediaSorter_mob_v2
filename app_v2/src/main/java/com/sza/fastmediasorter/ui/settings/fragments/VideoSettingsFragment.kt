@@ -268,6 +268,14 @@ class VideoSettingsFragment : Fragment() {
                 viewModel.updateSettings(current.copy(playerShowFps = isChecked))
             }
         }
+
+        // S0028: Multi-window mode (unconditional — visible on all builds)
+        binding.switchAllowSeparateWindow.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(allowSeparateWindow = isChecked))
+            }
+        }
     }
 
     private fun observeData() {
@@ -333,6 +341,11 @@ class VideoSettingsFragment : Fragment() {
                         binding.switchVrShowFps.isEnabled = vrGloballyEnabled
                         binding.tvVrShowFpsDisabledHint.visibility = if (vrGloballyEnabled) View.GONE else View.VISIBLE
                         binding.switchPlayerShowFps.isChecked = settings.playerShowFps
+                    }
+
+                    // S0028: Multi-window mode (unconditional)
+                    if (binding.switchAllowSeparateWindow.isChecked != settings.allowSeparateWindow) {
+                        binding.switchAllowSeparateWindow.isChecked = settings.allowSeparateWindow
                     }
 
                     isUpdatingFromSettings = false

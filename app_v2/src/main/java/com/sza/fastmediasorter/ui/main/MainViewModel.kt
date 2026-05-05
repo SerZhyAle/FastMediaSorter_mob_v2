@@ -15,7 +15,9 @@ import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.ProvisionDownloadsDestinationUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
@@ -102,7 +104,9 @@ class MainViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
+    private val provisionDownloadsDestinationUseCase: ProvisionDownloadsDestinationUseCase,
     private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
+    private val migrateS0059UseCase: MigrateS0059UseCase,
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
@@ -137,7 +141,9 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch(ioDispatcher) {
             provisionDefaultResourcesUseCase()
+            provisionDownloadsDestinationUseCase()
             migrateCameraResourceUseCase()
+            migrateS0059UseCase()
             // Backfill icon ids for resources that existed before S0034 (DB v25 → v26 migration)
             resourceRepository.backfillMissingIcons { path, profileName, typeName ->
                 val profile = runCatching {

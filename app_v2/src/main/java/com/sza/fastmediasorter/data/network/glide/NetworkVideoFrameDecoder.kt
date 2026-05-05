@@ -11,6 +11,8 @@ import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.drawable.DrawableResource
 import com.sza.fastmediasorter.FastMediaSorterApp
+import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
@@ -40,7 +42,13 @@ import java.util.concurrent.atomic.AtomicReference
  * Fix 2: per-path deduplication via ConcurrentHashMap<path, CompletableFuture<Boolean>>.
  *         Only one extraction runs at a time per file; secondary Glide threads wait for
  *         the primary result, then serve from ThumbnailCache.
+ * S0060: transient SMB failures (stale-share race, timeout during active playback) are NOT
+ *         written to the permanent failed-cache. They are recorded in a separate transient map
+ *         and cleared when playback stops, allowing automatic retry on next scroll-in.
  */
+
+/** Outcome of a single video-frame extraction attempt. S0060. */
+private data class ExtractionOutcome(val bitmap: Bitmap?, val isTimeout: Boolean = false)
 class NetworkVideoFrameDecoder(
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
@@ -74,6 +82,11 @@ class NetworkVideoFrameDecoder(
         val extension = source.path.substringAfterLast('.', "").lowercase()
         // Explicitly reject image files to prevent MediaMetadataRetriever errors
         if (extension in IMAGE_EXTENSIONS) return false
+        // S0063: skip formats known to fail on network streams to avoid 10-second timeout per file
+        if (NetworkThumbnailExtractionPolicy.shouldSkipNetworkExtraction(extension)) {
+            Timber.v("[scope=thumbnail S0063] Blocked network format '$extension': ${source.path.substringAfterLast('/')}")
+            return false
+        }
         return extension in VIDEO_EXTENSIONS
     }
 
@@ -88,10 +101,30 @@ class NetworkVideoFrameDecoder(
         // 1. Always check ThumbnailCache first — serves even if file is in the failed cache
         loadFromThumbnailCache(source.path, fileName)?.let { return it }
 
-        // 2. Skip extraction if previously failed (cache miss + failed = no retry this session)
-        if (NetworkFileDataFetcher.isVideoFailed(source.path)) {
-            Timber.v("Skipping video thumbnail extraction - cached failure: $fileName")
+        // Guard: no LAN permission — skip extraction without caching failure
+        if (!PermissionHelper.hasLocalNetworkPermission(FastMediaSorterApp.appContext)) {
             return null
+        }
+
+        // 2. Skip extraction if previously failed (cache miss + failed = no retry this session).
+        //    S0060: transient failures (SMB share-race) are stored separately and cleared when
+        //    playback stops. If playback has since ended, clear the transient entry and proceed.
+        if (NetworkFileDataFetcher.isVideoFailed(source.path)) {
+            if (!NetworkFileDataFetcher.isVideoPermanentlyFailed(source.path)) {
+                // Transiently failed: check if playback is still active for this resource. S0066.
+                val resourceKey = extractNetworkResourceKey(source.path)
+                if (resourceKey != null && ConnectionThrottleManager.isVideoPlayerActiveForResource(resourceKey)) {
+                    Timber.v("[scope=thumbnail S0066 protocol=${source.path.substringBefore("://")} resource=$resourceKey] Skipping: transient failure during active playback: $fileName")
+                    return null
+                } else {
+                    // Playback stopped (or non-network) — clear transient failure and allow retry
+                    NetworkFileDataFetcher.clearTransientFailure(source.path)
+                    Timber.d("[scope=thumbnail S0060] Cleared transient failure (playback ended): $fileName")
+                }
+            } else {
+                Timber.v("Skipping video thumbnail extraction - cached failure: $fileName")
+                return null
+            }
         }
 
         // 3. Fix 2: Deduplicate — only one extraction per path at a time
@@ -128,7 +161,7 @@ class NetworkVideoFrameDecoder(
 
         var extractionSucceeded = false
         return try {
-            val bitmap = try {
+            val outcome = try {
                 extractVideoFrame(mediaDataSource, source.path)
             } finally {
                 try {
@@ -137,15 +170,17 @@ class NetworkVideoFrameDecoder(
                     Timber.w(closeError, "Failed to close NetworkMediaDataSource")
                 }
             }
+            // Read stale-share flag AFTER close() — set by NetworkMediaDataSource.readAt(). S0060.
+            val isStaleShare = mediaDataSource.encounteredStaleShare
 
-            if (bitmap != null) {
+            if (outcome.bitmap != null) {
                 val elapsed = System.currentTimeMillis() - startTime
                 Timber.v("Successfully extracted video thumbnail in ${elapsed}ms: $fileName")
 
                 // Save to cache BEFORE completing the future so secondary waiters can read immediately
                 runBlocking {
                     try {
-                        val cachedFile = saveThumbnailToCache(source.path, bitmap)
+                        val cachedFile = saveThumbnailToCache(source.path, outcome.bitmap)
                         if (cachedFile != null) {
                             thumbnailCacheRepository.saveThumbnail(source.path, cachedFile)
                             Timber.v("Saved thumbnail to cache: $fileName")
@@ -156,19 +191,35 @@ class NetworkVideoFrameDecoder(
                 }
 
                 extractionSucceeded = true
-                val drawable = BitmapDrawable(FastMediaSorterApp.appContext.resources, bitmap)
+                val drawable = BitmapDrawable(FastMediaSorterApp.appContext.resources, outcome.bitmap)
                 BitmapDrawableResource(drawable, bitmapPool)
             } else {
-                // Fix 1: only mark as failed if no concurrent thread already saved to ThumbnailCache
-                val cacheCheck = runBlocking {
-                    try { thumbnailCacheRepository.getCachedThumbnail(source.path) } catch (e: Exception) { null }
-                }
-                if (cacheCheck == null || !cacheCheck.exists()) {
-                    NetworkFileDataFetcher.markVideoAsFailed(source.path)
+                // S0066: universal transient classification across SMB / SFTP / FTP.
+                val resourceKey = extractNetworkResourceKey(source.path)
+                val playbackActive = resourceKey != null &&
+                    ConnectionThrottleManager.isVideoPlayerActiveForResource(resourceKey)
+                val transientReason = mediaDataSource.transientFailureReason
+                    ?: if (isStaleShare) TransientReason.STALE_SHARE else null
+                // Timeout is transient only when playback was active for the same resource.
+                val isTransient = transientReason != null ||
+                    (outcome.isTimeout && playbackActive)
+                val protocol = source.path.substringBefore("://", missingDelimiterValue = "local")
+                val failureClass = transientReason?.name?.lowercase()
+                    ?: if (outcome.isTimeout) "timeout" else "null-frame"
+                Timber.w("[scope=thumbnail S0066 protocol=$protocol resource=${resourceKey ?: "n/a"} failureClass=$failureClass playbackActive=$playbackActive] Extraction failed: $fileName")
+
+                if (isTransient) {
+                    NetworkFileDataFetcher.markVideoAsTransientlyFailed(source.path)
                 } else {
-                    Timber.d("Not marking as failed — ThumbnailCache already has entry: $fileName")
+                    val cacheCheck = runBlocking {
+                        try { thumbnailCacheRepository.getCachedThumbnail(source.path) } catch (e: Exception) { null }
+                    }
+                    if (cacheCheck == null || !cacheCheck.exists()) {
+                        NetworkFileDataFetcher.markVideoAsFailed(source.path)
+                    } else {
+                        Timber.d("Not marking as failed — ThumbnailCache already has entry: $fileName")
+                    }
                 }
-                Timber.w("Failed to extract video thumbnail: $fileName")
                 null
             }
         } catch (e: Exception) {
@@ -209,7 +260,12 @@ class NetworkVideoFrameDecoder(
         }
     }
 
-    private fun extractVideoFrame(mediaDataSource: NetworkMediaDataSource, path: String): Bitmap? {
+    /**
+     * Extracts a single video frame via MediaMetadataRetriever with a hard watchdog timeout.
+     * Returns [ExtractionOutcome.isTimeout]=true when the watchdog fires, so the caller can
+     * classify the failure as transient when SMB playback is concurrently active. S0060.
+     */
+    private fun extractVideoFrame(mediaDataSource: NetworkMediaDataSource, path: String): ExtractionOutcome {
         val retrieverRef = AtomicReference<MediaMetadataRetriever?>(null)
 
         // Use executor with timeout to prevent hanging on slow network connections
@@ -246,10 +302,10 @@ class NetworkVideoFrameDecoder(
         }
 
         return try {
-            future.get(VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            ExtractionOutcome(future.get(VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS))
         } catch (e: TimeoutException) {
             // Expected behavior for slow network videos - log without stack trace
-            Timber.w("Video thumbnail extraction TIMEOUT after ${VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS}ms for ${path.substringAfterLast('/')} - cancelling")
+            Timber.w("[scope=thumbnail failureClass=timeout] Extraction TIMEOUT after ${VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS}ms for ${path.substringAfterLast('/')} - cancelling")
             retrieverRef.get()?.let { retriever ->
                 try {
                     retriever.release()
@@ -259,7 +315,8 @@ class NetworkVideoFrameDecoder(
                 }
             }
             future.cancel(true)
-            null
+            // isTimeout=true so decode() can check if SMB playback was active and classify as transient
+            ExtractionOutcome(bitmap = null, isTimeout = true)
         } catch (e: InterruptedException) {
             // Expected during cancellation - log at debug level without stack trace
             Timber.d("Video thumbnail extraction INTERRUPTED - cancelling: ${path.substringAfterLast('/')}")
@@ -273,14 +330,14 @@ class NetworkVideoFrameDecoder(
             }
             future.cancel(true)
             Thread.currentThread().interrupt()
-            null
+            ExtractionOutcome(bitmap = null)
         } catch (e: Exception) {
             // Unexpected errors still get full stack trace
             Timber.e(e, "Unexpected error during video frame extraction with timeout")
             if (!future.isDone) {
                 future.cancel(true)
             }
-            null
+            ExtractionOutcome(bitmap = null)
         }
     }
 

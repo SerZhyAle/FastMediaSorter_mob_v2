@@ -16,6 +16,9 @@ import com.sza.fastmediasorter.vr.openxr.XrHand
 import com.sza.fastmediasorter.vr.openxr.XrInputCallback
 import com.sza.fastmediasorter.vr.openxr.XrInputEventType
 import com.sza.fastmediasorter.vr.openxr.XrInputSource
+import com.sza.fastmediasorter.vr.render.VrHudElementRegistry
+import com.sza.fastmediasorter.vr.ui.VrHudHitTester
+import com.sza.fastmediasorter.vr.ui.VrHudInputDispatcher
 import com.sza.fastmediasorter.vr.ui.VrPanelHitZoneResolver
 import com.sza.fastmediasorter.vr.ui.VrRayPanelHitTester
 import timber.log.Timber
@@ -92,13 +95,25 @@ class VrControllerInputManager(
         // Raw render-thread call; VrControllerRayManager throttles internally.
         controllerPointerMoveSink?.invoke(hand, ndcX, ndcY)
         // Panel hit-test — runs only while the GL panel is visible.
-        val ht = panelHitTester ?: return
-        val rslv = panelHitResolver ?: return
-        if (panelVisibleProvider?.invoke() != true) return
-        val hit = ht.computeHit(ndcX, ndcY)
-        val zoneId = rslv.resolve(hit)
-        val seekFrac = rslv.resolveSeekFraction(hit)
-        panelHoverSink?.invoke(hand, zoneId, seekFrac)
+        val ht = panelHitTester
+        val rslv = panelHitResolver
+        if (ht != null && rslv != null && panelVisibleProvider?.invoke() == true) {
+            val hit = ht.computeHit(ndcX, ndcY)
+            val zoneId = rslv.resolve(hit)
+            val seekFrac = rslv.resolveSeekFraction(hit)
+            panelHoverSink?.invoke(hand, zoneId, seekFrac)
+        }
+        // HUD hit-test (S0024 Phase 02) — gated by HUD layer visibility per §11 criterion 4.
+        val hudTester = hudHitTester
+        val sink = hudHoverSink
+        if (hudTester != null && sink != null && hudVisibleProvider?.invoke() == true) {
+            val registry = hudRegistryProvider?.invoke()
+            if (registry != null) {
+                val hit = hudTester.computeHit(ndcX, ndcY)
+                val elementId = if (hit.isMiss) 0 else (registry.elementAt(hit.u, hit.v)?.id ?: 0)
+                sink.invoke(hand, elementId)
+            }
+        }
     }
 
     override fun onControllerPanelHover(hand: Int, zoneId: Int, seekFraction: Float) {
@@ -149,6 +164,42 @@ class VrControllerInputManager(
         panelHitResolver = resolver
     }
 
+    // ── HUD ray-input (S0024 Phase 02) ───────────────────────────────────────
+
+    @Volatile private var hudHitTester: VrHudHitTester? = null
+
+    /** Source of the per-frame HUD element registry (`VrHudSceneDriver.registry`). */
+    @Volatile var hudRegistryProvider: (() -> VrHudElementRegistry?)? = null
+
+    /** Predicate that returns true when the HUD composition layer is currently submitted. */
+    @Volatile var hudVisibleProvider: (() -> Boolean)? = null
+
+    /**
+     * Called on the xr-render-thread with the resolved HUD element id under the controller
+     * aim-ray (or `0` for miss / no element). Pipeline-side stores the value for Phase 03
+     * hover redraw consumption.
+     */
+    @Volatile var hudHoverSink: ((hand: Int, hudElementId: Int) -> Unit)? = null
+
+    /** Attach the HUD hit-tester after the HUD swapchain is ready. */
+    fun attachHudHitTester(tester: VrHudHitTester) {
+        hudHitTester = tester
+    }
+
+    /**
+     * Attach the dispatcher that routes controller-trigger and hand-pinch events to
+     * registered HUD element callbacks (S0024 Phase 04). Must be set after the HUD
+     * scene driver is constructed by [VrRenderPipelineManager].
+     */
+    @Volatile var hudInputDispatcher: VrHudInputDispatcher? = null
+
+    /**
+     * Provider for the latest HUD hover id (`VrHudSceneDriver.hoverState.current()`).
+     * Used by the trigger handler to decide whether to consume the trigger as a HUD
+     * click or fall through to the player command.
+     */
+    @Volatile var hudHoverIdProvider: (() -> Int)? = null
+
     private fun dispatchXrEvent(type: Int, hand: Int, value: Float, source: Int) {
         val commandSource = xrCommandSource(source)
         Timber.v("VrInput[xr]: type=%d hand=%d value=%.3f source=%d", type, hand, value, source)
@@ -166,6 +217,19 @@ class VrControllerInputManager(
         if (type == XrInputEventType.PAUSE_TOGGLE && panelVisibleProvider?.invoke() == true) {
             panelClickSink?.invoke()
             return
+        }
+
+        // S0024 Phase 04: when the HUD has an interactive element under the controller aim,
+        // the trigger fires a HUD click instead of toggling play/pause. C++ emits PAUSE_TOGGLE
+        // as a single edge — model it as press-and-immediate-release on the same hover id.
+        if (type == XrInputEventType.PAUSE_TOGGLE) {
+            val hoverId = hudHoverIdProvider?.invoke() ?: 0
+            val dispatcher = hudInputDispatcher
+            if (hoverId != 0 && dispatcher != null) {
+                dispatcher.onTriggerDown(VrHudInputDispatcher.Source.CONTROLLER_TRIGGER)
+                dispatcher.onTriggerUp(VrHudInputDispatcher.Source.CONTROLLER_TRIGGER)
+                return
+            }
         }
 
         val trigger = InputTrigger.fromXrInputEvent(type)
@@ -187,6 +251,17 @@ class VrControllerInputManager(
             audioManager?.playSoundEffect(AudioManager.FX_KEYPRESS_RETURN)
         }
         onPointerEvent?.invoke(hand, down)
+
+        // S0024 Phase 04: single dispatcher per ADR-2 — panel and HUD do not collide because
+        // each consults its own registry under its own hover-id state. HUD branch fires only
+        // when the pinched hand currently hovers a registered HUD element.
+        val dispatcher = hudInputDispatcher ?: return
+        val hoverId = hudHoverIdProvider?.invoke() ?: 0
+        if (down) {
+            if (hoverId != 0) dispatcher.onTriggerDown(VrHudInputDispatcher.Source.HAND_PINCH)
+        } else {
+            if (dispatcher.hasLatch()) dispatcher.onTriggerUp(VrHudInputDispatcher.Source.HAND_PINCH)
+        }
     }
 
     /**

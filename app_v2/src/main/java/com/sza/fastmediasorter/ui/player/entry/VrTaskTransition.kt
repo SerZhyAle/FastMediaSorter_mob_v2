@@ -103,25 +103,38 @@ object VrTaskTransition {
     }
 
     /**
-     * S0019: explicit user-driven «exit to flat playback panel» path. Carries playback
-     * context (resource/file/position) so the user lands on the same file in the 2D
-     * player rather than on the file-browser root.
+     * S0019 / S0038: user-driven «exit to flat playback panel» path. Direct startActivity,
+     * NOT the home-intent recovery path.
      *
-     * This is a thin wrapper over [exitImmersiveToPanel] that requires a non-null
-     * `playerIntent`; the named function makes it impossible to accidentally fall back
-     * to MainActivity for the user-driven exit (which was the symptom of the original
-     * S0019 bug).
+     * WHY this is direct (no PendingIntent home-intent): the recovery path was launching the
+     * panel intent through HorizonOS vrshell as MAIN/LAUNCHER, which the OS treats as a fresh
+     * task root and creates a new window. With FLAG_ACTIVITY_REORDER_TO_FRONT |
+     * FLAG_ACTIVITY_SINGLE_TOP a pre-existing panel `PlayerActivity` is brought to the front
+     * (calling onNewIntent); if no panel window exists, a single new `PlayerActivity` is
+     * created — both outcomes avoid the «VrPlayerActivity → STANDARD_PANEL_FALLBACK →
+     * PlayerActivity» two-hop relaunch that grew the task switcher.
+     *
+     * Caller MUST pass an intent that targets the standard 2D `PlayerActivity` (use
+     * `PlayerActivity.createPanelIntent`), NOT the flavor-routed `PlayerActivity.createIntent`
+     * (which on the VR flavor resolves to `VrPlayerActivity` and reproduces the clone bug).
      */
     fun exitImmersiveToFlatPlayer(source: Activity, playerIntent: Intent) {
         val targetClass = playerIntent.component?.className?.substringAfterLast('.')
         val filePath = playerIntent.getStringExtra("extra_initial_file_path")
             ?: playerIntent.getStringExtra("initialFilePath")
             ?: "<unknown>"
+        playerIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK
+                or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        )
         Timber.i(
-            "VrTaskTransition.exitImmersiveToFlatPlayer: routing via home-intent target=%s file=%s",
+            "VrTaskTransition.exitImmersiveToFlatPlayer: direct startActivity target=%s file=%s flags=0x%x",
             targetClass,
             filePath,
+            playerIntent.flags,
         )
-        exitImmersiveToPanel(source, playerIntent)
+        source.startActivity(playerIntent)
+        source.finishAndRemoveTask()
     }
 }

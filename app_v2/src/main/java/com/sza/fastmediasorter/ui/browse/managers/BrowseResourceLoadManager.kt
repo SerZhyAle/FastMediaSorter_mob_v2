@@ -265,6 +265,9 @@ class BrowseResourceLoadManager(
      */
     fun loadMediaFiles() {
         val resource = stateFlow.value.resource ?: return
+        val showStopImmediately = resource.type == ResourceType.SMB ||
+            resource.type == ResourceType.SFTP ||
+            resource.type == ResourceType.FTP
 
         if (resource.id == -100L) { loadFavorites(); return }
 
@@ -272,7 +275,7 @@ class BrowseResourceLoadManager(
 
         // Cancel any previous load
         // (loadFilesJob is owned externally via setLoadFilesJobRef — we cancel the current before launching)
-        updateState { it.copy(loadingProgress = 0, isScanCancellable = false) }
+        updateState { it.copy(loadingProgress = 0, isScanCancellable = showStopImmediately) }
 
         var lastProgressUpdate = 0
         val progressJob = scope.launch(ioDispatcher) {
@@ -297,8 +300,13 @@ class BrowseResourceLoadManager(
                 Timber.w(e, "BrowseResourceLoadManager: temp cleanup exception (non-critical)")
             }
 
-            // Show STOP button after 5 s
-            val stopTimerJob = launch {
+            // Network scans can sit on large remote trees before the first visible batch arrives.
+            // Expose STOP immediately there; keep the delayed button for local/cloud scans.
+            val stopTimerJob = if (showStopImmediately) {
+                setStopButtonTimerJobRef(null)
+                Timber.d("BrowseResourceLoadManager: network scan, showing STOP button immediately")
+                null
+            } else launch {
                 delay(5_000L)
                 if (isLoading()) {
                     updateState { it.copy(isScanCancellable = true) }
@@ -335,7 +343,7 @@ class BrowseResourceLoadManager(
                 progressJob.cancel()
                 loadMediaFilesStandard(resourceForScan, sizeFilter, progressJob)
             } finally {
-                stopTimerJob.cancel()
+                stopTimerJob?.cancel()
             }
         }
         setLoadFilesJobRef(filesJob)

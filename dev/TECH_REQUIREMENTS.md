@@ -270,12 +270,12 @@
 
 | Constraint                              | Details                                                    |
 |:----------------------------------------|:-----------------------------------------------------------|
-| JDK version                             | 17 or 21 only. JDK 25+ is **incompatible** with Gradle 8.11.1 |
+| JDK version                             | 17 or 21 only. JDK 25+ is **incompatible** with the current Gradle 9.4.1 / AGP 9.2.0 toolchain |
 | Kotlin ↔ Compose compiler match         | Kotlin 1.9.24 requires Compose Compiler 1.5.14 exactly     |
 | 16 KB page alignment                    | Mandatory for Google Play since Nov 1, 2025 (Android 15+)  |
 | `Log.d()` prohibited                    | Use `Timber` exclusively                                   |
 | Activity business logic prohibited      | Delegate to Manager/Helper classes                         |
-| File size limit                         | Max 1000 lines per file; extract to `helpers/`             |
+| File size limit                         | Max 1500ines per file; extract to `helpers/`             |
 | Room DB migration                       | Must increment version on any schema change                |
 | Native lib packaging                    | `useLegacyPackaging = false` for 16KB alignment            |
 

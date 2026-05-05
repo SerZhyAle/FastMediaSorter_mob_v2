@@ -18,4 +18,15 @@ interface NetworkCredentialsRepository {
     fun getAllCredentials(): kotlinx.coroutines.flow.Flow<List<NetworkCredentialsEntity>>
     /** Returns credentials that have no associated resources (orphaned). */
     suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity>
+    /**
+     * S0064: Returns deduplicated list of share names previously used on [server]:[port].
+     * Combines both auto-saved share names (from credentials) and manually entered names
+     * stored in [NetworkCredentialsEntity.manualShareNames].
+     */
+    suspend fun getManualShareNamesForServer(server: String, port: Int): List<String>
+    /**
+     * S0064: Persists [shareName] to the manual-name history for [server]:[port].
+     * Updates the first credential found for that server; silently no-ops if none exists yet.
+     */
+    suspend fun addManualShareName(server: String, port: Int, shareName: String)
 }

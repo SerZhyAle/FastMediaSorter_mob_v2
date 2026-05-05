@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260503025
-        versionName = "2.60.5030.252"
+        versionCode = 260505114
+        versionName = "2.60.5051.142"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -254,11 +254,11 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
-            // Gate for the future spec_vr-ui-composition-layer (Android view-hierarchy
-            // composition slot). Default false: while false, the immersive HUD guard
-            // suppresses invisible Android panels (file ops / control dialog / cheatsheet)
-            // and shows banner hints instead. Flip to true once spec B lands.
-            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
+            // S0008 + S0019 (spec B landed): immersive HUD scene driver and interactive panel
+            // composer are wired through VrInteractivePanelDriver / VrHudSceneDriver and dispatch
+            // real playback commands. Flip to true so isImmersiveUiLocked() stops no-op'ing
+            // OpenControls / OpenFileOps / Cheatsheet inside immersive.
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
             // VR flavor routes all player launches to VrPlayerActivity (OpenXR host)
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
@@ -307,7 +307,9 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
-            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
+            // S0008 + S0019 (spec B landed): same flip as `vr` flavor — interactive panel + HUD
+            // are wired; isImmersiveUiLocked() stops gating commands inside immersive.
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
             buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")  // Always true — no store restrictions

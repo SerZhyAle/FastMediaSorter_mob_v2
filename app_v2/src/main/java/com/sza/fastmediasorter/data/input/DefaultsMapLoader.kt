@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.input
 
 import android.content.Context
+import android.view.KeyEvent
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.sza.fastmediasorter.domain.input.BindingSource
@@ -32,6 +33,17 @@ class DefaultsMapLoader @Inject constructor(
         }
         return result
     }
+
+    fun loadChromeOsDefaults(): List<InputBinding> = listOf(
+        InputBinding("playback.pause_play",    InputTrigger.Key(KeyEvent.KEYCODE_SPACE),      BindingSource.DEFAULT),
+        InputBinding("navigation.previous_file", InputTrigger.Key(KeyEvent.KEYCODE_DPAD_LEFT),  BindingSource.DEFAULT),
+        InputBinding("navigation.next_file",   InputTrigger.Key(KeyEvent.KEYCODE_DPAD_RIGHT), BindingSource.DEFAULT),
+        InputBinding("audio.volume_up",        InputTrigger.Key(KeyEvent.KEYCODE_DPAD_UP),    BindingSource.DEFAULT),
+        InputBinding("audio.volume_down",      InputTrigger.Key(KeyEvent.KEYCODE_DPAD_DOWN),  BindingSource.DEFAULT),
+        InputBinding("sorting.delete",         InputTrigger.Key(KeyEvent.KEYCODE_DEL),        BindingSource.DEFAULT),
+        InputBinding("playback.pause_play",    InputTrigger.Key(KeyEvent.KEYCODE_ENTER),      BindingSource.DEFAULT),
+        InputBinding("sorting.favourite",      InputTrigger.Key(KeyEvent.KEYCODE_F),          BindingSource.DEFAULT),
+    )
 
     private data class BindingsRoot(
         @SerializedName("bindings") val bindings: List<BindingEntry> = emptyList()

@@ -14,6 +14,7 @@ object NetworkErrorMessageMapper {
 
     @StringRes
     fun toMessageRes(exception: NetworkException): Int = when (exception) {
+        is LocalNetworkPermissionDeniedException -> R.string.local_network_permission_rationale_message
         is NetworkRateLimitException -> R.string.error_network_rate_limit
         is NetworkServerErrorException -> R.string.error_network_server_error
         is NetworkTimeoutException -> R.string.error_network_timeout

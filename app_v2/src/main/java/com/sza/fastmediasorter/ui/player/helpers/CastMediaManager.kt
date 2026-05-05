@@ -17,11 +17,13 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.CastMediaControlIntent
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cast.LocalCastProxyServer
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.sza.fastmediasorter.BuildConfig
@@ -58,6 +60,8 @@ class CastMediaManager(
 
     val isCasting: Boolean get() = _isCasting
     @Volatile private var _isCasting = false
+
+    val castAvailableState = MutableStateFlow(false)
 
     private val proxyServer = LocalCastProxyServer(context)
     private var castContext: CastContext? = null
@@ -116,6 +120,10 @@ class CastMediaManager(
             Timber.i("CastMediaManager: cast not supported on this platform — init skipped")
             return
         }
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            Timber.i("CastMediaManager: local network permission not granted — Cast init deferred")
+            return
+        }
         try {
             castContext = CastContext.getSharedInstance(context)
             castContext?.sessionManager?.addSessionManagerListener(
@@ -128,10 +136,12 @@ class CastMediaManager(
                 _isCasting = true
                 if (!proxyServer.isAlive) proxyServer.start()
             }
+            castAvailableState.value = true
             Timber.d("CastMediaManager: initialized, isCasting=$_isCasting")
         } catch (e: Exception) {
             Timber.w("CastMediaManager: Cast SDK not available — ${e.message}")
             castContext = null
+            castAvailableState.value = false
         }
     }
 
@@ -165,6 +175,18 @@ class CastMediaManager(
      * Opens the Cast device picker dialog. Call when the user taps "Cast to Chromecast".
      */
     fun showCastDialog(activity: FragmentActivity) {
+        if (!PermissionHelper.hasLocalNetworkPermission(activity)) {
+            if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
+                PermissionHelper.requestLocalNetworkPermission(activity)
+            } else {
+                PermissionHelper.routeToLocalNetworkSettings(activity)
+            }
+            return
+        }
+        // Lazy recovery: permission just granted but init() was deferred — re-initialize now
+        if (castContext == null && BuildConfig.SUPPORT_CAST) {
+            init()
+        }
         if (castContext == null) {
             Toast.makeText(activity, R.string.cast_unavailable, Toast.LENGTH_SHORT).show()
             return

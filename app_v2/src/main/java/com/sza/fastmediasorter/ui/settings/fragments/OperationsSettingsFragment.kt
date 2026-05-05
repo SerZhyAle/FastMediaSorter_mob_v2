@@ -184,7 +184,22 @@ class OperationsSettingsFragment : Fragment() {
                 R.string.tooltip_safe_mode_message
             )
         }
-        
+        binding.switchUseTrash.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(useTrash = isChecked))
+            binding.btnClearTrash.isVisible = isChecked
+        }
+        binding.btnClearTrash.setOnClickListener {
+            viewModel.clearAllTrash(requireContext())
+        }
+        binding.iconHelpUseTrash.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_use_trash_title,
+                R.string.tooltip_use_trash_message
+            )
+        }
+
         // RecyclerView setup
         adapter = DestinationsAdapter(
             onMoveUp = { position -> moveDestination(position, -1) },
@@ -302,6 +317,8 @@ class OperationsSettingsFragment : Fragment() {
                         binding.switchEnableSafeMode.isChecked = settings.enableSafeMode
                         binding.switchConfirmDelete.isChecked = settings.confirmDelete
                         binding.switchConfirmMove.isChecked = settings.confirmMove
+                        binding.switchUseTrash.isChecked = settings.useTrash
+                        binding.btnClearTrash.isVisible = settings.useTrash
                         binding.layoutConfirmDelete.visibility =
                             if (settings.enableSafeMode) View.VISIBLE else View.GONE
                         binding.layoutConfirmMove.visibility =

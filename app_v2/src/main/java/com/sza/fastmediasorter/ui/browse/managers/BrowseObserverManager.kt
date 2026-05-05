@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
@@ -90,15 +91,19 @@ class BrowseObserverManager(
 
             if (!isLoading) binding.swipeRefreshLayout.isRefreshing = false
 
-            binding.tvProgressMessage.text = when {
+            val progressMessage = when {
                 state.isSorting -> binding.root.context.getString(R.string.sorting_in_progress)
-                state.loadingProgress > 0 -> binding.root.context.getString(
-                    R.string.loading_with_progress,
-                    binding.root.context.getString(R.string.loading),
-                    state.loadingProgress
-                )
+                state.resource?.type == ResourceType.SMB && state.loadingProgress > 0 -> {
+                    val estimatedCount = state.totalFileCount?.takeIf { it > state.loadingProgress }
+                    val scanCounter = estimatedCount?.let { "${state.loadingProgress} / ~$it" }
+                        ?: state.loadingProgress.toString()
+                    binding.root.context.getString(R.string.scanning_progress, scanCounter)
+                }
                 else -> binding.root.context.getString(R.string.loading)
             }
+            binding.tvProgressMessage.text = progressMessage
+            binding.tvProgressMessage.contentDescription = progressMessage
+            binding.layoutProgress.contentDescription = progressMessage
 
             if (!isLoading) {
                 val hasError = viewModel.error.value != null

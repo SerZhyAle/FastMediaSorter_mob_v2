@@ -1,0 +1,145 @@
+Исправленный non-VR release — последовательность промптов
+
+Запускать строго по одному, следующий промпт только после завершения предыдущего.
+
+Основной порядок:
+1. S0069 /spec-tech
+2. S0069 /spec-dev
+3. S0069 /spec-check
+4. Narrow regression-pass по уже внедрённым network/playback фиксам
+5. Починить только release-worthy non-VR дефекты, найденные regression-pass
+6. S0068 /spec-tech
+7. S0068 /spec-dev
+8. Финальный build + smoke
+9. Опционально после fixed release — оценка S0067 как post-release hardening
+
+==================================================
+PROMPT 1 — Разбить S0069 на тактические фазы
+==================================================
+
+/spec-tech S0069
+
+Разбей S0069 на минимальные тактические фазы для corrected non-VR release.
+Фокус только на atomic-copy path, temp-file lifecycle, cancel vs fail semantics и SMB reproducer из лога 2026-05-03.
+Не расширяй scope на FTP/SFTP/Cloud, если code audit не покажет общий дефект.
+Для каждой фазы дай:
+- exact files/classes
+- verification predicate
+- минимальный test/build command
+- явный stop condition, если выяснится, что bug не SMB-only
+
+==================================================
+PROMPT 2 — Реализовать S0069
+==================================================
+
+/spec-dev S0069
+
+Выполни S0069 по фазам как narrow release fix.
+Цель:
+- temp-файл не исчезает между copy и rename
+- user-cancel не логируется как Unexpected error during atomic copy
+- temp lifecycle имеет одного владельца
+- после fail/cancel не остаётся мусора и не портится final target
+
+После первой substantive правки сразу сделай focused validation на reproducer-path.
+Не делай параллельно архитектурную чистку соседних стратегий.
+
+==================================================
+PROMPT 3 — Проверить S0069
+==================================================
+
+/spec-check S0069
+
+Проведи machine-verifiable audit по S0069 после реализации.
+Проверь:
+- больше нет temp-missing invariant в copy-path
+- cancel-path отделён от fail-path
+- rename идёт только после успешной post-condition temp exists
+- touched files покрыты минимальной валидацией
+Если найдёшь trivial mechanical gaps, сразу перечисли их для следующего /spec-fix.
+
+==================================================
+PROMPT 4 — Узкий regression-pass по playback/network stability
+==================================================
+
+Проведи узкий regression-pass для non-VR playback/network stability без новых фич.
+Фокус только на уже существующих fixed areas: S0061, S0025, S0060, S0047, S0063.
+Проверь:
+- SMB stale reconnect / fast-fail
+- thumbnail/playback race на SMB
+- SFTP broken channel recovery
+- network thumbnail skip/fallback where already implemented
+- большие видео по SMB/SFTP: open, seek, next/prev, resume, cancel copy during activity
+
+Нужен короткий результат в формате:
+1. что уже достаточно для fixed release
+2. где есть реальный residual risk
+3. что нельзя тащить в релиз без нового тикета
+Без broad refactor и без VR.
+
+==================================================
+PROMPT 5 — Исправить только release-worthy non-VR дефекты
+==================================================
+
+Исправь только release-worthy non-VR defects, найденные в предыдущем regression-pass.
+Правила:
+- не открывать широкий рефакторинг
+- не трогать VR
+- приоритет: playback of large network videos, SMB/SFTP resilience, copy correctness
+- если проблема требует broad architecture work, не реализуй её, а явно отложи после релиза
+После каждого узкого фикса делай focused validation сразу.
+
+==================================================
+PROMPT 6 — Разбить S0068 как post-stability polish
+==================================================
+
+/spec-tech S0068
+
+Разбей S0068 на минимальные фазы как post-stability polish для corrected release.
+Фокус:
+- мгновенная STOP для network scans
+- числовой прогресс для длинных SMB scans
+- без изменения scan architecture
+- без UI redesign
+
+==================================================
+PROMPT 7 — Реализовать S0068
+==================================================
+
+/spec-dev S0068
+
+Выполни S0068 как small safe release polish.
+Не меняй архитектуру сканирования.
+Используй уже существующий progress callback/state.
+После первой правки сразу проверь только этот slice: network scan start, STOP visibility, progress text update.
+
+==================================================
+PROMPT 8 — Финальный релизный build и smoke
+==================================================
+
+/build
+
+Собери corrected non-VR release и выполни узкий smoke-pass.
+Фокус smoke:
+- SMB copy with cancel
+- SMB copy success path
+- large video playback from SMB
+- large video playback from SFTP
+- seek / resume / next / prev on network video
+- long network scan with visible STOP/progress
+- отсутствие новых obvious log storms
+
+Верни краткий release verdict:
+PASS / PASS WITH KNOWN RISKS / NO-GO
+с 3-5 самыми важными пунктами.
+
+==================================================
+PROMPT 9 — Опционально после fixed release
+==================================================
+
+После fixed release оцени, стоит ли поднимать S0067 как отдельный post-release hardening pass.
+Нужен только decision memo:
+- почему это уже не fixed-release scope
+- какие реальные протоколы кроме SMB ещё требуют evidence
+- какой минимальный rollout order безопасен
+Без реализации.

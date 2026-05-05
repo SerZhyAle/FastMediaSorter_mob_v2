@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  * ### Usage
  *
  * ```kotlin
- * val token  = ScanMetricsRecorder.beginScan(resource.id, resource.type)
+ * val token  = ScanMetricsRecorder.beginScan(resource.id, resource.type, resource.fileCount)
  * val files  = scanner.scanFolder(...)
  * ScanMetricsRecorder.endScan(token, files.size)
  * ```
@@ -40,10 +40,18 @@ object ScanMetricsRecorder {
      * @param resourceType Type of the resource (LOCAL / SMB / CLOUD etc.).
      * @return Opaque [ScanToken] to pass to [endScan].
      */
-    fun beginScan(resourceId: Long, resourceType: ResourceType): ScanToken {
+    fun beginScan(resourceId: Long, resourceType: ResourceType, expectedFileCount: Int = 0): ScanToken {
         val startMs = System.currentTimeMillis()
-        Timber.d("ScanMetrics: begin scan resourceId=$resourceId type=${resourceType.name}")
-        return ScanToken(resourceId = resourceId, resourceType = resourceType, startMs = startMs)
+        Timber.d(
+            "ScanMetrics: begin scan resourceId=$resourceId type=${resourceType.name} " +
+                "expected_file_count=$expectedFileCount"
+        )
+        return ScanToken(
+            resourceId = resourceId,
+            resourceType = resourceType,
+            startMs = startMs,
+            expectedFileCount = expectedFileCount
+        )
     }
 
     /**
@@ -75,12 +83,15 @@ object ScanMetricsRecorder {
                 "file_count=$fileCount"
         )
 
-        // Warn on slow scans (> 6 000 ms alert threshold from QUALITY_BASELINE.md).
-        if (durationMs > SLOW_SCAN_THRESHOLD_MS) {
+        val thresholdMs = effectiveThreshold(token.expectedFileCount)
+        if (durationMs > thresholdMs) {
             Timber.w(
                 "ScanMetrics: SLOW SCAN detected — ${durationMs}ms " +
-                    "(threshold: ${SLOW_SCAN_THRESHOLD_MS}ms) " +
-                    "resourceId=${token.resourceId} type=${token.resourceType.name}"
+                    "threshold=${thresholdMs}ms " +
+                    "expected_file_count=${token.expectedFileCount} " +
+                    "actual_file_count=$fileCount " +
+                    "resourceId=${token.resourceId} " +
+                    "type=${token.resourceType.name}"
             )
         }
     }
@@ -108,15 +119,21 @@ object ScanMetricsRecorder {
         _events.clear()
     }
 
-    private const val MAX_HISTORY        = 200
-    private const val SLOW_SCAN_THRESHOLD_MS = 6_000L
+    // WHY: empirical 2-3x parallelism baseline gives ~0.4 ms / file (S0056 §6.2).
+    private fun effectiveThreshold(expectedFileCount: Int): Long =
+        maxOf(SLOW_SCAN_BASE_THRESHOLD_MS, (expectedFileCount * SLOW_SCAN_PER_FILE_MS).toLong())
+
+    private const val MAX_HISTORY = 200
+    private const val SLOW_SCAN_BASE_THRESHOLD_MS = 6_000L
+    private const val SLOW_SCAN_PER_FILE_MS = 0.4
 }
 
 /** Opaque scan timer token returned by [ScanMetricsRecorder.beginScan]. */
 data class ScanToken(
     val resourceId: Long,
     val resourceType: ResourceType,
-    val startMs: Long
+    val startMs: Long,
+    val expectedFileCount: Int
 )
 
 /** A single completed scan measurement. */

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -130,6 +131,16 @@ internal class AddResourceVirtualCoordinator(
                 val settings = settingsRepository.getSettings().first()
                 val displayMode = if (settings.defaultGridMode) DisplayMode.GRID else DisplayMode.LIST
 
+                // Downloads folder should show all files regardless of global setting (S0059)
+                val downloadsPath = Environment
+                    .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    .absolutePath
+                val isDownloadsFolder = path == downloadsPath ||
+                    path.endsWith("/$downloadsPath") ||
+                    path == "file://$downloadsPath" ||
+                    path.removePrefix("file://") == downloadsPath
+                val effectiveAllFiles = if (isDownloadsFolder) true else settings.allFiles
+
                 val resource = MediaResource(
                     id = 1,
                     name = name,
@@ -147,8 +158,8 @@ internal class AddResourceVirtualCoordinator(
                     // manually added local folders default to recursive scanning
                     scanSubdirectories = true,
                     isReadOnly = false,
-                    // inherit global "all files" so users don't have to re-toggle per resource
-                    allFiles = settings.allFiles,
+                    // Downloads always shows all files; others inherit global setting (S0059)
+                    allFiles = effectiveAllFiles,
                     accessPin = accessPin?.ifBlank { null }
                 )
 
@@ -262,7 +273,8 @@ internal class AddResourceVirtualCoordinator(
             supportedMediaTypes = types,
             sortMode = defaultSortMode,
             profile = profile,
-            allFiles = false
+            // Recent shows all files by default so nothing is hidden from history (S0059)
+            allFiles = virtualPath == LocalMediaScanner.VIRTUAL_PATH_RECENT
         )
     }
 

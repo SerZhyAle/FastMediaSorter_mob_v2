@@ -22,7 +22,7 @@ data class BrowseState(
     val loadingProgress: Int = 0, // Number of files found during scan (0 = not scanning)
     val isSorting: Boolean = false, // True while in-memory sort is running (shows "Sorting..")
     val isCloudResource: Boolean = false, // True for cloud resources (to show animated dots)
-    val isScanCancellable: Boolean = false, // True when scan runs >5 seconds, shows STOP button
+    val isScanCancellable: Boolean = false, // True when STOP should be visible for the active scan
     val showSmallControls: Boolean = false, // True if "Small controls" setting is enabled
     val useCompactElements: Boolean = false, // True if global compact mode is enabled
     val extractionState: ExtractionState = ExtractionState(),

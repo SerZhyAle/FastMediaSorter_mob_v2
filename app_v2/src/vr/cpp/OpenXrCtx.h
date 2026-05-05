@@ -231,6 +231,26 @@ namespace xrnative
         std::vector<jint> eyePixels[kViewCount];
     };
 
+    struct RayState
+    {
+        bool active = false;
+        float originX = 0.0f, originY = 0.0f, originZ = 0.0f;
+        float endX = 0.0f, endY = 0.0f, endZ = 0.0f;
+        bool hasCursor = false;
+        float cursorX = 0.0f, cursorY = 0.0f, cursorZ = 0.0f;
+    };
+
+    struct RayRenderResources
+    {
+        bool ready = false;
+        GLuint program = 0;
+        GLuint vbo = 0;
+        GLuint vao = 0;
+        GLint uMvpLoc = -1;
+        GLint uColorLoc = -1;
+        GLint aPosLoc = -1;
+    };
+
     struct XrCtx
     {
         JavaVM *vm = nullptr;
@@ -259,6 +279,8 @@ namespace xrnative
         EyeSwapchain eyes[kViewCount];
         InputSystem input{};
         std::atomic<bool> controllerRayEnabled{true};
+        RayState rayState[2]{};
+        RayRenderResources rayResources{};
         HandSystem hands{};
         StereoSnapshot stereoSnapshot{};
         XrSwapchain hudSwapchain = XR_NULL_HANDLE;

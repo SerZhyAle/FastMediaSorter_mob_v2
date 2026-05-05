@@ -184,6 +184,8 @@ private class FakeNetworkCredentialsRepository : NetworkCredentialsRepository {
     override suspend fun delete(credentials: NetworkCredentialsEntity) = Unit
     override fun getAllCredentials(): Flow<List<NetworkCredentialsEntity>> = emptyFlow()
     override suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity> = emptyList()
+    override suspend fun getManualShareNamesForServer(server: String, port: Int): List<String> = emptyList()
+    override suspend fun addManualShareName(server: String, port: Int, shareName: String) = Unit
 }
 
 private class FakeResourceRepository : ResourceRepository {
@@ -208,4 +210,5 @@ private class FakeResourceRepository : ResourceRepository {
     override suspend fun deleteAllResources() = Unit
     override suspend fun testConnection(resource: MediaResource): Result<String> = Result.success("ok")
     override suspend fun updateIcon(resourceId: Long, iconId: String?) = Unit
+    override suspend fun backfillMissingIcons(resolveIcon: (path: String, profileName: String, typeName: String) -> String?): Int = 0
 }

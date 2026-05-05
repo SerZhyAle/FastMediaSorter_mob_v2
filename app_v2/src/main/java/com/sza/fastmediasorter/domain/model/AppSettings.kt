@@ -82,7 +82,7 @@ data class AppSettings(
     val playToEndInSlideshow: Boolean = true,
     val allowRename: Boolean = true,
     val allowDelete: Boolean = true,
-    val useTrash: Boolean = true, // Move deleted files to trash instead of permanent delete
+    val useTrash: Boolean = false, // Move deleted files to trash instead of permanent delete
     val confirmDelete: Boolean = true, // Confirm before deleting files (used by Safe Mode)
     val confirmMove: Boolean = false, // Confirm before moving files (used by Safe Mode)
     val defaultGridMode: Boolean = false,
@@ -185,7 +185,10 @@ data class AppSettings(
     val streamingCacheTtlDays: Int = 7,          // 0 = off, 1, 3, 7, 30
 
     // S0050: Black Screen mode — show/hide the black-screen toolbar button in audio/video players
-    val showBlackScreenButton: Boolean = false
+    val showBlackScreenButton: Boolean = false,
+
+    // S0028: Multi-window mode — allow opening Browse/Player in a separate window
+    val allowSeparateWindow: Boolean = false
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

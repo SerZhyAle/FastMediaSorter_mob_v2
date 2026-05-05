@@ -10,7 +10,9 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -55,14 +58,39 @@ class SettingsViewModel @Inject constructor(
     val importSettingsUseCase: ImportSettingsUseCase,
     val resetSmbConnectionsUseCase: ResetSmbConnectionsUseCase,
     private val syncNetworkResourcesUseCase: SyncNetworkResourcesUseCase,
-    private val workManagerScheduler: WorkManagerScheduler
+    private val workManagerScheduler: WorkManagerScheduler,
+    private val getDeviceStorageUseCase: GetDeviceStorageUseCase
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
     val manualNetworkSyncState: StateFlow<ManualNetworkSyncUiState> = _manualNetworkSyncState.asStateFlow()
     private var manualSyncJob: Job? = null
 
-    val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
+    private val _deviceStorage = MutableStateFlow<DeviceStorageState>(DeviceStorageState.Error("Loading.."))
+    val deviceStorage: StateFlow<DeviceStorageState> = _deviceStorage.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _deviceStorage.value = getDeviceStorageUseCase()
+        }
+    }
+
+    fun refreshDeviceStorage() {
+        viewModelScope.launch {
+            _deviceStorage.value = getDeviceStorageUseCase()
+        }
+    }
+
+    // Holds the last value passed to updateSettings() so that settings.value is
+    // immediately current even before the async DataStore write completes.
+    // Without this, rapid consecutive switch toggles read a stale .value and overwrite
+    // each other's changes (e.g. Black Screen toggle turns off on next switch press).
+    private val _settingsOverride = MutableStateFlow<AppSettings?>(null)
+
+    val settings: StateFlow<AppSettings> = combine(
+        settingsRepository.getSettings(),
+        _settingsOverride
+    ) { persisted, override -> override ?: persisted }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -85,6 +113,7 @@ class SettingsViewModel @Inject constructor(
 
     fun updateSettings(settings: AppSettings) {
         val prev = this.settings.value
+        _settingsOverride.value = settings  // Optimistic update: makes settings.value current immediately
         viewModelScope.launch {
             try {
                 settingsRepository.updateSettings(settings)
@@ -271,6 +300,24 @@ class SettingsViewModel @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Error resetting player first-run flag")
             }
+        }
+    }
+
+    fun clearAllTrash(context: Context) {
+        viewModelScope.launch {
+            android.widget.Toast.makeText(context, R.string.deleting_files, android.widget.Toast.LENGTH_SHORT).show()
+            var cleanedCount = 0
+            withContext(Dispatchers.IO) {
+                resources.value.forEach { resource ->
+                    try {
+                        val trashDir = java.io.File("${resource.path}/.trash")
+                        if (trashDir.exists() && trashDir.isDirectory && trashDir.deleteRecursively()) {
+                            cleanedCount++
+                        }
+                    } catch (_: Exception) { }
+                }
+            }
+            android.widget.Toast.makeText(context, context.getString(R.string.trash_cleared, cleanedCount), android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 

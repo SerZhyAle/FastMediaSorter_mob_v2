@@ -5,6 +5,18 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+val isWindowsHost = System.getProperty("os.name")
+    ?.startsWith("Windows", ignoreCase = true) == true
+
+buildCache {
+    local {
+        // Gradle 9.x intermittently fails while packing local build cache entries
+        // on Windows (for example RClassOutputJar during resource processing).
+        isEnabled = !isWindowsHost
+    }
+}
+
 plugins {
     // id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"

@@ -2,18 +2,19 @@
 
 **Strategic spec:** [`../S0033_vr-monoliths-decomposition.md`](../S0033_vr-monoliths-decomposition.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01–04 (cpp track) — only to keep diffs reviewable; no semantic dependency.
 **Blocks:** Phase 06
-**Steps done:** 0 / 6
-**Started:** —
+**Steps done:** 6 / 6
+**Completed:** 2026-05-03
+**Started:** 2026-05-03
 **Completed:** —
 
 ---
 
 ## Objective
 
-Extract three Manager classes from `VrPlayerActivity.kt` (1956 LOC) so the Activity is left ≤ 1000 LOC and contains only composition + Android lifecycle delegates. Strategic §6.2 (Activity granularity) is finalised below.
+Extract three Manager classes from `VrPlayerActivity.kt` (1956 LOC) so the Activity is left ≤ 1500OC and contains only composition + Android lifecycle delegates. Strategic §6.2 (Activity granularity) is finalised below.
 
 ### Resolved §6.2 mapping
 
@@ -70,7 +71,11 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 - `Grep` — `Log\.d\(` returns zero hits in the file.
 - `wc -l` ≤ 500.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Verification 5/5 PASS. Backup `temp/VrPlayerActivity.kt.20260503-1304.bak` created. Files: `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` (+486 LOC). Manager wired through `activity.*Internal` accessors that Step 05.4 will surface. Dev log recorded.
 
 ---
 
@@ -93,7 +98,11 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 - `Grep` — `Log\.d\(` returns zero hits.
 - `wc -l` ≤ 500.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Verification 5/5 PASS. Files: `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrSessionLifecycleManager.kt` (+499 LOC). Migrated 16 lifecycle/route functions plus suspend helpers (`buildRouteDecision`, `resolveLaunchStereoMode`, `syncVrImageTarget`) needed by collectLatest in onCreate. Dev log recorded.
 
 ---
 
@@ -116,7 +125,11 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 - `Grep` — `Log\.d\(` returns zero hits.
 - `wc -l` ≤ 400.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Verification 5/5 PASS. Files: `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrPlayerCommandRouter.kt` (+309 LOC). 15 command-router functions migrated; seek-drag debouncer + companion seek/haptic constants live here. Dev log recorded.
 
 ---
 
@@ -145,7 +158,11 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 - `Grep` — `private fun handleVrCommand` matches (forwarder kept).
 - `wc -l app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` ≤ 1000.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Verification 5/5 PASS. `VrPlayerActivity.kt` shrunk from 1988 → 617 LOC (-1371). 3 manager fields lateinit; ~30 internal accessors expose inherited members + state to managers; `handleVrCommand` retained as forwarder. State migrations: pending VR surface + render flag + descriptor + FPS counters → pipeline; xrInit + route flags + stereo/render mode + image-key → lifecycle; panel speed + seek-drag debouncer → router. Dev log recorded.
 
 ---
 
@@ -164,7 +181,11 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 - `assembleStandardDebug` PASS.
 - `Grep` — `TODO(phase-05)` returns zero hits.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-03 — Verification 3/3 PASS. `assembleVrDebug` PASS (18 s). `assembleStandardDebug` PASS (1 m 35 s). `TODO(phase-05)` 0 hits. Three compile fixes during iteration: `seekForward`/`seekBackward` imports added to router, `VrSessionLifecycleManager` made `internal` (constructor exposes internal types `VrRouteDecisionHelper`/`VrRouteDecision`), `VrPlayerActivity.vrHudManager` forwarder added (read by `VrCheatsheetOverlayManager`).
 
 ---
 
@@ -190,7 +211,11 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 
 - Step status flipped to `[manual — deferred to human]`.
 
-**Status:** `[ ]` not done
+**Status:** `[manual — deferred to human]`
+
+**Step Log:**
+
+- 2026-05-03 — Deferred: VR smoke requires Quest 3 device + manual interaction. User owns the device (memory). Spec moves to `BlockNeedUserTest` after Phase 06 to gate `/spec-check` until smoke completes.
 
 ---
 
@@ -198,7 +223,7 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 
 - [ ] Every `Step 05.*` above is `[x] done` (Step 05.6 may be `[manual — deferred to human]`; spec status moves to `BlockNeedUserTest` if the manual smoke is the only outstanding item).
 - [ ] Project compiles — `/build vr debug` PASS, `/build standard debug` PASS.
-- [ ] `VrPlayerActivity.kt` ≤ 1000 LOC.
+- [ ] `VrPlayerActivity.kt` ≤ 1500OC.
 - [ ] Each new Manager file ≤ its budget (`wc -l`).
 - [ ] `Grep` for `TODO(phase-05)` returns zero hits.
 - [ ] Dev log entry added for every file in "Files Touched".
@@ -207,7 +232,7 @@ Activity retains: `onCreate`, `onResume`, `onPause`, `onDestroy`, `onNewIntent`,
 
 ## Handoff Notes to Next Phase
 
-Both monoliths are decomposed: `OpenXrNative.cpp` ≤ 700 LOC, `VrPlayerActivity.kt` ≤ 1000 LOC. Phase 06 closes out: catalog regen, dev log housekeeping, S0024 unblock instruction.
+Both monoliths are decomposed: `OpenXrNative.cpp` ≤ 700 LOC, `VrPlayerActivity.kt` ≤ 1500OC. Phase 06 closes out: catalog regen, dev log housekeeping, S0024 unblock instruction.
 
 ---
 

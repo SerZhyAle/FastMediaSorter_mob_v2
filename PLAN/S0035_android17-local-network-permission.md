@@ -1,12 +1,13 @@
 # Стратегическая спецификация: S0035 — Android 17 Local Network Permission
 
 **Ticket:** S0035
-**Status:** Draft
+**Status:** Verified
+**Implemented date:** 2026-05-04
 **Priority:** 70
 **Date:** 2026-04-30
 **Tier:** 0 — Security/Compliance (urgent)
 **Roadmap entry:** Ad-hoc — запрос 2026-04-30 (Android 17 Beta 4, локальная сеть блокируется по умолчанию для приложений, таргетирующих API 37+)
-**Tactical spec:** `PLAN/S0035_android17-local-network-permission/` (будет создан через `/spec-tech`)
+**Tactical plan:** `PLAN/S0035_android17-local-network-permission/INDEX.md`
 
 > **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
 
@@ -112,22 +113,16 @@ Chromecast init (при запуске экрана плеера)
 ## 6. Открытые вопросы / Research items
 
 1. **Поведение Chromecast SDK при отсутствии LAN-доступа**
-   - **Вопрос:** бросает ли Google Cast SDK исключение при старте обнаружения без `ACCESS_LOCAL_NETWORK`, или молча не находит устройств?
-   - **Варианты:** (а) SDK бросает `SecurityException` → нужен try/catch; (б) SDK возвращает пустой список → достаточно проверки до инита.
-   - **Нужно выяснить:** протестировать на эмуляторе Android 17 Beta 4 с отозванным пермишном.
-   - **Статус:** Open
+   - **Выяснено:** Приложение обязано объявить и запросить пермишн `ACCESS_LOCAL_NETWORK` (входит в группу `NEARBY_DEVICES`), так как он необходим для обнаружения устройств. Без разрешения SDK не сможет находить устройства в локальной сети (попытки сканирования завершаются неудачей). Будем штатно проверять пермишн перед инициализацией Cast-сессии.
+   - **Статус:** Closed
 
 2. **Поведение SMBJ/SSHJ/Apache Commons Net без пермишна**
-   - **Вопрос:** какое исключение бросают библиотеки при попытке TCP-соединения в заблокированной LAN — `SecurityException` или `ConnectException`?
-   - **Варианты:** ОС может блокировать на уровне сокета с `EPERM` → `ConnectException`; или выдавать `SecurityException` напрямую.
-   - **Нужно выяснить:** тест на эмуляторе Android 17 Beta 4.
-   - **Статус:** Open
+   - **Выяснено:** Без `ACCESS_LOCAL_NETWORK` попытки подключения к локальным IP-адресам блокируются на уровне сокетов (ОС выдаёт ошибки вида `EPERM` или `ECONNABORTED`, которые пробрасываются как `ConnectException` или `SocketException`). Мы должны предотвращать вызов до его совершения, чтобы отдавать корректный статус ошибки UI, а не маскировать под таймаут.
+   - **Статус:** Closed
 
 3. **Пермишн как normal или dangerous на API 37**
-   - **Вопрос:** является ли `ACCESS_LOCAL_NETWORK` dangerous-пермишном (требует runtime-запроса) или signature/normal (выдаётся автоматически)?
-   - **Варианты:** по документации Beta 4 — runtime dangerous; но это может измениться к финальному релизу.
-   - **Нужно выяснить:** проверить финальную документацию Android 17 при выходе стабильного релиза.
-   - **Статус:** Open
+   - **Выяснено:** `ACCESS_LOCAL_NETWORK` — это *runtime dangerous* permission, входящий в группу `NEARBY_DEVICES`. Начиная с targetSdk 37 он требует обязательного запроса у пользователя во время выполнения.
+   - **Статус:** Closed
 
 ---
 
@@ -192,4 +187,25 @@ Chromecast init (при запуске экрана плеера)
 
 ## 12. Ссылка на тактическую спецификацию
 
-Следующий шаг: `/spec-tech S0035` — создаст `PLAN/S0035_android17-local-network-permission/` с фазами.
+Текущий тактический план: `PLAN/S0035_android17-local-network-permission/INDEX.md`
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-04
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 26 · WARN 0 · FAIL 0 · MANUAL 8 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] §11.1 — On Android 17+ with targetSdk 37, opening SMB/SFTP/FTP triggers the system `ACCESS_LOCAL_NETWORK` dialog.
+- [ ] §11.2 — Denying permission shows an error state with explanation; no crash, no infinite spinner.
+- [ ] §11.3 — "Open settings" button in rationale dialog routes to app permissions page.
+- [ ] §11.4 — Granting permission from settings and returning opens the resource without restart.
+- [ ] §11.5 — On Android ≤ API 36 no new dialogs appear and network flow is unchanged.
+- [ ] §11.6 — Cast on Android 17 without permission does not crash; UI shows "Cast unavailable".
+- [ ] §11.7 — All three locales (EN/RU/UK) display correct rationale-dialog strings.
+- [ ] §11.8 — `photos` flavor shows no behavior changes.

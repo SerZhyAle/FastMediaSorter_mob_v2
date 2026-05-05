@@ -1,7 +1,7 @@
 # Стратегическая спецификация: Ad-hoc — VR Immersive HUD через отдельный композитный слой
 
-**Status:** Partial
-**Tactical plan:** `PLAN/S0009_vr-immersive-hud-gl/INDEX.md` (all 7 phases ✅ Done; awaiting on-device acceptance + status-drift fix for Verified)
+**Status:** BlockNeedUserTest
+**Tactical plan:** `PLAN/S0009_vr-immersive-hud-gl/INDEX.md` (all 7 phases ✅ Done; awaiting on-device acceptance for §11.1/11.2/11.4/11.6 + exit-swapchain race visual check)
 **Date:** 2026-04-25
 **Tier:** 3 — Moderate (ad-hoc)
 **Roadmap entry:** Ad-hoc — запрос пользователя 2026-04-25 (тест Meta Quest 3, immersive-сеанс видео: не видно прогресса, seek-feedback, video controls; нажатие Y «замораживает» фильм, снять паузу нельзя).
@@ -201,6 +201,7 @@ Non-goals:
 - **Связанная спека: spec_vr-immersive-controls-tech** — источник команд (OpenXR controllers / BT-клавиатура / мышь / hand-tracking) не меняется; HUD подписывается на те же команды, что и существующий менеджер индикаторов.
 - **Связанная спека: spec_vr-hand-tracking-tech / spec_vr-hand-tracking** — данная спека не реализует интерактивность HUD (клики лучом, hover); отдельно от неё.
 - **Связанная спека: spec_vr-3dvr-toggle-button** — не конфликтует; бейдж смены режима immersive/panel в HUD дополняет существующую кнопку.
+- **Связанная спека: S0008 vr-immersive-controls-panel — зависимость ADR-3.** Эффективность транзитивного guard-а из ADR-3 напрямую зависит от состояния `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED`, который выставляет S0008. Когда флаг = `false` (S0008 ещё не готов / откатан), guard срабатывает по проектному пути и пользователь видит баннер «Control dialog unavailable in immersive..» вместо интерактивных контролов — это корректное поведение S0009 в рамках passive-only scope, но воспринимается как регресс. Когда флаг = `true` (S0008 поставлен), ветка guard-а становится недостижимой, и passive HUD из S0009 сосуществует с интерактивной панелью S0008. Иными словами: ADR-3 — это временная заглушка, чья видимая полезность для пользователя обратно пропорциональна зрелости S0008.
 - **Out-of-scope из §3.1 как потенциальные будущие спеки:** интерактивный HUD под hand-ray (точка пересечения луча и плоскости HUD, клики); настройка внешнего вида HUD пользователем; SDF-шрифт для HUD.
 
 ---
@@ -225,28 +226,39 @@ Non-goals:
 
 ## Last Audit
 
-**Date:** 2026-05-02
-**Mode:** strategic (тактическая папка отсутствует — удалена в `7d54d31` 2026-04-30; strategic .md восстановлен из `7d54d31~1`)
+**Date:** 2026-05-03
+**Mode:** full (strategic + 7/7 phases)
 **Flags:** —
 **Outcome:** Partial
-**Counts:** PASS 5 · WARN 2 · FAIL 0 · MANUAL 4 · EXEMPT 0
+**Counts:** PASS 9 · WARN 1 · FAIL 0 · MANUAL 5 · EXEMPT 0
 
 ### Action items
 
-1. **[WARN tactical-link стр. 4, 222]** `PLAN/spec_vr-immersive-hud-gl/INDEX.md` — legacy `_spec_` префикс (запрещён CLAUDE.md rule 12) и папка не существует (удалена в `7d54d31`). Поправить ссылку на `PLAN/S0009_vr-immersive-hud-gl/INDEX.md` либо отметить как «no tactical».
-2. **[WARN §3.1 ADR-3 побочный эффект]** Лог 2026-05-02 (`logs/fastmediasorter_20260502_035656.log`) показывает, что transitive guard ADR-3 работает корректно (на `OpenControls/OpenFileOps` показывается `vr_hud_guard_controls/file_ops` баннер «Control dialog unavailable in immersive..»). Но в полевой реакции пользователь воспринял это как «вместо HUD с инструментами — только надпись 'выйдите в обычный режим'». Это симптом отсутствия S0008 (Broken — `VR_UI_COMPOSITION_LAYER_ENABLED=false`); сама S0009 корректна. Зафиксировать в §10 связь «эффективность ADR-3 deteriorates пока S0008 Broken» — пользователь ожидает контролов, не подсказки.
+1. **[WARN HUD swapchain race during exit]** `logs/fastmediasorter_20260503_031502.log:2530` — at immersive exit (`VrTaskTransition.exitImmersiveToFlatPlayer: routing via home-intent`), `W/App: VrHudRenderer: createHudSwapchain(1024 x 256) returned false` fires 4 ms after `OpenXrSessionManager.release()` and immediately after a fresh `xrBeginSession: OK` + `nativeSetHudLayerVisible: visible=1`. Looks like a race in the exit-transition window (renderer attempts re-create between `release()` and final teardown). Doesn't block exit (player reaches panel), but HUD is briefly surface-less. Manual on-device verification required to decide whether it produces a visible artefact (flicker / black HUD frame) or stays an internal log warning. Static fix not applicable — needs targeted code investigation against device repro, scope of a separate ticket if visible.
 
 ### Manual / on-device
 
-- [ ] §11.1 — всплывающий прогресс-бар при активности; auto-hide ~3 с. (`VrHudSceneDriver.updateProgress` ([app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt:238-252](app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt#L238-L252)) реализован — нужен device-test, что бар реально отрисовывается composition layer'ом.)
-- [ ] §11.2 — `showPauseIndicator/showSeekIndicator/showVolumeIndicator/showZoomIndicator/showFileIndicator/showRecenterFlash/showImmersiveModeChanged/showRepeatMode` — все методы есть в `VrHudSceneDriver` ([VrHudSink.kt](app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudSink.kt)). Manual: каждый из 8 индикаторов всплывает при соответствующей команде.
-- [ ] §11.4 — переход immersive ↔ phone в одной сессии без потери индикаторов / двойного показа.
-- [ ] §11.6 — idle-suppression: HUD не включён в композицию когда нет активных индикаторов (проверить: `VR_PERF` не пишет hud_swapchain submission в idle).
+- [ ] §11.1 — pop-up progress bar during pause/seek/file-change with ~3 s auto-hide ([VrHudSceneDriver.kt:238-252](app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt#L238-L252) wired).
+- [ ] §11.2 — each of 8 indicators (pause/seek/volume/zoom/file/recenter/mode/repeat) pops up on its command — methods present in [VrHudSink.kt](app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudSink.kt) implementation.
+- [ ] §11.4 — immersive ↔ phone transition in one session without indicator desync / double display.
+- [ ] §11.6 — idle suppression: HUD not in composition when no indicator is active (verify via `VR_PERF`: no `hud_swapchain` submission lines in idle).
+- [ ] WARN #2 follow-up — exit-transition swapchain race visual check (flicker yes/no).
 
-### PASS-checks (статика)
+### PASS-checks (static)
 
-- §11.3 (Y-кнопка не «замораживает» плеер) — `OpenFileOps`/`OpenControls` no-op'ы под guard'ом, `vr_hud_guard_*` баннер вместо невидимой панели, паузы плеера нет. PASS.
-- §11.5 (phone fallback) — `VrHudIndicatorManager` (`VrHudSink` impl для phone) сохраняет старое no-op-поведение для `updateProgress` ([VrHudIndicatorManager.kt:134-137](app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudIndicatorManager.kt#L134-L137)), все остальные индикаторы реализованы. PASS.
-- §11.7 (FEATURES трилингвально) — все три файла содержат описание immersive HUD: `docs/FEATURES.md:149`, `docs/FEATURES_RU.md:152`, `docs/FEATURES_UK.md:152`. PASS.
-- §3.2 локализация — `vr_hud_guard_controls`/`vr_hud_guard_file_ops` присутствуют в `values/`, `values-ru/`, `values-uk/strings.xml`. PASS.
-- ADR-1 (отдельный плоский слой OpenXR) — `OpenXrFrame.cpp`/`OpenXrSwapchain.cpp` содержат HUD swapchain code. Лог: `VR_PERF: hud_swapchain=76ms`, `panel_swapchain=114ms` — два независимых swapchain'а живы. PASS.
+- §11.3 (Y short-press no-freeze) — `OpenFileOps`/`OpenControls` gated by `isImmersiveUiLocked()` → `vr_hud_guard_*` banner instead of invisible panel ([VrPlayerCommandRouter.kt:160,174,178,182,186,190](app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrPlayerCommandRouter.kt)). PASS.
+- §11.5 (phone fallback) — `VrHudIndicatorManager` keeps prior no-op behavior for `updateProgress` ([VrHudIndicatorManager.kt:134-137](app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudIndicatorManager.kt#L134-L137)). PASS.
+- §10 cross-spec — S0008 dependency on `VR_UI_COMPOSITION_LAYER_ENABLED` for ADR-3 effectiveness now recorded (added 2026-05-03 via `/spec-all`). PASS.
+- §11.7 (FEATURES trilingual) — `HUD` keyword present in `docs/FEATURES.md`, `_RU.md`, `_UK.md`. PASS.
+- §3.2 strings trilingual — `vr_hud_guard_controls`/`vr_hud_guard_file_ops`/`vr_hud_guard_cheatsheet` in `values/`, `values-ru/`, `values-uk/strings.xml`. PASS.
+- §3.2 flavor isolation — `VR_UI_COMPOSITION_LAYER_ENABLED` only declared in `vr` + `vrUnlicensed` ([app_v2/build.gradle.kts:261,312](app_v2/build.gradle.kts)); HUD code lives under `app_v2/src/vr/`. PASS.
+- ADR-1 — `VrHudRenderer`/`VrHudSceneDriver`/`VrHudSceneComposer` separation present; field log shows two independent swapchains (`hud_swapchain=76ms`, `panel_swapchain=114ms`). PASS.
+- Tactical phases — INDEX shows 7/7 ✅ Done; phase files all `Status: ✅ Done`; `TODO(phase-0[1-7])` zero hits in `app_v2/src`. PASS.
+- Catalog — `VrHud*` classes (15 entries) registered in `dev/CATALOG/app_v2.jsonl`. PASS.
+- Logging — zero `Log.[deviw](` calls in `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render` or `vr/ui`; Timber-only rule held. PASS.
+
+### Evidence refresh (2026-05-03)
+
+- `logs/fastmediasorter_20260503_032115.log` confirms passive immersive HUD end-to-end on `18VR_The_Best_is_Yet_to_Come_7K_180_180x180_3dh.mp4`: `VrPlayerActivity: HUD scene driver active (immersive)`, `VrHudRenderer: first HUD bitmap upload succeeded (1024x256)`, `renderVrFrame #301 eye=LEFT layer=EQUIRECT_2 stereo=VR180_FISHEYE_SBS`.
+- Screenshots `logs/com.sza.fastmediasorter.vr.debug-20260503-034855.jpg` and `..-034906.jpg` show visible passive HUD (`VR180°`, pause icon, progress `15:22 / 1:12:52`, `144/146 FPS`).
+- Original complaint «не вижу HUD с настройками проигрывателя» is now traced to S0008 / S0019 (interactive controls panel), not to passive HUD visibility from S0009. S0009 verdict stays `Partial` solely because the §11 items above need on-device confirmation.

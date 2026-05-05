@@ -65,7 +65,9 @@
 
 ## 4. Контекст текущей архитектуры
 
-VR-флейвор имеет одну активити, отвечающую за иммерсивный просмотр, и одну активити, отвечающую за файловый браузер. «Панели управления» как отдельной сущности не существует: команда выхода из иммерсива всегда возвращает на корневой экран приложения. Существующий 2D-диалог управления стерео-форматом доступен из стандартного плеера, но из иммерсивного контекста к нему нет точки доступа. Технически в иммерсиве есть слой «интерактивной панели» поверх сцены, но он сейчас не работоспособен из-за гонки инициализации (объём S0020) — поэтому полагаться только на него для решения этой задачи нельзя.
+VR-флейвор имеет одну активити, отвечающую за иммерсивный просмотр, и одну активити, отвечающую за файловый браузер. «Панели управления» как отдельной сущности не существует: команда выхода из иммерсива всегда возвращает на корневой экран приложения. Существующий 2D-диалог управления стерео-форматом доступен из стандартного плеера, но из иммерсивного контекста к нему нет точки доступа. Исторически в качестве blocker'а рассматривалась недоступность самой интерактивной панели в XR-композиции.
+
+Полевая проверка 2026-05-03 уточнила текущее состояние: лог `logs/fastmediasorter_20260503_031502.log` уже содержит `HUD scene driver active (immersive)` и `interactive panel driver active`, то есть оба swapchain'а инициализируются. Но команда `OpenControls` всё равно повторно гасится через `immersive-ui-locked`, пока `VR_UI_COMPOSITION_LAYER_ENABLED=false`. Следовательно, актуальный blocker для S0019 — feature-flag guard и связанный routing-path, а не отсутствие panel swapchain'а как такового.
 
 ---
 
@@ -258,6 +260,7 @@ VR-флейвор имеет одну активити, отвечающую з�
   - Applied: §10 S0009 — переписана связь, обозначен статус «spec B».
   - Applied: §10 S0006 — уточнён скоуп (FPS уже в S0009-канвасе, S0019 не меняет).
   - Applied: §12 — без изменения, проверен.
+- **2026-05-03** — manual evidence refresh: §4 уточнён по `logs/fastmediasorter_20260503_031502.log`; blocker пересформулирован как feature-flag guard (`VR_UI_COMPOSITION_LAYER_ENABLED=false`), а не swapchain availability.
   - Proposed: P-1 удаление S0009 ADR-3 guard после приземления S0019 (требует разблокировки S0009 через /spec-fix).
   - Proposed: P-2 разрешение interactive-input зависимости (новая спека S0024 vs расширение S0019).
   - Proposed: P-3 решение по структуре §6 («закрытые решения» vs канонический template).
@@ -267,27 +270,28 @@ VR-флейвор имеет одну активити, отвечающую з�
 
 ## Last Audit
 
-**Date:** 2026-05-02
-**Mode:** strategic (тактическая папка отсутствует — удалена в `7d54d31` 2026-04-30; strategic .md восстановлен из `7d54d31~1`)
+**Date:** 2026-05-03
+**Mode:** full (strategic + tactical)
 **Flags:** —
 **Outcome:** Broken
-**Counts:** PASS 1 · WARN 2 · FAIL 4 · MANUAL 3 · EXEMPT 0
+**Counts:** PASS 4 · WARN 0 · FAIL 4 · MANUAL 3 · EXEMPT 0
 
 ### Action items
 
-1. **[FAIL §11.1 / §11.2 — HUD-оверлей не открывается]** Цель «полупрозрачный (~20%) интерактивный HUD-оверлей со всеми playback-командами» не достижима: `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED=false` ([app_v2/build.gradle.kts:261, :310](app_v2/build.gradle.kts#L261)) → `OpenControls`/`OpenFileOps` no-op'ятся через `isImmersiveUiLocked()` ([VrPlayerActivity.kt:1024-1025, :1194-1212](app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt#L1024)). Лог 2026-05-02 (`logs/fastmediasorter_20260502_035656.log`) подтверждает: 5+ событий `OpenControls/OpenFileOps no-op — reason=immersive-ui-locked`, ни одного открытия playback HUD overlay. **Зависимость:** S0008 (Broken — фикс flag'а) + S0024 (BlockByOtherTask — ray-input visual indicator). До их разблокировки S0019 §11.1/§11.2 принципиально недостижим.
-2. **[FAIL §11.3 — «выйти в панель» клонирует окно]** Лог 2026-05-02 показывает: при exit-команде `VrTaskTransition.exitImmersiveToFlatPlayer: routing via home-intent` создаёт **новый VrPlayerActivity** (вместо переиспользования back-stack), затем `route=STANDARD_PANEL_FALLBACK reason=user-forced-panel` → запускает `PlayerActivity` в новой задаче. Возврат в «то же окно панельного плеера» не работает — открывается отдельное. **Зависимость:** S0038 (BlockNeedUserTest, P-1 DISCUSS — пересмотр Root Cause для home-intent пути).
-3. **[FAIL §11.5]** Сценарий «выбрать файл → immersive → выйти в панель → сменить формат → вернуться» не проходится сквозным образом из-за §11.3 (новые окна вместо переиспользования) и §11.1 (HUD не открывается).
-4. **[FAIL §11.6]** Невозможно подтвердить статически: «возврат в иммерсив без перезапуска XR-сессии» — лог показывает полный `onDestroy → onCreate` цикл VrPlayerActivity при exit-pattern, что означает пересоздание XR-сессии независимо от контекста.
-5. **[WARN §стр. 5 / §10 P-3 audit-file]** Шапка ссылается на `PLAN/S0019_..._audit_2026-04-28.md` — audit-файлы упразднены spec-catalog discipline (CLAUDE.md rule 12). Удалить ссылку «Audit: see ..» из шапки; перенести содержательные находки в этот блок при необходимости.
-6. **[WARN tactical-link стр. 12, 217]** `PLAN/S0019_vr-controls-panel-flow-restoration/INDEX.md` — папка не существует (удалена в `7d54d31`). Поправить или отметить «no tactical».
+1. **[FAIL §11.1 / §11.2 — HUD-оверлей не открывается]** `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED=false` ([app_v2/build.gradle.kts:261, :310](app_v2/build.gradle.kts#L261)) — флаг по-прежнему гасит UI composition layer. `isImmersiveUiLocked()` no-op'ит `OpenControls`/`OpenFileOps` ([VrPlayerActivity.kt:1215, :1230](app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt#L1215)) + ещё 5 точек guard'а (строки 1238/1245/1252/1259/1288) + `VrCheatsheetOverlayManager` (строки 48/61). **Cross-spec blocker:** требует **S0008** (Broken — фикс флага и cursor-dot rendering) + **S0024** (BlockByOtherTask на S0033 In Progress — ray-input для интерактивности HUD). Локального фикса нет.
+2. **[FAIL §11.3 — «выйти в панель» клонирует окно]** Exit-path реализован: `EXTRA_FORCE_PANEL`-маршрут через `VrTaskTransition.exitImmersiveToFlatPlayer` ([VrPlayerActivity.kt:1463-1470, :1928-1931](app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt#L1463)), `vr/AndroidManifest.xml:35` подтверждает «home-intent PendingIntent on exit». Регрессия 2026-05-02 (logs/fastmediasorter_20260502_035656.log): home-intent создаёт новый VrPlayerActivity → STANDARD_PANEL_FALLBACK → клон-окно. **Cross-spec blocker:** **S0038 P-1** (BlockNeedUserTest — пересмотр routing-стратегии: cached taskId / `singleInstancePerTask` / move-to-front).
+3. **[FAIL §11.5]** End-to-end сценарий «browser → immersive → exit-to-panel → change format → return» не проходится — транзитивный блокер от §11.1 (HUD недоступен) и §11.3 (клонирование). Авторазрешится после фиксов S0008 + S0038.
+4. **[FAIL §11.6]** Возврат в иммерсив с идентичным контекстом — без переиспользования XR-сессии: каждый exit вызывает полный `onDestroy → onCreate` VrPlayerActivity (logs 2026-05-02). Архитектурная задача — требует кэша live XR-session либо `singleInstancePerTask` режима активити (пересекается с S0038 P-1).
 
 ### Manual / on-device
 
-- [ ] §11.7 — ручной ревью текстов EN/RU/UK команд «выйти в панель», «выйти в браузер», «показать управление», «применить», «применить и в 3D» — соответствие пункту назначения.
-- [ ] §11.8 — VR-фото проходит сценарий идентично видео (скрытие video-only элементов HUD).
-- [ ] §11.6 — XR-сессия переиспользуется при идентичном контексте файла (требует фикса §11.3 сначала).
+- [ ] §11.7 — ручной ревью текстов EN/RU/UK для «выйти в панель», «выйти в браузер», «показать управление», «применить», «применить и в 3D» — соответствие пункту назначения.
+- [ ] §11.8 — VR-фото идентично видео (скрытие video-only элементов HUD: seekbar, перемотка, скорость, аудио, субтитры) — testable только после §11.1.
+- [ ] §11.6 device-check — XR-сессия переиспользуется при идентичном контексте файла (после фикса §11.3).
 
 ### PASS-checks (статика)
 
-- §11.4 (кнопка «применить и в 3D») — `btnApplyAnd3D` в `dialog_playback_control.xml` (portrait + land), все три локали `dialog_playback_apply_and_3d` (EN/RU/UK) присутствуют, click listener привязан в [PlaybackControlDialogFragment.kt:115-117](app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt#L115-L117), кнопка видна по `BuildConfig.SUPPORT_VR_PLAYER`. PASS.
+- **§11.4** «применить и в 3D» — `name="dialog_playback_apply_and_3d"` во всех трёх локалях ([values/strings.xml:524](app_v2/src/main/res/values/strings.xml#L524), [values-ru:2115](app_v2/src/main/res/values-ru/strings.xml#L2115), [values-uk:2116](app_v2/src/main/res/values-uk/strings.xml#L2116)), `btnApplyAnd3D` в `dialog_playback_control.xml` (portrait + land), click-listener в `PlaybackControlDialogFragment.kt`, гейтинг `BuildConfig.SUPPORT_VR_PLAYER`. PASS.
+- **Tactical phases consistency** — INDEX.md статусы (4 ✅ Done + 1 ⏭️ Deferred + 1 ✅ Done) совпадают с заголовками PHASE_01..06 (verified 2026-05-03). PASS.
+- **Tactical folder structure** — папка `PLAN/S0019_vr-controls-panel-flow-restoration/` присутствует с 6 phase-файлами + INDEX.md. PASS.
+- **EXTRA_FORCE_PANEL routing wired** — Phase 01 экспорт реализован: `EXTRA_FORCE_PANEL` определён, передаётся в `playerIntent`, `VrTaskTransition.exitImmersiveToFlatPlayer` вызван (статически корректно; runtime-регрессия — отдельный bug в S0038). PASS на статике.

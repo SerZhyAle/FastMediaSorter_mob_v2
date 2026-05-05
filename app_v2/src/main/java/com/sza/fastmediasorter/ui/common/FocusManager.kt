@@ -49,6 +49,7 @@ class FocusManager(
     companion object {
         private const val TAG = "FocusManager"
         private const val PAGE_SIZE = 10
+        private const val DPAD_ACCEL_REPEAT_THRESHOLD = 6
     }
 
     private var currentFocusPosition = -1
@@ -61,8 +62,12 @@ class FocusManager(
     fun handleArrowKey(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action != KeyEvent.ACTION_DOWN) return false
         val action = when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> InputAction.MoveFocus(FocusDirection.UP)
-            KeyEvent.KEYCODE_DPAD_DOWN -> InputAction.MoveFocus(FocusDirection.DOWN)
+            KeyEvent.KEYCODE_DPAD_UP ->
+                if (event.repeatCount > DPAD_ACCEL_REPEAT_THRESHOLD) InputAction.PageJump(-1)
+                else InputAction.MoveFocus(FocusDirection.UP)
+            KeyEvent.KEYCODE_DPAD_DOWN ->
+                if (event.repeatCount > DPAD_ACCEL_REPEAT_THRESHOLD) InputAction.PageJump(+1)
+                else InputAction.MoveFocus(FocusDirection.DOWN)
             KeyEvent.KEYCODE_DPAD_LEFT -> InputAction.MoveFocus(FocusDirection.LEFT)
             KeyEvent.KEYCODE_DPAD_RIGHT -> InputAction.MoveFocus(FocusDirection.RIGHT)
             KeyEvent.KEYCODE_MOVE_HOME -> InputAction.MoveFocus(FocusDirection.FIRST)
@@ -107,6 +112,7 @@ class FocusManager(
                     FocusDirection.LAST,
                     FocusDirection.NEXT -> if (action.direction == FocusDirection.LAST) itemCount - 1 else cur + 1
                 }.coerceIn(0, itemCount - 1)
+                if (target == cur) return false
                 moveFocus(target)
                 true
             }

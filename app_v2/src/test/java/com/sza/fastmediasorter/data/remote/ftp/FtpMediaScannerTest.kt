@@ -1,16 +1,20 @@
 package com.sza.fastmediasorter.data.remote.ftp
 
+import android.content.Context
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.mockkObject
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.net.ftp.FTPFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import java.util.Calendar
 
@@ -18,11 +22,20 @@ class FtpMediaScannerTest {
 
     private val ftpClient: FtpClient = mockk(relaxed = true)
     private val credentialsRepository: NetworkCredentialsRepository = mockk()
+    private val context: Context = mockk(relaxed = true)
 
     private val scanner = FtpMediaScanner(
         ftpClient = ftpClient,
-        credentialsRepository = credentialsRepository
+        credentialsRepository = credentialsRepository,
+        context = context,
     )
+
+    @Before
+    fun setUp() {
+        // Grant local-network permission so scanner proceeds to FTP calls.
+        mockkObject(PermissionHelper)
+        every { PermissionHelper.hasLocalNetworkPermission(context) } returns true
+    }
 
     @Test
     fun `scanFolderPaged should return first page and hasMore when overflow exists`() = runTest {

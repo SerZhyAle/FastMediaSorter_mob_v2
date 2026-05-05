@@ -25,9 +25,26 @@ object NetworkErrorClassifier {
      * If the throwable is already a [NetworkException] it is returned as-is.
      */
     fun classify(throwable: Throwable): NetworkException {
+        if (throwable is LocalNetworkPermissionDeniedException) return throwable
         if (throwable is NetworkException) return throwable
 
         return when {
+            // OS-level socket block for missing ACCESS_LOCAL_NETWORK (Android 17+)
+            throwable is SecurityException &&
+                    (throwable.message?.contains("ACCESS_LOCAL_NETWORK", ignoreCase = true) == true ||
+                     throwable.message?.contains("local network permission", ignoreCase = true) == true) ->
+                LocalNetworkPermissionDeniedException(
+                    "Local network access denied by OS: ${throwable.message}",
+                    throwable
+                )
+
+            throwable is SecurityException &&
+                    (throwable.message?.contains("android.permission.ACCESS_LOCAL_NETWORK", ignoreCase = true) == true) ->
+                LocalNetworkPermissionDeniedException(
+                    "Local network access denied by OS: ${throwable.message}",
+                    throwable
+                )
+
             // Timeout
             throwable is SocketTimeoutException ->
                 NetworkTimeoutException("Connection timeout: ${throwable.message}", throwable)

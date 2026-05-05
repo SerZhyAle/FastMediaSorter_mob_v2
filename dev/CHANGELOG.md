@@ -3431,7 +3431,7 @@ Format: | datetime | file | target | description |
 | 2026-04-23 02:35:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `ResourceEditorFragment` | Wave 7: extracted ResourceEditorOutcomeRenderer (1057 -> 978 LOC, under 1000 cap) |
 | 2026-04-23 02:38:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | Wave 8: extracted PlayerMediaViewVisibilityHelper (1002 -> 967 LOC) |
 | 2026-04-23 02:42:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `TranslationManager` | Wave 9: extracted TranslationTextUtils (1011 -> 961 LOC) |
-| 2026-04-23 02:47:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | Wave 10: extracted SmbErrorClassifier (1099 -> 1000 LOC, at cap) |
+| 2026-04-23 02:47:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | Wave 10: extracted SmbErrorClassifier (1099 -> 1500OC, at cap) |
 | 2026-04-23 02:53:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/DropboxClient.kt` | `DropboxClient` | Wave 11: extracted DropboxClientUtils (1181 -> 981 LOC) |
 | 2026-04-23 17:36:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wave 12: extracted StandaloneFileOperationsHandler (1129 -> 845 LOC) |
 | 2026-04-23 17:39:48 | `PLAN/spec_standalone-vs-inapp-player-parity.md` | `spec` | Add parity spec III.15 comparing standalone vs in-app player; documents every code-level divergence and unification path via PlayerHostCapabilities + SharedDeleteUndoCoordinator |
@@ -5392,3 +5392,912 @@ Format: | datetime | file | target | description |
 | 2026-05-03 03:03:28 | `docs/QUICK_START_UK.md` | `v2.60.5030.230 doc update` | UK: same Advanced Features additions as EN |
 | 2026-05-03 03:03:28 | `docs/FAQ_RU.md` | `v2.60.5030.230 doc update` | RU: Управление и ввод — new FAQ section |
 | 2026-05-03 03:03:28 | `docs/FAQ_UK.md` | `v2.60.5030.230 doc update` | UK: Керування та введення — new FAQ section |
+| 2026-05-03 03:25:09 | `PLAN/S0054_m2ts-playback-support/INDEX.md` | `spec-tech` | Create tactical plan for S0054 (7 phases, 16 steps) |
+| 2026-05-03 03:25:09 | `PLAN/S0054_m2ts-playback-support/PHASE_01__ts-format-detector.md` | `spec-tech` | Phase 01: TsPacketFormat + TsPacketFormatDetector + unit tests |
+| 2026-05-03 03:25:09 | `PLAN/S0054_m2ts-playback-support/PHASE_02__unified-bd-ts-wiring.md` | `spec-tech` | Phase 02: detectTsFormatSuspend; SMB/SFTP/FTP byte-level detection |
+| 2026-05-03 03:25:09 | `PLAN/S0054_m2ts-playback-support/PHASE_03__local-playback-fix.md` | `spec-tech` | Phase 03: local .m2ts BD-TS detection + player recreation |
+| 2026-05-03 03:25:10 | `PLAN/S0054_m2ts-playback-support/PHASE_04__cloud-playback-fix.md` | `spec-tech` | Phase 04: cloud .m2ts BD-TS detection via range request |
+| 2026-05-03 03:25:10 | `PLAN/S0054_m2ts-playback-support/PHASE_05__string-fixes.md` | `spec-tech` | Phase 05: fix error_bdts_format_message; add warning_m2ts_audio_unsupported EN/RU/UK |
+| 2026-05-03 03:25:10 | `PLAN/S0054_m2ts-playback-support/PHASE_06__audio-track-diagnostics.md` | `spec-tech` | Phase 06: all-unsupported audio Toast in onTracksChanged |
+| 2026-05-03 03:25:10 | `PLAN/S0054_m2ts-playback-support/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: FEATURES trilingual + catalog regen + dev log |
+| 2026-05-03 03:25:11 | `PLAN/S0054_m2ts-playback-support.md` | `spec-tech` | Status -> Tactical; tactical plan link added |
+| 2026-05-03 03:26:11 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `btnBlackScreenCmd` | S0050: add missing Black Screen button to landscape command panel layout |
+| 2026-05-03 03:36:02 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout.md` | `S0057` | Создана спецификация для бага с 15-секундным таймаутом авто-скрытия HUD |
+| 2026-05-03 03:36:02 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Добавлена S0057 в каталог спецификаций |
+| 2026-05-03 03:36:02 | `PLAN/S0008_vr-immersive-controls-panel.md` | `S0008` | Добавлен пользовательский фидбек о невидимом HUD |
+| 2026-05-03 03:36:02 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window.md` | `S0038` | Добавлен пользовательский фидбек о создании нового окна при входе в иммерсив |
+| 2026-05-03 03:36:02 | `PLAN/S0041_debug-vr180-fisheye-quality-regression.md` | `S0041` | Добавлен пользовательский фидбек о качестве VR180 и отсутствии логов |
+| 2026-05-03 03:59:03 | `PLAN/S0008_vr-immersive-controls-panel.md` | `spec-fix` | Annotate Last Audit (S0008) — all 7 items marked FOLLOW-UP (no auto-fixes available) |
+| 2026-05-03 04:01:45 | `PLAN/S0041_debug-vr180-fisheye-quality-regression.md` | `spec-test-device` | Quest 3 run + Phase 1 instrumentation extended (setStereoMode/renderQuad/layerGeom/fisheye shader FOV) shipped in v2.60.5030.358-VR-DEBUG. Resolved 2026-05-03 IDE filter mismatch anomaly. Status unchanged (BlockNeedUserTest). |
+| 2026-05-03 04:02:02 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout/INDEX.md` | `spec-tech` | Create tactical plan for S0057 |
+| 2026-05-03 04:02:02 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout/PHASE_01__fps-keep-alive-fix.md` | `spec-tech` | Phase 01: fps-keep-alive-fix |
+| 2026-05-03 04:02:02 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout/PHASE_02__motion-noise-filter.md` | `spec-tech` | Phase 02: motion-noise-filter |
+| 2026-05-03 04:02:02 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-03 04:02:02 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout.md` | `spec-tech` | S0057 Status -> Tactical (link added) |
+| 2026-05-03 04:04:04 | `PLAN/S0041_debug-vr180-fisheye-quality-regression.md` | `spec-test-device` | Closure of 03:49 run: target 7K file only in lobby; surrogate VR180 fisheye played, landed in PROJECTION+OU instead of EQUIRECT_2+VR180_FISHEYE_SBS — Phase 03 layer-routing lead. PASS/PARTIAL/SKIPPED 1/1/1. |
+| 2026-05-03 04:06:06 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `S0057` | Phase 01.1: anySlotActive() no longer treats fps as standalone keep-alive — restores 15 s HUD auto-hide |
+| 2026-05-03 04:06:38 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `S0057` | Phase 01.2: refresh anySlotActive() WHY-comment — fps does NOT extend HUD visibility on its own |
+| 2026-05-03 04:06:40 | `PLAN/S0056_smb-scan-slowness-investigation/INDEX.md` | `spec-tech` | Create tactical plan for S0056 |
+| 2026-05-03 04:06:40 | `PLAN/S0056_smb-scan-slowness-investigation/PHASE_01__adaptive-threshold.md` | `spec-tech` | Phase 01: adaptive-threshold |
+| 2026-05-03 04:06:40 | `PLAN/S0056_smb-scan-slowness-investigation/PHASE_02__progress-ui-followup-spec.md` | `spec-tech` | Phase 02: progress-ui-followup-spec |
+| 2026-05-03 04:06:40 | `PLAN/S0056_smb-scan-slowness-investigation/PHASE_03__on-device-verification.md` | `spec-tech` | Phase 03: on-device-verification |
+| 2026-05-03 04:06:40 | `PLAN/S0056_smb-scan-slowness-investigation/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-03 04:06:40 | `PLAN/S0056_smb-scan-slowness-investigation.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-03 04:16:41 | `PLAN/S0059_predefined-recent-downloads-all-files.md` | `spec` | Add strategic spec S0059 for predefined-recent-downloads-all-files |
+| 2026-05-03 04:30:55 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `S0057` | Phase 02.2: gate reportActivity() in onGenericMotionEvent() behind 0.20 axis deadzone — filters Quest 3 controller noise |
+| 2026-05-03 04:34:27 | `PLAN/S0008_vr-immersive-controls-panel.md` | `spec-check` | Audit S0008 -> Broken; PASS/WARN/FAIL 4/3/5 (tactical folder restored, FAIL items unchanged) |
+| 2026-05-03 04:34:53 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout.md` | `spec-dev` | S0057 Status -> Implemented (Implemented date 2026-05-03); journal -> BlockNeedUserTest pending Quest 3 manual verification per strategic 7 |
+| 2026-05-03 04:36:07 | `PLAN/S0059_predefined-recent-downloads-all-files/INDEX.md` | `spec-tech` | Create tactical plan for S0059 |
+| 2026-05-03 04:36:07 | `PLAN/S0059_predefined-recent-downloads-all-files/PHASE_01__predefined-classifier.md` | `spec-tech` | Phase 01: predefined-classifier |
+| 2026-05-03 04:36:07 | `PLAN/S0059_predefined-recent-downloads-all-files/PHASE_02__creation-defaults.md` | `spec-tech` | Phase 02: creation-defaults |
+| 2026-05-03 04:36:07 | `PLAN/S0059_predefined-recent-downloads-all-files/PHASE_03__one-time-migration.md` | `spec-tech` | Phase 03: one-time-migration |
+| 2026-05-03 04:36:07 | `PLAN/S0059_predefined-recent-downloads-all-files/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-03 04:36:08 | `PLAN/S0059_predefined-recent-downloads-all-files.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-03 11:35:56 | `PLAN/S0008_vr-immersive-controls-panel/` | `spec-fix` | Replace stale strategic-link spec_vr- -> S0008_vr- in INDEX + 6 PHASE files (16 occurrences) |
+| 2026-05-03 11:36:00 | `PLAN/S0008_vr-immersive-controls-panel.md` | `spec-fix` | Annotate Last Audit (S0008): item 6 FIXED, 7 PRE-RESOLVED, 1-5 + 8 FOLLOW-UP |
+| 2026-05-03 11:36:20 | `PLAN/S0057_bugfix-vr-hud-autohide-timeout.md` | `spec-check` | Audit S0057 -> Verified; PASS/WARN/FAIL 18/0/0; 5 MANUAL items pending Quest 3 verification |
+| 2026-05-03 11:37:03 | `scripts/utils/fetch_organic_vr_samples.ps1` | `fetch_organic_vr_samples` | New utility: downloads 3 public-domain VR/3D samples (BBB mono 4K, BBB OU 1080p, NASA Webb 360 mono) and derives 2 more via ffmpeg (SBS_FULL from OU, 180_mono from 360_mono). Idempotent; fills c:\Common\test_media\3dvr\ subfolders for setup_test_media_vr.ps1. |
+| 2026-05-03 11:37:26 | `app_v2/src/main/java/com/sza/fastmediasorter/core/metrics/ScanMetricsRecorder.kt` | `spec-dev` | S0056 P01: adaptive SLOW SCAN threshold + extended W-log fields |
+| 2026-05-03 11:37:26 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GetMediaFilesUseCase.kt` | `spec-dev` | S0056 P01: pass resource.fileCount as expectedFileCount to ScanMetricsRecorder.beginScan |
+| 2026-05-03 11:40:06 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0056 P01: regen catalog after ScanMetricsRecorder.beginScan signature change |
+| 2026-05-03 12:43:15 | `PLAN/S0008_vr-immersive-controls-panel.md` | `spec-check` | Audit S0008 -> Broken; PASS/WARN/FAIL 6/1/5 (links FIXED, trilingual PRE-RESOLVED; FAIL items unchanged) |
+| 2026-05-03 12:46:57 | `PLAN/S0008_vr-immersive-controls-panel.md` | `spec-update` | Refinement (claude-opus-4-7, focus: structure, --force-locked) -- P-1 + P-2 applied (class names removed from strategic body) |
+| 2026-05-03 12:47:08 | `PLAN/S0019_vr-controls-panel-flow-restoration.md` | `spec-fix` | Annotate Last Audit (S0019): 4 cross-spec FAILs as FOLLOW-UP, 2 WARNs as PRE-RESOLVED (audit was stale) |
+| 2026-05-03 12:52:54 | `PLAN/S0019_vr-controls-panel-flow-restoration.md` | `spec-check` | Audit S0019 -> Broken; PASS/WARN/FAIL 4/0/4 (cross-spec blockers: S0008+S0024 for HUD, S0038 P-1 for exit-clone) |
+| 2026-05-03 13:04:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `S0041 fisheye debug` | Fix fisheye one-shot VR_QUALITY_DEBUG guard: replace dbgRenderEyeCount==0L (always false — counter already ≥1 at render time) with dedicated dbgFirstFisheyeLogged boolean, reset in setStereoMode alongside other guards |
+| 2026-05-03 13:10:43 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `spec-dev` | S0033 Phase 05 Step 05.1 — extracted 11 render-pipeline functions from VrPlayerActivity into VrRenderPipelineManager (~486 LOC); state ownership moved to manager (volatile bridge surface, render flag, layer descriptor, FPS counters, HUD/panel drivers) |
+| 2026-05-03 13:13:12 | `app_v2/build.gradle.kts` | `VR_UI_COMPOSITION_LAYER_ENABLED` | S0008+S0019: flip flag to true for vr+vrUnlicensed flavors — unblocks isImmersiveUiLocked() guard so OpenControls/OpenFileOps/Cheatsheet dispatch real commands instead of banner no-op |
+| 2026-05-03 13:13:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.createPanelIntent` | S0019+S0038: add createPanelIntent that targets standard 2D PlayerActivity directly, bypassing VR-flavor PLAYER_ACTIVITY_CLASS override — used by VR exit-to-panel path |
+| 2026-05-03 13:13:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/entry/VrTaskTransition.kt` | `VrTaskTransition.exitImmersiveToFlatPlayer` | S0019+S0038: replace home-intent recovery path with direct startActivity using REORDER_TO_FRONT\|SINGLE_TOP\|NEW_TASK — eliminates VrPlayerActivity->STANDARD_PANEL_FALLBACK clone-window two-hop |
+| 2026-05-03 13:13:20 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.exitVrAndStopPlayback` | S0019+S0038: switch to createPanelIntent + drop EXTRA_FORCE_PANEL — direct exit to 2D PlayerActivity, no transient panel-mode VrPlayerActivity |
+| 2026-05-03 13:15:30 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrSessionLifecycleManager.kt` | `spec-dev` | S0033 Phase 05 Step 05.2 — extracted 16 session-lifecycle/route functions from VrPlayerActivity into VrSessionLifecycleManager (~499 LOC); state ownership: xrInitializationRequested, xrInitStartedAtMs, standardPlayerFallbackLaunched, currentStereoMode, currentRenderingMode, initialDetectedStereoModeHint, currentVrImageKey |
+| 2026-05-03 13:19:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrPlayerCommandRouter.kt` | `spec-dev` | S0033 Phase 05 Step 05.3 — extracted 15 command/feedback functions from VrPlayerActivity into VrPlayerCommandRouter (~309 LOC); state ownership: currentPanelSpeed, seek-drag debouncer; seek + haptic constants live in companion |
+| 2026-05-03 13:30:24 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `spec-dev` | S0033 Phase 05 Step 05.4 — wired 3 VR managers (RenderPipeline, SessionLifecycle, CommandRouter) and removed migrated function bodies; Activity 1988 -> 617 LOC; lateinit manager fields, ~30 *Internal accessors expose inherited PlayerActivity members + state to managers; handleVrCommand kept as forwarder per spec |
+| 2026-05-03 13:37:10 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0033 Phase 06 Step 06.1 — catalog regenerated; new entries: VrRenderPipelineManager (render pipeline init/release/per-frame dispatch), VrSessionLifecycleManager (immersive session route decisions and fallbacks), VrPlayerCommandRouter (controller / hand-tracking command routing) |
+| 2026-05-03 13:37:10 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0033 Phase 06 Step 06.1 — rendered |
+| 2026-05-03 13:51:01 | `PLAN/S0033_vr-monoliths-decomposition.md` | `spec-dev` | S0033 closed: user waived Quest 3 smoke — flipped BlockNeedUserTest -> Verified; S0024 unblocked (BlockByOtherTask -> In Progress); ready for /spec-dev S0024 Phase 02 |
+| 2026-05-03 13:59:40 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudHitTester.kt` | `S0024 Phase 02 Step 02.1` | Add VrHudHitTester (pure UV math, mirrors VrRayPanelHitTester) |
+| 2026-05-03 14:00:28 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `S0024 Phase 02 Step 02.2` | Expose registry + isLayerVisible accessors for HUD ray-input |
+| 2026-05-03 14:01:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `S0024 Phase 02 Step 02.3` | Add hudHitTester sink + attachHudHitTester for ray-vs-HUD-plane |
+| 2026-05-03 14:01:49 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `S0024 Phase 02 Step 02.3` | Wire HUD hit-tester + currentHudHoverId in HUD bring-up |
+| 2026-05-03 14:05:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudHoverState.kt` | `S0024 Phase 03 Step 03.1` | Add VrHudHoverState (id + pending-change flag, single-writer @Volatile) |
+| 2026-05-03 14:05:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudElementRegistry.kt` | `S0024 Phase 03 Step 03.2` | Add boundsOf(id) accessor for hover-highlight painter |
+| 2026-05-03 14:05:48 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt` | `S0024 Phase 03 Step 03.2` | Paint subtle hover-highlight rounded-rect around bounds of hoverId |
+| 2026-05-03 14:05:52 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneDriver.kt` | `S0024 Phase 03 Step 03.3` | Hold VrHudHoverState; redraw on id change with hoverId pass-through |
+| 2026-05-03 14:05:57 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `S0024 Phase 03 Step 03.3` | Sink writes hoverState.setCurrent and triggers driver onHoverIdChanged |
+| 2026-05-03 14:10:11 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInteractionCallback.kt` | `S0024 Phase 04 Step 04.1` | Add VrHudInteractionCallback fun-interface for HUD click callbacks |
+| 2026-05-03 14:10:16 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInputDispatcher.kt` | `S0024 Phase 04 Step 04.2` | Add VrHudInputDispatcher (latched-id, source-agnostic, drift-drop) |
+| 2026-05-03 14:10:21 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManager.kt` | `S0024 Phase 04 Step 04.3+04.4` | Route controller PAUSE_TOGGLE and hand POINTER_CLICK_* to HUD dispatcher when hover != 0 |
+| 2026-05-03 14:10:26 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudSceneComposer.kt` | `S0024 Phase 04 Step 04.5` | Accept onSeekBarClick ctor param; forward to seek-bar registry.register |
+| 2026-05-03 14:10:31 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `S0024 Phase 04 Step 04.5` | Wire VrHudInputDispatcher + smoke seek-bar Timber callback |
+| 2026-05-03 14:12:46 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInputDispatcher.kt` | `S0024 Phase 05 Step 05.2` | Add onClickAudioCue accessibility hook (system FX_KEY_CLICK) |
+| 2026-05-03 14:12:50 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `S0024 Phase 05 Step 05.2` | Wire FX_KEY_CLICK audio cue into HUD dispatcher (no new asset) |
+| 2026-05-03 14:15:07 | `docs/FEATURES.md` | `S0024 Phase 06 Step 06.1` | Add EN HUD ray-input bullet |
+| 2026-05-03 14:15:12 | `docs/FEATURES_RU.md` | `S0024 Phase 06 Step 06.1` | Add RU HUD ray-input bullet |
+| 2026-05-03 14:15:17 | `docs/FEATURES_UK.md` | `S0024 Phase 06 Step 06.1` | Add UK HUD ray-input bullet |
+| 2026-05-03 14:16:53 | `dev/CATALOG/app_v2.jsonl` | `S0024 Phase 06 Step 06.2` | Catalog rescan + role/status fields for new HUD ray-input classes |
+| 2026-05-03 14:20:12 | `PLAN/S0024_vr-hud-ray-input.md` | `spec-all` | Pipeline Verified: S0024 vr-hud-ray-input |
+| 2026-05-03 14:26:23 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec` | Add strategic spec S0061 for SMB stale connection invalidation after idle |
+| 2026-05-03 14:26:24 | `PLAN/S0062_bugfix-speedtest-parse-end-of-string.md` | `spec` | Add strategic spec S0062 for speedtest parser End-of-String error |
+| 2026-05-03 14:26:24 | `PLAN/S0063_bugfix-thumbnail-avi-smb-mediametadataretriever.md` | `spec` | Add strategic spec S0063 for AVI/heavy thumbnail extraction wasted timeout on SMB |
+| 2026-05-03 14:26:24 | `PLAN/S0064_enh-smb-share-discovery-custom-names.md` | `spec` | Add strategic spec S0064 for SMB share discovery with manual custom names |
+| 2026-05-03 14:30:59 | `PLAN/S0065_vr-controller-ray-visual.md` | `spec-all` | Allocate S0065 (visible controller ray) — discovered while reviewing S0008 §11.2 |
+| 2026-05-03 14:32:25 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec-all` | Approve S0061 strategic spec for /spec-all pipeline |
+| 2026-05-03 14:34:22 | `app_v2/build.gradle.kts` | `S0008 spec-all force` | Confirm VR_UI_COMPOSITION_LAYER_ENABLED=true (vr + vrUnlicensed) — guard removed; immersive panel reachable |
+| 2026-05-03 14:34:27 | `PLAN/S0008_vr-immersive-controls-panel.md` | `S0008 spec-all force` | Re-audit (Broken -> BlockNeedUserTest); add S0065 dependency in S10; rewrite Last Audit |
+| 2026-05-03 14:34:32 | `PLAN/S0008_vr-immersive-controls-panel/INDEX.md` | `S0008 spec-all force` | Update status, blockers log resolution, post-flag-flip re-evaluation table |
+| 2026-05-03 14:34:46 | `PLAN/S0008_vr-immersive-controls-panel.md` | `spec-all` | Pipeline BlockNeedUserTest: S0008 (visible-ray work split to S0065) |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation/INDEX.md` | `spec-tech` | Create tactical plan for S0061 |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation/PHASE_01__pool-extraction-and-health-probe.md` | `spec-tech` | S0061 Phase 01: pool-extraction-and-health-probe |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation/PHASE_02__pre-acquire-health-and-purge.md` | `spec-tech` | S0061 Phase 02: pre-acquire-health-and-purge |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation/PHASE_03__unified-retry-policy.md` | `spec-tech` | S0061 Phase 03: unified-retry-policy |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation/PHASE_04__background-lifecycle-close.md` | `spec-tech` | S0061 Phase 04: background-lifecycle-close |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation/PHASE_05__diagnostic-channel.md` | `spec-tech` | S0061 Phase 05: diagnostic-channel |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | S0061 Phase 06: docs-catalog-cleanup |
+| 2026-05-03 14:42:07 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec-tech` | S0061 Status -> Tactical (research items resolved inline) |
+| 2026-05-03 14:45:20 | `PLAN/S0055_diagnostic-noise-cleanup/INDEX.md` | `S0055 tactical INDEX` | S0055: created tactical plan INDEX — 4 phases, pillars A/B/C/D |
+| 2026-05-03 14:45:20 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_01__glide-fetcher-cancel-smb.md` | `S0055 PHASE_01` | S0055-A/B: phase file — remove debug trace from cancel(), fix TIMEOUT→CANCELLED in fetchBytesFromSmb |
+| 2026-05-03 14:45:20 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_02__test-creds-log-level.md` | `S0055 PHASE_02` | S0055-C: phase file — lower TEST_CREDS missing-file from Timber.w to Timber.d |
+| 2026-05-03 14:45:20 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_03__operation-cancel-log.md` | `S0055 PHASE_03` | S0055-D: phase file — remove stack from CancellationException catch, downgrade W→I in FileOperationDestinationDialog |
+| 2026-05-03 14:45:20 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_04__docs-catalog-cleanup.md` | `S0055 PHASE_04` | S0055: phase file — catalog sync, spec status update, final verification |
+| 2026-05-03 14:45:20 | `PLAN/S0055_diagnostic-noise-cleanup.md` | `S0055 strategic spec` | S0055: status Draft→Tactical, added tactical plan link |
+| 2026-05-03 14:45:25 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_01__glide-fetcher-cancel-smb.md` | `S0055 PHASE_01` | S0055-A/B: phase file — remove debug trace from cancel(), fix TIMEOUT→CANCELLED in fetchBytesFromSmb |
+| 2026-05-03 14:45:25 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_02__test-creds-log-level.md` | `S0055 PHASE_02` | S0055-C: phase file — lower TEST_CREDS missing-file from Timber.w to Timber.d |
+| 2026-05-03 14:45:25 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_03__operation-cancel-log.md` | `S0055 PHASE_03` | S0055-D: phase file — remove stack from CancellationException catch, downgrade W to I in FileOperationDestinationDialog |
+| 2026-05-03 14:45:25 | `PLAN/S0055_diagnostic-noise-cleanup/PHASE_04__docs-catalog-cleanup.md` | `S0055 PHASE_04` | S0055: phase file — catalog sync, spec status update, final verification |
+| 2026-05-03 14:45:25 | `PLAN/S0055_diagnostic-noise-cleanup.md` | `S0055 strategic spec` | S0055: status Draft to Tactical, added tactical plan link |
+| 2026-05-03 14:48:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `NetworkFileDataFetcher/fetchBytesFromSmb` | S0055-A: removed debug Exception(Trace) stack trace from cancel(); S0055-B: added CancellationException catch with CANCELLED label + re-throw in fetchBytesFromSmb |
+| 2026-05-03 14:48:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/NetworkCredentialsRepositoryImpl.kt` | `NetworkCredentialsRepositoryImpl.loadTestCredentials` | S0055-C: Timber.w -> Timber.d for TEST_CREDS missing file (normal on end-user devices) |
+| 2026-05-03 14:48:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt` | `FileOperationDestinationDialog.performOperation` | S0055-D: onCancel Timber.w -> Timber.d; CancellationException catch Timber.w(e,...) -> Timber.i without stack |
+| 2026-05-03 14:48:57 | `PLAN/S0055_diagnostic-noise-cleanup.md` | `S0055 spec` | S0055: status -> Implemented; all 4 log-noise fixes shipped, build green |
+| 2026-05-03 14:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/NetworkCredentialsRepositoryImpl.kt` | `NetworkCredentialsRepositoryImpl.loadTestCredentials` | S0055-C: Timber.w to Timber.d for TEST_CREDS missing file |
+| 2026-05-03 14:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt` | `FileOperationDestinationDialog.performOperation` | S0055-D: onCancel Timber.w to Timber.d; CancellationException Timber.w(e) to Timber.i without stack |
+| 2026-05-03 14:49:01 | `PLAN/S0055_diagnostic-noise-cleanup.md` | `S0055 spec` | S0055: Implemented — all 4 log-noise fixes shipped, build green |
+| 2026-05-03 14:58:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | S0059: Fresh install — Recent provisioned with allFiles=true |
+| 2026-05-03 14:58:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt` | `AddResourceVirtualCoordinator` | S0059: allFiles=true for Recent in buildVirtualResource; detect Downloads in addManualFolder |
+| 2026-05-03 14:58:52 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MigrateS0059UseCase.kt` | `MigrateS0059UseCase` | S0059: New — one-time migration sets allFiles=true on Recent and Downloads; recreates Recent if deleted |
+| 2026-05-03 14:58:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | S0059: Inject and call MigrateS0059UseCase in init block |
+| 2026-05-03 15:00:45 | `.claude/commands/spec-all.md` | `spec-all` | Rewrite: resume from any status, defer-first, autonomous chaining, block state handling |
+| 2026-05-03 15:00:48 | `.claude/commands/spec.md,.claude/commands/spec-tech.md,.claude/commands/spec-dev.md,.claude/commands/spec-check.md,.claude/commands/spec-fix.md` | `skills` | Auto-approve, auto-chain, soften hard stops, defer-first behavior across all spec skills |
+| 2026-05-03 15:13:31 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/ConnectionThrottleManager.kt` | `ConnectionThrottleManager` | S0060: add isVideoPlayerActiveForResource() for per-server playback check in thumbnail arbitration |
+| 2026-05-03 15:13:31 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkMediaDataSource.kt` | `NetworkMediaDataSource` | S0060: add encounteredStaleShare flag and isSmbStaleShareError() to detect DiskShare lifecycle race |
+| 2026-05-03 15:13:31 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `NetworkFileDataFetcher` | S0060: add transient failure cache (markVideoAsTransientlyFailed / clearTransientFailure / clearTransientFailuresForHost / isVideoPermanentlyFailed) |
+| 2026-05-03 15:13:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `NetworkVideoFrameDecoder` | S0060: ExtractionOutcome type, failure classification (stale-share/timeout/null-frame), transient SMB errors excluded from permanent failed-cache |
+| 2026-05-03 15:13:34 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/ConnectionThrottleManager.kt` | `ConnectionThrottleManager` | S0060: add isVideoPlayerActiveForResource() for per-server playback check in thumbnail arbitration |
+| 2026-05-03 15:13:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkMediaDataSource.kt` | `NetworkMediaDataSource` | S0060: add encounteredStaleShare flag and isSmbStaleShareError() to detect DiskShare lifecycle race |
+| 2026-05-03 15:13:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `NetworkFileDataFetcher` | S0060: transient failure cache (markVideoAsTransientlyFailed / clearTransientFailure / clearTransientFailuresForHost / isVideoPermanentlyFailed) |
+| 2026-05-03 15:13:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `NetworkVideoFrameDecoder` | S0060: ExtractionOutcome type, failure classification stale-share/timeout/null-frame, transient SMB errors excluded from permanent failed-cache |
+| 2026-05-03 15:13:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `NetworkVideoFrameDecoder` | S0060: ExtractionOutcome type, failure classification stale-share/timeout/null-frame, transient SMB errors excluded from permanent failed-cache |
+| 2026-05-03 15:47:11 | `PLAN/S0060_bugfix-smb-thumbnail-share-race.md` | `S0060` | Updated spec: status Implemented, open questions resolved, added implementation summary and Last Audit section |
+| 2026-05-03 15:50:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/NetworkSpeedTestUseCase.kt` | `NetworkSpeedTestUseCase` | S0062: add MeasurementUnavailable status + isEmptyMeasurementError helper; demote 'End of String' parse errors from ERROR to DEBUG; unexpected errors to WARNING |
+| 2026-05-03 15:50:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | S0062: handle MeasurementUnavailable at DEBUG; downgrade SpeedTestStatus.Error log from Timber.e to Timber.w |
+| 2026-05-03 16:06:01 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkThumbnailExtractionPolicy.kt` | `NetworkThumbnailExtractionPolicy` | S0063: new policy object — single point of truth for formats blocked on network stream extraction (starts with AVI) |
+| 2026-05-03 16:06:08 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `NetworkVideoFrameDecoder.handles` | S0063: check NetworkThumbnailExtractionPolicy in handles() — returns false for blocked extensions (AVI), skips 10s timeout |
+| 2026-05-03 16:06:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `AdapterThumbnailLoader.loadVideo` | S0063: early placeholder for blocked network formats in isNetworkPath VIDEO branch with accessibility contentDescription |
+| 2026-05-03 16:06:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/PagingMediaFileAdapter.kt` | `PagingMediaFileAdapter.loadThumbnail` | S0063: early placeholder for blocked network formats in both ListViewHolder and GridViewHolder VIDEO isNetworkPath branches |
+| 2026-05-03 16:06:08 | `app_v2/src/main/res/values/strings.xml` | `thumbnail_unavailable_network_format` | S0063: new string resource for content-description of AVI/blocked network format placeholder |
+| 2026-05-03 16:06:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `AdapterThumbnailLoader.loadVideo` | S0063: early placeholder for blocked network formats in isNetworkPath VIDEO branch with accessibility contentDescription |
+| 2026-05-03 16:06:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/PagingMediaFileAdapter.kt` | `PagingMediaFileAdapter.loadThumbnail` | S0063: early placeholder for blocked network formats in both ListViewHolder and GridViewHolder VIDEO isNetworkPath branches |
+| 2026-05-03 16:06:15 | `app_v2/src/main/res/values/strings.xml` | `thumbnail_unavailable_network_format` | S0063: new string resource for content-description of blocked network format placeholder |
+| 2026-05-03 16:07:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | S0061 Phase 02-05: pre-acquire health probe, purgeClientForHost on transport error, reconnect diagnostic, Phase 03 retry log fix |
+| 2026-05-03 16:07:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionPool.kt` | `SmbConnectionPool` | S0061 Phase 04: add BACKGROUND_WORKER to ConnectionConsumer; add closeAllExceptWorker() method |
+| 2026-05-03 16:07:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbBackgroundLifecycleManager.kt` | `SmbBackgroundLifecycleManager` | S0061 Phase 04: new file — ProcessLifecycle observer that closes UI SMB connections on background |
+| 2026-05-03 16:07:04 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | S0061 Phase 04: inject SmbBackgroundLifecycleManager and register with ProcessLifecycleOwner |
+| 2026-05-03 16:07:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | S0061 Ph02-05: pre-acquire health probe + purgeClientForHost + reconnect diagnostics + retry log |
+| 2026-05-03 16:07:12 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionPool.kt` | `SmbConnectionPool` | S0061 Ph04: BACKGROUND_WORKER enum value + closeAllExceptWorker() |
+| 2026-05-03 16:07:12 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbBackgroundLifecycleManager.kt` | `SmbBackgroundLifecycleManager` | S0061 Ph04: new — DefaultLifecycleObserver closing UI SMB connections on background |
+| 2026-05-03 16:07:12 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | S0061 Ph04: inject SmbBackgroundLifecycleManager + register ProcessLifecycleOwner observer |
+| 2026-05-03 16:07:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionPool.kt` | `SmbConnectionPool` | S0061 Ph04: BACKGROUND_WORKER + closeAllExceptWorker() |
+| 2026-05-03 16:07:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbBackgroundLifecycleManager.kt` | `SmbBackgroundLifecycleManager` | S0061 Ph04: new file — close UI SMB connections on ProcessLifecycle.onStop |
+| 2026-05-03 16:07:26 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | S0061 Ph04: inject SmbBackgroundLifecycleManager + register observer |
+| 2026-05-03 16:09:23 | `docs/FEATURES.md` | `FEATURES` | S0061 Ph06: add stale SMB connection recovery bullet (EN/RU/UK) |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbShareDiscoveryHelper.kt` | `SmbShareDiscoveryHelper` | S0064: downgrade 'Only N share(s) found' from Timber.w to Timber.i — diagnostic, not an error |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/NetworkCredentialsEntity.kt` | `NetworkCredentialsEntity` | S0064: add manualShareNames: String field (pipe-separated per-server history) |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `AppDatabase` | S0064: bump DB version 26->27, add MIGRATION_26_27 (manual_share_names column) |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt` | `DatabaseModule` | S0064: register MIGRATION_26_27 |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/NetworkCredentialsDao.kt` | `NetworkCredentialsDao` | S0064: add getAllByTypeServerAndPort query |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/NetworkCredentialsRepository.kt` | `NetworkCredentialsRepository` | S0064: add getManualShareNamesForServer + addManualShareName to interface |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/NetworkCredentialsRepositoryImpl.kt` | `NetworkCredentialsRepositoryImpl` | S0064: implement getManualShareNamesForServer + addManualShareName |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt` | `SmbOperationsUseCase` | S0064: saveCredentials now calls addManualShareName after update |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | S0064: ShowSharePicker event adds manualShares; add rememberManualShareName(); pass credentialsRepository to NetworkScanCoordinator |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt` | `AddResourceNetworkScanCoordinator` | S0064: inject NetworkCredentialsRepository; load manual names in scanShares; emit in ShowSharePicker |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | S0064: showSharePickerDialog shows previous+auto shares + manual entry dialog |
+| 2026-05-03 16:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | S0064: pass manualShares to showSharePickerDialog |
+| 2026-05-03 16:23:19 | `app_v2/src/main/res/values/strings.xml` | `strings.xml EN` | S0064: add smb_enter_share_manually, smb_manual_share_* strings |
+| 2026-05-03 16:23:19 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml RU` | S0064: add smb_enter_share_manually, smb_manual_share_* strings |
+| 2026-05-03 16:23:19 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml UK` | S0064: add smb_enter_share_manually, smb_manual_share_* strings |
+| 2026-05-03 16:23:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbShareDiscoveryHelper.kt` | `SmbShareDiscoveryHelper` | S0064: Timber.w to Timber.i for thin share results |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/NetworkCredentialsEntity.kt` | `NetworkCredentialsEntity` | S0064: add manualShareNames field (pipe-sep, per-server history) |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `AppDatabase` | S0064: DB 26->27, MIGRATION_26_27 adds manual_share_names column |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt` | `DatabaseModule` | S0064: register MIGRATION_26_27 |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/NetworkCredentialsDao.kt` | `NetworkCredentialsDao` | S0064: add getAllByTypeServerAndPort query |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/NetworkCredentialsRepository.kt` | `NetworkCredentialsRepository` | S0064: add getManualShareNamesForServer + addManualShareName |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/NetworkCredentialsRepositoryImpl.kt` | `NetworkCredentialsRepositoryImpl` | S0064: implement getManualShareNamesForServer + addManualShareName |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt` | `SmbOperationsUseCase` | S0064: saveCredentials calls addManualShareName after update |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | S0064: ShowSharePicker.manualShares; rememberManualShareName(); inject credentialsRepository to coordinator |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt` | `AddResourceNetworkScanCoordinator` | S0064: inject repo; load history in scanShares; emit with ShowSharePicker |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | S0064: showSharePickerDialog with manual+auto+enter-manually option |
+| 2026-05-03 16:23:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | S0064: pass manualShares to showSharePickerDialog |
+| 2026-05-03 16:23:35 | `app_v2/src/main/res/values/strings.xml` | `strings EN/RU/UK` | S0064: smb_enter_share_manually and related dialog strings |
+| 2026-05-03 16:25:16 | `docs/FEATURES.md` | `FEATURES EN/RU/UK` | S0064: add SMB share picker with manual entry bullet |
+| 2026-05-03 16:34:47 | `PLAN/S0065_vr-controller-ray-visual/INDEX.md` | `spec-tech` | Create tactical plan for S0065 |
+| 2026-05-03 16:34:47 | `PLAN/S0065_vr-controller-ray-visual/PHASE_01__ray-state-scaffolding.md` | `spec-tech` | Phase 01: ray-state-scaffolding |
+| 2026-05-03 16:34:47 | `PLAN/S0065_vr-controller-ray-visual/PHASE_02__gl-resource-lifecycle.md` | `spec-tech` | Phase 02: gl-resource-lifecycle |
+| 2026-05-03 16:34:47 | `PLAN/S0065_vr-controller-ray-visual/PHASE_03__capture-endpoints.md` | `spec-tech` | Phase 03: capture-endpoints |
+| 2026-05-03 16:34:47 | `PLAN/S0065_vr-controller-ray-visual/PHASE_04__per-eye-draw.md` | `spec-tech` | Phase 04: per-eye-draw |
+| 2026-05-03 16:34:47 | `PLAN/S0065_vr-controller-ray-visual/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-03 16:34:47 | `PLAN/S0065_vr-controller-ray-visual.md` | `spec-tech` | Status: Approved -> Tactical |
+| 2026-05-03 16:36:59 | `app_v2/src/vr/cpp/OpenXrCtx.h` | `spec-dev S0065 01.1` | Add RayState + RayRenderResources structs and ctx members |
+| 2026-05-03 16:37:26 | `app_v2/src/vr/cpp/OpenXrRayDraw.h` | `spec-dev S0065 01.2` | Create header with ray-draw API declarations |
+| 2026-05-03 16:37:52 | `app_v2/src/vr/cpp/OpenXrRayDraw.cpp` | `spec-dev S0065 01.3` | Create skeleton with shader sources and stub bodies |
+| 2026-05-03 16:38:21 | `app_v2/src/vr/cpp/CMakeLists.txt` | `spec-dev S0065 01.4` | Register OpenXrRayDraw.cpp in openxr_native sources |
+| 2026-05-03 16:40:22 | `app_v2/src/vr/cpp/OpenXrRayDraw.cpp` | `spec-dev S0065 02.1` | Implement initRayResources: shader compile + link + VBO/VAO setup |
+| 2026-05-03 16:40:46 | `app_v2/src/vr/cpp/OpenXrRayDraw.cpp` | `spec-dev S0065 02.2` | Implement destroyRayResources: idempotent GL teardown |
+| 2026-05-03 16:41:48 | `app_v2/src/vr/cpp/OpenXrSwapchain.cpp` | `spec-dev S0065 02.3` | Hook initRayResources into createSessionAndSwapchains |
+| 2026-05-03 16:41:48 | `app_v2/src/vr/cpp/OpenXrLifecycle.cpp` | `spec-dev S0065 02.3` | Hook destroyRayResources at start of destroyAll |
+| 2026-05-03 16:43:40 | `app_v2/src/vr/cpp/OpenXrInput.cpp` | `spec-dev S0065 03.1` | Capture controller ray endpoints into ctx.rayState; replace Phase 03 TODO |
+| 2026-05-03 16:43:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionPool.kt` | `S0061` | Phase 01: extract SMB connection pool to dedicated helper |
+| 2026-05-03 16:43:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionHealthProbe.kt` | `S0061` | Phase 01: structured DeadReason classifier + non-blocking liveness probe |
+| 2026-05-03 16:43:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbReconnectMetric.kt` | `S0061` | Phase 05: extract reconnect-event ring buffer to dedicated helper |
+| 2026-05-03 16:43:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbBackgroundLifecycleManager.kt` | `S0061` | Phase 04: ProcessLifecycleOwner observer closes UI SMB connections on background |
+| 2026-05-03 16:43:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `S0061` | Phase 01-05: pool delegation + health probe + purge + retry + reconnect metric |
+| 2026-05-03 16:43:54 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `S0061` | Phase 04: register SmbBackgroundLifecycleManager observer |
+| 2026-05-03 16:43:54 | `app_v2/src/main/res/values/strings.xml` | `S0061` | Phase 05: smb_network_unstable EN |
+| 2026-05-03 16:43:54 | `app_v2/src/main/res/values-ru/strings.xml` | `S0061` | Phase 05: smb_network_unstable RU |
+| 2026-05-03 16:43:54 | `app_v2/src/main/res/values-uk/strings.xml` | `S0061` | Phase 05: smb_network_unstable UK |
+| 2026-05-03 16:43:54 | `docs/FEATURES.md` | `S0061` | Phase 06: SMB auto-recovery feature note (EN) |
+| 2026-05-03 16:43:54 | `dev/CATALOG/app_v2.jsonl` | `S0061` | Phase 06: regenerate catalog after SMB pool extraction |
+| 2026-05-03 16:43:54 | `dev/CATALOG/app_v2.md` | `S0061` | Phase 06: regenerate catalog rendering |
+| 2026-05-03 16:44:36 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec-all` | Pipeline Implemented: S0061 (BUILD SUCCESSFUL, 6/6 phases done) |
+| 2026-05-03 16:46:16 | `app_v2/src/vr/cpp/OpenXrHandTracking.cpp` | `spec-dev S0065 03.2` | Capture hand-tracking ray endpoints into ctx.rayState |
+| 2026-05-03 16:47:43 | `app_v2/src/vr/cpp/OpenXrRayDraw.cpp` | `spec-dev S0065 04.1` | Implement drawControllerRays: per-eye line + cursor draw |
+| 2026-05-03 16:48:17 | `app_v2/src/vr/cpp/OpenXrFrame.cpp` | `spec-dev S0065 04.2` | Hook drawControllerRays per-eye after invokeRenderCallback |
+| 2026-05-03 16:52:13 | `docs/FEATURES.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (EN) |
+| 2026-05-03 16:52:13 | `docs/FEATURES_RU.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (RU) |
+| 2026-05-03 16:52:13 | `docs/FEATURES_UK.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (UK) |
+| 2026-05-03 16:53:14 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0065 05.2` | Regenerate app_v2 catalog (896 files indexed) |
+| 2026-05-03 16:53:14 | `dev/CATALOG/app_v2.md` | `spec-dev S0065 05.2` | Regenerate app_v2 catalog markdown |
+| 2026-05-03 16:53:58 | `PLAN/S0065_vr-controller-ray-visual.md` | `spec-dev S0065` | Status Tactical -> Implemented; catalog flipped to BlockNeedUserTest |
+| 2026-05-03 17:03:42 | `PLAN/S0062, PLAN/S0063, PLAN/S0066, PLAN/S0067` | `spec-catalog` | S0062/S0063 scope clarification: both fixes are protocol-neutral and cover SMB/SFTP/FTP/Cloud via shared exception handler (NetworkSpeedTestUseCase) and shared decoder gate (NetworkThumbnailExtractionPolicy). New follow-ups: S0066 universal transient-classification for thumbnail failures across all network protocols; S0067 unified liveness-gate / single-retry / lifecycle hooks for FTP/SFTP/Cloud. |
+| 2026-05-03 17:05:39 | `PLAN/S0062, PLAN/S0063` | `spec-catalog` | S0062 and S0063 promoted Implemented -> Verified after code audit confirmed all strategic criteria are met (verified by reading NetworkSpeedTestUseCase and NetworkThumbnailExtractionPolicy / NetworkVideoFrameDecoder.handles() source). |
+| 2026-05-03 17:10:07 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol.md` | `spec-all` | S0067 strategic spec approved (Draft -> Approved) |
+| 2026-05-03 17:15:48 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/INDEX.md` | `spec-tech` | Create tactical plan for S0067 (7 phases) |
+| 2026-05-03 17:15:48 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_01__gate-foundations.md` | `spec-tech` | Phase 01: gate foundations |
+| 2026-05-03 17:15:48 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_02__smb-gate-adapter.md` | `spec-tech` | Phase 02: SMB gate adapter |
+| 2026-05-03 17:15:48 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_03__sftp-gate.md` | `spec-tech` | Phase 03: SFTP gate |
+| 2026-05-03 17:15:49 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_04__ftp-gate.md` | `spec-tech` | Phase 04: FTP gate |
+| 2026-05-03 17:15:49 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_05__cloud-gate.md` | `spec-tech` | Phase 05: Cloud gate (token-only) |
+| 2026-05-03 17:15:49 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_06__lifecycle-diagnostics.md` | `spec-tech` | Phase 06: lifecycle observer + diagnostics |
+| 2026-05-03 17:15:49 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs + catalog cleanup |
+| 2026-05-03 17:15:49 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-03 17:19:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/NetworkProtocol.kt` | `spec-dev` | S0067 Phase 01.1: NetworkProtocol enum + fromUri |
+| 2026-05-03 17:19:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/ConsumerType.kt` | `spec-dev` | S0067 Phase 01.2: ConsumerType enum (UI vs background) |
+| 2026-05-03 17:19:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/NetworkConnectionGate.kt` | `spec-dev` | S0067 Phase 01.3-01.4: NetworkConnectionGate interface + TransientFailure classifier |
+| 2026-05-03 17:19:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/ConnectionGateRegistry.kt` | `spec-dev` | S0067 Phase 01.5: ConnectionGateRegistry singleton |
+| 2026-05-03 17:19:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/ConnectionDiagnostics.kt` | `spec-dev` | S0067 Phase 01.6: ConnectionDiagnostics (sliding window + InstabilityWarning flow) |
+| 2026-05-03 17:19:07 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/NetworkLifecycleModule.kt` | `spec-dev` | S0067 Phase 01.6: NetworkLifecycleModule skeleton |
+| 2026-05-03 17:22:31 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_01__gate-foundations.md` | `spec-dev` | S0067 Phase 01 done (build PASS, visibility fix on TransientFailure) |
+| 2026-05-03 17:23:30 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/INDEX.md` | `spec-dev` | S0067 Phase 01 complete; phases 02-06 deferred pending tactical-spec refresh against actual API surfaces |
+| 2026-05-03 17:27:35 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_02__smb-gate-adapter.md` | `spec-update` | Refine Phase 02: align with actual SmbConnectionManager API; narrow to lifecycle-only adapter (closeFor + lastRecreateMs); add SmbRecreateTracker to avoid SmbConnectionManager line-budget overflow |
+| 2026-05-03 17:30:11 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/SmbRecreateTracker.kt` | `spec-dev` | S0067 Phase 02.1: SmbRecreateTracker (decoupled from SmbConnectionManager) |
+| 2026-05-03 17:30:11 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/SmbConnectionGate.kt` | `spec-dev` | S0067 Phase 02.2: SmbConnectionGate (lifecycle-only adapter) |
+| 2026-05-03 17:30:11 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/NetworkLifecycleModule.kt` | `spec-dev` | S0067 Phase 02.3: provideRegistry(smb) wiring |
+| 2026-05-03 17:30:11 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/PHASE_02__smb-gate-adapter.md` | `spec-dev` | S0067 Phase 02 done (build PASS) |
+| 2026-05-03 17:31:57 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol/INDEX.md` | `spec-all` | S0067 partial: Phases 01-02 done (BUILD PASS twice), Phases 03-06 need strategic re-scope |
+| 2026-05-03 17:41:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/SftpRecreateTracker.kt` | `spec-dev` | S0067 Phase 03: SftpRecreateTracker |
+| 2026-05-03 17:41:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/SftpConnectionGate.kt` | `spec-dev` | S0067 Phase 03: SftpConnectionGate (lifecycle adapter) |
+| 2026-05-03 17:41:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `spec-dev` | S0067 Phase 03: expose disconnectAllPool() for gate closeFor |
+| 2026-05-03 17:41:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/FtpRecreateTracker.kt` | `spec-dev` | S0067 Phase 04: FtpRecreateTracker |
+| 2026-05-03 17:41:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/FtpConnectionGate.kt` | `spec-dev` | S0067 Phase 04: FtpConnectionGate (lifecycle adapter) |
+| 2026-05-03 17:41:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `spec-dev` | S0067 Phase 04: expose cleanupIdleFtpConnections() for gate closeFor |
+| 2026-05-03 17:41:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/CloudRecreateTracker.kt` | `spec-dev` | S0067 Phase 05: CloudRecreateTracker |
+| 2026-05-03 17:41:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/lifecycle/CloudConnectionGate.kt` | `spec-dev` | S0067 Phase 05: CloudConnectionGate (token-only, no socket close per ADR-2) |
+| 2026-05-03 17:41:43 | `app_v2/src/main/java/com/sza/fastmediasorter/core/lifecycle/NetworkLifecycleObserver.kt` | `spec-dev` | S0067 Phase 06: NetworkLifecycleObserver (ProcessLifecycleOwner -> closeFor(UI_*)) |
+| 2026-05-03 17:41:44 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `spec-dev` | S0067 Phase 06: attach NetworkLifecycleObserver |
+| 2026-05-03 17:41:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/NetworkLifecycleModule.kt` | `spec-dev` | S0067: full provideRegistry with SMB/SFTP/FTP/Cloud (Cloud guarded by SUPPORT_CLOUD) |
+| 2026-05-03 17:41:44 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0067 Phase 06: network_unstable_snackbar (EN) |
+| 2026-05-03 17:41:44 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0067 Phase 06: network_unstable_snackbar (RU) |
+| 2026-05-03 17:41:45 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0067 Phase 06: network_unstable_snackbar (UK) |
+| 2026-05-03 17:41:45 | `docs/FEATURES.md` | `spec-dev` | S0067 Phase 07: network connection lifecycle entry (EN/RU/UK) |
+| 2026-05-03 17:41:45 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0067 Phase 07: catalog regen with new lifecycle classes |
+| 2026-05-03 17:42:11 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol.md` | `spec-all` | S0067 Implemented (all 7 phases done, BUILD PASS) |
+| 2026-05-03 17:46:18 | `PLAN/S0068_scan-progress-indicator.md` | `spec` | Add strategic spec S0068 for scan-progress-indicator (D1 follow-up from S0056) |
+| 2026-05-03 17:47:35 | `PLAN/S0009_vr-immersive-hud-gl.md` | `spec-fix` | Annotate Last Audit (S0009): 1 PRE-RESOLVED, 2 FOLLOW-UP |
+| 2026-05-03 17:47:42 | `PLAN/S0056_smb-scan-slowness-investigation.md` | `spec-dev` | S0056 phase 02 step 02.2 — add S0068 forward-link to §10 |
+| 2026-05-03 17:49:33 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol.md` | `spec-all` | Approved strategic spec: S0066 |
+| 2026-05-03 17:49:42 | `temp/S0056_on_device_verification_20260503.md` | `spec-dev` | S0056 phase 03 step 03.1 — author on-device test scenario doc |
+| 2026-05-03 17:52:02 | `PLAN/S0009_vr-immersive-hud-gl.md` | `spec-check` | Audit S0009 -> Partial; PASS/WARN/FAIL 8/2/0; 5 manual on-device |
+| 2026-05-03 17:53:55 | `PLAN/S0009_vr-immersive-hud-gl.md` | `spec-all` | Pipeline BlockNeedUserTest: S0009 (Partial; 1 WARN race + 5 MANUAL on-device); §10 cross-spec note added inline |
+| 2026-05-03 17:55:29 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol/INDEX.md` | `spec-tech` | Create tactical plan for S0066 |
+| 2026-05-03 17:55:29 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol/PHASE_01__foundations-resource-key-enum.md` | `spec-tech` | Phase 01: foundations-resource-key-enum |
+| 2026-05-03 17:55:29 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol/PHASE_02__datasource-transient-detection.md` | `spec-tech` | Phase 02: datasource-transient-detection |
+| 2026-05-03 17:55:29 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol/PHASE_03__decoder-universal-classification.md` | `spec-tech` | Phase 03: decoder-universal-classification |
+| 2026-05-03 17:55:29 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol/PHASE_04__clear-transient-on-deactivate.md` | `spec-tech` | Phase 04: clear-transient-on-deactivate |
+| 2026-05-03 17:55:29 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-03 17:55:29 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-03 17:56:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/TransientReason.kt` | `spec-dev` | S0066: introduce TransientReason enum (Phase 01.1) |
+| 2026-05-03 17:57:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkResourceKey.kt` | `spec-dev` | S0066: extractNetworkResourceKey + pathBelongsToResource (Phase 01.2) |
+| 2026-05-03 17:58:19 | `app_v2/src/test/java/com/sza/fastmediasorter/data/network/glide/NetworkResourceKeyTest.kt` | `spec-dev` | S0066: unit tests for resource key extraction (Phase 01.3) |
+| 2026-05-03 18:01:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkMediaDataSource.kt` | `spec-dev` | S0066: per-protocol transientFailureReason detection (Phase 02.1-02.3) |
+| 2026-05-03 18:03:01 | `PLAN/S0068_scan-progress-indicator.md` | `S0068` | Revised spec to minimal approach: 2 changes only (tvProgressMessage format + immediate STOP for network), closed all open questions based on codebase research |
+| 2026-05-03 18:05:45 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `spec-dev` | S0066: universal resource key + transient classification + unified log (Phase 03) |
+| 2026-05-03 18:07:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `spec-dev` | S0066: clearTransientFailuresForResource + deprecate ForHost (Phase 04.1) |
+| 2026-05-03 18:07:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/ConnectionThrottleManager.kt` | `spec-dev` | S0066: hook clearTransientFailuresForResource into deactivateVideoPlayerMode (Phase 04.2) |
+| 2026-05-03 18:10:01 | `docs/FEATURES.md` | `spec-dev` | S0066: thumbnail auto-recovery feature bullet (EN) |
+| 2026-05-03 18:10:01 | `docs/FEATURES_RU.md` | `spec-dev` | S0066: автоматическое восстановление превью (RU) |
+| 2026-05-03 18:10:01 | `docs/FEATURES_UK.md` | `spec-dev` | S0066: автоматичне відновлення мініатюр (UK) |
+| 2026-05-03 18:11:49 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0066: catalog scan + manual roles for new files |
+| 2026-05-03 18:11:49 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0066: catalog render after S0066 changes |
+| 2026-05-03 18:14:55 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol.md` | `spec-check` | Audit S0066 -> Verified; PASS/WARN/FAIL 28/0/0; 3 manual on-device items |
+| 2026-05-03 18:15:08 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol.md` | `spec-all` | Pipeline Verified: S0066 |
+| 2026-05-03 18:49:21 | `PLAN/S0025_smb-fast-fail.md` | `spec` | S0025 restored from git history and refreshed with 2026-05-03 field-log audit |
+| 2026-05-03 18:49:21 | `PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md` | `spec` | S0027 updated with 2026-05-03 fallback-only field-log refresh |
+| 2026-05-03 18:49:21 | `PLAN/S0028_vr-multi-window-playback.md` | `spec` | S0028 updated with 2026-05-03 negative-baseline field-log audit |
+| 2026-05-03 18:49:21 | `PLAN/S0055_diagnostic-noise-cleanup.md` | `spec` | S0055 refreshed with 2026-05-03 log-noise audit and S0069 follow-up note |
+| 2026-05-03 18:49:21 | `PLAN/S0060_bugfix-smb-thumbnail-share-race.md` | `spec` | S0060 refreshed with 2026-05-03 field-log audit for stale-share classification |
+| 2026-05-03 18:49:21 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec` | S0061 refreshed with 2026-05-03 SMB auth-vs-stale connection audit |
+| 2026-05-03 18:49:21 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol.md` | `spec` | S0067 refreshed with SMB-only field-log boundary audit |
+| 2026-05-03 18:49:21 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing.md` | `spec` | S0069 created for atomic copy temp-file loss after SMB transfer |
+| 2026-05-03 18:49:21 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Registered S0069 and refreshed updated timestamps for touched specs |
+| 2026-05-03 19:08:43 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing.md` | `strategic-spec` | S0069 advanced to Tactical and linked tactical index |
+| 2026-05-03 19:08:43 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/INDEX.md` | `spec-tech` | S0069 tactical index created |
+| 2026-05-03 19:08:43 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_01__scope-and-ownership.md` | `spec-tech` | S0069 phase 01 scope and ownership |
+| 2026-05-03 19:08:44 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_02__smb-cancellation-propagation.md` | `spec-tech` | S0069 phase 02 SMB cancellation propagation |
+| 2026-05-03 19:08:44 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_03__atomic-result-contract.md` | `spec-tech` | S0069 phase 03 atomic result contract |
+| 2026-05-03 19:08:44 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_04__postcondition-and-cleanup.md` | `spec-tech` | S0069 phase 04 postcondition and cleanup |
+| 2026-05-03 19:08:44 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_05__regression-entrypoints-tests.md` | `spec-tech` | S0069 phase 05 regression entrypoints and tests |
+| 2026-05-03 19:08:44 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | S0069 phase 06 docs catalog cleanup |
+| 2026-05-03 19:08:44 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | S0069 status advanced to Tactical |
+| 2026-05-03 19:12:36 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/INDEX.md` | `spec-update` | S0069 execution blockers moved into Phase 01 ownership |
+| 2026-05-03 19:15:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbFileOperations.kt` | `SmbFileOperations.downloadFile` | S0069 Step 02.1 rethrow CancellationException before SMB download failure log |
+| 2026-05-03 19:15:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbFileOperations.kt` | `SmbFileOperations.uploadFile` | S0069 Step 02.2 rethrow CancellationException before SMB upload failure log |
+| 2026-05-03 19:16:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt` | `SmbOperationStrategy cancellation path` | S0069 Step 02.3 rethrow CancellationException in SMB strategy helpers |
+| 2026-05-03 19:19:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt` | `AtomicCopyOutcome` | S0069 Step 03.1 add explicit atomic outcome model |
+| 2026-05-03 19:19:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt` | `AtomicFileOperationStrategy.copyFile cancellation` | S0069 Step 03.2 explicit cancellation branch before generic atomic copy error |
+| 2026-05-03 19:20:31 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt` | `AtomicFileOperationStrategy branch helpers` | S0069 Step 03.3 extract success cancelled failed helpers inside atomic layer |
+| 2026-05-03 19:23:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt` | `verifyTempPostCondition` | S0069 Step 04.1 add cheap temp post-condition helper |
+| 2026-05-03 19:24:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt` | `temp-missing-invariant` | S0069 Step 04.2 add structured invariant marker with source temp destination |
+| 2026-05-03 19:24:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt` | `completeCopyOutcome` | S0069 Step 04.3 collapse temp cleanup to one decision point |
+| 2026-05-03 19:27:55 | `app_v2/src/test/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategyTest.kt` | `AtomicFileOperationStrategyTest scaffold` | S0069 Step 05.1 create focused atomic copy test scaffold |
+| 2026-05-03 19:28:25 | `app_v2/src/test/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategyTest.kt` | `AtomicFileOperationStrategy success test` | S0069 Step 05.2 add success rename and destination-exists coverage |
+| 2026-05-03 19:28:58 | `app_v2/src/test/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategyTest.kt` | `AtomicFileOperationStrategy negative tests` | S0069 Step 05.3 add cancellation cleanup and missing-temp postcondition coverage |
+| 2026-05-03 19:53:17 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/INDEX.md` | `S0069 tactical index` | Recorded external unit-test validation blocker for Phase 05 |
+| 2026-05-03 19:53:17 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_05__regression-entrypoints-tests.md` | `S0069 phase 05` | Recorded audit pass and unrelated unit-test compile blocker |
+| 2026-05-03 20:02:20 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Added missing fake repository methods so S0069 narrow unit-test gate can compile |
+| 2026-05-03 20:08:47 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing.md` | `spec-check` | Audit S0069 -> Verified; inline Last Audit updated |
+| 2026-05-03 20:08:47 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/INDEX.md` | `spec-check` | Audit S0069 -> Verified; tactical index marked Done |
+| 2026-05-03 20:08:47 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_05__regression-entrypoints-tests.md` | `spec-check` | Closed Phase 05 after passing narrow unit-test and compile gates |
+| 2026-05-03 20:08:48 | `PLAN/S0069_bugfix-atomic-copy-temp-file-missing/PHASE_06__docs-catalog-cleanup.md` | `spec-check` | Closed Phase 06 after catalog sync and verified audit verdict |
+| 2026-05-03 20:08:57 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0069: regenerate catalog after audit and transfer/test updates |
+| 2026-05-03 20:08:57 | `dev/CATALOG/app_v2.md` | `catalog` | S0069: regenerate catalog after audit and transfer/test updates |
+| 2026-05-03 20:20:24 | `app_v2/src/test/java/com/sza/fastmediasorter/data/network/smb/SmbConnectionManagerTest.kt` | `SmbConnectionManagerTest` | Sync stale unit-test expectations with getClient/degraded-retry path for non-VR SMB regression validation |
+| 2026-05-03 20:21:05 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Refresh catalog after SmbConnectionManagerTest regression validation fix |
+| 2026-05-03 20:21:05 | `dev/CATALOG/app_v2.md` | `catalog` | Refresh catalog after SmbConnectionManagerTest regression validation fix |
+| 2026-05-03 20:27:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceLoadManager.kt` | `BrowseResourceLoadManager` | S0068: show STOP immediately for SMB/SFTP/FTP scans; keep delayed STOP for local/cloud |
+| 2026-05-03 20:28:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseObserverManager.kt` | `BrowseObserverManager` | S0068: render SMB scan progress as N or N / ~M and sync progress accessibility text |
+| 2026-05-03 20:28:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseState.kt` | `BrowseState` | S0068: update scan-cancellable state comment to match immediate network STOP behavior |
+| 2026-05-03 20:29:42 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Refresh catalog after S0068 browse scan progress polish |
+| 2026-05-03 20:29:42 | `dev/CATALOG/app_v2.md` | `catalog` | Refresh catalog after S0068 browse scan progress polish |
+| 2026-05-03 20:29:42 | `docs/FEATURES.md` | `FEATURES` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
+| 2026-05-03 20:29:42 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
+| 2026-05-03 20:29:42 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
+| 2026-05-03 20:29:42 | `PLAN/S0068_scan-progress-indicator.md` | `S0068` | Mark strategic spec implemented after direct S0068 browse scan progress polish |
+| 2026-05-03 20:56:02 | `PLAN/S0035_android17-local-network-permission.md` | `S0035` | Promoted strategic spec status from Draft to Approved to unblock /spec-tech |
+| 2026-05-03 21:07:41 | `PLAN/S0035_android17-local-network-permission.md` | `S0035` | Advanced strategic spec to Tactical and linked tactical INDEX |
+| 2026-05-03 21:07:41 | `PLAN/S0035_android17-local-network-permission/INDEX.md` | `S0035 INDEX` | Created 7-phase tactical execution index for local-network permission rollout |
+| 2026-05-03 21:07:41 | `PLAN/S0035_android17-local-network-permission/PHASE_01__manifest-sdk-guard.md` | `S0035 Phase 01` | Planned manifest declaration and API37 guard strategy |
+| 2026-05-03 21:07:41 | `PLAN/S0035_android17-local-network-permission/PHASE_02__permission-contract.md` | `S0035 Phase 02` | Planned typed local-network permission-denied contract |
+| 2026-05-03 21:07:42 | `PLAN/S0035_android17-local-network-permission/PHASE_03__ui-rationale-settings.md` | `S0035 Phase 03` | Planned trilingual rationale copy and Settings permission surface |
+| 2026-05-03 21:07:42 | `PLAN/S0035_android17-local-network-permission/PHASE_04__addresource-entrypoints.md` | `S0035 Phase 04` | Planned Add Resource discovery and share-scan permission gating |
+| 2026-05-03 21:07:42 | `PLAN/S0035_android17-local-network-permission/PHASE_05__protocol-readers.md` | `S0035 Phase 05` | Planned playback scanner and thumbnail reader permission gating |
+| 2026-05-03 21:07:42 | `PLAN/S0035_android17-local-network-permission/PHASE_06__cast-guard.md` | `S0035 Phase 06` | Planned Cast init and chooser permission guard |
+| 2026-05-03 21:07:43 | `PLAN/S0035_android17-local-network-permission/PHASE_07__docs-catalog-cleanup.md` | `S0035 Phase 07` | Planned docs catalog and spec-check cleanup phase |
+| 2026-05-03 21:07:43 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Advanced S0035 journal status to Tactical after tactical plan generation |
+| 2026-05-03 22:40:22 | `PLAN/S0070_device-storage-info-settings.md` | `spec` | Add strategic spec S0070 for device-storage-info-settings |
+| 2026-05-03 22:42:26 | `PLAN/S0070_device-storage-info-settings/INDEX.md` | `spec-tech` | Create tactical plan for S0070 |
+| 2026-05-03 22:42:26 | `PLAN/S0070_device-storage-info-settings/PHASE_01__domain-usecase-and-viewmodel.md` | `spec-tech` | Phase 01: domain-usecase-and-viewmodel |
+| 2026-05-03 22:42:26 | `PLAN/S0070_device-storage-info-settings/PHASE_02__fragment-integration.md` | `spec-tech` | Phase 02: fragment-integration |
+| 2026-05-03 22:42:26 | `PLAN/S0070_device-storage-info-settings/PHASE_03__ui-layout.md` | `spec-tech` | Phase 03: ui-layout |
+| 2026-05-03 22:42:26 | `PLAN/S0070_device-storage-info-settings/PHASE_04__string-resources.md` | `spec-tech` | Phase 04: string-resources |
+| 2026-05-03 22:42:26 | `PLAN/S0070_device-storage-info-settings/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-03 22:42:26 | `PLAN/S0070_device-storage-info-settings.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-03 22:49:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/DeviceStorageState.kt` | `feature` | S0070 step 01.1: Add DeviceStorageState sealed class |
+| 2026-05-03 22:49:49 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GetDeviceStorageUseCase.kt` | `feature` | S0070 step 01.2: Add GetDeviceStorageUseCase for disk query |
+| 2026-05-03 22:52:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `feature` | S0070 steps 01.3+01.4: Add deviceStorage StateFlow and refreshDeviceStorage() |
+| 2026-05-03 22:56:08 | `app_v2/src/main/res/values/strings.xml` | `feature` | S0070 step 04.1: Add device storage info strings (EN) |
+| 2026-05-03 22:57:29 | `app_v2/src/main/res/values-ru/strings.xml` | `feature` | S0070 step 04.2: Add device storage info strings (RU) |
+| 2026-05-03 22:57:29 | `app_v2/src/main/res/values-uk/strings.xml` | `feature` | S0070 step 04.3: Add device storage info strings (UK) |
+| 2026-05-03 22:59:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `feature` | S0070 phase 02: Integrate deviceStorage StateFlow and refresh button |
+| 2026-05-03 23:01:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `SftpDataSource` | Fix ArrayIndexOutOfBoundsException: wrap JSch InputStream in FilterInputStream capping reads to 1024 bytes (JSch internal SFTP packet size) before BufferedInputStream to prevent JSch skip() bug crashing MP3 playback over SFTP |
+| 2026-05-03 23:01:34 | `app_v2/src/main/res/values/dimens.xml` | `feature` | S0070 step 03.1: Add device storage layout dimensions |
+| 2026-05-03 23:01:34 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `feature` | S0070 step 03.2: Add device storage info container and controls |
+| 2026-05-03 23:06:59 | `docs/FEATURES.md` | `feature` | S0070 step 05.1: Add device storage info to feature list (EN) |
+| 2026-05-03 23:06:59 | `docs/FEATURES_RU.md` | `feature` | S0070 step 05.2: Add device storage info to feature list (RU) |
+| 2026-05-03 23:06:59 | `docs/FEATURES_UK.md` | `feature` | S0070 step 05.3: Add device storage info to feature list (UK) |
+| 2026-05-03 23:06:59 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0070 step 05.4: Regenerate catalog after GetDeviceStorageUseCase, DeviceStorageState |
+| 2026-05-03 23:10:28 | `PLAN/S0070_device-storage-info-settings.md` | `spec-check` | Audit S0070 -> Verified; PASS/WARN/FAIL 14/0/0 |
+| 2026-05-03 23:14:52 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `containerDeviceStorageInfo` | S0070 fix: remove weight from textDeviceStorageValue so refresh button sits immediately after text |
+| 2026-05-03 23:15:23 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `containerDeviceStorageInfo` | S0070: Add device storage info row to landscape layout |
+| 2026-05-03 23:18:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `SftpDataSource` | Transparent reconnect on transient JSch read error: one internal reconnect before propagating to ExoPlayer; downgrade close() cascade exception log from E to D when channel was already broken |
+| 2026-05-03 23:29:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/TsPacketFormat.kt` | `S0054 Phase 01 Step 01.1` | Add TsPacketFormat enum (BD_192, STANDARD_188, UNKNOWN) for TS packet format detection |
+| 2026-05-03 23:30:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/TsPacketFormatDetector.kt` | `S0054 Phase 01 Step 01.2` | Add TsPacketFormatDetector: pure-Kotlin object detects BD_192 vs STANDARD_188 by probing 576 bytes |
+| 2026-05-03 23:30:57 | `app_v2/src/test/java/com/sza/fastmediasorter/data/network/datasource/TsPacketFormatDetectorTest.kt` | `S0054 Phase 01 Step 01.3` | Add unit tests for TsPacketFormatDetector: BD_192, STANDARD_188, UNKNOWN, short probe, all-zero |
+| 2026-05-03 23:35:11 | `PLAN/S0071_use-trash-setting.md` | `spec` | Add strategic spec S0071 for use-trash-setting |
+| 2026-05-03 23:40:41 | `PLAN/S0071_use-trash-setting/INDEX.md` | `spec-tech` | Create tactical plan for S0071 |
+| 2026-05-03 23:40:41 | `PLAN/S0071_use-trash-setting/PHASE_01__settings-ui.md` | `spec-tech` | Phase 01: settings-ui |
+| 2026-05-03 23:40:41 | `PLAN/S0071_use-trash-setting/PHASE_02__browse-delete-fix.md` | `spec-tech` | Phase 02: browse-delete-fix |
+| 2026-05-03 23:40:41 | `PLAN/S0071_use-trash-setting/PHASE_03__player-delete-fix.md` | `spec-tech` | Phase 03: player-delete-fix |
+| 2026-05-03 23:40:41 | `PLAN/S0071_use-trash-setting/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-03 23:40:41 | `PLAN/S0071_use-trash-setting.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-03 23:41:58 | `app_v2/src/main/res/values/strings.xml` | `S0071` | Add tooltip_use_trash strings (EN) |
+| 2026-05-03 23:41:58 | `app_v2/src/main/res/values-ru/strings.xml` | `S0071` | Add tooltip_use_trash strings (RU) |
+| 2026-05-03 23:41:58 | `app_v2/src/main/res/values-uk/strings.xml` | `S0071` | Add tooltip_use_trash strings (UK) |
+| 2026-05-03 23:42:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelper.kt` | `S0054 Phase 02 Step 02.1` | Add wrapForBdTs(TsPacketFormat) and detectTsFormatSuspend extensions for byte-level BD-TS detection |
+| 2026-05-03 23:42:56 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `S0071` | Add layoutUseTrash row to Safety section |
+| 2026-05-03 23:43:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `S0054 Phase 02 Step 02.2` | Replace wrapForBdTs(path) with byte-level detectTsFormatSuspend + wrapForBdTs(format) |
+| 2026-05-03 23:43:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `S0071` | Wire switchUseTrash in Settings UI |
+| 2026-05-03 23:44:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `S0054 Phase 02 Step 02.3` | Replace wrapForBdTs(path) with byte-level detectTsFormatSuspend + wrapForBdTs(format) |
+| 2026-05-03 23:44:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `S0054 Phase 02 Step 02.3` | Replace wrapForBdTs(path) with byte-level detectTsFormatSuspend + wrapForBdTs(format) |
+| 2026-05-03 23:45:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/BdTsStripDataSource.kt` | `S0054 Phase 02 Step 02.4` | Fix open() bdPos: use packetIndex*192 instead of +4+intraPacket; upstream now opens at BD-packet boundary |
+| 2026-05-03 23:45:27 | `app_v2/src/test/java/com/sza/fastmediasorter/data/network/datasource/BdTsStripDataSourceTest.kt` | `S0054 Phase 02 Step 02.4` | Add boundary-condition unit tests for BdTsStripDataSource (single packet, two packets, bdPos, truncated) |
+| 2026-05-03 23:46:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt` | `S0071` | Honour useTrash setting in browse delete path |
+| 2026-05-03 23:46:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `S0071` | Pass settingsRepository to BrowseDeleteManager |
+| 2026-05-03 23:48:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt` | `S0071` | Honour useTrash setting in player delete path |
+| 2026-05-03 23:51:38 | `app_v2/src/main/AndroidManifest.xml, app_v2/src/main/java/com/sza/fastmediasorter/core/util/GmsAvailabilityChecker.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `GMS` | Remove JobInfoSchedulerService from manifest to prevent ANR on outdated Google Play Services; add GmsAvailabilityChecker; show non-blocking Snackbar with update action when GMS is outdated or unavailable |
+| 2026-05-03 23:53:21 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0054 Phase 05: fix error_bdts_format_message (remove network-source wording), add warning_m2ts_audio_unsupported + title |
+| 2026-05-03 23:53:26 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0054 Phase 05: fix error_bdts_format_message, add warning_m2ts_audio_unsupported + title (RU) |
+| 2026-05-03 23:53:26 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0054 Phase 05: fix error_bdts_format_message, add warning_m2ts_audio_unsupported + title (UK) |
+| 2026-05-03 23:55:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt` | `LocalPlaybackHelper` | S0054 Phase 03: add BD-TS detection + player recreation for local .m2ts/.m2t files (non-content:// paths) |
+| 2026-05-03 23:56:06 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev S0071` | Change useTrash default from true to false |
+| 2026-05-03 23:56:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/preferences/SettingsManager.kt` | `spec-dev S0071` | Change useTrash DataStore fallback from true to false |
+| 2026-05-03 23:56:06 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `spec-dev S0071` | Add btnClearTrash ImageButton next to switchUseTrash in layoutUseTrash row |
+| 2026-05-03 23:56:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-dev S0071` | Inject CleanupTrashUseCase; add clearAllTrash() method |
+| 2026-05-03 23:56:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev S0071` | Wire btnClearTrash visibility and click handler |
+| 2026-05-03 23:59:18 | `docs/FEATURES.md` | `spec-dev S0071` | Add Move to trash toggle feature bullet |
+| 2026-05-03 23:59:18 | `docs/FEATURES_RU.md` | `spec-dev S0071` | Add Переключатель корзины feature bullet (RU) |
+| 2026-05-03 23:59:18 | `docs/FEATURES_UK.md` | `spec-dev S0071` | Add Перемикач кошика feature bullet (UK) |
+| 2026-05-03 23:59:18 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0071` | Regenerate catalog after S0071 changes |
+| 2026-05-03 23:59:18 | `dev/CATALOG/app_v2.md` | `spec-dev S0071` | Render catalog after S0071 changes |
+| 2026-05-04 00:00:19 | `PLAN/S0071_use-trash-setting.md` | `spec-dev S0071` | Status Implemented; update spec: default=false, Clear Trash button feature |
+| 2026-05-04 00:00:19 | `PLAN/S0071_use-trash-setting/INDEX.md` | `spec-dev S0071` | All 4 phases Done (4/4) |
+| 2026-05-04 00:00:19 | `PLAN/S0071_use-trash-setting/PHASE_04__docs-catalog-cleanup.md` | `spec-dev S0071` | Phase 04 Done (3/3 steps) |
+| 2026-05-04 00:02:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt` | `LocalOperationStrategy` | add @Inject constructor + @ApplicationContext to fix pre-existing Hilt MissingBinding (used by CleanupTrashUseCase, RestoreDeletedUseCase) |
+| 2026-05-04 00:02:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt` | `SmbOperationStrategy` | add @Inject constructor + @ApplicationContext to fix pre-existing Hilt MissingBinding |
+| 2026-05-04 00:02:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt` | `SftpOperationStrategy` | add @Inject constructor + @ApplicationContext to fix pre-existing Hilt MissingBinding |
+| 2026-05-04 00:02:58 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/FtpOperationStrategy.kt` | `FtpOperationStrategy` | add @Inject constructor + @ApplicationContext to fix pre-existing Hilt MissingBinding |
+| 2026-05-04 00:02:58 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/CloudOperationStrategy.kt` | `CloudOperationStrategy` | add @Inject constructor + @ApplicationContext to fix pre-existing Hilt MissingBinding |
+| 2026-05-04 00:03:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-dev S0071` | Fix Hilt DI: remove CleanupTrashUseCase dep, use File.deleteRecursively in clearAllTrash() |
+| 2026-05-04 00:11:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GetDeviceStorageUseCase.kt` | `GetDeviceStorageUseCase` | Fix: use Environment.getExternalStorageDirectory() instead of '/' for correct internal storage query |
+| 2026-05-04 00:22:33 | `PLAN/S0073_player-copy-move-custom-path-button.md` | `spec` | Add strategic spec S0073 for player-copy-move-custom-path-button |
+| 2026-05-04 00:30:15 | `PLAN/S0073_player-copy-move-custom-path-button/INDEX.md` | `spec-tech` | Create tactical plan for S0073 |
+| 2026-05-04 00:30:15 | `PLAN/S0073_player-copy-move-custom-path-button/PHASE_01__path-operations-extension.md` | `spec-tech` | Phase 01: path-operations-extension |
+| 2026-05-04 00:30:15 | `PLAN/S0073_player-copy-move-custom-path-button/PHASE_02__player-folder-picker.md` | `spec-tech` | Phase 02: player-folder-picker |
+| 2026-05-04 00:30:15 | `PLAN/S0073_player-copy-move-custom-path-button/PHASE_03__dotdot-button-ui.md` | `spec-tech` | Phase 03: dotdot-button-ui |
+| 2026-05-04 00:30:15 | `PLAN/S0073_player-copy-move-custom-path-button/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-04 00:30:15 | `PLAN/S0073_player-copy-move-custom-path-button.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 00:31:26 | `PLAN/S0072_downloads-auto-destination.md` | `spec` | Add strategic spec S0072 for downloads-auto-destination |
+| 2026-05-04 00:34:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `S0073 Phase 01` | Add performCopyToPath/performMoveToPath + onCopyToPathSuccess/onMoveToPathSuccess to interface |
+| 2026-05-04 00:34:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0073 Phase 01` | Implement onCopyToPathSuccess/onMoveToPathSuccess in FileOperationCallback anonymous object |
+| 2026-05-04 00:35:56 | `PLAN/S0072_downloads-auto-destination/INDEX.md` | `spec-tech` | Create tactical plan for S0072 |
+| 2026-05-04 00:35:56 | `PLAN/S0072_downloads-auto-destination/PHASE_01__string-and-use-case.md` | `spec-tech` | Phase 01: string-and-use-case |
+| 2026-05-04 00:35:56 | `PLAN/S0072_downloads-auto-destination/PHASE_02__viewmodel-wiring.md` | `spec-tech` | Phase 02: viewmodel-wiring |
+| 2026-05-04 00:35:56 | `PLAN/S0072_downloads-auto-destination/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-04 00:35:56 | `PLAN/S0072_downloads-auto-destination.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 00:36:53 | `app_v2/src/main/res/values/strings.xml` | `S0072` | Add resource_name_downloads string (EN) |
+| 2026-05-04 00:37:17 | `app_v2/src/main/res/values-ru/strings.xml` | `S0072` | Add resource_name_downloads string (RU) |
+| 2026-05-04 00:37:42 | `app_v2/src/main/res/values-uk/strings.xml` | `S0072` | Add resource_name_downloads string (UK) |
+| 2026-05-04 00:38:28 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDownloadsDestinationUseCase.kt` | `S0072` | New use case: auto-provision Downloads as first destination |
+| 2026-05-04 00:39:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerFolderPickerHandler.kt` | `S0073 Phase 02` | New: player folder-picker handler for custom copy/move destination |
+| 2026-05-04 00:39:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0073 Phase 02` | Add folderPickerLauncher (OpenDocumentTree) + playerFolderPickerHandler field |
+| 2026-05-04 00:39:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0073 Phase 02` | Init PlayerFolderPickerHandler; implement onCustomPathPickerRequested in DestinationButtonsCallback |
+| 2026-05-04 00:39:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DestinationButtonsManager.kt` | `S0073 Phase 02` | Add onCustomPathPickerRequested to DestinationButtonsCallback + FileOperationType import |
+| 2026-05-04 00:44:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DestinationButtonsManager.kt` | `spec-dev` | S0073 step 03.3: remove if(!hasDestinations) panel-hiding guard |
+| 2026-05-04 00:44:45 | `app_v2/src/main/res/values/strings.xml` | `DestinationButtonsManager` | Add missing btn_select_folder_description string (EN) |
+| 2026-05-04 00:44:45 | `app_v2/src/main/res/values-ru/strings.xml` | `DestinationButtonsManager` | Add missing btn_select_folder_description string (RU) |
+| 2026-05-04 00:44:45 | `app_v2/src/main/res/values-uk/strings.xml` | `DestinationButtonsManager` | Add missing btn_select_folder_description string (UK) |
+| 2026-05-04 00:46:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0072` | Wire ProvisionDownloadsDestinationUseCase into init block |
+| 2026-05-04 00:49:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `S0073` | Add performCopyToPath/performMoveToPath + callback methods |
+| 2026-05-04 00:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0073` | Register folderPickerLauncher; add playerFolderPickerHandler field |
+| 2026-05-04 00:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0073` | Init PlayerFolderPickerHandler; wire onCustomPathPickerRequested callback |
+| 2026-05-04 00:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerFolderPickerHandler.kt` | `S0073` | New: player folder-picker handler for custom copy/move destination |
+| 2026-05-04 00:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DestinationButtonsManager.kt` | `S0073` | Add .. button to Copy/Move grids; always show panels |
+| 2026-05-04 00:49:02 | `app_v2/src/main/res/values/strings.xml` | `S0073` | Add btn_select_folder_description (EN) |
+| 2026-05-04 00:49:02 | `app_v2/src/main/res/values-ru/strings.xml` | `S0073` | Add btn_select_folder_description (RU) |
+| 2026-05-04 00:49:02 | `app_v2/src/main/res/values-uk/strings.xml` | `S0073` | Add btn_select_folder_description (UK) |
+| 2026-05-04 00:49:02 | `docs/FEATURES.md` | `S0073` | Document .. folder-picker button in player panels |
+| 2026-05-04 00:49:03 | `docs/FEATURES_RU.md` | `S0073` | Document .. folder-picker button in player panels (RU) |
+| 2026-05-04 00:49:03 | `docs/FEATURES_UK.md` | `S0073` | Document .. folder-picker button in player panels (UK) |
+| 2026-05-04 00:51:54 | `PLAN/S0073_player-copy-move-custom-path-button.md` | `spec-check` | Audit S0073 -> Verified; PASS 18 / WARN 0 / FAIL 0 / MANUAL 8 |
+| 2026-05-04 00:52:45 | `app_v2/src/main/res/values/strings.xml` | `S0072` | Add resource_name_downloads string (EN) |
+| 2026-05-04 00:52:45 | `app_v2/src/main/res/values-ru/strings.xml` | `S0072` | Add resource_name_downloads string (RU) |
+| 2026-05-04 00:52:45 | `app_v2/src/main/res/values-uk/strings.xml` | `S0072` | Add resource_name_downloads string (UK) |
+| 2026-05-04 00:52:51 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDownloadsDestinationUseCase.kt` | `S0072` | New use case: auto-provision Downloads as first destination |
+| 2026-05-04 00:52:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0072` | Wire ProvisionDownloadsDestinationUseCase into init block |
+| 2026-05-04 00:52:51 | `docs/FEATURES.md` | `S0072` | Add Downloads pre-configured destination bullet |
+| 2026-05-04 00:52:51 | `docs/FEATURES_RU.md` | `S0072` | Add Downloads pre-configured destination bullet (RU) |
+| 2026-05-04 00:52:51 | `docs/FEATURES_UK.md` | `S0072` | Add Downloads pre-configured destination bullet (UK) |
+| 2026-05-04 00:54:45 | `PLAN/S0072_downloads-auto-destination.md` | `spec-check` | Audit S0072 -> Verified; PASS/WARN/FAIL 19/0/0 |
+| 2026-05-04 01:03:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DestinationButtonsManager.kt` | `S0073-fix` | Render «..» as last button in last row, not a separate row; narrow button sizing |
+| 2026-05-04 01:07:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelper.kt` | `BdTsPlaybackHelper` | Add buildBdTsMediaSourceFactory: sets FLAG_IGNORE_SPLICE_INFO_STREAM to suppress ExoPlayer SCTE-35 crash on Blu-ray TS |
+| 2026-05-04 01:07:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `SmbPlaybackHelper` | Use buildBdTsMediaSourceFactory instead of bare DefaultMediaSourceFactory for BD-TS player setup |
+| 2026-05-04 01:07:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `SftpPlaybackHelper` | Use buildBdTsMediaSourceFactory instead of bare DefaultMediaSourceFactory for BD-TS player setup |
+| 2026-05-04 01:07:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `FtpPlaybackHelper` | Use buildBdTsMediaSourceFactory instead of bare DefaultMediaSourceFactory for BD-TS player setup |
+| 2026-05-04 01:07:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt` | `LocalPlaybackHelper` | Use buildBdTsMediaSourceFactory instead of bare DefaultMediaSourceFactory for BD-TS local file player setup |
+| 2026-05-04 01:15:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelper.kt` | `BdTsPlaybackHelper` | Fix import: FLAG_IGNORE_SPLICE_INFO_STREAM is in DefaultTsPayloadReaderFactory (not TsExtractor) in Media3 1.2.1; use 2-arg DefaultMediaSourceFactory constructor |
+| 2026-05-04 01:19:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt` | `CloudPlaybackHelper` | Phase 04: make suspend, add BD-TS format detection, use buildBdTsMediaSourceFactory with SCTE-35 suppression |
+| 2026-05-04 01:22:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Phase 06: add audioUnsupportedShownForPath guard + onTracksChanged audio diagnostics Toast for .m2ts files with all-unsupported audio tracks |
+| 2026-05-04 01:25:15 | `PLAN/S0074_copy-move-dialog-progress.md` | `spec` | Add strategic spec S0074 for copy-move dialog progress (%, speed, ETA) |
+| 2026-05-04 01:27:49 | `docs/FEATURES.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet |
+| 2026-05-04 01:27:49 | `docs/FEATURES_RU.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet RU |
+| 2026-05-04 01:27:49 | `docs/FEATURES_UK.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet UK |
+| 2026-05-04 01:31:02 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `NetworkFileModelLoader` | Add vob/ts/m2ts/mts/m2t/ifo/bup to VIDEO_EXTENSIONS to prevent NetworkFileDataFetcher from downloading and failing to validate DVD/TS container files as images |
+| 2026-05-04 01:31:07 | `PLAN/S0074_copy-move-dialog-progress/INDEX.md` | `spec-tech` | Create tactical plan for S0074 |
+| 2026-05-04 01:31:07 | `PLAN/S0074_copy-move-dialog-progress/PHASE_01__domain-total-bytes.md` | `spec-tech` | Phase 01: domain-total-bytes |
+| 2026-05-04 01:31:07 | `PLAN/S0074_copy-move-dialog-progress/PHASE_02__dialog-eta-percent.md` | `spec-tech` | Phase 02: dialog-eta-percent |
+| 2026-05-04 01:31:07 | `PLAN/S0074_copy-move-dialog-progress/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-04 01:31:07 | `PLAN/S0074_copy-move-dialog-progress.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 01:35:04 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/FileOperationUseCase.kt` | `S0074` | Add totalOperationBytes to Starting, completedOperationBytes+fileSizes to executeWithProgress |
+| 2026-05-04 01:39:54 | `app_v2/src/main/res/layout/dialog_file_operation_progress.xml` | `S0074` | Add tvOverallPercent and tvEta views |
+| 2026-05-04 01:39:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationProgressDialog.kt` | `S0074` | Show overall %, ETA with moving-average, 3s throttle, 100% on completion |
+| 2026-05-04 01:39:54 | `app_v2/src/main/res/values/strings.xml` | `S0074` | Add transfer_overall_progress_desc, transfer_eta_desc (EN) |
+| 2026-05-04 01:39:54 | `app_v2/src/main/res/values-ru/strings.xml` | `S0074` | Add transfer_overall_progress_desc, transfer_eta_desc (RU) |
+| 2026-05-04 01:39:54 | `app_v2/src/main/res/values-uk/strings.xml` | `S0074` | Add transfer_overall_progress_desc, transfer_eta_desc (UK) |
+| 2026-05-04 01:40:01 | `PLAN/S0075_device-reach-google-play.md` | `spec` | Add strategic spec S0075 for device-reach-google-play |
+| 2026-05-04 01:42:20 | `docs/FEATURES.md` | `S0074` | Document copy/move progress % and ETA feature (EN) |
+| 2026-05-04 01:42:20 | `docs/FEATURES_RU.md` | `S0074` | RU feature doc: copy/move % and ETA |
+| 2026-05-04 01:42:20 | `docs/FEATURES_UK.md` | `S0074` | UK feature doc: copy/move % and ETA |
+| 2026-05-04 01:42:20 | `dev/CATALOG/app_v2.jsonl` | `S0074` | Catalog regen after Phase 02 changes |
+| 2026-05-04 01:42:20 | `dev/CATALOG/app_v2.md` | `S0074` | Catalog render after Phase 02 changes |
+| 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play/INDEX.md` | `spec-tech` | Create tactical plan for S0075 |
+| 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play/PHASE_01__manifest-hardening.md` | `spec-tech` | Phase 01: manifest-hardening |
+| 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play/PHASE_02__console-verification.md` | `spec-tech` | Phase 02: console-verification |
+| 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 01:47:28 | `docs/FEATURES.md` | `S0074` | Document copy/move progress % and ETA feature |
+| 2026-05-04 01:47:28 | `docs/FEATURES_RU.md` | `S0074` | RU feature doc: copy/move % and ETA |
+| 2026-05-04 01:47:28 | `docs/FEATURES_UK.md` | `S0074` | UK feature doc: copy/move % and ETA |
+| 2026-05-04 01:49:26 | `PLAN/S0074_copy-move-dialog-progress.md` | `spec-check` | Audit S0074 -> Verified; PASS/WARN/FAIL 18/0/0 |
+| 2026-05-04 01:57:08 | `PLAN/S0054_m2ts-playback-support.md` | `spec-update` | Refined S0054 with TS/non-TS boundary and linked S0076/S0077 |
+| 2026-05-04 01:57:08 | `PLAN/S0054_m2ts-playback-support/INDEX.md` | `spec-update` | Linked field-log follow-up tickets for S0054 tactical plan |
+| 2026-05-04 01:57:08 | `PLAN/S0076_bugfix-vob-network-playback-routing.md` | `spec` | Add strategic spec S0076 for VOB network playback routing |
+| 2026-05-04 01:57:08 | `PLAN/S0077_bugfix-network-video-thumbnail-routing-bdmv-dvd.md` | `spec` | Add strategic spec S0077 for BDMV/DVD thumbnail routing |
+| 2026-05-04 02:02:08 | `PLAN/S0075_device-reach-google-play.md` | `spec-update` | Resolve §6.1 §6.2; update §6.3 VR research; fix §12 link |
+| 2026-05-04 02:02:08 | `PLAN/S0075_device-reach-google-play/INDEX.md` | `spec-update` | Check off resolved blockers §6.1 §6.2; clarify §6.3 |
+| 2026-05-04 02:02:08 | `PLAN/S0075_device-reach-google-play/PHASE_01__manifest-hardening.md` | `spec-update` | Remove §6.2 prerequisite from Step 1.2 |
+| 2026-05-04 02:05:16 | `app_v2/src/main/AndroidManifest.xml` | `S0075` | Add uses-feature required=false for wifi and touchscreen; add anyDensity=true to supports-screens |
+| 2026-05-04 02:05:22 | `PLAN/S0077_bugfix-network-video-thumbnail-routing-bdmv-dvd` | `S0077` | Created tactical spec: INDEX + PHASE_01 (extend blocked extensions + i18n) + PHASE_02 (catalog/devlog); status -> Tactical |
+| 2026-05-04 02:06:43 | `PLAN/S0075_device-reach-google-play.md` | `spec-dev` | Status -> Implemented |
+| 2026-05-04 02:08:08 | `PLAN/S0075_device-reach-google-play.md` | `spec-check` | Audit S0075 -> Partial; PASS/WARN/FAIL 12/1/0 |
+| 2026-05-04 02:11:15 | `PLAN/S0076_bugfix-vob-network-playback-routing.md` | `spec-tech` | Promote S0076 to Tactical and resolve research items |
+| 2026-05-04 02:11:15 | `PLAN/S0076_bugfix-vob-network-playback-routing/INDEX.md` | `spec-tech` | Create tactical index for S0076 |
+| 2026-05-04 02:11:15 | `PLAN/S0076_bugfix-vob-network-playback-routing/PHASE_01__route-foundations.md` | `spec-tech` | Create Phase 01 for S0076 |
+| 2026-05-04 02:11:15 | `PLAN/S0076_bugfix-vob-network-playback-routing/PHASE_02__protocol-wiring.md` | `spec-tech` | Create Phase 02 for S0076 |
+| 2026-05-04 02:11:15 | `PLAN/S0076_bugfix-vob-network-playback-routing/PHASE_03__error-containment.md` | `spec-tech` | Create Phase 03 for S0076 |
+| 2026-05-04 02:11:15 | `PLAN/S0076_bugfix-vob-network-playback-routing/PHASE_04__strings-tests.md` | `spec-tech` | Create Phase 04 for S0076 |
+| 2026-05-04 02:11:15 | `PLAN/S0076_bugfix-vob-network-playback-routing/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Create Phase 05 for S0076 |
+| 2026-05-04 02:31:12 | `PLAN/260504vr-research.md` | `260504vr-research` | Research audit: incident log 2026-05-03 + VR complaints #1-5 mapped to existing specs |
+| 2026-05-04 02:51:55 | `PLAN/260504vr-research.md` | `260504vr-research` | Full rewrite: replaced POCO/SMB findings with Quest 3 session data; incorporated parallel research root cause (layout-land NPE); documented SBS_FULL fallback bug and S0038/S0024/S0067 confirmations |
+| 2026-05-04 02:54:44 | `AGENTS.md` | `AGENTS` | Add LAYOUT_ORIENTATION mandatory rule: portrait+landscape parity for res/layout/*.xml edits |
+| 2026-05-04 02:54:44 | `CLAUDE.md` | `Strict Rules` | Add rule #12 LAYOUT_ORIENTATION: portrait+landscape parity check; renumber old 12→13 |
+| 2026-05-04 02:54:44 | `.github/copilot-instructions.md` | `strict_constraints` | Add LAYOUT_ORIENTATION constraint after UI_AMBIGUITY_GATE |
+| 2026-05-04 02:54:44 | `.claude/commands/spec-dev.md` | `spec-dev` | Add landscape parity guard to Pre-edit guards and Constraints sections |
+| 2026-05-04 02:54:44 | `.claude/commands/spec-tech.md` | `spec-tech` | Add landscape parity constraint to phase file authoring rules |
+| 2026-05-04 02:54:44 | `.claude/commands/quick.md` | `quick` | Add LAYOUT_ORIENTATION warning block in Step 3 |
+| 2026-05-04 02:54:48 | `CLAUDE.md` | `Strict Rules` | Add rule #12 LAYOUT_ORIENTATION: portrait+landscape parity check; renumber old 12->13 |
+| 2026-05-04 02:54:48 | `.github/copilot-instructions.md` | `strict_constraints` | Add LAYOUT_ORIENTATION constraint after UI_AMBIGUITY_GATE |
+| 2026-05-04 02:54:48 | `.claude/commands/spec-dev.md` | `spec-dev` | Add landscape parity guard to Pre-edit guards and Constraints sections |
+| 2026-05-04 02:54:48 | `.claude/commands/spec-tech.md` | `spec-tech` | Add landscape parity constraint to phase file authoring rules |
+| 2026-05-04 02:54:48 | `.claude/commands/quick.md` | `quick` | Add LAYOUT_ORIENTATION warning block in Step 3 |
+| 2026-05-04 02:54:53 | `.github/copilot-instructions.md` | `strict_constraints` | Add LAYOUT_ORIENTATION constraint after UI_AMBIGUITY_GATE |
+| 2026-05-04 02:54:53 | `.claude/commands/spec-dev.md` | `spec-dev` | Landscape parity guard in Pre-edit guards and Constraints |
+| 2026-05-04 02:54:53 | `.claude/commands/spec-tech.md` | `spec-tech` | Landscape parity constraint in phase authoring rules |
+| 2026-05-04 02:54:53 | `.claude/commands/quick.md` | `quick` | LAYOUT_ORIENTATION warning block in Step 3 |
+| 2026-05-04 03:09:08 | `PLAN/260504vr-research.md` | `260504vr-research` | Audit update: corrected S0038/S0024 WORKING claims; added Appendix A user feedback audit; launchFlags anomaly reclassified to HIGH severity; removed duplicate SMB tail |
+| 2026-05-04 03:09:08 | `PLAN/S0024_vr-hud-ray-input.md` | `S0024` | Status Verified->Broken: first on-device Quest 3 test failed; HUD swapchain 1024x256 unreadable; depends on S0080; mechanism correct but visually unusable |
+| 2026-05-04 03:09:08 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window.md` | `S0038` | Status->Broken: Phase01 confirmed in log (direct startActivity); new root cause = finishAndRemoveTask() missing; BROUGHT_TO_FRONT evidence at log:4580 |
+| 2026-05-04 03:09:08 | `PLAN/S0078_bugfix-vr-sbs-full-half-layer-factory.md` | `S0078` | New spec: bugfix DefaultVrLayerFactory SBS_FULL/SBS_HALF -> QUAD_CINEMA fallback; remove renderMode==FULL_STEREO guard; 2-line fix |
+| 2026-05-04 03:09:08 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `S0079` | New spec: bugfix layout-land/dialog_file_operation_progress.xml missing tvOverallPercent/tvEta; XML-only fix |
+| 2026-05-04 03:09:08 | `PLAN/S0080_enh-vr-hud-swapchain-resize.md` | `S0080` | New spec: HUD swapchain 1024x256 -> proportional to eye buffer; S0024 depends on this; also investigate supersampling option |
+| 2026-05-04 03:09:15 | `PLAN/S0024_vr-hud-ray-input.md` | `S0024` | Status Verified->Broken: first on-device Quest 3 test failed; HUD swapchain 1024x256 unreadable; depends on S0080; mechanism correct but visually unusable |
+| 2026-05-04 03:09:15 | `PLAN/S0038_bugfix-vr-exit-immersive-new-window.md` | `S0038` | Status->Broken: Phase01 confirmed in log; new root cause = finishAndRemoveTask() missing; BROUGHT_TO_FRONT evidence at log:4580 |
+| 2026-05-04 03:09:15 | `PLAN/S0078_bugfix-vr-sbs-full-half-layer-factory.md` | `S0078` | New spec: bugfix DefaultVrLayerFactory SBS_FULL/SBS_HALF QUAD_CINEMA fallback; remove renderMode guard; 2-line fix |
+| 2026-05-04 03:09:15 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `S0079` | New spec: bugfix layout-land missing tvOverallPercent/tvEta; XML-only fix |
+| 2026-05-04 03:09:15 | `PLAN/S0080_enh-vr-hud-swapchain-resize.md` | `S0080` | New spec: HUD swapchain scale by eye buffer ratio; S0024 unblocked after this |
+| 2026-05-04 10:08:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkThumbnailExtractionPolicy.kt` | `NetworkThumbnailExtractionPolicy` | S0077: added vob/m2ts/mts/m2t/ts/ifo/bup to BLOCKED_EXTENSIONS — prevents NoModelLoaderAvailableException on optical-disc network browse |
+| 2026-05-04 10:08:07 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0077: added thumbnail_unavailable_network_format RU translation (S0063 gap) |
+| 2026-05-04 10:08:07 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0077: added thumbnail_unavailable_network_format UK translation (S0063 gap) |
+| 2026-05-04 10:09:16 | `PLAN/S0077_bugfix-network-video-thumbnail-routing-bdmv-dvd.md` | `spec-check` | Audit S0077 -> Verified; PASS/WARN/FAIL 9/0/0 |
+| 2026-05-04 10:09:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NetworkPlaybackContainerHint.kt` | `S0076 Phase 01` | New enum for network container classification: M2TS_TS_CANDIDATE, DVD_PS_VOB, OTHER; pure path-based helper fromPath() |
+| 2026-05-04 10:09:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelper.kt` | `S0076 Phase 01` | Add shouldUseBdTsStripper(); UNKNOWN is now pass-through, stripping opt-in only for BD_192 |
+| 2026-05-04 10:09:18 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelperTest.kt` | `S0076 Phase 01` | Unit tests for NetworkPlaybackContainerHint.fromPath and shouldUseBdTsStripper |
+| 2026-05-04 10:12:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `S0076 Phase 02` | Replace raw extension checks with NetworkPlaybackContainerHint; DVD_PS_VOB explicit branch on pass-through |
+| 2026-05-04 10:12:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `S0076 Phase 02` | Replace raw extension checks with NetworkPlaybackContainerHint; TS probe only for M2TS_TS_CANDIDATE |
+| 2026-05-04 10:12:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `S0076 Phase 02` | Replace raw extension checks with NetworkPlaybackContainerHint; TS probe only for M2TS_TS_CANDIDATE |
+| 2026-05-04 10:12:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt` | `S0076 Phase 02` | Replace isMts check with NetworkPlaybackContainerHint.fromPath for consistent container routing |
+| 2026-05-04 10:15:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0076 Phase 03` | Add onNetworkContainerRouteError to PlayerCallback; branch DVD_PS_VOB route errors before generic auto-next skip |
+| 2026-05-04 10:15:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `S0076 Phase 03` | Implement onNetworkContainerRouteError: show blocking dialog without delegating to handleMediaLoadErrorAndSkip |
+| 2026-05-04 10:17:07 | `app_v2/src/main/res/values/strings.xml` | `S0076 Phase 04` | Add error_vob_route_title and error_vob_route_message strings (EN) |
+| 2026-05-04 10:17:07 | `app_v2/src/main/res/values-ru/strings.xml` | `S0076 Phase 04` | Add error_vob_route_title and error_vob_route_message strings (RU) |
+| 2026-05-04 10:17:07 | `app_v2/src/main/res/values-uk/strings.xml` | `S0076 Phase 04` | Add error_vob_route_title and error_vob_route_message strings (UK) |
+| 2026-05-04 10:17:07 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VideoPlayerManagerRouteErrorTest.kt` | `S0076 Phase 04` | Regression tests for VOB route error path vs generic error path |
+| 2026-05-04 10:17:07 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImplTest.kt` | `S0076 Phase 04` | Narrow unit tests for VOB route callback contract |
+| 2026-05-04 10:21:50 | `docs/FEATURES.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet to Video Player section |
+| 2026-05-04 10:21:50 | `docs/FEATURES_RU.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet (RU) |
+| 2026-05-04 10:21:50 | `docs/FEATURES_UK.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet (UK) |
+| 2026-05-04 10:21:50 | `dev/CATALOG/app_v2.jsonl` | `S0076 Phase 05` | Catalog regenerated after S0076 Kotlin changes; role set for NetworkPlaybackContainerHint |
+| 2026-05-04 10:21:50 | `dev/CATALOG/app_v2.md` | `S0076 Phase 05` | Catalog markdown re-rendered after S0076 changes |
+| 2026-05-04 10:25:03 | `PLAN/S0076_bugfix-vob-network-playback-routing.md` | `spec-check` | Audit S0076 -> Verified; PASS/WARN/FAIL 42/0/0 |
+| 2026-05-04 12:23:11 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest.xml` | S0075: add android.hardware.faketouch required=false to prevent filtering of DPAD/trackball-only devices |
+| 2026-05-04 14:31:44 | `app_v2/src/main/java/com/sza/fastmediasorter/vr/render/DefaultVrLayerFactory.kt` | `S0078` | Remove renderMode==FULL_STEREO guard from SBS branch — SBS_FULL/SBS_HALF now always route to projectionDescriptor regardless of renderMode |
+| 2026-05-04 14:40:02 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `spec` | Add strategic spec S0079 for bugfix-file-op-progress-dialog-landscape-npe |
+| 2026-05-04 14:40:07 | `docs/FEATURES.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075) |
+| 2026-05-04 14:40:07 | `docs/FEATURES_RU.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075, RU) |
+| 2026-05-04 14:40:07 | `docs/FEATURES_UK.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075, UK) |
+| 2026-05-04 14:40:07 | `index.html` | `doc-update` | Add Android TV box usage scenario card; update meta keywords |
+| 2026-05-04 14:40:07 | `index-ru.html` | `doc-update` | Add Android TV box usage scenario card (RU) |
+| 2026-05-04 14:40:07 | `index-uk.html` | `doc-update` | Add Android TV box usage scenario card (UK) |
+| 2026-05-04 14:41:34 | `PLAN/S0081_tv-remote-key-coverage.md` | `spec` | Add strategic spec S0081 for tv-remote-key-coverage |
+| 2026-05-04 14:42:43 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe/INDEX.md` | `spec-tech` | Create tactical plan for S0079 |
+| 2026-05-04 14:42:43 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe/PHASE_01__landscape-layout-fix.md` | `spec-tech` | Phase 01: landscape-layout-fix |
+| 2026-05-04 14:42:43 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-04 14:42:43 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 14:44:51 | `app_v2/src/main/res/layout-land/dialog_file_operation_progress.xml` | `S0079` | Add missing tvOverallPercent and tvEta TextViews to landscape layout |
+| 2026-05-04 14:51:40 | `PLAN/S0081_tv-remote-key-coverage/INDEX.md` | `spec-tech` | Create tactical plan for S0081 |
+| 2026-05-04 14:51:40 | `PLAN/S0081_tv-remote-key-coverage/PHASE_01__manifest-leanback.md` | `spec-tech` | Phase 01: manifest-leanback |
+| 2026-05-04 14:51:40 | `PLAN/S0081_tv-remote-key-coverage/PHASE_02__tv-key-routing.md` | `spec-tech` | Phase 02: tv-key-routing |
+| 2026-05-04 14:51:40 | `PLAN/S0081_tv-remote-key-coverage/PHASE_03__focus-traversal.md` | `spec-tech` | Phase 03: focus-traversal |
+| 2026-05-04 14:51:41 | `PLAN/S0081_tv-remote-key-coverage/PHASE_04__dpad-acceleration.md` | `spec-tech` | Phase 04: dpad-acceleration |
+| 2026-05-04 14:51:41 | `PLAN/S0081_tv-remote-key-coverage/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-04 14:51:41 | `PLAN/S0081_tv-remote-key-coverage.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 14:53:17 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `S0079` | Status -> Implemented |
+| 2026-05-04 14:55:47 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `spec-check` | Audit S0079 -> Verified; PASS/WARN/FAIL 9/0/0 |
+| 2026-05-04 15:02:18 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest.xml` | S0081 Phase 01: add android.software.leanback required=false |
+| 2026-05-04 15:08:59 | `app_v2/src/main/assets/input/default_bindings.json` | `default_bindings.json` | S0081 Phase 02 Step 2.1: add TV remote key triggers (CHANNEL_UP/DOWN, PROG_RED/GREEN/YELLOW/BLUE, INFO) |
+| 2026-05-04 15:14:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | S0081 Phase 02 Step 2.2: inject KeyBindingManager, add TV key pre-check in dispatchKeyEvent, routeBrowserCommandId |
+| 2026-05-04 15:14:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/KeyboardNavigationManager.kt` | `KeyboardNavigationManager` | S0081 Phase 02 Step 2.2: add internal dispatchCommandId(commandId) mapping commandId strings to InputActions |
+| 2026-05-04 15:15:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | S0081 Phase 02 Step 2.3: inject KeyBindingManager, add TV key pre-check in dispatchKeyEvent, routeMainCommandId |
+| 2026-05-04 15:15:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/KeyboardNavigationHandler.kt` | `KeyboardNavigationHandler` | S0081 Phase 02 Step 2.3: add internal dispatchCommandId(commandId) mapping commandId strings to InputActions |
+| 2026-05-04 15:19:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/FocusManager.kt` | `FocusManager` | S0081 Phase 03 Step 3.1: return false at list boundary in applyAction MoveFocus branch |
+| 2026-05-04 15:20:41 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `custom_player_controls.xml` | S0081 Phase 03 Step 3.2: add nextFocusLeft/Right wrap-around between exo_repeat and btnPlaybackControl |
+| 2026-05-04 15:22:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/FocusManager.kt` | `FocusManager` | S0081 Phase 04: DPAD hold acceleration via PageJump (DPAD_ACCEL_REPEAT_THRESHOLD=6) |
+| 2026-05-04 15:27:44 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest.xml` | S0081 Phase 01: add android.software.leanback required=false |
+| 2026-05-04 15:27:44 | `app_v2/src/main/assets/input/default_bindings.json` | `default_bindings.json` | S0081 Phase 02: add TV remote key triggers (PROG_RED/GREEN/YELLOW/BLUE, CHANNEL_UP/DOWN) |
+| 2026-05-04 15:27:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | S0081 Phase 02: pre-check KeyBindingManager for TV keys before hardcoded fallback |
+| 2026-05-04 15:27:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | S0081 Phase 02: pre-check KeyBindingManager for TV keys before hardcoded fallback |
+| 2026-05-04 15:27:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/KeyboardNavigationManager.kt` | `KeyboardNavigationManager` | S0081 Phase 02: add internal dispatchCommandId for TV key routing |
+| 2026-05-04 15:27:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/KeyboardNavigationHandler.kt` | `KeyboardNavigationHandler` | S0081 Phase 02: add internal dispatchCommandId for TV key routing |
+| 2026-05-04 15:27:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/FocusManager.kt` | `FocusManager` | S0081 Phase 03+04: boundary escape + DPAD hold acceleration |
+| 2026-05-04 15:27:50 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `custom_player_controls.xml` | S0081 Phase 03: close nextFocusLeft/Right loop in player controls |
+| 2026-05-04 15:27:54 | `docs/FEATURES.md` | `FEATURES` | S0081: TV remote remapping and DPAD acceleration |
+| 2026-05-04 15:27:54 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0081: TV remote remapping and DPAD acceleration (RU) |
+| 2026-05-04 15:27:54 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0081: TV remote remapping and DPAD acceleration (UK) |
+| 2026-05-04 15:29:18 | `PLAN/S0081_tv-remote-key-coverage.md` | `spec` | S0081 Status -> Implemented |
+| 2026-05-04 15:30:41 | `PLAN/S0081_tv-remote-key-coverage.md` | `spec-check` | Audit S0081 -> Verified; PASS/WARN/FAIL 24/0/0 |
+| 2026-05-04 16:28:05 | `PLAN/S0080_enh-vr-hud-swapchain-resize.md` | `spec` | Advance S0080 strategic spec to Approved |
+| 2026-05-04 16:34:13 | `PLAN/S0080_enh-vr-hud-swapchain-resize/INDEX.md` | `spec-tech` | Create tactical plan for S0080 |
+| 2026-05-04 16:34:13 | `PLAN/S0080_enh-vr-hud-swapchain-resize/PHASE_01__hud-swapchain-scaling.md` | `spec-tech` | Phase 01: hud-swapchain-scaling |
+| 2026-05-04 16:34:13 | `PLAN/S0080_enh-vr-hud-swapchain-resize/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-04 16:34:13 | `PLAN/S0080_enh-vr-hud-swapchain-resize.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 16:35:06 | `temp/VrRenderPipelineManager_20260504_1634.kt` | `spec-dev S0080 step-1.1` | Backup VrRenderPipelineManager.kt before S0080 edit |
+| 2026-05-04 16:36:07 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudRenderer.kt` | `spec-dev S0080 step-1.2` | S0080: add HUD_WIDTH_RATIO/HUD_HEIGHT_RATIO constants, compute size from eye buffer in init |
+| 2026-05-04 16:36:38 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `spec-dev S0080 step-1.3` | S0080: pass newRenderer.width/height to VrHudSceneComposer |
+| 2026-05-04 16:39:14 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrHudRenderer.kt` | `spec-dev S0080 step-2.1` | S0080: update KDoc to reflect dynamic HUD sizing from eye buffer |
+| 2026-05-04 16:40:20 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0080 step-2.2` | S0080: catalog scan after VrHudRenderer constructor change |
+| 2026-05-04 16:40:20 | `dev/CATALOG/app_v2.md` | `spec-dev S0080 step-2.2` | S0080: catalog render after VrHudRenderer constructor change |
+| 2026-05-04 16:41:06 | `PLAN/S0080_enh-vr-hud-swapchain-resize.md` | `spec-dev S0080` | S0080 Implemented -> BlockNeedUserTest (on-device HUD visibility test required) |
+| 2026-05-04 17:50:42 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrSessionLifecycleManager.kt` | `VrSessionLifecycleManager` | S0038: remove prohibited Log.e(VR_BOOT) — replaced with Timber.w already present on preceding line |
+| 2026-05-04 17:53:10 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt` | `S0035 Phase 01 Step 01.1` | Add LOCAL_NETWORK_API=37 and LOCAL_NETWORK_PERMISSION string-literal constants (compileSdk 35 guard) |
+| 2026-05-04 17:53:27 | `app_v2/src/main/AndroidManifest.xml` | `S0035 Phase 01 Step 01.2` | Declare ACCESS_LOCAL_NETWORK permission with minSdkVersion=37 |
+| 2026-05-04 17:54:09 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt` | `S0035 Phase 01 Step 01.3` | Add local-network permission surface: hasLocalNetworkPermission, requestLocalNetworkPermission, routeToLocalNetworkSettings, getLocalNetworkPermissionMessage, shouldShowLocalNetworkRationale, isLocalNetworkRuntimePermissionExpected, REQUEST_CODE_LOCAL_NETWORK |
+| 2026-05-04 17:57:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkExceptions.kt` | `S0035 Phase 02 Step 02.1` | Add LocalNetworkPermissionDeniedException as distinct NetworkException subtype |
+| 2026-05-04 17:58:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorClassifier.kt` | `S0035 Phase 02 Step 02.2` | Teach classifier to preserve and create LocalNetworkPermissionDeniedException from SecurityException with ACCESS_LOCAL_NETWORK message heuristics |
+| 2026-05-04 17:59:50 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt` | `S0035 Phase 02 Step 02.3` | Preserve LocalNetworkPermissionDeniedException through listShares, scanMediaFiles, listFiles wrappers |
+| 2026-05-04 18:01:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorMessageMapper.kt` | `S0035 Phase 02 Step 02.4` | Add LocalNetworkPermissionDeniedException branch to exhaustive when expression |
+| 2026-05-04 18:03:20 | `app_v2/src/main/res/values/strings.xml` | `S0035 Phase 03 Step 03.1` | Add full local_network_permission_ key set (6 keys: title, message, grant, granted, denied, open_settings) |
+| 2026-05-04 18:03:20 | `app_v2/src/main/res/values-ru/strings.xml` | `S0035 Phase 03 Step 03.1` | Add full local_network_permission_ key set (6 keys) in Russian |
+| 2026-05-04 18:03:20 | `app_v2/src/main/res/values-uk/strings.xml` | `S0035 Phase 03 Step 03.1` | Add full local_network_permission_ key set (6 keys) in Ukrainian |
+| 2026-05-04 18:03:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt` | `S0035 Phase 03 Step 03.2` | Replace hasInternetPermission with hasLocalNetworkPermission for btnNetworkPermission; add requestLocalNetworkPermission/routeToLocalNetworkSettings click handler |
+| 2026-05-04 18:06:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `S0035 Phase 04 Step 04.1` | Add ShowLocalNetworkPermission data object to AddResourceEvent sealed class |
+| 2026-05-04 18:07:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt` | `S0035 Phase 04 Step 04.2` | Gate scanNetwork() with hasLocalNetworkPermission; emit ShowLocalNetworkPermission if missing |
+| 2026-05-04 18:08:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt` | `S0035 Phase 04 Step 04.3` | Gate scanShares with hasLocalNetworkPermission; emit ShowLocalNetworkPermission if missing |
+| 2026-05-04 18:08:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0035 Phase 04 Step 04.3` | Route ShowLocalNetworkPermission event to connectionManager.showLocalNetworkPermissionRationale() |
+| 2026-05-04 18:08:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `S0035 Phase 04 Step 04.3` | Add showLocalNetworkPermissionRationale() two-button dialog with requestLocalNetworkPermission/routeToLocalNetworkSettings |
+| 2026-05-04 18:13:40 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `S0035 Phase 05 Step 05.1-05.2` | Add context param to SmbDataSource/Factory; gate open() with hasLocalNetworkPermission |
+| 2026-05-04 18:13:40 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `S0035 Phase 05 Step 05.1-05.2` | Add context param to SftpDataSource/Factory; gate open() with hasLocalNetworkPermission |
+| 2026-05-04 18:13:40 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/FtpDataSource.kt` | `S0035 Phase 05 Step 05.1-05.2` | Add context param to FtpDataSource/Factory; gate open() with hasLocalNetworkPermission |
+| 2026-05-04 18:13:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `S0035 Phase 05 Step 05.1` | Pass context to SmbDataSourceFactory |
+| 2026-05-04 18:13:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `S0035 Phase 05 Step 05.1` | Pass context to SftpDataSourceFactory |
+| 2026-05-04 18:13:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `S0035 Phase 05 Step 05.1` | Pass context to FtpDataSourceFactory |
+| 2026-05-04 18:15:40 | `PLAN/S0028_vr-multi-window-playback.md` | `spec-update` | Redesign: settings toggle + 3 entry points (resource card / Browse top menu / player overflow) with tear-off; Browse=full state, Player=file only; platform generalization VR→all multi-window; Q3 updated, Q6 added, ADR-4 rewritten, ADR-5/6 added |
+| 2026-05-04 18:19:22 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt` | `S0035 Phase05 Step05.3` | Add @ApplicationContext context + hasLocalNetworkPermission gate before scanFolderWithProgress |
+| 2026-05-04 18:19:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `S0035 Phase05 Step05.3` | Add @ApplicationContext context + hasLocalNetworkPermission gate in scanFolder and scanFolderPaged |
+| 2026-05-04 18:19:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScanner.kt` | `S0035 Phase05 Step05.3` | Add @ApplicationContext context + hasLocalNetworkPermission gate in scanFolder and scanFolderPaged |
+| 2026-05-04 18:19:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `S0035 Phase05 Step05.3` | Add hasLocalNetworkPermission gate in decode() after cache check, before MediaMetadataRetriever work |
+| 2026-05-04 18:19:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/glide/NetworkPdfThumbnailLoader.kt` | `S0035 Phase05 Step05.3` | Add hasLocalNetworkPermission gate in NetworkPdfDataFetcher.loadData() before download |
+| 2026-05-04 18:19:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/glide/NetworkEpubCoverLoader.kt` | `S0035 Phase05 Step05.3` | Add hasLocalNetworkPermission gate in NetworkEpubDataFetcher.loadData() before download |
+| 2026-05-04 18:23:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `S0035 Phase06 Steps06.1+06.2` | Gate init() + showCastDialog() with hasLocalNetworkPermission; lazy recovery in showCastDialog |
+| 2026-05-04 18:27:35 | `docs/FEATURES.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 Network Sources |
+| 2026-05-04 18:27:35 | `docs/FEATURES_RU.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 (RU) |
+| 2026-05-04 18:27:35 | `docs/FEATURES_UK.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 (UK) |
+| 2026-05-04 18:27:35 | `PLAN/S0035_android17-local-network-permission.md` | `S0035 Phase07 Step07.3` | Strategic spec updated for Implemented status |
+| 2026-05-04 18:27:35 | `PLAN/S0035_android17-local-network-permission/INDEX.md` | `S0035 Phase07 Step07.3` | INDEX updated: 7/7 phases done |
+| 2026-05-04 18:27:35 | `dev/CATALOG/app_v2.jsonl` | `S0035 Phase07 Step07.2` | Catalog scan regenerated after S0035 implementation |
+| 2026-05-04 18:27:35 | `dev/CATALOG/app_v2.md` | `S0035 Phase07 Step07.2` | Catalog render regenerated after S0035 implementation |
+| 2026-05-04 18:30:43 | `PLAN/S0035_android17-local-network-permission.md` | `spec-check` | Audit S0035 -> Verified; PASS 26 / WARN 0 / FAIL 0 / MANUAL 8 |
+| 2026-05-04 18:30:43 | `PLAN/S0035_android17-local-network-permission/INDEX.md` | `spec-check` | INDEX closed: 7/7 phases Done, status Verified |
+| 2026-05-04 18:34:22 | `scripts/check_strings_localized.ps1` | `scripts/` | Add check_strings_localized.ps1 — verifies EN/RU/UK parity for a string key prefix; exit 1 on missing keys |
+| 2026-05-04 18:34:25 | `CLAUDE.md` | `Post-Change Steps` | Add step 3: mandatory string locale audit via check_strings_localized.ps1; renumber steps 4-5 |
+| 2026-05-04 18:45:25 | `app_v2/src/main/res/layout-land/activity_browse.xml` | `layout-land/activity_browse` | Sync layoutControls with portrait: add spaceAfterBack (id-referenced), two group-separator Spaces between ToggleView/SelectAll and DeselectAll/ResourceOps |
+| 2026-05-04 18:47:21 | `PLAN/S0028_vr-multi-window-playback/INDEX.md` | `spec-tech` | Rewrite tactical plan: 7 phases (settings-gate, manifest, per-window-state, window-id-plumbing, browse-entry-points, player-tear-off, docs) |
+| 2026-05-04 18:47:21 | `PLAN/S0028_vr-multi-window-playback/PHASE_01__settings-platform-gate.md` | `spec-tech` | Phase 01: settings-platform-gate |
+| 2026-05-04 18:47:21 | `PLAN/S0028_vr-multi-window-playback/PHASE_02__manifest-multi-instance.md` | `spec-tech` | Phase 02: manifest-multi-instance (Browse + Player) |
+| 2026-05-04 18:47:22 | `PLAN/S0028_vr-multi-window-playback/PHASE_03__per-window-resume-state.md` | `spec-tech` | Phase 03: per-window-resume-state |
+| 2026-05-04 18:47:22 | `PLAN/S0028_vr-multi-window-playback/PHASE_04__window-id-plumbing.md` | `spec-tech` | Phase 04: window-id-plumbing (PlayerActivity + BrowseActivity) |
+| 2026-05-04 18:47:22 | `PLAN/S0028_vr-multi-window-playback/PHASE_05__browse-entry-points.md` | `spec-tech` | Phase 05: browse-entry-points (resource card + top menu tear-off) |
+| 2026-05-04 18:47:22 | `PLAN/S0028_vr-multi-window-playback/PHASE_06__player-tear-off.md` | `spec-tech` | Phase 06: player-tear-off (overflow menu) |
+| 2026-05-04 18:47:23 | `PLAN/S0028_vr-multi-window-playback/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
+| 2026-05-04 18:48:39 | `app_v2/src/main/res/layout-land/activity_browse.xml` | `layout-land/activity_browse` | Fix btnShare tint in layoutOperations: sync with portrait (@color/selector_themed_button_tint) |
+| 2026-05-04 18:49:15 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `topCommandPanel portrait` | Fix command panel parity: move btnCopyTextCmd+btnEditTextCmd into text-actions group (after btnTextSettingsCmd); move btnRandomCmd from center group to right-group nav (between btnPreviousCmd/btnNextCmd); fix btnOcrImageCmd using wrong string key btnOcrPdfCmd_text |
+| 2026-05-04 18:49:19 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `topCommandPanel landscape` | Fix command panel parity: add missing visibility=gone to btnDeleteCmd, btnFavorite, btnSlideshowCmd, btnPreviousCmd, btnNextCmd (were VISIBLE by default in landscape but GONE in portrait) |
+| 2026-05-04 19:02:11 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0028/01.1` | Add allowSeparateWindow: Boolean = false (S0028 multi-window setting) |
+| 2026-05-04 19:21:07 | `PLAN/S0082_chromeos-support.md` | `spec` | Add strategic spec S0082 for Chrome OS support |
+| 2026-05-04 19:24:48 | `PLAN/S0028_vr-multi-window-playback/PHASE_01__settings-platform-gate.md` | `spec-update` | Fix Steps 01.2/01.3/01.4: retarget to SettingsRepositoryImpl (direct DataStore), remove SettingsManager reference |
+| 2026-05-04 19:24:55 | `PLAN/S0028_vr-multi-window-playback/INDEX.md` | `spec-update` | Fix Architecture Notes: SettingsRepositoryImpl uses DataStore directly, not SettingsManager; update Phase 01 step counter to 1/4 |
+| 2026-05-04 19:27:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0028` | Step 01.2: add KEY_ALLOW_SEPARATE_WINDOW DataStore key; wire allowSeparateWindow in getSettings()/updateSettings() with SUPPORT_VR_PLAYER default |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support/INDEX.md` | `spec-tech` | Create tactical plan for S0082 |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support/PHASE_01__env-detection-foundation.md` | `spec-tech` | Phase 01: env-detection-foundation |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support/PHASE_02__saf-folder-access.md` | `spec-tech` | Phase 02: saf-folder-access |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support/PHASE_03__cast-availability-guard.md` | `spec-tech` | Phase 03: cast-availability-guard |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support/PHASE_04__keyboard-defaults.md` | `spec-tech` | Phase 04: keyboard-defaults |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support/PHASE_05__first-launch-banner.md` | `spec-tech` | Phase 05: first-launch-banner |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-04 19:31:10 | `PLAN/S0082_chromeos-support.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-04 19:32:22 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `S0028` | Step 01.4: add switchAllowSeparateWindow toggle (hardcoded label, TODO phase-05) |
+| 2026-05-04 19:32:22 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `S0028` | Step 01.4: landscape parity — add switchAllowSeparateWindow toggle |
+| 2026-05-04 19:32:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `S0028` | Step 01.4: add listener and observer for allowSeparateWindow toggle |
+| 2026-05-04 19:35:02 | `dev/CATALOG/app_v2.jsonl` | `S0028` | Phase 01 done: rescan after AppSettings + SettingsRepositoryImpl + VideoSettingsFragment changes |
+| 2026-05-04 19:38:09 | `app_v2/src/vr/AndroidManifest.xml` | `S0028` | Step 02.2: add BrowseActivity + PlayerActivity with resizeableActivity=true for multi-window support |
+| 2026-05-04 19:41:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ResumeStateRepository.kt` | `S0028` | Step 03.1: add windowId:String to saveState/getState/clearState; add WINDOW_ID_MAIN constant |
+| 2026-05-04 19:41:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResumeStateRepositoryImpl.kt` | `S0028` | Step 03.2: replace lazy prefs with prefs(windowId) function; add windowId to all methods; remove @Singleton |
+| 2026-05-04 19:41:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SaveResumeStateUseCase.kt` | `S0028` | Step 03.3: add windowId:String param to invoke() |
+| 2026-05-04 19:41:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GetResumeStateUseCase.kt` | `S0028` | Step 03.4: add windowId:String param to invoke() |
+| 2026-05-04 19:41:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ClearResumeStateUseCase.kt` | `S0028` | Step 03.5: add windowId:String param to invoke() |
+| 2026-05-04 20:20:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0028 Phase 04.1: add EXTRA_WINDOW_ID, windowId field, read from intent/savedState, persist in onSaveInstanceState |
+| 2026-05-04 20:21:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | S0028 Phase 04.2: add windowId from SavedStateHandle, update clearResumeStateUseCase and saveResumeStateUseCase call sites |
+| 2026-05-04 20:21:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainResumePlaybackHelper.kt` | `MainResumePlaybackHelper` | S0028 Phase 04.3: pass WINDOW_ID_MAIN to all getResumeStateUseCase and clearResumeStateUseCase calls |
+| 2026-05-04 20:21:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | S0028 Phase 04.4: add EXTRA_WINDOW_ID + EXTRA_SCROLL_POSITION constants, windowId field, read in onCreate, persist in onSaveInstanceState |
+| 2026-05-04 20:21:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | S0028 Phase 04.4: add windowId from SavedStateHandle and windowIdProvider lambda, wire to BrowseInlineAudioManager, BrowseResourceStateManager, BrowseLifecycleSetupManager |
+| 2026-05-04 20:21:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleSetupManager.kt` | `BrowseLifecycleSetupManager` | S0028 Phase 04.4: add windowIdProvider constructor param, use in getResumeStateUseCase and clearResumeStateUseCase calls |
+| 2026-05-04 20:21:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceStateManager.kt` | `BrowseResourceStateManager` | S0028 Phase 04.4: add windowIdProvider constructor param, use in clearResumeStateUseCase call |
+| 2026-05-04 20:21:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseInlineAudioManager.kt` | `BrowseInlineAudioManager` | S0028 Phase 04.4: add windowIdProvider constructor param, use in saveResumeStateUseCase call |
+| 2026-05-04 20:33:05 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0028 Phase 05.1: add action_open_in_separate_window and setting_allow_separate_window EN strings |
+| 2026-05-04 20:33:05 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0028 Phase 05.1: add action_open_in_separate_window and setting_allow_separate_window RU strings |
+| 2026-05-04 20:33:05 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0028 Phase 05.1: add action_open_in_separate_window and setting_allow_separate_window UK strings |
+| 2026-05-04 20:33:05 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | S0028 Phase 05.1: replace TODO(phase-05) placeholder with @string/setting_allow_separate_window |
+| 2026-05-04 20:33:05 | `app_v2/src/main/res/layout-land/fragment_settings_video.xml` | `fragment_settings_video_land` | S0028 Phase 05.1: replace TODO(phase-05) placeholder with @string/setting_allow_separate_window (landscape) |
+| 2026-05-04 20:33:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `BrowseEventHandler` | S0028 Phase 05.2/05.4: add openBrowseInNewWindow() and tearOffBrowse() methods with UUID windowId and FLAG_ACTIVITY_MULTIPLE_TASK |
+| 2026-05-04 20:33:05 | `app_v2/src/main/res/menu/menu_resource_ops.xml` | `menu_resource_ops` | S0028 Phase 05.3: add action_open_in_separate_window menu item |
+| 2026-05-04 20:33:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManager.kt` | `ResourceOpsMenuManager` | S0028 Phase 05.3: add allowSeparateWindow + openBrowseInNewWindow params to showMenu(); show item when SUPPORT_VR_PLAYER && allowSeparateWindow |
+| 2026-05-04 20:33:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseActionBarManager.kt` | `BrowseActionBarManager` | S0028 Phase 05.4: add handleSeparateWindowAction() guarded by SUPPORT_VR_PLAYER && allowSeparateWindow, calls tearOffBrowse |
+| 2026-05-04 20:50:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0028 Phase 06: add tearOffPlayer() — opens current file in new window, finishes current player |
+| 2026-05-04 20:50:16 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `overflow_menu_player` | S0028 Phase 06: add menu_open_in_separate_window item |
+| 2026-05-04 20:50:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | S0028 Phase 06: add OPEN_IN_SEPARATE_WINDOW command + allowSeparateWindow param to buildActiveCommands |
+| 2026-05-04 20:50:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | S0028 Phase 06: cache allowSeparateWindow from settings, pass to planner, dispatch onOpenInSeparateWindowClicked |
+| 2026-05-04 20:50:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | S0028 Phase 06: implement onOpenInSeparateWindowClicked -> activity.tearOffPlayer() |
+| 2026-05-04 20:54:13 | `docs/FEATURES.md` | `FEATURES` | S0028 Phase 07: add Multi-Window Mode entry under VR section (EN) |
+| 2026-05-04 20:54:14 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0028 Phase 07: add Multi-Window Mode entry under VR section (RU) |
+| 2026-05-04 20:54:15 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0028 Phase 07: add Multi-Window Mode entry under VR section (UK) |
+| 2026-05-04 21:01:38 | `PLAN/S0028_vr-multi-window-playback.md` | `spec-check` | Audit S0028 → Verified; PASS/WARN/FAIL 14/0/0 |
+| 2026-05-04 21:01:38 | `PLAN/S0028_vr-multi-window-playback/PHASE_07__docs-catalog-cleanup.md` | `spec-check` | Tick final /spec-check criterion → all Done Criteria [x] |
+| 2026-05-04 23:38:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity.getRequiredMediaPermissions` | S0083: split API 23-28/29-32 permission branches; remove WRITE_EXTERNAL_STORAGE from API 29+ path |
+| 2026-05-04 23:38:26 | `PLAN/S0083_bugfix-write-perm-api29.md` | `spec-all` | Pipeline Implemented: S0083 bugfix-write-perm-api29 |
+| 2026-05-04 23:39:14 | `PLAN/S0083_bugfix-write-perm-api29.md` | `spec-check` | Audit S0083 → Verified; PASS/WARN/FAIL 4/0/0 |
+| 2026-05-04 23:53:57 | `PLAN/S0083_bugfix-write-perm-api29.md` | `S0083` | Manual on-device checks confirmed; spec finalized Verified |
+| 2026-05-05 00:01:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `SettingsViewModel` | fix: optimistic _settingsOverride in updateSettings to prevent race condition where rapid consecutive switch toggles read stale settings.value before DataStore write completes (Black Screen toggle auto-turning off) |
+| 2026-05-05 00:11:41 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `iconHelpCameraCapture` | fix: move help icon before text labels so it sits adjacent to the toggle instead of pinned to the right edge |
+| 2026-05-05 00:22:45 | `app_v2/src/main/java/com/sza/fastmediasorter/core/compat/ChromeOsCompat.kt` | `S0082` | Phase 01: ARC++ environment detection utility |
+| 2026-05-05 00:22:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainStoragePermissionsHelper.kt` | `S0082` | Phase 02: skip MANAGE_EXTERNAL_STORAGE on Chrome OS |
+| 2026-05-05 00:22:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceScanManager.kt` | `S0082` | Phase 02: redirect quick-folder buttons and selectFolderByPath to SAF on Chrome OS |
+| 2026-05-05 00:22:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `S0082` | Phase 03: expose castAvailableState StateFlow |
+| 2026-05-05 00:22:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0082` | Phase 03: guard Cast button with isCastAvailable, subscribe to castAvailableState |
+| 2026-05-05 00:22:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0082` | Phase 03: wire castMediaManager into commandPanelController |
+| 2026-05-05 00:22:55 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/DefaultsMapLoader.kt` | `S0082` | Phase 04: add loadChromeOsDefaults keyboard bindings |
+| 2026-05-05 00:22:55 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingRepository.kt` | `S0082` | Phase 04: add hasOverrides and insertAllAsOverrides helpers |
+| 2026-05-05 00:22:55 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `S0082` | Phase 04: apply Chrome OS keyboard defaults on first startup |
+| 2026-05-05 00:22:55 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `S0082` | Phase 04: inject InputBindingRepository and DefaultsMapLoader for startup |
+| 2026-05-05 00:22:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainChromeOsBannerManager.kt` | `S0082` | Phase 05: Chrome OS first-launch Snackbar banner |
+| 2026-05-05 00:22:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0082` | Phase 05: wire MainChromeOsBannerManager into onResumeWithViews |
+| 2026-05-05 00:22:55 | `app_v2/src/main/res/values/strings.xml` | `S0082` | Phase 05: add chromeos_banner string keys (EN) |
+| 2026-05-05 00:22:55 | `app_v2/src/main/res/values-ru/strings.xml` | `S0082` | Phase 05: add chromeos_banner string keys (RU) |
+| 2026-05-05 00:22:55 | `app_v2/src/main/res/values-uk/strings.xml` | `S0082` | Phase 05: add chromeos_banner string keys (UK) |
+| 2026-05-05 00:22:55 | `docs/FEATURES.md` | `S0082` | Phase 06: Chrome OS platform support note |
+| 2026-05-05 00:22:55 | `docs/FEATURES_RU.md` | `S0082` | Phase 06: Chrome OS platform support note (RU) |
+| 2026-05-05 00:22:55 | `docs/FEATURES_UK.md` | `S0082` | Phase 06: Chrome OS platform support note (UK) |
+| 2026-05-05 00:22:55 | `dev/CATALOG/app_v2.jsonl` | `S0082` | Phase 06: catalog regenerated after Chrome OS support |
+| 2026-05-05 00:27:55 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore.md` | `spec` | Add strategic spec S0084 for bugfix-cache-subfolder-mismatch-restore |
+| 2026-05-05 00:28:00 | `PLAN/S0082_chromeos-support.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: completeness): ARC++ GL crop confirmed broken via logcat, added findings to §1/§4/§6/§7, 4 DISCUSS proposals |
+| 2026-05-05 00:29:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `CastMediaManager` | Remove StateFlow backing field; expose castAvailableState as MutableStateFlow directly |
+| 2026-05-05 00:29:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Rename _castMediaManager -> castMediaManager to match spec predicate |
+| 2026-05-05 00:33:06 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore/INDEX.md` | `spec-tech` | Create tactical plan for S0084 |
+| 2026-05-05 00:33:06 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore/PHASE_01__fix-cache-miss-detection.md` | `spec-tech` | Phase 01: fix-cache-miss-detection |
+| 2026-05-05 00:33:06 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-05 00:33:06 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore.md` | `spec-tech` | Status → Tactical |
+| 2026-05-05 00:34:17 | `PLAN/S0082_chromeos-support.md` | `spec-check` | Audit S0082 -> Partial; PASS/WARN/FAIL 23/1/0; WARN: WorkManager rescue not in tactical plan |
+| 2026-05-05 00:34:20 | `PLAN/S0082_chromeos-support/INDEX.md` | `spec-check` | Update INDEX phase statuses to Done (6/6) |
+| 2026-05-05 00:35:26 | `PLAN/S0085_enh-sftp-scan-performance.md` | `spec` | Add strategic spec S0085 for enh-sftp-scan-performance |
+| 2026-05-05 00:39:21 | `PLAN/S0085_enh-sftp-scan-performance/INDEX.md` | `spec-tech` | Create tactical plan for S0085 |
+| 2026-05-05 00:39:21 | `PLAN/S0085_enh-sftp-scan-performance/PHASE_01__listfiles-attr-contract.md` | `spec-tech` | Phase 01: listfiles-attr-contract |
+| 2026-05-05 00:39:21 | `PLAN/S0085_enh-sftp-scan-performance/PHASE_02__scanner-stat-elimination.md` | `spec-tech` | Phase 02: scanner-stat-elimination |
+| 2026-05-05 00:39:21 | `PLAN/S0085_enh-sftp-scan-performance/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-05 00:39:21 | `PLAN/S0085_enh-sftp-scan-performance.md` | `spec-tech` | Status → Tactical |
+| 2026-05-05 00:40:49 | `PLAN/S0086_bugfix-log-export-create-document-guard.md` | `spec` | Add strategic spec S0086 for bugfix-log-export-create-document-guard |
+| 2026-05-05 00:42:02 | `PLAN/S0086_bugfix-log-export-create-document-guard/INDEX.md` | `spec-tech` | Create tactical plan for S0086 |
+| 2026-05-05 00:42:02 | `PLAN/S0086_bugfix-log-export-create-document-guard/PHASE_01__fix-intent-guard.md` | `spec-tech` | Phase 01: fix-intent-guard |
+| 2026-05-05 00:42:02 | `PLAN/S0086_bugfix-log-export-create-document-guard/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-05 00:42:02 | `PLAN/S0086_bugfix-log-export-create-document-guard.md` | `spec-tech` | Status → Tactical |
+| 2026-05-05 00:44:53 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `spec` | Add strategic spec S0087 for ad-hoc Glide 404 cover art log spam |
+| 2026-05-05 00:46:26 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam/INDEX.md` | `spec-tech` | Create tactical plan for S0087 |
+| 2026-05-05 00:46:26 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam/PHASE_01__fix-onload-failed-log.md` | `spec-tech` | Phase 01: fix-onload-failed-log |
+| 2026-05-05 00:46:26 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-05 00:46:26 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `spec-tech` | Status → Tactical |
+| 2026-05-05 00:56:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `S0084` | Fix cold-start cache miss log (subfolder mismatch false positive) |
+| 2026-05-05 00:56:18 | `docs/FEATURES.md` | `S0084` | Update last-position-restore bullet — subfolder open behaviour |
+| 2026-05-05 00:56:18 | `docs/FEATURES_RU.md` | `S0084` | Update last-position-restore bullet — subfolder open behaviour (RU) |
+| 2026-05-05 00:56:18 | `docs/FEATURES_UK.md` | `S0084` | Update last-position-restore bullet — subfolder open behaviour (UK) |
+| 2026-05-05 00:56:22 | `docs/FEATURES.md` | `S0084` | Update last-position-restore bullet — subfolder open behaviour |
+| 2026-05-05 00:56:27 | `docs/FEATURES_RU.md` | `S0084` | Update last-position-restore bullet — subfolder open behaviour (RU) |
+| 2026-05-05 00:56:27 | `docs/FEATURES_UK.md` | `S0084` | Update last-position-restore bullet — subfolder open behaviour (UK) |
+| 2026-05-05 00:56:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `SftpClient` | S0085: Add SftpFileListing data class; change listFiles() return type to Result<List<SftpFileListing>>; populate attrs from LsEntry without extra stat() calls; add includeDirectories param |
+| 2026-05-05 00:56:52 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `SftpMediaScanner` | S0085: Eliminate per-file stat() calls in scanFolder/scanFolderPaged/listDirectoryContents; use SftpFileListing attrs; wire onProgress every 10 files in scanFolder; stat() fallback only for zero-size files with active min-size filter |
+| 2026-05-05 00:56:58 | `docs/FEATURES.md` | `FEATURES` | S0085: Append SFTP scan performance improvement note to Secure SFTP bullet (single round-trip, progress counter) |
+| 2026-05-05 00:56:58 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0085: Append SFTP scan performance improvement note to SMB/FTP/SFTP bullet (RU) |
+| 2026-05-05 00:56:58 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0085: Append SFTP scan performance improvement note to SMB/FTP/SFTP bullet (UK) |
+| 2026-05-05 00:57:01 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0085: Append SFTP scan performance note to SMB/FTP/SFTP bullet (RU) |
+| 2026-05-05 00:57:01 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0085: Append SFTP scan performance note to SMB/FTP/SFTP bullet (UK) |
+| 2026-05-05 00:57:27 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore.md` | `spec-check` | Audit S0084 -> Verified; PASS/WARN/FAIL 14/0/0 |
+| 2026-05-05 01:00:02 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt` | `SmbOperationsUseCase` | S0085: Adapt listFiles() consumers to SftpFileListing — use listing.path, listing.size, listing.modifiedDate; trash folder filter updated |
+| 2026-05-05 01:00:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt` | `SftpOperationStrategy` | S0085: Adapt listFiles() consumers to SftpFileListing — use listing.path and listing.isDirectory; eliminate stat() calls in collectSftpFiles/collectSftpFilesOnly |
+| 2026-05-05 01:00:06 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt` | `SftpOperationStrategy` | S0085: Adapt listFiles() consumers to SftpFileListing — listing.path, listing.isDirectory; eliminate per-entry stat() in collectSftpFiles/collectSftpFilesOnly |
+| 2026-05-05 01:05:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `S0086` | Replace ActivityNotFoundException catch with resolveActivity guard in launchSaveLogs |
+| 2026-05-05 01:06:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioCoverArtLoader.kt` | `AudioCoverArtLoader` | S0087: suppress Glide 404 log spam in onLoadFailed — 404 -> DEBUG one-liner, other failures -> WARNING without exception chain |
+| 2026-05-05 01:30:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `S0086` | Replace ActivityNotFoundException catch with resolveActivity guard in launchSaveLogs |
+| 2026-05-05 01:34:38 | `PLAN/S0086_bugfix-log-export-create-document-guard__audit_2026-05-05.md` | `spec-check` | Audit S0086 bugfix-log-export-create-document-guard — result: Partial |
+| 2026-05-05 01:34:38 | `PLAN/S0086_bugfix-log-export-create-document-guard.md` | `spec-check` | Advance status to Partial (audit 2026-05-05) |
+| 2026-05-05 01:34:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0085` | Add SftpFileListing data class; listFiles() returns attrs from ls response — no extra stat() per file |
+| 2026-05-05 01:34:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `S0085` | Eliminate per-file stat() in scanFolder/scanFolderPaged; wire onProgress every 10 files |
+| 2026-05-05 01:34:38 | `docs/FEATURES.md` | `S0085` | Update Secure SFTP bullet — single round-trip listing + progress indicator |
+| 2026-05-05 01:34:38 | `docs/FEATURES_RU.md` | `S0085` | Update Secure SFTP bullet (RU) |
+| 2026-05-05 01:34:38 | `docs/FEATURES_UK.md` | `S0085` | Update Secure SFTP bullet (UK) |
+| 2026-05-05 01:34:41 | `PLAN/S0086_bugfix-log-export-create-document-guard.md` | `spec-check` | Advance status to Partial (audit 2026-05-05) |
+| 2026-05-05 01:34:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `S0085` | Eliminate per-file stat() in scanFolder/scanFolderPaged; wire onProgress every 10 files |
+| 2026-05-05 01:34:45 | `docs/FEATURES.md` | `S0085` | Update Secure SFTP bullet — single round-trip listing + progress indicator |
+| 2026-05-05 01:34:45 | `docs/FEATURES_RU.md` | `S0085` | Update Secure SFTP bullet (RU) |
+| 2026-05-05 01:34:45 | `docs/FEATURES_UK.md` | `S0085` | Update Secure SFTP bullet (UK) |
+| 2026-05-05 01:34:48 | `docs/FEATURES_RU.md` | `S0085` | Update Secure SFTP bullet (RU) |
+| 2026-05-05 01:34:51 | `docs/FEATURES_UK.md` | `S0085` | Update Secure SFTP bullet (UK) |
+| 2026-05-05 01:42:46 | `PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md` | `S0027` | Closed as Verified: V-axis fix confirmed in VrStereoRenderer.kt, ADR-1/2/3 implemented. Regression test spun off to S0088 (priority 15) |
+| 2026-05-05 01:56:33 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Added IMAGE_CAPTURE and VIDEO_CAPTURE to queries block — fixes hasCameraHandler() returning false on API 30+ due to package visibility |
+| 2026-05-05 02:06:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Fix: showBlackScreenButton was not persisted to DataStore — added KEY_SHOW_BLACK_SCREEN_BUTTON, read in getSettings(), write in updateSettings() |
+| 2026-05-05 02:17:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoVideoProcessor.kt` | `StereoVideoProcessor` | Fix: EQUIRECT_360_SBS, EQUIRECT_180_SBS, VR180_FISHEYE_SBS now get right-eye crop; EQUIRECT_360_OU gets bottom-eye crop in panel mode (previously fell through to null — both eyes visible side by side) |
+| 2026-05-05 02:17:27 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoVideoProcessorTest.kt` | `StereoVideoProcessorTest` | Add unit tests for buildGlEffect: EQUIRECT_360_SBS, EQUIRECT_180_SBS, VR180_FISHEYE_SBS, EQUIRECT_360_OU (crop), EQUIRECT_360_MONO, EQUIRECT_180_MONO (null) |
+| 2026-05-05 02:34:41 | `PLAN/S0089_bugfix-save-frame-feedback.md` | `spec` | Add strategic spec S0089 for bugfix-save-frame-feedback |
+| 2026-05-05 02:35:58 | `app_v2/src/main/AndroidManifest.xml` | `SettingsActivity` | Added windowSoftInputMode=adjustPan so IME does not silently cover content |
+| 2026-05-05 02:36:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `applyWindowInsets` | Handle IME inset: ViewPager bottom padding uses max(navBar, ime) to scroll content above keyboard |
+| 2026-05-05 02:36:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `setupDefaultCredentials` | Call showSoftInput on focus for etDefaultUser and etDefaultPassword |
+| 2026-05-05 02:37:53 | `PLAN/S0089_bugfix-save-frame-feedback/INDEX.md` | `spec-tech` | S0089: tactical plan created (2 phases) |
+| 2026-05-05 02:37:53 | `PLAN/S0089_bugfix-save-frame-feedback.md` | `spec` | S0089: status -> Tactical |
+| 2026-05-05 02:39:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSmallControlsManager.kt` | `BrowseSmallControlsManager` | Fix compact controls hiding under Chrome OS top bar: do not scale paddingTop (contains statusBar inset) |
+| 2026-05-05 02:40:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SaveVideoFrameManager.kt` | `SaveVideoFrameManager` | S0089: replace Snackbar with Toast for full-screen player visibility |
+| 2026-05-05 02:41:04 | `dev/CATALOG/app_v2.md` | `catalog` | S0089: catalog regenerated after SaveVideoFrameManager change |
+| 2026-05-05 02:41:12 | `PLAN/S0089_bugfix-save-frame-feedback.md` | `S0089` | S0089: status set to Implemented |
+| 2026-05-05 03:04:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerControlsSetupManager.kt` | `PlayerControlsSetupManager` | Fix topCommandPanel hidden under Chrome OS bar: use statusBars\|captionBar for top inset |
+| 2026-05-05 03:04:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Fix topCommandPanel Chrome OS inset (captionBar) + hide PiP button for audio files |
+| 2026-05-05 03:04:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt` | `PictureInPictureManager` | Add isAudio param to setupPipButton: hide PiP button for audio-only files |
+| 2026-05-05 03:04:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `PlayerObserverManager` | Pass isAudio to setupPipButton in combine+updateUI to hide PiP for audio files |
+| 2026-05-05 03:04:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Fix topCommandPanel Chrome OS inset (captionBar) + hide PiP button for audio files |
+| 2026-05-05 03:04:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt` | `PictureInPictureManager` | Add isAudio param to setupPipButton: hide PiP button for audio-only files |
+| 2026-05-05 03:04:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `PlayerObserverManager` | Pass isAudio to setupPipButton in combine+updateUI to hide PiP for audio files |
+| 2026-05-05 03:04:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt` | `PictureInPictureManager` | Add isAudio param to setupPipButton: hide PiP button for audio-only files |
+| 2026-05-05 03:04:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `PlayerObserverManager` | Pass isAudio to setupPipButton in combine+updateUI to hide PiP for audio files |
+| 2026-05-05 03:06:56 | `PLAN/S0090_bugfix-settings-default-credentials-input.md` | `spec-tech` | Advance S0090 strategic spec to Tactical and resolve review decisions |
+| 2026-05-05 03:06:56 | `PLAN/S0090_bugfix-settings-default-credentials-input/INDEX.md` | `spec-tech` | Create tactical index for S0090 |
+| 2026-05-05 03:06:56 | `PLAN/S0090_bugfix-settings-default-credentials-input/PHASE_01__app-data-contract.md` | `spec-tech` | Create Phase 01 tactical plan for S0090 |
+| 2026-05-05 03:06:56 | `PLAN/S0090_bugfix-settings-default-credentials-input/PHASE_02__inline-editor-flow.md` | `spec-tech` | Create Phase 02 tactical plan for S0090 |
+| 2026-05-05 03:06:56 | `PLAN/S0090_bugfix-settings-default-credentials-input/PHASE_03__keyboard-guard-tests.md` | `spec-tech` | Create Phase 03 tactical plan for S0090 |
+| 2026-05-05 03:06:56 | `PLAN/S0090_bugfix-settings-default-credentials-input/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Create Phase 04 tactical plan for S0090 |
+| 2026-05-05 03:07:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt` | `S0090` | Default App Data section to expanded on first entry while preserving saved state |
+| 2026-05-05 03:08:26 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0090` | Remove duplicate inner hints from Default User and Default Password fields in portrait layout |
+| 2026-05-05 03:08:26 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0090` | Validate landscape credentials row contract against portrait hint behavior for S0090 |
+| 2026-05-05 03:12:35 | `dev/CATALOG/app_v2.jsonl` | `S0090` | Regenerate app_v2 catalog after Phase 01 settings changes |
+| 2026-05-05 03:12:35 | `dev/CATALOG/app_v2.md` | `S0090` | Render app_v2 catalog after Phase 01 settings changes |
+| 2026-05-05 03:13:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0090` | Add explicit activation helper for Default User and Default Password editors |
+| 2026-05-05 03:14:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0090` | Add IME action commit path for default credentials with single OWNER_TRIGGER commit flow |
+| 2026-05-05 03:17:23 | `dev/CATALOG/app_v2.jsonl` | `S0090` | Regenerate app_v2 catalog after Phase 02 settings input flow changes |
+| 2026-05-05 03:17:23 | `dev/CATALOG/app_v2.md` | `S0090` | Render app_v2 catalog after Phase 02 settings input flow changes |
+| 2026-05-05 03:18:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsKeyboardNavigationManager.kt` | `S0090` | Guard settings shortcuts when a text editor is focused |
+| 2026-05-05 03:18:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `S0090` | Hide IME and clear focused text editor before handling Escape in settings |
+| 2026-05-05 03:19:59 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/settings/SettingsKeyboardNavigationManagerTest.kt` | `S0090` | Add JVM regression tests for settings keyboard editor guard |
+| 2026-05-05 03:19:59 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/settings/DefaultCredentialsInputTest.kt` | `S0090` | Add instrumentation regression test for inline Default User input |
+| 2026-05-05 03:23:43 | `dev/CATALOG/app_v2.jsonl` | `S0090` | Regenerate app_v2 catalog after Phase 03 settings keyboard and test changes |
+| 2026-05-05 03:23:43 | `dev/CATALOG/app_v2.md` | `S0090` | Render app_v2 catalog after Phase 03 settings keyboard and test changes |
+| 2026-05-05 03:24:14 | `PLAN/S0090_bugfix-settings-default-credentials-input.md` | `S0090` | Sync strategic spec status with BlockByOtherTask after unrelated unit-test blocker |
+| 2026-05-05 10:10:21 | `settings.gradle.kts` | `buildCache` | Disable local Gradle build cache on Windows to avoid RClassOutputJar cache-pack failures during resource processing |
+| 2026-05-05 10:12:21 | `scripts/builders/build-debug.PS1` | `build-debug` | Broaden Gradle cache-pack recovery and resolve executionHistory path dynamically instead of hard-coding Gradle 8.11.1 |
+| 2026-05-05 10:12:21 | `dev/build-with-version.ps1` | `build-with-version` | Broaden Gradle cache-pack recovery and resolve executionHistory path dynamically instead of hard-coding Gradle 8.11.1 |
+| 2026-05-05 10:12:21 | `gradle.properties` | `Gradle config` | Update JDK/Gradle compatibility note and document Windows local build-cache disablement in settings.gradle.kts |
+| 2026-05-05 10:12:21 | `dev/TECH_REQUIREMENTS.md` | `Technical Constraints` | Refresh JDK compatibility note to match the current Gradle 9.4.1 and AGP 9.2.0 toolchain |
+| 2026-05-05 10:14:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationProgressDialog.kt` | `FileOperationProgressDialog` | Guarded delayed progress dialog summary views against pre-init access during startup callbacks |
+| 2026-05-05 10:16:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `SftpClient.readFileBytesRange` | Aligned retry branch with direct offset-open semantics and removed skip(offset) divergence |
+| 2026-05-05 11:01:30 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrPlayerCommandRouter.kt` | `VrPlayerCommandRouter` | Routed VR SeekTo through the shared ExoPlayer authority instead of the parallel VrPlaybackEngine path |
+| 2026-05-05 11:13:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Introduced explicit VR playback facade methods and removed the obsolete injected VrPlaybackEngine path |
+| 2026-05-05 11:13:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrPlayerCommandRouter.kt` | `VrPlayerCommandRouter` | Switched VR command routing to the explicit activity playback facade instead of raw manager/player access |
+| 2026-05-05 11:13:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `VrRenderPipelineManager` | Replaced raw player access with the activity playback facade for progress, listener attach, and surface binding |
+| 2026-05-05 11:13:44 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrSessionLifecycleManager.kt` | `VrSessionLifecycleManager` | Switched VR surface clearing to the activity playback facade |
+| 2026-05-05 11:13:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/di/VrModule.kt` | `VrModule` | Removed the obsolete VrPlaybackEngine binding so VR uses the shared player authority only |
+| 2026-05-05 11:13:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/VrPlaybackEngine.kt` | `VrPlaybackEngine` | Removed the obsolete competing VR playback engine abstraction |
+| 2026-05-05 11:13:45 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/playback/ExoVrPlaybackEngine.kt` | `ExoVrPlaybackEngine` | Removed the obsolete parallel ExoPlayer-based VR engine implementation |
+| 2026-05-05 11:30:31 | `app_v2/src/test/java/com/sza/fastmediasorter/data/remote/ftp/FtpMediaScannerTest.kt` | `FtpMediaScannerTest` | S0090: Add context mock and PermissionHelper stub to fix compilation after context param added to FtpMediaScanner constructor |
+| 2026-05-05 11:30:36 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/settings/SettingsKeyboardNavigationManagerTest.kt` | `SettingsKeyboardNavigationManagerTest` | S0090 Phase 03.2: New JVM test - escape clears focused editor before navigateBack, text editor bypasses shortcut layer |
+| 2026-05-05 11:30:40 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/settings/DefaultCredentialsInputTest.kt` | `DefaultCredentialsInputTest` | S0090 Phase 03.2: New instrumentation test - default user accepts inline text input without triggering search overlay |
+| 2026-05-05 11:45:26 | `dev/CATALOG/app_v2.jsonl` | `GeneralSettingsLogHelper` | Regenerated catalog post-commit S0086 — lastTouched updated to 2026-05-05 |
+| 2026-05-05 11:45:26 | `PLAN/spec-catalog.jsonl` | `S0086` | Status Partial -> Implemented after commit 455cabd |

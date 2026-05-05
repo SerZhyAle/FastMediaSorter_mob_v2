@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
 import com.sza.fastmediasorter.data.network.SmbClient
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.transfer.FileExistsException
@@ -9,6 +11,7 @@ import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.utils.SmbPathUtils
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -22,8 +25,8 @@ import java.io.FileOutputStream
  * Strategy for SMB (Server Message Block) file operations.
  * Handles smb:// protocol operations using SmbClient.
  */
-class SmbOperationStrategy(
-    private val context: Context,
+class SmbOperationStrategy @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val smbClient: SmbClient,
     private val credentialsRepository: NetworkCredentialsRepository
 ) : FileOperationStrategy {
@@ -352,6 +355,8 @@ class SmbOperationStrategy(
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Download failed")
             Result.failure(e)
@@ -420,6 +425,8 @@ class SmbOperationStrategy(
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Upload failed")
             Result.failure(e)
@@ -487,6 +494,8 @@ class SmbOperationStrategy(
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: SMB→SMB copy failed")
             Result.failure(e)

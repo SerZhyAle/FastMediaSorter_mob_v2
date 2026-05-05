@@ -241,4 +241,11 @@
         android:title="@string/epub_search_all_chapters"
         app:showAsAction="never" />
 
+    <!-- S0028: multi-window — shown only on VR+setting via PlayerCommand filter -->
+    <item
+        android:id="@+id/menu_open_in_separate_window"
+        android:icon="@drawable/ic_open_in_browse"
+        android:title="@string/action_open_in_separate_window"
+        app:showAsAction="never" />
+
 </menu>

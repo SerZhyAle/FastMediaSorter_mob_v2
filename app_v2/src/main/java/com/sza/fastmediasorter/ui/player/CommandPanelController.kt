@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
@@ -84,6 +85,7 @@ class CommandPanelController(
         fun onSaveFrameClicked()
         fun on3dVrToggleClicked()
         fun onBlackScreenClicked()
+        fun onOpenInSeparateWindowClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -97,6 +99,8 @@ class CommandPanelController(
     private val planner = CommandPanelLayoutPlanner()
     private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var lastKnownFavoriteVisible = true
+    // S0028: cached from settings; BuildConfig.SUPPORT_VR_PLAYER guard applied at write time
+    private var lastKnownAllowSeparateWindow: Boolean = false
 
     // Cached state for overflow menu visibility
     private var cachedState: PlayerViewModel.PlayerState? = null
@@ -105,7 +109,18 @@ class CommandPanelController(
     companion object {
         private const val SMALL_CONTROLS_SCALE = 0.5f
     }
-    
+
+    private lateinit var castMediaManager: CastMediaManager
+
+    fun bindCastManager(manager: CastMediaManager) {
+        castMediaManager = manager
+        coroutineScope.launch {
+            manager.castAvailableState.collect {
+                cachedState?.let { state -> updateCommandAvailability(state) }
+            }
+        }
+    }
+
     /**
      * Setup all command panel button click listeners
      */
@@ -285,16 +300,19 @@ class CommandPanelController(
             )
         }
 
-        // Async: resolve enableFavorites from settings; re-run layout if visibility changes
+        // Async: resolve enableFavorites + allowSeparateWindow from settings; re-run if changed
         if (effectiveShowCommandPanel) {
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val shouldShowFavorite = settings.enableFavorites || state.resource?.id == -100L
+                val shouldAllowSeparateWindow = BuildConfig.SUPPORT_VR_PLAYER && settings.allowSeparateWindow
                 withContext(Dispatchers.Main) {
-                    val changed = lastKnownFavoriteVisible != shouldShowFavorite
+                    val favoriteChanged = lastKnownFavoriteVisible != shouldShowFavorite
+                    val separateChanged = lastKnownAllowSeparateWindow != shouldAllowSeparateWindow
                     lastKnownFavoriteVisible = shouldShowFavorite
-                    if (changed) {
-                        // Re-run full update so the planner/landscape branch sees the correct value
+                    lastKnownAllowSeparateWindow = shouldAllowSeparateWindow
+                    if (favoriteChanged || separateChanged) {
+                        // Re-run full update so the planner/landscape branch sees the correct values
                         updateCommandAvailability(state)
                     } else if (isLandscapeMode) {
                         binding.btnFavorite.isVisible = shouldShowFavorite
@@ -309,7 +327,8 @@ class CommandPanelController(
             val activeCommands = planner.buildActiveCommands(
                 state, canWrite, canRead, isWifiConnected(binding.root.context),
                 showFavorite = lastKnownFavoriteVisible,
-                showRandom = showRandomNavigation
+                showRandom = showRandomNavigation,
+                allowSeparateWindow = lastKnownAllowSeparateWindow
             )
             val availablePx = resolveAvailableCenterWidthPx()
             val density = binding.root.resources.displayMetrics.density
@@ -352,7 +371,11 @@ class CommandPanelController(
             safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
             safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
-            safeViews.btnCastCmd.isVisible = BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected(binding.root.context)
+            safeViews.btnCastCmd.isVisible =
+                BuildConfig.SUPPORT_CAST &&
+                (::castMediaManager.isInitialized && castMediaManager.isCastAvailable) &&
+                (isImage || isVideo) &&
+                isWifiConnected(binding.root.context)
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
             safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
             if (BuildConfig.SUPPORT_VR_PLAYER) {
@@ -806,6 +829,7 @@ class CommandPanelController(
                 R.id.menu_save_frame -> callback.onSaveFrameClicked()
                 R.id.menu_3d_vr -> callback.on3dVrToggleClicked()
                 R.id.menu_black_screen -> callback.onBlackScreenClicked()
+                R.id.menu_open_in_separate_window -> callback.onOpenInSeparateWindowClicked()
             }
             true
         }

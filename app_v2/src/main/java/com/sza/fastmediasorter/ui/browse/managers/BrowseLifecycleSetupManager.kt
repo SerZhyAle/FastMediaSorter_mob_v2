@@ -33,6 +33,7 @@ class BrowseLifecycleSetupManager(
     private val undoManager: BrowseUndoManager,
     private val getResumeStateUseCase: GetResumeStateUseCase,
     private val clearResumeStateUseCase: ClearResumeStateUseCase,
+    private val windowIdProvider: () -> String,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val exceptionHandler: CoroutineContext,
@@ -87,10 +88,10 @@ class BrowseLifecycleSetupManager(
     private fun checkResumeStateOnInit() {
         scope.launch {
             try {
-                val savedState = getResumeStateUseCase()
+                val savedState = getResumeStateUseCase(windowIdProvider())
                 if (savedState != null && savedState.resourceId != resourceId) {
                     Timber.d("BrowseLifecycleSetupManager: resource changed (saved=${savedState.resourceId}, current=$resourceId) — clearing resume state")
-                    clearResumeStateUseCase()
+                    clearResumeStateUseCase(windowIdProvider())
                 }
             } catch (e: Exception) {
                 Timber.w(e, "BrowseLifecycleSetupManager: Failed to check resume state on init")

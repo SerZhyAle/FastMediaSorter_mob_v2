@@ -19,7 +19,27 @@ import timber.log.Timber
 class VrHudSceneDriver(
     private val renderer: VrHudRenderer,
     private val composer: VrHudSceneComposer,
+    /**
+     * Hover state owned by the driver — written by the input manager via
+     * [VrHudHoverState.setCurrent], consulted by [redrawRunnable] each tick to
+     * decide whether to repaint. S0024 Phase 03.
+     */
+    val hoverState: VrHudHoverState = VrHudHoverState(),
 ) : VrHudSink {
+
+    /**
+     * Read-only access to the per-frame interactive-element registry maintained by
+     * [composer]. S0024 Phase 02 Step 02.2 — surfaces the registry without leaking
+     * the composer through additional public types.
+     */
+    val registry: VrHudElementRegistry get() = composer.registry
+
+    /**
+     * True while the HUD composition layer is currently submitted to the compositor
+     * (mirrors the most recent `renderer.setVisible(..)` call). S0024 strategic §11
+     * criterion 4 — ray-input math is gated by this so off-HUD frames are free.
+     */
+    val isLayerVisible: Boolean get() = lastVisibleSubmitted
 
     private val handler = Handler(Looper.getMainLooper())
     private var state: VrHudState = VrHudState.OFF
@@ -41,7 +61,12 @@ class VrHudSceneDriver(
             lastVisibleSubmitted = active
         }
         if (active) {
-            renderer.submit { canvas -> composer.draw(state, canvas) }
+            // WHY: pass the latest hover id to the composer and mark it consumed in
+            // the same tick. The hover paint is drawn last so id-changes are reflected
+            // exactly once per redraw without an extra round-trip to the GL thread.
+            val hoverId = hoverState.current()
+            renderer.submit { canvas -> composer.draw(state, canvas, hoverId) }
+            hoverState.markConsumed()
         }
     }
 
@@ -61,6 +86,18 @@ class VrHudSceneDriver(
         if (redrawScheduled) return
         redrawScheduled = true
         handler.post(redrawRunnable)
+    }
+
+    /**
+     * Notify the driver that the hover id may have changed. If it actually did
+     * (per [hoverState.hasPendingChange]) and the HUD is currently visible, schedule
+     * a redraw — otherwise do nothing (idle frames stay free per strategic §11 #4).
+     * Safe to call from any thread.
+     */
+    fun onHoverIdChanged() {
+        if (!hoverState.hasPendingChange()) return
+        if (!lastVisibleSubmitted) return
+        handler.post { requestRedraw() }
     }
 
     private fun runOnMain(block: () -> Unit) {
@@ -302,9 +339,9 @@ class VrHudSceneDriver(
     }
 
     private fun anySlotActive(s: VrHudState, now: Long): Boolean {
-        // WHY: isPaused == true (content paused) keeps HUD visible so user can see controls.
-        // isPaused == false (playing) does NOT alone keep HUD alive — visibility is controlled
-        // by visibleUntilMs set via reportActivity() or other timed events.
+        // WHY: visibility is driven by visibleUntilMs (reportActivity + timed events) and by
+        // isPaused == true. fps does NOT extend HUD visibility on its own — otherwise an
+        // always-on FPS readout would block the 15 s idle auto-hide forever.
         if (s.isPaused == true) return true
         if (s.volumePercent != null) return true
         if (s.zoomFactor != null) return true
@@ -315,7 +352,6 @@ class VrHudSceneDriver(
         if (s.immersiveBadgeUntilMs > now) return true
         if (s.bannerText != null && s.bannerUntilMs > now) return true
         if (s.repeatMode != null && s.visibleUntilMs > now) return true
-        if (s.fps != null && s.fps > 0) return true
         return s.visibleUntilMs > now
     }
 

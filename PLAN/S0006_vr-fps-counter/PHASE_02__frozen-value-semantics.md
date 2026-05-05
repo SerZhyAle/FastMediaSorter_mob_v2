@@ -31,7 +31,7 @@ Make the FPS counter publish a frozen "last valid" value when the render loop st
 |------|:--------------:|------------:|
 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | Modified | ≤ 1000 |
 
-> The file already exceeds 1000 LOC (see catalog). Step 02.1 must therefore make a timestamped backup in `temp/` before edit per CLAUDE.md rule 5; line count must not increase by more than +6 net lines.
+> The file already exceeds 1500OC (see catalog). Step 02.1 must therefore make a timestamped backup in `temp/` before edit per CLAUDE.md rule 5; line count must not increase by more than +6 net lines.
 
 ---
 
