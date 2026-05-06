@@ -843,6 +843,7 @@
     <string name="gms_update_required">Для повноцінної роботи додатка необхідно оновити Google Play Services. Деякі функції можуть працювати некоректно.</string>
     <string name="gms_unavailable">Google Play Services недоступні. Деякі функції можуть працювати некоректно.</string>
     <string name="gms_update_action">Оновити</string>
+    <string name="gms_settings_link">Для повноцінної роботи додатка необхідно оновити Google Play Services. Натисніть для оновлення.</string>
     <string name="network_unstable_snackbar">Мережа нестабільна — перевірте Wi-Fi</string>
     <string name="cache_size_limit">Розмір кешу</string>
     <string name="cache_size_limit_mb">%d МБ</string>

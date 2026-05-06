@@ -5,6 +5,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -65,6 +66,11 @@ class BrowseLoadingAuxManager(
      * Updates resource availability to `false` for connectivity errors.
      */
     fun handleLoadingError(resource: MediaResource, e: Throwable) {
+        if (e is LocalNetworkPermissionDeniedException) {
+            sendEvent(BrowseEvent.ShowLocalNetworkPermissionRequired)
+            setLoading(false)
+            return
+        }
         // ConnectionThrottle cancellation: video player is active
         if (e is java.util.concurrent.CancellationException &&
             e.message?.contains("Video player priority", ignoreCase = true) == true

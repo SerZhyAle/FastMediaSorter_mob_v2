@@ -4,8 +4,8 @@
 **Feature:** Suppress verbose Glide exception chain for 404 cover art responses
 **Tier:** 1 — Quick Win
 **Priority:** 40
-**Status:** Not started
-**Phases:** 0 / 2 done
+**Status:** Done
+**Phases:** 2 / 2 done
 **Last updated:** 2026-05-05
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
@@ -16,8 +16,8 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | fix-onload-failed-log | — | ⬜ Not started | 0/1 | [PHASE_01__fix-onload-failed-log.md](PHASE_01__fix-onload-failed-log.md) |
-| 02 | docs-catalog-cleanup | 01 | ⬜ Not started | 0/2 | [PHASE_02__docs-catalog-cleanup.md](PHASE_02__docs-catalog-cleanup.md) |
+| 01 | fix-onload-failed-log | — | ✅ Done | 1/1 | [PHASE_01__fix-onload-failed-log.md](PHASE_01__fix-onload-failed-log.md) |
+| 02 | docs-catalog-cleanup | 01 | ✅ Done | 2/2 | [PHASE_02__docs-catalog-cleanup.md](PHASE_02__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 

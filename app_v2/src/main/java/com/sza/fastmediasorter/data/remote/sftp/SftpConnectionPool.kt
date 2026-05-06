@@ -45,6 +45,7 @@ class SftpConnectionPool {
     private data class ConnectionKey(val host: String, val port: Int, val username: String)
 
     private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
+    private val playbackConnectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
     private val poolMutex = Mutex()
 
@@ -272,7 +273,7 @@ class SftpConnectionPool {
 
             // Dedicated lock to eliminate TOCTOU race with invalidateConnection() (ML-008)
             synchronized(exoPlayerPoolLock) {
-                val existing = connectionPool[key]
+                val existing = playbackConnectionPool[key]
                 if (existing != null && existing.session.isConnected) {
                     existing.lastUsed = System.currentTimeMillis()
 
@@ -318,7 +319,7 @@ class SftpConnectionPool {
                     channelMutexes = mutableListOf(Mutex()),
                     sessionMutex = Mutex()
                 )
-                connectionPool[key] = pooled
+                playbackConnectionPool[key] = pooled
 
                 Timber.d("SFTP ExoPlayer: New connection added to pool for ${connectionInfo.host}")
                 return ExoPlayerConnection(session, channel)

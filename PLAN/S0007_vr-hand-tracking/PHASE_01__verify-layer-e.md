@@ -27,7 +27,7 @@ Execute all checks **before** starting Phase 02. Mark as Done here once confirme
 
 | # | Requirement | Predicate | Result |
 |---|---|---|---|
-| F1 | Automatic modality switching (controller ↔ hand) | `OpenXrHandTracking.cpp` honours `kHandSuppressionWindow` after controller activity; hand polling skipped while controllers active | ✅ |
+| F1 | Automatic modality switching (controller ↔ hand) | `OpenXrHandTracking.cpp` honours `kControllerIdleSwitchNs` (2 s window) after controller activity; hand polling skipped while controllers active | ✅ |
 | F2 | Raycast targeting — `XrHandTrackingAimStateFB` → NDC | `syncHandTracking()` in `OpenXrHandTracking.cpp` polls `aimPose` and calls `onPointerMove(ndcX, ndcY)` per frame; `VrHandRayManager` converts NDC → pixel + dispatches `ACTION_HOVER_MOVE` | ✅ |
 | F3 | Pinch-to-click via `pinchStrengthIndex` | `OpenXrHandTracking.cpp` L320/L327 emits `XR_EVT_POINTER_CLICK_DOWN` / `XR_EVT_POINTER_CLICK_UP`; `VrHandRayManager.onPointerClick()` dispatches `ACTION_DOWN` / `ACTION_UP` | ✅ |
 | F4 | Thumb swipe L/R → seek | `OpenXrHandTracking.cpp` L336/L338 emits `XR_EVT_SWIPE_LEFT/RIGHT`; `VrControllerInputManager.kt` L211/L213 routes `VR_SWIPE_LEFT/RIGHT` → `PlaybackCommand.SeekMicro` | ✅ |

@@ -14,6 +14,8 @@ object GmsAvailabilityChecker {
 
     enum class Status { OK, UPDATE_REQUIRED, UNAVAILABLE }
 
+    private const val PREFS_KEY_WARNING_SEEN = "gms_warning_seen"
+
     @Volatile
     var status: Status = Status.OK
         private set
@@ -38,6 +40,15 @@ object GmsAvailabilityChecker {
             status = Status.UNAVAILABLE
         }
     }
+
+    fun isWarningSeen(context: Context): Boolean =
+        prefs(context).getBoolean(PREFS_KEY_WARNING_SEEN, false)
+
+    fun markWarningSeen(context: Context) =
+        prefs(context).edit().putBoolean(PREFS_KEY_WARNING_SEEN, true).apply()
+
+    private fun prefs(context: Context) =
+        context.getSharedPreferences(context.packageName + "_preferences", Context.MODE_PRIVATE)
 
     val needsUpdate get() = status == Status.UPDATE_REQUIRED
     val isUnavailable get() = status == Status.UNAVAILABLE

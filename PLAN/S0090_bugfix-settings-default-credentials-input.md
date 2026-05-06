@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0090 — Bugfix: надёжный ввод Default User / Default Password в общих настройках
 
 **Ticket:** S0090
-**Status:** BlockByOtherTask
+**Status:** Verified
 **Priority:** 75
 **Date:** 2026-05-05
 **Tier:** 1 — Quick Win
@@ -227,3 +227,18 @@ User tap on Default User / Default Password
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: реализация по фазам из `PLAN/S0090_bugfix-settings-default-credentials-input/INDEX.md` с обязательной верификацией portrait/landscape и regression coverage.
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 25 · WARN 0 · FAIL 0 · MANUAL 4 · EXEMPT 2
+
+### Manual / on-device
+
+- [ ] Run `DefaultCredentialsInputTest.defaultUserAcceptsInlineTextInput` on emulator/device to confirm end-to-end inline credentials input flow (portrait + landscape).
+- [ ] Verify soft keyboard opens on first tap on `Default User` / `Default Password` fields.
+- [ ] Confirm `Ctrl+F` and settings shortcuts do not steal focus from credentials fields during typing.
+- [ ] Confirm commit on IME action and on focus-loss both persist the new value.

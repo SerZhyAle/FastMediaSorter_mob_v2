@@ -1,6 +1,6 @@
 # Specification: VR Hand Tracking & Gesture Control
 
-**Status:** Implemented
+**Status:** Verified
 <!-- auto-approved by /spec-all — 2026-04-26; blocker resolved (controller/HUD pipeline implemented via S0008+S0009) -->
 <!-- S0008 dependency Implemented 2026-04-29 — ready for /spec-tech -->
 <!-- /spec-tech completed 2026-04-30 — tactical plan: PLAN/S0007_vr-hand-tracking/INDEX.md (4 phases) -->
@@ -92,22 +92,11 @@ Implementation relies primarily on standard and Meta-specific OpenXR extensions.
 
 ## Last Audit
 
-**Date:** 2026-05-01
+**Date:** 2026-05-05
 **Mode:** full
 **Flags:** —
-**Outcome:** Implemented
-**Counts:** PASS 24 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 0
-
-### Action items
-
-All audit FAILs from the 2026-04-30 run have been resolved:
-
-1. ✅ **FEATURES trilingual** — RU/UK hand-tracking bullets now present (`docs/FEATURES_RU.md` L157, `docs/FEATURES_UK.md` L157); EN bullet was already in place (L171).
-2. ✅ **catalog stale** — `dev/CATALOG/app_v2.jsonl` regenerated; `VrHandRayManager` recorded at `com/sza/fastmediasorter/vr/ui/VrHandRayManager.kt`.
-3. ✅ **Phase 03 build verification** — `assembleStandardDebug` PASS in 6m 54s (APK `2.60.5010.241-DEBUG`).
-4. ✅ **Phase 04** — FEATURES × 3 updated, catalog regenerated, dev logs recorded, journal status flipped to `Implemented`.
-5. ✅ **strategic Status drift** — header now says `**Status:** Implemented`, matches journal.
-6. ✅ **INDEX status** — Phase 03 + Phase 04 both ✅ Done.
+**Outcome:** Verified
+**Counts:** PASS 34 · WARN 0 · FAIL 0 · MANUAL 3 · EXEMPT 1
 
 ### Manual / on-device
 

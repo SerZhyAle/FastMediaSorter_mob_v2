@@ -1,7 +1,8 @@
 # Стратегическая спецификация: S0087 — Bugfix: подавление verbose-лога Glide 404 при поиске обложки онлайн
 
 **Ticket:** S0087
-**Status:** Tactical
+**Status:** Verified
+**Implemented date:** 2026-05-06
 **Priority:** 40
 **Date:** 2026-05-05
 **Tier:** 1 — Quick Win
@@ -140,3 +141,18 @@ Glide.onLoadFailed(e: GlideException)
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: `/spec-tech S0087` — создаст `PLAN/S0087_bugfix-cover-art-glide-404-log-spam/` с фазами.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 11 · WARN 0 · FAIL 0 · MANUAL 2 · EXEMPT 1
+
+### Manual / on-device
+
+- [ ] §11.3 — UI shows CANVAS_WAVES stub when cover art load fails (both 404 and non-404 paths).
+- [ ] §11.1 — Confirm logcat shows ≤1 DEBUG line per 404 attempt, no exception chain visible.

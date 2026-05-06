@@ -849,6 +849,7 @@
     <string name="gms_update_required">Для полной работы приложения необходимо обновить Google Play Services. Некоторые функции могут работать некорректно.</string>
     <string name="gms_unavailable">Google Play Services недоступны. Некоторые функции могут работать некорректно.</string>
     <string name="gms_update_action">Обновить</string>
+    <string name="gms_settings_link">Для полноценной работы приложения необходимо обновить Google Play Services. Нажмите для обновления.</string>
     <string name="network_unstable_snackbar">Сеть нестабильна — проверьте Wi-Fi</string>
     <string name="cache_size_limit">Размер кэша</string>
     <string name="cache_size_limit_mb">%d МБ</string>

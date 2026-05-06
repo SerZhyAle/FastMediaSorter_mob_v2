@@ -1,7 +1,9 @@
 # Стратегическая спецификация: S0088 — Snapshot-тест геометрии VR видеослоя
 
 **Ticket:** S0088
-**Status:** Draft
+**Status:** Verified
+**Implemented date:** 2026-05-05
+**Tactical plan:** `PLAN/S0088_test-vr-video-layer-geometry-snapshot/INDEX.md`
 **Priority:** 15
 **Date:** 2026-05-05
 **Tier:** 4 — Low
@@ -84,3 +86,18 @@
 1. Тест 1 (V-axis): `assertContains` на шейдерную строку — проходит в `./gradlew testVrDebugUnitTest`.
 2. Тест 2 (snapshot): параметры geom для 3 режимов зафиксированы; тест падает, если любой float отклонился > `1e-4`.
 3. Тест намеренно нарушает V-axis (`vLens = 0.5 + ...`) — тест 1 падает. Smoke-проверка self-consistency.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-05
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 15 · WARN 0 · FAIL 0 · MANUAL 2 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] §9.1 Run `./gradlew testVrDebugUnitTest` — verify both tests pass green.
+- [ ] §9.3 Smoke-check: temporarily flip `0.5 - 0.5 * r * sin(az)` to `0.5 + ...` and confirm Test 1 fails.

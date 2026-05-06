@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0089 - Исправление фидбэка кнопки «Снять кадр»
 
 **Ticket:** S0089
-**Status:** Implemented
+**Status:** Verified
 **Implemented date:** 2026-05-05
 **Priority:** 90
 **Date:** 2026-05-05
@@ -146,3 +146,17 @@ VR-ветвь того же плеера идентичную ситуацию �
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: `/spec-tech S0089` — создаст `PLAN/S0089_bugfix-save-frame-feedback/` с фазами.
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 6 · WARN 0 · FAIL 0 · MANUAL 3 · EXEMPT 2
+
+### Manual / on-device
+
+- [ ] Run `lintStandardDebug`; verify zero `SaveVideoFrameManager.kt` warnings (Step 1.2 — BUILD-REQUIRED).
+- [ ] Tap "Save Frame" on a playing video; confirm Toast with destination name appears in portrait and landscape.
+- [ ] Tap "Save Frame" with no video loaded; confirm error Toast appears.

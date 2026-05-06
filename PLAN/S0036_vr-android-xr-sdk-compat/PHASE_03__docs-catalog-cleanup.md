@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0036_vr-android-xr-sdk-compat.md`](../S0036_vr-android-xr-sdk-compat.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, Phase 02
 **Blocks:** none — final phase
-**Steps done:** 0 / 3
-**Started:** —
-**Completed:** —
+**Steps done:** 3 / 3
+**Started:** 2026-05-05
+**Completed:** 2026-05-05
 
 ---
 
@@ -64,7 +64,11 @@ Record the diagnostic decisions captured during S0036 research (rendernode artef
 - `Grep` — `dev/CHANGELOG.md` contains `EmbeddingMixedHandler` at least once.
 - `Grep` — `dev/CHANGELOG.md` contains `S0036` on the same line as `known XR SDK system noise` or within 2 lines.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 3/3 PASS. Files: dev/CHANGELOG.md (via script). Dev log recorded.
 
 ---
 
@@ -84,7 +88,11 @@ Record the diagnostic decisions captured during S0036 research (rendernode artef
 - `Grep` — `S0036` is **absent** from `docs/FEATURES_UK.md`.
 - `Grep` — `Android XR SDK` is **absent** (or remains at its prior count) in all three files.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 4/4 PASS. S0036 and Android XR SDK absent from all three FEATURES docs. No modification needed.
 
 ---
 
@@ -111,7 +119,11 @@ Record the diagnostic decisions captured during S0036 research (rendernode artef
 - `Grep` — `dev/CHANGELOG.md` last 100 lines contain `app_v2/src/vr/AndroidManifest.xml` and `S0036 Android XR SDK compat` together.
 - Manual: `git diff -- dev/CATALOG/app_v2.jsonl dev/CATALOG/app_v2.md` produces zero output (catalog files unchanged).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 2/2 PASS. CHANGELOG entries confirmed; catalog diff = 0 lines (no .kt changed). Dev log recorded.
 
 ---
 

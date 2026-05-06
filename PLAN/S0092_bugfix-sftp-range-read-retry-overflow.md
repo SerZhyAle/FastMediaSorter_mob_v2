@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0092 — Bugfix: SFTP range-read retry offset regression / overflow
 
 **Ticket:** S0092
-**Status:** Implemented
+**Status:** Verified
 **Implemented date:** 2026-05-05
 **Priority:** 92
 **Date:** 2026-05-05
@@ -117,3 +117,15 @@ ADR нет — локальный bugfix shared helper'а.
 ## 12. Ссылка на тактическую спецификацию
 
 Тактический план: [`PLAN/S0092_bugfix-sftp-range-read-retry-overflow/INDEX.md`](S0092_bugfix-sftp-range-read-retry-overflow/INDEX.md)
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 5 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 2
+
+### Manual / on-device
+
+- [ ] On-device SFTP regression: confirm retry no longer raises `ArrayIndexOutOfBoundsException` on large offsets — use field-log scenario from 2026-05-05 (SFTP playback + thumbnail extraction).

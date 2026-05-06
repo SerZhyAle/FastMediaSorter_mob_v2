@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.vr.render
 
 import com.sza.fastmediasorter.domain.model.StereoMode
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -86,6 +87,11 @@ class VrStereoRendererTest {
 
         assertEquals(VrRenderPlanner.UvParams(0f, 0f, 1f, 1f), plan.uv)
         assertEquals(VrRenderPlanner.Viewport(0, 0, 3072, 1536), plan.viewport)
+    }
+
+    @Test
+    fun `fisheyeFragSrc vLens uses minus sign to prevent vertical inversion`() {
+        assertTrue(VrStereoRenderer.FISHEYE_FRAG_SRC.contains("0.5 - 0.5 * r * sin(az)"))
     }
 
     private fun buildContext(

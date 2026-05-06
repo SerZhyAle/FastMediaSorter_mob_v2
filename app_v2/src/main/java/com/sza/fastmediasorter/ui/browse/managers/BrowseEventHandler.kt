@@ -3,12 +3,14 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Intent
+import androidx.appcompat.app.AlertDialog
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -159,7 +161,25 @@ class BrowseEventHandler(
                     .make(activity.findViewById(android.R.id.content), msg, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
                     .show()
             }
+            is BrowseEvent.ShowLocalNetworkPermissionRequired -> {
+                showLocalNetworkPermissionRationale()
+            }
         }
+    }
+
+    private fun showLocalNetworkPermissionRationale() {
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.local_network_permission_rationale_title)
+            .setMessage(R.string.local_network_permission_rationale_message)
+            .setPositiveButton(R.string.local_network_permission_open_settings) { _, _ ->
+                if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
+                    PermissionHelper.requestLocalNetworkPermission(activity)
+                } else {
+                    PermissionHelper.routeToLocalNetworkSettings(activity)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun launchPermissionRequest(pendingIntent: PendingIntent) {

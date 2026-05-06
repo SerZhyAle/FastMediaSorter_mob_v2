@@ -117,6 +117,9 @@ class SmbConnectionPool {
      */
     fun snapshot(): List<Map.Entry<ConnectionKey, PooledConnection>> = map.entries.toList()
 
+    fun hasActiveConnectionForServer(host: String, port: Int): Boolean =
+        snapshot().any { it.key.server == host && it.key.port == port }
+
     /**
      * Iterate every pool entry whose key matches [predicate]; remove and asynchronously
      * close it. Returns the number of entries removed. The matched entries are removed

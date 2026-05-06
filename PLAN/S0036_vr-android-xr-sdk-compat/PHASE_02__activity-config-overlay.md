@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0036_vr-android-xr-sdk-compat.md`](../S0036_vr-android-xr-sdk-compat.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01
 **Blocks:** Phase 03
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-05-05
+**Completed:** 2026-05-05
 
 ---
 
@@ -70,7 +70,11 @@ Override the `android:configChanges` attribute of `SettingsActivity`, `WelcomeAc
 - `Grep` — `tools:replace="android:configChanges,android:resizeableActivity"` present at least once in the same file.
 - `Grep` — `android:resizeableActivity="true"` present at least once in the same file.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 4/4 PASS. Files: app_v2/src/vr/AndroidManifest.xml (+12 LOC). Dev log recorded.
 
 ---
 
@@ -88,7 +92,11 @@ Override the `android:configChanges` attribute of `SettingsActivity`, `WelcomeAc
 - `Grep` — `com.sza.fastmediasorter.ui.welcome.WelcomeActivity` matches exactly once in `app_v2/src/vr/AndroidManifest.xml`.
 - `Grep` — count of `tools:replace="android:configChanges,android:resizeableActivity"` in the file is exactly 2 (after this step).
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 2/2 PASS. Files: app_v2/src/vr/AndroidManifest.xml (+5 LOC). Dev log recorded.
 
 ---
 
@@ -110,7 +118,11 @@ Override the `android:configChanges` attribute of `SettingsActivity`, `WelcomeAc
 - `Grep` — `<layout` element still present in `app_v2/src/vr/AndroidManifest.xml` (not removed).
 - `Grep` — `com.oculus.intent.category.2D` still present in `app_v2/src/vr/AndroidManifest.xml`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 4/4 PASS. Files: app_v2/src/vr/AndroidManifest.xml (+3 LOC). Dev log recorded.
 
 ---
 
@@ -131,7 +143,11 @@ Override the `android:configChanges` attribute of `SettingsActivity`, `WelcomeAc
 - `Grep` — in the merged manifest, `com.sza.fastmediasorter.ui.main.MainActivity` line contains `smallestScreenSize` and `uiMode`.
 - `Grep` — `app_v2/build/outputs/logs/manifest-merger-vrDebug-report.txt` contains zero lines starting with `ERROR`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 5/5 PASS. vrDebug BUILD SUCCESSFUL, merged manifest confirmed, zero ERRORs in merger report. Dev log recorded.
 
 ---
 

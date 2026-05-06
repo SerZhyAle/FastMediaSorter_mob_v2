@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0036_vr-android-xr-sdk-compat.md`](../S0036_vr-android-xr-sdk-compat.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02
-**Steps done:** 0 / 3
-**Started:** —
-**Completed:** —
+**Steps done:** 3 / 3
+**Started:** 2026-05-05
+**Completed:** 2026-05-05
 
 ---
 
@@ -51,7 +51,11 @@ Declare the `vr`-flavor app as an XR-aware Home-Space app for Android XR Shell b
 - `Grep` — `xmlns:tools="http://schemas.android.com/tools"` present in `app_v2/src/vr/AndroidManifest.xml`.
 - `Grep` — `<manifest` line in that file matches both `xmlns:android` and `xmlns:tools`.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 2/2 PASS. Files: app_v2/src/vr/AndroidManifest.xml (+1 LOC). Dev log recorded.
 
 ---
 
@@ -78,7 +82,11 @@ Declare the `vr`-flavor app as an XR-aware Home-Space app for Android XR Shell b
 - `Grep` — within 5 lines of that match, `android:required="false"` is present.
 - `Grep` — comment `Android XR SDK` present in the same file.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 3/3 PASS. Files: app_v2/src/vr/AndroidManifest.xml (+6 LOC). Dev log recorded.
 
 ---
 
@@ -114,7 +122,11 @@ Declare the `vr`-flavor app as an XR-aware Home-Space app for Android XR Shell b
 - `Grep` — the `<property` element is inside the `<application>` block (Grep with multiline mode for the `<application>..<property...PROPERTY_XR_ACTIVITY_START_MODE` span).
 - `Grep` — `PROPERTY_XR_BOUNDARY_TYPE_RECOMMENDED` is **absent** from the same file.
 
-**Status:** `[ ]` not done
+**Status:** `[x]` done
+
+**Step Log:**
+
+- 2026-05-05 — Verification 4/4 PASS. Files: app_v2/src/vr/AndroidManifest.xml (+14 LOC). Dev log recorded.
 
 ---
 

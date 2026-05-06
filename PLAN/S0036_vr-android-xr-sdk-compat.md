@@ -1,7 +1,8 @@
 # Стратегическая спецификация: S0036 — Android XR SDK Compatibility
 
 **Ticket:** S0036
-**Status:** Tactical
+**Status:** Verified
+**Implemented date:** 2026-05-05
 **Priority:** 65
 **Date:** 2026-04-30
 **Tier:** 3 — Moderate
@@ -180,3 +181,19 @@ Android XR Shell изменяет геометрию виртуального о
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: `/spec-tech S0036` — создаст `PLAN/S0036_vr-android-xr-sdk-compat/` с фазами реализации.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-05
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 14 · WARN 0 · FAIL 0 · MANUAL 3 · EXEMPT 1
+
+### Manual / on-device
+
+- [ ] §11.1 — Открыть Settings на Android XR SDK эмуляторе: `SettingsActivity.onCreate` должен сработать ровно один раз (проверить logcat).
+- [ ] §11.2 — Все вкладки настроек (General / Media / Playback / Operations) отображают контент без чёрных областей.
+- [ ] §11.4 — Quest 3 smoke: вход в Settings → смена вкладки → resize окна → выход — без регрессий.

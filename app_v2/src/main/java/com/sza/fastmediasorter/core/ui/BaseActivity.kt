@@ -185,6 +185,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     private fun showGmsWarningIfNeeded() {
         if (gmsWarningShown || GmsAvailabilityChecker.isOk) return
         gmsWarningShown = true
+        // Persistent guard: show snackbar at most once per installation.
+        if (GmsAvailabilityChecker.isWarningSeen(this)) return
+        GmsAvailabilityChecker.markWarningSeen(this)
         val msgRes = if (GmsAvailabilityChecker.needsUpdate)
             R.string.gms_update_required
         else

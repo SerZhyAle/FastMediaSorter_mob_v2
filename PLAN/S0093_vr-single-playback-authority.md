@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0093 — VR single playback authority
 
 **Ticket:** S0093
-**Status:** Implemented
+**Status:** Verified
 **Implemented date:** 2026-05-05
 **Priority:** 80
 **Date:** 2026-05-05
@@ -114,3 +114,15 @@ VR route selection часто принимает корректное решен
 1. Определён canonical playback authority.
 2. Сформирован тактический план миграции.
 3. Стратегия не блокирует core Standard fixes.
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 22 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] On-device VR regression: confirm immersive video playback, seek, audio track selection on Quest 3 after `VrPlaybackEngine` removal (§6.3 unresolved — on-device regression suite still undefined).

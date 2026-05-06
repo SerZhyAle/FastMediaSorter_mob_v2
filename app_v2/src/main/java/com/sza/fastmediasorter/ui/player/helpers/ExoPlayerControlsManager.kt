@@ -36,6 +36,8 @@ class ExoPlayerControlsManager(
         fun onPreviousFile()
         fun onNextFile()
         fun showPlaybackControlDialog()
+        fun onSeekForward(seconds: Int)
+        fun onSeekBackward(seconds: Int)
     }
     
     /**
@@ -84,12 +86,12 @@ class ExoPlayerControlsManager(
         
         btnRewind?.setOnClickListener {
             UserActionLogger.logButtonClick("Rewind10", "ExoPlayerControlsManager")
-            videoPlayerManager.seekBackward(10)
+            callback.onSeekBackward(10)
         }
-        
+
         btnForward?.setOnClickListener {
-            UserActionLogger.logButtonClick("Forward30", "ExoPlayerControlsManager")
-            videoPlayerManager.seekForward(30)
+            UserActionLogger.logButtonClick("Forward10", "ExoPlayerControlsManager")
+            callback.onSeekForward(10)
         }
         
         // Initial repeat button state

@@ -957,6 +957,7 @@
     <string name="gms_update_required">Google Play Services needs to be updated for full functionality. Some features may not work correctly.</string>
     <string name="gms_unavailable">Google Play Services is unavailable. Some features may not work correctly.</string>
     <string name="gms_update_action">Update</string>
+    <string name="gms_settings_link">Google Play Services needs updating for full functionality. Tap to update.</string>
     <string name="network_unstable_snackbar">Network unstable — check Wi-Fi</string>
     <string name="cache_size_calculating">Calculating…</string>
     <string name="cache_size_format">Cache: %s</string>

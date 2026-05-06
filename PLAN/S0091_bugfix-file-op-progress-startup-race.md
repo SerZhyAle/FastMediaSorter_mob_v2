@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0091 — Bugfix: startup race в диалоге прогресса файловой операции
 
 **Ticket:** S0091
-**Status:** Implemented
+**Status:** Verified
 **Implemented date:** 2026-05-05
 **Priority:** 95
 **Date:** 2026-05-05
@@ -124,3 +124,16 @@ ADR нет — локальный bugfix в существующем UI-комп
 ## 12. Ссылка на тактическую спецификацию
 
 Тактический план: [`PLAN/S0091_bugfix-file-op-progress-startup-race/INDEX.md`](S0091_bugfix-file-op-progress-startup-race/INDEX.md)
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 7 · WARN 0 · FAIL 0 · MANUAL 2 · EXEMPT 2
+
+### Manual / on-device
+
+- [ ] On-device copy/move: confirm operation completes without spurious "Copy failed" when progress event arrives before dialog shows.
+- [ ] Run `lintStandardDebug` / IDE diagnostics on `FileOperationProgressDialog.kt` — verify no new warnings.

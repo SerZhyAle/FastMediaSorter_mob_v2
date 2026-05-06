@@ -43,4 +43,6 @@ sealed class BrowseEvent {
     data class ScrollToFile(val fileName: String) : BrowseEvent()
     /** Shown after SMB scan when one or more files could not have metadata extracted. */
     data class ShowMetadataWarning(val errorCount: Int) : BrowseEvent()
+    /** Scan failed because ACCESS_LOCAL_NETWORK permission is not granted (API 37+). */
+    data object ShowLocalNetworkPermissionRequired : BrowseEvent()
 }

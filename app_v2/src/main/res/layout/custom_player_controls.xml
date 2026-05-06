@@ -105,7 +105,7 @@
                 android:layout_height="@dimen/player_small_button_size"
                 android:src="@drawable/ic_fast_forward"
                 app:tint="@color/selector_player_button_tint"
-                android:contentDescription="@string/forward_30_seconds"
+                android:contentDescription="@string/forward_10_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton

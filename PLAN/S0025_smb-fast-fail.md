@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0025 — Мгновенный отказ SMB при недоступности сети
 
 **Ticket:** S0025
-**Status:** Implemented
+**Status:** Verified
 **Implemented date:** 2026-04-29
 **Priority:** 50
 **Date:** 2026-04-28
@@ -199,13 +199,14 @@
 
 ## Last Audit
 
-**Date:** 2026-05-03
-**Mode:** field-log
-**Evidence:** `logs/fastmediasorter_20260503_180505.log`
-**Outcome:** Implemented — fast-fail/precheck branch still active
+**Date:** 2026-05-05
+**Mode:** strategic
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 13 · WARN 0 · FAIL 0 · MANUAL 3 · EXEMPT 4
 
-### Observed
+### Manual / on-device
 
-- В последнем логе присутствуют `Fast connectivity check failed before SMB connect` и `TCP precheck failed`, что соответствует короткому transport-unreachable path этой спеки.
-- Тот же инцидент при этом в основном состоит из `STATUS_LOGON_FAILURE`; auth-churn не относится к S0025 и не должен маскировать transport fast-fail.
-- Файл спецификации восстановлен из git history 2026-05-03, потому что catalog entry существовал, а markdown-артефакт отсутствовал в рабочем дереве.
+- [ ] §11.1 — no-network: open SMB/FTP/SFTP/Cloud in airplane mode → dialog appears instantly (no timeout)
+- [ ] §11.2 — SMB on cellular only: Wi-Fi off, mobile data on → SMB fails fast with "mobile network" message
+- [ ] §11.4 — no regression: slow but reachable SMB server → retry with extended timeout fires; connection succeeds in logs

@@ -154,6 +154,7 @@ class GeneralSettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupGmsBanner()
         logHelper.setupVersionInfo()
         backupHelper.setupWearCompanionButton()
         viewSetupHelper.setup()
@@ -196,6 +197,23 @@ class GeneralSettingsFragment : Fragment() {
         observersHelper.dismissManualSyncProgressDialog()
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setupGmsBanner() {
+        if (com.sza.fastmediasorter.core.util.GmsAvailabilityChecker.isOk) {
+            binding.tvGmsSettingsLink.visibility = View.GONE
+            return
+        }
+        binding.tvGmsSettingsLink.visibility = View.VISIBLE
+        binding.tvGmsSettingsLink.setOnClickListener {
+            try {
+                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("market://details?id=com.google.android.gms")))
+            } catch (e: Exception) {
+                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")))
+            }
+        }
     }
 
     private fun setupGeneralLayouts() {

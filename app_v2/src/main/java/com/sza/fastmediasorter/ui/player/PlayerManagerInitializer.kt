@@ -15,6 +15,8 @@ import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
 import com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
 import com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
+import com.sza.fastmediasorter.ui.player.helpers.seekForward
+import com.sza.fastmediasorter.ui.player.helpers.seekBackward
 import com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
 import com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
 import com.sza.fastmediasorter.ui.player.helpers.LyricsManager
@@ -584,6 +586,24 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 override fun onPreviousFile() = activity.navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = activity.navigationManager.navigateNextFromControl()
                 override fun showPlaybackControlDialog() = activity.dialogHelper.showPlaybackControlDialog()
+                override fun onSeekForward(seconds: Int) {
+                    if (activity.isAudioServiceActive) {
+                        val p = activity.audioServiceController?.player ?: return
+                        p.seekTo((p.currentPosition + seconds * 1000L).coerceAtMost(
+                            p.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+                        ))
+                    } else {
+                        activity.videoPlayerManager.seekForward(seconds)
+                    }
+                }
+                override fun onSeekBackward(seconds: Int) {
+                    if (activity.isAudioServiceActive) {
+                        val p = activity.audioServiceController?.player ?: return
+                        p.seekTo((p.currentPosition - seconds * 1000L).coerceAtLeast(0))
+                    } else {
+                        activity.videoPlayerManager.seekBackward(seconds)
+                    }
+                }
             }
         )
 

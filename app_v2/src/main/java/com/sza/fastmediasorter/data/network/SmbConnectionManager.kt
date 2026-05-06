@@ -328,9 +328,15 @@ class SmbConnectionManager @Inject constructor(
         
         // Smart retry: TCP precheck once. If host is unreachable at the TCP layer, skip the
         // degraded retry — the server is dead, prolonging the wait will not help.
-        val tcpReachable = checkConnectivity(
-            connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS
-        )
+        // Skip the precheck entirely when the pool already holds a live connection to this
+        // server:port (any share) — the server is clearly reachable.
+        val serverKnown = pool.hasActiveConnectionForServer(connectionInfo.server, connectionInfo.port)
+        val tcpReachable = if (serverKnown) {
+            Timber.d("SMB TCP precheck skipped: live pool entry for ${connectionInfo.server}:${connectionInfo.port}")
+            true
+        } else {
+            checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
+        }
         if (!tcpReachable) {
             Timber.w("SMB TCP precheck failed: ${connectionInfo.server}:${connectionInfo.port} — fast-fail without retry")
             return@withPermit handleFreshConnectionFailure(

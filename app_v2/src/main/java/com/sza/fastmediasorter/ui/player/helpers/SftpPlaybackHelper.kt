@@ -40,15 +40,21 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
     Timber.d("VideoPlayerManager: Playing SFTP video - server=${credentials.server}")
     releasePlayer()
 
+    // The path may embed a different port than credentials (e.g. non-standard SFTP port in URI).
+    // Always prefer the port from the path URI over the credential default.
+    val pathUri = PathUtils.safeParseUri(path)
+    val serverHost = pathUri.host?.takeIf { it.isNotEmpty() } ?: credentials.server
+    val serverPort = pathUri.port.takeIf { it > 0 } ?: credentials.port
+
     // Activate video-player priority mode to suppress thumbnail pre-fetching while streaming
-    val resourceKey = "sftp://${credentials.server}:${credentials.port}"
+    val resourceKey = "sftp://$serverHost:$serverPort"
     activeResourceKey = resourceKey
     ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
 
     val dataSourceFactory = SftpDataSourceFactory(
         sftpClient,
-        credentials.server,
-        credentials.port,
+        serverHost,
+        serverPort,
         credentials.username,
         credentials.password,
         context

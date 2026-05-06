@@ -77,7 +77,7 @@ Ensure active settings text editors win over surface shortcuts and add regressio
 - `Glob` - `app_v2/src/test/java/com/sza/fastmediasorter/ui/settings/SettingsKeyboardNavigationManagerTest.kt` exists.
 - `Glob` - `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/settings/DefaultCredentialsInputTest.kt` exists.
 - `Grep` - `escape clears focused editor before navigateBack` returns exactly **one** hit in `SettingsKeyboardNavigationManagerTest.kt`.
-- `Grep` - `default user accepts inline text input` returns exactly **one** hit in `DefaultCredentialsInputTest.kt`.
+- `Grep` - `fun defaultUserAcceptsInlineTextInput` returns exactly **one** hit in `DefaultCredentialsInputTest.kt`.
 
 **Status:** `[x]` done
 

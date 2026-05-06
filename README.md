@@ -210,6 +210,10 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders — or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
 
+### 11. 📺 Media Centre on an Android TV Box
+
+Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, or a generic Android set-top box). Connect to your home NAS over SMB, add Google Drive or Dropbox, or plug in a USB drive — all from the same app. Navigate entirely with a TV remote or Bluetooth keyboard: D-pad moves focus, **OK** opens items, **Back** goes up one level, **Backspace** jumps one folder up in Browse. Color keys map to the most common file operations (**Red** = Delete, **Green** = Copy, **Yellow** = Move, **Blue** = Rename). Start a slideshow with background music and run it full-screen, or play an audio queue while the screen shows cover art and lyrics. No touchscreen needed at any step.
+
 ## Documentation 📚
 
 **🗺️ Documentation Map / Карта документации:** [View all docs / Все документы](docs/DOCS_MAP.md)

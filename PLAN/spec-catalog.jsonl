@@ -1,10 +1,10 @@
 {"id":"S0001","name":"spec-catalog","status":"Archived","priority":0,"tier":4,"file":"PLAN/S0001_spec-catalog.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
 {"id":"S0002","name":"decompose-giant-files","status":"In Progress","priority":50,"file":"PLAN/S0002_decompose-giant-files.md","created":"2026-04-27","updated":"2026-05-05 19:14"}
 {"id":"S0003","name":"link-receive-download","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0003_link-receive-download.md","created":"2026-04-27","updated":"2026-05-01 02:44"}
-{"id":"S0004","name":"resource-icon-quick-slideshow","status":"Implemented","priority":50,"file":"PLAN/S0004_resource-icon-quick-slideshow.md","created":"2026-04-27","updated":"2026-04-29 23:36"}
+{"id":"S0004","name":"resource-icon-quick-slideshow","status":"Archived","priority":50,"file":"PLAN/S0004_resource-icon-quick-slideshow.md","created":"2026-04-27","updated":"2026-05-05 23:34"}
 {"id":"S0005","name":"vr-auto-immersive-setting","status":"Archived","priority":0,"tier":2,"file":"PLAN/S0005_vr-auto-immersive-setting.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
 {"id":"S0006","name":"vr-fps-counter","status":"BlockNeedUserTest","priority":40,"tier":2,"file":"PLAN/S0006_vr-fps-counter.md","created":"2026-04-27","updated":"2026-04-28 23:06"}
-{"id":"S0007","name":"vr-hand-tracking","status":"Implemented","priority":60,"file":"PLAN/S0007_vr-hand-tracking.md","created":"2026-04-27","updated":"2026-05-01 02:48"}
+{"id":"S0007","name":"vr-hand-tracking","status":"Verified","priority":60,"file":"PLAN/S0007_vr-hand-tracking.md","created":"2026-04-27","updated":"2026-05-05 23:38"}
 {"id":"S0008","name":"vr-immersive-controls-panel","status":"BlockNeedUserTest","priority":60,"tier":4,"file":"PLAN/S0008_vr-immersive-controls-panel.md","created":"2026-04-27","updated":"2026-05-03 14:34"}
 {"id":"S0009","name":"vr-immersive-hud-gl","status":"BlockNeedUserTest","priority":60,"tier":3,"file":"PLAN/S0009_vr-immersive-hud-gl.md","created":"2026-04-27","updated":"2026-05-03 17:53"}
 {"id":"S0010","name":"vr-panel-swapchain-availability","status":"Archived","priority":0,"tier":3,"file":"PLAN/S0010_vr-panel-swapchain-availability.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
@@ -22,7 +22,7 @@
 {"id":"S0022","name":"bugfix-camera-capture-crash","status":"Verified","priority":90,"tier":2,"file":"PLAN/S0022_bugfix-camera-capture-crash.md","created":"2026-04-28","updated":"2026-04-30 15:22"}
 {"id":"S0023","name":"bugfix-vr-player-activity-stale-references","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0023_bugfix-vr-player-activity-stale-references.md","created":"2026-04-28","updated":"2026-04-28 12:55"}
 {"id":"S0024","name":"vr-hud-ray-input","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0024_vr-hud-ray-input.md","created":"2026-04-28","updated":"2026-05-05 17:56"}
-{"id":"S0025","name":"smb-fast-fail","status":"Implemented","priority":50,"tier":2,"file":"PLAN/S0025_smb-fast-fail.md","created":"2026-04-29","updated":"2026-05-03 18:49"}
+{"id":"S0025","name":"smb-fast-fail","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0025_smb-fast-fail.md","created":"2026-04-29","updated":"2026-05-05 23:45"}
 {"id":"S0026","name":"bugfix-vr-stereo-route-flicker","status":"BlockNeedUserTest","priority":85,"tier":3,"file":"PLAN/S0026_bugfix-vr-stereo-route-flicker.md","created":"2026-04-29","updated":"2026-04-29 10:18"}
 {"id":"S0027","name":"bugfix-vr-immersive-orientation-inverted","status":"Verified","priority":80,"tier":3,"file":"PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md","created":"2026-04-29","updated":"2026-05-05 01:41"}
 {"id":"S0028","name":"vr-multi-window-playback","status":"Verified","priority":75,"tier":4,"file":"PLAN/S0028_vr-multi-window-playback.md","created":"2026-04-29","updated":"2026-05-04 21:01"}
@@ -33,7 +33,7 @@
 {"id":"S0033","name":"vr-monoliths-decomposition","status":"Verified","priority":60,"tier":3,"file":"PLAN/S0033_vr-monoliths-decomposition.md","created":"2026-04-29","updated":"2026-05-03 13:50"}
 {"id":"S0034","name":"resource-icons-system","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0034_resource-icons-system.md","created":"2026-04-29","updated":"2026-04-29 23:46"}
 {"id":"S0035","name":"android17-local-network-permission","status":"Verified","priority":70,"tier":0,"file":"PLAN/S0035_android17-local-network-permission.md","created":"2026-04-30","updated":"2026-05-04 18:30"}
-{"id":"S0036","name":"vr-android-xr-sdk-compat","status":"Tactical","priority":65,"tier":3,"file":"PLAN/S0036_vr-android-xr-sdk-compat.md","created":"2026-04-30","updated":"2026-04-30 15:57"}
+{"id":"S0036","name":"vr-android-xr-sdk-compat","status":"Verified","priority":65,"tier":3,"file":"PLAN/S0036_vr-android-xr-sdk-compat.md","created":"2026-04-30","updated":"2026-05-05 23:51"}
 {"id":"S0037","name":"resource-icon-ux-polish","status":"Verified","priority":40,"tier":2,"file":"PLAN/S0037_resource-icon-ux-polish.md","created":"2026-04-30","updated":"2026-04-30 16:00"}
 {"id":"S0038","name":"bugfix-vr-exit-immersive-new-window","status":"Implemented","priority":85,"tier":3,"file":"PLAN/S0038_bugfix-vr-exit-immersive-new-window.md","created":"2026-04-30","updated":"2026-05-04 17:54"}
 {"id":"S0039","name":"bugfix-vr-panel-swapchain-regression","status":"Verified","priority":80,"tier":3,"file":"PLAN/S0039_bugfix-vr-panel-swapchain-regression.md","created":"2026-04-30","updated":"2026-04-30 12:25"}
@@ -65,7 +65,7 @@
 {"id":"S0065","name":"vr-controller-ray-visual","status":"BlockNeedUserTest","priority":60,"tier":3,"file":"PLAN/S0065_vr-controller-ray-visual.md","created":"2026-05-03","updated":"2026-05-03 16:53"}
 {"id":"S0066","name":"enh-network-transient-failure-classification-multi-protocol","status":"Verified","priority":45,"tier":3,"file":"PLAN/S0066_enh-network-transient-failure-classification-multi-protocol.md","created":"2026-05-03","updated":"2026-05-03 18:14"}
 {"id":"S0067","name":"enh-network-stale-connection-invalidation-multi-protocol","status":"Verified","priority":60,"tier":3,"file":"PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol.md","created":"2026-05-03","updated":"2026-05-04 03:06"}
-{"id":"S0068","name":"scan-progress-indicator","status":"Implemented","priority":50,"tier":3,"file":"PLAN/S0068_scan-progress-indicator.md","created":"2026-05-03","updated":"2026-05-03 20:29"}
+{"id":"S0068","name":"scan-progress-indicator","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0068_scan-progress-indicator.md","created":"2026-05-03","updated":"2026-05-06 01:53"}
 {"id":"S0069","name":"bugfix-atomic-copy-temp-file-missing","status":"Verified","priority":75,"tier":3,"file":"PLAN/S0069_bugfix-atomic-copy-temp-file-missing.md","created":"2026-05-03","updated":"2026-05-03 20:08"}
 {"id":"S0070","name":"device-storage-info-settings","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0070_device-storage-info-settings.md","created":"2026-05-03","updated":"2026-05-03 23:10"}
 {"id":"S0071","name":"use-trash-setting","status":"Implemented","priority":70,"tier":2,"file":"PLAN/S0071_use-trash-setting.md","created":"2026-05-03","updated":"2026-05-03 23:59"}
@@ -84,13 +84,17 @@
 {"id":"S0084","name":"bugfix-cache-subfolder-mismatch-restore","status":"Verified","priority":90,"tier":2,"file":"PLAN/S0084_bugfix-cache-subfolder-mismatch-restore.md","created":"2026-05-05","updated":"2026-05-05 00:57"}
 {"id":"S0085","name":"enh-sftp-scan-performance","status":"Implemented","priority":70,"tier":3,"file":"PLAN/S0085_enh-sftp-scan-performance.md","created":"2026-05-05","updated":"2026-05-05 01:34"}
 {"id":"S0086","name":"bugfix-log-export-create-document-guard","status":"Implemented","priority":90,"tier":1,"file":"PLAN/S0086_bugfix-log-export-create-document-guard.md","created":"2026-05-05","updated":"2026-05-05 11:45"}
-{"id":"S0087","name":"bugfix-cover-art-glide-404-log-spam","status":"Tactical","priority":40,"tier":1,"file":"PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md","created":"2026-05-05","updated":"2026-05-05 01:12"}
-{"id":"S0088","name":"test-vr-video-layer-geometry-snapshot","status":"Draft","priority":15,"tier":4,"file":"PLAN/S0088_test-vr-video-layer-geometry-snapshot.md","created":"2026-05-05","updated":"2026-05-05 01:41"}
-{"id":"S0089","name":"bugfix-save-frame-feedback","status":"Implemented","priority":90,"tier":1,"file":"PLAN/S0089_bugfix-save-frame-feedback.md","created":"2026-05-05","updated":"2026-05-05 02:41"}
-{"id":"S0090","name":"bugfix-settings-default-credentials-input","status":"Implemented","priority":75,"tier":1,"file":"PLAN/S0090_bugfix-settings-default-credentials-input.md","created":"2026-05-05","updated":"2026-05-05 11:32"}
-{"id":"S0091","name":"bugfix-file-op-progress-startup-race","status":"Implemented","priority":95,"tier":1,"file":"PLAN/S0091_bugfix-file-op-progress-startup-race.md","created":"2026-05-05","updated":"2026-05-05 10:15"}
-{"id":"S0092","name":"bugfix-sftp-range-read-retry-overflow","status":"Implemented","priority":92,"tier":1,"file":"PLAN/S0092_bugfix-sftp-range-read-retry-overflow.md","created":"2026-05-05","updated":"2026-05-05 10:17"}
-{"id":"S0093","name":"vr-single-playback-authority","status":"Implemented","priority":80,"tier":3,"file":"PLAN/S0093_vr-single-playback-authority.md","created":"2026-05-05","updated":"2026-05-05 11:15"}
+{"id":"S0087","name":"bugfix-cover-art-glide-404-log-spam","status":"Verified","priority":40,"tier":1,"file":"PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md","created":"2026-05-05","updated":"2026-05-06 00:08"}
+{"id":"S0088","name":"test-vr-video-layer-geometry-snapshot","status":"Verified","priority":15,"tier":4,"file":"PLAN/S0088_test-vr-video-layer-geometry-snapshot.md","created":"2026-05-05","updated":"2026-05-05 23:42"}
+{"id":"S0089","name":"bugfix-save-frame-feedback","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0089_bugfix-save-frame-feedback.md","created":"2026-05-05","updated":"2026-05-06 00:05"}
+{"id":"S0090","name":"bugfix-settings-default-credentials-input","status":"Verified","priority":75,"tier":1,"file":"PLAN/S0090_bugfix-settings-default-credentials-input.md","created":"2026-05-05","updated":"2026-05-06 00:03"}
+{"id":"S0091","name":"bugfix-file-op-progress-startup-race","status":"Verified","priority":95,"tier":1,"file":"PLAN/S0091_bugfix-file-op-progress-startup-race.md","created":"2026-05-05","updated":"2026-05-06 00:08"}
+{"id":"S0092","name":"bugfix-sftp-range-read-retry-overflow","status":"Verified","priority":92,"tier":1,"file":"PLAN/S0092_bugfix-sftp-range-read-retry-overflow.md","created":"2026-05-05","updated":"2026-05-06 00:11"}
+{"id":"S0093","name":"vr-single-playback-authority","status":"Verified","priority":80,"tier":3,"file":"PLAN/S0093_vr-single-playback-authority.md","created":"2026-05-05","updated":"2026-05-06 00:16"}
 {"id":"S0094","name":"player-move-currently-playing","status":"Verified","priority":55,"tier":3,"file":"PLAN/S0094_player-move-currently-playing.md","created":"2026-05-05","updated":"2026-05-05 15:44"}
 {"id":"S0095","name":"integration-test-review","status":"Verified","priority":40,"tier":3,"file":"PLAN/S0095_integration-test-review.md","created":"2026-05-05","updated":"2026-05-05 16:03"}
 {"id":"S0096","name":"browse-audio-black-screen","status":"Verified","priority":50,"file":"PLAN/S0096_browse-audio-black-screen.md","created":"2026-05-05","updated":"2026-05-05 17:11"}
+{"id":"S0097","name":"gms-update-once-settings-link","status":"Verified","priority":35,"file":"PLAN/S0094_gms-update-once-settings-link.md","created":"2026-05-06","updated":"2026-05-06 01:48"}
+{"id":"S0098","name":"bugfix-smb-precheck-false-fail","status":"Implemented","priority":65,"tier":2,"file":"PLAN/S0098_bugfix-smb-precheck-false-fail.md","created":"2026-05-06","updated":"2026-05-06 03:32"}
+{"id":"S0099","name":"sftp-concurrent-access-fix","status":"In Progress","priority":70,"tier":3,"file":"PLAN/S0099_sftp-concurrent-access-fix.md","created":"2026-05-06","updated":"2026-05-06 04:02"}
+{"id":"S0100","name":"mic-recording-in-browse","status":"Tactical","priority":50,"tier":3,"file":"PLAN/S0100_mic-recording-in-browse.md","created":"2026-05-06","updated":"2026-05-06 04:02"}

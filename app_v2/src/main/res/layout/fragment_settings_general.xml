@@ -16,6 +16,22 @@
 
         </LinearLayout>
 
+        <!-- S0097: GMS update banner — visible only when Google Play Services is not OK -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvGmsSettingsLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurfaceVariant"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:padding="16dp"
+            android:text="@string/gms_settings_link"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorError"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
         <!-- INTERFACE SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 

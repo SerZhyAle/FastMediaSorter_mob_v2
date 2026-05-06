@@ -4,9 +4,9 @@
 **Feature:** Android XR SDK Compatibility
 **Tier:** 3 — Moderate
 **Priority:** 65
-**Status:** Not started
-**Phases:** 0 / 3 done
-**Last updated:** 2026-04-30
+**Status:** Implemented
+**Phases:** 3 / 3 done
+**Last updated:** 2026-05-05
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
 
@@ -16,9 +16,9 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | manifest-xr-properties | — | ⬜ Not started | 0/3 | [PHASE_01__manifest-xr-properties.md](PHASE_01__manifest-xr-properties.md) |
-| 02 | activity-config-overlay | 01 | ⬜ Not started | 0/4 | [PHASE_02__activity-config-overlay.md](PHASE_02__activity-config-overlay.md) |
-| 03 | docs-catalog-cleanup | 01, 02 | ⬜ Not started | 0/3 | [PHASE_03__docs-catalog-cleanup.md](PHASE_03__docs-catalog-cleanup.md) |
+| 01 | manifest-xr-properties | — | ✅ Done | 3/3 | [PHASE_01__manifest-xr-properties.md](PHASE_01__manifest-xr-properties.md) |
+| 02 | activity-config-overlay | 01 | ✅ Done | 4/4 | [PHASE_02__activity-config-overlay.md](PHASE_02__activity-config-overlay.md) |
+| 03 | docs-catalog-cleanup | 01, 02 | ✅ Done | 3/3 | [PHASE_03__docs-catalog-cleanup.md](PHASE_03__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 

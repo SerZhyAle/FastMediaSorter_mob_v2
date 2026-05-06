@@ -148,40 +148,7 @@ class VrStereoRenderer {
 
         // Fragment shader: inverse equidistant fisheye → equirect half-sphere sample.
         // uFisheyeUOffset selects the SBS eye half: 0.0 = left, 0.5 = right.
-        val fisheyeFragSrc = """
-            #extension GL_OES_EGL_image_external : require
-            precision mediump float;
-            varying vec2 vTexCoord;
-            uniform samplerExternalOES uTexture;
-            uniform float uFisheyeUOffset;
-            const float PI = 3.14159265359;
-            void main() {
-                float theta = (vTexCoord.x - 0.5) * PI;
-                float phi   = (0.5 - vTexCoord.y) * PI;
-                float dx = sin(theta) * cos(phi);
-                float dy = sin(phi);
-                float dz = cos(theta) * cos(phi);
-                float rho = acos(clamp(dz, -1.0, 1.0));
-                if (rho > PI * 0.5) {
-                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-                    return;
-                }
-                float r  = rho / (PI * 0.5);
-                float az = atan(dy, dx);
-                float uLens = 0.5 + 0.5 * r * cos(az);
-                // WHY: vLens uses MINUS to compensate the V-axis inversion between the GL FBO
-                // convention (Y=0 at bottom) and the SurfaceTexture/Android image convention
-                // (Y=0 at top). The Quest OpenXR compositor maps GL-texture-bottom to the
-                // display TOP of the equirect2 sphere (elevation = upperVerticalAngle). When
-                // the user looks UP (phi>0, az≈+PI/2), sin(az)>0, so +sin would give vLens>0.5
-                // (lower half of fisheye = ground), which appears at the TOP — upside down.
-                // Negating sin(az) corrects the mapping: looking UP samples the upper half
-                // of the fisheye image (vLens<0.5 = sky/ceiling in Android image convention). ✓
-                float vLens = 0.5 - 0.5 * r * sin(az);
-                gl_FragColor = texture2D(uTexture,
-                    vec2(uFisheyeUOffset + uLens * 0.5, vLens));
-            }
-        """.trimIndent()
+        val fisheyeFragSrc = FISHEYE_FRAG_SRC
 
         val fisheyeVert = compileShader(GLES20.GL_VERTEX_SHADER, fisheyeVertSrc)
         val fisheyeFrag = compileShader(GLES20.GL_FRAGMENT_SHADER, fisheyeFragSrc)
@@ -500,6 +467,41 @@ class VrStereoRenderer {
     }
 
     companion object {
+        internal val FISHEYE_FRAG_SRC = """
+            #extension GL_OES_EGL_image_external : require
+            precision mediump float;
+            varying vec2 vTexCoord;
+            uniform samplerExternalOES uTexture;
+            uniform float uFisheyeUOffset;
+            const float PI = 3.14159265359;
+            void main() {
+                float theta = (vTexCoord.x - 0.5) * PI;
+                float phi   = (0.5 - vTexCoord.y) * PI;
+                float dx = sin(theta) * cos(phi);
+                float dy = sin(phi);
+                float dz = cos(theta) * cos(phi);
+                float rho = acos(clamp(dz, -1.0, 1.0));
+                if (rho > PI * 0.5) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                    return;
+                }
+                float r  = rho / (PI * 0.5);
+                float az = atan(dy, dx);
+                float uLens = 0.5 + 0.5 * r * cos(az);
+                // WHY: vLens uses MINUS to compensate the V-axis inversion between the GL FBO
+                // convention (Y=0 at bottom) and the SurfaceTexture/Android image convention
+                // (Y=0 at top). The Quest OpenXR compositor maps GL-texture-bottom to the
+                // display TOP of the equirect2 sphere (elevation = upperVerticalAngle). When
+                // the user looks UP (phi>0, az≈+PI/2), sin(az)>0, so +sin would give vLens>0.5
+                // (lower half of fisheye = ground), which appears at the TOP — upside down.
+                // Negating sin(az) corrects the mapping: looking UP samples the upper half
+                // of the fisheye image (vLens<0.5 = sky/ceiling in Android image convention). ✓
+                float vLens = 0.5 - 0.5 * r * sin(az);
+                gl_FragColor = texture2D(uTexture,
+                    vec2(uFisheyeUOffset + uLens * 0.5, vLens));
+            }
+        """.trimIndent()
+
         private const val FLOAT_BYTES = 4
         // Stride = 4 floats per vertex (2 position + 2 texcoord) × 4 bytes
         private const val STRIDE = 4 * FLOAT_BYTES

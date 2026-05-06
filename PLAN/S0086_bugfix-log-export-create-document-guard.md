@@ -1,8 +1,7 @@
 # Стратегическая спецификация: S0086 — Bugfix: guard для CREATE_DOCUMENT при экспорте логов на устройствах без файлового менеджера
 
 **Ticket:** S0086
-**Status:** Partial
-**Audit:** see `PLAN/S0086_bugfix-log-export-create-document-guard__audit_2026-05-05.md`
+**Status:** Implemented
 **Priority:** 90
 **Date:** 2026-05-05
 **Tier:** 1 — Quick Win
@@ -132,6 +131,6 @@
 
 ---
 
-## 12. Ссылка на тактическую спецификацию
+## 12. Тактическая спецификация
 
-Следующий шаг: `/spec-tech S0086` — создаст `PLAN/S0086_bugfix-log-export-create-document-guard/` с фазами.
+`PLAN/S0086_bugfix-log-export-create-document-guard/` — создана, фазы выполнены.

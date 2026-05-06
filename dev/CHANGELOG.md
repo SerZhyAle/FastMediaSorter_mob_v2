@@ -6402,3 +6402,106 @@ Format: | datetime | file | target | description |
 | 2026-05-05 18:10:54 | `dev/CATALOG/app_v2.md` | `S0058` | Catalog render after passthrough capture classes added |
 | 2026-05-05 18:13:41 | `PLAN/S0058_vr-passthrough-camera-capture.md` | `spec-check` | Audit S0058 → Verified; PASS 37 / WARN 0 / FAIL 0 / MANUAL 5 |
 | 2026-05-05 19:13:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/ftp/FtpClient.kt` | `FtpClient` | S0002 Wave 22: extract FtpConnectedOperations (876 -> 247 LOC); all stateful file ops moved to FtpConnectedOperations (484 LOC) |
+| 2026-05-05 23:32:12 | `PLAN/S0088_test-vr-video-layer-geometry-snapshot/INDEX.md` | `spec-tech` | S0088: create tactical plan INDEX |
+| 2026-05-05 23:32:12 | `PLAN/S0088_test-vr-video-layer-geometry-snapshot/PHASE_01__refactor-shader-access.md` | `spec-tech` | S0088 Phase 01: refactor-shader-access |
+| 2026-05-05 23:32:12 | `PLAN/S0088_test-vr-video-layer-geometry-snapshot/PHASE_02__unit-tests.md` | `spec-tech` | S0088 Phase 02: unit-tests |
+| 2026-05-05 23:32:12 | `PLAN/S0088_test-vr-video-layer-geometry-snapshot/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | S0088 Phase 03: docs-catalog-cleanup |
+| 2026-05-05 23:32:12 | `PLAN/S0088_test-vr-video-layer-geometry-snapshot.md` | `spec-tech` | S0088: Status -> Tactical |
+| 2026-05-05 23:33:50 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `S0088` | Step 1.1: extract fisheyeFragSrc to companion object FISHEYE_FRAG_SRC (internal val) |
+| 2026-05-05 23:34:56 | `PLAN/spec-catalog.jsonl` | `spec-check` | Archive S0004 (resource-icon-quick-slideshow) — spec file missing, feature implemented |
+| 2026-05-05 23:36:28 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/render/VrStereoRendererTest.kt` | `S0088` | Step 2.1: add fisheyeFragSrc V-axis assertion test |
+| 2026-05-05 23:37:19 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/render/VrLayerFactoryTest.kt` | `S0088` | Step 2.2: add quadCinema/equirect180/equirect360 geometry snapshot tests |
+| 2026-05-05 23:37:30 | `PLAN/S0007_vr-hand-tracking.md` | `spec-check` | Audit S0007 -> Partial; PASS/WARN/FAIL 33/1/0 |
+| 2026-05-05 23:38:08 | `PLAN/S0007_vr-hand-tracking.md` | `spec-fix` | Annotate Last Audit (S0007) |
+| 2026-05-05 23:38:08 | `PLAN/S0007_vr-hand-tracking/PHASE_01__verify-layer-e.md` | `spec-fix` | S0007: fix F1 predicate — kHandSuppressionWindow -> kControllerIdleSwitchNs |
+| 2026-05-05 23:38:52 | `PLAN/S0007_vr-hand-tracking.md` | `spec-check` | Audit S0007 -> Verified; PASS/WARN/FAIL 34/0/0 |
+| 2026-05-05 23:39:40 | `dev/CATALOG/app_v2.jsonl` | `S0088` | Catalog regen: VrStereoRenderer FISHEYE_FRAG_SRC added to companion object |
+| 2026-05-05 23:39:40 | `dev/CATALOG/app_v2.md` | `S0088` | Catalog regen: VrStereoRenderer FISHEYE_FRAG_SRC added to companion object |
+| 2026-05-05 23:40:18 | `PLAN/S0025_smb-fast-fail.md` | `spec-check` | Audit S0025 -> Partial; PASS/WARN/FAIL 12/1/0; missing NetworkReachabilityGateTest.kt |
+| 2026-05-05 23:40:43 | `PLAN/S0025_smb-fast-fail.md` | `spec-fix` | Annotate Last Audit (S0025): 0 auto-fixed, 1 follow-up (NetworkReachabilityGateTest.kt) |
+| 2026-05-05 23:41:42 | `app_v2/src/vr/AndroidManifest.xml` | `spec-dev` | S0036 Phase 01: add xmlns:tools namespace; declare uses-feature android.software.xr.api.spatial (required=false); add property PROPERTY_XR_ACTIVITY_START_MODE=HOME_SPACE inside application block |
+| 2026-05-05 23:42:27 | `PLAN/S0088_test-vr-video-layer-geometry-snapshot.md` | `spec-check` | Audit S0088 -> Verified; PASS/WARN/FAIL 15/0/0 |
+| 2026-05-05 23:44:50 | `app_v2/src/test/java/com/sza/fastmediasorter/core/network/NetworkReachabilityGateTest.kt` | `S0025` | Recreate NetworkReachabilityGateTest — 5 unit scenarios for requireAnyNetwork and requireWifi |
+| 2026-05-05 23:45:55 | `PLAN/S0025_smb-fast-fail.md` | `spec-check` | Audit S0025 -> Verified; PASS/WARN/FAIL 13/0/0 |
+| 2026-05-05 23:46:15 | `app_v2/src/vr/AndroidManifest.xml` | `spec-dev` | S0036 Phase 02: overlay configChanges (smallestScreenSize\|screenLayout\|density\|navigation\|uiMode\|fontScale) for SettingsActivity and WelcomeActivity via tools:replace; extend MainActivity overlay with same set; vrDebug merged manifest verified |
+| 2026-05-05 23:46:56 | `PLAN/S0036_vr-android-xr-sdk-compat.md` | `spec-doc` | S0036 known XR SDK system noise: 'Failed to open rendernode' (x86_64 emulator hwui artefact, won't-fix without real device, see S0036 §6 Q3); 'EmbeddingMixedHandler: No WindowHierarchyInfo found' is XR Shell internal — declaring PROPERTY_XR_ACTIVITY_START_MODE=HOME_SPACE is the recommended action; residual noise is acceptable and not blocking UX (see S0036 §6 Q2). |
+| 2026-05-05 23:47:48 | `app_v2/src/vr/AndroidManifest.xml` | `spec-dev` | S0036 Android XR SDK compat: declare uses-feature spatial + PROPERTY_XR_ACTIVITY_START_MODE=HOME_SPACE; overlay configChanges (smallestScreenSize\|screenLayout\|density\|navigation\|uiMode\|fontScale) for Settings/Welcome/Main via tools:replace |
+| 2026-05-05 23:51:07 | `PLAN/S0036_vr-android-xr-sdk-compat.md` | `spec-check` | Audit S0036 -> Verified; PASS/WARN/FAIL 14/0/0 |
+| 2026-05-05 23:57:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioCoverArtLoader.kt` | `S0087` | Replace Timber.w with 404-aware branch in onLoadFailed |
+| 2026-05-05 23:58:55 | `PLAN/S0089_bugfix-save-frame-feedback.md` | `spec-check` | Audit S0089 -> Partial; PASS 4 / WARN 1 / FAIL 0 |
+| 2026-05-05 23:58:55 | `PLAN/S0090_bugfix-settings-default-credentials-input.md` | `spec-check` | Audit S0090 -> Broken; PASS 7 / WARN 1 / FAIL 1 |
+| 2026-05-05 23:58:56 | `PLAN/S0091_bugfix-file-op-progress-startup-race.md` | `spec-check` | Audit S0091 -> Partial; PASS 3 / WARN 2 / FAIL 0 |
+| 2026-05-05 23:58:56 | `PLAN/S0092_bugfix-sftp-range-read-retry-overflow.md` | `spec-check` | Audit S0092 -> Partial; PASS 2 / WARN 1 / FAIL 0 |
+| 2026-05-05 23:58:56 | `PLAN/S0093_vr-single-playback-authority.md` | `spec-check` | Audit S0093 -> Partial; PASS 3 / WARN 2 / FAIL 0 |
+| 2026-05-06 00:00:16 | `PLAN/S0090_bugfix-settings-default-credentials-input.md` | `spec-fix` | Annotate Last Audit (S0090): FIXED predicate mismatch in Phase 03 Step 03.2 |
+| 2026-05-06 00:00:17 | `PLAN/S0090_bugfix-settings-default-credentials-input/PHASE_03__keyboard-guard-tests.md` | `spec-fix` | S0090: align grep predicate to actual camelCase method defaultUserAcceptsInlineTextInput |
+| 2026-05-06 00:02:41 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `S0087` | Status -> Implemented |
+| 2026-05-06 00:03:07 | `PLAN/S0090_bugfix-settings-default-credentials-input.md` | `spec-check` | Audit S0090 -> Verified; PASS 25 / WARN 0 / FAIL 0 |
+| 2026-05-06 00:04:33 | `PLAN/S0089_bugfix-save-frame-feedback.md` | `spec-fix` | Annotate Last Audit (S0089): FIXED Phase 02 unchecked progress tracker |
+| 2026-05-06 00:04:33 | `PLAN/S0089_bugfix-save-frame-feedback/PHASE_02__docs-catalog-cleanup.md` | `spec-fix` | S0089: mark all Phase 02 steps [x] — confirmed by CHANGELOG entries 6251-6252 |
+| 2026-05-06 00:04:37 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `spec-check` | Audit S0087 -> Partial; PASS 10 / WARN 3 / FAIL 0 |
+| 2026-05-06 00:05:32 | `PLAN/S0089_bugfix-save-frame-feedback.md` | `spec-check` | Audit S0089 -> Verified; PASS 6 / WARN 0 / FAIL 0 |
+| 2026-05-06 00:06:36 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `spec-fix` | Annotate Last Audit (S0087) |
+| 2026-05-06 00:06:36 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam/PHASE_01__fix-onload-failed-log.md` | `spec-fix` | Refine Step 01.1 verification predicates to match broader implementation scope |
+| 2026-05-06 00:06:57 | `dev/CATALOG/app_v2.jsonl` | `S0091` | S0091: tombstone — catalog regenerated after FileOperationProgressDialog lifecycle guard (hasSummaryViews) |
+| 2026-05-06 00:06:57 | `dev/CATALOG/app_v2.md` | `S0091` | S0091: tombstone — catalog rendered after FileOperationProgressDialog lifecycle guard (hasSummaryViews) |
+| 2026-05-06 00:07:26 | `PLAN/S0091_bugfix-file-op-progress-startup-race.md` | `spec-fix` | Annotate Last Audit (S0091): FIXED duplicate Completion Gate + tombstone catalog entries |
+| 2026-05-06 00:07:27 | `PLAN/S0091_bugfix-file-op-progress-startup-race/INDEX.md` | `spec-fix` | S0091: remove stale unchecked Completion Gate duplicate |
+| 2026-05-06 00:08:26 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `spec-check` | Audit S0087 -> Verified; PASS 11 / WARN 0 / FAIL 0 |
+| 2026-05-06 00:08:51 | `PLAN/S0091_bugfix-file-op-progress-startup-race.md` | `spec-check` | Audit S0091 -> Verified; PASS 7 / WARN 0 / FAIL 0 |
+| 2026-05-06 00:09:23 | `dev/CATALOG/app_v2.jsonl` | `S0092` | S0092: tombstone — catalog regenerated after SftpClient.readFileBytesRange retry-path fix (removed skip(offset)) |
+| 2026-05-06 00:09:23 | `dev/CATALOG/app_v2.md` | `S0092` | S0092: tombstone — catalog rendered after SftpClient.readFileBytesRange retry-path fix |
+| 2026-05-06 00:09:57 | `PLAN/S0092_bugfix-sftp-range-read-retry-overflow.md` | `spec-fix` | Annotate Last Audit (S0092): FIXED missing catalog tombstone entries |
+| 2026-05-06 00:11:05 | `PLAN/S0092_bugfix-sftp-range-read-retry-overflow.md` | `spec-check` | Audit S0092 -> Verified; PASS 5 / WARN 0 / FAIL 0 |
+| 2026-05-06 00:13:26 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0093: catalog regenerated after VR playback authority consolidation (VrPlaybackEngine, ExoVrPlaybackEngine removed) |
+| 2026-05-06 00:13:35 | `dev/CATALOG/app_v2.md` | `catalog` | S0093: catalog rendered after VR playback authority consolidation (VrPlaybackEngine, ExoVrPlaybackEngine removed) |
+| 2026-05-06 00:13:54 | `PLAN/S0093_vr-single-playback-authority.md` | `spec-fix` | Annotate Last Audit (S0093): FIXED catalog tombstone, PRE-RESOLVED deletion entries |
+| 2026-05-06 00:16:58 | `PLAN/S0093_vr-single-playback-authority.md` | `spec-check` | Audit S0093 → Verified; PASS/WARN/FAIL 22/0/0 |
+| 2026-05-06 01:41:36 | `PLAN/S0097_gms-update-once-settings-link.md` | `spec-all` | Strategic spec S0097: GMS update one-time snackbar + settings link |
+| 2026-05-06 01:43:31 | `PLAN/S0097_gms-update-once-settings-link/INDEX.md` | `spec-all` | Tactical plan S0097: 3 phases |
+| 2026-05-06 01:48:00 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/GmsAvailabilityChecker.kt` | `S0097` | Add persistent one-time warning flag (isWarningSeen/markWarningSeen via SharedPreferences) |
+| 2026-05-06 01:48:00 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `S0097` | showGmsWarningIfNeeded: use persistent flag — snackbar shown at most once per install |
+| 2026-05-06 01:48:00 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0097` | Add tvGmsSettingsLink banner before INTERFACE section |
+| 2026-05-06 01:48:00 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0097` | Add tvGmsSettingsLink banner (landscape counterpart) |
+| 2026-05-06 01:48:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `S0097` | setupGmsBanner: show GMS update link in Settings General if GMS not OK |
+| 2026-05-06 01:48:43 | `PLAN/S0097_gms-update-once-settings-link.md` | `spec-all` | Pipeline Verified: S0097 — GMS update one-time snackbar + settings link |
+| 2026-05-06 01:53:43 | `PLAN/S0068_scan-progress-indicator.md` | `spec-check` | Audit S0068 → Verified; PASS/WARN/FAIL 15/0/0 |
+| 2026-05-06 01:55:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `SftpPlaybackHelper` | Fix SFTP ExoPlayer connecting to default port 22 instead of URI port: parse serverHost/serverPort from path URI before SftpDataSourceFactory construction |
+| 2026-05-06 02:09:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt` | `FileOperationDestinationDialog` | Throttle progress Timber.d to log once per 5% instead of every ~128KB tick |
+| 2026-05-06 02:27:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseEvent.kt` | `BrowseEvent` | Add ShowLocalNetworkPermissionRequired event |
+| 2026-05-06 02:27:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt` | `BrowseLoadingAuxManager.handleLoadingError` | Early-return for LocalNetworkPermissionDeniedException — send ShowLocalNetworkPermissionRequired, setLoading(false) |
+| 2026-05-06 02:27:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt` | `BrowseEventHandler.handleEvent` | Handle ShowLocalNetworkPermissionRequired — show permission rationale dialog |
+| 2026-05-06 02:40:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ExoPlayerControlsManager.kt` | `ExoPlayerControlsManager` | Fix seek buttons: route via callback (onSeekForward/onSeekBackward) instead of calling VideoPlayerManager directly; change forward seek from 30s to 10s |
+| 2026-05-06 02:40:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `ExoPlayerControlsManager.ExoPlayerControlsCallback` | Implement onSeekForward/onSeekBackward in ExoPlayerControlsCallback with isAudioServiceActive routing so seek works via AudioPlaybackService |
+| 2026-05-06 02:40:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerKeyboardCallbackImpl.kt` | `PlayerKeyboardCallbackImpl` | Fix keyboard seek: use getActivePlayer() instead of videoPlayerManager.seek* so audio service seek works |
+| 2026-05-06 02:40:03 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `btnForward30` | Update contentDescription from forward_30_seconds to forward_10_seconds to match actual 10s seek |
+| 2026-05-06 02:40:03 | `app_v2/src/main/res/layout/custom_player_controls_large.xml` | `btnForward30` | Update contentDescription from forward_30_seconds to forward_10_seconds to match actual 10s seek |
+| 2026-05-06 03:28:22 | `PLAN/S0098_bugfix-smb-precheck-false-fail/INDEX.md` | `spec-tech` | Create tactical plan for S0098 |
+| 2026-05-06 03:28:22 | `PLAN/S0098_bugfix-smb-precheck-false-fail/PHASE_01__fix-precheck-logic.md` | `spec-tech` | Phase 01: fix-precheck-logic |
+| 2026-05-06 03:28:22 | `PLAN/S0098_bugfix-smb-precheck-false-fail/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-06 03:28:22 | `PLAN/S0098_bugfix-smb-precheck-false-fail.md` | `spec-tech` | Status → Tactical |
+| 2026-05-06 03:31:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionPool.kt` | `S0098` | Add hasActiveConnectionForServer for TCP precheck bypass |
+| 2026-05-06 03:31:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbConnectionManager.kt` | `S0098` | Skip TCP precheck when pool has live entry for same server:port |
+| 2026-05-06 03:32:45 | `dev/CATALOG/app_v2.jsonl` | `S0098` | Catalog regen after SmbConnectionPool/Manager changes |
+| 2026-05-06 03:48:02 | `PLAN/S0099_sftp-concurrent-access-fix.md` | `spec` | Add strategic spec S0099 for sftp-concurrent-access-fix |
+| 2026-05-06 03:51:52 | `PLAN/S0100_mic-recording-in-browse.md` | `spec` | Add strategic spec S0100 for mic-recording-in-browse |
+| 2026-05-06 04:02:16 | `PLAN/S0099_sftp-concurrent-access-fix/INDEX.md` | `spec-tech` | Create tactical plan for S0099 |
+| 2026-05-06 04:02:16 | `PLAN/S0099_sftp-concurrent-access-fix/PHASE_01__session-pool-isolation.md` | `spec-tech` | Phase 01: session-pool-isolation |
+| 2026-05-06 04:02:16 | `PLAN/S0099_sftp-concurrent-access-fix/PHASE_02__retry-with-backoff.md` | `spec-tech` | Phase 02: retry-with-backoff |
+| 2026-05-06 04:02:16 | `PLAN/S0099_sftp-concurrent-access-fix/PHASE_03__sftp-error-strings.md` | `spec-tech` | Phase 03: sftp-error-strings |
+| 2026-05-06 04:02:16 | `PLAN/S0099_sftp-concurrent-access-fix/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-06 04:02:16 | `PLAN/S0099_sftp-concurrent-access-fix.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/INDEX.md` | `spec-tech` | Create tactical plan for S0100 |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/PHASE_01__foundations.md` | `spec-tech` | Phase 01: foundations |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/PHASE_02__recording-engine.md` | `spec-tech` | Phase 02: recording-engine |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/PHASE_03__manifest-strings.md` | `spec-tech` | Phase 03: manifest-strings |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/PHASE_04__settings-ui.md` | `spec-tech` | Phase 04: settings-ui |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/PHASE_05__browse-integration.md` | `spec-tech` | Phase 05: browse-integration |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 04:02:48 | `README.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box |
+| 2026-05-06 04:02:55 | `docs/README_RU.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box (RU) |
+| 2026-05-06 04:02:55 | `docs/README_UK.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box (UK) |
+| 2026-05-06 04:02:55 | `docs/HOW_TO.md` | `How-To guides` | Add guide: How to use FMS on Android TV box |
+| 2026-05-06 04:02:55 | `docs/HOW_TO_RU.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (RU) |
+| 2026-05-06 04:02:55 | `docs/HOW_TO_UK.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (UK) |

@@ -31,12 +31,6 @@ None — strategic §6 is resolved and the user explicitly prioritised immediate
 
 ## Completion Gate
 
-- [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` — no update needed (bugfix only; see strategic §8).
-- [ ] `dev/CHANGELOG.md` has an entry for `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationProgressDialog.kt`.
-- [ ] `dev/CATALOG/app_v2.jsonl` and `dev/CATALOG/app_v2.md` regenerated after the `.kt` change.
-- [ ] Focused compile validation passes for the touched Kotlin slice.
-- [ ] Strategic spec `Status:` advanced to `Implemented` or `Verified` when validation is complete.
 - [x] All phases show ✅ Done.
 - [x] `docs/FEATURES.md` + `_RU.md` + `_UK.md` — no update needed (bugfix only; see strategic §8).
 - [x] `dev/CHANGELOG.md` has an entry for `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationProgressDialog.kt`.

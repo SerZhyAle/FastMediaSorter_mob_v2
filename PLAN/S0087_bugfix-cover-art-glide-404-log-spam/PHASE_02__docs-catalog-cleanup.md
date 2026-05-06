@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0087_bugfix-cover-art-glide-404-log-spam.md`](../S0087_bugfix-cover-art-glide-404-log-spam.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01
 **Blocks:** —
-**Steps done:** 0 / 2
-**Started:** —
-**Completed:** —
+**Steps done:** 2 / 2
+**Started:** 2026-05-06
+**Completed:** 2026-05-06
 
 ---
 
@@ -19,8 +19,8 @@ Regenerate the module catalog and record dev log entries; no FEATURES update nee
 
 ## Prerequisites
 
-- [ ] Phase 01 is ✅ Done.
-- [ ] Project compiles cleanly.
+- [x] Phase 01 is ✅ Done.
+- [x] Project compiles cleanly.
 
 ---
 
@@ -54,7 +54,11 @@ Regenerate the module catalog and record dev log entries; no FEATURES update nee
 - `Glob` — `dev/CATALOG/app_v2.jsonl` exists and has modification time within this session.
 - `Grep` — `AudioCoverArtLoader` returns at least one hit in `dev/CATALOG/app_v2.jsonl`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — PRE-RESOLVED. scan.ps1 (925 files) and render.ps1 already executed in Phase 01 Done Criteria. `AudioCoverArtLoader` — 1 hit in app_v2.jsonl. PASS.
 
 ---
 
@@ -77,15 +81,19 @@ Regenerate the module catalog and record dev log entries; no FEATURES update nee
 
 - `Grep` — `S0087` returns at least one hit in `dev/CHANGELOG.md`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — PRE-RESOLVED. Dev log entry already recorded in Phase 01 Done Criteria (2026-05-05 23:57:58). `S0087` — 7 hits in CHANGELOG.md. PASS.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Both steps above are `[x] done`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated.
-- [ ] Dev log entry present for `AudioCoverArtLoader.kt`.
+- [x] Both steps above are `[x] done`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated.
+- [x] Dev log entry present for `AudioCoverArtLoader.kt`.
 
 ---
 

@@ -53,4 +53,34 @@ class VrLayerFactoryTest {
         assertEquals(VrRenderingMode.CINEMA, VrRenderingMode.fromPreferenceValue(null))
         assertTrue(VrRenderingMode.fromPreferenceValue("FULL_STEREO") == VrRenderingMode.FULL_STEREO)
     }
+
+    @Test
+    fun `quadCinema geometry snapshot matches reference values`() {
+        val d = factory.describe(StereoMode.MONO, VrRenderingMode.CINEMA)
+        assertEquals(VrLayerType.QUAD_CINEMA, d.type)
+        assertEquals(4f, d.widthMeters, 1e-4f)
+        assertEquals(2.25f, d.heightMeters, 1e-4f)
+        assertEquals(4f, d.distanceMeters, 1e-4f)
+        assertEquals(1f, d.radiusMeters, 1e-4f)
+    }
+
+    @Test
+    fun `equirect180 geometry snapshot matches reference values`() {
+        val d = factory.describe(StereoMode.EQUIRECT_180_MONO, VrRenderingMode.FULL_STEREO)
+        assertEquals(VrLayerType.EQUIRECT_2, d.type)
+        assertEquals(VrLayerDescriptor.HALF_DOME_RADIANS, d.centralHorizontalAngleRadians, 1e-4f)
+        assertEquals(VrLayerDescriptor.HALF_SPHERE_RADIANS, d.upperVerticalAngleRadians, 1e-4f)
+        assertEquals(-VrLayerDescriptor.HALF_SPHERE_RADIANS, d.lowerVerticalAngleRadians, 1e-4f)
+        assertEquals(1f, d.radiusMeters, 1e-4f)
+    }
+
+    @Test
+    fun `equirect360 geometry snapshot matches reference values`() {
+        val d = factory.describe(StereoMode.EQUIRECT_360_MONO, VrRenderingMode.FULL_STEREO)
+        assertEquals(VrLayerType.EQUIRECT_2, d.type)
+        assertEquals(VrLayerDescriptor.FULL_SPHERE_RADIANS, d.centralHorizontalAngleRadians, 1e-4f)
+        assertEquals(VrLayerDescriptor.HALF_SPHERE_RADIANS, d.upperVerticalAngleRadians, 1e-4f)
+        assertEquals(-VrLayerDescriptor.HALF_SPHERE_RADIANS, d.lowerVerticalAngleRadians, 1e-4f)
+        assertEquals(1f, d.radiusMeters, 1e-4f)
+    }
 }

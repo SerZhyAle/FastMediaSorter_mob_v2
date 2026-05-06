@@ -336,11 +336,20 @@ class FileOperationDestinationDialog(
                 
                 // Use executeWithProgress to get progress updates
                 var completed = false
+                var lastLoggedPercent = -1
                 Timber.i("performOperation: Calling executeWithProgress NOW")
                 withContext(Dispatchers.IO) {
                     Timber.d("performOperation: Inside withContext(Dispatchers.IO)")
                     fileOperationUseCase.executeWithProgress(operation).collect { progress ->
-                        Timber.d("performOperation: Progress received: $progress")
+                        if (progress is com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Processing) {
+                            val pct = if (progress.totalBytes > 0) (progress.bytesTransferred * 100 / progress.totalBytes).toInt() else -1
+                            if (pct / 5 != lastLoggedPercent / 5) {
+                                lastLoggedPercent = pct
+                                Timber.d("performOperation: Progress %d%% (%d/%d bytes)", pct, progress.bytesTransferred, progress.totalBytes)
+                            }
+                        } else {
+                            Timber.d("performOperation: Progress received: $progress")
+                        }
                         if (completed) {
                             Timber.w("performOperation: Already completed, ignoring progress")
                             return@collect

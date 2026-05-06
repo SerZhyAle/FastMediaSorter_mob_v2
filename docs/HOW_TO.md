@@ -48,6 +48,7 @@ If a feature is marked with "✗", you can download the **Standard** flavor to a
 15. [Read E-Books (EPUB)](#how-to-read-e-books-epub)
 16. [View Song Lyrics](#how-to-view-song-lyrics)
 17. [Auto-Translation](#auto-translation)
+18. [Use FMS on Android TV Box](#how-to-use-fms-on-android-tv-box)
 
 ---
 
@@ -659,6 +660,48 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 5. The translated text will appear in an overlay.
 
 **Note:** Tesseract initialization (for Cyrillic) might take 1-2 seconds longer than ML Kit.
+
+---
+
+## How to Use FMS on Android TV Box
+
+FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required — the app is fully operable via TV remote or Bluetooth keyboard.
+
+**What you need:**
+
+- Android TV box running Android 8.0+ (Standard/Lite/Photos) or Android 6.0+ (Legacy flavor)
+- TV remote with D-pad, or a Bluetooth keyboard
+- Optional: home NAS (SMB), USB drive, or SD card with media
+
+**Navigation with a TV remote:**
+
+| Button | Action |
+|--------|--------|
+| D-pad Up/Down/Left/Right | Move focus between items |
+| OK / Enter | Open item or confirm |
+| Back | Go to previous screen |
+| Backspace | Navigate one folder up in Browse |
+| Red | Delete selected file(s) |
+| Green | Copy selected file(s) |
+| Yellow | Move selected file(s) |
+| Blue | Rename selected file |
+| Channel Up / Channel Down | Previous / next file in player |
+
+**Steps:**
+
+1. Install the app from Google Play or sideload an APK. Standard flavor is recommended.
+2. On the main screen, press **OK** on the (+) button to add a resource.
+3. Choose **Local Folder** for USB/SD storage, or **Network folder** to connect to a NAS via SMB.
+4. After adding the resource, navigate into it with D-pad + OK to browse files.
+5. Open any video, image, or audio file — the player works fully via remote.
+6. To start a slideshow, open an image folder and navigate to the **Slideshow** button in the command bar.
+7. To add background music to the slideshow, go to **Settings → Audio → Slideshow Background Music** and select your music resource.
+
+**Tips:**
+
+- Hold D-pad Up/Down to accelerate scrolling through long file lists.
+- Press **F1** on a Bluetooth keyboard to open a surface-specific shortcut reference on any screen.
+- TV remote color keys can be reassigned in **Settings → Controls & Keybindings**.
 
 ---
 

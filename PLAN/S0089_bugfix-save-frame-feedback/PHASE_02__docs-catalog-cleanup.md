@@ -62,7 +62,7 @@ pwsh -File scripts/spec_catalog/select.ps1 -Id S0089 -Format json | ConvertFrom-
 
 ## Progress Tracker
 
-- [ ] Step 2.1 — Catalog regenerate
-- [ ] Step 2.2 — Dev log catalog
-- [ ] Step 2.3 — Spec catalog → Implemented
-- [ ] Step 2.4 — Dev log spec
+- [x] Step 2.1 — Catalog regenerate
+- [x] Step 2.2 — Dev log catalog
+- [x] Step 2.3 — Spec catalog → Implemented
+- [x] Step 2.4 — Dev log spec

@@ -7,8 +7,6 @@ import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
-import com.sza.fastmediasorter.ui.player.helpers.seekBackward
-import com.sza.fastmediasorter.ui.player.helpers.seekForward
 
 /**
  * Implementation of PlayerKeyboardHandler.PlayerKeyboardCallback extracted from PlayerActivity.
@@ -134,11 +132,15 @@ class PlayerKeyboardCallbackImpl(
     }
 
     override fun onSeekForward(seconds: Int) {
-        if (activity._videoPlayerManager != null) activity.videoPlayerManager.seekForward(seconds)
+        val player = getActivePlayer() ?: return
+        player.seekTo((player.currentPosition + seconds * 1000L).coerceAtMost(
+            player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+        ))
     }
 
     override fun onSeekBackward(seconds: Int) {
-        if (activity._videoPlayerManager != null) activity.videoPlayerManager.seekBackward(seconds)
+        val player = getActivePlayer() ?: return
+        player.seekTo((player.currentPosition - seconds * 1000L).coerceAtLeast(0))
     }
 
     override fun onEpubScrollDelta(verticalScroll: Float) {
