@@ -256,6 +256,14 @@ All three files are now at or below the 700-line stretch target.
 
 `LocalMediaScanner.kt` is now at the 700-line stretch target.
 
+**Wave 33 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `domain/usecase/SearchLyricsUseCase.kt` | 804 | 658 | −146 | Collapsed 13 KDocs (3-8→1 each, −46); removed dead `searchLyricsOnline` private function (never called — `execute` builds sources inline, −25); removed 36 obvious inline comments from `execute`, `extractMetadataWithCache`, `fixEncoding`, `downloadFrom*`, `buildSearchQueries`, `parseFilename`, `parseArtistFromPath`, `normalizeText`, `fetchGeniusLyrics`, and `searchAZLyrics` (−36); collapsed 5-line duplicate AZLyrics HTML comment to 2 lines (−3) |
+
+`SearchLyricsUseCase.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -289,7 +297,7 @@ All three files are now at or below the 700-line stretch target.
 | 25 | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 832 | ≤ 700 | 2 | 1 664 |
 | 26 | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 826 | ≤ 700 | 2 | 1 652 |
 | 27 | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 824 | ≤ 700 | 3 | 2 472 |
-| 28 | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 804 | ≤ 700 | 2 | 1 608 |
+| — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
 | — | `app_v2/data/network/SmbMediaScanner.kt` | 679 | ✅ | 2 | — |
 | — | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 685 | ✅ | 2 | — |

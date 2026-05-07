@@ -21,10 +21,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import org.jsoup.Jsoup
 
-/**
- * UseCase for searching song lyrics online using file name and/or audio metadata.
- * Searches multiple lyrics providers and returns the first successful result.
- */
+/** UseCase for searching song lyrics using file metadata; tries multiple providers with fallback. */
 class SearchLyricsUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val smbClient: SmbClient,
@@ -33,8 +30,6 @@ class SearchLyricsUseCase @Inject constructor(
     private val credentialsRepository: NetworkCredentialsRepository,
     private val fileCache: UnifiedFileCache
 ) {
-    
-    // Metadata cache: path -> (artist, title, album)
     private val metadataCache = mutableMapOf<String, Triple<String?, String?, String?>>()
     
     private val httpClient = OkHttpClient.Builder()
@@ -42,13 +37,7 @@ class SearchLyricsUseCase @Inject constructor(
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    /**
-     * Search for lyrics using audio file metadata and filename.
-     * @param mediaFile The audio file to search lyrics for
-     * @param resolvedTitle Pre-resolved track title (e.g. from iTunes cover search). Takes priority over file metadata.
-     * @param resolvedArtist Pre-resolved artist name (e.g. from iTunes cover search). Takes priority over file metadata.
-     * @return Result containing lyrics text or error
-     */
+    /** Search for lyrics using ID3 metadata + filename; resolved iTunes metadata takes priority. */
     suspend fun execute(
         mediaFile: MediaFile,
         resolvedTitle: String? = null,
@@ -56,28 +45,17 @@ class SearchLyricsUseCase @Inject constructor(
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             Timber.d("Searching lyrics for: ${mediaFile.name} (resolved: artist='$resolvedArtist', title='$resolvedTitle')")
-            
-            // Extract metadata (with caching)
             val (artist, title, album) = extractMetadataWithCache(mediaFile)
             Timber.d("Extracted metadata - Artist: $artist, Title: $title, Album: $album")
-            
-            // Filter placeholder values from resolved metadata
             val filteredResolvedTitle = SearchQueryUtils.filterPlaceholder(resolvedTitle)
             val filteredResolvedArtist = SearchQueryUtils.filterPlaceholder(resolvedArtist)
-            
-            // Extract artist from parent directory name as last-resort fallback
-            // (handles "YYYY-Artist-Album/track.mp3" folder structures common in Russian music collections)
+            // Extract artist from parent dir — last-resort fallback for "YYYY-Artist-Album/track.mp3" structures
             val dirArtist = parseArtistFromPath(mediaFile.path)
             if (!dirArtist.isNullOrBlank()) {
                 Timber.d("AudioMetadataLoader: dirArtist extracted from path: '$dirArtist'")
             }
-
-            // Build search queries (resolved metadata gets priority)
             val searchQueries = buildSearchQueries(artist, title, mediaFile.name, filteredResolvedTitle, filteredResolvedArtist, dirArtist)
-
-            // Detect script to route to the right sources first.
-            // Also check the filename itself — covers the case where ID3 and iTunes both fail
-            // but the track name is Cyrillic (e.g. "01-Случай в Ватикане.mp3").
+            // Detect script; check filename too (covers Cyrillic tracks where ID3/iTunes both fail)
             val isCyrillic = hasCyrillic(artist) || hasCyrillic(title) ||
                 hasCyrillic(filteredResolvedArtist) || hasCyrillic(filteredResolvedTitle) ||
                 hasCyrillic(mediaFile.name) || hasCyrillic(dirArtist)
@@ -143,28 +121,19 @@ class SearchLyricsUseCase @Inject constructor(
             Result.failure(e)
         }
     }
-    
-    // ... extractMetadata ... getLocalFile ... downloadFromSmb ... (unchanged)
 
-    /**
-     * Extract artist, title and album from audio file metadata with caching.
-     */
+    /** Extract artist, title and album from audio file metadata with caching. */
     private suspend fun extractMetadataWithCache(mediaFile: MediaFile): Triple<String?, String?, String?> {
-        // Check cache first
         metadataCache[mediaFile.path]?.let { cached ->
             Timber.d("Using cached metadata for: ${mediaFile.name}")
             return cached
         }
-        
-        // Extract and cache
         val metadata = extractMetadata(mediaFile)
         metadataCache[mediaFile.path] = metadata
         return metadata
     }
     
-    /**
-     * Extract artist, title and album from audio file metadata.
-     */
+    /** Extract artist, title and album from audio file metadata. */
     private suspend fun extractMetadata(mediaFile: MediaFile): Triple<String?, String?, String?> {
         return try {
             val localFile = getLocalFile(mediaFile)
@@ -189,18 +158,12 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Fix encoding issues with Cyrillic text from ID3 tags.
-     * Some MP3 files have tags encoded in Windows-1251 or ISO-8859-1 instead of UTF-8.
-     */
+    /** Fix encoding issues with Cyrillic ID3 tags (Windows-1251 misread as ISO-8859-1). */
     private fun fixEncoding(text: String?): String? {
         if (text == null || text.isBlank()) return text
-        
         return try {
-            // Check if text contains garbled characters (common sign of encoding issues)
             if (text.contains(Regex("[\u0080-\u00FF]{2,}"))) {
-                // Try to fix: interpret as ISO-8859-1 bytes and re-encode as Windows-1251
-                // This handles the common case where CP1251 was misinterpreted as ISO-8859-1
+                // CP1251 misread as ISO-8859-1 \u2014 re-encode bytes through correct charset
                 val bytes = text.toByteArray(Charsets.ISO_8859_1)
                 String(bytes, java.nio.charset.Charset.forName("windows-1251"))
             } else {
@@ -212,9 +175,7 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Get local file (download if network resource).
-     */
+    /** Get local file, downloading from network if required. */
     private suspend fun getLocalFile(mediaFile: MediaFile): File {
         return when {
             mediaFile.path.startsWith("smb://") -> {
@@ -232,8 +193,6 @@ class SearchLyricsUseCase @Inject constructor(
     
     private suspend fun downloadFromSmb(mediaFile: MediaFile): File {
         val cacheFile = fileCache.getCacheFile(mediaFile.path, mediaFile.size)
-        
-        // Parse smb://server:port/share/path
         val uri = android.net.Uri.parse(mediaFile.path)
         val server = uri.host ?: throw IllegalArgumentException("Invalid SMB path: ${mediaFile.path}")
         val port = if (uri.port > 0) uri.port else 445
@@ -278,14 +237,10 @@ class SearchLyricsUseCase @Inject constructor(
     
     private suspend fun downloadFromSftp(mediaFile: MediaFile): File {
         val cacheFile = fileCache.getCacheFile(mediaFile.path, mediaFile.size)
-        
-        // Parse sftp://server:port/path
         val uri = android.net.Uri.parse(mediaFile.path)
         val server = uri.host ?: throw IllegalArgumentException("Invalid SFTP path: ${mediaFile.path}")
         val port = if (uri.port > 0) uri.port else 22
         val remotePath = uri.path ?: throw IllegalArgumentException("Invalid SFTP path: ${mediaFile.path}")
-        
-        // Get credentials
         val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
             ?: throw IllegalStateException("No credentials found for SFTP: $server:$port")
         
@@ -314,18 +269,12 @@ class SearchLyricsUseCase @Inject constructor(
     
     private suspend fun downloadFromFtp(mediaFile: MediaFile): File {
         val cacheFile = fileCache.getCacheFile(mediaFile.path, mediaFile.size)
-        
-        // Parse ftp://server:port/path
         val uri = android.net.Uri.parse(mediaFile.path)
         val server = uri.host ?: throw IllegalArgumentException("Invalid FTP path: ${mediaFile.path}")
         val port = if (uri.port > 0) uri.port else 21
         val remotePath = uri.path ?: throw IllegalArgumentException("Invalid FTP path: ${mediaFile.path}")
-        
-        // Get credentials
         val credentials = credentialsRepository.getByTypeServerAndPort("FTP", server, port)
             ?: throw IllegalStateException("No credentials found for FTP: $server:$port")
-        
-        // Connect to FTP
         val connectResult = ftpClient.connect(
             host = server,
             port = port,
@@ -354,14 +303,7 @@ class SearchLyricsUseCase @Inject constructor(
         return cacheFile
     }
 
-    /**
-     * Build multiple search queries using different combinations of metadata.
-     * Priority order:
-     * 1. Resolved metadata from online cover search (iTunes) — most reliable
-     * 2. ID3/file metadata (artist + title tags)
-     * 3. Filename parsing with [SearchQueryUtils.prepareSearchQuery]
-     * 4. Fuzzy variants (swapping metadata/filename sources)
-     */
+    /** Build search queries from resolved metadata, ID3 tags, filename parsing, and fuzzy variants. */
     private fun buildSearchQueries(
         artist: String?,
         title: String?,
@@ -386,7 +328,6 @@ class SearchLyricsUseCase @Inject constructor(
             queries.add(cleanResolvedTitle)
         }
         
-        // Parse filename to extract potential artist and title
         val (filenameArtist, filenameTitle) = parseFilename(filename)
         
         // Determine best artist: prefer ID3 → filename parse → parent directory
@@ -428,70 +369,41 @@ class SearchLyricsUseCase @Inject constructor(
         return queries.distinct()
     }
     
-    /**
-     * Parse filename to extract artist and title.
-     * Handles patterns like: "Artist - Song", "001 - Artist - Song", "Song (Artist)", etc.
-     */
+    /** Parse filename to extract artist and title ("Artist - Song", "001 - Artist - Song", etc.). */
     private fun parseFilename(filename: String): Pair<String, String> {
-        // Remove extension
         var name = filename.substringBeforeLast('.')
         
         // Remove track numbers at start (e.g., "001 - ", "01. ", "1 - ")
         name = name.replace(Regex("^\\d+\\s*[-.]\\s*"), "")
-        
-        // Try pattern: "Artist - Song"
         if (name.contains(" - ")) {
             val parts = name.split(" - ", limit = 2)
-            if (parts.size == 2) {
-                return Pair(parts[0].trim(), parts[1].trim())
-            }
+            if (parts.size == 2) return Pair(parts[0].trim(), parts[1].trim())
         }
-        
-        // Try pattern: "Artist-Song" (no spaces)
         if (name.contains("-") && !name.contains(" ")) {
             val parts = name.split("-", limit = 2)
-            if (parts.size == 2) {
-                return Pair(parts[0].trim(), parts[1].trim())
-            }
+            if (parts.size == 2) return Pair(parts[0].trim(), parts[1].trim())
         }
-        
-        // No clear pattern found, treat entire name as title
         return Pair("", name.trim())
     }
 
     /**
-     * Extracts artist name from the parent directory of the file path.
-     * Handles common Russian music folder patterns:
-     *   "YYYY-Artist-Album" → "Artist"
-     *   "Artist - Album"   → "Artist"
-     *   "Artist"           → "Artist"
-     * Returns null when no meaningful artist can be determined.
+     * Extracts artist from the parent directory ("YYYY-Artist-Album" → "Artist",
+     * "Artist - Album" → "Artist"). Returns null when no meaningful artist can be determined.
      */
     private fun parseArtistFromPath(path: String): String? {
-        // Get the last directory segment before the filename
         val withoutScheme = path.substringAfter("://").ifEmpty { path }
         val parts = withoutScheme.split('/')
-        // parts: [host:port, share, ..., dirName, fileName]
         val dirName = parts.dropLast(1).lastOrNull()?.takeIf { it.isNotBlank() } ?: return null
-
         // Strip leading year (e.g. "2017-" or "2017 ")
         val withoutYear = dirName.replace(Regex("^\\d{4}[-\\s]"), "").trim()
-
-        // Try "Artist - Album" (en-dash / hyphen with spaces)
         if (withoutYear.contains(" - ")) {
             return withoutYear.substringBefore(" - ").trim().takeIf { it.isNotBlank() }
         }
-
-        // Try "Artist-Album" (hyphen no spaces)
         if (withoutYear.contains("-")) {
             val candidate = withoutYear.substringBefore("-").trim()
             // Reject single-word all-digit segments (track numbers etc.)
-            if (candidate.isNotBlank() && !candidate.all { it.isDigit() }) {
-                return candidate
-            }
+            if (candidate.isNotBlank() && !candidate.all { it.isDigit() }) return candidate
         }
-
-        // Single-segment directory — use as artist only if it contains letters
         return withoutYear.trim().takeIf { it.any { c -> c.isLetter() } }
     }
 
@@ -499,20 +411,14 @@ class SearchLyricsUseCase @Inject constructor(
     private fun hasCyrillic(text: String?): Boolean =
         text?.any { it in '\u0400'..'\u04FF' } == true
 
-    /**
-     * Normalize text for search: remove special characters, common words, extra spaces.
-     */
+    /** Normalize text for search: remove brackets, stop-words, special chars, and extra spaces. */
     private fun normalizeText(text: String?): String {
         if (text == null || text.isBlank()) return ""
-        
         var normalized: String = text
-        
         // Remove content in parentheses/brackets (often contains "feat.", "remix", etc.)
         normalized = normalized.replace(Regex("\\([^)]*\\)"), " ")
         normalized = normalized.replace(Regex("\\[[^]]*\\]"), " ")
         normalized = normalized.replace(Regex("\\{[^}]*\\}"), " ")
-        
-        // Remove common words that don't help search
         val wordsToRemove = listOf(
             "official", "video", "audio", "hd", "hq", "lyrics",
             "feat", "ft", "featuring", "remix", "cover", "live",
@@ -521,54 +427,15 @@ class SearchLyricsUseCase @Inject constructor(
         wordsToRemove.forEach { word ->
             normalized = normalized.replace(Regex("\\b$word\\b", RegexOption.IGNORE_CASE), " ")
         }
-        
-        // Replace underscores and multiple dashes with spaces
         normalized = normalized.replace(Regex("[_]+"), " ")
         normalized = normalized.replace(Regex("-+"), " ")
-        
-        // Remove special characters (keep letters, numbers, spaces)
         normalized = normalized.replace(Regex("[^\\p{L}\\p{N}\\s]"), " ")
-        
-        // Remove extra whitespace
         normalized = normalized.replace(Regex("\\s+"), " ").trim()
         
         return normalized
     }
     
-    /**
-     * Search lyrics online using multiple providers with fallback.
-     */
-    private suspend fun searchLyricsOnline(query: String): String? {
-        // Try multiple sources in order
-        val sources = listOf<suspend () -> String?>(
-            { searchAZLyrics(query) },
-            { searchMusixmatch(query) },
-            { searchGeniusApi(query) }
-        )
-        
-        for (source in sources) {
-            try {
-                val lyrics = source()
-                if (lyrics != null) {
-                    return lyrics
-                }
-            } catch (e: Exception) {
-                Timber.w("Source failed: ${e.message}")
-                // Continue to next source
-            }
-        }
-        
-        return null
-    }
-    
-    
-    /**
-     * Search Musixmatch via direct URL construction.
-     * CloudFlare blocks /search/ endpoint (403), but direct /lyrics/Artist/Title URLs work.
-     * URL format: https://www.musixmatch.com/lyrics/{Artist-Slug}/{Title-Slug}
-     * Words hyphen-separated; URLs are case-insensitive.
-     * Lyrics are embedded in page HTML as JSON field "body":"..."
-     */
+    /** Search Musixmatch via direct /lyrics/Artist-Slug/Title-Slug URL (CloudFlare blocks /search/). */
     private suspend fun searchMusixmatch(query: String): String? = withContext(Dispatchers.IO) {
         try {
             val cleanQuery = query.replace(" lyrics", "", ignoreCase = true)
@@ -629,9 +496,7 @@ class SearchLyricsUseCase @Inject constructor(
     
     // NOTE: searchLyricsOvhApi removed — api.lyrics.ovh returns 502 permanently (server dead since 2024).
     
-    /**
-     * Search Genius API (requires parsing HTML from search results).
-     */
+    /** Search Genius API and scrape lyrics from the returned song page. */
     private suspend fun searchGeniusApi(query: String): String? = withContext(Dispatchers.IO) {
         try {
             val searchQuery = URLEncoder.encode(query, "UTF-8")
@@ -680,8 +545,6 @@ class SearchLyricsUseCase @Inject constructor(
                 if (!response.isSuccessful) return@withContext null
                 
                 val html = response.body?.string() ?: return@withContext null
-                
-                // Parse with Jsoup
                 val doc = Jsoup.parse(html)
                 val containers = doc.select("[data-lyrics-container=true]")
                 
@@ -698,13 +561,9 @@ class SearchLyricsUseCase @Inject constructor(
                     container.select("p").prepend("\\n\\n")
                     
                     if (sb.isNotEmpty()) sb.append("\n\n")
-                    // text() normalizes whitespace but keeps our \\n tokens
                     sb.append(container.text().replace("\\n", "\n"))
                 }
-                
                 val rawLyrics = sb.toString().trim()
-                
-                // Cleanup Genius metadata headers
                 val lyrics = rawLyrics
                     .replace(Regex("^\\d+\\s+Contributors.*", RegexOption.IGNORE_CASE), "")
                     .replace(Regex("^Translations.*", RegexOption.IGNORE_CASE), "")
@@ -721,9 +580,7 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Search AZLyrics (web scraping).
-     */
+    /** Search AZLyrics via direct URL construction (ASCII-only; skips non-ASCII queries). */
     private suspend fun searchAZLyrics(query: String): String? = withContext(Dispatchers.IO) {
         try {
             // AZLyrics requires artist-title format
@@ -768,17 +625,14 @@ class SearchLyricsUseCase @Inject constructor(
                 
                 val html = response.body?.string() ?: return@withContext null
                 
-                // AZLyrics has lyrics in a div without class/id after "Sorry about that" comment
-                // The lyrics div is the one WITHOUT any attributes (no class, no id)
-                // We need to skip script tags and find the actual lyrics div
-                // AZLyrics has lyrics in a div without class/id after "Sorry about that" comment
-                // The structure is: <!-- Usage of azlyrics.com content... -->\n<br>\n<div>\n...lyrics...\n</div>
+                // Lyrics are in an attribute-less div after the usage comment:
+                // <!-- Usage of azlyrics.com content... --><br><div>...lyrics...</div>
                 val lyricsRegex = """<!-- Usage of azlyrics\.com content[^>]*-->.*?<div>(.*?)</div>""".toRegex(RegexOption.DOT_MATCHES_ALL)
                 val match = lyricsRegex.find(html)
                 val rawLyrics = match?.groupValues?.get(1)
                 
                 val lyrics = rawLyrics
-                    ?.replace(Regex("<script[^>]*>.*?</script>", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE)), "") // Explictly remove scripts
+                    ?.replace(Regex("<script[^>]*>.*?</script>", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE)), "")
                     ?.replace("""\<[^\>]+\>""".toRegex(), "\n") // Remove HTML tags
                     ?.replace("&quot;", "\"")
                     ?.replace("&amp;", "&")
