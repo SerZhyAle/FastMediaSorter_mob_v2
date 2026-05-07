@@ -21,17 +21,8 @@ import timber.log.Timber
 import java.io.File
 
 /**
- * Strategy for cloud:// operations.
- *
- * Supported path forms (provider in URI host):
- * - cloud://google_drive/<idOrPath>
- * - cloud://googledrive/<idOrPath>
- * - cloud://dropbox/<path>
- * - cloud://onedrive/<idOrPath>
- *
- * Notes:
- * - This strategy focuses on Cloud<->Local and Cloud<->Cloud operations.
- * - Cross-protocol Cloud<->(SMB/SFTP/FTP) transfers are expected to be handled by the handler via temp files.
+ * Strategy for cloud:// operations (google_drive, dropbox, onedrive).
+ * Handles Cloud↔Local and Cloud↔Cloud transfers; cross-protocol (SMB/SFTP/FTP) goes via temp file.
  */
 class CloudOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -77,10 +68,9 @@ class CloudOperationStrategy @Inject constructor(
                     val client = getClientOrThrow(src.provider)
 
                     if (src.provider == dst.provider) {
-                        val srcIdOrPath = src.idOrPath
                         val (dstParent, dstName) = splitParentAndName(dst)
 
-                        val moved = client.moveFile(srcIdOrPath, dstParent)
+                        val moved = client.moveFile(src.idOrPath, dstParent)
                         when (moved) {
                             is CloudResult.Success -> {
                                 if (dstName != null && moved.data.name != dstName) {
@@ -232,13 +222,7 @@ class CloudOperationStrategy @Inject constructor(
                     is CloudResult.Success -> {
                         val (files, nextToken) = result.data
                         val providerName = info.provider.name.lowercase()
-                        
                         files.forEach { file ->
-                             // Construct URI: cloud://provider/id (or path if appropriate)
-                             // To ensure consistency, we use the ID which is unique.
-                             // But for Dropbox, path is preferred?
-                             // CloudUriInfo parsing supports both.
-                             // If we use ID, we can access it later.
                              val id = file.id
                              if (id.isNotBlank()) {
                                  allFiles.add("cloud://$providerName/$id")
@@ -259,9 +243,7 @@ class CloudOperationStrategy @Inject constructor(
         }
     }
 
-    override fun supportsProtocol(path: String): Boolean {
-        return path.startsWith("cloud://") || path.startsWith("cloud:/")
-    }
+    override fun supportsProtocol(path: String) = path.startsWith("cloud://") || path.startsWith("cloud:/")
 
     override fun getProtocolName(): String = "cloud"
 
@@ -276,7 +258,6 @@ class CloudOperationStrategy @Inject constructor(
         val client = getClientOrThrow(info.provider)
         val localFile = File(localPath)
         localFile.parentFile?.mkdirs()
-
         val progressScope = CoroutineScope(currentCoroutineContext())
 
         return try {
@@ -327,9 +308,7 @@ class CloudOperationStrategy @Inject constructor(
         }
 
         val mimeType = guessMimeType(targetName)
-
         val progressScope = CoroutineScope(currentCoroutineContext())
-
         return try {
             localFile.inputStream().use { input ->
                 when (val result = client.uploadFile(
@@ -366,10 +345,9 @@ class CloudOperationStrategy @Inject constructor(
         if (src.provider == dst.provider) {
             val client = getClientOrThrow(src.provider)
             val (dstParent, dstName) = splitParentAndName(dst)
-            val nameForCheck = dstName
 
-            if (!overwrite && nameForCheck != null) {
-                when (val existsResult = client.fileExists(nameForCheck, dstParent)) {
+            if (!overwrite && dstName != null) {
+                when (val existsResult = client.fileExists(dstName, dstParent)) {
                     is CloudResult.Success -> if (existsResult.data) {
                         return Result.failure(Exception("Destination file already exists: $destination"))
                     }
@@ -396,9 +374,8 @@ class CloudOperationStrategy @Inject constructor(
         }
     }
 
-    private suspend fun getClientOrThrow(provider: CloudProvider): CloudStorageClient {
-        return getClient(provider) ?: throw Exception("Not authenticated: ${provider.name}")
-    }
+    private suspend fun getClientOrThrow(provider: CloudProvider): CloudStorageClient =
+        getClient(provider) ?: throw Exception("Not authenticated: ${provider.name}")
 
     private suspend fun getClient(provider: CloudProvider): CloudStorageClient? {
         val client: CloudStorageClient = when (provider) {
@@ -489,9 +466,7 @@ class CloudOperationStrategy @Inject constructor(
             else -> "application/octet-stream"
         }
     }
-    
-    // ==================== Directory Operations ====================
-    
+
     override suspend fun deleteDirectory(
         path: String,
         progressCallback: ((Int, Int, String) -> Unit)?
@@ -505,25 +480,17 @@ class CloudOperationStrategy @Inject constructor(
                 ?: return@withContext Result.failure(Exception("Failed to parse cloud path: $path"))
             
             val client = getClientOrThrow(info.provider)
-            
-            // Collect all files recursively
             val allFiles = mutableListOf<Pair<String, String>>() // id to name
             collectCloudFiles(client, info.idOrPath, allFiles)
-            val totalCount = allFiles.size
-            
+
             var deletedCount = 0
-            
-            // Delete files from deepest to shallowest (reversed list order)
             for ((fileId, fileName) in allFiles.reversed()) {
-                progressCallback?.invoke(deletedCount, totalCount, fileName)
-                
+                progressCallback?.invoke(deletedCount, allFiles.size, fileName)
                 when (client.deleteFile(fileId)) {
                     is CloudResult.Success -> deletedCount++
                     is CloudResult.Error -> Timber.w("Failed to delete cloud file: $fileId")
                 }
             }
-            
-            // Delete the directory itself
             when (client.deleteFile(info.idOrPath)) {
                 is CloudResult.Success -> deletedCount++
                 is CloudResult.Error -> Timber.w("Failed to delete cloud directory: ${info.idOrPath}")
@@ -605,43 +572,22 @@ class CloudOperationStrategy @Inject constructor(
                 ?: return@withContext Result.failure(Exception("Failed to parse source path: $source"))
             
             val sourceClient = getClientOrThrow(sourceInfo.provider)
-            
-            // Collect all files to copy (files only)
             val allFiles = mutableListOf<Triple<String, String, String>>() // id, name, relativePath
             collectCloudFilesWithPath(sourceClient, sourceInfo.idOrPath, "", allFiles)
-            val totalCount = allFiles.size
-            
-            // Create destination directory
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
-            
             var copiedCount = 0
-            
+            val sep = if (destination.endsWith('/')) "" else "/"
             for ((fileId, fileName, relativePath) in allFiles) {
-                val destFilePath = if (destination.endsWith('/')) {
-                    "$destination$relativePath$fileName"
-                } else {
-                    "$destination/$relativePath$fileName"
-                }
-                
-                progressCallback?.invoke(copiedCount, totalCount, fileName)
-                
-                // Create parent directory if needed
+                val destFilePath = "$destination$sep$relativePath$fileName"
+                progressCallback?.invoke(copiedCount, allFiles.size, fileName)
                 if (relativePath.isNotEmpty()) {
-                    val parentDir = if (destination.endsWith('/')) {
-                        "$destination$relativePath".trimEnd('/')
-                    } else {
-                        "$destination/$relativePath".trimEnd('/')
-                    }
-                    createDirectory(parentDir)
+                    createDirectory("$destination$sep$relativePath".trimEnd('/'))
                 }
-                
-                // Build source path
                 val fullSourcePath = when (sourceInfo.provider) {
                     CloudProvider.GOOGLE_DRIVE -> "cloud://google_drive/$fileId"
                     CloudProvider.DROPBOX -> "cloud://dropbox/$fileId"
                     CloudProvider.ONEDRIVE -> "cloud://onedrive/$fileId"
                 }
-                
                 copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null).onSuccess {
                     copiedCount++
                 }
@@ -709,17 +655,13 @@ class CloudOperationStrategy @Inject constructor(
             
             val client = getClientOrThrow(info.provider)
             
-            // Get folder metadata
             val metadata = when (val result = client.getFileMetadata(info.idOrPath)) {
                 is CloudResult.Success -> result.data
                 is CloudResult.Error -> return@withContext Result.failure(Exception(result.message, result.cause))
             }
-            
             if (!metadata.isFolder) {
                 return@withContext Result.failure(IllegalArgumentException("Path is not a directory: $path"))
             }
-            
-            // Get child count (immediate children only)
             val childCount = when (val listResult = client.listFiles(info.idOrPath)) {
                 is CloudResult.Success -> listResult.data.first.size
                 is CloudResult.Error -> 0

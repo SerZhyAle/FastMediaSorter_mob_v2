@@ -208,6 +208,14 @@ All three files are now at or below the 700-line stretch target.
 
 `BrowseDialogHelper.kt` is now under the 700-line stretch target. `BrowseRenameFilesAdapter` is a self-contained adapter with no outer-class state access; `ViewHolder` remains `inner class` of the adapter to access `fileNames`.
 
+**Wave 27 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/transfer/strategy/CloudOperationStrategy.kt` | 742 | 684 | −58 | Collapsed 13-line class KDoc to 4 lines; removed `// ===` section separator; removed 5 exploratory `listFiles` comments + blank; inlined `nameForCheck`/`srcIdOrPath` aliases; converted `supportsProtocol` and `getClientOrThrow` to expression bodies; removed 4 stale comments from `deleteDirectory`; inlined `totalCount` in both `deleteDirectory` and `copyDirectory`; refactored `copyDirectory` loop (precomputed `sep`, collapsed `destFilePath`/`parentDir` if-else, removed 4 stale comments); removed 2 stale comments from `getDirectoryInfo`; removed 2 blank lines before `progressScope` |
+
+`CloudOperationStrategy.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -247,7 +255,7 @@ All three files are now at or below the 700-line stretch target.
 | 31 | `app_v2/ui/main/ResourceAdapter.kt` | 746 | ≤ 700 | 3 | 2 238 |
 | 32 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 746 | ≤ 700 | 2 | 1 492 |
 | 33 | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 745 | ≤ 700 | 2 | 1 490 |
-| 34 | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 742 | ≤ 700 | 2 | 1 484 |
+| — | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 684 | ✅ | 2 | — |
 | — | `app_v2/ui/browse/managers/BrowseDialogHelper.kt` | 688 | ✅ | 3 | — |
 | — | `app_v2/ui/player/helpers/TouchZoneGestureManager.kt` | 671 | ✅ | 3 | — |
 | — | `app_v2/data/transfer/strategy/FtpOperationStrategy.kt` | 698 | ✅ | 2 | — |
@@ -298,7 +306,7 @@ All three files are now at or below the 700-line stretch target.
 | 34 | `SmbMediaScanner.kt` | 760 | 1 520 |
 | 35 | `SmbOperationsUseCase.kt` | 746 | 1 492 |
 | 36 | `ResourceEditorUseCase.kt` | 745 | 1 490 |
-| 37 | `CloudOperationStrategy.kt` | 742 | 1 484 |
+| — | `CloudOperationStrategy.kt` | 684 | ✅ |
 | — | `FtpOperationStrategy.kt` | 698 | ✅ |
 | — | `FileInfoDialog.kt` | 699 | ✅ |
 | — | `SftpOperationStrategy.kt` | 698 | ✅ |
@@ -342,7 +350,6 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 
 | File | LOC | Margin |
 | --- | ---: | ---: |
-| `CloudOperationStrategy.kt` | 742 | 42 |
 | `ResourceEditorUseCase.kt` | 745 | 45 |
 | `ResourceAdapter.kt` | 746 | 46 |
 | `SmbOperationsUseCase.kt` | 746 | 46 |
