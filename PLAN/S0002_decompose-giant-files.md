@@ -312,6 +312,14 @@ All three files are now at or below the 700-line stretch target.
 
 `BrowseManagerInitializer.kt` is now under the 700-line stretch target.
 
+**Wave 40 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/network/FtpFileOperationHandler.kt` | 938 | 567 | −371 | Class KDoc 6→1 line; 4 strategy properties collapsed to 1-line each; `executeMove` FTP/network/local branches compressed (removed step-numbering comments, verbose Timbers, inlined 2-statement blocks to 1 line); `executeRename` 68→22 lines (removed entry Timber, `parseFtpPath` null check compressed to `?:`, `when` result → if-expression, removed intermediate vals); `downloadFromFtp` 48→21 lines (null check compressed, removed entry/parsed Timbers, `if(exists)delete`→`delete()`); `uploadToFtp` 99→37 lines (SAF+regular inputStream blocks 24→8 lines via `runCatching`+`?: return null`, fileSize block 15→4 lines, removed verbose Timbers); `deleteFromFtp` 30→6 lines (null check + direct isSuccess); `copyFtpToFtp` 84→18 lines (all comments+Timbers removed, null checks compressed, `if(exists)delete()`→`delete()`); `prepareFtpDestinationForOverwrite` 42→5 lines; `parseFtpPath` 42→10 lines (KDoc removed, all verbose Timbers removed, credentials lookup chained) |
+
+`FtpFileOperationHandler.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -338,7 +346,6 @@ All three files are now at or below the 700-line stretch target.
 | 18 | `app_v2/data/network/SmbClient.kt` | 955 | ≤ 700 | 2 | 1 910 |
 | 19 | `app_v2/ui/browse/managers/BrowseFileOperationsManager.kt` | 941 | ≤ 700 | 3 | 2 823 |
 | 20 | `app_v2/data/transfer/BaseFileOperationHandler.kt` | 939 | ≤ 700 | 3 | 2 817 |
-| 21 | `app_v2/data/network/FtpFileOperationHandler.kt` | 938 | ≤ 700 | 3 | 2 814 |
 | — | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 663 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
@@ -357,6 +364,7 @@ All three files are now at or below the 700-line stretch target.
 | — | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 666 | ✅ | 2 | — |
 | — | `app_v2/data/cloud/OneDriveRestClient.kt` | 700 | ✅ | 2 | — |
 | — | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 696 | ✅ | 3 | — |
+| — | `app_v2/data/network/FtpFileOperationHandler.kt` | 567 | ✅ | 3 | — |
 | — | `app_v2/data/remote/ftp/FtpClient.kt` | 289 | ✅ | 2 | — |
 
 ---
@@ -382,8 +390,7 @@ All three files are now at or below the 700-line stretch target.
 | 15 | `VideoPlayerManager.kt` | 955 | 2 865 |
 | 16 | `BrowseFileOperationsManager.kt` | 941 | 2 823 |
 | 17 | `BaseFileOperationHandler.kt` | 939 | 2 817 |
-| 18 | `FtpFileOperationHandler.kt` | 938 | 2 814 |
-| 19 | `PagingMediaFileAdapter.kt` | 824 | 2 472 |
+| 18 | `PagingMediaFileAdapter.kt` | 824 | 2 472 |
 | 21 | `GoogleDriveRestClient.kt` | 1 104 | 2 208 |
 | — | `ResourceAdapter.kt` | 693 | ✅ |
 | — | `TouchZoneGestureManager.kt` | 671 | ✅ |
@@ -393,6 +400,7 @@ All three files are now at or below the 700-line stretch target.
 | 27 | `SmbClient.kt` | 955 | 1 910 |
 | — | `OneDriveRestClient.kt` | 700 | ✅ |
 | — | `BrowseManagerInitializer.kt` | 696 | ✅ |
+| — | `FtpFileOperationHandler.kt` | 567 | ✅ |
 | 29 | `SettingsRepositoryImpl.kt` | 845 | 1 690 |
 | 30 | `SmbOperationStrategy.kt` | 832 | 1 664 |
 | 31 | `NetworkFileModelLoader.kt` | 826 | 1 652 |

@@ -29,12 +29,7 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Handler for FTP file operations built on BaseFileOperationHandler.
- *
- * Key requirement: SAF (content:/) sources must be supported for Local→FTP operations.
- * Cross-protocol FTP→SFTP/SMB transfers are implemented via temp file (download + upload).
- */
+/** Handler for FTP file operations. SAF sources supported; cross-protocol via temp file. */
 @Singleton
 class FtpFileOperationHandler @Inject constructor(
     @ApplicationContext context: Context,
@@ -44,25 +39,10 @@ class FtpFileOperationHandler @Inject constructor(
     private val credentialsRepository: NetworkCredentialsRepository
 ) : BaseFileOperationHandler(context) {
 
-    private val ftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        FtpOperationStrategy(context, ftpClient, credentialsRepository),
-        enableAtomic = true
-    )
-    
-    private val smbStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        SmbOperationStrategy(context, smbClient, credentialsRepository),
-        enableAtomic = true
-    )
-    
-    private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        SftpOperationStrategy(context, sftpClient, credentialsRepository),
-        enableAtomic = true
-    )
-    
-    private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        LocalOperationStrategy(context),
-        enableAtomic = true
-    )
+    private val ftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(FtpOperationStrategy(context, ftpClient, credentialsRepository), enableAtomic = true)
+    private val smbStrategy: FileOperationStrategy = AtomicFileOperationStrategy(SmbOperationStrategy(context, smbClient, credentialsRepository), enableAtomic = true)
+    private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(SftpOperationStrategy(context, sftpClient, credentialsRepository), enableAtomic = true)
+    private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(LocalOperationStrategy(context), enableAtomic = true)
 
     override fun getStrategies(): List<FileOperationStrategy> {
         return listOf(ftpStrategy, smbStrategy, sftpStrategy, localStrategy)
@@ -81,131 +61,60 @@ class FtpFileOperationHandler @Inject constructor(
         progressCallback: ByteProgressCallback?
     ): FileOperationResult {
         val destinationPath = operation.destination.path
-        
-        // Handle -> FTP move
+
         if (destinationPath.startsWith("ftp:", ignoreCase = true)) {
-            Timber.d("FTP executeMove: Starting move of ${operation.sources.size} files to $destinationPath")
-            
             // NO pre-flight check! Upload first, then delete.
             // Delete uses createDeleteRequest which auto-deletes after user grants permission.
-            
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
             var successCount = 0
-            
-            // Collect files that need permission for batch delete after all uploads
             val pendingDeletePaths = mutableListOf<String>()
 
             operation.sources.forEachIndexed { index, source ->
                 val sourcePath = source.path
                 val fileName = extractFileName(sourcePath, source.name)
                 val destFilePath = if (destinationPath.endsWith("/")) "$destinationPath$fileName" else "$destinationPath/$fileName"
-                
-                Timber.d("FTP executeMove: [${index + 1}/${operation.sources.size}] Moving $fileName")
-                
+
                 when {
                     sourcePath.startsWith("ftp:", ignoreCase = true) -> {
-                        // FTP -> FTP Move: use strategy (server-side rename if same server, or bridge)
                         val result = ftpStrategy.moveFile(sourcePath, destFilePath)
-                        if (result.isSuccess) {
-                            movedPaths.add(destFilePath)
-                            successCount++
-                            Timber.i("FTP executeMove: SUCCESS - moved $fileName via strategy")
-                        } else {
-                            val error = "Failed to move $fileName: ${result.exceptionOrNull()?.message}"
-                            errors.add(error)
-                        }
+                        if (result.isSuccess) { movedPaths.add(destFilePath); successCount++ }
+                        else errors.add("Failed to move $fileName: ${result.exceptionOrNull()?.message}")
                     }
-                    sourcePath.startsWith("sftp:", ignoreCase = true) || 
-                    sourcePath.startsWith("smb:", ignoreCase = true) -> {
-                        // Network -> FTP Move: Download to temp, upload, delete source
+                    sourcePath.startsWith("sftp:", ignoreCase = true) || sourcePath.startsWith("smb:", ignoreCase = true) -> {
                         val tempFile = File(context.cacheDir, "bridge_${System.currentTimeMillis()}_$fileName")
                         try {
-                            // 1. Download source to temp
-                            val downloadResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
+                            val downloadResult = if (sourcePath.startsWith("sftp:", ignoreCase = true))
                                 sftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
-                            } else {
-                                smbStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
-                            }
-                            
+                            else smbStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
                             if (downloadResult.isFailure) {
-                                val error = "Failed to download $fileName: ${downloadResult.exceptionOrNull()?.message}"
-                                errors.add(error)
+                                errors.add("Failed to download $fileName: ${downloadResult.exceptionOrNull()?.message}")
                             } else {
-                                // 2. Upload to FTP
-                                val uploadedPath = uploadToFtp(
-                                    source = tempFile,
-                                    ftpPath = destFilePath,
-                                    overwrite = operation.overwrite,
-                                    progressCallback = progressCallback
-                                )
+                                val uploadedPath = uploadToFtp(source = tempFile, ftpPath = destFilePath, overwrite = operation.overwrite, progressCallback = progressCallback)
                                 if (uploadedPath != null) {
-                                    // 3. Delete network source
-                                    val deleteResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
-                                        sftpStrategy.deleteFile(sourcePath)
-                                    } else {
-                                        smbStrategy.deleteFile(sourcePath)
-                                    }
-                                    
-                                    if (deleteResult.isSuccess) {
-                                        movedPaths.add(uploadedPath)
-                                        successCount++
-                                        Timber.i("FTP executeMove: SUCCESS - moved $fileName via bridge")
-                                    } else {
-                                        val error = "Uploaded $fileName but failed to delete source: ${deleteResult.exceptionOrNull()?.message}"
-                                        errors.add(error)
-                                    }
-                                } else {
-                                    val error = "Failed to upload $fileName to FTP"
-                                    errors.add(error)
-                                }
+                                    val deleteResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) sftpStrategy.deleteFile(sourcePath) else smbStrategy.deleteFile(sourcePath)
+                                    if (deleteResult.isSuccess) { movedPaths.add(uploadedPath); successCount++ }
+                                    else errors.add("Uploaded $fileName but failed to delete source: ${deleteResult.exceptionOrNull()?.message}")
+                                } else errors.add("Failed to upload $fileName to FTP")
                             }
                         } finally {
-                            if (tempFile.exists()) tempFile.delete()
+                            tempFile.delete()
                         }
                     }
                     else -> {
-                        // Local/SAF -> FTP Move (Upload + Delete)
-                        val uploadedPath = uploadToFtp(
-                            source = File(sourcePath),
-                            ftpPath = destFilePath,
-                            overwrite = operation.overwrite,
-                            progressCallback = progressCallback
-                        )
-                        
+                        val uploadedPath = uploadToFtp(source = File(sourcePath), ftpPath = destFilePath, overwrite = operation.overwrite, progressCallback = progressCallback)
                         if (uploadedPath != null) {
-                            // 2. Delete Source - may require permission on Android 11+
-                            val deleteSuccess = if (sourcePath.startsWith("content:/")) {
-                                deleteWithSaf(sourcePath)
-                            } else {
-                                try {
-                                    deleteFile(sourcePath).isSuccess
-                                } catch (e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException) {
-                                    // File is already uploaded! Collect for batch delete after all uploads.
-                                    Timber.i("FTP executeMove: File uploaded, permission needed for delete - $fileName")
-                                    pendingDeletePaths.add(sourcePath)
-                                    movedPaths.add(uploadedPath)
-                                    successCount++
-                                    true // Consider delete "pending"
-                                }
+                            val deleteSuccess = if (sourcePath.startsWith("content:/")) deleteWithSaf(sourcePath)
+                            else try { deleteFile(sourcePath).isSuccess }
+                            catch (e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException) {
+                                // File already uploaded — collect for batch delete
+                                pendingDeletePaths.add(sourcePath); movedPaths.add(uploadedPath); successCount++; true
                             }
-                            
-                            if (deleteSuccess && !pendingDeletePaths.contains(sourcePath)) {
-                                movedPaths.add(uploadedPath)
-                                successCount++
-                                Timber.i("FTP executeMove: SUCCESS - moved $fileName")
-                            } else if (!pendingDeletePaths.contains(sourcePath)) {
-                                val error = "Uploaded $fileName but failed to delete source at $sourcePath"
-                                Timber.e("FTP executeMove: FAILED - $error")
-                                errors.add(error)
-                            }
-                        } else {
-                            val error = "Failed to upload $fileName to FTP"
-                            errors.add(error)
-                        }
+                            if (deleteSuccess && !pendingDeletePaths.contains(sourcePath)) { movedPaths.add(uploadedPath); successCount++ }
+                            else if (!pendingDeletePaths.contains(sourcePath)) errors.add("Uploaded $fileName but failed to delete source at $sourcePath")
+                        } else errors.add("Failed to upload $fileName to FTP")
                     }
                 }
-                // moveResult used for logging purposes only
             }
             
             // After all uploads complete, check if any files need permission for batch delete
@@ -221,71 +130,27 @@ class FtpFileOperationHandler @Inject constructor(
     }
 
     suspend fun executeRename(operation: FileOperation.Rename): FileOperationResult = withContext(Dispatchers.IO) {
-        Timber.d("FTP executeRename: Renaming ${operation.file.name} to ${operation.newName}")
-        
         try {
-            // Use path to preserve FTP URL format for SAF URIs
             val ftpPath = operation.file.path
-            
-            if (!ftpPath.startsWith("ftp:", ignoreCase = true)) {
-                Timber.e("FTP executeRename: File is not FTP path: $ftpPath")
+            if (!ftpPath.startsWith("ftp:", ignoreCase = true))
                 return@withContext FileOperationResult.Failure("Not an FTP file: $ftpPath")
-            }
-            
             val connectionInfo = parseFtpPath(ftpPath)
-            if (connectionInfo == null) {
-                Timber.e("FTP executeRename: Failed to parse FTP path: $ftpPath")
-                return@withContext FileOperationResult.Failure("Invalid FTP path: $ftpPath")
-            }
-            
-            Timber.d("FTP executeRename: Parsed - host=${connectionInfo.host}:${connectionInfo.port}, remotePath=${connectionInfo.remotePath}")
-            
-            // Check if file with new name already exists
+                ?: return@withContext FileOperationResult.Failure("Invalid FTP path: $ftpPath")
             val directory = connectionInfo.remotePath.substringBeforeLast('/', "")
             val newRemotePath = when {
                 directory.isNotEmpty() -> "$directory/${operation.newName}"
                 connectionInfo.remotePath.startsWith("/") -> "/${operation.newName}"
                 else -> operation.newName
             }
-            val existsResult = ftpClient.existsWithNewConnection(
-                connectionInfo.host,
-                connectionInfo.port,
-                connectionInfo.username,
-                connectionInfo.password,
-                newRemotePath
-            )
-            if (existsResult.getOrDefault(false)) {
-                val error = "File with name '${operation.newName}' already exists"
-                Timber.w("FTP executeRename: SKIPPED - $error")
-                return@withContext FileOperationResult.Failure(error)
-            }
-            
-            val renameResult = ftpClient.renameFileWithNewConnection(
-                connectionInfo.host,
-                connectionInfo.port,
-                connectionInfo.username,
-                connectionInfo.password,
-                connectionInfo.remotePath,
-                operation.newName
-            )
-            
-            when {
-                renameResult.isSuccess -> {
-                    val parentDir = ftpPath.substringBeforeLast('/')
-                    val newPath = "$parentDir/${operation.newName}"
-                    Timber.i("FTP executeRename: SUCCESS - renamed to $newPath")
-                    FileOperationResult.Success(1, operation, listOf(newPath))
-                }
-                else -> {
-                    val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${renameResult.exceptionOrNull()?.message ?: "Rename failed"}"
-                    Timber.e("FTP executeRename: FAILED - $error")
-                    FileOperationResult.Failure(error)
-                }
-            }
+            val existsResult = ftpClient.existsWithNewConnection(connectionInfo.host, connectionInfo.port, connectionInfo.username, connectionInfo.password, newRemotePath)
+            if (existsResult.getOrDefault(false))
+                return@withContext FileOperationResult.Failure("File with name '${operation.newName}' already exists")
+            val renameResult = ftpClient.renameFileWithNewConnection(connectionInfo.host, connectionInfo.port, connectionInfo.username, connectionInfo.password, connectionInfo.remotePath, operation.newName)
+            if (renameResult.isSuccess) FileOperationResult.Success(1, operation, listOf("${ftpPath.substringBeforeLast('/')}/${operation.newName}"))
+            else FileOperationResult.Failure("${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${renameResult.exceptionOrNull()?.message ?: "Rename failed"}")
         } catch (e: Exception) {
-            val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${FileOperationError.extractErrorMessage(e)}"
-            Timber.e(e, "FTP executeRename: EXCEPTION - $error")
-            FileOperationResult.Failure(error)
+            Timber.e(e, "FTP executeRename: EXCEPTION")
+            FileOperationResult.Failure("${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${FileOperationError.extractErrorMessage(e)}")
         }
     }
 
@@ -407,148 +272,64 @@ class FtpFileOperationHandler @Inject constructor(
         )
     }
 
-    private suspend fun downloadFromFtp(
-        ftpPath: String, 
-        localFile: File
-    ): File? {
-        Timber.d("downloadFromFtp: $ftpPath → ${localFile.absolutePath}")
-        
-        val connectionInfo = parseFtpPath(ftpPath)
-        if (connectionInfo == null) {
-            Timber.e("downloadFromFtp: Failed to parse FTP path: $ftpPath")
-            return null
-        }
-        
-        Timber.d("downloadFromFtp: Parsed - host=${connectionInfo.host}:${connectionInfo.port}")
-        
+    private suspend fun downloadFromFtp(ftpPath: String, localFile: File): File? {
         // Use file output stream directly to avoid OOM with large files
-        // Use new connection to avoid blocking UI
+        val connectionInfo = parseFtpPath(ftpPath) ?: return null
         return try {
             localFile.outputStream().use { outputStream ->
                 val downloadResult = ftpClient.downloadFileWithNewConnection(
-                    connectionInfo.host,
-                    connectionInfo.port,
-                    connectionInfo.username,
-                    connectionInfo.password,
-                    connectionInfo.remotePath,
-                    outputStream
+                    connectionInfo.host, connectionInfo.port,
+                    connectionInfo.username, connectionInfo.password,
+                    connectionInfo.remotePath, outputStream
                 )
-                
                 if (downloadResult.isSuccess) {
-                    Timber.i("downloadFromFtp: SUCCESS - downloaded to ${localFile.name}")
                     MediaStoreNotifier.notifyFile(context, localFile.absolutePath, "ftp-download")
                     localFile
                 } else {
-                    Timber.e("downloadFromFtp: FAILED - ${downloadResult.exceptionOrNull()?.message}")
-                    // Clean up partial file
-                    if (localFile.exists()) {
-                        localFile.delete()
-                    }
+                    localFile.delete()
                     null
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "downloadFromFtp: Exception during download")
-            if (localFile.exists()) {
-                localFile.delete()
-            }
+            Timber.e(e, "downloadFromFtp: Exception")
+            localFile.delete()
             null
         }
     }
 
     private suspend fun uploadToFtp(
-        source: File, 
+        source: File,
         ftpPath: String,
         overwrite: Boolean = false,
         progressCallback: ByteProgressCallback? = null
     ): String? {
-        Timber.d("uploadToFtp: ${source.path} → $ftpPath")
+        val connectionInfo = parseFtpPath(ftpPath) ?: return null
+        if (overwrite && !prepareFtpDestinationForOverwrite(connectionInfo, ftpPath)) return null
 
-        val connectionInfo = parseFtpPath(ftpPath)
-        if (connectionInfo == null) {
-            Timber.e("uploadToFtp: Failed to parse FTP path: $ftpPath")
-            return null
-        }
+        val isSaf = source.path.startsWith("content:/")
+        val normalizedUri: Uri? = if (isSaf) Uri.parse(source.path.let { if (it.startsWith("content://")) it else it.replaceFirst("content:/", "content://") }) else null
 
-        Timber.d("uploadToFtp: Parsed - host=${connectionInfo.host}:${connectionInfo.port}")
-
-        if (overwrite) {
-            val prepared = prepareFtpDestinationForOverwrite(connectionInfo, ftpPath)
-            if (!prepared) {
-                Timber.e("uploadToFtp: Failed to prepare destination for overwrite: $ftpPath")
-                return null
-            }
-        }
-        
-        // Handle SAF URIs (content:/ or content://) using ContentResolver
-        val inputStream = if (source.path.startsWith("content:/")) {
-            try {
-                // Normalize content URI for parsing
-                val normalizedUri = if (source.path.startsWith("content://")) source.path 
-                                   else source.path.replaceFirst("content:/", "content://")
-                val uri = Uri.parse(normalizedUri)
-                context.contentResolver.openInputStream(uri)
-            } catch (e: Exception) {
-                Timber.e(e, "uploadToFtp: Failed to open SAF URI: ${source.path}")
-                return null
-            }
+        val inputStream = if (isSaf) {
+            try { context.contentResolver.openInputStream(normalizedUri!!) }
+            catch (e: Exception) { Timber.e(e, "uploadToFtp: Failed to open SAF URI"); null }
         } else {
-            // Handle regular file paths
-            if (!source.exists()) {
-                Timber.e("uploadToFtp: Local file does not exist: ${source.path}")
-                return null
-            }
-            try {
-                source.inputStream()
-            } catch (e: Exception) {
-                Timber.e(e, "uploadToFtp: Failed to open file: ${source.path}")
-                return null
-            }
-        }
-        
-        if (inputStream == null) {
-            Timber.e("uploadToFtp: Failed to get input stream for: ${source.path}")
-            return null
-        }
-        
-        val fileSize = if (source.path.startsWith("content:/")) {
-            // For SAF, try to get size from DocumentFile or fallback to stream available()
-            try {
-                // Normalize content URI for parsing
-                val normalizedUri = if (source.path.startsWith("content://")) source.path 
-                                   else source.path.replaceFirst("content:/", "content://")
-                val uri = Uri.parse(normalizedUri)
-                context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: inputStream.available().toLong()
-            } catch (e: Exception) {
-                Timber.w(e, "uploadToFtp: Failed to get SAF file size, using available()")
-                inputStream.available().toLong()
-            }
-        } else {
-            source.length()
-        }
-        Timber.d("uploadToFtp: File size=$fileSize bytes")
-        
-        // Use new connection to avoid blocking UI
+            if (!source.exists()) { Timber.e("uploadToFtp: File does not exist: ${source.path}"); return null }
+            try { source.inputStream() } catch (e: Exception) { Timber.e(e, "uploadToFtp: Failed to open file"); null }
+        } ?: return null
+
+        val fileSize = if (isSaf) {
+            runCatching { context.contentResolver.openAssetFileDescriptor(normalizedUri!!, "r")?.use { it.length } }.getOrNull()
+                ?: inputStream.available().toLong()
+        } else source.length()
+
         return try {
             inputStream.use { stream ->
                 val uploadResult = ftpClient.uploadFileWithNewConnection(
-                    connectionInfo.host,
-                    connectionInfo.port,
-                    connectionInfo.username,
-                    connectionInfo.password,
-                    connectionInfo.remotePath,
-                    stream,
-                    fileSize,
-                    progressCallback
+                    connectionInfo.host, connectionInfo.port,
+                    connectionInfo.username, connectionInfo.password,
+                    connectionInfo.remotePath, stream, fileSize, progressCallback
                 )
-
-                if (uploadResult.isSuccess) {
-                    Timber.i("uploadToFtp: SUCCESS - uploaded ${source.name}")
-                    ftpPath
-                } else {
-                    Timber.e("uploadToFtp: FAILED - ${uploadResult.exceptionOrNull()?.message}")
-                    null
-                }
+                if (uploadResult.isSuccess) ftpPath else null
             }
         } catch (e: Exception) {
             Timber.e(e, "uploadToFtp: Exception during upload")
@@ -557,201 +338,49 @@ class FtpFileOperationHandler @Inject constructor(
     }
 
     private suspend fun deleteFromFtp(ftpPath: String): Boolean {
-        Timber.d("deleteFromFtp: $ftpPath")
-        
-        val connectionInfo = parseFtpPath(ftpPath)
-        if (connectionInfo == null) {
-            Timber.e("deleteFromFtp: Failed to parse FTP path: $ftpPath")
-            return false
-        }
-        
-        Timber.d("deleteFromFtp: Parsed - host=${connectionInfo.host}:${connectionInfo.port}")
-
-        val deleteResult = ftpClient.deleteFileWithNewConnection(
-            connectionInfo.host,
-            connectionInfo.port,
-            connectionInfo.username,
-            connectionInfo.password,
-            connectionInfo.remotePath
-        )
-        
-        return when {
-            deleteResult.isSuccess -> {
-                Timber.i("deleteFromFtp: SUCCESS")
-                true
-            }
-            else -> {
-                Timber.e("deleteFromFtp: FAILED - ${deleteResult.exceptionOrNull()?.message}")
-                false
-            }
-        }
+        val connectionInfo = parseFtpPath(ftpPath) ?: return false
+        return ftpClient.deleteFileWithNewConnection(
+            connectionInfo.host, connectionInfo.port,
+            connectionInfo.username, connectionInfo.password, connectionInfo.remotePath
+        ).isSuccess
     }
 
     private suspend fun copyFtpToFtp(sourcePath: String, destPath: String, overwrite: Boolean): String? {
-        Timber.d("copyFtpToFtp: $sourcePath → $destPath")
-        
-        // Download to temp file then upload to avoid OOM
-        val sourceConnectionInfo = parseFtpPath(sourcePath)
-        if (sourceConnectionInfo == null) {
-            Timber.e("copyFtpToFtp: Failed to parse source FTP path: $sourcePath")
-            return null
-        }
-        
-        Timber.d("copyFtpToFtp: Source parsed - host=${sourceConnectionInfo.host}:${sourceConnectionInfo.port}")
-        
-        // Create temp file in app cache (consistent with copyFtpToSftp and copyFtpToSmb)
+        val sourceInfo = parseFtpPath(sourcePath) ?: return null
         val tempFile = File.createTempFile("ftp_copy_", ".tmp", context.cacheDir)
-        
         try {
-            // Download from source using new connection
             val downloadResult = tempFile.outputStream().use { outputStream ->
-                ftpClient.downloadFileWithNewConnection(
-                    sourceConnectionInfo.host,
-                    sourceConnectionInfo.port,
-                    sourceConnectionInfo.username,
-                    sourceConnectionInfo.password,
-                    sourceConnectionInfo.remotePath,
-                    outputStream
-                )
+                ftpClient.downloadFileWithNewConnection(sourceInfo.host, sourceInfo.port, sourceInfo.username, sourceInfo.password, sourceInfo.remotePath, outputStream)
             }
-            
-            if (downloadResult.isFailure) {
-                Timber.e("copyFtpToFtp: Download FAILED - ${downloadResult.exceptionOrNull()?.message}")
-                return null
-            }
-            
-            Timber.d("copyFtpToFtp: Downloaded ${tempFile.length()} bytes to temp file")
-            
-            // Upload to destination
-            val destConnectionInfo = parseFtpPath(destPath)
-            if (destConnectionInfo == null) {
-                Timber.e("copyFtpToFtp: Failed to parse dest FTP path: $destPath")
-                return null
-            }
-            
-            Timber.d("copyFtpToFtp: Dest parsed - host=${destConnectionInfo.host}:${destConnectionInfo.port}")
-
-            if (overwrite) {
-                val prepared = prepareFtpDestinationForOverwrite(destConnectionInfo, destPath)
-                if (!prepared) {
-                    Timber.e("copyFtpToFtp: Failed to prepare destination for overwrite: $destPath")
-                    return null
-                }
-            }
-            
-            // Upload to destination using new connection
+            if (downloadResult.isFailure) return null
+            val destInfo = parseFtpPath(destPath) ?: return null
+            if (overwrite && !prepareFtpDestinationForOverwrite(destInfo, destPath)) return null
             val uploadResult = tempFile.inputStream().use { inputStream ->
-                ftpClient.uploadFileWithNewConnection(
-                    destConnectionInfo.host,
-                    destConnectionInfo.port,
-                    destConnectionInfo.username,
-                    destConnectionInfo.password,
-                    destConnectionInfo.remotePath,
-                    inputStream
-                )
+                ftpClient.uploadFileWithNewConnection(destInfo.host, destInfo.port, destInfo.username, destInfo.password, destInfo.remotePath, inputStream)
             }
-
-            return when {
-                uploadResult.isSuccess -> {
-                    Timber.i("copyFtpToFtp: SUCCESS - copied ${tempFile.length()} bytes between FTP servers")
-                    destPath
-                }
-                else -> {
-                    Timber.e("copyFtpToFtp: Upload FAILED - ${uploadResult.exceptionOrNull()?.message}")
-                    null
-                }
-            }
+            return if (uploadResult.isSuccess) destPath else null
         } catch (e: Exception) {
-            Timber.e(e, "copyFtpToFtp: Exception during copy")
+            Timber.e(e, "copyFtpToFtp: Exception")
             return null
         } finally {
-            // Clean up temp file
-            if (tempFile.exists()) {
-                tempFile.delete()
-            }
+            tempFile.delete()
         }
     }
 
-    private suspend fun prepareFtpDestinationForOverwrite(
-        connectionInfo: FtpConnectionInfoWithPath,
-        ftpPath: String
-    ): Boolean {
-        val existsResult = ftpClient.existsWithNewConnection(
-            connectionInfo.host,
-            connectionInfo.port,
-            connectionInfo.username,
-            connectionInfo.password,
-            connectionInfo.remotePath
-        )
-
-        if (existsResult.isFailure) {
-            Timber.e(
-                "prepareFtpDestinationForOverwrite: exists check failed for $ftpPath: ${existsResult.exceptionOrNull()?.message}"
-            )
-            return false
-        }
-
-        if (!existsResult.getOrDefault(false)) {
-            return true
-        }
-
-        Timber.w("prepareFtpDestinationForOverwrite: deleting existing destination $ftpPath")
-        val deleteResult = ftpClient.deleteFileWithNewConnection(
-            connectionInfo.host,
-            connectionInfo.port,
-            connectionInfo.username,
-            connectionInfo.password,
-            connectionInfo.remotePath
-        )
-
-        if (deleteResult.isSuccess) {
-            Timber.i("prepareFtpDestinationForOverwrite: existing destination deleted: $ftpPath")
-            return true
-        }
-
-        Timber.e(
-            "prepareFtpDestinationForOverwrite: failed to delete existing destination $ftpPath: ${deleteResult.exceptionOrNull()?.message}"
-        )
-        return false
+    private suspend fun prepareFtpDestinationForOverwrite(connectionInfo: FtpConnectionInfoWithPath, ftpPath: String): Boolean {
+        val existsResult = ftpClient.existsWithNewConnection(connectionInfo.host, connectionInfo.port, connectionInfo.username, connectionInfo.password, connectionInfo.remotePath)
+        if (existsResult.isFailure) return false
+        if (!existsResult.getOrDefault(false)) return true
+        return ftpClient.deleteFileWithNewConnection(connectionInfo.host, connectionInfo.port, connectionInfo.username, connectionInfo.password, connectionInfo.remotePath).isSuccess
     }
 
-    /**
-     * Normalize FTP path: "ftp:/host" -> "ftp://host"
-     * Handles malformed paths where single slash is used instead of double slash
-     */
     internal suspend fun parseFtpPath(path: String): FtpConnectionInfoWithPath? {
         return try {
-            // Use FtpPathUtils for path parsing
-            val pathInfo = FtpPathUtils.parseFtpPath(path)
-            if (pathInfo == null) {
-                Timber.e("parseFtpPath: Failed to parse FTP path: $path")
-                return null
-            }
-            
-            val (host, port, remotePath) = pathInfo
-            Timber.d("parseFtpPath: Extracted host=$host, port=$port, remotePath=$remotePath")
-            
-            // Get credentials from database
-            // Try to get specific FTP credentials first
-            var credentials = credentialsRepository.getByTypeServerAndPort("FTP", host, port)
-            
-            // Fallback to host-based lookup if not found
-            if (credentials == null) {
-                credentials = credentialsRepository.getCredentialsByHost(host)
-            }
-
-            if (credentials == null) {
-                Timber.e("parseFtpPath: No credentials found for host: $host")
-                return null
-            }
-            
-            FtpConnectionInfoWithPath(
-                host = host,
-                port = port,
-                username = credentials.username,
-                password = credentials.password,
-                remotePath = remotePath
-            )
+            val (host, port, remotePath) = FtpPathUtils.parseFtpPath(path) ?: return null
+            val credentials = credentialsRepository.getByTypeServerAndPort("FTP", host, port)
+                ?: credentialsRepository.getCredentialsByHost(host)
+                ?: return null
+            FtpConnectionInfoWithPath(host = host, port = port, username = credentials.username, password = credentials.password, remotePath = remotePath)
         } catch (e: Exception) {
             Timber.e(e, "parseFtpPath: Exception parsing path: $path")
             null
