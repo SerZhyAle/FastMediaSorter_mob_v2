@@ -21,10 +21,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-/**
- * Strategy for SMB (Server Message Block) file operations.
- * Handles smb:// protocol operations using SmbClient.
- */
+/** Strategy for SMB file operations (smb:// protocol via SmbClient). */
 class SmbOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val smbClient: SmbClient,
@@ -42,21 +39,10 @@ class SmbOperationStrategy @Inject constructor(
             val isDestSmb = destination.startsWith("smb:", ignoreCase = true)
             
             when {
-                isSourceSmb && isDestSmb -> {
-                    // SMB to SMB: buffer transfer
-                    copySmbToSmb(source, destination, overwrite, progressCallback)
-                }
-                isSourceSmb && !isDestSmb -> {
-                    // SMB to Local: download
-                    downloadFromSmb(source, destination, progressCallback)
-                }
-                !isSourceSmb && isDestSmb -> {
-                    // Local to SMB: upload
-                    uploadToSmb(source, destination, overwrite, progressCallback)
-                }
-                else -> {
-                    Result.failure(IllegalArgumentException("At least one path must be SMB"))
-                }
+                isSourceSmb && isDestSmb -> copySmbToSmb(source, destination, overwrite, progressCallback)
+                isSourceSmb && !isDestSmb -> downloadFromSmb(source, destination, progressCallback)
+                !isSourceSmb && isDestSmb -> uploadToSmb(source, destination, overwrite, progressCallback)
+                else -> Result.failure(IllegalArgumentException("At least one path must be SMB"))
             }
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Copy failed - $source -> $destination")
@@ -66,45 +52,22 @@ class SmbOperationStrategy @Inject constructor(
     
     override suspend fun moveFile(source: String, destination: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val isSourceSmb = source.startsWith("smb:", ignoreCase = true)
-            val isDestSmb = destination.startsWith("smb:", ignoreCase = true)
-            
-            when {
-                isSourceSmb && isDestSmb -> {
-                    // Try server-side move if on same share
-                    val sourceInfo = SmbPathUtils.parseSmbPath(source)
-                    val destInfo = SmbPathUtils.parseSmbPath(destination)
-                    
-                    if (sourceInfo != null && destInfo != null &&
-                        sourceInfo.connectionInfo.server == destInfo.connectionInfo.server &&
-                        sourceInfo.connectionInfo.shareName == destInfo.connectionInfo.shareName
-                    ) {
-                        // Server-side move (rename)
-                        val connectionInfo = getConnectionInfo(sourceInfo)
-                        val fromPath = sourceInfo.remotePath
-                        val toPath = destInfo.remotePath
-                        
-                        when (val result = smbClient.moveFile(connectionInfo, fromPath, toPath)) {
-                            is SmbResult.Success -> Result.success(Unit)
-                            is SmbResult.Error -> Result.failure(Exception(result.message))
-                        }
-                    } else {
-                        // Different shares: copy + delete
-                        val copyResult = copyFile(source, destination, overwrite = true, progressCallback = null)
-                        if (copyResult.isFailure) {
-                            return@withContext Result.failure(copyResult.exceptionOrNull() ?: Exception("Copy failed"))
-                        }
-                        deleteFile(source)
-                    }
+            val sourceInfo = SmbPathUtils.parseSmbPath(source)
+            val destInfo = SmbPathUtils.parseSmbPath(destination)
+            val sameSmbShare = source.startsWith("smb:", ignoreCase = true) &&
+                destination.startsWith("smb:", ignoreCase = true) &&
+                sourceInfo != null && destInfo != null &&
+                sourceInfo.connectionInfo.server == destInfo.connectionInfo.server &&
+                sourceInfo.connectionInfo.shareName == destInfo.connectionInfo.shareName
+            if (sameSmbShare) {
+                when (val result = smbClient.moveFile(getConnectionInfo(sourceInfo!!), sourceInfo.remotePath, destInfo!!.remotePath)) {
+                    is SmbResult.Success -> Result.success(Unit)
+                    is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
-                else -> {
-                    // Cross-protocol move: copy + delete
-                    val copyResult = copyFile(source, destination, overwrite = true, progressCallback = null)
-                    if (copyResult.isFailure) {
-                        return@withContext Result.failure(copyResult.exceptionOrNull() ?: Exception("Copy failed"))
-                    }
-                    deleteFile(source)
-                }
+            } else {
+                val copyResult = copyFile(source, destination, overwrite = true, progressCallback = null)
+                if (copyResult.isFailure) return@withContext Result.failure(copyResult.exceptionOrNull() ?: Exception("Copy failed"))
+                deleteFile(source)
             }
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Move failed - $source -> $destination")
@@ -125,22 +88,16 @@ class SmbOperationStrategy @Inject constructor(
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
             } else {
-                // Handle local file deletion (for Move operations: Local -> SMB)
                 try {
                     val uri = parseAndFixUri(path)
                     if (uri.scheme == "content") {
-                        // Use SafHelper which handles tree document URIs
-                        val deleted = com.sza.fastmediasorter.utils.SafHelper.deleteContentUri(
-                            context, path, "SmbOperationStrategy.deleteFile"
-                        )
+                        val deleted = com.sza.fastmediasorter.utils.SafHelper.deleteContentUri(context, path, "SmbOperationStrategy.deleteFile")
                         if (deleted) Result.success(Unit) else Result.failure(Exception("Failed to delete content URI: $path"))
                     } else {
                         val file = File(if (uri.scheme == "file") uri.path ?: path else path)
                         if (file.delete()) Result.success(Unit) else Result.failure(Exception("Failed to delete local file: $path"))
                     }
-                } catch (e: Exception) {
-                    Result.failure(e)
-                }
+                } catch (e: Exception) { Result.failure(e) }
             }
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Delete failed - $path")
@@ -148,7 +105,6 @@ class SmbOperationStrategy @Inject constructor(
         }
     }
     
-    // ... (exists method unchanged) ...
     override suspend fun createDirectory(path: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             if (path.startsWith("smb:", ignoreCase = true)) {
@@ -162,7 +118,6 @@ class SmbOperationStrategy @Inject constructor(
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
             } else {
-                // Local fallback logic if needed
                 val dir = File(path)
                 if (dir.mkdirs()) Result.success(Unit) else Result.failure(Exception("Failed to create local directory: $path"))
             }
@@ -192,9 +147,7 @@ class SmbOperationStrategy @Inject constructor(
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
             } else {
-                // Local fallback logic
-                val file = File(path)
-                file.writeText(content)
+                File(path).writeText(content)
                 Result.success(Unit)
             }
         } catch (e: Exception) {
@@ -223,13 +176,9 @@ class SmbOperationStrategy @Inject constructor(
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
             } else {
-                // Local fallback
                 val file = File(path)
-                if (file.exists()) {
-                    Result.success(file.readText())
-                } else {
-                    Result.failure(java.io.FileNotFoundException("File not found: $path"))
-                }
+                if (file.exists()) Result.success(file.readText())
+                else Result.failure(java.io.FileNotFoundException("File not found: $path"))
             }
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Read file failed - $path")
@@ -250,7 +199,6 @@ class SmbOperationStrategy @Inject constructor(
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
             } else {
-                // Check local existence logic if needed, currently limiting to SMB
                 Result.success(false)
             }
         } catch (e: Exception) {
@@ -269,18 +217,8 @@ class SmbOperationStrategy @Inject constructor(
                 
                 when (val result = smbClient.listFiles(connectionInfo, pathInfo.remotePath)) {
                     is SmbResult.Success -> {
-                        // Return full smb:// paths
-                        // pathInfo.remotePath is relative to share.
-                        // result.data items have 'path' relative to share?
-                        // Let's check SmbClient.listFiles implementation.
-                        // It constructs fullPath as dirPath/fileName.
-                        // So we need to prepend smb://server/share/
                         val baseUrl = "smb://${connectionInfo.server}/${connectionInfo.shareName}"
-                        val paths = result.data.map { info ->
-                            // SmbFileInfo.path is relative to share root (e.g. "folder/file.txt")
-                             "$baseUrl/${info.path}"
-                        }
-                        Result.success(paths)
+                        Result.success(result.data.map { "$baseUrl/${it.path}" })
                     }
                     is SmbResult.Error -> Result.failure(Exception(result.message))
                 }
@@ -300,19 +238,11 @@ class SmbOperationStrategy @Inject constructor(
     
     override fun getProtocolName(): String = "smb"
     
-    // ==================== Helper Methods ====================
-    
-    /**
-     * Parses URI string and ensures it has correct format (especially for content://)
-     */
-    private fun parseAndFixUri(path: String): android.net.Uri {
-        return if (path.startsWith("content:") && !path.startsWith("content://")) {
-            // Fix malformed content URI (replace "content:/" with "content://")
+    /** Fix malformed content URI (replace "content:/" with "content://") if needed. */
+    private fun parseAndFixUri(path: String): android.net.Uri =
+        if (path.startsWith("content:") && !path.startsWith("content://"))
             android.net.Uri.parse(path.replaceFirst("content:/", "content://"))
-        } else {
-            android.net.Uri.parse(path)
-        }
-    }
+        else android.net.Uri.parse(path)
 
     private suspend fun downloadFromSmb(
         smbPath: String,
@@ -323,8 +253,6 @@ class SmbOperationStrategy @Inject constructor(
             ?: return Result.failure(Exception("Failed to parse SMB path: $smbPath"))
         
         val connectionInfo = getConnectionInfo(pathInfo)
-        
-        // Handle destination (Local)
         val destUri = parseAndFixUri(localPath)
         val outputStream = try {
             if (destUri.scheme == "content") {
@@ -373,8 +301,6 @@ class SmbOperationStrategy @Inject constructor(
             ?: return Result.failure(Exception("Failed to parse SMB path: $smbPath"))
         
         val connectionInfo = getConnectionInfo(pathInfo)
-        
-        // Check if destination exists and overwrite flag
         if (!overwrite) {
             when (val existsResult = smbClient.exists(connectionInfo, pathInfo.remotePath)) {
                 is SmbResult.Success -> {
@@ -383,9 +309,7 @@ class SmbOperationStrategy @Inject constructor(
                         return Result.failure(FileExistsException(fileName, smbPath, isMove = false))
                     }
                 }
-                is SmbResult.Error -> {
-                    Timber.w("Failed to check if destination exists: ${existsResult.message}")
-                }
+                is SmbResult.Error -> Timber.w("Failed to check if destination exists: ${existsResult.message}")
             }
         }
         
@@ -396,8 +320,7 @@ class SmbOperationStrategy @Inject constructor(
                 val stream = context.contentResolver.openInputStream(sourceUri) 
                     ?: return Result.failure(Exception("No content provider: $localPath"))
                 
-                // Try to get size
-                val fileSize = try {
+                    val fileSize = try {
                     context.contentResolver.openFileDescriptor(sourceUri, "r")?.use { it.statSize } ?: -1L
                 } catch (e: Exception) { -1L }
                 
@@ -447,8 +370,6 @@ class SmbOperationStrategy @Inject constructor(
         
         val sourceConnectionInfo = getConnectionInfo(sourceInfo)
         val destConnectionInfo = getConnectionInfo(destInfo)
-        
-        // Check if destination exists and overwrite flag
         if (!overwrite) {
             when (val existsResult = smbClient.exists(destConnectionInfo, destInfo.remotePath)) {
                 is SmbResult.Success -> {
@@ -457,17 +378,11 @@ class SmbOperationStrategy @Inject constructor(
                         return Result.failure(FileExistsException(fileName, destPath, isMove = false))
                     }
                 }
-                is SmbResult.Error -> {
-                    Timber.w("Failed to check if destination exists: ${existsResult.message}")
-                }
+                is SmbResult.Error -> Timber.w("Failed to check if destination exists: ${existsResult.message}")
             }
         }
-        
-        // Buffer transfer: download to memory → upload
         return try {
             val buffer = ByteArrayOutputStream()
-            
-            // Download to buffer
             when (val downloadResult = smbClient.downloadFile(
                 sourceConnectionInfo,
                 sourceInfo.remotePath,
@@ -477,7 +392,6 @@ class SmbOperationStrategy @Inject constructor(
             )) {
                 is SmbResult.Error -> return Result.failure(Exception("Download failed: ${downloadResult.message}"))
                 is SmbResult.Success -> {
-                    // Upload from buffer
                     val inputStream = ByteArrayInputStream(buffer.toByteArray())
                     when (val uploadResult = smbClient.uploadFile(
                         destConnectionInfo,
@@ -503,19 +417,10 @@ class SmbOperationStrategy @Inject constructor(
     }
     
     private suspend fun getConnectionInfo(pathInfo: SmbPathUtils.SmbPathInfo): SmbConnectionInfo {
-        val server = pathInfo.connectionInfo.server
-        val shareName = pathInfo.connectionInfo.shareName
-        val credentials = resolveSmbCredentials(server, shareName)
-
-        return if (credentials != null) {
-            pathInfo.connectionInfo.copy(
-                username = credentials.username,
-                password = credentials.password,
-                domain = credentials.domain
-            )
-        } else {
-            pathInfo.connectionInfo
-        }
+        val credentials = resolveSmbCredentials(pathInfo.connectionInfo.server, pathInfo.connectionInfo.shareName)
+        return credentials?.let {
+            pathInfo.connectionInfo.copy(username = it.username, password = it.password, domain = it.domain)
+        } ?: pathInfo.connectionInfo
     }
 
     private suspend fun resolveSmbCredentials(
@@ -525,14 +430,9 @@ class SmbOperationStrategy @Inject constructor(
         val normalizedShare = shareName.trim().trim('/', '\\')
         val firstSegment = normalizedShare.substringBefore('/', normalizedShare)
 
-        val shareCandidates = linkedSetOf<String>().apply {
-            add(shareName)
-            if (normalizedShare.isNotEmpty()) {
-                add(normalizedShare)
-            }
-            if (firstSegment.isNotEmpty()) {
-                add(firstSegment)
-            }
+        val shareCandidates = linkedSetOf(shareName).also {
+            if (normalizedShare.isNotEmpty()) it.add(normalizedShare)
+            if (firstSegment.isNotEmpty()) it.add(firstSegment)
         }
 
         Timber.d("SmbOperationStrategy: resolving credentials for server='$server', share='$shareName'. Candidates: $shareCandidates")
@@ -558,8 +458,6 @@ class SmbOperationStrategy @Inject constructor(
         return null
     }
     
-    // ==================== Directory Operations ====================
-    
     override suspend fun deleteDirectory(
         path: String,
         progressCallback: ((Int, Int, String) -> Unit)?
@@ -573,23 +471,15 @@ class SmbOperationStrategy @Inject constructor(
                 ?: return@withContext Result.failure(Exception("Failed to parse SMB path: $path"))
             
             val connectionInfo = getConnectionInfo(pathInfo)
-            
-            // First, list all files recursively
             val allFiles = mutableListOf<String>()
-            collectSmbFiles(connectionInfo, pathInfo.remotePath, allFiles)
+            collectSmbEntries(connectionInfo, pathInfo.remotePath, allFiles)
             val totalCount = allFiles.size
-            
             var deletedCount = 0
-            
-            // Delete files from deepest to shallowest
             for (filePath in allFiles.sortedByDescending { it.length }) {
                 progressCallback?.invoke(deletedCount, totalCount, filePath.substringAfterLast('/'))
-                
-                // Try to delete as file first, then as directory
                 when (smbClient.deleteFile(connectionInfo, filePath)) {
                     is SmbResult.Success -> deletedCount++
                     is SmbResult.Error -> {
-                        // Try as directory
                         when (val dirResult = smbClient.deleteDirectory(connectionInfo, filePath)) {
                             is SmbResult.Success -> deletedCount++
                             is SmbResult.Error -> Timber.w("Failed to delete: $filePath - ${dirResult.message}")
@@ -597,8 +487,6 @@ class SmbOperationStrategy @Inject constructor(
                     }
                 }
             }
-            
-            // Delete the directory itself
             when (val result = smbClient.deleteDirectory(connectionInfo, pathInfo.remotePath)) {
                 is SmbResult.Success -> deletedCount++
                 is SmbResult.Error -> Timber.w("Failed to delete directory: $path - ${result.message}")
@@ -612,10 +500,11 @@ class SmbOperationStrategy @Inject constructor(
         }
     }
     
-    private suspend fun collectSmbFiles(
+    private suspend fun collectSmbEntries(
         connectionInfo: SmbConnectionInfo,
         remotePath: String,
-        result: MutableList<String>
+        result: MutableList<String>,
+        filesOnly: Boolean = false
     ) {
         when (val scanResult = smbClient.scanMediaFiles(
             connectionInfo = connectionInfo,
@@ -628,10 +517,8 @@ class SmbOperationStrategy @Inject constructor(
             is SmbResult.Success -> {
                 for (file in scanResult.data) {
                     val fullPath = if (remotePath.isEmpty()) file.name else "$remotePath/${file.name}"
-                    if (file.isDirectory) {
-                        collectSmbFiles(connectionInfo, fullPath, result)
-                    }
-                    result.add(fullPath)
+                    if (file.isDirectory) collectSmbEntries(connectionInfo, fullPath, result, filesOnly)
+                    if (!filesOnly || !file.isDirectory) result.add(fullPath)
                 }
             }
             is SmbResult.Error -> Timber.w("Failed to list SMB directory: $remotePath")
@@ -652,7 +539,6 @@ class SmbOperationStrategy @Inject constructor(
             val newInfo = SmbPathUtils.parseSmbPath(newPath)
                 ?: return@withContext Result.failure(Exception("Failed to parse destination path: $newPath"))
             
-            // Must be on same server and share
             if (oldInfo.connectionInfo.server != newInfo.connectionInfo.server ||
                 oldInfo.connectionInfo.shareName != newInfo.connectionInfo.shareName) {
                 return@withContext Result.failure(IllegalArgumentException("Cannot rename across servers or shares"))
@@ -687,34 +573,17 @@ class SmbOperationStrategy @Inject constructor(
                 ?: return@withContext Result.failure(Exception("Failed to parse source path: $source"))
             
             val sourceConnectionInfo = getConnectionInfo(sourceInfo)
-            
-            // Collect all files to copy
             val allFiles = mutableListOf<String>()
-            collectSmbFilesOnly(sourceConnectionInfo, sourceInfo.remotePath, allFiles)
+            collectSmbEntries(sourceConnectionInfo, sourceInfo.remotePath, allFiles, filesOnly = true)
             val totalCount = allFiles.size
-            
-            // Create destination directory
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
-            
             var copiedCount = 0
-            
             for (filePath in allFiles) {
                 val relativePath = filePath.removePrefix(sourceInfo.remotePath).trimStart('/')
-                val destFilePath = if (destination.endsWith('/')) {
-                    "$destination$relativePath"
-                } else {
-                    "$destination/$relativePath"
-                }
-                
+                val destFilePath = "${destination.trimEnd('/')}/$relativePath"
                 progressCallback?.invoke(copiedCount, totalCount, filePath.substringAfterLast('/'))
-                
-                // Create parent directory if needed
                 val parentDir = destFilePath.substringBeforeLast('/')
-                if (parentDir != destination) {
-                    createDirectory(parentDir)
-                }
-                
-                // Copy file
+                if (parentDir != destination) createDirectory(parentDir)
                 val fullSourcePath = "smb://${sourceInfo.connectionInfo.server}/${sourceInfo.connectionInfo.shareName}/$filePath"
                 copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null).onSuccess {
                     copiedCount++
@@ -726,33 +595,6 @@ class SmbOperationStrategy @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: Copy directory failed - $source -> $destination")
             Result.failure(e)
-        }
-    }
-    
-    private suspend fun collectSmbFilesOnly(
-        connectionInfo: SmbConnectionInfo,
-        remotePath: String,
-        result: MutableList<String>
-    ) {
-        when (val scanResult = smbClient.scanMediaFiles(
-            connectionInfo = connectionInfo,
-            remotePath = remotePath,
-            extensions = null,
-            scanSubdirectories = false,
-            progressCallback = null,
-            includeDirectories = true
-        )) {
-            is SmbResult.Success -> {
-                for (file in scanResult.data) {
-                    val fullPath = if (remotePath.isEmpty()) file.name else "$remotePath/${file.name}"
-                    if (file.isDirectory) {
-                        collectSmbFilesOnly(connectionInfo, fullPath, result)
-                    } else {
-                        result.add(fullPath)
-                    }
-                }
-            }
-            is SmbResult.Error -> Timber.w("Failed to list SMB directory: $remotePath")
         }
     }
     
@@ -787,22 +629,15 @@ class SmbOperationStrategy @Inject constructor(
                 ?: return@withContext Result.failure(Exception("Failed to parse SMB path: $path"))
             
             val connectionInfo = getConnectionInfo(pathInfo)
-            
-            // Get directory info
             val fileInfo = when (val result = smbClient.getFileInfo(connectionInfo, pathInfo.remotePath)) {
                 is SmbResult.Success -> result.data
                 is SmbResult.Error -> return@withContext Result.failure(Exception(result.message))
             }
-            
             if (!fileInfo.isDirectory) {
                 return@withContext Result.failure(IllegalArgumentException("Path is not a directory: $path"))
             }
-            
-            // Count children and calculate total size
             val allFiles = mutableListOf<String>()
-            collectSmbFilesOnly(connectionInfo, pathInfo.remotePath, allFiles)
-            
-            // Get child count (immediate children only)
+            collectSmbEntries(connectionInfo, pathInfo.remotePath, allFiles, filesOnly = true)
             val childCount = when (val scanResult = smbClient.scanMediaFiles(
                 connectionInfo = connectionInfo,
                 remotePath = pathInfo.remotePath,

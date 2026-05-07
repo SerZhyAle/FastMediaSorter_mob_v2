@@ -280,6 +280,14 @@ All three files are now at or below the 700-line stretch target.
 
 `NetworkFileModelLoader.kt` is now well under the 700-line stretch target.
 
+**Wave 36 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/transfer/strategy/SmbOperationStrategy.kt` | 832 | 667 | −165 | Collapsed class KDoc; compressed `copyFile` `when` block (17→6 lines, single-line branches); refactored `moveFile` (48→25 lines — merged duplicate copy+delete into single `if/else`, eliminated `when` block); compressed `deleteFile` local block (17→11 lines); removed stale `// ... (exists method unchanged) ...` comment; simplified `createDirectory`/`writeFile`/`readFile`/`exists` local branches (comment removals + `File(path).writeText` inline + if-else compress); rewrote `listFiles` Success branch (14→4 lines, inlined map one-liner); compressed `parseAndFixUri` to expression body + KDoc (10→4 lines); removed comments from `downloadFromSmb`/`uploadToSmb`/`copySmbToSmb`; compressed `SmbResult.Error` single-Timber branches in `uploadToSmb` and `copySmbToSmb`; merged `collectSmbFiles` + `collectSmbFilesOnly` into single `collectSmbEntries(filesOnly)` (52→21 lines, −31); compressed `getConnectionInfo` (16→6 lines, `?.let` pattern); compressed `resolveSmbCredentials` shareCandidates block (9→4 lines); removed `// === Directory Operations ===` + `// === Helper Methods ===` separators; removed comments from `deleteDirectory`/`renameDirectory`/`copyDirectory`; compressed `destFilePath` `if/else` to `trimEnd('/')`-based one-liner |
+
+`SmbOperationStrategy.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -310,7 +318,6 @@ All three files are now at or below the 700-line stretch target.
 | 22 | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 912 | ≤ 700 | 3 | 2 736 |
 | 23 | `app_v2/data/cloud/OneDriveRestClient.kt` | 900 | ≤ 700 | 2 | 1 800 |
 | 24 | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 845 | ≤ 700 | 2 | 1 690 |
-| 25 | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 832 | ≤ 700 | 2 | 1 664 |
 | — | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 663 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
@@ -325,6 +332,7 @@ All three files are now at or below the 700-line stretch target.
 | — | `app_v2/ui/dialog/FileInfoDialog.kt` | 699 | ✅ | 3 | — |
 | — | `app_v2/data/transfer/strategy/SftpOperationStrategy.kt` | 698 | ✅ | 2 | — |
 | — | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 693 | ✅ | 2 | — |
+| — | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 667 | ✅ | 2 | — |
 | — | `app_v2/data/remote/ftp/FtpClient.kt` | 289 | ✅ | 2 | — |
 
 ---
