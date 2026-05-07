@@ -6861,3 +6861,5 @@ Format: | datetime | file | target | description |
 | 2026-05-07 03:16:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceKeyboardDelegate.kt` | `S0109` | Remove S0109 debug Timber tag (Verified) |
 | 2026-05-07 10:21:32 | `PLAN/S0002_decompose-giant-files.md` | `S0002` | Wave 23 + Wave 24: recorded FileInfoDialog decomposition; refreshed LOC tables; cleanup SftpOperationStrategy/FtpOperationStrategy/FileInfoDialog to ≤700 |
 | 2026-05-07 11:42:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TouchZoneGestureManager.kt` | `TouchZoneGestureManager` | Wave 25: remove 47-line commented-out onFling dead-code block; 719→671 LOC |
+| 2026-05-07 11:50:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseRenameFilesAdapter.kt` | `BrowseRenameFilesAdapter` | S0002 Wave 26: extract RenameFilesAdapter from BrowseDialogHelper to standalone class |
+| 2026-05-07 11:50:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | S0002 Wave 26: remove extracted RenameFilesAdapter inner class (733→688 LOC) |

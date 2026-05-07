@@ -200,6 +200,14 @@ All three files are now at or below the 700-line stretch target.
 
 `TouchZoneGestureManager.kt` is now well under the 700-line stretch target.
 
+**Wave 26 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/browse/managers/BrowseDialogHelper.kt` | 733 | 688 | −45 | Extracted `private inner class RenameFilesAdapter` (41 LOC) to standalone `BrowseRenameFilesAdapter.kt` in the same package; removed 3 now-unused imports (`Editable`, `TextWatcher`, `ItemRenameFileBinding`); updated 2 references |
+
+`BrowseDialogHelper.kt` is now under the 700-line stretch target. `BrowseRenameFilesAdapter` is a self-contained adapter with no outer-class state access; `ViewHolder` remains `inner class` of the adapter to access `fileNames`.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -240,7 +248,7 @@ All three files are now at or below the 700-line stretch target.
 | 32 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 746 | ≤ 700 | 2 | 1 492 |
 | 33 | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 745 | ≤ 700 | 2 | 1 490 |
 | 34 | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 742 | ≤ 700 | 2 | 1 484 |
-| 35 | `app_v2/ui/browse/managers/BrowseDialogHelper.kt` | 733 | ≤ 700 | 3 | 2 199 |
+| — | `app_v2/ui/browse/managers/BrowseDialogHelper.kt` | 688 | ✅ | 3 | — |
 | — | `app_v2/ui/player/helpers/TouchZoneGestureManager.kt` | 671 | ✅ | 3 | — |
 | — | `app_v2/data/transfer/strategy/FtpOperationStrategy.kt` | 698 | ✅ | 2 | — |
 | — | `app_v2/ui/dialog/FileInfoDialog.kt` | 699 | ✅ | 3 | — |
@@ -277,6 +285,7 @@ All three files are now at or below the 700-line stretch target.
 | 22 | `GoogleDriveRestClient.kt` | 1 104 | 2 208 |
 | 23 | `BrowseDialogHelper.kt` | 733 | 2 199 |
 | — | `TouchZoneGestureManager.kt` | 671 | ✅ |
+| — | `BrowseDialogHelper.kt` | 688 | ✅ |
 | 25 | `FileInfoDialog.kt` | 706 | 2 118 |
 | 26 | `DropboxClient.kt` | 983 | 1 966 |
 | 27 | `SmbClient.kt` | 955 | 1 910 |
@@ -333,7 +342,6 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 
 | File | LOC | Margin |
 | --- | ---: | ---: |
-| `BrowseDialogHelper.kt` | 733 | 33 |
 | `CloudOperationStrategy.kt` | 742 | 42 |
 | `ResourceEditorUseCase.kt` | 745 | 45 |
 | `ResourceAdapter.kt` | 746 | 46 |

@@ -5,8 +5,6 @@ import android.content.res.ColorStateList
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
@@ -21,7 +19,6 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogFilterBinding
 import com.sza.fastmediasorter.databinding.DialogRenameMultipleBinding
-import com.sza.fastmediasorter.databinding.ItemRenameFileBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -585,7 +582,7 @@ class BrowseDialogHelper(
         
         val dialogBinding = DialogRenameMultipleBinding.inflate(LayoutInflater.from(activity))
         
-        val adapter = RenameFilesAdapter(fileNames)
+        val adapter = BrowseRenameFilesAdapter(fileNames)
         dialogBinding.rvFileNames.apply {
             layoutManager = LinearLayoutManager(activity)
             this.adapter = adapter
@@ -677,57 +674,15 @@ class BrowseDialogHelper(
         }
         
         dialog.show()
-        
+
         // Show keyboard for first EditText after RecyclerView is laid out
         dialogBinding.rvFileNames.postDelayed({
             val firstViewHolder = dialogBinding.rvFileNames.findViewHolderForAdapterPosition(0)
-            if (firstViewHolder is RenameFilesAdapter.ViewHolder) {
+            if (firstViewHolder is BrowseRenameFilesAdapter.ViewHolder) {
                 firstViewHolder.binding.etFileName.requestFocus()
                 val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
                 imm?.showSoftInput(firstViewHolder.binding.etFileName, InputMethodManager.SHOW_IMPLICIT)
             }
         }, 200)
-    }
-    
-    private inner class RenameFilesAdapter(
-        private val fileNames: MutableList<String>
-    ) : RecyclerView.Adapter<RenameFilesAdapter.ViewHolder>() {
-        
-        inner class ViewHolder(val binding: ItemRenameFileBinding) : RecyclerView.ViewHolder(binding.root) {
-            private var textWatcher: TextWatcher? = null
-            
-            fun bind(fileName: String, position: Int) {
-                // Remove old listener to prevent memory leaks
-                textWatcher?.let { binding.etFileName.removeTextChangedListener(it) }
-                
-                // Only update text if it differs to prevent cursor issues
-                if (binding.etFileName.text.toString() != fileName) {
-                    binding.etFileName.setText(fileName)
-                }
-                
-                // Create and add new listener
-                textWatcher = object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                    override fun afterTextChanged(s: Editable?) {
-                        fileNames[position] = s?.toString() ?: ""
-                    }
-                }
-                binding.etFileName.addTextChangedListener(textWatcher)
-            }
-        }
-        
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ItemRenameFileBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return ViewHolder(binding)
-        }
-        
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(fileNames[position], position)
-        }
-        
-        override fun getItemCount() = fileNames.size
-        
-        fun getFileNames() = fileNames.toList()
     }
 }
