@@ -304,6 +304,14 @@ All three files are now at or below the 700-line stretch target.
 
 `OneDriveRestClient.kt` is now at the 700-line stretch target.
 
+**Wave 39 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/browse/managers/BrowseManagerInitializer.kt` | 912 | 696 | −216 | Removed dead imports (`BrowsePassthroughCaptureProvider`, `FastScrollerBuilder`); added short-name imports for `MediaResource`, `ResourceType`, `InputHelpDialogFragment`, `InputSurface`, `ItemTouchHelper`, `RecyclerView`, `BrowseFileDragTouchCallback`; `onFilterApplied` inlined resource lookup + guard-clause; `onCloudSignInRequested` expression body; `mediaStoreObserver` inlined to single-line body; 4 MediaFileAdapter 3-line callbacks collapsed to 1-line (`onFileLongClick`, `onSelectionRangeRequested`, `onFavoriteClick`, `onBinaryFileClick`); 5 callbacks final 2 stmts merged with `;` (`onFileClick`, `onCopyClick`, etc.); `onFolderPickerRequested` FQN→short names + expression body; KB nav `showHelp`/`showCreateFolderDialog`/`undoLastOperation` expression bodies; `onAuthRequest` expression body when+`else -> Unit`; `onPermissionRequired` compact try-catch; both `onShowCloudAuthDialog` lambdas 2-lined; `setupDragToReorder` with imported types; 4 dialog methods guard-clause compression (`?: return Toast.makeText(...).show()`); `showArchiveDestinationPicker` KDoc 7→1, guards compressed, dialog inlined; `startSlideshow` restructured (removed dead val chain); `startRandomPlay` 28→7 lines; `onResourceOpsClicked` removed 6-line comment + try-catch→runCatching + inlined isCameraVisibleByState + compressed callbacks; `updateSortButton` comment removed + inlined drawables; `forceUpdateDisplayMode` expression body; `updateBreadcrumb` restructured with sub val; `lifecycleHelper` constructor 6→2 lines |
+
+`BrowseManagerInitializer.kt` is now under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -331,7 +339,6 @@ All three files are now at or below the 700-line stretch target.
 | 19 | `app_v2/ui/browse/managers/BrowseFileOperationsManager.kt` | 941 | ≤ 700 | 3 | 2 823 |
 | 20 | `app_v2/data/transfer/BaseFileOperationHandler.kt` | 939 | ≤ 700 | 3 | 2 817 |
 | 21 | `app_v2/data/network/FtpFileOperationHandler.kt` | 938 | ≤ 700 | 3 | 2 814 |
-| 22 | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 912 | ≤ 700 | 3 | 2 736 |
 | — | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 663 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
@@ -349,6 +356,7 @@ All three files are now at or below the 700-line stretch target.
 | — | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 667 | ✅ | 2 | — |
 | — | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 666 | ✅ | 2 | — |
 | — | `app_v2/data/cloud/OneDriveRestClient.kt` | 700 | ✅ | 2 | — |
+| — | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 696 | ✅ | 3 | — |
 | — | `app_v2/data/remote/ftp/FtpClient.kt` | 289 | ✅ | 2 | — |
 
 ---
@@ -375,8 +383,7 @@ All three files are now at or below the 700-line stretch target.
 | 16 | `BrowseFileOperationsManager.kt` | 941 | 2 823 |
 | 17 | `BaseFileOperationHandler.kt` | 939 | 2 817 |
 | 18 | `FtpFileOperationHandler.kt` | 938 | 2 814 |
-| 19 | `BrowseManagerInitializer.kt` | 912 | 2 736 |
-| 20 | `PagingMediaFileAdapter.kt` | 824 | 2 472 |
+| 19 | `PagingMediaFileAdapter.kt` | 824 | 2 472 |
 | 21 | `GoogleDriveRestClient.kt` | 1 104 | 2 208 |
 | — | `ResourceAdapter.kt` | 693 | ✅ |
 | — | `TouchZoneGestureManager.kt` | 671 | ✅ |
@@ -385,6 +392,7 @@ All three files are now at or below the 700-line stretch target.
 | 26 | `DropboxClient.kt` | 983 | 1 966 |
 | 27 | `SmbClient.kt` | 955 | 1 910 |
 | — | `OneDriveRestClient.kt` | 700 | ✅ |
+| — | `BrowseManagerInitializer.kt` | 696 | ✅ |
 | 29 | `SettingsRepositoryImpl.kt` | 845 | 1 690 |
 | 30 | `SmbOperationStrategy.kt` | 832 | 1 664 |
 | 31 | `NetworkFileModelLoader.kt` | 826 | 1 652 |

@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
-import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
@@ -28,7 +27,9 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
@@ -39,15 +40,19 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.UserActionLogger
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import timber.log.Timber
 import java.io.File
 import java.lang.ref.WeakReference
@@ -110,18 +115,11 @@ class BrowseManagerInitializer(
         dialogHelper = BrowseDialogHelper(activity, object : BrowseDialogHelper.DialogCallbacks {
             override fun onFilterApplied(filter: FileFilter?) {
                 viewModel.setFilter(filter)
-                val resource = viewModel.state.value.resource
-                val isUserFilter = filter != null && !filter.isEmpty() && (
-                    !filter.nameContains.isNullOrBlank() ||
-                    filter.minDate != null ||
-                    filter.maxDate != null ||
-                    filter.minSizeMb != null ||
-                    filter.maxSizeMb != null ||
-                    (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
-                )
-                if (isUserFilter) {
+                if (filter != null && !filter.isEmpty() && (
+                    !filter.nameContains.isNullOrBlank() || filter.minDate != null || filter.maxDate != null ||
+                    filter.minSizeMb != null || filter.maxSizeMb != null ||
+                    filter.mediaTypes != null && filter.mediaTypes != viewModel.state.value.resource?.supportedMediaTypes))
                     Toast.makeText(activity, R.string.toast_filter_active, Toast.LENGTH_SHORT).show()
-                }
             }
             override fun onSortModeSelected(sortMode: SortMode) = viewModel.setSortMode(sortMode)
             override fun onRandomReshuffle() = viewModel.reshuffleRandom()
@@ -131,12 +129,10 @@ class BrowseManagerInitializer(
             override fun onCopyDestinationSelected(destinationPath: String) {}
             override fun onMoveDestinationSelected(destinationPath: String) {}
             override fun onDeleteConfirmed(fileCount: Int) = viewModel.deleteSelectedFiles()
-            override fun onCloudSignInRequested(provider: CloudProvider) {
-                when (provider) {
-                    CloudProvider.GOOGLE_DRIVE -> cloudAuthManager.launchGoogleSignIn()
-                    CloudProvider.DROPBOX -> cloudAuthManager.launchDropboxSignIn()
-                    CloudProvider.ONEDRIVE -> cloudAuthManager.launchOneDriveSignIn()
-                }
+            override fun onCloudSignInRequested(provider: CloudProvider) = when (provider) {
+                CloudProvider.GOOGLE_DRIVE -> cloudAuthManager.launchGoogleSignIn()
+                CloudProvider.DROPBOX -> cloudAuthManager.launchDropboxSignIn()
+                CloudProvider.ONEDRIVE -> cloudAuthManager.launchOneDriveSignIn()
             }
             override fun saveUndoOperation(undoOp: UndoOperation) = viewModel.saveUndoOperation(undoOp)
             override fun reloadFiles() = viewModel.reloadFiles()
@@ -149,85 +145,57 @@ class BrowseManagerInitializer(
         })
 
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
-            override fun onMediaStoreChanged() {
-                if (!viewModel.isIgnoringFileChanges()) {
-                    // syncMediaStore=false: OS already knows the change; running sync would fire
-                    // more ContentObserver events and cause an infinite reload loop.
-                    viewModel.reloadFiles(syncMediaStore = false)
-                }
-            }
+            override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) }
         })
 
         mediaFileAdapter = MediaFileAdapter(
             onFileClick = { file ->
                 UserActionLogger.logItemClick(file.name, context = "File click")
-                viewModel.saveLastViewedFile(file.path)
-                viewModel.openFile(file)
+                viewModel.saveLastViewedFile(file.path); viewModel.openFile(file)
             },
-            onFileLongClick = { file ->
-                UserActionLogger.logItemLongClick(file.name, context = "Range selection")
-                viewModel.selectFileRange(file.path)
-            },
+            onFileLongClick = { file -> UserActionLogger.logItemLongClick(file.name, context = "Range selection"); viewModel.selectFileRange(file.path) },
             onContextMenuRequest = { anchor, file ->
                 UserActionLogger.logItemLongClick(file.name, context = "Mouse context menu")
-                resourceOpsMenuManager.showMenu(
-                    anchor = anchor,
-                    viewModel = viewModel,
-                )
+                resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel)
             },
             onSelectionChanged = { file, selected ->
                 UserActionLogger.logSelection(file.name, selected, context = "Checkbox click")
                 viewModel.selectFile(file.path)
                 if (selected) viewModel.saveLastViewedFile(file.path)
             },
-            onSelectionRangeRequested = { file ->
-                UserActionLogger.logItemLongClick(file.name, context = "Checkbox long click - range")
-                viewModel.selectFileRange(file.path)
-            },
+            onSelectionRangeRequested = { file -> UserActionLogger.logItemLongClick(file.name, context = "Checkbox long click - range"); viewModel.selectFileRange(file.path) },
             onPlayClick = { file ->
                 UserActionLogger.logButtonClick("InlinePlay", "File: ${file.name}")
-                viewModel.saveLastViewedFile(file.path)
-                viewModel.inlinePlayToggle(file)
+                viewModel.saveLastViewedFile(file.path); viewModel.inlinePlayToggle(file)
             },
-            onFavoriteClick = { file ->
-                UserActionLogger.logButtonClick("Favorite", "File: ${file.name}")
-                viewModel.toggleFavorite(file)
-            },
+            onFavoriteClick = { file -> UserActionLogger.logButtonClick("Favorite", "File: ${file.name}"); viewModel.toggleFavorite(file) },
             onCopyClick = { file ->
                 UserActionLogger.logButtonClick("Copy", "File: ${file.name}")
-                viewModel.selectFile(file.path)
-                showCopyDialog()
+                viewModel.selectFile(file.path); showCopyDialog()
             },
             onMoveClick = { file ->
                 UserActionLogger.logButtonClick("Move", "File: ${file.name}")
-                viewModel.selectFile(file.path)
-                showMoveDialog()
+                viewModel.selectFile(file.path); showMoveDialog()
             },
             onRenameClick = { file ->
                 UserActionLogger.logButtonClick("Rename", "File: ${file.name}")
-                viewModel.selectFile(file.path)
-                showRenameDialog()
+                viewModel.selectFile(file.path); showRenameDialog()
             },
             onDeleteClick = { file ->
                 UserActionLogger.logButtonClick("Delete", "File: ${file.name}")
-                viewModel.selectFile(file.path)
-                showDeleteConfirmation()
+                viewModel.selectFile(file.path); showDeleteConfirmation()
             },
             onFolderClick = { folder ->
                 UserActionLogger.logItemClick(folder.name, context = "Folder click")
                 if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
                 viewModel.navigateToFolder(folder)
             },
-            onBinaryFileClick = { file ->
-                UserActionLogger.logItemClick(file.name, context = "Binary file click")
-                binaryFileHandler.showBinaryFileMenu(file)
-            },
+            onBinaryFileClick = { file -> UserActionLogger.logItemClick(file.name, context = "Binary file click"); binaryFileHandler.showBinaryFileMenu(file) },
             getShowVideoThumbnails = showVideoThumbnailsGetter,
             getShowPdfThumbnails = showPdfThumbnailsGetter
         )
 
-        val binaryThumbnailGenerator = com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator(activity)
-        mediaFileAdapter.setBinaryThumbnailGenerator(binaryThumbnailGenerator)
+        mediaFileAdapter.setBinaryThumbnailGenerator(com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator(activity))
         mediaFileAdapter.setAudioMetadataLoader(audioMetadataLoader)
 
         stateUiUpdater = BrowseStateUiUpdater(
@@ -249,12 +217,8 @@ class BrowseManagerInitializer(
             adapter = mediaFileAdapter,
             resources = activity.resources,
             callbacks = object : BrowseRecyclerViewManager.RecyclerViewCallbacks {
-                override fun onDisplayModeChanged(displayMode: DisplayMode) {
-                    stateUiUpdater.currentDisplayMode = displayMode
-                }
-                override fun updateToggleButtonIcon(iconResId: Int) {
-                    binding.btnToggleView.setIconResource(iconResId)
-                }
+                override fun onDisplayModeChanged(displayMode: DisplayMode) { stateUiUpdater.currentDisplayMode = displayMode }
+                override fun updateToggleButtonIcon(iconResId: Int) { binding.btnToggleView.setIconResource(iconResId) }
             }
         )
 
@@ -268,11 +232,9 @@ class BrowseManagerInitializer(
             fabPageDown = binding.fabPageDown
         )
 
-        binding.rvMediaFiles.addOnScrollListener(
-            BrowseScrollThumbnailListener(mediaFileAdapter) {
-                scrollButtonManager.updateScrollButtonsVisibility(it)
-            }
-        )
+        binding.rvMediaFiles.addOnScrollListener(BrowseScrollThumbnailListener(mediaFileAdapter) {
+            scrollButtonManager.updateScrollButtonsVisibility(it)
+        })
 
         stateManager = BrowseStateManager(
             recyclerView = binding.rvMediaFiles,
@@ -299,10 +261,7 @@ class BrowseManagerInitializer(
                 override fun selectAllFiles() { performSelectAllWithToast() }
                 override fun showRenameDialog() {
                     val s = viewModel.state.value.selectedFiles
-                    if (s.size == 1) {
-                        val files = viewModel.state.value.mediaFiles.filter { it.path in s }
-                        if (files.isNotEmpty()) dialogHelper.showRenameDialog(files)
-                    }
+                    if (s.size == 1) dialogHelper.showRenameDialog(viewModel.state.value.mediaFiles.filter { it.path in s })
                 }
                 override fun refreshFiles() = viewModel.reloadFiles()
                 override fun clearSelection() = viewModel.clearSelection()
@@ -310,37 +269,22 @@ class BrowseManagerInitializer(
                     if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
                     viewModel.navigateUp()
                 }
-                override fun showCreateFolderDialog() {
-                    resourceOpsMenuManager.showCreateFolderDialog(viewModel)
-                }
-                override fun showHelp() {
-                    com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
-                        activity.supportFragmentManager,
-                        com.sza.fastmediasorter.ui.common.input.InputSurface.BROWSE,
-                    )
-                }
+                override fun showCreateFolderDialog() = resourceOpsMenuManager.showCreateFolderDialog(viewModel)
+                override fun showHelp() = InputHelpDialogFragment.show(activity.supportFragmentManager, InputSurface.BROWSE)
                 override fun showContextMenu() {
-                    // Context menu is pointer-anchored; keyboard shortcut opens it at top of list.
-                    val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(
-                        stateManager.getCurrentFocusPosition()
-                    )?.itemView ?: binding.rvMediaFiles
-                    resourceOpsMenuManager.showMenu(
-                        anchor = anchor,
-                        viewModel = viewModel,
-                    )
+                    val anchor = binding.rvMediaFiles.findViewHolderForAdapterPosition(stateManager.getCurrentFocusPosition())
+                        ?.itemView ?: binding.rvMediaFiles
+                    resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel)
                 }
                 override fun extendSelectionUp() {
                     val pos = (stateManager.getCurrentFocusPosition() - 1).coerceAtLeast(0)
                     viewModel.state.value.mediaFiles.getOrNull(pos)?.let { viewModel.selectFileRange(it.path) }
                 }
                 override fun extendSelectionDown() {
-                    val files = viewModel.state.value.mediaFiles
-                    val pos = (stateManager.getCurrentFocusPosition() + 1).coerceAtMost(files.size - 1)
-                    files.getOrNull(pos)?.let { viewModel.selectFileRange(it.path) }
+                    val pos = (stateManager.getCurrentFocusPosition() + 1).coerceAtMost(viewModel.state.value.mediaFiles.size - 1)
+                    viewModel.state.value.mediaFiles.getOrNull(pos)?.let { viewModel.selectFileRange(it.path) }
                 }
-                override fun undoLastOperation() {
-                    viewModel.undoLastOperation()
-                }
+                override fun undoLastOperation() = viewModel.undoLastOperation()
                 override fun playRandomFiles() = startRandomPlay()
             }
         )
@@ -374,36 +318,23 @@ class BrowseManagerInitializer(
                 override fun clearSelection() = viewModel.clearSelection()
                 override fun getCacheDir(): File? = activity.cacheDir
                 override fun getExternalCacheDir(): File? = activity.externalCacheDir
-                override fun onAuthRequest(provider: String) {
-                    when (provider) {
-                        "dropbox" -> cloudAuthManager.launchDropboxSignIn()
-                        "google_drive" -> cloudAuthManager.launchGoogleSignIn()
-                        "onedrive" -> cloudAuthManager.launchOneDriveSignIn()
-                    }
+                override fun onAuthRequest(provider: String) = when (provider) {
+                    "dropbox" -> cloudAuthManager.launchDropboxSignIn()
+                    "google_drive" -> cloudAuthManager.launchGoogleSignIn()
+                    else -> cloudAuthManager.launchOneDriveSignIn()
                 }
                 override fun onPermissionRequired(pendingIntent: android.app.PendingIntent) {
-                    try {
-                        val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
-                        launcherManager.permissionRequestLauncher.launch(intentSenderRequest)
-                    } catch (e: Exception) {
-                        Toast.makeText(activity, R.string.failed_to_request_permission, Toast.LENGTH_SHORT).show()
-                    }
+                    try { launcherManager.permissionRequestLauncher.launch(IntentSenderRequest.Builder(pendingIntent).build()) }
+                    catch (e: Exception) { Toast.makeText(activity, R.string.failed_to_request_permission, Toast.LENGTH_SHORT).show() }
                 }
                 override fun onShowMessage(message: String) { Toast.makeText(activity, message, Toast.LENGTH_SHORT).show() }
                 override fun onShowError(message: String, details: String?) {
-                    val text = if (details != null) "$message\n$details" else message
-                    Toast.makeText(activity, text, Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity, if (details != null) "$message\n$details" else message, Toast.LENGTH_LONG).show()
                 }
                 override fun onFolderPickerRequested(
-                    operationType: com.sza.fastmediasorter.domain.model.FileOperationType,
-                    sourceFiles: List<java.io.File>,
-                    sourceCredentialsId: String?,
-                    resourceType: com.sza.fastmediasorter.domain.model.ResourceType,
-                    resource: com.sza.fastmediasorter.domain.model.MediaResource,
-                    dirItems: List<com.sza.fastmediasorter.domain.model.MediaFile>
-                ) {
-                    folderPickerHandler.requestFolderPick(operationType, sourceFiles, sourceCredentialsId, resourceType, resource, dirItems)
-                }
+                    operationType: FileOperationType, sourceFiles: List<File>, sourceCredentialsId: String?,
+                    resourceType: ResourceType, resource: MediaResource, dirItems: List<MediaFile>
+                ) = folderPickerHandler.requestFolderPick(operationType, sourceFiles, sourceCredentialsId, resourceType, resource, dirItems)
             }
         )
 
@@ -452,15 +383,8 @@ class BrowseManagerInitializer(
             anchorView = binding.layoutOperations,
             settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
-            onShowCloudAuthDialog = { provider ->
-                dialogHelper.showCloudAuthenticationDialog(
-                    provider,
-                    viewModel.state.value.resource?.name ?: "",
-                    // lastBrowseDate is already cleared in BrowseLoadingAuxManager,
-                    // so closing the screen is sufficient to break the auto-reopen loop.
-                    onRemoveResource = { activity.finish() }
-                )
-            },
+            onShowCloudAuthDialog = { p -> dialogHelper.showCloudAuthenticationDialog(p,
+                viewModel.state.value.resource?.name ?: "", onRemoveResource = { activity.finish() }) },
             onUndoRequested = { viewModel.undoLastOperation() },
             getCurrentCloudProvider = { viewModel.state.value.resource?.cloudProvider }
         )
@@ -476,12 +400,8 @@ class BrowseManagerInitializer(
 
         setupDragToReorder()
 
-        lifecycleHelper = BrowseLifecycleHelper(
-            activity = activity,
-            recyclerView = binding.rvMediaFiles,
-            adapter = mediaFileAdapter,
-            listSubmitManager = listSubmitManager
-        )
+        lifecycleHelper = BrowseLifecycleHelper(activity = activity, recyclerView = binding.rvMediaFiles,
+            adapter = mediaFileAdapter, listSubmitManager = listSubmitManager)
 
         observerManager = BrowseObserverManager(
             lifecycleOwner = activity,
@@ -504,17 +424,10 @@ class BrowseManagerInitializer(
             resourceOpsMenuManager = resourceOpsMenuManager,
             permissionRequestLauncher = launcherManager.permissionRequestLauncher,
             playerActivityLauncher = launcherManager.playerActivityLauncher,
-            onShowCloudAuthDialog = { provider ->
-                dialogHelper.showCloudAuthenticationDialog(
-                    provider,
-                    viewModel.state.value.resource?.name ?: "",
-                    onRemoveResource = { activity.finish() }
-                )
-            },
+            onShowCloudAuthDialog = { p -> dialogHelper.showCloudAuthenticationDialog(p,
+                viewModel.state.value.resource?.name ?: "", onRemoveResource = { activity.finish() }) },
             skipAvailabilityCheck = isSkipAvailabilityCheck,
             onScrollToFile = { fileName ->
-                // Read index from VM state (already up-to-date) — adapter.currentList lags behind
-                // because ListAdapter's AsyncListDiffer commits the diff asynchronously.
                 val idx = viewModel.state.value.mediaFiles.indexOfFirst { it.name == fileName }
                 if (idx >= 0) binding.rvMediaFiles.post { binding.rvMediaFiles.scrollToPosition(idx) }
             }
@@ -532,20 +445,14 @@ class BrowseManagerInitializer(
         )
 
         updateSortButton(viewModel.state.value.sortMode)
-        binding.btnSort.setOnClickListener {
-            UserActionLogger.logButtonClick("SortButton", "BrowseActivity")
-            sortMenuManager.showSortPopupMenu(binding.btnSort)
-        }
+        binding.btnSort.setOnClickListener { UserActionLogger.logButtonClick("SortButton", "BrowseActivity"); sortMenuManager.showSortPopupMenu(binding.btnSort) }
 
         buttonSetupHelper.setupAllButtons(object : BrowseButtonSetupHelper.ButtonCallbacks {
-            override fun onFilterClicked() {
-                val allowedTypes = viewModel.state.value.resource?.supportedMediaTypes
-                dialogHelper.showFilterDialog(viewModel.state.value.filter, allowedTypes)
-            }
+            override fun onFilterClicked() =
+                dialogHelper.showFilterDialog(viewModel.state.value.filter, viewModel.state.value.resource?.supportedMediaTypes)
             override fun onRefreshClicked() {
                 NetworkFileDataFetcher.clearFailedVideoCache()
-                mediaFileAdapter.incrementRefreshVersion()
-                viewModel.reloadFiles()
+                mediaFileAdapter.incrementRefreshVersion(); viewModel.reloadFiles()
             }
             override fun onToggleViewClicked() = viewModel.toggleDisplayMode()
             override fun onSelectAllClicked() = performSelectAllWithToast()
@@ -558,23 +465,16 @@ class BrowseManagerInitializer(
             override fun onShareClicked() {
                 val state = viewModel.state.value
                 val resource = state.resource ?: return
-                val sel = state.mediaFiles.filter { it.path in state.selectedFiles }
-                fileOperationsManager.shareSelectedFiles(sel, resource)
+                fileOperationsManager.shareSelectedFiles(state.mediaFiles.filter { it.path in state.selectedFiles }, resource)
             }
             override fun onArchiveClicked() {
                 val state = viewModel.state.value
-                archiveDialogManager.showArchiveConfigurationDialog(
-                    currentDir = state.currentPath ?: state.resource?.path ?: "",
-                    selectedFiles = state.selectedFiles,
-                    mediaFiles = state.mediaFiles
-                )
+                archiveDialogManager.showArchiveConfigurationDialog(state.currentPath ?: state.resource?.path ?: "",
+                    state.selectedFiles, state.mediaFiles)
             }
             override fun onPlayClicked() = startSlideshow()
             override fun onPlayRandomClicked() = startRandomPlay()
-            override fun onRetryClicked() {
-                viewModel.clearError()
-                viewModel.reloadFiles()
-            }
+            override fun onRetryClicked() { viewModel.clearError(); viewModel.reloadFiles() }
             override fun onStopScanClicked() {
                 viewModel.cancelScan(forceCancel = true)
                 Toast.makeText(activity, activity.getString(R.string.scan_stopped, viewModel.state.value.mediaFiles.size), Toast.LENGTH_SHORT).show()
@@ -585,46 +485,29 @@ class BrowseManagerInitializer(
             override fun onMicRecordSingleTap() = activity.onMicRecordSingleTap()
             override fun onResourceOpsClicked(anchor: android.view.View) {
                 val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
-                // Destinations-full check runs async — resolve it before opening the popup so the
-                // menu item visibility is correct on first render (the popup itself is not suspendable).
                 lifecycleScope.launch {
-                    val isDestinationsFull = try {
-                        getDestinationsUseCase.isDestinationsFull()
-                    } catch (e: Exception) {
-                        Timber.w(e, "onResourceOpsClicked: failed to resolve isDestinationsFull — defaulting to false")
-                        false
-                    }
+                    val isDestinationsFull = runCatching { getDestinationsUseCase.isDestinationsFull() }
+                        .onFailure { Timber.w(it, "onResourceOpsClicked: isDestinationsFull failed") }.getOrDefault(false)
                     val settings = settingsRepository.getSettings().first()
-                    // Check state-based predicate first (toggle + media type + path), then
-                    // confirm the system actually has a handler for the capture intent.
-                    // hasCameraHandler() is the key fix for Quest 3 where handlers=0.
-                    val isCameraVisibleByState = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings)
-                    val isCameraVisible = isCameraVisibleByState &&
+                    val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
                         viewModel.state.value.resource?.let { res ->
                             passthroughProvider?.isAvailable(activity) == true ||
                                 BrowseCameraCaptureManager.hasCameraHandler(activity, res)
                         } ?: false
-                    resourceOpsMenuManager.showMenu(
-                        anchor = anchor,
-                        viewModel = viewModel,
+                    resourceOpsMenuManager.showMenu(anchor = anchor, viewModel = viewModel,
                         isScheduleEnabled = isScheduleEnabled,
-                        onAutomateSource = if (isScheduleEnabled) {
-                            {
-                                val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
-                                activity.startActivity(Intent(activity, SettingsActivity::class.java).apply {
-                                    putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
-                                })
-                            }
-                        } else null,
+                        onAutomateSource = if (isScheduleEnabled) { {
+                            val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
+                            activity.startActivity(Intent(activity, SettingsActivity::class.java)
+                                .apply { putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId) })
+                        } } else null,
                         onAddToDestinations = { viewModel.addCurrentResourceAsDestination() },
                         onArchive = { showArchiveDestinationPicker() },
                         isDestinationsFull = isDestinationsFull,
                         onCameraCapture = { activity.onCameraCaptureClicked() },
                         isCameraVisible = isCameraVisible,
                         isAudioOnly = viewModel.state.value.resource?.isAudioOnly() == true,
-                        onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) {
-                            { blackScreenManager.show() }
-                        } else null
+                        onBlackScreenClicked = if (BuildConfig.SUPPORT_AUDIO) { { blackScreenManager.show() } } else null
                     )
                 }
             }
@@ -634,40 +517,24 @@ class BrowseManagerInitializer(
     }
 
     private fun setupDragToReorder() {
-        val callback = com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback(
+        val callback = BrowseFileDragTouchCallback(
             adapter = mediaFileAdapter,
             onDragComplete = { orderedPaths -> viewModel.saveManualOrder(orderedPaths) }
         )
-        val touchHelper = androidx.recyclerview.widget.ItemTouchHelper(callback)
-        touchHelper.attachToRecyclerView(binding.rvMediaFiles)
-
-        mediaFileAdapter.setDragStartListener(object : com.sza.fastmediasorter.ui.browse.MediaFileAdapter.DragStartListener {
-            override fun onStartDrag(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder) {
-                touchHelper.startDrag(viewHolder)
-            }
+        val touchHelper = ItemTouchHelper(callback).also { it.attachToRecyclerView(binding.rvMediaFiles) }
+        mediaFileAdapter.setDragStartListener(object : MediaFileAdapter.DragStartListener {
+            override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) { touchHelper.startDrag(viewHolder) }
         })
-
-        // Show/hide handles whenever sort mode changes
         updateDragHandleVisibility(viewModel.state.value.sortMode)
     }
 
     fun updateSortButton(sortMode: SortMode) {
         val tintColor = binding.btnSort.currentTextColor
         val sortIconRes = BrowseSortMenuManager.getSortModeIconRes(sortMode) ?: 0
-
         binding.btnSort.text = sortMenuManager.getSortModeShortName(sortMode)
-        // Keep btnSort as a compact TextView so both browse layouts retain their current sizing.
-        binding.btnSort.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            sortIconRes,
-            0,
-            R.drawable.ic_arrow_drop_down,
-            0
-        )
-        binding.btnSort.compoundDrawablePadding = if (sortIconRes != 0) {
-            activity.resources.getDimensionPixelSize(R.dimen.layout_spacing_normal)
-        } else {
-            0
-        }
+        binding.btnSort.setCompoundDrawablesRelativeWithIntrinsicBounds(sortIconRes, 0, R.drawable.ic_arrow_drop_down, 0)
+        binding.btnSort.compoundDrawablePadding =
+            if (sortIconRes != 0) activity.resources.getDimensionPixelSize(R.dimen.layout_spacing_normal) else 0
         TextViewCompat.setCompoundDrawableTintList(binding.btnSort, ColorStateList.valueOf(tintColor))
     }
 
@@ -676,98 +543,59 @@ class BrowseManagerInitializer(
     }
 
     private fun performSelectAllWithToast() {
-        val totalCount = viewModel.state.value.mediaFiles.size
+        val n = viewModel.state.value.mediaFiles.size
         viewModel.selectAll()
-        if (totalCount > 0) {
-            val message = activity.resources.getQuantityString(R.plurals.selected_n_files, totalCount, totalCount)
-            Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
-        }
+        if (n > 0) Toast.makeText(activity,
+            activity.resources.getQuantityString(R.plurals.selected_n_files, n, n), Toast.LENGTH_SHORT).show()
     }
 
     private fun showRenameDialog() {
         val state = viewModel.state.value
-        if (state.resource?.isReadOnly == true) {
-            Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-            return
-        }
-        // Read selection directly from selectionManager to avoid async state propagation lag
-        val selectedPaths = viewModel.currentSelectedPaths()
-        val sel = state.mediaFiles.filter { it.path in selectedPaths }
-        dialogHelper.showRenameDialog(sel)
+        if (state.resource?.isReadOnly == true) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
+        // Read selection from selectionManager (avoids async state propagation lag)
+        dialogHelper.showRenameDialog(state.mediaFiles.filter { it.path in viewModel.currentSelectedPaths() })
     }
 
     private fun showDeleteConfirmation() {
         val state = viewModel.state.value
         val resource = state.resource
-        if (resource?.isReadOnly == true) {
-            Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-            return
-        }
-        // Read selection directly from selectionManager to avoid async state propagation lag
-        val selectedPaths = viewModel.currentSelectedPaths()
-        val sel = state.mediaFiles.filter { it.path in selectedPaths }
-        lifecycleScope.launch {
-            val settings = viewModel.getSettings()
-            dialogHelper.showDeleteConfirmation(sel, resource, settings)
-        }
+        if (resource?.isReadOnly == true) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
+        // Read selection from selectionManager (avoids async state propagation lag)
+        val sel = state.mediaFiles.filter { it.path in viewModel.currentSelectedPaths() }
+        lifecycleScope.launch { dialogHelper.showDeleteConfirmation(sel, resource, viewModel.getSettings()) }
     }
 
     private fun showCopyDialog() {
         val state = viewModel.state.value
-        val resource = state.resource ?: run {
-            Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
-            return
-        }
-        // Read selection directly from selectionManager to avoid async state propagation lag
+        val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
+        // Read selection from selectionManager (avoids async state propagation lag)
         val selectedPaths = viewModel.currentSelectedPaths()
         lifecycleScope.launch {
-            val settings = viewModel.getSettings()
-            fileOperationsManager.showCopyDialog(selectedPaths.toList(), state.mediaFiles, resource, settings)
+            fileOperationsManager.showCopyDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
         }
     }
 
     private fun showMoveDialog() {
         val state = viewModel.state.value
-        val resource = state.resource ?: run {
-            Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (resource.isReadOnly) {
-            Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-            return
-        }
-        // Read selection directly from selectionManager to avoid async state propagation lag
+        val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
+        if (resource.isReadOnly) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
+        // Read selection from selectionManager (avoids async state propagation lag)
         val selectedPaths = viewModel.currentSelectedPaths()
         lifecycleScope.launch {
-            val settings = viewModel.getSettings()
-            fileOperationsManager.showMoveDialog(selectedPaths.toList(), state.mediaFiles, resource, settings)
+            fileOperationsManager.showMoveDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
         }
     }
 
-    /**
-     * Archive menu entry: pick a destination folder via the Copy/Move picker in ARCHIVE mode,
-     * then hand the chosen path to [BrowseArchiveDialogManager.showArchiveConfigurationDialog]
-     * which prompts for the archive name and runs the operation.
-     *
-     * Destination picker excludes the current source resource (same semantics as Copy/Move);
-     * the toolbar btnArchive already covers archiving into the current folder.
-     */
+    /** Picks destination folder via ARCHIVE-mode picker, then delegates to archiveDialogManager for name prompt + operation. */
     private fun showArchiveDestinationPicker() {
         val state = viewModel.state.value
-        val resource = state.resource ?: run {
-            Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
         val selectedPaths = state.selectedFiles.toList()
-        if (selectedPaths.isEmpty()) {
-            Toast.makeText(activity, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
-            return
-        }
-
+        if (selectedPaths.isEmpty()) return Toast.makeText(activity, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
         val sourceFiles = selectedPaths.map { File(it) }
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
-            val dialog = FileOperationDestinationDialog(
+            FileOperationDestinationDialog(
                 context = activity,
                 operationType = FileOperationType.ARCHIVE,
                 sourceFiles = sourceFiles,
@@ -780,99 +608,60 @@ class BrowseManagerInitializer(
                 overwriteFiles = false,
                 showDetailedErrors = settings.showDetailedErrors,
                 onDestinationSelected = { destination ->
-                    // ARCHIVE mode: dialog captures destination and dismisses; hand off to the
-                    // existing archive-configuration dialog (name prompt + progress/result flow).
-                    archiveDialogManager.showArchiveConfigurationDialog(
-                        currentDir = destination.path,
-                        selectedFiles = state.selectedFiles,
-                        mediaFiles = state.mediaFiles
-                    )
+                    archiveDialogManager.showArchiveConfigurationDialog(destination.path, state.selectedFiles, state.mediaFiles)
                 },
-                onComplete = { /* no-op: ARCHIVE mode does not run an operation here */ }
-            )
-            dialog.show()
+                onComplete = {}
+            ).show()
         }
     }
 
     private fun startSlideshow() {
         val state = viewModel.state.value
         val resource = state.resource
-        val startIndex = if (resource?.lastViewedFile != null) {
-            state.mediaFiles.indexOfFirst { it.path == resource.lastViewedFile }
-        } else if (state.selectedFiles.isNotEmpty()) {
-            state.mediaFiles.indexOfFirst { it.path == state.selectedFiles.first() }
-        } else {
-            -1
+        if (state.mediaFiles.isEmpty()) { Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show(); return }
+        val startIndex = when {
+            resource?.lastViewedFile != null -> state.mediaFiles.indexOfFirst { it.path == resource.lastViewedFile }
+            state.selectedFiles.isNotEmpty() -> state.mediaFiles.indexOfFirst { it.path == state.selectedFiles.first() }
+            else -> -1
         }
-        val actualIndex = if (startIndex >= 0) startIndex else 0
-        if (state.mediaFiles.isNotEmpty()) {
-            val file = state.mediaFiles[actualIndex]
-            val isDoc = file.type == MediaType.TEXT || file.type == MediaType.PDF || file.type == MediaType.EPUB
-            val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck).apply {
-                if (!isDoc) putExtra("slideshow_mode", true)
-            }
-            if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
-                VrTaskTransition.enterImmersive(activity, intent)
-            } else {
-                activity.startActivity(intent)
-            }
-        } else {
-            Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
-        }
+        val actualIndex = maxOf(0, startIndex)
+        val file = state.mediaFiles[actualIndex]
+        val isDoc = file.type == MediaType.TEXT || file.type == MediaType.PDF || file.type == MediaType.EPUB
+        val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, actualIndex, isSkipAvailabilityCheck)
+            .apply { if (!isDoc) putExtra("slideshow_mode", true) }
+        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
+        else activity.startActivity(intent)
     }
 
-    /**
-     * Reshuffles the current file list (switches sort to RANDOM) and immediately
-     * launches PlayerActivity starting from the first file in the reshuffled list.
-     * This gives a true "play random" UX: list order is randomised AND playback starts
-     * at a random position every time the button is pressed.
-     */
     private fun startRandomPlay() {
-        if (viewModel.state.value.mediaFiles.isEmpty()) {
-            Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
-            return
-        }
-        // Reshuffle (persists RANDOM sort mode) — the list state updates asynchronously,
-        // so we capture the reshuffled list synchronously via the ViewModel for the launch.
+        if (viewModel.state.value.mediaFiles.isEmpty()) return Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
         viewModel.reshuffleRandom()
-        val state = viewModel.state.value
-        val resource = state.resource
-        val files = state.mediaFiles
-        if (files.isEmpty()) {
-            Toast.makeText(activity, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
-            return
-        }
+        val resource = viewModel.state.value.resource
         val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, 0, isSkipAvailabilityCheck)
-        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
-            VrTaskTransition.enterImmersive(activity, intent)
-        } else {
-            activity.startActivity(intent)
-        }
+        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
+        else activity.startActivity(intent)
     }
 
     private fun toggleCurrentItemSelection(position: Int) {
-        if (position in 0 until viewModel.state.value.mediaFiles.size) {
+        if (position in 0 until viewModel.state.value.mediaFiles.size)
             viewModel.selectFile(viewModel.state.value.mediaFiles[position].path)
-        }
     }
 
     private fun playCurrentOrSelected(position: Int) {
         val state = viewModel.state.value
-        if (state.selectedFiles.isNotEmpty()) {
+        if (state.selectedFiles.isNotEmpty())
             state.mediaFiles.firstOrNull { it.path in state.selectedFiles }?.let { viewModel.openFile(it) }
-        } else if (position in 0 until state.mediaFiles.size) {
+        else if (position in 0 until state.mediaFiles.size)
             viewModel.openFile(state.mediaFiles[position])
-        }
     }
 
     private fun updateDisplayMode(mode: DisplayMode) {
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
-            val currentResource = viewModel.state.value.resource
-            val shouldForceList = currentResource?.isAudioOnly() == true
+            val resource = viewModel.state.value.resource
+            val shouldForceList = resource?.isAudioOnly() == true
             val effectiveMode = if (shouldForceList) DisplayMode.LIST else mode
-            val iconSize = if (shouldForceList) 48 else if (currentResource?.disableThumbnails == true) 32 else settings.defaultIconSize
-
+            val iconSize = if (shouldForceList) 48 else if (resource?.disableThumbnails == true) 32 else settings.defaultIconSize
             recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnailsGetter(), settings.useCompactElements)
             stateUiUpdater.currentDisplayMode = effectiveMode
             updateToggleViewAvailability(shouldForceList)
@@ -889,24 +678,19 @@ class BrowseManagerInitializer(
     }
 
     private fun updateBreadcrumb(state: com.sza.fastmediasorter.ui.browse.BrowseState) {
-        if (state.isSubfolderMode && state.currentPath != null) {
-            binding.breadcrumbView.visibility = android.view.View.VISIBLE
-            binding.spaceAfterBack?.visibility = android.view.View.GONE
+        val sub = state.isSubfolderMode && state.currentPath != null
+        binding.breadcrumbView.visibility = if (sub) android.view.View.VISIBLE else android.view.View.GONE
+        binding.spaceAfterBack?.visibility = if (sub) android.view.View.GONE else android.view.View.VISIBLE
+        if (sub) {
             val (resourceName, folders) = viewModel.getBreadcrumbParts()
             binding.breadcrumbView.setPath(resourceName, folders)
             binding.breadcrumbView.setOnSegmentClickListener { depth -> viewModel.navigateToDepth(depth) }
-        } else {
-            binding.breadcrumbView.visibility = android.view.View.GONE
-            binding.breadcrumbView.clear()
-            binding.spaceAfterBack?.visibility = android.view.View.VISIBLE
-        }
+        } else binding.breadcrumbView.clear()
     }
 
     private fun launchEditResource(resourceId: Long) {
         launcherManager.editResourceLauncher.launch(ResourceEditorActivity.createEditIntent(activity, resourceId))
     }
 
-    fun forceUpdateDisplayMode(mode: DisplayMode) {
-        updateDisplayMode(mode)
-    }
+    fun forceUpdateDisplayMode(mode: DisplayMode) = updateDisplayMode(mode)
 }
