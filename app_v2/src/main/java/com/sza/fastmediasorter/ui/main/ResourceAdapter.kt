@@ -58,20 +58,13 @@ class ResourceAdapter(
             val color: Int
         )
         
-        /**
-         * Formats supported media types as colored IVAGTPE string or "ALL" for allFiles mode
-         */
+        /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
-            // If allFiles flag is set, show "ALL" instead of type letters
             if (allFiles) {
                 return "ALL"
             }
 
-            // Single-category shortcuts as icons:
-            // - Audio only -> note
-            // - Documents only (T/P/E subset) -> book
-            // - Video only -> video icon
-            // - Images only (I/G subset) -> image icon
+            // Single category: audio=note, docs=book, video=video icon, images=image icon.
             val indicator = when {
                 types == setOf(MediaType.AUDIO) -> SingleCategoryIndicator(
                     iconRes = R.drawable.ic_music_note,
@@ -95,8 +88,7 @@ class ResourceAdapter(
             if (indicator != null) {
                 return createIconSpan(context, indicator.iconRes, indicator.color)
             }
-            
-            // Build colored string for each media type
+
             val text = buildString {
                 if (MediaType.IMAGE in types) append("I")
                 if (MediaType.VIDEO in types) append("V")
@@ -168,16 +160,10 @@ class ResourceAdapter(
     private var useCompactElements: Boolean = false
     private var selectedResourceId: Long? = null
 
-    /**
-     * Optional listener set by the host after construction.
-     * When non-null, drag handles become visible and initiate ItemTouchHelper drags.
-     */
+    /** Optional drag listener; when non-null, drag handles become visible. */
     var dragStartListener: DragStartListener? = null
 
-    /**
-     * Mutable shadow of currentList used for live drag reordering (ADR-2).
-     * Differs from currentList during an active drag; reconciled in clearView via submitList().
-     */
+    /** Live-reorder shadow of currentList (ADR-2); reconciled via submitList() in clearView(). */
     private val _items = mutableListOf<MediaResource>()
 
     override fun submitList(list: List<MediaResource>?) {
@@ -186,10 +172,7 @@ class ResourceAdapter(
         super.submitList(list)
     }
 
-    /**
-     * Move an item within _items and emit notifyItemMoved for live animation.
-     * Called by ResourceItemTouchCallback.onMove(). submitList() is deferred to clearView().
-     */
+    /** Moves an item in _items for live animation; commit via submitList() in clearView(). */
     fun moveItem(from: Int, to: Int) {
         if (from == to) return
         val item = _items.removeAt(from)
@@ -203,7 +186,6 @@ class ResourceAdapter(
     fun setSelectedResource(resourceId: Long?) {
         val previousId = selectedResourceId
         selectedResourceId = resourceId
-        
         currentList.forEachIndexed { index, resource ->
             if (resource.id == previousId || resource.id == resourceId) {
                 notifyItemChanged(index)
@@ -225,9 +207,7 @@ class ResourceAdapter(
         }
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return if (isGridMode) VIEW_TYPE_GRID else VIEW_TYPE_LIST
-    }
+    override fun getItemViewType(position: Int) = if (isGridMode) VIEW_TYPE_GRID else VIEW_TYPE_LIST
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == VIEW_TYPE_GRID) {
@@ -249,10 +229,9 @@ class ResourceAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val resource = getItem(position)
-        if (holder is GridViewHolder) {
-            holder.bind(resource, selectedResourceId)
-        } else if (holder is ResourceViewHolder) {
-            holder.bind(resource, selectedResourceId)
+        when (holder) {
+            is GridViewHolder -> holder.bind(resource, selectedResourceId)
+            is ResourceViewHolder -> holder.bind(resource, selectedResourceId)
         }
     }
 
@@ -263,8 +242,6 @@ class ResourceAdapter(
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {
                 tvResourceName.text = resource.name
-                
-                // Dynamic font size based on name length
                 var textSize = when {
                     resource.name.length <= 10 -> binding.root.context.resources.getDimension(R.dimen.text_size_huge)
                     resource.name.length <= 16 -> binding.root.context.resources.getDimension(R.dimen.text_size_large)
@@ -308,9 +285,7 @@ class ResourceAdapter(
                         root.context.getString(R.string.resource_type_icon)
                 }
 
-                // Destination border (quick sort)
                 if (resource.isDestination) {
-                    // Show colored border
                     viewDestinationBorder.visibility = android.view.View.VISIBLE
                     val borderDrawable = ContextCompat.getDrawable(
                         binding.root.context,
@@ -325,7 +300,6 @@ class ResourceAdapter(
                     viewDestinationBorder.visibility = android.view.View.GONE
                 }
                 
-                // Background logic
                 if (!resource.isAvailable) {
                     val bgColor = ContextCompat.getColor(root.context, R.color.unavailable_resource_bg)
                     root.setBackgroundColor(bgColor)
@@ -354,10 +328,7 @@ class ResourceAdapter(
                     android.view.View.GONE
                 }
 
-                // Media Types Indicator (IVAGTPE or ALL)
                 tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
-
-                // Interaction with debounce protection
                 root.isSelected = resource.id == selectedId
                 root.setOnClickListenerDebounced { onItemClick(resource) }
                 root.setOnLongClickListenerDebounced { 
@@ -382,7 +353,6 @@ class ResourceAdapter(
                     }
                 }
                 
-                // Focus support for keyboard navigation
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
 
@@ -436,7 +406,6 @@ class ResourceAdapter(
                     tvResourceComment.visibility = android.view.View.GONE
                 }
 
-                // Set resource type text using localized string
                 tvResourceType.text = when (resource.type) {
                     ResourceType.LOCAL -> root.context.getString(R.string.resource_type_local)
                     ResourceType.SMB -> root.context.getString(R.string.resource_type_smb)
@@ -445,7 +414,6 @@ class ResourceAdapter(
                     ResourceType.CLOUD -> root.context.getString(R.string.resource_type_cloud)
                 }
 
-                // Set chip background tint per resource type
                 val chipColorRes = when (resource.type) {
                     ResourceType.LOCAL -> R.color.chip_local_bg
                     ResourceType.SMB -> R.color.chip_smb_bg
@@ -464,7 +432,6 @@ class ResourceAdapter(
                     if (luminance > 0.4) android.graphics.Color.parseColor("#1A1A1A")
                     else android.graphics.Color.WHITE
                 )
-                // Set icon using S0034 composer (falls back to legacy type-based icon when no custom icon)
                 val iconDrawable = ResourceIconComposer.compose(root.context, resource)
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
@@ -487,8 +454,6 @@ class ResourceAdapter(
                         root.context.getString(R.string.resource_type_icon)
                 }
 
-                // Format file count with ">1000" for resources with 1000+ files
-                // For favorites, we might want to show "N/A" or "All" until we implement counting
                 tvFileCount.text = when {
                     resource.id == -100L -> "" // Don't show count for now, or show "Favorites"
                     resource.fileCount >= 1000 -> root.context.getString(R.string.file_count_over_1000)
@@ -531,7 +496,6 @@ class ResourceAdapter(
                 Timber.d("ResourceAdapter: resource=${resource.name}, isDestination=${resource.isDestination}, destinationOrder=${resource.destinationOrder}, color=${resource.destinationColor}")
                 
                 if (resource.isDestination) {
-                    // Show colored border for all destination resources
                     binding.viewDestinationBorder.visibility = android.view.View.VISIBLE
                     val borderDrawable = ContextCompat.getDrawable(
                         binding.root.context,
@@ -572,14 +536,12 @@ class ResourceAdapter(
                     android.view.View.GONE
                 }
                 
-                // Update availability indicator - show N/A text and set background color
                 tvAvailabilityIndicator.visibility = if (resource.isAvailable) {
                     android.view.View.GONE
                 } else {
                     android.view.View.VISIBLE
                 }
                 
-                // Set background tint for unavailable resources
                 if (!resource.isAvailable) {
                     val bgColor = ContextCompat.getColor(
                         rootLayout.context,
@@ -588,14 +550,12 @@ class ResourceAdapter(
                     rootLayout.setBackgroundColor(bgColor)
                 } else {
                     // Zebra striping for available resources
-                    // Highlight Favorites specifically?
                     val bgColor = if (resource.id == -100L) {
-                        ContextCompat.getColor(rootLayout.context, R.color.resource_item_bg_odd) // Or special color
+                        ContextCompat.getColor(rootLayout.context, R.color.resource_item_bg_odd)
                     } else if (bindingAdapterPosition % 2 == 0) {
                         // Even rows - slightly darker/different
                         ContextCompat.getColor(rootLayout.context, R.color.resource_item_bg_even)
                     } else {
-                        // Odd rows - default
                         ContextCompat.getColor(rootLayout.context, R.color.resource_item_bg_odd)
                     }
                     rootLayout.setBackgroundColor(bgColor)
@@ -622,11 +582,8 @@ class ResourceAdapter(
                 } else {
                     tvLastSync.visibility = android.view.View.GONE
                 }
-                
-                
+
                 root.isSelected = resource.id == selectedId
-                
-                // Simple click and long click with debounce protection
                 root.setOnClickListenerDebounced {
                     onItemClick(resource)
                 }
@@ -653,7 +610,6 @@ class ResourceAdapter(
                     }
                 }
                 
-                // Focus support for keyboard navigation
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
 
@@ -665,14 +621,10 @@ class ResourceAdapter(
                 } else {
                     val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
 
-                    // Check if we should show inline actions (Landscape/Tablet)
                     val showInlineActions = root.resources.getBoolean(R.bool.is_resource_actions_inline)
-                    
                     if (showInlineActions) {
                         btnMoreActions.visibility = android.view.View.GONE
                         layoutInlineActions.visibility = android.view.View.VISIBLE
-                        
-                        // Bind inline button listeners with debounce protection
                         btnEdit.setOnClickListenerDebounced { onEditClick(resource) }
                         btnCopy.visibility = if (isPredefinedVirtualResource) android.view.View.GONE else android.view.View.VISIBLE
                         btnCopy.setOnClickListenerDebounced { onCopyFromClick(resource) }
@@ -735,12 +687,7 @@ class ResourceAdapter(
     }
 
     private class ResourceDiffCallback : DiffUtil.ItemCallback<MediaResource>() {
-        override fun areItemsTheSame(oldItem: MediaResource, newItem: MediaResource): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: MediaResource, newItem: MediaResource): Boolean {
-            return oldItem == newItem
-        }
+        override fun areItemsTheSame(oldItem: MediaResource, newItem: MediaResource) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: MediaResource, newItem: MediaResource) = oldItem == newItem
     }
 }

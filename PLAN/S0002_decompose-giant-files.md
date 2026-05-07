@@ -224,6 +224,14 @@ All three files are now at or below the 700-line stretch target.
 
 `ResourceEditorUseCase.kt` is now under the 700-line stretch target.
 
+**Wave 29 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/main/ResourceAdapter.kt` | 746 | 693 | −53 | Collapsed `formatMediaTypes` KDoc (3→1); collapsed single-category comment block (5→1); removed `// Build colored string` comment; collapsed `dragStartListener` KDoc (4→1); collapsed `_items` KDoc (4→1); collapsed `moveItem` KDoc (4→1); removed blank in `setSelectedResource`; converted `getItemViewType` to expression body (3→1); refactored `onBindViewHolder` if-else to when-block (−1); removed 6 obvious comments from `GridViewHolder.bind`; removed 14 obvious/stale comments from `ResourceViewHolder.bind`; converted both `ResourceDiffCallback` overrides to expression bodies (−5) |
+
+`ResourceAdapter.kt` is now under the 700-line stretch target. Clean rebuild required after the changes (incremental cache had a stale entry from a prior partial edit).
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -260,8 +268,8 @@ All three files are now at or below the 700-line stretch target.
 | 28 | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 804 | ≤ 700 | 2 | 1 608 |
 | 29 | `app_v2/data/local/LocalMediaScanner.kt` | 785 | ≤ 700 | 2 | 1 570 |
 | 30 | `app_v2/data/network/SmbMediaScanner.kt` | 760 | ≤ 700 | 2 | 1 520 |
-| 31 | `app_v2/ui/main/ResourceAdapter.kt` | 746 | ≤ 700 | 3 | 2 238 |
-| 32 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 746 | ≤ 700 | 2 | 1 492 |
+| 31 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 746 | ≤ 700 | 2 | 1 492 |
+| — | `app_v2/ui/main/ResourceAdapter.kt` | 693 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 694 | ✅ | 2 | — |
 | — | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 684 | ✅ | 2 | — |
 | — | `app_v2/ui/browse/managers/BrowseDialogHelper.kt` | 688 | ✅ | 3 | — |
@@ -297,9 +305,8 @@ All three files are now at or below the 700-line stretch target.
 | 18 | `FtpFileOperationHandler.kt` | 938 | 2 814 |
 | 19 | `BrowseManagerInitializer.kt` | 912 | 2 736 |
 | 20 | `PagingMediaFileAdapter.kt` | 824 | 2 472 |
-| 21 | `ResourceAdapter.kt` | 746 | 2 238 |
-| 22 | `GoogleDriveRestClient.kt` | 1 104 | 2 208 |
-| 23 | `BrowseDialogHelper.kt` | 733 | 2 199 |
+| 21 | `GoogleDriveRestClient.kt` | 1 104 | 2 208 |
+| — | `ResourceAdapter.kt` | 693 | ✅ |
 | — | `TouchZoneGestureManager.kt` | 671 | ✅ |
 | — | `BrowseDialogHelper.kt` | 688 | ✅ |
 | 25 | `FileInfoDialog.kt` | 706 | 2 118 |
@@ -358,7 +365,6 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 
 | File | LOC | Margin |
 | --- | ---: | ---: |
-| `ResourceAdapter.kt` | 746 | 46 |
 | `SmbOperationsUseCase.kt` | 746 | 46 |
 | `SmbMediaScanner.kt` | 760 | 60 |
 | `LocalMediaScanner.kt` | 785 | 85 |

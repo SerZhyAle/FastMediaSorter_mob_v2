@@ -6865,3 +6865,4 @@ Format: | datetime | file | target | description |
 | 2026-05-07 11:50:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | S0002 Wave 26: remove extracted RenameFilesAdapter inner class (733→688 LOC) |
 | 2026-05-07 12:00:51 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/CloudOperationStrategy.kt` | `CloudOperationStrategy` | S0002 Wave 27: trim dead comments/blanks and refactor copyDirectory loop (742→684 LOC) |
 | 2026-05-07 12:05:02 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `ResourceEditorUseCase` | S0002 Wave 28: extract connectionTestResultFrom helper + expression bodies (745→694 LOC) |
+| 2026-05-07 12:18:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `ResourceAdapter` | S0002 Wave 29: 746→693 LOC (−53) via comment removal, expression bodies, when-block refactor |
