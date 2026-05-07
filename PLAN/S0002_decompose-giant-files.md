@@ -240,6 +240,14 @@ All three files are now at or below the 700-line stretch target.
 
 `SmbOperationsUseCase.kt` is now under the 700-line stretch target.
 
+**Wave 31 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/network/SmbMediaScanner.kt` | 760 | 679 | −81 | Collapsed class KDoc (4→1); collapsed 4 function KDocs (3-4→1 each, −10); removed `// Determine if we are in "All Files" mode`, `// Get all supported extensions`, `// Convert SmbFileInfo`, dead `// val isAllFilesMode … // Already calculated above` × 2, `// Skip hidden files …` × 3, `// Skip directories` × 2, `// Apply size filter`, `// Use chunked scan method`, `// Convert to MediaFile list`, `// Regular file`, `// Parse path using utility`, `// Try to get credentials`, `// Get all supported extensions` inline comments (−17); removed 2 extra blank lines; compressed `mapNotNull` guard chains in `scanFolderChunked` and `scanFolderPaged` to single-line guard returns (−33) |
+
+`SmbMediaScanner.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -275,7 +283,7 @@ All three files are now at or below the 700-line stretch target.
 | 27 | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 824 | ≤ 700 | 3 | 2 472 |
 | 28 | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 804 | ≤ 700 | 2 | 1 608 |
 | 29 | `app_v2/data/local/LocalMediaScanner.kt` | 785 | ≤ 700 | 2 | 1 570 |
-| 30 | `app_v2/data/network/SmbMediaScanner.kt` | 760 | ≤ 700 | 2 | 1 520 |
+| — | `app_v2/data/network/SmbMediaScanner.kt` | 679 | ✅ | 2 | — |
 | — | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 685 | ✅ | 2 | — |
 | — | `app_v2/ui/main/ResourceAdapter.kt` | 693 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 694 | ✅ | 2 | — |
@@ -326,7 +334,7 @@ All three files are now at or below the 700-line stretch target.
 | 31 | `NetworkFileModelLoader.kt` | 826 | 1 652 |
 | 32 | `SearchLyricsUseCase.kt` | 804 | 1 608 |
 | 33 | `LocalMediaScanner.kt` | 785 | 1 570 |
-| 34 | `SmbMediaScanner.kt` | 760 | 1 520 |
+| — | `SmbMediaScanner.kt` | 679 | ✅ |
 | — | `SmbOperationsUseCase.kt` | 685 | ✅ |
 | — | `ResourceEditorUseCase.kt` | 694 | ✅ |
 | — | `CloudOperationStrategy.kt` | 684 | ✅ |
@@ -373,7 +381,6 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 
 | File | LOC | Margin |
 | --- | ---: | ---: |
-| `SmbMediaScanner.kt` | 760 | 60 |
 | `LocalMediaScanner.kt` | 785 | 85 |
 | `SearchLyricsUseCase.kt` | 804 | 104 |
 | `PagingMediaFileAdapter.kt` | 824 | 124 |

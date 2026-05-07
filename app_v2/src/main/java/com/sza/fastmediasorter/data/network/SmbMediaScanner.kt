@@ -32,10 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * MediaScanner implementation for SMB network resources.
- * Scans remote SMB shares for media files using SmbClient.
- */
+/** MediaScanner implementation for SMB network resources via SmbClient. */
 @Singleton
 class SmbMediaScanner @Inject constructor(
     private val smbClient: SmbClient,
@@ -84,9 +81,7 @@ class SmbMediaScanner @Inject constructor(
         scanFolderWithProgress(path, supportedTypes, sizeFilter, credentialsId, scanSubdirectories, showHiddenFiles, onProgress)
     }
     
-    /**
-     * Scan folder with progress callback support
-     */
+    /** Scan folder with progress callback support */
     suspend fun scanFolderWithProgress(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -107,10 +102,7 @@ class SmbMediaScanner @Inject constructor(
                 throw IllegalArgumentException(msg)
             }
 
-            // Determine if we are in "All Files" mode (all 7 types supported)
             val isAllFilesMode = supportedTypes.size >= 7
-
-            // Get all supported extensions or null if in All Files mode (to disable filtering)
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
 
             // Scan SMB folder with progress callback (throttled to avoid network overload)
@@ -130,9 +122,7 @@ class SmbMediaScanner @Inject constructor(
                 )
             }) {
                 is SmbResult.Success -> {
-                    // Convert SmbFileInfo to MediaFile
                     // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
-                    // val isAllFilesMode = supportedTypes.size >= 7 // Already calculated above
                     // Skip per-file metadata extraction for large folders to avoid
                     // tens of minutes of individual SMB reads (EXIF / video probes).
                     val skipMetadataExtraction = result.data.size > METADATA_SKIP_THRESHOLD
@@ -141,22 +131,12 @@ class SmbMediaScanner @Inject constructor(
                     }
                     _metadataErrorCount.set(0)
                     val files = result.data.mapNotNull { fileInfo ->
-                        // Skip hidden files if not requested (files starting with ".")
-                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
-                            return@mapNotNull null
-                        }
-                        
+                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) return@mapNotNull null
                         // Skip directories in flat scan (recursive or not) - we only want files
-                        if (fileInfo.isDirectory) {
-                            return@mapNotNull null
-                        }
-                        
+                        if (fileInfo.isDirectory) return@mapNotNull null
                         val mediaType = MediaTypeUtils.getMediaType(fileInfo.name) ?: if (isAllFilesMode) MediaType.TEXT else null
                         if (mediaType != null && supportedTypes.contains(mediaType)) {
-                            // Apply size filter if provided
-                            if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
-                                return@mapNotNull null
-                            }
+                            if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) return@mapNotNull null
 
                             val exifMetadata = if (!skipMetadataExtraction && (mediaType == MediaType.IMAGE || mediaType == MediaType.GIF)) {
                                 extractExifMetadata(connectionInfo.connectionInfo, fileInfo.path)
@@ -208,9 +188,7 @@ class SmbMediaScanner @Inject constructor(
         }
     }
 
-    /**
-     * Fetch single file metadata directly from SMB share without full folder rescan.
-     */
+    /** Fetch single file metadata directly from SMB share without full folder rescan. */
     suspend fun getFileByPath(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -260,10 +238,7 @@ class SmbMediaScanner @Inject constructor(
         }
     }
 
-    /**
-     * Scan folder with limit (for lazy loading initial batch)
-     * Returns first maxFiles files quickly
-     */
+    /** Scan folder with limit (lazy load initial batch); returns first maxFiles files. */
     suspend fun scanFolderChunked(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -289,7 +264,6 @@ class SmbMediaScanner @Inject constructor(
             
             Timber.d("scanFolderChunked: Extensions=${if (extensions == null) "ALL (null)" else extensions.size}")
 
-            // Use chunked scan method
             when (val result = smbClient.scanMediaFilesChunked(
                 connectionInfo = connectionInfo.connectionInfo,
                 remotePath = connectionInfo.remotePath,
@@ -299,33 +273,13 @@ class SmbMediaScanner @Inject constructor(
             )) {
                 is SmbResult.Success -> {
                     Timber.d("scanFolderChunked: Got ${result.data.size} files from smbClient")
-                    
-                    // val isAllFilesMode = supportedTypes.size >= 7 // Already calculated above
                     val mediaFiles = result.data.mapNotNull { fileInfo ->
-                        // Skip hidden files if not requested (files starting with ".")
-                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
-                            return@mapNotNull null
-                        }
-                        
-                        // Skip directories
-                        if (fileInfo.isDirectory) {
-                            return@mapNotNull null
-                        }
-                        
+                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) return@mapNotNull null
+                        if (fileInfo.isDirectory) return@mapNotNull null
                         val mediaType = MediaTypeUtils.getMediaType(fileInfo.name) ?: if (isAllFilesMode) MediaType.TEXT else null
-                        if (mediaType != null && supportedTypes.contains(mediaType)) {
-                            if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
-                                return@mapNotNull null
-                            }
-
-                            MediaFile(
-                                name = fileInfo.name,
-                                path = buildFullSmbPath(connectionInfo, fileInfo.path),
-                                size = fileInfo.size,
-                                createdDate = fileInfo.lastModified,
-                                type = mediaType
-                            )
-                        } else null
+                        if (mediaType == null || !supportedTypes.contains(mediaType)) return@mapNotNull null
+                        if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) return@mapNotNull null
+                        MediaFile(name = fileInfo.name, path = buildFullSmbPath(connectionInfo, fileInfo.path), size = fileInfo.size, createdDate = fileInfo.lastModified, type = mediaType)
                     }
                     
                     Timber.d("scanFolderChunked: Returning ${mediaFiles.size} MediaFile objects")
@@ -362,8 +316,6 @@ class SmbMediaScanner @Inject constructor(
                 throw IllegalArgumentException(msg)
             }
 
-
-
             val isAllFilesMode = supportedTypes.size >= 7
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
 
@@ -377,33 +329,13 @@ class SmbMediaScanner @Inject constructor(
                 scanSubdirectories = scanSubdirectories
             )) {
                 is SmbResult.Success -> {
-                    // Convert to MediaFile list with optional size filtering
-                    // val isAllFilesMode = supportedTypes.size >= 7 // Already calculated above
                     val mediaFiles = result.data.mapNotNull { fileInfo ->
-                        // Skip hidden files if not requested (files starting with ".")
-                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
-                            return@mapNotNull null
-                        }
-                        
-                        // Skip directories
-                        if (fileInfo.isDirectory) {
-                            return@mapNotNull null
-                        }
-                        
+                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) return@mapNotNull null
+                        if (fileInfo.isDirectory) return@mapNotNull null
                         val mediaType = MediaTypeUtils.getMediaType(fileInfo.name) ?: if (isAllFilesMode) MediaType.TEXT else null
-                        if (mediaType != null && supportedTypes.contains(mediaType)) {
-                            if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
-                                return@mapNotNull null
-                            }
-
-                            MediaFile(
-                                name = fileInfo.name,
-                                path = buildFullSmbPath(connectionInfo, fileInfo.path),
-                                size = fileInfo.size,
-                                createdDate = fileInfo.lastModified,
-                                type = mediaType
-                            )
-                        } else null
+                        if (mediaType == null || !supportedTypes.contains(mediaType)) return@mapNotNull null
+                        if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) return@mapNotNull null
+                        MediaFile(name = fileInfo.name, path = buildFullSmbPath(connectionInfo, fileInfo.path), size = fileInfo.size, createdDate = fileInfo.lastModified, type = mediaType)
                     }
                     
                     // If we got fewer files than requested, no more pages
@@ -441,7 +373,6 @@ class SmbMediaScanner @Inject constructor(
                 throw IllegalArgumentException(msg)
             }
 
-            // Get all supported extensions
             val isAllFilesMode = supportedTypes.size >= 7
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
 
@@ -492,15 +423,8 @@ class SmbMediaScanner @Inject constructor(
             )) {
                 is SmbResult.Success -> {
                     result.data.mapNotNull { fileInfo ->
-                        // Skip hidden files if not requested
-                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
-                            return@mapNotNull null
-                        }
-
-                        // Skip .trash directories
-                        if (fileInfo.isDirectory && fileInfo.name.startsWith(".trash")) {
-                            return@mapNotNull null
-                        }
+                        if (!showHiddenFiles && fileInfo.name.startsWith(".")) return@mapNotNull null
+                        if (fileInfo.isDirectory && fileInfo.name.startsWith(".trash")) return@mapNotNull null
 
                         if (fileInfo.isDirectory) {
                             // For directories, count immediate children
@@ -527,7 +451,6 @@ class SmbMediaScanner @Inject constructor(
                                 childCount = childCount
                             )
                         } else {
-                            // Regular file
                             val mediaType = MediaTypeUtils.getMediaType(fileInfo.name) ?: if (isAllFilesMode) MediaType.TEXT else null
                             if (mediaType != null && supportedTypes.contains(mediaType)) {
                                 if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
@@ -576,19 +499,15 @@ class SmbMediaScanner @Inject constructor(
         }
     }
 
-    /**
-     * Parse SMB path format: smb://server:port/share/path
-     */
+    /** Parse SMB path format: smb://server:port/share/path */
     private suspend fun parseSmbPath(path: String, credentialsId: String?): SmbConnectionInfoWithPath? {
         return try {
-            // Parse path using utility
             val pathInfo = SmbPathUtils.parseSmbPath(path) ?: return null
             val server = pathInfo.connectionInfo.server
             val share = pathInfo.connectionInfo.shareName
             val port = pathInfo.connectionInfo.port
             val remotePath = pathInfo.remotePath
             
-            // Try to get credentials from database using credentialsId first
             val credentials = if (credentialsId != null) {
                 credentialsRepository.getByCredentialId(credentialsId)
             } else {
