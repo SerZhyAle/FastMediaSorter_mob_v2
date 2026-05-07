@@ -34,10 +34,7 @@ import java.util.Date
 import kotlin.math.ln
 import kotlin.math.pow
 
-/**
- * PagingDataAdapter for large datasets (1000+ files).
- * Efficiently loads files in pages to prevent OOM crashes.
- */
+/** PagingDataAdapter for large datasets (1000+ files); loads in pages to prevent OOM. */
 class PagingMediaFileAdapter(
     private val onFileClick: (MediaFile, Int) -> Unit, // Added position parameter
     private val onFileLongClick: (MediaFile) -> Unit,
@@ -59,7 +56,6 @@ class PagingMediaFileAdapter(
         private const val VIEW_TYPE_GRID = 1
         private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
         
-        // EPUB cover size limits for network resources (same as PDF)
         private const val SMB_EPUB_MAX_SIZE = 50 * 1024 * 1024L // 50 MB for SMB
         private const val NETWORK_EPUB_MAX_SIZE = 10 * 1024 * 1024L // 10 MB for SFTP/FTP/Cloud
     }
@@ -107,23 +103,10 @@ class PagingMediaFileAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            VIEW_TYPE_GRID -> {
-                val binding = ItemMediaFileGridBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                GridViewHolder(binding)
-            }
-            else -> {
-                val binding = ItemMediaFileBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                ListViewHolder(binding)
-            }
+            VIEW_TYPE_GRID -> GridViewHolder(ItemMediaFileGridBinding.inflate(inflater, parent, false))
+            else -> ListViewHolder(ItemMediaFileBinding.inflate(inflater, parent, false))
         }
     }
 
@@ -143,6 +126,32 @@ class PagingMediaFileAdapter(
             is ListViewHolder -> holder.clearImage()
             is GridViewHolder -> holder.clearImage()
         }
+    }
+
+    // Shared helpers — accessed by both inner ViewHolder classes
+    private fun createExtensionBitmap(extension: String): Bitmap =
+        ExtensionThumbnailGenerator.generate(extension, 200)
+
+    private fun getPlaceholderExtension(file: MediaFile): String {
+        val extension = file.name.substringAfterLast('.', "").uppercase()
+        if (extension.isNotBlank()) return extension
+        return when (file.type) {
+            MediaType.IMAGE, MediaType.GIF -> "IMG"
+            MediaType.VIDEO -> "VID"
+            MediaType.PDF -> "PDF"
+            MediaType.EPUB -> "EPUB"
+            MediaType.AUDIO -> "AUD"
+            MediaType.TEXT -> "TXT"
+            MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
+            MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
+        }
+    }
+
+    private fun createPlaceholderBitmap(file: MediaFile): Bitmap =
+        createExtensionBitmap(getPlaceholderExtension(file))
+
+    private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
+        imageView.setImageBitmap(createPlaceholderBitmap(file))
     }
 
     inner class ListViewHolder(
@@ -184,13 +193,9 @@ class PagingMediaFileAdapter(
                 
                 // Long click on checkbox: select range from last selected to this file
                 cbSelect.setOnLongClickListener {
-                    if (!isSelected) {
-                        // Only handle long click on unchecked checkbox
-                        onSelectionRangeRequested(file)
-                    }
-                    true // Consume the event
+                    if (!isSelected) onSelectionRangeRequested(file)
+                    true
                 }
-                // Highlight selected items
                 root.setBackgroundColor(
                     if (isSelected) {
                         root.context.getColor(com.sza.fastmediasorter.R.color.item_selected)
@@ -232,28 +237,9 @@ class PagingMediaFileAdapter(
                 if (!localFile.exists()) {
                     Timber.w("File no longer exists: ${file.path}")
                     when (file.type) {
-                        MediaType.IMAGE, MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
-                        MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
-                        MediaType.AUDIO -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.TEXT -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.PDF -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.EPUB -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
+                        MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
+                        else -> imageView.setImageBitmap(createExtensionBitmap(
+                            file.name.substringAfterLast('.', "").uppercase()))
                     }
                     return
                 }
@@ -262,7 +248,6 @@ class PagingMediaFileAdapter(
             when (file.type) {
                 MediaType.IMAGE, MediaType.GIF -> {
                     if (isCloudPath) {
-                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
                         if (!file.thumbnailUrl.isNullOrEmpty()) {
                             val fileId = file.path.substringAfterLast("/")
                             Glide.with(context)
@@ -294,11 +279,7 @@ class PagingMediaFileAdapter(
                                 .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
-                        val data = if (file.path.startsWith("content://")) {
-                            Uri.parse(file.path)
-                        } else {
-                            File(file.path)
-                        }
+                        val data: Any = if (file.path.startsWith("content://")) Uri.parse(file.path) else File(file.path)
                         Glide.with(context)
                             .load(data)
                             .signature(ObjectKey(cacheKey))
@@ -314,7 +295,6 @@ class PagingMediaFileAdapter(
                 }
                 MediaType.VIDEO -> {
                     if (isCloudPath) {
-                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
                         if (!file.thumbnailUrl.isNullOrEmpty()) {
                             val fileId = file.path.substringAfterLast("/")
                             Glide.with(context)
@@ -357,11 +337,7 @@ class PagingMediaFileAdapter(
                                 .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
-                        val data = if (file.path.startsWith("content://")) {
-                            Uri.parse(file.path)
-                        } else {
-                            File(file.path)
-                        }
+                        val data: Any = if (file.path.startsWith("content://")) Uri.parse(file.path) else File(file.path)
                         Glide.with(context)
                             .load(data)
                             .signature(ObjectKey(cacheKey))
@@ -375,21 +351,11 @@ class PagingMediaFileAdapter(
                             .into(imageView)
                     }
                 }
-                MediaType.AUDIO -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    val bitmap = createExtensionBitmap(extension)
-                    imageView.setImageBitmap(bitmap)
-                }
-                MediaType.TEXT -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    val bitmap = createExtensionBitmap(extension)
-                    imageView.setImageBitmap(bitmap)
-                }
+                MediaType.AUDIO, MediaType.TEXT ->
+                    imageView.setImageBitmap(createExtensionBitmap(
+                        file.name.substringAfterLast('.', "").uppercase()))
                 MediaType.PDF -> {
-                    // Always load PDF thumbnails for network paths
-                    // Download size depends on "Large PDF Thumbnails" setting:
-                    // - OFF: 5MB (fast, lower quality)
-                    // - ON: full file (slow, best quality)
+                    // Network PDF: load thumbnail; size limit via "Large PDF Thumbnails" setting
                     if (isNetworkPath) {
                         Glide.with(context)
                             .asBitmap()
@@ -406,16 +372,12 @@ class PagingMediaFileAdapter(
                             .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
-                        // Local PDF or cloud - show extension bitmap
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        val bitmap = createExtensionBitmap(extension)
-                        imageView.setImageBitmap(bitmap)
+                        imageView.setImageBitmap(createExtensionBitmap(
+                            file.name.substringAfterLast('.', "").uppercase()))
                     }
                 }
                 MediaType.EPUB -> {
-                    // Load EPUB cover using Glide (EpubCoverDecoder registered in GlideAppModule)
                     if (!isCloudPath && !isNetworkPath) {
-                        // Local EPUB - Glide will use EpubCoverDecoder automatically for .epub files
                         val epubFile = File(file.path)
                         if (epubFile.exists()) {
                             Glide.with(context)
@@ -430,23 +392,15 @@ class PagingMediaFileAdapter(
                             showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
-                        // Network EPUB (SMB/SFTP/FTP) - check size limits (same as PDF logic)
+                        // Network EPUB (SMB/SFTP/FTP): respect size limits (same as PDF)
                         val isSmbPath = file.path.startsWith("smb://")
                         val maxSize = if (isSmbPath) SMB_EPUB_MAX_SIZE else NETWORK_EPUB_MAX_SIZE
-                        
                         if (file.size > maxSize) {
-                            // File too large - show placeholder without downloading
                             showGeneratedPlaceholder(imageView, file)
                         } else {
-                            // File size OK - use NetworkEpubCoverLoader
-                            val networkData = NetworkFileData(
-                                path = file.path,
-                                size = file.size,
-                                credentialsId = credentialsId
-                            )
                             Glide.with(context)
                                 .asBitmap()
-                                .load(networkData)
+                                .load(NetworkFileData(path = file.path, size = file.size, credentialsId = credentialsId))
                                 .signature(ObjectKey(cacheKey))
                                 .placeholder(generatedPlaceholder)
                                 .error(generatedPlaceholder)
@@ -454,53 +408,18 @@ class PagingMediaFileAdapter(
                                 .into(imageView)
                         }
                     } else {
-                        // Cloud EPUB - check size limit (same as PDF)
-                        if (file.size > NETWORK_EPUB_MAX_SIZE) {
-                            showGeneratedPlaceholder(imageView, file)
-                        } else {
-                            // Cloud EPUB implementation would go here
-                            showGeneratedPlaceholder(imageView, file)
-                        }
+                        showGeneratedPlaceholder(imageView, file)
                     }
                 }
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    imageView.setImageBitmap(createExtensionBitmap(extension))
-                }
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER ->
+                    imageView.setImageBitmap(createExtensionBitmap(
+                        file.name.substringAfterLast('.', "").uppercase()))
             }
         }
 
-        private fun createExtensionBitmap(extension: String): Bitmap {
-            return ExtensionThumbnailGenerator.generate(extension, 200)
-        }
-
-        private fun getPlaceholderExtension(file: MediaFile): String {
-            val extension = file.name.substringAfterLast('.', "").uppercase()
-            if (extension.isNotBlank()) return extension
-            return when (file.type) {
-                MediaType.IMAGE, MediaType.GIF -> "IMG"
-                MediaType.VIDEO -> "VID"
-                MediaType.PDF -> "PDF"
-                MediaType.EPUB -> "EPUB"
-                MediaType.AUDIO -> "AUD"
-                MediaType.TEXT -> "TXT"
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
-            }
-        }
-
-        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
-            return createExtensionBitmap(getPlaceholderExtension(file))
-        }
-
-        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
-            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
-        }
-
-        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
-            imageView.setImageBitmap(createPlaceholderBitmap(file))
-        }
+        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable =
+            BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
 
         private fun buildFileInfo(file: MediaFile): String {
             val size = formatFileSize(file.size)
@@ -525,20 +444,14 @@ class PagingMediaFileAdapter(
             binding.apply {
                 val isSelected = file.path in selectedPaths
 
-                // Setup checkbox
                 cbSelect.setOnCheckedChangeListener(null)
                 cbSelect.isChecked = isSelected
                 cbSelect.setOnCheckedChangeListener { _, isChecked ->
                     onSelectionChanged(file, isChecked)
                 }
-                
-                // Long click on checkbox: select range from last selected to this file
                 cbSelect.setOnLongClickListener {
-                    if (!isSelected) {
-                        // Only handle long click on unchecked checkbox
-                        onSelectionRangeRequested(file)
-                    }
-                    true // Consume the event
+                    if (!isSelected) onSelectionRangeRequested(file)
+                    true
                 }
 
                 val sizeInPx = (thumbnailSize * root.context.resources.displayMetrics.density).toInt()
@@ -595,28 +508,9 @@ class PagingMediaFileAdapter(
                 if (!localFile.exists()) {
                     Timber.w("File no longer exists: ${file.path}")
                     when (file.type) {
-                        MediaType.IMAGE, MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
-                        MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
-                        MediaType.AUDIO -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.TEXT -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.PDF -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.EPUB -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
-                        MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                            val extension = file.name.substringAfterLast('.', "").uppercase()
-                            imageView.setImageBitmap(createExtensionBitmap(extension))
-                        }
+                        MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
+                        else -> imageView.setImageBitmap(createExtensionBitmap(
+                            file.name.substringAfterLast('.', "").uppercase()))
                     }
                     return
                 }
@@ -625,7 +519,6 @@ class PagingMediaFileAdapter(
             when (file.type) {
                 MediaType.IMAGE, MediaType.GIF -> {
                     if (isCloudPath) {
-                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
                         if (!file.thumbnailUrl.isNullOrEmpty()) {
                             val fileId = file.path.substringAfterLast("/")
                             Glide.with(context)
@@ -657,11 +550,7 @@ class PagingMediaFileAdapter(
                                 .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
-                        val data = if (file.path.startsWith("content://")) {
-                            Uri.parse(file.path)
-                        } else {
-                            File(file.path)
-                        }
+                        val data: Any = if (file.path.startsWith("content://")) Uri.parse(file.path) else File(file.path)
                         Glide.with(context)
                             .load(data)
                             .signature(ObjectKey(cacheKey))
@@ -677,7 +566,6 @@ class PagingMediaFileAdapter(
                 }
                 MediaType.VIDEO -> {
                     if (isCloudPath) {
-                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
                         if (!file.thumbnailUrl.isNullOrEmpty()) {
                             val fileId = file.path.substringAfterLast("/")
                             Glide.with(context)
@@ -720,11 +608,7 @@ class PagingMediaFileAdapter(
                                 .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
-                        val data = if (file.path.startsWith("content://")) {
-                            Uri.parse(file.path)
-                        } else {
-                            File(file.path)
-                        }
+                        val data: Any = if (file.path.startsWith("content://")) Uri.parse(file.path) else File(file.path)
                         Glide.with(context)
                             .load(data)
                             .signature(ObjectKey(cacheKey))
@@ -738,19 +622,10 @@ class PagingMediaFileAdapter(
                             .into(imageView)
                     }
                 }
-                MediaType.AUDIO -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    val bitmap = createExtensionBitmap(extension)
-                    imageView.setImageBitmap(bitmap)
-                }
-                MediaType.TEXT -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    val bitmap = createExtensionBitmap(extension)
-                    imageView.setImageBitmap(bitmap)
-                }
+                MediaType.AUDIO, MediaType.TEXT, MediaType.EPUB ->
+                    imageView.setImageBitmap(createExtensionBitmap(
+                        file.name.substringAfterLast('.', "").uppercase()))
                 MediaType.PDF -> {
-                    // Always load PDF thumbnails for network paths
-                    // Download size depends on "Large PDF Thumbnails" setting
                     if (isNetworkPath) {
                         Glide.with(context)
                             .asBitmap()
@@ -767,55 +642,19 @@ class PagingMediaFileAdapter(
                             .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
-                        // Local PDF or cloud - show extension bitmap
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        val bitmap = createExtensionBitmap(extension)
-                        imageView.setImageBitmap(bitmap)
+                        imageView.setImageBitmap(createExtensionBitmap(
+                            file.name.substringAfterLast('.', "").uppercase()))
                     }
                 }
-                MediaType.EPUB -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    val bitmap = createExtensionBitmap(extension)
-                    imageView.setImageBitmap(bitmap)
-                }
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                    val extension = file.name.substringAfterLast('.', "").uppercase()
-                    imageView.setImageBitmap(createExtensionBitmap(extension))
-                }
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER ->
+                    imageView.setImageBitmap(createExtensionBitmap(
+                        file.name.substringAfterLast('.', "").uppercase()))
             }
         }
 
-        private fun createExtensionBitmap(extension: String): Bitmap {
-            return ExtensionThumbnailGenerator.generate(extension, 200)
-        }
-
-        private fun getPlaceholderExtension(file: MediaFile): String {
-            val extension = file.name.substringAfterLast('.', "").uppercase()
-            if (extension.isNotBlank()) return extension
-            return when (file.type) {
-                MediaType.IMAGE, MediaType.GIF -> "IMG"
-                MediaType.VIDEO -> "VID"
-                MediaType.PDF -> "PDF"
-                MediaType.EPUB -> "EPUB"
-                MediaType.AUDIO -> "AUD"
-                MediaType.TEXT -> "TXT"
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
-            }
-        }
-
-        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
-            return createExtensionBitmap(getPlaceholderExtension(file))
-        }
-
-        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
-            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
-        }
-
-        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
-            imageView.setImageBitmap(createPlaceholderBitmap(file))
-        }
+        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable =
+            BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
     }
 }
 

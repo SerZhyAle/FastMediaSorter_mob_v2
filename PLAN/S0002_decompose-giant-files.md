@@ -264,6 +264,14 @@ All three files are now at or below the 700-line stretch target.
 
 `SearchLyricsUseCase.kt` is now well under the 700-line stretch target.
 
+**Wave 34 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/browse/PagingMediaFileAdapter.kt` | 824 | 663 | −161 | Collapsed class KDoc; compressed `onCreateViewHolder` (19→6 lines, extracted `inflater` val); merged file-not-found `when` block in both ViewHolders (24→5 lines each, IMAGE/GIF/VIDEO → `showGeneratedPlaceholder`, else → extension bitmap, −38 total); inlined `content://` data val in 4 `loadThumbnail` local branches (5→1 line each, −16); merged AUDIO+TEXT in ListViewHolder (6→2 lines) and AUDIO+TEXT+EPUB in GridViewHolder (9→2 lines); simplified cloud EPUB branch (both branches called `showGeneratedPlaceholder` — collapsed to 1, −6); compressed PDF else-branch in both ViewHolders (3→1); moved 4 shared helpers (`createExtensionBitmap`, `getPlaceholderExtension`, `createPlaceholderBitmap`, `showGeneratedPlaceholder`) from both inner classes to adapter level (saved 23-line duplicate, −26); removed `// Setup checkbox`, `// Long click on checkbox`, `// Only handle long click on unchecked checkbox`, `// Cloud path: use GoogleDriveThumbnailData…`, `// EPUB cover using Glide`, `// Local EPUB`, comments; `createPlaceholderDrawable` kept in each ViewHolder (uses `binding.root.resources`) |
+
+`PagingMediaFileAdapter.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -296,7 +304,7 @@ All three files are now at or below the 700-line stretch target.
 | 24 | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 845 | ≤ 700 | 2 | 1 690 |
 | 25 | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 832 | ≤ 700 | 2 | 1 664 |
 | 26 | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 826 | ≤ 700 | 2 | 1 652 |
-| 27 | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 824 | ≤ 700 | 3 | 2 472 |
+| — | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 663 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
 | — | `app_v2/data/network/SmbMediaScanner.kt` | 679 | ✅ | 2 | — |
