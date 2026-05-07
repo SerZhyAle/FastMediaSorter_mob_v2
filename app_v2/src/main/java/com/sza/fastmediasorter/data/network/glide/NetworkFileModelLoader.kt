@@ -27,12 +27,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.util.zip.CRC32
 
-/**
- * Glide ModelLoader for loading images from network paths (SMB/SFTP/FTP).
- * 
- * Uses direct byte reading with maxBytes limit for efficient thumbnail loading.
- * Full images download completely for Glide caching.
- */
+/** Glide ModelLoader for loading images from network paths (SMB/SFTP/FTP). */
 class NetworkFileModelLoader(
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
@@ -40,42 +35,19 @@ class NetworkFileModelLoader(
     private val credentialsRepository: NetworkCredentialsRepository
 ) : ModelLoader<NetworkFileData, InputStream> {
     
-    override fun buildLoadData(
-        model: NetworkFileData,
-        width: Int,
-        height: Int,
-        options: Options
-    ): ModelLoader.LoadData<InputStream>? {
-        // Use NetworkFileData itself as cache key (it implements Key interface)
-        // This ensures consistent caching between different loads
-        // Timber.d("NetworkFileModelLoader.buildLoadData: path=${model.path}, size=${width}x${height}") // Disabled for DEBUG build
-        return ModelLoader.LoadData(
-            model, // Use NetworkFileData as Key directly for consistent cache hits
-            NetworkFileDataFetcher(model, smbClient, sftpClient, ftpClient, credentialsRepository)
-        )
-    }
+    override fun buildLoadData(model: NetworkFileData, width: Int, height: Int, options: Options): ModelLoader.LoadData<InputStream>? =
+        ModelLoader.LoadData(model, NetworkFileDataFetcher(model, smbClient, sftpClient, ftpClient, credentialsRepository))
     
     override fun handles(model: NetworkFileData): Boolean {
-        // Skip PDF and EPUB files - they have dedicated loaders (NetworkPdfThumbnailLoader, NetworkEpubCoverLoader)
-        val isPdf = model.path.endsWith(".pdf", ignoreCase = true)
-        val isEpub = model.path.endsWith(".epub", ignoreCase = true)
-        
-        // Skip video files - they have dedicated decoder (NetworkVideoFrameDecoder)
-        // Without this, when video decoder fails, Glide falls back to InputStream + image decoders
-        // which causes HEIF decoder errors trying to decode video data as images
+        // Skip PDF/EPUB (dedicated loaders) and video (dedicated decoder — avoids HEIF fallback errors)
         val extension = model.path.substringAfterLast('.', "").lowercase()
         val isVideo = extension in VIDEO_EXTENSIONS
-        
-        val result = (model.path.startsWith("smb://", ignoreCase = true) || 
-            model.path.startsWith("sftp://", ignoreCase = true) || 
-            model.path.startsWith("ftp://", ignoreCase = true)) && !isPdf && !isEpub && !isVideo
-        
-        // Debug logging to track video filtering
-        if (isVideo) {
-            Timber.d("NetworkFileModelLoader.handles: REJECTED video file ${model.path.substringAfterLast('/')}")
-        }
-        
-        return result
+        if (isVideo) Timber.d("NetworkFileModelLoader.handles: REJECTED video file ${model.path.substringAfterLast('/')}")
+        return (model.path.startsWith("smb://", ignoreCase = true) ||
+            model.path.startsWith("sftp://", ignoreCase = true) ||
+            model.path.startsWith("ftp://", ignoreCase = true)) &&
+            !model.path.endsWith(".pdf", ignoreCase = true) &&
+            !model.path.endsWith(".epub", ignoreCase = true) && !isVideo
     }
     
     companion object {
@@ -87,10 +59,7 @@ class NetworkFileModelLoader(
     }
 }
 
-/**
- * DataFetcher that loads network file data with interrupt protection.
- * Includes fast-fail logic for corrupt video files to avoid excessive retry cycles.
- */
+/** DataFetcher with interrupt protection and fast-fail for corrupt video files. */
 class NetworkFileDataFetcher(
     private val data: NetworkFileData,
     private val smbClient: SmbClient,
@@ -100,7 +69,6 @@ class NetworkFileDataFetcher(
 ) : DataFetcher<InputStream> {
     
     companion object {
-        // Protocol-specific timeouts: All networks capped at 30s for thumbnails
         private const val LOCAL_THUMBNAIL_TIMEOUT_MS = 20_000L      // Local storage
         private const val SMB_THUMBNAIL_TIMEOUT_MS = 30_000L        // SMB shares
         private const val REMOTE_THUMBNAIL_TIMEOUT_MS = 30_000L     // FTP/SFTP (reduced from 40s)
@@ -109,18 +77,12 @@ class NetworkFileDataFetcher(
         private const val SMB_FULL_IMAGE_TIMEOUT_MS = 60_000L       // SMB full image (reduced from 90s)
         private const val REMOTE_FULL_IMAGE_TIMEOUT_MS = 90_000L    // FTP/SFTP full image (reduced from 120s)
         
-        // Thumbnail optimization: Limit bytes read for thumbnail generation
-        // Most image headers + thumbnail data < 512KB (JPEG/PNG/WebP all decode from headers)
-        private const val THUMBNAIL_MAX_BYTES = 5120 * 1024L // 5MB limit for thumbnails (increased from 2MB)
+        private const val THUMBNAIL_MAX_BYTES = 5120 * 1024L // 5MB limit for thumbnails
         
-        // Lossless formats (PNG/WebP/GIF/BMP) are sensitive to truncation.
-        // Keep a higher cap for thumbnails to avoid passing corrupted/partial payloads to Glide decoder.
-        private const val LOSSLESS_THUMBNAIL_MAX_BYTES = 25 * 1024 * 1024L // 25MB
+        private const val LOSSLESS_THUMBNAIL_MAX_BYTES = 25 * 1024 * 1024L // 25MB (lossless formats sensitive to truncation)
         private val LOSSLESS_EXTENSIONS = setOf("png", "webp", "gif", "bmp")
         
-        // Track failed video files to avoid repeated decode attempts
-        // Use LinkedHashMap for FIFO eviction (insertion order)
-        // PUBLIC: Shared with NetworkVideoFrameDecoder
+        // LinkedHashMap FIFO eviction; PUBLIC: shared with NetworkVideoFrameDecoder
         private val failedVideos = java.util.Collections.synchronizedMap(
             object : LinkedHashMap<String, Boolean>(5000, 0.75f, false) {
                 override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Boolean>?): Boolean {
@@ -130,9 +92,7 @@ class NetworkFileDataFetcher(
         )
         private const val MAX_FAILED_CACHE = 5000
 
-        // S0060: Transient thumbnail failures — SMB share-race or timeout-during-active-playback.
-        // These are NOT written to the persistent VideoExtractionFailurePersistence and expire via TTL.
-        // Cleared eagerly per-path in NetworkVideoFrameDecoder when playback stops for that server.
+        // S0060: Transient failures (not persisted) — SMB race/timeout-during-playback; expire via TTL or playback-stop.
         private val transientFailedVideos = java.util.concurrent.ConcurrentHashMap<String, Long>() // path → timestampMs
         private const val TRANSIENT_TTL_MS = 120_000L // safety net: 2 minutes max
 
@@ -157,10 +117,7 @@ class NetworkFileDataFetcher(
             }
         }
 
-        /**
-         * Check if video file is in failed cache (permanent OR non-expired transient).
-         * PUBLIC API for NetworkVideoFrameDecoder.
-         */
+        /** Check if video file is in failed cache (permanent OR non-expired transient). PUBLIC API. */
         fun isVideoFailed(path: String): Boolean {
             ensurePersistenceLoaded()
             if (failedVideos.containsKey(path)) return true
@@ -173,45 +130,28 @@ class NetworkFileDataFetcher(
             return true
         }
 
-        /**
-         * True only if the path is in the permanent (persisted) failed cache.
-         * Used by NetworkVideoFrameDecoder to distinguish permanent vs transient. S0060.
-         */
+        /** True only if path is in the permanent failed cache. S0060. */
         fun isVideoPermanentlyFailed(path: String): Boolean {
             ensurePersistenceLoaded()
             return failedVideos.containsKey(path)
         }
 
-        /**
-         * Mark video file as transiently failed due to SMB share-race or timeout-during-playback.
-         * NOT persisted. Cleared eagerly when playback stops, or via TTL. S0060.
-         */
+        /** Mark video as transiently failed (SMB race/timeout). Not persisted; clears on stop or TTL. S0060. */
         fun markVideoAsTransientlyFailed(path: String) {
             transientFailedVideos[path] = System.currentTimeMillis()
             Timber.d("Added to TRANSIENT failed cache: ${path.substringAfterLast('/')}")
         }
 
-        /**
-         * Remove a single path from the transient failed cache, allowing retry.
-         * Called from NetworkVideoFrameDecoder when playback has stopped for that server. S0060.
-         */
+        /** Remove path from transient failed cache (called when playback stops). S0060. */
         fun clearTransientFailure(path: String) {
             transientFailedVideos.remove(path)
         }
 
-        /**
-         * Remove all transient failures for any network resource (SMB / SFTP / FTP).
-         * Called from playback-stop hooks for the deactivated resource. S0066.
-         * [resourceKey] is the normalized "<scheme>://host:port" produced by extractNetworkResourceKey.
-         */
+        /** Remove all transient failures for a network resource (called on playback stop). S0066. */
         fun clearTransientFailuresForResource(resourceKey: String) {
-            val cleared = transientFailedVideos.keys.filter { path ->
-                pathBelongsToResource(path, resourceKey)
-            }.toList()
+            val cleared = transientFailedVideos.keys.filter { pathBelongsToResource(it, resourceKey) }
             cleared.forEach { transientFailedVideos.remove(it) }
-            if (cleared.isNotEmpty()) {
-                Timber.i("[scope=thumbnail S0066 resource=$resourceKey] Cleared ${cleared.size} transient failures")
-            }
+            if (cleared.isNotEmpty()) Timber.i("[scope=thumbnail S0066 resource=$resourceKey] Cleared ${cleared.size} transient failures")
         }
 
         @Deprecated(
@@ -224,10 +164,7 @@ class NetworkFileDataFetcher(
             clearTransientFailuresForResource("smb://$smbHost:139")
         }
 
-        /**
-         * Mark video file as failed (thumbnail extraction failed).
-         * PUBLIC API for NetworkVideoFrameDecoder.
-         */
+        /** Mark video file as permanently failed. PUBLIC API for NetworkVideoFrameDecoder. */
         fun markVideoAsFailed(path: String) {
             failedVideos[path] = true
             Timber.d("Added to failed video cache (${failedVideos.size}/$MAX_FAILED_CACHE): ${path.substringAfterLast('/')}")
@@ -238,10 +175,7 @@ class NetworkFileDataFetcher(
             }
         }
 
-        /**
-         * Clear all failed video cache entries (in-memory and persistent).
-         * PUBLIC API for Settings -> Clear Cache.
-         */
+        /** Clear all failed cache entries (in-memory + persistent). PUBLIC API for Settings. */
         fun clearFailedVideoCache() {
             synchronized(failedVideos) {
                 val count = failedVideos.size
@@ -256,19 +190,13 @@ class NetworkFileDataFetcher(
             }
         }
 
-        /**
-         * Check if thumbnail is marked as failed (generic, works for all media types).
-         * PUBLIC API for MediaFileAdapter.
-         */
+        /** Check if thumbnail is marked as failed. PUBLIC API for MediaFileAdapter. */
         fun isThumbnailFailed(path: String): Boolean {
             ensurePersistenceLoaded()
             return failedVideos.containsKey(path)
         }
 
-        /**
-         * Mark thumbnail as failed (generic, works for all media types).
-         * PUBLIC API for MediaFileAdapter and decoders.
-         */
+        /** Mark thumbnail as failed. PUBLIC API for MediaFileAdapter and decoders. */
         fun markThumbnailAsFailed(path: String) {
             failedVideos[path] = true
             Timber.d("Added to failed thumbnail cache (${failedVideos.size}/$MAX_FAILED_CACHE): ${path.substringAfterLast('/')}")
@@ -295,12 +223,9 @@ class NetworkFileDataFetcher(
             return
         }
 
-        // Read file bytes directly using maxBytes limit for thumbnails
         loadJob = scope.launch {
             try {
                 Timber.v("NetworkFileDataFetcher: Starting direct byte fetch for $fileName")
-                
-                // Determine max bytes: limit for thumbnails, unlimited for full images
                 val maxBytes = determineMaxBytes(fileName)
                 
                 val bytes = when {
@@ -325,8 +250,6 @@ class NetworkFileDataFetcher(
                 Timber.v("NetworkFileDataFetcher: Fetch complete for $fileName, read ${bytes.size / 1024}KB")
 
                 var finalBytes = bytes
-                // Validate image data before passing to Glide to prevent SIGSEGV in disk cache.
-                // For FTP and SMB, do one automatic retry before failing.
                 if (!isValidImageData(finalBytes)) {
                     if (data.path.startsWith("ftp://", ignoreCase = true)) {
                         val retryMaxBytes = if (!data.loadFullImage && isJpegFile(fileName)) {
@@ -346,7 +269,6 @@ class NetworkFileDataFetcher(
                         }
                     } else if (data.path.startsWith("smb://", ignoreCase = true) &&
                         !data.loadFullImage && isJpegFile(fileName)) {
-                        // SMB JPEG thumbnail was likely truncated at the size limit; retry with full file.
                         Timber.w("NetworkFileDataFetcher: JPEG thumbnail failed validation on SMB, retrying with full-size read for $fileName")
                         val retryBytes = fetchBytesFromSmb(Long.MAX_VALUE)
                         if (retryBytes != null) {
@@ -364,7 +286,6 @@ class NetworkFileDataFetcher(
                     return@launch
                 }
                 
-                // Return ByteArrayInputStream to Glide (fully buffered, no synchronization issues)
                 callback.onDataReady(ByteArrayInputStream(finalBytes))
             } catch (e: Exception) {
                 when {
@@ -394,18 +315,8 @@ class NetworkFileDataFetcher(
 
         val serverPort = parts[0]
         val pathParts = if (parts.size > 1) parts[1] else ""
-
-        val server: String
-        val port: Int
-        if (serverPort.contains(":")) {
-            val sp = serverPort.split(":")
-            server = sp[0]
-            port = sp[1].toIntOrNull() ?: 445
-        } else {
-            server = serverPort
-            port = 445
-        }
-        
+        val server = serverPort.substringBefore(':')
+        val port = serverPort.substringAfter(':', "").toIntOrNull() ?: 445
         val resourceKey = "smb://${server}:${port}"
         
         return ConnectionThrottleManager.withThrottle(
@@ -476,18 +387,8 @@ class NetworkFileDataFetcher(
 
         val serverPort = parts[0]
         val remotePath = if (parts.size > 1) "/${parts[1]}" else "/"
-
-        val server: String
-        val port: Int
-        if (serverPort.contains(":")) {
-            val sp = serverPort.split(":")
-            server = sp[0]
-            port = sp[1].toIntOrNull() ?: 22
-        } else {
-            server = serverPort
-            port = 22
-        }
-        
+        val server = serverPort.substringBefore(':')
+        val port = serverPort.substringAfter(':', "").toIntOrNull() ?: 22
         val resourceKey = "sftp://${server}:${port}"
         
         return ConnectionThrottleManager.withThrottle(
@@ -543,18 +444,8 @@ class NetworkFileDataFetcher(
 
         val serverPort = parts[0]
         val remotePath = if (parts.size > 1) "/${parts[1]}" else "/"
-
-        val server: String
-        val port: Int
-        if (serverPort.contains(":")) {
-            val sp = serverPort.split(":")
-            server = sp[0]
-            port = sp[1].toIntOrNull() ?: 21
-        } else {
-            server = serverPort
-            port = 21
-        }
-        
+        val server = serverPort.substringBefore(':')
+        val port = serverPort.substringAfter(':', "").toIntOrNull() ?: 21
         val resourceKey = "ftp://${server}:${port}"
         
         return ConnectionThrottleManager.withThrottle(
@@ -573,7 +464,6 @@ class NetworkFileDataFetcher(
                 return@withThrottle null
             }
 
-            // Use independent connection for thread safety and robustness
             val timeoutMs = if (data.loadFullImage) REMOTE_FULL_IMAGE_TIMEOUT_MS else REMOTE_THUMBNAIL_TIMEOUT_MS
             try {
                 val result = kotlinx.coroutines.withTimeout(timeoutMs) {
@@ -602,10 +492,7 @@ class NetworkFileDataFetcher(
         }
     }
 
-    /**
-     * Determine safe max bytes for current request.
-     * For lossless image formats, avoid aggressive truncation that can lead to native decoder crashes.
-     */
+    /** Determine safe max bytes for current request (lossless formats use higher cap). */
     private fun determineMaxBytes(fileName: String): Long {
         if (data.loadFullImage) return Long.MAX_VALUE
 
@@ -620,30 +507,22 @@ class NetworkFileDataFetcher(
         return THUMBNAIL_MAX_BYTES
     }
 
-    private fun isJpegFile(fileName: String): Boolean {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        return extension == "jpg" || extension == "jpeg"
-    }
+    private fun isJpegFile(fileName: String) =
+        fileName.substringAfterLast('.', "").lowercase().let { it == "jpg" || it == "jpeg" }
     
-    /**
-     * Validate image data by checking magic bytes (file signature).
-     * Prevents Glide from crashing when decoding corrupted data.
-     */
+    /** Validate image data by magic bytes to prevent Glide crashes on corrupted data. */
     private fun isValidImageData(bytes: ByteArray): Boolean {
         if (bytes.size < 8) return false
         
-        // Check PNG signature: 89 50 4E 47 0D 0A 1A 0A
-        if (bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() && 
+        if (bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() && // PNG: 89 50 4E 47
             bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte()) {
             return isValidPngData(bytes)
         }
         
         // Check JPEG signature: FF D8 FF
         if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte()) {
-            // Motion photos (Google, Samsung) append an MP4 video stream after the JPEG EOI,
-            // so the FF D9 marker can be several MB before the end of the file.
-            // Use a 4 MB tail window to accommodate large embedded video chunks while
-            // still avoiding false-positive acceptance of data with only an EXIF thumbnail marker.
+            // Motion photos (Google/Samsung) append MP4 after JPEG EOI — FF D9 may be several MB from EOF.
+            // Use 4 MB tail window to avoid false-positive EXIF thumbnail markers.
             if (bytes.size < 4) return false
 
             val searchWindow = 4 * 1024 * 1024 // 4 MB
@@ -682,10 +561,7 @@ class NetworkFileDataFetcher(
         
         // Check BMP signature: BM
         if (bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte()) {
-            if (bytes.size >= 6) {
-                val declaredSize = readUInt32LittleEndian(bytes, 2)
-                if (declaredSize > bytes.size.toLong()) return false
-            }
+            if (bytes.size >= 6 && readUInt32LittleEndian(bytes, 2) > bytes.size.toLong()) return false
             return true
         }
         
@@ -773,20 +649,15 @@ class NetworkFileDataFetcher(
     override fun getDataSource(): DataSource = DataSource.REMOTE
 }
 
-/**
- * Factory for creating NetworkFileModelLoader instances.
- * Lazily initializes dependencies from Hilt.
- */
+/** Factory for NetworkFileModelLoader — lazily resolves Hilt dependencies on first build. */
 class NetworkFileModelLoaderFactory : ModelLoaderFactory<NetworkFileData, InputStream> {
-    
-    // These will be injected lazily when first ModelLoader is created
+
     private var smbClient: SmbClient? = null
     private var sftpClient: SftpClient? = null
     private var ftpClient: FtpClient? = null
     private var credentialsRepository: NetworkCredentialsRepository? = null
     
     override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<NetworkFileData, InputStream> {
-        // Get dependencies from Hilt EntryPoint
         val context = com.sza.fastmediasorter.FastMediaSorterApp.appContext
         val entryPoint = dagger.hilt.android.EntryPointAccessors.fromApplication(
             context,
@@ -806,14 +677,10 @@ class NetworkFileModelLoaderFactory : ModelLoaderFactory<NetworkFileData, InputS
         )
     }
     
-    override fun teardown() {
-        // No resources to release
-    }
+    override fun teardown() {} // No resources to release
 }
 
-/**
- * Hilt EntryPoint for accessing dependencies in Glide module.
- */
+/** Hilt EntryPoint for accessing dependencies in Glide module. */
 @dagger.hilt.EntryPoint
 @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
 interface NetworkFileModelLoaderEntryPoint {
