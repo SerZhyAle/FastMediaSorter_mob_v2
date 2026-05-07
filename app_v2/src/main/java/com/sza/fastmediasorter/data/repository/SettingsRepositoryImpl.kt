@@ -27,7 +27,6 @@ class SettingsRepositoryImpl @Inject constructor(
 ) : SettingsRepository {
 
     companion object {
-        // General settings keys
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
@@ -36,15 +35,13 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_NETWORK_PARALLELISM = intPreferencesKey("network_parallelism")
         private val KEY_CACHE_SIZE_MB = intPreferencesKey("cache_size_mb")
         private val KEY_IS_CACHE_SIZE_USER_MODIFIED = booleanPreferencesKey("is_cache_size_user_modified")
-        
-        // Network sync settings keys
+
         private val KEY_ENABLE_BACKGROUND_SYNC = booleanPreferencesKey("enable_background_sync")
         private val KEY_BACKGROUND_SYNC_INTERVAL_HOURS = intPreferencesKey("background_sync_interval_hours")
         private val KEY_ALL_FILES = booleanPreferencesKey("all_files")
         private val KEY_SHOW_HIDDEN_FILES = booleanPreferencesKey("show_hidden_files")
         private val KEY_SHOW_SUBFOLDERS_AS_ITEMS = booleanPreferencesKey("show_subfolders_as_items")
-        
-        // Media Files settings keys
+
         private val KEY_SUPPORT_IMAGES = booleanPreferencesKey("support_images")
         private val KEY_IMAGE_SIZE_MIN = longPreferencesKey("image_size_min")
         private val KEY_IMAGE_SIZE_MAX = longPreferencesKey("image_size_max")
@@ -82,8 +79,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_PDF_COLOR_MODE = stringPreferencesKey("pdf_color_mode")
         private val KEY_EPUB_LINE_HEIGHT = floatPreferencesKey("epub_line_height")
         private val KEY_EPUB_HORIZONTAL_MARGIN = intPreferencesKey("epub_horizontal_margin")
-        
-        // Translation settings keys
+
         private val KEY_ENABLE_TRANSLATION = booleanPreferencesKey("enable_translation")
         private val KEY_TRANSLATION_SOURCE_LANGUAGE = stringPreferencesKey("translation_source_language")
         private val KEY_TRANSLATION_TARGET_LANGUAGE = stringPreferencesKey("translation_target_language")
@@ -92,8 +88,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ENABLE_OCR = booleanPreferencesKey("enable_ocr")
         private val KEY_OCR_DEFAULT_FONT_SIZE = stringPreferencesKey("ocr_default_font_size")
         private val KEY_OCR_DEFAULT_FONT_FAMILY = stringPreferencesKey("ocr_default_font_family")
-        
-        // Playback and Sorting settings keys
+
         private val KEY_DEFAULT_SORT_MODE = stringPreferencesKey("default_sort_mode")
         private val KEY_SLIDESHOW_INTERVAL = intPreferencesKey("slideshow_interval")
         private val KEY_SLIDESHOW_MUSIC_URI = stringPreferencesKey("slideshow_music_uri")
@@ -116,14 +111,10 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SHOW_VIDEO_THUMBNAILS = booleanPreferencesKey("show_video_thumbnails")
         private val KEY_ENABLE_PLAYER_WARMUP = booleanPreferencesKey("enable_player_warmup")
         private val KEY_RENDERER_MIGRATION_ENABLED = booleanPreferencesKey("renderer_migration_enabled")
-        
-        // Safe Mode settings key (Phase 2.1)
+
         private val KEY_ENABLE_SAFE_MODE = booleanPreferencesKey("enable_safe_mode")
-        
-        // Scheduled operations
         private val KEY_ENABLE_SCHEDULED_OPERATIONS = booleanPreferencesKey("enable_scheduled_operations")
 
-        // Destinations settings keys
         private val KEY_ENABLE_COPYING = booleanPreferencesKey("enable_copying")
         private val KEY_GO_TO_NEXT_AFTER_COPY = booleanPreferencesKey("go_to_next_after_copy")
         private val KEY_OVERWRITE_ON_COPY = booleanPreferencesKey("overwrite_on_copy")
@@ -140,31 +131,17 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_HINT_SHOWN_9ZONE = booleanPreferencesKey("hint_shown_9zone")
         private val KEY_HINT_SHOWN_3ZONE = booleanPreferencesKey("hint_shown_3zone")
         private val KEY_HINT_SHOWN_MEDIA = booleanPreferencesKey("hint_shown_media_bottom")
-        
-        // Player UI settings keys
+
         private val KEY_COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
         private val KEY_MOVE_PANEL_COLLAPSED = booleanPreferencesKey("move_panel_collapsed")
         private val KEY_ENABLE_PICTURE_IN_PICTURE = booleanPreferencesKey("enable_picture_in_picture")
-        
-        // Last used resource key
         private val KEY_LAST_USED_RESOURCE_ID = longPreferencesKey("last_used_resource_id")
-        
-        // File list caching
         private val KEY_DEFAULT_REMEMBER_FILE_LIST = booleanPreferencesKey("default_remember_file_list")
-        
-        // UI State keys
         private val KEY_IS_RESOURCE_GRID_MODE = booleanPreferencesKey("is_resource_grid_mode")
-        
-        // Dynamic Background Expansion
         private val KEY_DYNAMIC_BACKGROUND_EXTENSION = booleanPreferencesKey("dynamic_background_extension")
 
-        // Phase 5: Use as primary media player
         private val KEY_IS_PRIMARY_MEDIA_PLAYER = booleanPreferencesKey("is_primary_media_player")
-
-        // Phase 6: Accept shared media files
         private val KEY_ACCEPT_SHARED_FILES = booleanPreferencesKey("accept_shared_files")
-
-        // X.11: Background thumbnail pre-generation
         private val KEY_ENABLE_THUMBNAIL_PRELOAD = booleanPreferencesKey("enable_thumbnail_preload")
         private val KEY_THUMBNAIL_PRELOAD_WIFI_ONLY = booleanPreferencesKey("thumbnail_preload_wifi_only")
 
@@ -174,9 +151,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // Compact elements mode (0.5x scale)
         private val KEY_USE_COMPACT_ELEMENTS = booleanPreferencesKey("use_compact_elements")
 
-        // Video frame snapshot destination resource ID (Save Frame feature)
         private val KEY_VIDEO_SNAPSHOT_RESOURCE_ID = longPreferencesKey("video_snapshot_resource_id")
-        // Video frame snapshot file format ("PNG" or "JPG")
         private val KEY_VIDEO_SNAPSHOT_FORMAT = stringPreferencesKey("video_snapshot_format")
 
         // Link auto-download (S0003): master toggle, optional destination resource id, auto-open toggle
@@ -184,7 +159,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID = longPreferencesKey("link_auto_download_resource_id")
         private val KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER = booleanPreferencesKey("link_auto_download_open_in_player")
 
-        // Resume on next launch
         private val KEY_RESUME_ON_NEXT_LAUNCH = booleanPreferencesKey("resume_on_next_launch")
 
         // S0050: Black Screen button visibility in player toolbar
@@ -263,7 +237,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 }
                 
                 AppSettings(
-                    // General
                     language = language,
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
@@ -272,18 +245,12 @@ class SettingsRepositoryImpl @Inject constructor(
                     networkParallelism = preferences[KEY_NETWORK_PARALLELISM] ?: 4,
                     cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048,
                     isCacheSizeUserModified = preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] ?: false,
-                    
-                    // UI State
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
-                    
-                    // Network sync
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
                     allFiles = preferences[KEY_ALL_FILES] ?: false,
                     showHiddenFiles = preferences[KEY_SHOW_HIDDEN_FILES] ?: false,
                     showSubfoldersAsItems = preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] ?: false,
-                    
-                    // Media Files
                     supportImages = preferences[KEY_SUPPORT_IMAGES] ?: true,
                     imageSizeMin = preferences[KEY_IMAGE_SIZE_MIN] ?: 1024L,
                     imageSizeMax = preferences[KEY_IMAGE_SIZE_MAX] ?: 10485760L,
@@ -320,8 +287,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     pdfColorMode = preferences[KEY_PDF_COLOR_MODE] ?: "NORMAL",
                     epubLineHeight = preferences[KEY_EPUB_LINE_HEIGHT] ?: 1.6f,
                     epubHorizontalMargin = preferences[KEY_EPUB_HORIZONTAL_MARGIN] ?: 16,
-                    
-                    // Translation
                     enableTranslation = preferences[KEY_ENABLE_TRANSLATION] ?: true,
                     translationSourceLanguage = preferences[KEY_TRANSLATION_SOURCE_LANGUAGE] ?: "auto",
                     translationTargetLanguage = preferences[KEY_TRANSLATION_TARGET_LANGUAGE] ?: "ru",
@@ -330,8 +295,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     enableOcr = preferences[KEY_ENABLE_OCR] ?: true,
                     ocrDefaultFontSize = preferences[KEY_OCR_DEFAULT_FONT_SIZE] ?: "AUTO",
                     ocrDefaultFontFamily = preferences[KEY_OCR_DEFAULT_FONT_FAMILY] ?: "DEFAULT",
-                    
-                    // Playback and Sorting
                     defaultSortMode = SortMode.valueOf(
                         preferences[KEY_DEFAULT_SORT_MODE] ?: SortMode.NAME_ASC.name
                     ),
@@ -348,11 +311,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
-                    defaultIconSize = run {
-                        val savedSize = preferences[KEY_DEFAULT_ICON_SIZE] ?: 96
-                        // Validate: must be 32 + 8*N (valid range: 32..256)
-                        if (savedSize < 32 || savedSize > 256 || (savedSize - 32) % 8 != 0) 96 else savedSize
-                    },
+                    defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
+                        .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
                     defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
@@ -360,63 +320,36 @@ class SettingsRepositoryImpl @Inject constructor(
                     showVideoThumbnails = preferences[KEY_SHOW_VIDEO_THUMBNAILS] ?: true,
                     enablePlayerWarmup = preferences[KEY_ENABLE_PLAYER_WARMUP] ?: false,
                     rendererMigrationEnabled = preferences[KEY_RENDERER_MIGRATION_ENABLED] ?: false,
-                    
-                    // Safe Mode (Phase 2.1)
                     enableSafeMode = preferences[KEY_ENABLE_SAFE_MODE] ?: true,
-                    
-                    // Scheduled operations
                     enableScheduledOperations = preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] ?: true,
-
-                    // Destinations
                     enableCopying = preferences[KEY_ENABLE_COPYING] ?: true,
                     goToNextAfterCopy = preferences[KEY_GO_TO_NEXT_AFTER_COPY] ?: true,
                     overwriteOnCopy = preferences[KEY_OVERWRITE_ON_COPY] ?: false,
                     enableMoving = preferences[KEY_ENABLE_MOVING] ?: true,
                     overwriteOnMove = preferences[KEY_OVERWRITE_ON_MOVE] ?: false,
                     enableUndo = preferences[KEY_ENABLE_UNDO] ?: true,
-                    maxRecipients = run {
-                        val value = preferences[KEY_MAX_RECIPIENTS] ?: 10
-                        value.coerceIn(1, 10)
-                    },
+                    maxRecipients = (preferences[KEY_MAX_RECIPIENTS] ?: 10).coerceIn(1, 10),
                     enableFavorites = preferences[KEY_ENABLE_FAVORITES] ?: true,
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
-
-                    // Player UI
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
-                    
-                    // Last used resource
                     lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L,
-                    
-                    // File list caching
                     defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false,
-                    
-                    // Dynamic Background Expansion
                     dynamicBackgroundExtension = preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] ?: false,
-
-                    // Phase 5+6: Default Player
                     isPrimaryMediaPlayer = preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] ?: false,
                     acceptSharedFiles = preferences[KEY_ACCEPT_SHARED_FILES] ?: false,
-
-                    // X.11: Background thumbnail pre-generation
                     enableThumbnailPreload = preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] ?: false,
                     thumbnailPreloadWifiOnly = preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] ?: true,
-
-                    // FR-8: Folder picker persistence
+                    // FR-8: Folder picker persistence (stores content:// URI)
                     lastSelectedLocalFolder = preferences[KEY_LAST_SELECTED_LOCAL_FOLDER],
-
-                    // Compact elements mode
                     useCompactElements = preferences[KEY_USE_COMPACT_ELEMENTS] ?: false,
-
-                    // Video frame snapshot destination
                     videoSnapshotResourceId = preferences[KEY_VIDEO_SNAPSHOT_RESOURCE_ID],
 
                     // Video frame snapshot format (default JPG)
-                        videoSnapshotFormat = preferences[KEY_VIDEO_SNAPSHOT_FORMAT]
-                            ?.takeIf { it == "PNG" || it == "JPG" }
-                            ?: "JPG",
+                    videoSnapshotFormat = preferences[KEY_VIDEO_SNAPSHOT_FORMAT]
+                        ?.takeIf { it == "PNG" || it == "JPG" } ?: "JPG",
 
                     // Link auto-download (S0003)
                     linkAutoDownloadEnabled = preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] ?: true,
@@ -457,7 +390,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: BuildConfig.SUPPORT_VR_PLAYER
                 )
             }
-            .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
+            .distinctUntilChanged()
     }
 
     override suspend fun updateSettings(settings: AppSettings) {
@@ -480,7 +413,6 @@ class SettingsRepositoryImpl @Inject constructor(
         // LocaleHelper.saveLanguage() must be called explicitly when user changes the language.
         // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".
         dataStore.edit { preferences ->
-            // General
             preferences[KEY_LANGUAGE] = settings.language
             preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
@@ -495,8 +427,6 @@ class SettingsRepositoryImpl @Inject constructor(
             Timber.d("SettingsRepo: Saved allFiles=${settings.allFiles} to DataStore")
             preferences[KEY_SHOW_HIDDEN_FILES] = settings.showHiddenFiles
             preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] = settings.showSubfoldersAsItems
-            
-            // Media Files
             preferences[KEY_SUPPORT_IMAGES] = settings.supportImages
             preferences[KEY_IMAGE_SIZE_MIN] = settings.imageSizeMin
             preferences[KEY_IMAGE_SIZE_MAX] = settings.imageSizeMax
@@ -513,11 +443,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] = settings.searchAudioCoversOnlyOnWifi
             preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] = settings.saveAudioMetadataLocally
             preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] = settings.enablePhotosDuringAudio
-            if (settings.audioBackgroundPhotosResourceId != null) {
-                preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID] = settings.audioBackgroundPhotosResourceId
-            } else {
-                preferences.remove(KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID)
-            }
+            preferences.setOrRemove(KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID, settings.audioBackgroundPhotosResourceId)
             preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enablePersistentAudioPlayback
             preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR] = settings.backgroundAudioExitBehavior.name
             preferences[KEY_SHOW_NOW_PLAYING_PANEL] = settings.showNowPlayingPanel
@@ -535,8 +461,6 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_PDF_COLOR_MODE] = settings.pdfColorMode
             preferences[KEY_EPUB_LINE_HEIGHT] = settings.epubLineHeight
             preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
-            
-            // Translation
             preferences[KEY_ENABLE_TRANSLATION] = settings.enableTranslation
             preferences[KEY_TRANSLATION_SOURCE_LANGUAGE] = settings.translationSourceLanguage
             preferences[KEY_TRANSLATION_TARGET_LANGUAGE] = settings.translationTargetLanguage
@@ -545,15 +469,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_OCR] = settings.enableOcr
             preferences[KEY_OCR_DEFAULT_FONT_SIZE] = settings.ocrDefaultFontSize
             preferences[KEY_OCR_DEFAULT_FONT_FAMILY] = settings.ocrDefaultFontFamily
-            
-            // Playback and Sorting
             preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
             preferences[KEY_SLIDESHOW_INTERVAL] = settings.slideshowInterval
-            if (settings.slideshowMusicUri != null) {
-                preferences[KEY_SLIDESHOW_MUSIC_URI] = settings.slideshowMusicUri
-            } else {
-                preferences.remove(KEY_SLIDESHOW_MUSIC_URI)
-            }
+            preferences.setOrRemove(KEY_SLIDESHOW_MUSIC_URI, settings.slideshowMusicUri)
             preferences[KEY_ENABLE_SLIDESHOW_BACKGROUND_MUSIC] = settings.enableSlideshowBackgroundMusic
             if (settings.slideshowMusicResourceId != null) {
                 preferences[KEY_SLIDESHOW_MUSIC_RESOURCE_ID] = settings.slideshowMusicResourceId
@@ -579,14 +497,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_VIDEO_THUMBNAILS] = settings.showVideoThumbnails
             preferences[KEY_ENABLE_PLAYER_WARMUP] = settings.enablePlayerWarmup
             preferences[KEY_RENDERER_MIGRATION_ENABLED] = settings.rendererMigrationEnabled
-            
-            // Safe Mode (Phase 2.1)
             preferences[KEY_ENABLE_SAFE_MODE] = settings.enableSafeMode
-            
-            // Scheduled operations
             preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] = settings.enableScheduledOperations
-
-            // Destinations
             preferences[KEY_ENABLE_COPYING] = settings.enableCopying
             preferences[KEY_GO_TO_NEXT_AFTER_COPY] = settings.goToNextAfterCopy
             preferences[KEY_OVERWRITE_ON_COPY] = settings.overwriteOnCopy
@@ -597,59 +509,29 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_FAVORITES] = settings.enableFavorites
             preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
             preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
-
-            // Player UI
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
             preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
             preferences[KEY_ENABLE_PICTURE_IN_PICTURE] = settings.enablePictureInPicture
-            
-            // Last used resource
             preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
-            
-            // File list caching
             preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
-            
-            // UI State
             preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
-            
-            // Dynamic Background Expansion
             preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
-
-            // Phase 5+6: Default Player
             preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
             preferences[KEY_ACCEPT_SHARED_FILES] = settings.acceptSharedFiles
-
-            // X.11: Background thumbnail pre-generation
             preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] = settings.enableThumbnailPreload
             preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] = settings.thumbnailPreloadWifiOnly
-
             // FR-8: Folder picker persistence
-            if (settings.lastSelectedLocalFolder != null) {
-                preferences[KEY_LAST_SELECTED_LOCAL_FOLDER] = settings.lastSelectedLocalFolder
-            } else {
-                preferences.remove(KEY_LAST_SELECTED_LOCAL_FOLDER)
-            }
+            preferences.setOrRemove(KEY_LAST_SELECTED_LOCAL_FOLDER, settings.lastSelectedLocalFolder)
 
-            // Compact elements mode
             preferences[KEY_USE_COMPACT_ELEMENTS] = settings.useCompactElements
-
-            // Video frame snapshot destination
-            if (settings.videoSnapshotResourceId != null) {
-                preferences[KEY_VIDEO_SNAPSHOT_RESOURCE_ID] = settings.videoSnapshotResourceId
-            } else {
-                preferences.remove(KEY_VIDEO_SNAPSHOT_RESOURCE_ID)
-            }
+            preferences.setOrRemove(KEY_VIDEO_SNAPSHOT_RESOURCE_ID, settings.videoSnapshotResourceId)
 
             // Video frame snapshot format — always present with "PNG" default
             preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
 
             // Link auto-download (S0003)
             preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] = settings.linkAutoDownloadEnabled
-            if (settings.linkAutoDownloadResourceId != null) {
-                preferences[KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID] = settings.linkAutoDownloadResourceId
-            } else {
-                preferences.remove(KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID)
-            }
+            preferences.setOrRemove(KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID, settings.linkAutoDownloadResourceId)
             preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] = settings.linkAutoDownloadOpenInPlayer
 
             // VR settings (spec §5.7 / Phase 8 split). Legacy key is removed on write so
@@ -666,10 +548,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps
             preferences[KEY_PLAYER_SHOW_FPS] = settings.playerShowFps
 
-            // Resume on next launch
             preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
-
-            // S0050: Black Screen button
+            // S0050: Black Screen button (opt-in)
             preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
 
             // Adaptive pre-cache strategy (spec §5)
@@ -688,79 +568,42 @@ class SettingsRepositoryImpl @Inject constructor(
     }
     
     override suspend fun setPlayerFirstRun(isFirstRun: Boolean) {
-        // Migrated from SharedPreferences to DataStore (P0-2): avoids synchronous disk I/O on callers
-        // that may run on a non-IO coroutine context.
-        dataStore.edit { preferences ->
-            preferences[KEY_IS_PLAYER_FIRST_RUN] = isFirstRun
-        }
+        dataStore.edit { it[KEY_IS_PLAYER_FIRST_RUN] = isFirstRun }
     }
     
-    override suspend fun isPlayerFirstRun(): Boolean {
-        // Migrated from SharedPreferences to DataStore (P0-2).
-        return dataStore.data.map { preferences ->
-            preferences[KEY_IS_PLAYER_FIRST_RUN] ?: true // Default: true on first launch
-        }.catch { exception ->
-            if (exception is IOException) {
-                Timber.e(exception, "Error reading isPlayerFirstRun from DataStore")
-                emit(true)
-            } else {
-                throw exception
-            }
-        }.first()
-    }
-    
+    override suspend fun isPlayerFirstRun(): Boolean = readFirst(KEY_IS_PLAYER_FIRST_RUN, true)
+
     override suspend fun saveLastUsedResourceId(resourceId: Long) {
-        dataStore.edit { preferences ->
-            preferences[KEY_LAST_USED_RESOURCE_ID] = resourceId
-        }
+        dataStore.edit { it[KEY_LAST_USED_RESOURCE_ID] = resourceId }
     }
-    
-    override suspend fun getLastUsedResourceId(): Long {
-        return dataStore.data.map { preferences ->
-            preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L
-        }.catch { exception ->
-            if (exception is IOException) {
-                Timber.e(exception, "Error reading last used resource ID")
-                emit(-1L)
-            } else {
-                throw exception
-            }
-        }.first()
-    }
+
+    override suspend fun getLastUsedResourceId(): Long = readFirst(KEY_LAST_USED_RESOURCE_ID, -1L)
 
     override suspend fun setResourceGridMode(isGridMode: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[KEY_IS_RESOURCE_GRID_MODE] = isGridMode
-        }
+        dataStore.edit { it[KEY_IS_RESOURCE_GRID_MODE] = isGridMode }
     }
 
-    override suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean {
-        val key = when (type) {
-            TouchZoneHintType.FULLSCREEN_9ZONE -> KEY_HINT_SHOWN_9ZONE
-            TouchZoneHintType.COMMAND_PANEL_3ZONE -> KEY_HINT_SHOWN_3ZONE
-            TouchZoneHintType.MEDIA_BOTTOM_RESERVED -> KEY_HINT_SHOWN_MEDIA
-        }
-        return dataStore.data.map { preferences ->
-            preferences[key] ?: false
-        }.catch { exception ->
-            if (exception is IOException) {
-                Timber.e(exception, "Error reading touch zone hint shown for $type")
-                emit(false)
-            } else {
-                throw exception
-            }
-        }.first()
+    private fun <T> MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {
+        if (value != null) this[key] = value else remove(key)
     }
+
+    private suspend fun <T> readFirst(key: Preferences.Key<T>, default: T): T =
+        dataStore.data
+            .map { it[key] ?: default }
+            .catch { e -> if (e is IOException) { Timber.e(e, "Error reading ${key.name}"); emit(default) } else throw e }
+            .first()
+
+    override suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean =
+        readFirst(keyFor(type), false)
 
     override suspend fun setTouchZoneHintShown(type: TouchZoneHintType, shown: Boolean) {
-        val key = when (type) {
-            TouchZoneHintType.FULLSCREEN_9ZONE -> KEY_HINT_SHOWN_9ZONE
-            TouchZoneHintType.COMMAND_PANEL_3ZONE -> KEY_HINT_SHOWN_3ZONE
-            TouchZoneHintType.MEDIA_BOTTOM_RESERVED -> KEY_HINT_SHOWN_MEDIA
-        }
-        dataStore.edit { preferences ->
-            preferences[key] = shown
-        }
+        dataStore.edit { it[keyFor(type)] = shown }
+    }
+
+    private fun keyFor(type: TouchZoneHintType) = when (type) {
+        TouchZoneHintType.FULLSCREEN_9ZONE -> KEY_HINT_SHOWN_9ZONE
+        TouchZoneHintType.COMMAND_PANEL_3ZONE -> KEY_HINT_SHOWN_3ZONE
+        TouchZoneHintType.MEDIA_BOTTOM_RESERVED -> KEY_HINT_SHOWN_MEDIA
     }
 
     override suspend fun resetAllTouchZoneHints() {
@@ -771,11 +614,7 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
     
-    /**
-     * Encrypts password using CryptoHelper.
-     * @param plainPassword Plaintext password
-     * @return Encrypted Base64 string, or empty string on error
-     */
+    /** Encrypts password; returns encrypted Base64 string or empty on error. */
     private fun encryptPassword(plainPassword: String): String {
         if (plainPassword.isEmpty()) return ""
         return CryptoHelper.encrypt(plainPassword) ?: run {
@@ -784,39 +623,21 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
     
-    /**
-     * Decrypts password using CryptoHelper.
-     * Handles migration from plaintext passwords.
-     * @param encryptedPassword Encrypted password from DataStore (or plaintext if legacy)
-     * @return Decrypted plaintext password
-     */
+    /** Decrypts password; handles migration from legacy plaintext passwords. */
     private suspend fun decryptPassword(encryptedPassword: String?): String {
         if (encryptedPassword.isNullOrEmpty()) return ""
-        
-        // Check if password is already encrypted (Base64 format)
-        // Encrypted passwords are always Base64-encoded and start with specific pattern
-        val isEncrypted = try {
+        val isEncrypted = runCatching {
             android.util.Base64.decode(encryptedPassword, android.util.Base64.NO_WRAP)
-            true
-        } catch (e: Exception) {
-            false
-        }
-        
+        }.isSuccess
         if (!isEncrypted) {
-            // Legacy plaintext password - migrate to encrypted
             Timber.w("Detected plaintext password in DataStore, migrating to encrypted format")
             val encrypted = CryptoHelper.encrypt(encryptedPassword)
             if (encrypted != null) {
-                // Save encrypted version back to DataStore
-                dataStore.edit { preferences ->
-                    preferences[KEY_DEFAULT_PASSWORD] = encrypted
-                }
-                Timber.d("Successfully migrated plaintext password to encrypted format")
+                dataStore.edit { it[KEY_DEFAULT_PASSWORD] = encrypted }
+                Timber.d("Migrated plaintext password to encrypted format")
             }
             return encryptedPassword
         }
-        
-        // Decrypt encrypted password
         return CryptoHelper.decrypt(encryptedPassword) ?: run {
             Timber.e("Failed to decrypt password, returning empty string")
             ""

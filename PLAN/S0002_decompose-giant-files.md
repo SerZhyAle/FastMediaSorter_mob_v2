@@ -288,6 +288,14 @@ All three files are now at or below the 700-line stretch target.
 
 `SmbOperationStrategy.kt` is now well under the 700-line stretch target.
 
+**Wave 37 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/repository/SettingsRepositoryImpl.kt` | 845 | 666 | −179 | Removed 52 section comments across companion/getSettings()/updateSettings() blocks; extracted `readFirst<T>` helper (collapses isPlayerFirstRun+getLastUsedResourceId+isTouchZoneHintShown to expression bodies); extracted `keyFor(TouchZoneHintType)` (deduplicates when-block in isTouchZoneHintShown/setTouchZoneHintShown, setTouchZoneHintShown → 2 lines); extracted `MutablePreferences.setOrRemove<T>` (compresses 5 nullable pref if/else blocks from 5→1 line each); collapsed encryptPassword KDoc (4→1 line); collapsed decryptPassword KDoc (5→1) + compressed body (`isEncrypted` try-catch → `runCatching`, removed 3 inner comments, inlined dataStore.edit); inlined defaultIconSize `run{}` to `.let{}` (5→2 lines); inlined maxRecipients `run{}` (4→1); compressed setPlayerFirstRun/saveLastUsedResourceId/setResourceGridMode to single-line edit bodies; fixed videoSnapshotFormat extra indentation; removed OPTIMIZATION trailing comment |
+
+`SettingsRepositoryImpl.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -317,7 +325,6 @@ All three files are now at or below the 700-line stretch target.
 | 21 | `app_v2/data/network/FtpFileOperationHandler.kt` | 938 | ≤ 700 | 3 | 2 814 |
 | 22 | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 912 | ≤ 700 | 3 | 2 736 |
 | 23 | `app_v2/data/cloud/OneDriveRestClient.kt` | 900 | ≤ 700 | 2 | 1 800 |
-| 24 | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 845 | ≤ 700 | 2 | 1 690 |
 | — | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 663 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
@@ -333,6 +340,7 @@ All three files are now at or below the 700-line stretch target.
 | — | `app_v2/data/transfer/strategy/SftpOperationStrategy.kt` | 698 | ✅ | 2 | — |
 | — | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 693 | ✅ | 2 | — |
 | — | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 667 | ✅ | 2 | — |
+| — | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 666 | ✅ | 2 | — |
 | — | `app_v2/data/remote/ftp/FtpClient.kt` | 289 | ✅ | 2 | — |
 
 ---
