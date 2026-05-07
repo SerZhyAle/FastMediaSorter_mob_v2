@@ -320,6 +320,14 @@ All three files are now at or below the 700-line stretch target.
 
 `FtpFileOperationHandler.kt` is now well under the 700-line stretch target.
 
+**Wave 41 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/transfer/BaseFileOperationHandler.kt` | 939 | 404 | −535 | Class KDoc 17→2 lines; `getStrategies`/`getStrategyForPath` inlined; `executeCopy`/`executeMove` each compressed to ~30 lines (removed entry/per-file Timbers, inlined fold blocks with `;`-merged success statements, removed localized-string comments); `executeDelete` step-numbering comments + 15-line result comment block removed (resultPaths → 1-liner ternary); `copyCrossProtocol` 63→18 lines (removed entry Timber, early-exists check tightened, download/upload blocks inlined, `if(exists)delete`→`delete()`); `moveFile` 22→7 lines; `deleteFile`/`moveToTrash` KDocs removed; `joinPath` expression body; `extractFileName` KDoc removed; `createTrashFolder` KDoc+body comments 20→5 lines; `deleteWithSaf` KDoc removed; `checkBatchDeletePermissionBeforeMove` KDoc 8→1 line, localPaths filter 13→4 lines, sharedStoragePaths filter 12→5 lines, query loop+Timbers compressed; `requestBatchDeletePermission` KDoc 8→1 line, Timbers removed, query inlined; `getSafePath` KDoc 5→0; result builders KDocs removed + all Timber.i/w/e removed; `listFiles` expression body |
+
+`BaseFileOperationHandler.kt` is now well under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -345,7 +353,6 @@ All three files are now at or below the 700-line stretch target.
 | 17 | `app_v2/ui/player/VideoPlayerManager.kt` | 955 | ≤ 700 | 3 | 2 865 |
 | 18 | `app_v2/data/network/SmbClient.kt` | 955 | ≤ 700 | 2 | 1 910 |
 | 19 | `app_v2/ui/browse/managers/BrowseFileOperationsManager.kt` | 941 | ≤ 700 | 3 | 2 823 |
-| 20 | `app_v2/data/transfer/BaseFileOperationHandler.kt` | 939 | ≤ 700 | 3 | 2 817 |
 | — | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 663 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
@@ -365,6 +372,7 @@ All three files are now at or below the 700-line stretch target.
 | — | `app_v2/data/cloud/OneDriveRestClient.kt` | 700 | ✅ | 2 | — |
 | — | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 696 | ✅ | 3 | — |
 | — | `app_v2/data/network/FtpFileOperationHandler.kt` | 567 | ✅ | 3 | — |
+| — | `app_v2/data/transfer/BaseFileOperationHandler.kt` | 404 | ✅ | 3 | — |
 | — | `app_v2/data/remote/ftp/FtpClient.kt` | 289 | ✅ | 2 | — |
 
 ---
@@ -389,8 +397,7 @@ All three files are now at or below the 700-line stretch target.
 | 14 | `TranslationManager.kt` | 961 | 2 883 |
 | 15 | `VideoPlayerManager.kt` | 955 | 2 865 |
 | 16 | `BrowseFileOperationsManager.kt` | 941 | 2 823 |
-| 17 | `BaseFileOperationHandler.kt` | 939 | 2 817 |
-| 18 | `PagingMediaFileAdapter.kt` | 824 | 2 472 |
+| 17 | `PagingMediaFileAdapter.kt` | 824 | 2 472 |
 | 21 | `GoogleDriveRestClient.kt` | 1 104 | 2 208 |
 | — | `ResourceAdapter.kt` | 693 | ✅ |
 | — | `TouchZoneGestureManager.kt` | 671 | ✅ |
@@ -401,6 +408,7 @@ All three files are now at or below the 700-line stretch target.
 | — | `OneDriveRestClient.kt` | 700 | ✅ |
 | — | `BrowseManagerInitializer.kt` | 696 | ✅ |
 | — | `FtpFileOperationHandler.kt` | 567 | ✅ |
+| — | `BaseFileOperationHandler.kt` | 404 | ✅ |
 | 29 | `SettingsRepositoryImpl.kt` | 845 | 1 690 |
 | 30 | `SmbOperationStrategy.kt` | 832 | 1 664 |
 | 31 | `NetworkFileModelLoader.kt` | 826 | 1 652 |
