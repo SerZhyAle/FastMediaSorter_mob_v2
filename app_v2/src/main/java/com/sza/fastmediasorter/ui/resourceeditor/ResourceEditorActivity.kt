@@ -38,6 +38,8 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val textEditorFocused =
+            (currentFocus as? android.widget.TextView)?.onCheckIsTextEditor() == true
         when {
             keyCode == KeyEvent.KEYCODE_F1 -> {
                 InputHelpDialogFragment.show(supportFragmentManager, InputSurface.RESOURCE_EDITOR)
@@ -48,7 +50,7 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
                 if (fragment is ResourceEditorFragment) fragment.performSave()
                 return true
             }
-            keyCode == KeyEvent.KEYCODE_ESCAPE -> {
+            keyCode == KeyEvent.KEYCODE_ESCAPE && !textEditorFocused -> {
                 onBackPressedDispatcher.onBackPressed()
                 return true
             }

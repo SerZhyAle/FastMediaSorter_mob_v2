@@ -4,8 +4,8 @@
 **Feature:** SFTP concurrent playback and file operations
 **Tier:** 3 — Moderate
 **Priority:** 70
-**Status:** Not started
-**Phases:** 0 / 4 done
+**Status:** Done
+**Phases:** 4 / 4 done
 **Last updated:** 2026-05-06
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
@@ -16,10 +16,10 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | session-pool-isolation | — | 🚧 In Progress | 0/6 | [PHASE_01__session-pool-isolation.md](PHASE_01__session-pool-isolation.md) |
-| 02 | retry-with-backoff | 01 | ⬜ Not started | 0/4 | [PHASE_02__retry-with-backoff.md](PHASE_02__retry-with-backoff.md) |
-| 03 | sftp-error-strings | 02 | ⬜ Not started | 0/3 | [PHASE_03__sftp-error-strings.md](PHASE_03__sftp-error-strings.md) |
-| 04 | docs-catalog-cleanup | all | ⬜ Not started | 0/4 | [PHASE_04__docs-catalog-cleanup.md](PHASE_04__docs-catalog-cleanup.md) |
+| 01 | session-pool-isolation | — | ✅ Done | 6/6 | [PHASE_01__session-pool-isolation.md](PHASE_01__session-pool-isolation.md) |
+| 02 | retry-with-backoff | 01 | ✅ Done | 4/4 | [PHASE_02__retry-with-backoff.md](PHASE_02__retry-with-backoff.md) |
+| 03 | sftp-error-strings | 02 | ✅ Done | 3/3 | [PHASE_03__sftp-error-strings.md](PHASE_03__sftp-error-strings.md) |
+| 04 | docs-catalog-cleanup | all | ✅ Done | 4/4 | [PHASE_04__docs-catalog-cleanup.md](PHASE_04__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 
@@ -34,10 +34,10 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 ## Completion Gate
 
-- [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated with SFTP concurrent playback bullet.
-- [ ] `dev/CHANGELOG.md` has an entry for every modified file.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated.
+- [x] All phases show ✅ Done.
+- [x] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated with SFTP concurrent playback bullet.
+- [x] `dev/CHANGELOG.md` has an entry for every modified file.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated.
 - [ ] `/spec-check S0099` returns `Verified`.
 - [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
 

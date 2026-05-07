@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0099_sftp-concurrent-access-fix.md`](../S0099_sftp-concurrent-access-fix.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01, Phase 02, Phase 03
 **Blocks:** —
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-05-06
+**Completed:** 2026-05-06
 
 ---
 
@@ -55,7 +55,11 @@ Regenerate the code catalog, update feature docs in all three locales, write dev
 
 - `Glob` — `dev/CATALOG/app_v2.jsonl` modified timestamp is today.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 1/1 PASS. Catalog regenerated (926 files). Dev log N/A (generated artifact).
 
 ---
 
@@ -87,7 +91,11 @@ Regenerate the code catalog, update feature docs in all three locales, write dev
 - `Grep` — `Параллельное воспроизведение и копирование файлов с одного SFTP` present in `docs/FEATURES_RU.md`.
 - `Grep` — `Паралельне відтворення та копіювання файлів з одного SFTP` present in `docs/FEATURES_UK.md`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 3/3 PASS. Files: FEATURES.md, FEATURES_RU.md, FEATURES_UK.md. Dev log pending phase end.
 
 ---
 
@@ -112,7 +120,11 @@ Regenerate the code catalog, update feature docs in all three locales, write dev
 
 - `Grep` — `S0099` present in `dev/CHANGELOG.md`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 1/1 PASS. S0099 present in dev/CHANGELOG.md (21 entries). Dev log recorded.
 
 ---
 
@@ -131,16 +143,20 @@ Regenerate the code catalog, update feature docs in all three locales, write dev
 
 - `pwsh -File scripts/spec_catalog/select.ps1 -Id S0099 -Format json` → `"status":"Implemented"`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 1/1 PASS. Status "Implemented" confirmed via select.ps1. Dev log N/A (catalog mutation only).
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every step above is `[x] done`.
-- [ ] `dev/CHANGELOG.md` has `S0099` entries for all 7 modified files.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated.
-- [ ] Catalog `.jsonl` updated.
+- [x] Every step above is `[x] done`.
+- [x] `dev/CHANGELOG.md` has `S0099` entries for all 7 modified files.
+- [x] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated.
+- [x] Catalog `.jsonl` updated.
 
 ---
 

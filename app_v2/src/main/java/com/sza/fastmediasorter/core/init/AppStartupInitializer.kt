@@ -195,6 +195,10 @@ class AppStartupInitializer(
                 Timber.i("%-30s = %s", "copyPanelCollapsed", copyPanelCollapsed)
                 Timber.i("%-30s = %s", "movePanelCollapsed", movePanelCollapsed)
                 
+                // Mic Recording
+                Timber.i("%-30s = %s", "micRecordingEnabled", micRecordingEnabled)
+                Timber.i("%-30s = %s", "micRecordingAskFilename", micRecordingAskFilename)
+
                 // Misc
                 Timber.i("%-30s = %s", "lastUsedResourceId", lastUsedResourceId)
             }

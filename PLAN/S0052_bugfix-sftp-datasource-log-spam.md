@@ -98,7 +98,7 @@ error() → ERROR: полное сообщение без изменений
      - **SMB**: OK — `logProgress()` с порогом 10 MB; условный `BuildConfig.LOG_SMB_IO` для детального режима. Изменений не требует.
      - **FTP**: SPAM — идентичный SFTP паттерн (`totalBytesRead ≤ 10000`). Исправлено в Phase 3.
      - **Cloud**: OK — в `read()` нет per-read логирования вообще. Изменений не требует.
-   - **Статус:** Resolved
+   - **Статус:** Verified
 
 ---
 

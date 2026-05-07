@@ -10,6 +10,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
 import timber.log.Timber
@@ -227,6 +228,29 @@ class AudioServiceController(
                 onResult(null)
             }
         }, MoreExecutors.directExecutor())
+    }
+
+    fun applyPlaybackOrderMode(mode: PlaybackOrderMode) {
+        val player = mediaController ?: return
+        when (mode) {
+            PlaybackOrderMode.LOOP_LIST -> {
+                player.repeatMode = Player.REPEAT_MODE_ALL
+                player.shuffleModeEnabled = false
+            }
+            PlaybackOrderMode.PLAY_THROUGH -> {
+                player.repeatMode = Player.REPEAT_MODE_OFF
+                player.shuffleModeEnabled = false
+            }
+            PlaybackOrderMode.SHUFFLE -> {
+                player.repeatMode = Player.REPEAT_MODE_ALL
+                player.shuffleModeEnabled = true
+            }
+            PlaybackOrderMode.REPEAT_ONE -> {
+                player.repeatMode = Player.REPEAT_MODE_ONE
+                player.shuffleModeEnabled = false
+            }
+        }
+        Timber.d("S0104: AudioServiceController.applyPlaybackOrderMode mode=$mode")
     }
 
     /**

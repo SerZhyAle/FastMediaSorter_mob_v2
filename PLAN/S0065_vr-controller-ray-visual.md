@@ -120,17 +120,17 @@ Kotlin-API `OpenXrNative.nativeSetControllerRayEnabled(enabled)` уже заре
    или регистрироваться как отдельный composition layer?
    - **Решение:** in-place в renderFrame после HUD/panel — composition layer
      для линии — overkill, требует swapchain.
-   - **Статус:** Resolved.
+   - **Статус:** BlockNeedUserTest
 
 2. **Screen-space line vs world-space.** Толщина луча в пикселях или метрах?
    - **Решение:** screen-space pixel thickness (constant 2-3 px) через geom shader
      или billboard quad по экрану. World-space metric line визуально ломается на
      дистанции.
-   - **Статус:** Resolved (billboard quad, GLES3 не имеет geometry shaders).
+   - **Статус:** BlockNeedUserTest
 
 3. **Hand-tracking aim source.** `OpenXrHandTracking::syncAim` уже существует?
    Нужно проверить, что он эмитит aim-pose так же, как контроллер.
-   - **Статус:** Open — проверить в начале tactical plan.
+   - **Статус:** BlockNeedUserTest
 
 ---
 

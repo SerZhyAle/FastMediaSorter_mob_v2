@@ -13,6 +13,9 @@
 
             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
+                <!-- S0104: Playback order mode button (AUDIO/VIDEO only) -->
+                <ImageButton android:id="@+id/btnPlaybackOrderCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/playback_order_menu_title" android:src="@drawable/ic_loop_list" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
+
                 <!-- S0050: Black Screen mode button (AUDIO/VIDEO; visible when showBlackScreenButton=true) -->
                 <ImageButton android:id="@+id/btnBlackScreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/black_screen_button_title" android:src="@drawable/ic_black_screen" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
@@ -61,6 +64,17 @@
 
                 <ImageButton android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_microphone" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 
+                <ImageButton android:id="@+id/btnSleepTimerCmd"
+                    android:layout_width="@dimen/player_cmd_button_size"
+                    android:layout_height="@dimen/player_cmd_button_size"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/menu_sleep_timer"
+                    android:src="@drawable/ic_sleep_timer"
+                    android:visibility="gone"
+                    app:tint="@color/selector_player_button_tint"
+                    android:scaleType="centerInside"
+                    android:padding="@dimen/player_button_padding" />
+
                 <ImageButton android:id="@+id/btnSearchYoutubeMusicCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@null" android:src="@drawable/ic_youtube_music" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
                 <ImageButton android:id="@+id/btnCastCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@null" android:src="@drawable/ic_cast" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
@@ -89,6 +103,7 @@
 
                 <ImageButton android:id="@+id/btnFullscreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_fullscreen" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 
+                <!-- S0103: fixed anchor — already before nav block -->
                 <ImageButton android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_play" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" android:visibility="gone" />
 
                 <!-- Navigation at end of scrollable area (same set as portrait, all part of adaptive system) -->

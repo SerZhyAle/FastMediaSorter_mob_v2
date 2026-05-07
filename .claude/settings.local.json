@@ -11,7 +11,11 @@
       "Bash(powershell.exe -NonInteractive -Command \"& ''./scripts/add_to_dev_log.ps1'' ''app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt'' ''DefaultPlayerHelper'' ''Add RoleManager ROLE_MEDIA_PLAYER check API31+ isAlreadyDefaultPlayer and applyButtonState helper''\")",
       "Bash(git config:*)",
       "Read(//tmp/**)",
-      "Bash(javap -p com/dropbox/core/android/Auth.class)"
+      "Bash(javap -p com/dropbox/core/android/Auth.class)",
+      "Skill(update-config)",
+      "Bash(/c/Program Files/PowerShell/7/pwsh.exe *)",
+      "Bash(\"/c/Program Files/PowerShell/7/pwsh.exe\" -File \"P:/ANDROID/FastMediaSorter_mob_v2/dev/CATALOG/scripts/query.ps1\" -PathMatches \"*image*\" -Module app_v2)",
+      "Bash(C:/Program Files/PowerShell/7/pwsh.exe *)"
     ]
   }
 }

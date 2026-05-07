@@ -1,143 +1,50 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
-import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
-import com.sza.fastmediasorter.utils.PermissionChecker
-import timber.log.Timber
+import com.sza.fastmediasorter.domain.model.PermissionEntry
+import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
+import com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
+import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
+import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
 
 class GeneralSettingsPermissionsHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val mediaPermissionsLauncher: ActivityResultLauncher<Array<String>>,
     private val notificationPermissionLauncher: ActivityResultLauncher<String>,
+    private val requestContextualPermission: RequestContextualPermissionUseCase,
+    private val permissionRegistry: PermissionRegistryRepository,
 ) {
     fun updatePermissionButtonsState() {
-        val ctx = fragment.requireContext()
+        binding.btnLocalFilesPermission.visibility = View.GONE
+        binding.btnNetworkPermission.visibility = View.GONE
+        binding.btnManageMediaPermission?.visibility = View.GONE
+        binding.btnNotificationPermission?.visibility = View.GONE
+        binding.btnBatteryOptimizationPermission?.visibility = View.GONE
+    }
 
-        val hasMediaPermissions = PermissionChecker.hasMediaPermissions(ctx)
-        binding.btnLocalFilesPermission.isEnabled = true
-        binding.btnLocalFilesPermission.alpha = 1.0f
-        binding.btnLocalFilesPermission.text = if (hasMediaPermissions)
-            fragment.getString(R.string.manage_local_files_permission)
-        else
-            fragment.getString(R.string.grant_local_files_permission)
-        binding.btnLocalFilesPermission.setOnClickListener { handleLocalFilesPermissionAction() }
+    fun handleLocalFilesPermissionAction() = navigateToPermissionsManagement()
 
-        val hasNetworkPermission = PermissionHelper.hasLocalNetworkPermission(ctx)
-        binding.btnNetworkPermission.isEnabled = !hasNetworkPermission
-        binding.btnNetworkPermission.alpha = if (hasNetworkPermission) 0.5f else 1.0f
-        binding.btnNetworkPermission.text = if (hasNetworkPermission)
-            fragment.getString(R.string.local_network_permission_granted)
-        else
-            fragment.getString(R.string.local_network_permission_grant)
-        binding.btnNetworkPermission.setOnClickListener {
-            val activity = fragment.requireActivity()
-            if (PermissionHelper.hasLocalNetworkPermission(ctx)) {
-                // already granted — nothing to do
-            } else if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
-                PermissionHelper.requestLocalNetworkPermission(activity)
-            } else {
-                PermissionHelper.routeToLocalNetworkSettings(activity)
-            }
-        }
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            val hasManageMedia = PermissionHelper.hasManageMediaPermission(ctx)
-            binding.btnManageMediaPermission.isEnabled = true
-            binding.btnManageMediaPermission.alpha = 1.0f
-            binding.btnManageMediaPermission.text = if (hasManageMedia)
-                fragment.getString(R.string.manage_manage_media_permission)
-            else
-                fragment.getString(R.string.grant_manage_media_permission)
-            binding.btnManageMediaPermission.setOnClickListener {
-                if (PermissionHelper.hasManageMediaPermission(ctx)) openAppSettings() else requestManageMediaPermission()
-            }
-        }
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
-            && com.sza.fastmediasorter.BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
-        ) {
-            binding.btnNotificationPermission?.visibility = View.VISIBLE
-            val hasNotification = androidx.core.content.ContextCompat.checkSelfPermission(
-                ctx, android.Manifest.permission.POST_NOTIFICATIONS
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            binding.btnNotificationPermission?.isEnabled = true
-            binding.btnNotificationPermission?.alpha = 1.0f
-            binding.btnNotificationPermission?.text = if (hasNotification)
-                fragment.getString(R.string.manage_notifications_permission)
-            else
-                fragment.getString(R.string.grant_notifications_permission)
-            binding.btnNotificationPermission?.setOnClickListener {
-                if (androidx.core.content.ContextCompat.checkSelfPermission(
-                        ctx, android.Manifest.permission.POST_NOTIFICATIONS
-                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                ) openAppSettings()
-                else notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            }
+    fun handleNetworkPermissionAction() {
+        val entry = permissionRegistry.getEntries().find { it.id == "access_local_network" }
+        if (entry != null) {
+            requestContextualPermission.invoke(fragment, entry) { navigateToPermissionsManagement() }
         } else {
-            binding.btnNotificationPermission?.visibility = View.GONE
-        }
-
-        val pm = ctx.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
-        val isIgnoring = pm.isIgnoringBatteryOptimizations(ctx.packageName)
-        binding.btnBatteryOptimizationPermission?.isEnabled = true
-        binding.btnBatteryOptimizationPermission?.alpha = 1.0f
-        binding.btnBatteryOptimizationPermission?.text = if (isIgnoring)
-            fragment.getString(R.string.manage_battery_optimization_permission)
-        else
-            fragment.getString(R.string.grant_battery_optimization_permission)
-        binding.btnBatteryOptimizationPermission?.setOnClickListener {
-            val pmNow = ctx.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
-            if (pmNow.isIgnoringBatteryOptimizations(ctx.packageName)) {
-                try {
-                    // SettingsIntentLauncher.launch not needed — fire-and-forget link to battery optimization list page
-                    fragment.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
-                } catch (_: Exception) { openAppSettings() }
-            } else {
-                try {
-                    fragment.startActivity(
-                        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                            data = Uri.parse("package:${ctx.packageName}")
-                        }
-                    )
-                } catch (_: Exception) { openAppSettings() }
-            }
+            navigateToPermissionsManagement()
         }
     }
 
-    fun handleLocalFilesPermissionAction() {
-        if (PermissionChecker.hasMediaPermissions(fragment.requireContext())) openAppSettings()
-        else requestMediaPermissions()
-    }
+    fun handlePermissionPermanentlyDenied(entry: PermissionEntry) =
+        PermissionDenialHandler.handle(fragment, entry)
 
-    private fun requestMediaPermissions() {
-        val permissions = PermissionChecker.getRequiredMediaPermissions()
-        if (permissions.isEmpty()) { updatePermissionButtonsState(); return }
-        mediaPermissionsLauncher.launch(permissions)
-    }
-
-    private fun openAppSettings() {
-        try {
-            fragment.startActivity(
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package", fragment.requireContext().packageName, null)
-                }
-            )
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to open app settings")
-        }
-    }
-
-    private fun requestManageMediaPermission() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            PermissionHelper.requestManageMediaPermission(fragment.requireActivity())
-        }
+    fun navigateToPermissionsManagement() {
+        fragment.parentFragmentManager
+            .beginTransaction()
+            .replace(android.R.id.content, PermissionsManagementFragment())
+            .addToBackStack(null)
+            .commit()
     }
 }

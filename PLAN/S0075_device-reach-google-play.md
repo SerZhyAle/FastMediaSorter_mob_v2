@@ -96,17 +96,17 @@ Google Play автоматически фильтрует устройства �
 1. **Масштаб потерь от `ACCESS_WIFI_STATE`**
    - **Вопрос:** Сколько устройств/моделей сейчас исключено из-за отсутствия `android.hardware.wifi required=false`?
    - **Решение:** Baseline-счётчик не нужен — конкретная цифра не влияет на решение о правке. Исправление вносится без предварительного измерения.
-   - **Статус:** Resolved
+   - **Статус:** Partial
 
 2. **`android.hardware.touchscreen` — нужно ли?**
    - **Вопрос:** Объявляет ли система автоматически `touchscreen required=true` без явного `uses-feature`? По документации — да, это значение по умолчанию для телефонных APK.
    - **Решение:** Добавить `android.hardware.touchscreen android:required="false"`. Приложение уже поддерживает клавиатуру, мышь и пульты — деградации нет.
-   - **Статус:** Resolved
+   - **Статус:** Partial
 
 3. **VR-манифест (`src/vr/`) — охват устройств**
    - **Вопрос:** Как максимизировать охват устройств для VR-флавёра без потери функциональности? VR-флавёр может распространяться через Meta Horizon Store и/или Google Play — правила фильтрации различаются.
    - **Резолюция:** Анализ `app_v2/src/vr/AndroidManifest.xml` показывает, что используется концепция "Union Manifest" для обоих каналов (Google Play и Meta Horizon Store). Все XR-специфичные фичи (`android.hardware.vr.headtracking`, `android.hardware.xr.immersive`, `oculus.software.handtracking`) уже задекларированы как `required="false"`. Это обеспечивает установку APK через Google Play (не отсекая не-VR устройства) и успешно распознаётся Meta Horizon OS для активации иммерсивного режима (фокус-авареность управляется через `com.oculus.intent.category.VR` и `<meta-data>`).
-   - **Статус:** Resolved — дополнительных правок манифеста не требуется.
+   - **Статус:** Partial
 
 ---
 

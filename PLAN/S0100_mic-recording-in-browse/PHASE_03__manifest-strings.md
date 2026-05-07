@@ -54,7 +54,7 @@ Declare `RECORD_AUDIO` permission in the manifest and add all trilingual string 
 **Verification:**
 
 - `Grep` — `RECORD_AUDIO` present in `AndroidManifest.xml`.
-- `Grep` — `android:required="false"` on the same line or adjacent attribute.
+- `Grep` — `android:required="false"` present in `AndroidManifest.xml`.
 
 **Status:** `[ ]` not done
 
@@ -189,3 +189,11 @@ All mic recording string keys exist in EN/RU/UK. `RECORD_AUDIO` declared in mani
 ## Rollback Plan
 
 Revert phase commit(s) — strings and manifest permissions are additive and do not affect existing functionality.
+
+---
+
+## Revision History
+
+- **2026-05-06** — by `/spec-update` (`claude-sonnet-4-6`, focus: all)
+  - Applied: 1. Proposed (DISCUSS): 0.
+  - Step 3.1 Verification: replaced ambiguous "on the same line or adjacent attribute" predicate with a simple static `Grep` check.

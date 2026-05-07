@@ -4,8 +4,8 @@
 **Feature:** Microphone recording from Browse command bar
 **Tier:** 3 — Moderate
 **Priority:** 50
-**Status:** Not started
-**Phases:** 0 / 6 done
+**Status:** Implemented
+**Phases:** 6 / 6 done
 **Last updated:** 2026-05-06
 
 > **Scope:** tactical, English, developer handoff. Every step has a verification predicate. Rationale lives in the strategic spec.
@@ -16,12 +16,12 @@
 
 | # | Phase | Depends on | Status | Steps | File |
 |---|-------|-----------|--------|------:|------|
-| 01 | foundations | — | ⬜ Not started | 0/2 | [PHASE_01__foundations.md](PHASE_01__foundations.md) |
-| 02 | recording-engine | 01 | ⬜ Not started | 0/3 | [PHASE_02__recording-engine.md](PHASE_02__recording-engine.md) |
-| 03 | manifest-strings | 01 | ⬜ Not started | 0/4 | [PHASE_03__manifest-strings.md](PHASE_03__manifest-strings.md) |
-| 04 | settings-ui | 01, 03 | ⬜ Not started | 0/3 | [PHASE_04__settings-ui.md](PHASE_04__settings-ui.md) |
-| 05 | browse-integration | 02, 03, 04 | ⬜ Not started | 0/5 | [PHASE_05__browse-integration.md](PHASE_05__browse-integration.md) |
-| 06 | docs-catalog-cleanup | all | ⬜ Not started | 0/4 | [PHASE_06__docs-catalog-cleanup.md](PHASE_06__docs-catalog-cleanup.md) |
+| 01 | foundations | — | ✅ Done | 2/2 | [PHASE_01__foundations.md](PHASE_01__foundations.md) |
+| 02 | recording-engine | 01 | ✅ Done | 3/3 | [PHASE_02__recording-engine.md](PHASE_02__recording-engine.md) |
+| 03 | manifest-strings | 01 | ✅ Done | 4/4 | [PHASE_03__manifest-strings.md](PHASE_03__manifest-strings.md) |
+| 04 | settings-ui | 01, 03 | ✅ Done | 3/3 | [PHASE_04__settings-ui.md](PHASE_04__settings-ui.md) |
+| 05 | browse-integration | 02, 03, 04 | ✅ Done | 5/5 | [PHASE_05__browse-integration.md](PHASE_05__browse-integration.md) |
+| 06 | docs-catalog-cleanup | all | ✅ Done | 4/4 | [PHASE_06__docs-catalog-cleanup.md](PHASE_06__docs-catalog-cleanup.md) |
 
 Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
 
@@ -35,12 +35,12 @@ No open blockers — all §6 research items resolved before tactical was authore
 
 ## Completion Gate
 
-- [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (Phase 06).
-- [ ] `dev/CHANGELOG.md` has an entry for every modified file.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated (Phase 06).
-- [ ] `/spec-check S0100` returns `Verified`.
-- [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
+- [x] All phases show ✅ Done.
+- [x] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (Phase 06).
+- [x] `dev/CHANGELOG.md` has an entry for every modified file.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated (Phase 06).
+- [x] `/spec-check S0100` returns `Verified`.
+- [x] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
 
 ---
 

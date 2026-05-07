@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0099_sftp-concurrent-access-fix.md`](../S0099_sftp-concurrent-access-fix.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** ✅ Done
 **Depends on:** Phase 01
 **Blocks:** Phase 03, Phase 04
-**Steps done:** 0 / 4
-**Started:** —
-**Completed:** —
+**Steps done:** 4 / 4
+**Started:** 2026-05-06
+**Completed:** 2026-05-06
 
 ---
 
@@ -51,7 +51,11 @@ Replace the single-attempt retry in `SftpClient.downloadFile()` with a 3-attempt
 
 - `Glob` — `temp/SftpClient_S0099_backup.kt` exists.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 1/1 PASS. Files: temp/SftpClient_S0099_backup.kt (copy). Dev log N/A (temp file).
 
 ---
 
@@ -78,7 +82,11 @@ Replace the single-attempt retry in `SftpClient.downloadFile()` with a 3-attempt
 - `Glob` — `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpDownloadExhaustedException.kt` exists.
 - `Grep` — `class SftpDownloadExhaustedException` present in that file.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 2/2 PASS. Files: SftpDownloadExhaustedException.kt (new, 7 LOC). Dev log pending phase end.
 
 ---
 
@@ -168,7 +176,11 @@ Replace the single-attempt retry in `SftpClient.downloadFile()` with a 3-attempt
 - `Grep` — `// First attempt` — 0 matches in `SftpClient.kt` (old marker removed).
 - `Grep` — `SFTP \[FILE_OPS\] download exhausted` present in `SftpClient.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 5/5 PASS. Files: SftpClient.kt (downloadFile replaced with 3-attempt backoff, `// First attempt` markers removed). Dev log pending phase end.
 
 ---
 
@@ -185,17 +197,21 @@ Replace the single-attempt retry in `SftpClient.downloadFile()` with a 3-attempt
 
 - Build exits with code 0.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 1/1 PASS. Build exit code 0. Dev log recorded.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every step above is `[x] done`.
-- [ ] Project compiles — `/build` exits 0.
-- [ ] `Grep` for `TODO(phase-02)` returns zero hits.
-- [ ] Dev log entries added for both new/modified files via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
+- [x] Every step above is `[x] done`.
+- [x] Project compiles — `/build` exits 0.
+- [x] `Grep` for `TODO(phase-02)` returns zero hits.
+- [x] Dev log entries added for both new/modified files via `.\scripts\add_to_dev_log.ps1`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
 
 ---
 

@@ -621,16 +621,22 @@ class MediaFileAdapter(
             val state = this@MediaFileAdapter.inlinePlayerState
             val isThisItem = state.playingPath == file.path
             val isDownloading = state.downloadingPath == file.path
-            binding.btnPlayInline.isVisible = isAudioOnlyMode
-            if (!isAudioOnlyMode) return
+            val shouldShow = file.type == MediaType.AUDIO && !file.isDirectory && !(isGridMode && hideGridActionButtons)
+            binding.btnPlayInline.isVisible = shouldShow
+            if (!shouldShow) return
+            if (!isAudioOnlyMode && shouldShow) {
+                Timber.d("S0105: showing inline play button for audio file '${file.name}' in mixed resource")
+            }
 
-            // Use detail line (filename + size + duration) for the info row, not artist/title which is already in tvFileName
-            val baseInfo = AdapterFileInfoFormatter.buildAudioDetailLine(file)
-            if (isDownloading) {
-                val progress = state.downloadProgressPercent.coerceIn(0, 100)
-                binding.tvFileInfo.text = if (progress > 0) "$baseInfo • Cache $progress%" else "$baseInfo • Cache..."
-            } else {
-                binding.tvFileInfo.text = baseInfo
+            // In audio-only mode update info line with detail / cache progress; in other modes leave tvFileInfo as-is
+            if (isAudioOnlyMode) {
+                val baseInfo = AdapterFileInfoFormatter.buildAudioDetailLine(file)
+                if (isDownloading) {
+                    val progress = state.downloadProgressPercent.coerceIn(0, 100)
+                    binding.tvFileInfo.text = if (progress > 0) "$baseInfo • Cache $progress%" else "$baseInfo • Cache..."
+                } else {
+                    binding.tvFileInfo.text = baseInfo
+                }
             }
 
             binding.btnPlayInline.isEnabled = !isDownloading
@@ -823,13 +829,13 @@ class MediaFileAdapter(
                 
                 btnDeleteItem.isVisible = isWritable && !shouldHideActions
 
-                // Inline play button: visible only in Audio Only mode, not for folders
-                if (isAudioOnlyMode && !isFolder) {
+                // Inline play button: visible for any audio file, suppressed by hideGridActionButtons in grid mode
+                val showPlayButton = file.type == MediaType.AUDIO && !isFolder && !(isGridMode && hideGridActionButtons)
+                if (showPlayButton) {
                     updatePlaybackState(file)
                 } else {
                     btnPlayInline.isVisible = false
                     btnPlayInline.isEnabled = true
-                    tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
                     applyInlineHighlight(false)
                 }
 

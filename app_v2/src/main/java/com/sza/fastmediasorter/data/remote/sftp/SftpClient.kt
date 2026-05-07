@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -222,7 +223,6 @@ class SftpClient @Inject constructor(
         maxBytes: Long = Long.MAX_VALUE
     ): Result<ByteArray> {
         
-        // First attempt
         val firstResult = withConnection(connectionInfo) { channel ->
             try {
                 val outputStream = java.io.ByteArrayOutputStream()
@@ -303,7 +303,6 @@ class SftpClient @Inject constructor(
         allowRetry: Boolean = true
     ): Result<ByteArray> {
 
-        // First attempt
         val firstResult = withConnection(connectionInfo) { channel ->
             try {
                 val buffer = ByteArray(length.toInt())
@@ -392,64 +391,59 @@ class SftpClient @Inject constructor(
         fileSize: Long = 0,
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> {
-        
-        // First attempt
-        val firstResult = withConnection(connectionInfo) { channel ->
-            try {
-                channel.get(remotePath).use { inputStream ->
-                    if (progressCallback != null && fileSize > 0) {
-                        inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
-                    } else {
-                        inputStream.copyTo(outputStream)
-                    }
-                }
-                Result.success(Unit)
-            } catch (e: IndexOutOfBoundsException) {
-                Timber.w("SFTP downloadFile got IndexOutOfBoundsException, will retry with new connection")
-                Result.failure(e)
-            } catch (e: SftpException) {
-                // SSH_FX_FAILURE (4) and SSH_FX_BAD_MESSAGE (5) often indicate corrupted channel state
-                if (e.id == ChannelSftp.SSH_FX_FAILURE || e.id == ChannelSftp.SSH_FX_BAD_MESSAGE) {
-                    Timber.w("SFTP downloadFile got SftpException ${e.id}, will retry with new connection")
-                    Result.failure(e)
-                } else {
-                    Timber.e(e, "SFTP download file failed: $remotePath")
-                    Result.failure(e)
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "SFTP download file failed: $remotePath")
-                Result.failure(e)
+        val retryDelaysMs = longArrayOf(1_000, 2_000, 4_000)
+        var lastException: Exception? = null
+
+        for (attempt in 0..retryDelaysMs.size) {
+            if (attempt > 0) {
+                Timber.d("SFTP [FILE_OPS] download retry $attempt/${retryDelaysMs.size} for $remotePath")
+                pool.invalidate(connectionInfo)
+                if (outputStream is java.io.ByteArrayOutputStream) outputStream.reset()
+                delay(retryDelaysMs[attempt - 1])
             }
-        }
-        
-        // Retry with fresh connection if retriable error
-        val exception = firstResult.exceptionOrNull()
-        val shouldRetry = exception is IndexOutOfBoundsException || 
-                         (exception is SftpException && (exception.id == ChannelSftp.SSH_FX_FAILURE || exception.id == ChannelSftp.SSH_FX_BAD_MESSAGE))
-        
-        return if (firstResult.isFailure && shouldRetry) {
-            Timber.d("SFTP: Invalidating connection and retrying download: $remotePath")
-            pool.invalidate(connectionInfo)
-            
-            // Clear outputStream if possible (for ByteArrayOutputStream)
-            if (outputStream is java.io.ByteArrayOutputStream) {
-                outputStream.reset()
-            }
-            
-            withConnection(connectionInfo) { channel ->
+
+            val result = withConnection(connectionInfo) { channel ->
                 try {
                     channel.get(remotePath).use { inputStream ->
-                        inputStream.copyTo(outputStream)
+                        if (progressCallback != null && fileSize > 0) {
+                            inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
+                        } else {
+                            inputStream.copyTo(outputStream)
+                        }
                     }
                     Result.success(Unit)
+                } catch (e: IndexOutOfBoundsException) {
+                    Timber.w("SFTP [FILE_OPS] IndexOutOfBoundsException attempt $attempt: $remotePath")
+                    Result.failure(e)
+                } catch (e: SftpException) {
+                    if (e.id == ChannelSftp.SSH_FX_FAILURE || e.id == ChannelSftp.SSH_FX_BAD_MESSAGE) {
+                        Timber.w("SFTP [FILE_OPS] SftpException ${e.id} attempt $attempt: $remotePath")
+                        Result.failure(e)
+                    } else {
+                        Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
+                        Result.failure(e)
+                    }
+                } catch (e: IOException) {
+                    Timber.w("SFTP [FILE_OPS] IOException attempt $attempt: $remotePath — ${e.message}")
+                    Result.failure(e)
                 } catch (e: Exception) {
-                    Timber.e(e, "SFTP download file failed (retry): $remotePath")
+                    Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
                     Result.failure(e)
                 }
             }
-        } else {
-            firstResult
+
+            if (result.isSuccess) return result
+
+            val ex = result.exceptionOrNull()
+            val retriable = ex is IndexOutOfBoundsException ||
+                (ex is SftpException && (ex.id == ChannelSftp.SSH_FX_FAILURE || ex.id == ChannelSftp.SSH_FX_BAD_MESSAGE)) ||
+                ex is IOException
+            if (!retriable) return result
+            lastException = ex as? Exception ?: Exception(ex?.message)
         }
+
+        Timber.e("SFTP [FILE_OPS] download exhausted all retries: $remotePath")
+        return Result.failure(SftpDownloadExhaustedException(remotePath, lastException))
     }
 
     // Upload file to SFTP server from byte array

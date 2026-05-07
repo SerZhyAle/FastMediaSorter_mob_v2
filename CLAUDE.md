@@ -15,6 +15,29 @@ references live in `dev/` and `docs/`.
 
 Non-negotiable — not typos.
 
+## Spec Writing Style
+
+Applied by all `/spec*` skills when writing `.md` artefacts. Reader is a senior developer — convey the idea, not the explanation of the idea.
+
+- **Lists over tables.** Use `- item` for requirements, steps, decisions. Tables only where data has 3+ parallel columns (Modules table, Flavors table, stack pins).
+- **No pseudographics.** No ASCII arrows, boxes, or flow diagrams in spec text.
+- **No self-evident links.** Skip "ViewModel observes Repository", "§5 feeds §6" — reader knows Clean/MVVM.
+- **One idea per bullet.** No elaboration paragraphs inside list items. If it needs WHY, it belongs in ADR, not in the list.
+- **No section summaries.** Don't close sections with "this ensures X" or "together these achieve Y".
+
+## Debug Verification Tags (code specs)
+
+Every spec that modifies Kotlin code: `/spec-dev` inserts at the entry point(s) of the changed flow:
+
+```kotlin
+Timber.d("Sxxxx: <short description of exercised path>")
+```
+
+- One tag per changed flow entry — not on every modified line.
+- If the tag appears in logcat during testing → the code path was exercised → spec can move to `Verified`.
+- **On transition to `Verified`:** grep for `Timber.d("Sxxxx:` across all `.kt` files and remove every matching line. Commit the removal together with the status change in the same commit.
+- Tags are never left in Verified or Archived code.
+
 ## Mandatory Skills (auto-trigger, do not handle manually)
 
 | Situation | Skill |
@@ -41,7 +64,8 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
 - **Priority guide:** 90..100 build/release blocker · 70..89 critical · 40..69 standard (default 50) · 10..39 polish · 0..9 wishlist.
 - **Statuses:** active — `Draft`, `Approved`, `Tactical`, `In Progress`, `Implemented`, `Verified`, `Partial`, `Broken`. Block — `BlockByOtherTask`, `BlockNeedUserTest`, `BlockQuestions`, `BlockExternal`. Terminal — `Archived` (soft delete; ids never reused).
 - **Stale signal:** `a.ps1 ss` flags any active spec with `updated` ≥ 14 days (`!`) or ≥ 30 days (`!!`); consider `/spec-update <Sxxxx>`.
-- **CLI (only sanctioned mutators):** `insert.ps1`, `update.ps1`, `select.ps1`, `delete.ps1`, `validate.ps1` under `scripts/spec_catalog/`. **Never edit `PLAN/spec-catalog.jsonl` by hand.**
+- **CLI — primitives:** `insert.ps1`, `update.ps1`, `select.ps1`, `delete.ps1`, `validate.ps1` under `scripts/spec_catalog/`. **Never edit `PLAN/spec-catalog.jsonl` by hand.**
+- **CLI — operator facade:** `next-id.ps1`, `search.ps1`, `close.ps1`, `stats.ps1`, `bulk-update.ps1`, `complete.ps1`, `archive.ps1` — prefer these for id allocation, lookup, finalization, summary, batch changes, one-shot completion, and archiving (move to `temp/done/` + set Archived).
 - **Lifecycle hooks:** `/spec` calls `insert`; `/spec-tech` flips status to `Tactical`; `/spec-dev` flips to `In Progress` then `Implemented`; `/spec-check` flips to `Verified` / `Partial` / `Broken` (writes summary into ticket's `## Last Audit`); `/spec-fix` touches `updated`. Block-states are set explicitly via `update.ps1 -Status Block...`.
 - **Soft delete only:** `delete.ps1` sets status `Archived`; record stays in the journal forever.
 

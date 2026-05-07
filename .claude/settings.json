@@ -1,4 +1,5 @@
 {
+  "agent": "android-rd-specialist",
   "permissions": {
     "allow": [
       "Bash(./gradlew.bat *)",

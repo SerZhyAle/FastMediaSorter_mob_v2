@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -24,8 +25,11 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
 class AudioSettingsFragment : Fragment() {
 
@@ -52,6 +56,18 @@ class AudioSettingsFragment : Fragment() {
 
     // Ordered list of mode keys — index-aligned with dropdown labels
     private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
+
+    private val recordAudioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(micRecordingEnabled = true))
+        } else {
+            binding.switchMicRecordingEnabled.isChecked = false
+            Snackbar.make(binding.root, R.string.mic_recording_permission_denied, Snackbar.LENGTH_LONG).show()
+        }
+    }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -224,6 +240,9 @@ class AudioSettingsFragment : Fragment() {
 
         // Default player button
         setupDefaultPlayerButton()
+
+        // Microphone recording
+        setupMicRecordingSection()
     }
 
     private fun observeData() {
@@ -308,6 +327,13 @@ class AudioSettingsFragment : Fragment() {
                             binding.radioGroupExitBehavior.check(radioId)
                         }
                         updateExitBehaviorVisibility()
+                    }
+
+                    // Microphone recording
+                    if (BuildConfig.SUPPORT_MIC_RECORDING) {
+                        binding.switchMicRecordingEnabled.isChecked = settings.micRecordingEnabled
+                        binding.switchMicRecordingAskFilename.isChecked = settings.micRecordingAskFilename
+                        binding.layoutMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
                     }
 
                     isUpdatingFromSettings = false
@@ -410,6 +436,39 @@ class AudioSettingsFragment : Fragment() {
             }
             .setCancelable(false)
             .show()
+    }
+
+    private fun setupMicRecordingSection() {
+        if (!BuildConfig.SUPPORT_MIC_RECORDING) {
+            binding.tvMicRecordingSectionTitle.visibility = View.GONE
+            binding.layoutMicRecordingEnable.visibility = View.GONE
+            binding.layoutMicRecordingAskFilename.visibility = View.GONE
+            return
+        }
+
+        binding.switchMicRecordingEnabled.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            if (isChecked) {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO)
+                    != PackageManager.PERMISSION_GRANTED
+                ) {
+                    recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    return@setOnCheckedChangeListener
+                }
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(micRecordingEnabled = true))
+            } else {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(micRecordingEnabled = false))
+            }
+            binding.layoutMicRecordingAskFilename.isVisible = isChecked
+        }
+
+        binding.switchMicRecordingAskFilename.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
+        }
     }
 
     override fun onDestroyView() {

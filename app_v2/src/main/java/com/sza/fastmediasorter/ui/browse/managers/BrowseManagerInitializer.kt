@@ -215,6 +215,7 @@ class BrowseManagerInitializer(
             },
             onFolderClick = { folder ->
                 UserActionLogger.logItemClick(folder.name, context = "Folder click")
+                if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
                 viewModel.navigateToFolder(folder)
             },
             onBinaryFileClick = { file ->
@@ -305,7 +306,10 @@ class BrowseManagerInitializer(
                 }
                 override fun refreshFiles() = viewModel.reloadFiles()
                 override fun clearSelection() = viewModel.clearSelection()
-                override fun navigateUp() { viewModel.navigateUp() }
+                override fun navigateUp() {
+                    if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
+                    viewModel.navigateUp()
+                }
                 override fun showCreateFolderDialog() {
                     resourceOpsMenuManager.showCreateFolderDialog(viewModel)
                 }
@@ -576,6 +580,9 @@ class BrowseManagerInitializer(
                 Toast.makeText(activity, activity.getString(R.string.scan_stopped, viewModel.state.value.mediaFiles.size), Toast.LENGTH_SHORT).show()
             }
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
+            override fun onMicRecordTouchDown() = activity.onMicRecordTouchDown()
+            override fun onMicRecordTouchUp() = activity.onMicRecordTouchUp()
+            override fun onMicRecordSingleTap() = activity.onMicRecordSingleTap()
             override fun onResourceOpsClicked(anchor: android.view.View) {
                 val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS && viewModel.scheduledOperationsEnabled
                 // Destinations-full check runs async — resolve it before opening the popup so the

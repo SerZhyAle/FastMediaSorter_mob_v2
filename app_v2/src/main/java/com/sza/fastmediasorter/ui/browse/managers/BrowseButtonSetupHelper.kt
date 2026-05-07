@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.res.Configuration
+import android.view.MotionEvent
 import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -41,6 +42,9 @@ class BrowseButtonSetupHelper(
         fun onRetryClicked()
         fun onStopScanClicked()
         fun isAudioOnlyResource(): Boolean
+        fun onMicRecordTouchDown()
+        fun onMicRecordTouchUp()
+        fun onMicRecordSingleTap()
     }
 
     fun setupAllButtons(callbacks: ButtonCallbacks) {
@@ -138,6 +142,28 @@ class BrowseButtonSetupHelper(
         binding.btnRetry.setOnClickListener {
             UserActionLogger.logButtonClick("Retry", "BrowseActivity")
             callbacks.onRetryClicked()
+        }
+
+        var micTouchDownTime = 0L
+        binding.btnMicRecord?.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    micTouchDownTime = System.currentTimeMillis()
+                    callbacks.onMicRecordTouchDown()
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val duration = System.currentTimeMillis() - micTouchDownTime
+                    callbacks.onMicRecordTouchUp()
+                    if (duration < 300) callbacks.onMicRecordSingleTap()
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    callbacks.onMicRecordTouchUp()
+                    true
+                }
+                else -> false
+            }
         }
 
         setupScrollButtons()

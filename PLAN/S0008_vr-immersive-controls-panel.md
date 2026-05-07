@@ -133,22 +133,22 @@ Ray-Hit-Test ← HUD Plane Transform
 1. **Позиция HUD-панели в пространстве**
    - **Вопрос:** Где должна появляться интерактивная панель — следовать за взглядом (head-locked), быть зафиксированной в мировом пространстве, или появляться снизу экрана воспроизведения?
    - **Варианты:** Head-locked (всегда в центре взгляда); world-locked в фиксированной точке; attached к нижней кромке контентного слоя.
-   - **Статус:** Resolved — head-locked по горизонтали (следует за головой), прикреплён к нижней кромке EQUIRECT/CINEMA layer по вертикали; не заслоняет стереоизображение.
+   - **Статус:** BlockNeedUserTest
 
 2. **OpenXR API для ray rendering**
    - **Вопрос:** Использовать ли `XrSpaceLocation` + `aim pose` для рендеринга луча, или есть готовый Meta OpenXR Extension?
    - **Нужно выяснить:** Изучить `XR_EXT_hand_interaction` / `XR_FB_hand_tracking_aim` для aim ray в Quest 3.
-   - **Статус:** Open
+   - **Статус:** BlockNeedUserTest
 
 3. **Render order: луч поверх видео**
    - **Вопрос:** Как гарантировать, что луч и HUD рисуются поверх видеослоя в OpenXR composition stack?
    - **Нужно выяснить:** Порядок слоёв в `xrEndFrame` composition layers array; z-ordering для Quad layers.
-   - **Статус:** Open
+   - **Статус:** BlockNeedUserTest
 
 4. **Seek slurring: задержка при перемотке сетевого файла**
    - **Вопрос:** Seek через луч в режиме реального времени по SMB/SFTP потенциально вызывает частые запросы — нужна ли буферизация seek-событий?
    - **Нужно выяснить:** Измерить задержку seek для локального vs SMB источника.
-   - **Статус:** Open
+   - **Статус:** BlockNeedUserTest
 
 ---
 

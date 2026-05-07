@@ -15,6 +15,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -54,6 +56,9 @@ import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
+import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
+import androidx.media3.common.Player
 import java.util.Optional
 import javax.inject.Inject
 
@@ -173,6 +178,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
     internal lateinit var castMediaManager: com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
     internal lateinit var saveVideoFrameManager: com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
+    internal lateinit var imageCropManager: com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
     internal lateinit var touchZoneSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
     internal lateinit var audioMetadataManager: com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
     internal lateinit var playerPrefetchManager: com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
@@ -467,7 +473,18 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         controlsSetupManager.setupDocumentFullscreenExitButton()
     }
 
-    private fun setupCommandPanelControls() = commandPanelController.setupCommandPanelControls()
+    private fun setupCommandPanelControls() {
+        commandPanelController.setupCommandPanelControls()
+        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
+        val audioMode = PlaybackOrderMode.fromPrefsString(
+            prefs.getString(PlaybackControlPreferences.KEY_PLAYBACK_ORDER_AUDIO, null) ?: "")
+        val videoMode = PlaybackOrderMode.fromPrefsString(
+            prefs.getString(PlaybackControlPreferences.KEY_PLAYBACK_ORDER_VIDEO, null) ?: "")
+        val initialMode = if (viewModel.state.value.currentFile?.type == MediaType.AUDIO) audioMode else videoMode
+        viewModel.setPlaybackOrderMode(initialMode)
+        commandPanelController.updatePlaybackOrderButtonIcon(initialMode)
+        Timber.d("S0104: setupCommandPanelControls restored mode=$initialMode")
+    }
 
     private fun setupTouchZones() = touchZoneSetupManager.setupLegacyTouchZoneListeners()
 
@@ -594,6 +611,17 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     internal open fun saveCurrentFrame() = saveVideoFrameManager.saveCurrentFrame()
 
+    // ── S0106: Image crop & compress (delegate) ─────────────────────────────
+
+    internal lateinit var cropDelegate: com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate
+
+    internal open fun enterImageCropMode(mode: com.sza.fastmediasorter.ui.player.helpers.ImageCropManager.CropMode) =
+        cropDelegate.enterCropMode(mode)
+
+    internal open fun startCompressedCopy() = cropDelegate.startCompressedCopy()
+
+    // ── End S0106 ────────────────────────────────────────────────────────────
+
     fun toggleBlackScreenOverlay() {
         if (blackScreenOverlayManager.isVisible) blackScreenOverlayManager.hide()
         else blackScreenOverlayManager.show()
@@ -650,7 +678,16 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     internal fun handleDeleteSuccess(deletedFilePath: String) = lifecycleManager.handleDeleteSuccess(deletedFilePath)
 
-    private fun handleEvent(event: PlayerViewModel.PlayerEvent) = eventHandler.handleEvent(event)
+    private fun handleEvent(event: PlayerViewModel.PlayerEvent) {
+        if (event is PlayerViewModel.PlayerEvent.StopPlayback) {
+            _videoPlayerManager?.getPlayer()?.pause()
+            audioServiceController?.player?.pause()
+            Toast.makeText(this, R.string.playback_order_stopped, Toast.LENGTH_SHORT).show()
+            Timber.d("S0104: StopPlayback — playback stopped at end of list")
+            return
+        }
+        eventHandler.handleEvent(event)
+    }
 
     internal fun showError(message: String, throwable: Throwable? = null) =
         eventHandler.showError(message, throwable)
@@ -709,6 +746,14 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             binding.playerView.player = null
         } else {
             viewModel.togglePause()
+            // When finishing, release ExoPlayer from the PlayerView Surface immediately.
+            // Without this, the CCodec (mp3/video decoder) keeps the Surface alive across
+            // the ATMS window transition, causing the transition to stall permanently
+            // (permanent black screen on back press when playing non-service audio/video).
+            // The serviceAudioActiveOnPause branch already does this correctly.
+            if (isFinishing) {
+                binding.playerView.player = null
+            }
         }
         audioEmptyStateController?.onPause()
         lifecycleManager.saveCurrentPlaybackPosition()
@@ -945,6 +990,34 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                 _videoPlayerManager?.setPlaybackSpeed(speed)
             }
         }
+    }
+
+    internal fun onPlaybackOrderClicked() {
+        val newMode = viewModel.cyclePlaybackOrderMode()
+        val prefKey = if (viewModel.state.value.currentFile?.type == MediaType.AUDIO)
+            PlaybackControlPreferences.KEY_PLAYBACK_ORDER_AUDIO
+        else
+            PlaybackControlPreferences.KEY_PLAYBACK_ORDER_VIDEO
+        getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
+            .edit().putString(prefKey, newMode.toPrefsString()).apply()
+        when (viewModel.state.value.currentFile?.type) {
+            MediaType.AUDIO -> audioServiceController?.applyPlaybackOrderMode(newMode)
+            MediaType.VIDEO -> {
+                val exoRepeatMode = if (newMode == PlaybackOrderMode.REPEAT_ONE)
+                    Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+                _videoPlayerManager?.getPlayer()?.repeatMode = exoRepeatMode
+            }
+            else -> {}
+        }
+        commandPanelController.updatePlaybackOrderButtonIcon(newMode)
+        val label = getString(when (newMode) {
+            PlaybackOrderMode.LOOP_LIST    -> R.string.playback_order_loop_list
+            PlaybackOrderMode.PLAY_THROUGH -> R.string.playback_order_play_through
+            PlaybackOrderMode.SHUFFLE      -> R.string.playback_order_shuffle
+            PlaybackOrderMode.REPEAT_ONE   -> R.string.playback_order_repeat_one
+        })
+        Toast.makeText(this, getString(R.string.playback_order_mode_set, label), Toast.LENGTH_SHORT).show()
+        Timber.d("S0104: onPlaybackOrderClicked newMode=$newMode")
     }
 
     companion object {

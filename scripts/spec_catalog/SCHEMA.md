@@ -79,6 +79,19 @@ The CLI computes "days since `updated`" for the report (`a.ps1 ss`):
 {"id":"S0023","name":"bugfix-vr-player-activity-stale-references","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0023_bugfix-vr-player-activity-stale-references.md","created":"2026-04-28","updated":"2026-04-28 12:55"}
 ```
 
+## Optional fields
+
+All fields below are optional. Absence in any record — old or new — is valid and passes `validate.ps1` without error.
+
+- `title` (string) — human-readable display name; free text; used by `search.ps1` for substring matching alongside `name`.
+- `tags` (string array) — thematic labels, e.g. `["tooling","scripts"]`; filterable by `search.ps1 -Tag`.
+- `type` (string) — work kind; one of `feature`, `bugfix`, `tooling`, `research`; filterable by `search.ps1 -Type`.
+- `blocked_by` (string array) — ids of tickets this one depends on, e.g. `["S0099"]`; informational, not enforced by `validate.ps1`.
+- `closed_at` (string) — `YYYY-MM-DD` date of intentional finalization; written by `close.ps1`; absent until the ticket is closed.
+- `has_tactical` (boolean) — `true` when a `PLAN/Sxxxx_*/INDEX.md` tactical folder exists; written by `/spec-tech` during the Tactical status transition.
+
+---
+
 ## Why JSONL
 
 - Append-friendly; one record = one line.

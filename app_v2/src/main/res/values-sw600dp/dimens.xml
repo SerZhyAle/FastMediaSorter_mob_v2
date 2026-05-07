@@ -90,7 +90,7 @@
     <dimen name="welcome_indicator_margin_bottom">20dp</dimen>
     <dimen name="welcome_title_text_size">32sp</dimen>
     <dimen name="welcome_description_text_size">20sp</dimen>
-    <dimen name="welcome_icon_size">180dp</dimen>
+    <dimen name="welcome_icon_size">101dp</dimen>
     <dimen name="welcome_icon_margin_top">32dp</dimen>
     <dimen name="welcome_title_margin_top">24dp</dimen>
     <dimen name="welcome_description_margin_top">16dp</dimen>

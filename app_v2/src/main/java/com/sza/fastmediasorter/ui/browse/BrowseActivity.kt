@@ -1,15 +1,23 @@
 package com.sza.fastmediasorter.ui.browse
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.net.Uri
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
@@ -32,6 +40,7 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
+import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
@@ -50,6 +59,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private lateinit var initializer: BrowseManagerInitializer
     private lateinit var launcherManager: BrowseLauncherManager
     private lateinit var cameraCaptureManager: BrowseCameraCaptureManager
+    private lateinit var micRecordingManager: BrowseMicRecordingManager
+
+    private val recordAudioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.state.value.resource?.let { micRecordingManager.startRecording(it) }
+        } else {
+            Toast.makeText(this, R.string.mic_recording_permission_denied, Toast.LENGTH_LONG).show()
+        }
+    }
 
     @Inject lateinit var googleDriveClient: GoogleDriveRestClient
     @Inject lateinit var resourceOpsMenuManager: com.sza.fastmediasorter.ui.browse.managers.ResourceOpsMenuManager
@@ -143,6 +163,34 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.state.value.resource?.takeIf { it.id == id }
             }
         }
+
+        micRecordingManager = BrowseMicRecordingManager(
+            activity = this,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
+            onRecordingStateChanged = { isRecording ->
+                val tint = if (isRecording) {
+                    ColorStateList.valueOf(getColor(R.color.recording_active_tint))
+                } else null
+                binding.btnMicRecord?.iconTint = tint
+            },
+            onUploadFile = { tempFile, name, resource ->
+                val sourceUri = Uri.fromFile(tempFile)
+                val destUri = Uri.parse(resource.path.trimEnd('/') + '/' + Uri.encode(name))
+                when (resource.type) {
+                    ResourceType.FTP -> localToFtpStrategy.copy(sourceUri, destUri, true, null, null)
+                    ResourceType.SMB -> localToSmbStrategy.copy(sourceUri, destUri, true, null, null)
+                    ResourceType.SFTP -> localToSftpStrategy.copy(sourceUri, destUri, true, null, null)
+                    ResourceType.CLOUD -> cloudStrategy.copyFile(
+                        tempFile.absolutePath,
+                        resource.path.trimEnd('/') + '/' + name,
+                        true, null
+                    ).isSuccess
+                    else -> false
+                }
+            }
+        )
     }
 
     override fun getViewBinding(): ActivityBrowseBinding {
@@ -187,28 +235,39 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (viewModel.canNavigateUp() && viewModel.navigateUp()) {
-                    Timber.d("Navigated back to parent folder")
-                } else {
-                    viewModel.clearResumeState()
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
+                if (viewModel.canNavigateUp()) {
+                    if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
+                    if (viewModel.navigateUp()) {
+                        Timber.d("Navigated back to parent folder")
+                        return
+                    }
                 }
+                viewModel.clearResumeState()
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
             }
         })
 
         binding.btnBack.setOnClickListener {
             UserActionLogger.logButtonClick("Back", "BrowseActivity")
-            if (!viewModel.canNavigateUp() || !viewModel.navigateUp()) {
-                viewModel.clearResumeState()
-                finish()
-                @Suppress("DEPRECATION")
-                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+            if (viewModel.canNavigateUp()) {
+                if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
+                if (viewModel.navigateUp()) return@setOnClickListener
             }
+            viewModel.clearResumeState()
+            finish()
+            @Suppress("DEPRECATION")
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
     }
 
     override fun observeData() {
+        if (BuildConfig.SUPPORT_MIC_RECORDING) {
+            collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+                val showMic = settings.micRecordingEnabled
+                binding.btnMicRecord?.isVisible = showMic
+            }
+        }
         collectOnLifecycle(viewModel.state) { state ->
             val previousMediaFiles = viewModel.lastEmittedMediaFiles
             val sortChanged = state.sortMode != lastSubmittedSortMode
@@ -396,6 +455,25 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         } else {
             cameraCaptureManager.launch(resource)
         }
+    }
+
+    internal fun onMicRecordTouchDown() {
+        val resource = viewModel.state.value.resource ?: return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            micRecordingManager.startRecording(resource)
+        } else {
+            recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    internal fun onMicRecordTouchUp() {
+        if (::micRecordingManager.isInitialized) micRecordingManager.stopRecording()
+    }
+
+    internal fun onMicRecordSingleTap() {
+        Toast.makeText(this, R.string.mic_recording_hold_hint, Toast.LENGTH_SHORT).show()
     }
 
     private fun onCapturedFileSaved(fileName: String) {

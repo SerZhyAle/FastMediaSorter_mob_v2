@@ -179,6 +179,15 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activity = activity,
             fileOperationUseCase = activity.fileOperationUseCase
         )
+        activity.imageCropManager = com.sza.fastmediasorter.ui.player.helpers.ImageCropManager(
+            context = activity,
+            lifecycleScope = activity.lifecycleScope,
+            fileOperationUseCase = activity.fileOperationUseCase
+        )
+        activity.cropDelegate = com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate(
+            activity = activity,
+            imageCropManager = activity.imageCropManager,
+        )
         activity.eventHandler = PlayerEventHandler(activity = activity)
     }
 

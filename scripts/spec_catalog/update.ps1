@@ -46,6 +46,12 @@ $updated = [pscustomobject]@{
 if ($old.PSObject.Properties.Name -contains 'tier' -and $null -ne $old.tier -and "$($old.tier)" -ne '') {
     $updated | Add-Member -NotePropertyName 'tier' -NotePropertyValue ([int]$old.tier)
 }
+$fixedKeys = @('id','name','status','priority','tier','file','created','updated')
+foreach ($prop in $old.PSObject.Properties) {
+    if ($fixedKeys -notcontains $prop.Name -and -not ($updated.PSObject.Properties.Name -contains $prop.Name)) {
+        $updated | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value
+    }
+}
 
 if ($PSBoundParameters.ContainsKey('Status'))   { $updated.status   = $Status }
 if ($PSBoundParameters.ContainsKey('Name'))     { $updated.name     = $Name }

@@ -65,6 +65,51 @@
                 android:alpha="0.85"
                 tools:text="Your all-in-one media organizer" />
 
+            <!-- Language picker: visible only on the first Welcome page -->
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/layoutLanguagePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/welcome_description_margin_top"
+                android:visibility="gone"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLangEn"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="English"
+                    android:contentDescription="@string/welcome_language_picker_hint" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLangRu"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="Русский"
+                    android:contentDescription="@string/welcome_language_picker_hint" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLangUk"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="Українська"
+                    android:contentDescription="@string/welcome_language_picker_hint" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
             <!-- Feature Cards Row -->
             <LinearLayout
                 android:id="@+id/layoutFeatureCards"

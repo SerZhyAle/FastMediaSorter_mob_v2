@@ -114,6 +114,8 @@ data class AppSettings(
     val enableFavorites: Boolean = true, // Enable "Favorites" feature (enabled by default)
     val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
+    val micRecordingEnabled: Boolean = false,      // S0100: Show mic record button in Browse
+    val micRecordingAskFilename: Boolean = true,   // S0100: Show rename dialog before saving recording
 
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,

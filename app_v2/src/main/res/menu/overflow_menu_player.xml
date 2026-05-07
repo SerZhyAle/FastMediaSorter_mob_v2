@@ -45,6 +45,13 @@
         android:title="@string/random_file_description"
         app:showAsAction="never" />
 
+    <!-- S0104: Playback order mode (AUDIO/VIDEO only) -->
+    <item
+        android:id="@+id/menu_playback_order"
+        android:icon="@drawable/ic_loop_list"
+        android:title="@string/playback_order_menu_title"
+        app:showAsAction="never" />
+
     <!-- S0050: Black Screen mode (AUDIO/VIDEO only) -->
     <item
         android:id="@+id/menu_black_screen"
@@ -246,6 +253,25 @@
         android:id="@+id/menu_open_in_separate_window"
         android:icon="@drawable/ic_open_in_browse"
         android:title="@string/action_open_in_separate_window"
+        app:showAsAction="never" />
+
+    <!-- S0106: Image crop & compress (IMAGE only; Crop requires write access) -->
+    <item
+        android:id="@+id/menu_crop"
+        android:icon="@drawable/ic_crop"
+        android:title="@string/menu_crop"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_crop_to_file"
+        android:icon="@drawable/ic_crop_to_file"
+        android:title="@string/menu_crop_to_file"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_compress_copy"
+        android:icon="@drawable/ic_compress"
+        android:title="@string/menu_compress_copy"
         app:showAsAction="never" />
 
 </menu>

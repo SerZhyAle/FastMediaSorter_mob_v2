@@ -99,17 +99,17 @@ Browse-кэш в лог-сессии зафиксировал успешный `
 1. **Точная причина null.**
    - **Вопрос:** decoder-busy, OOM или unsupported codec?
    - **Нужно выяснить:** добавить диагностику перед/после вызова: `native heap free`, `isDecoding`, `MediaMetadataRetriever.extractMetadata(METADATA_KEY_VIDEO_CODEC)`.
-   - **Статус:** Open.
+   - **Статус:** BlockNeedUserTest
 
 2. **Порог native heap для превентивного skip.**
    - **Вопрос:** при каком значении `native heap free` декодирование гарантированно провалится?
    - **Нужно выяснить:** эмпирически для разных разрешений (1K / 4K / 7K); на Quest 3 в первом приближении — `free < 50 MB`.
-   - **Статус:** Open.
+   - **Статус:** BlockNeedUserTest
 
 3. **Browse-кэш thumbnail — синхронный или асинхронный доступ?**
    - **Вопрос:** можно ли получить thumbnail из Browse-кэша синхронно в main thread без IO-блокировки?
    - **Нужно выяснить:** как устроен кэш Glide/ресурсов — disk cache vs memory cache; для poster-fallback нужен memory cache.
-   - **Статус:** Open.
+   - **Статус:** BlockNeedUserTest
 
 ---
 

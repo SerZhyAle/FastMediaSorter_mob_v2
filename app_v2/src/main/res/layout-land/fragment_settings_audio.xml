@@ -161,4 +161,23 @@
 
     <Button android:id="@+id/btnSetDefaultAudioPlayer" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/settings_margin_standard" android:text="@string/settings_set_default_audio_player" android:textAllCaps="false" />
 
+    <!-- S0100 Microphone Recording section -->
+    <TextView android:id="@+id/tvMicRecordingSectionTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_mic_recording_section_title" android:textSize="@dimen/settings_group_header_text_size" android:textStyle="bold" />
+
+    <LinearLayout android:id="@+id/layoutMicRecordingEnable" android:orientation="horizontal" android:gravity="center_vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/settings_item_min_height">
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchMicRecordingEnabled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_mic_recording_enable_title" android:textSize="@dimen/toggler_title_text_size" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_mic_recording_enable_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/layoutMicRecordingAskFilename" android:orientation="horizontal" android:gravity="center_vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/settings_item_min_height" android:visibility="gone">
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchMicRecordingAskFilename" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_mic_recording_ask_filename_title" android:textSize="@dimen/toggler_title_text_size" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_mic_recording_ask_filename_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+
 </LinearLayout>

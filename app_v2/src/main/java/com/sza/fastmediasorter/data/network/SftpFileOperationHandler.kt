@@ -11,7 +11,9 @@ import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpDownloadExhaustedException
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
@@ -244,15 +246,33 @@ class SftpFileOperationHandler @Inject constructor(
                      val tempFile = File.createTempFile("bridge_copy", ".tmp", context.cacheDir)
                      try {
                          // 1. Download to temp
-                         val downloadSuccess = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
-                             sftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, null).isSuccess
+                         val downloadResult: Result<String> = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
+                             sftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, null)
                          } else if (sourcePath.startsWith("smb:", ignoreCase = true)) {
-                             smbStrategy.copyFile(sourcePath, tempFile.absolutePath, true, null).isSuccess
+                             smbStrategy.copyFile(sourcePath, tempFile.absolutePath, true, null)
                          } else {
-                             ftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, null).isSuccess
+                             ftpStrategy.copyFile(sourcePath, tempFile.absolutePath, true, null)
                          }
-                         
-                         if (!downloadSuccess) return Result.failure(Exception("Failed to download source for bridge copy"))
+
+                         if (downloadResult.isFailure) {
+                             val cause = downloadResult.exceptionOrNull()
+                             val host = runCatching {
+                                 java.net.URI(sourcePath).host ?: sourcePath
+                             }.getOrElse { sourcePath }
+                             val msg = when {
+                                 cause is SftpDownloadExhaustedException ->
+                                     context.getString(R.string.error_sftp_copy_failed_server, host)
+                                 cause is com.jcraft.jsch.JSchException ->
+                                     context.getString(R.string.error_sftp_connection_limit, host)
+                                 cause?.message?.contains("permission denied", ignoreCase = true) == true ||
+                                 cause?.message?.contains("access denied", ignoreCase = true) == true ->
+                                     context.getString(R.string.error_sftp_copy_access_denied)
+                                 sourcePath.startsWith("sftp:", ignoreCase = true) ->
+                                     context.getString(R.string.error_sftp_copy_failed_server, host)
+                                 else -> cause?.message ?: "Bridge copy source download failed"
+                             }
+                             return Result.failure(Exception(msg, cause))
+                         }
                          
                          // 2. Upload from temp
                          val uploadResult = if (destPath.startsWith("sftp:", ignoreCase = true)) {

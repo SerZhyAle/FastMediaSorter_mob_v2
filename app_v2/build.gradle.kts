@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260506034
-        versionName = "2.60.5060.348"
+        versionCode = 260507030
+        versionName = "2.60.5070.307"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -114,6 +114,7 @@ android {
             // Full feature set: Videos, Audio, Images, Cloud, Documents, Animations
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
@@ -141,6 +142,7 @@ android {
             // Target: Users with limited storage/bandwidth, older devices
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // Excluded per S0100 §6
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "false")        // No cloud providers
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "false")    // No PDF/EPUB/Text
@@ -166,6 +168,7 @@ android {
             // Target: Photo management, cloud photo backup/sync
             buildConfigField("boolean", "SUPPORT_VIDEO", "false")       // No video player
             buildConfigField("boolean", "SUPPORT_AUDIO", "false")       // No audio player
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // No audio support
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")       // Full image support
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")        // Cloud for photo backup
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "false")   // No documents
@@ -194,6 +197,7 @@ android {
             // Target: Users with older Android devices (API 23-25)
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
@@ -245,6 +249,7 @@ android {
             // Target: Meta Quest headsets for stereoscopic 3D video/photo viewing
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
@@ -298,6 +303,7 @@ android {
             }
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")

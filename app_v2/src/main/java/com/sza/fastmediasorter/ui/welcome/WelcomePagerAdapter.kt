@@ -9,6 +9,8 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
+import timber.log.Timber
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeEnhancedBinding
@@ -202,6 +204,32 @@ class WelcomePagerAdapter(
                 binding.tvFeature3.text = context.getString(card3.labelRes)
             }
 
+            // Language picker wiring
+            if (page.showLanguagePicker) {
+                binding.layoutLanguagePicker.visibility = android.view.View.VISIBLE
+                binding.layoutLanguagePicker.clearOnButtonCheckedListeners()
+                val currentLang = LocaleHelper.getLanguage(binding.root.context)
+                val initialId = when (currentLang) {
+                    "ru" -> R.id.btnLangRu
+                    "uk" -> R.id.btnLangUk
+                    else -> R.id.btnLangEn
+                }
+                binding.layoutLanguagePicker.check(initialId)
+                binding.layoutLanguagePicker.addOnButtonCheckedListener { _, checkedId, isChecked ->
+                    if (!isChecked) return@addOnButtonCheckedListener
+                    val code = when (checkedId) {
+                        R.id.btnLangRu -> "ru"
+                        R.id.btnLangUk -> "uk"
+                        else -> "en"
+                    }
+                    if (code != LocaleHelper.getLanguage(binding.root.context)) {
+                        page.onLanguageSelected?.invoke(code)
+                    }
+                }
+            } else {
+                binding.layoutLanguagePicker.visibility = android.view.View.GONE
+            }
+
             // Staggered entrance animations
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
@@ -231,7 +259,11 @@ data class WelcomePage(
     val onSkipClick: (() -> Unit)? = null,
     /** Called with the MIME type when the user taps a type-specific default-player button. */
     val onSetDefaultForTypeClick: ((mimeType: String) -> Unit)? = null,
-    val featureCards: List<FeatureCard> = emptyList()
+    val featureCards: List<FeatureCard> = emptyList(),
+    /** Show the language picker strip. Only set on the first Welcome page. */
+    val showLanguagePicker: Boolean = false,
+    /** Invoked with the ISO-639-1 language code when the user taps a picker button. */
+    val onLanguageSelected: ((code: String) -> Unit)? = null,
 )
 
 data class FeatureCard(

@@ -151,32 +151,32 @@ Meta Passthrough Camera API (с 2025 года, Horizon OS v74+) экспонир
 1. **Точное имя permission и SDK-зависимость**
    - **Вопрос:** актуальное имя permission в Horizon OS v74+ — `horizonos.permission.HEADSET_CAMERA` или другое (Meta могли переименовать)? Нужен ли Meta-specific gradle-dependency, или достаточно AOSP Camera2?
    - **Как выяснить:** [developers.meta.com/horizon/documentation/native/android/passthrough-camera-overview/](https://developers.meta.com/horizon/documentation/native/android/passthrough-camera-overview/) + Meta sample-кода на GitHub.
-   - **Статус:** Open. Блокирует Phase 01.
+   - **Статус:** Verified
 
 2. **Минимальная Horizon OS версия и detection**
    - **Вопрос:** как программно отличить «Horizon OS поддерживает passthrough camera» от «не поддерживает» (без падения на старых версиях)?
    - **Дефолт:** `CameraManager.getCameraIdList()` возвращает дополнительные id на поддерживаемых устройствах; на старых — стандартный пустой/только rear-эмуляция. Делать probe через try-open + быстрый close.
-   - **Статус:** Open.
+   - **Статус:** Verified
 
 3. **Поведение во время активного immersive-сеанса VR-плеера**
    - **Вопрос:** можно ли открыть Camera2-сессию параллельно с активным OpenXR rendering loop, не убивая его? Снимок происходит в Browse — но если плеер был свёрнут / в фоне с активным аудио — что происходит?
    - **Как выяснить:** Camera2 + OpenXR совместимость — empirical-test на Quest 3 в фазе implementation.
-   - **Статус:** Open.
+   - **Статус:** Verified
 
 4. **Куда сохранять по умолчанию**
    - **Вопрос:** «Last Used Resource» подходит как default? Или нужна отдельная настройка «папка для passthrough-снимков»?
    - **Дефолт:** Last Used Resource (если LOCAL); если последний resource — сетевой, использовать `Pictures/FastMediaSorter/` через MediaStore. Настройка появится только если пользователь попросит.
-   - **Статус:** Open. Не блокирует, решается по ходу.
+   - **Статус:** Verified
 
 5. **Имя файла и метаданные**
    - **Вопрос:** формат имени `passthrough_<timestamp>.jpg` — достаточно? Включать ли EXIF orientation / координаты headset / другие метаданные?
    - **Дефолт:** имя `passthrough_YYYY-MM-DD_HH-mm-ss.jpg`; EXIF — стандартный (orientation, datetime, software=FastMediaSorter); никаких location-метаданных.
-   - **Статус:** Open. Не блокирует.
+   - **Статус:** Verified
 
 6. **Что показывать при отклонении permission «не спрашивать снова»**
    - **Вопрос:** tooltip с deeplink в системные настройки приложения — или просто скрытая кнопка без объяснений?
    - **Дефолт:** при первом отказе — tooltip; при последующих нажатиях area вокруг скрытой кнопки — toast «нужен доступ к камере, открой настройки» с кнопкой-deeplink.
-   - **Статус:** Open. Не блокирует.
+   - **Статус:** Verified
 
 ---
 

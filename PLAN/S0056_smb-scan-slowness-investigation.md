@@ -107,24 +107,24 @@ SMB-источник реализован через SMBJ (см. `dev/CATALOG/ap
 
 1. **Структура resourceId=18: сколько файлов / подпапок?**
    - **Ответ владельца (2026-05-03):** дерево с глубокой вложенностью с тысячами файлов.
-   - **Статус:** Resolved.
+   - **Статус:** BlockNeedUserTest
 
 2. **Эффективный параллелизм SMB scanner**
    - **Ответ (анализ кода 2026-05-03, [SmbDirectoryScanner.kt:55-148](app_v2/src/main/java/com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt#L55-L148)):** scanner запускает **отдельную coroutine на каждую подпапку** через `coroutineScope { ... this.launch(smbDispatcher) { recurse } }`. Диспетчер `smbDispatcher = Dispatchers.IO` ([SmbClient.kt:76](app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbClient.kt#L76)) — IO-пул Kotlin coroutines, размер по умолчанию `max(64, processors)`. Параллелизм ограничен **только серверной стороной** (одновременные запросы к одному `DiskShare`) и пулом IO. Комментарий в коде ([SmbDirectoryScanner.kt:53](app_v2/src/main/java/com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt#L53)) подтверждает эмпирически: «2-3x speedup .. 72s -> 20-30s for 62k files». Наша 20-секундная просадка укладывается в этот ожидаемый диапазон.
-   - **Статус:** Resolved.
+   - **Статус:** BlockNeedUserTest
 
 3. **Делит ли scanner семафор с UI thumbnail loader?**
    - **Ответ (grep 2026-05-03):** `SmbDirectoryScanner.kt` **не упоминает `ConnectionThrottle`** ни разу. Scanner идёт мимо троттлинга — напрямую через `Dispatchers.IO`. `ConnectionThrottleManager` используется только в UI-путях (`NetworkFileDataFetcher`, ряд вспомогательных мест). То есть scanner **не отнимает слоты у UI**, и наоборот UI с `limit=4` не тормозит scanner. Они идут параллельно по двум разным путям.
    - **Импликация:** D3 («конкуренция за throttle») **отпадает как гипотеза** — она физически невозможна в текущем коде.
-   - **Статус:** Resolved.
+   - **Статус:** BlockNeedUserTest
 
 4. **SMBJ — есть ли batch-API для метаданных?**
    - **Ответ (анализ кода 2026-05-03, [SmbDirectoryScanner.kt:80-117](app_v2/src/main/java/com/sza/fastmediasorter/data/network/helpers/SmbDirectoryScanner.kt#L80-L117)):** `share.list(dirPath)` возвращает коллекцию `FileIdBothDirectoryInformation` (или аналог), где **каждый элемент уже содержит `fileName`, `fileAttributes`, `endOfFile` (size), `lastWriteTime`** — всё за **один сетевой round-trip на директорию**. N+1-проблемы нет — scanner не читает метаданные отдельно.
    - **Импликация:** оптимизация «батчинг метаданных» **бессмысленна** — всё уже одним запросом.
-   - **Статус:** Resolved.
+   - **Статус:** BlockNeedUserTest
 
 5. **Является ли 20 с воспроизводимым или разовой сетевой просадкой?**
-   - **Статус:** Open (требует устройства). Однако с учётом ответов на Q1–Q4 — для дерева с тысячами файлов и сотнями директорий 20 с **структурно ожидаемы** (см. §5.3): N round-trip пропорционально количеству директорий, и каждый платит фиксированную сетевую латентность. Воспроизводимость скорее всего высокая.
+   - **Статус:** BlockNeedUserTest
 
 ### 6.1 Сводка после анализа кода (2026-05-03)
 

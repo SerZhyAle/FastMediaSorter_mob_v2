@@ -273,4 +273,20 @@ class PlayerCommandPanelCallbackImpl(
     override fun onOpenInSeparateWindowClicked() {
         activity.tearOffPlayer()
     }
+
+    override fun onPlaybackOrderClicked() {
+        activity.onPlaybackOrderClicked()
+    }
+
+    override fun onCropClicked() {
+        activity.enterImageCropMode(com.sza.fastmediasorter.ui.player.helpers.ImageCropManager.CropMode.CROP)
+    }
+
+    override fun onCropToFileClicked() {
+        activity.enterImageCropMode(com.sza.fastmediasorter.ui.player.helpers.ImageCropManager.CropMode.CROP_TO_FILE)
+    }
+
+    override fun onCompressCopyClicked() {
+        activity.startCompressedCopy()
+    }
 }

@@ -134,12 +134,12 @@ override fun cancel() {
 1. **Пункт A: нужен ли минимальный лог при cancel?**
    - **Вопрос:** оставить `Timber.v("cancel() $fileName")` или удалить полностью?
    - **Дефолт:** удалить полностью — `loadJob?.cancel()` сам по себе логируется в трассировке корутины при `-Dkotlinx.coroutines.debug=on`.
-   - **Статус:** Open (решается в фазе фикса A).
+   - **Статус:** Implemented
 
 2. **Пункт D: какой набор операций считать «cancelled by user» vs «cancelled by system»?**
    - **Вопрос:** при backgrounding Activity Android может cancellить корутину — это тоже user-initiated?
    - **Дефолт:** любой `CancellationException` без вложенного reason — INFO; CancellationException с reason содержащим «timeout» / «error» — WARNING со стеком.
-   - **Статус:** Open.
+   - **Статус:** Implemented
 
 ---
 

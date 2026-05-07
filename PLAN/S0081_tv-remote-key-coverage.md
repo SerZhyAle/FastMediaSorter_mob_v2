@@ -113,13 +113,13 @@ TV-пульт → системное событие клавиши → акти�
      - **Цветные кнопки (KEYCODE_PROG_RED/GREEN/YELLOW/BLUE = 183–186)** присутствуют на: (а) встроенных пультах Android-телевизоров (Sony/Hisense/Philips с Android TV/Google TV), (б) IPTV/кабельных Android-приставках (европейский рынок DVB-T), (в) некоторых китайских Android TV-боксах (серия HOMETEQ и аналоги). **Большинство заводских прошивок не активирует PROG_-коды даже при наличии цветных кнопок на пульте** — их нужно явно прописать в keylayout-файлах устройства.
      - **Дополнительный кандидат:** `KEYCODE_INFO (165)` — кнопка «Info» присутствует на многих IPTV-пультах и пультах Smart TV; логично привязать к команде `sorting.show_info` (или существующему `system.toggle_info`).
      - **Вывод:** плановые дополнения в `default_bindings.json` (PROG_RED → delete, PROG_GREEN → copy, PROG_YELLOW → move, PROG_BLUE → rename, CHANNEL_UP → next_file, CHANNEL_DOWN → prev_file) остаются корректными. Дополнительно добавить триггер `key:165:0` (`KEYCODE_INFO`) → `system.toggle_info`.
-   - **Статус:** Resolved
+   - **Статус:** Verified
 
 2. **Конфликт `leanback required=false` с фильтрацией Play Store**
    - **Вопрос:** Не приведёт ли декларация `android.software.leanback required="false"` к появлению приложения на нежелательных TV-устройствах или к изменению категоризации в Play Store?
    - **Варианты:** (а) добавить только как `required="false"` — Play расширит охват; (б) не добавлять — текущее поведение сохраняется.
    - **Нужно выяснить:** Официальная документация Google однозначна: `required="false"` только расширяет охват, не меняет категоризацию. Риск минимальный.
-   - **Статус:** Resolved — добавить `required="false"`, риска нет.
+   - **Статус:** Verified
 
 ---
 

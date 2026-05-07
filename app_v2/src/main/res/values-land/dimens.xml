@@ -17,7 +17,7 @@
     <!-- Welcome screen landscape — compact sizes so all content fits vertically -->
     <dimen name="padding_xxlarge">16dp</dimen>
     <dimen name="welcome_page_padding">16dp</dimen>
-    <dimen name="welcome_icon_size">56dp</dimen>
+    <dimen name="welcome_icon_size">31dp</dimen>
     <dimen name="welcome_icon_margin_top">4dp</dimen>
     <dimen name="welcome_title_margin_top">6dp</dimen>
     <dimen name="welcome_title_text_size">20sp</dimen>

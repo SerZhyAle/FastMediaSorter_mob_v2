@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -86,6 +87,10 @@ class CommandPanelController(
         fun on3dVrToggleClicked()
         fun onBlackScreenClicked()
         fun onOpenInSeparateWindowClicked()
+        fun onPlaybackOrderClicked()
+        fun onCropClicked()
+        fun onCropToFileClicked()
+        fun onCompressCopyClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -139,6 +144,11 @@ class CommandPanelController(
             callback.onPreviousClicked()
         }
 
+        binding.btnPlaybackOrderCmd.setOnClickListener {
+            Timber.d("CommandPanelController: btnPlaybackOrderCmd clicked")
+            callback.onPlaybackOrderClicked()
+        }
+
         binding.btnRandomCmd.setOnClickListener {
             Timber.d("CommandPanelController: btnRandomCmd clicked")
             callback.onRandomClicked()
@@ -189,6 +199,10 @@ class CommandPanelController(
 
         binding.btnSlideshowCmd.setOnClickListener {
             callback.onSlideshowClicked()
+        }
+
+        binding.btnSleepTimerCmd.setOnClickListener {
+            callback.onSleepTimerClicked()
         }
 
         binding.btnFavorite.setOnClickListener {
@@ -323,6 +337,10 @@ class CommandPanelController(
         
         // Center buttons visibility
         if (showInPortrait) {
+            val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
+            val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
+            val showSlideshow = isImage || isVideo
+            binding.btnSlideshowCmd.isVisible = showSlideshow
             // Adaptive portrait layout: planner decides which commands fit on bar vs overflow
             val activeCommands = planner.buildActiveCommands(
                 state, canWrite, canRead, isWifiConnected(binding.root.context),
@@ -355,15 +373,18 @@ class CommandPanelController(
             val isPdf = currentFile.type == MediaType.PDF
             val isText = currentFile.type == MediaType.TEXT
             val isEpub = currentFile.type == MediaType.EPUB
+            val isAudio = currentFile.type == MediaType.AUDIO
 
             // Group 1: inside HorizontalScrollView (Previous/Next set in common section)
+            binding.btnPlaybackOrderCmd.isVisible = (currentFile.type == MediaType.AUDIO || currentFile.type == MediaType.VIDEO)
             binding.btnRandomCmd.isVisible = showRandomNavigation
             binding.btnDeleteCmd.isVisible = canWrite && state.allowDelete
             binding.btnFavorite.isVisible = lastKnownFavoriteVisible
             binding.btnShareCmd.isVisible = true
             binding.btnInfoCmd.isVisible = true
-            binding.btnFullscreenCmd.isVisible = isImage || isVideo || isPdf || isText || isEpub
+            binding.btnFullscreenCmd.isVisible = !isAudio && (isImage || isVideo || isPdf || isText || isEpub)
             binding.btnSlideshowCmd.isVisible = isImage || isVideo
+            binding.btnBlackScreenCmd.isVisible = (isAudio || isVideo) && state.showBlackScreenButton
 
             // Group 2: type-specific adaptive commands
             safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
@@ -376,7 +397,7 @@ class CommandPanelController(
                 (::castMediaManager.isInitialized && castMediaManager.isCastAvailable) &&
                 (isImage || isVideo) &&
                 isWifiConnected(binding.root.context)
-            safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf
+            safeViews.btnEditCmd.isVisible = (isImage && canWrite) || (isVideo && !isAudio) || isPdf
             safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
             if (BuildConfig.SUPPORT_VR_PLAYER) {
                 safeViews.btn3dVrCmd.isVisible = currentFile.type == MediaType.VIDEO
@@ -680,6 +701,7 @@ class CommandPanelController(
         // Navigation
         binding.btnBack,
         binding.btnPreviousCmd,
+        binding.btnPlaybackOrderCmd,
         binding.btnRandomCmd,
         binding.btnNextCmd,
         // File operations
@@ -830,6 +852,9 @@ class CommandPanelController(
                 R.id.menu_3d_vr -> callback.on3dVrToggleClicked()
                 R.id.menu_black_screen -> callback.onBlackScreenClicked()
                 R.id.menu_open_in_separate_window -> callback.onOpenInSeparateWindowClicked()
+                R.id.menu_crop -> callback.onCropClicked()
+                R.id.menu_crop_to_file -> callback.onCropToFileClicked()
+                R.id.menu_compress_copy -> callback.onCompressCopyClicked()
             }
             true
         }
@@ -897,11 +922,11 @@ class CommandPanelController(
             binding.btnShareCmd,
             binding.btnInfoCmd,
             binding.btnFullscreenCmd,
-            binding.btnSlideshowCmd,
             binding.btnRandomCmd,
             // Group 2+
             safeViews.btnRenameCmd,
             safeViews.btnLyricsCmd,
+            binding.btnSleepTimerCmd,
             safeViews.btnSearchYoutubeMusicCmd,
             safeViews.btnCastCmd,
             safeViews.btnEditCmd,
@@ -941,7 +966,6 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.SHARE -> binding.btnShareCmd
             CommandPanelLayoutPlanner.PlayerCommand.INFO -> binding.btnInfoCmd
             CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN -> binding.btnFullscreenCmd
-            CommandPanelLayoutPlanner.PlayerCommand.SLIDESHOW -> binding.btnSlideshowCmd
             CommandPanelLayoutPlanner.PlayerCommand.RANDOM -> binding.btnRandomCmd
             CommandPanelLayoutPlanner.PlayerCommand.RENAME -> safeViews.btnRenameCmd
             CommandPanelLayoutPlanner.PlayerCommand.EDIT -> safeViews.btnEditCmd
@@ -949,6 +973,7 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.UNDO -> safeViews.btnUndoCmd
             CommandPanelLayoutPlanner.PlayerCommand.CAST -> safeViews.btnCastCmd
             CommandPanelLayoutPlanner.PlayerCommand.LYRICS -> safeViews.btnLyricsCmd
+            CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER -> binding.btnSleepTimerCmd
             CommandPanelLayoutPlanner.PlayerCommand.SEARCH_YOUTUBE_MUSIC -> safeViews.btnSearchYoutubeMusicCmd
             CommandPanelLayoutPlanner.PlayerCommand.SEARCH_PDF -> safeViews.btnSearchPdfCmd
             CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_PDF -> safeViews.btnTranslatePdfCmd
@@ -991,7 +1016,8 @@ class CommandPanelController(
         } else {
             dm.widthPixels
         }
-        return (panelWidth - buttonPx * 3).coerceAtLeast(0) // Back + Previous + Next
+        val slideshowFixed = if (binding.btnSlideshowCmd.isVisible) 1 else 0
+        return (panelWidth - buttonPx * (3 + slideshowFixed)).coerceAtLeast(0) // Back + Slideshow + Prev + Next
     }
 
     private fun isWifiConnected(context: android.content.Context): Boolean {
@@ -1004,5 +1030,23 @@ class CommandPanelController(
         } catch (e: Exception) {
             false
         }
+    }
+
+    fun updatePlaybackOrderButtonIcon(mode: PlaybackOrderMode) {
+        val iconRes = when (mode) {
+            PlaybackOrderMode.LOOP_LIST    -> R.drawable.ic_loop_list
+            PlaybackOrderMode.PLAY_THROUGH -> R.drawable.ic_arrow_downward
+            PlaybackOrderMode.SHUFFLE      -> R.drawable.ic_random_nav
+            PlaybackOrderMode.REPEAT_ONE   -> R.drawable.ic_repeat_one
+        }
+        binding.btnPlaybackOrderCmd.setImageResource(iconRes)
+        val modeLabel = binding.root.context.getString(when (mode) {
+            PlaybackOrderMode.LOOP_LIST    -> R.string.playback_order_loop_list
+            PlaybackOrderMode.PLAY_THROUGH -> R.string.playback_order_play_through
+            PlaybackOrderMode.SHUFFLE      -> R.string.playback_order_shuffle
+            PlaybackOrderMode.REPEAT_ONE   -> R.string.playback_order_repeat_one
+        })
+        binding.btnPlaybackOrderCmd.contentDescription =
+            binding.root.context.getString(R.string.playback_order_button_desc, modeLabel)
     }
 }

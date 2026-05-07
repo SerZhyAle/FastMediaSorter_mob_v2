@@ -126,17 +126,17 @@ atomic strategy creates temp
 1. **Кто именно удаляет temp-файл?**
    - **Вопрос:** atomic strategy, SMB delegate или отдельный cancel cleanup?
    - **Нужно выяснить:** точку удаления по коду и/или дополнительному diagnostic log around temp path lifecycle.
-   - **Статус:** Open
+   - **Статус:** Verified
 
 2. **Дефект only-on-cancel или also-on-success?**
    - **Вопрос:** temp missing возникает только после user-cancel, или возможен и при nominal success path?
    - **Нужно выяснить:** reproducer без cancel, плюс unit/integration test на cancel boundary.
-   - **Статус:** Open
+   - **Статус:** Verified
 
 3. **SMB-only или любой network delegate?**
    - **Вопрос:** path нарушается только через `SmbFileOperations`, или та же проблема есть у FTP/SFTP/local delegates, если они работают через atomic strategy?
    - **Нужно выяснить:** какие delegates имеют собственный cleanup temp-path.
-   - **Статус:** Open
+   - **Статус:** Verified
 
 ---
 

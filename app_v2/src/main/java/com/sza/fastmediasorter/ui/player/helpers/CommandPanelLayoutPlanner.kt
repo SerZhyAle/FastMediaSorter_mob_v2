@@ -34,10 +34,11 @@ class CommandPanelLayoutPlanner {
         val titleResId: Int,
         val iconResId: Int
     ) {
-        // ── Group 1 : high-priority adaptive commands (priorities 10–70) ──────────
+        // ── Group 1 : high-priority adaptive commands (priorities 5–70) ───────────
         // Lowest priority numbers = first on bar (leftmost), last to overflow.
         // Previous/Next are fixed right anchors — not in this group.
 
+        PLAYBACK_ORDER(5, R.id.menu_playback_order, true, R.string.playback_order_menu_title, 0),
         DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete),
         FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline),
         SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share),
@@ -108,7 +109,7 @@ class CommandPanelLayoutPlanner {
 
         // ── Group 3 : overflow-only commands (priorities 500–699) ───────────────────
 
-        SLEEP_TIMER(500, R.id.menu_sleep_timer, false, R.string.menu_sleep_timer,
+        SLEEP_TIMER(500, R.id.menu_sleep_timer, true, R.string.menu_sleep_timer,
             R.drawable.ic_sleep_timer),
         REOPEN_ENCODING(510, R.id.menu_reopen_encoding, false, R.string.reopen_with_encoding,
             android.R.drawable.ic_menu_sort_alphabetically),
@@ -133,7 +134,11 @@ class CommandPanelLayoutPlanner {
         PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
         // S0028: multi-window — overflow-only; shown only when VR+setting allows it
         OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, false,
-            R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse);
+            R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse),
+        // S0106: Image crop & compress (IMAGE only — static formats JPEG/PNG/WebP)
+        CROP(620, R.id.menu_crop, false, R.string.menu_crop, R.drawable.ic_crop),
+        CROP_TO_FILE(630, R.id.menu_crop_to_file, false, R.string.menu_crop_to_file, R.drawable.ic_crop_to_file),
+        COMPRESS_COPY(640, R.id.menu_compress_copy, false, R.string.menu_compress_copy, R.drawable.ic_compress);
     }
 
     data class LayoutResult(
@@ -172,18 +177,18 @@ class CommandPanelLayoutPlanner {
 
         return buildList {
             // ── Group 1 : high-priority adaptive buttons ──────────────────────────────
+            if (isAudio || isVideo) add(PlayerCommand.PLAYBACK_ORDER)
             if (canWrite && state.allowDelete) add(PlayerCommand.DELETE)
             if (showFavorite) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)
             add(PlayerCommand.INFO)
-            if (isImage || isVideo || isPdf || isText || isEpub) add(PlayerCommand.FULLSCREEN)
-            if (isImage || isVideo) add(PlayerCommand.SLIDESHOW)
+            if (!isAudio && (isImage || isVideo || isPdf || isText || isEpub)) add(PlayerCommand.FULLSCREEN)
             if (showRandom) add(PlayerCommand.RANDOM)
 
             // ── Group 2 ──────────────────────────────────────────────────────────────
             if ((isAudio || isVideo) && state.showBlackScreenButton) add(PlayerCommand.BLACK_SCREEN)
             if (canWrite && state.allowRename) add(PlayerCommand.RENAME)
-            if ((isImage && canWrite) || isVideo || isPdf) add(PlayerCommand.EDIT)
+            if ((isImage && canWrite) || (isVideo && !isAudio) || isPdf) add(PlayerCommand.EDIT)
             if (state.lastOperation != null && canWrite) add(PlayerCommand.UNDO)
             if (BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
             if (isAudio) add(PlayerCommand.LYRICS)
@@ -231,6 +236,12 @@ class CommandPanelLayoutPlanner {
             if (BuildConfig.SUPPORT_VR_PLAYER && file.type == MediaType.VIDEO) add(PlayerCommand.VR_3D)
             // S0028: multi-window tear-off — VR+setting guard already applied by controller
             if (allowSeparateWindow) add(PlayerCommand.OPEN_IN_SEPARATE_WINDOW)
+            // S0106: Crop commands — static images only (exclude animated GIF and APNG)
+            val isStaticBitmap = isImage && !file.name.lowercase().endsWith(".gif") &&
+                !file.name.lowercase().endsWith(".apng")
+            if (isStaticBitmap && canWrite && !isReadOnly) add(PlayerCommand.CROP)
+            if (isStaticBitmap) add(PlayerCommand.CROP_TO_FILE)
+            if (isStaticBitmap) add(PlayerCommand.COMPRESS_COPY)
         }.sortedBy { it.priority }
     }
 

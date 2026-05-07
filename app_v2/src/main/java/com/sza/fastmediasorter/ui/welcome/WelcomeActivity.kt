@@ -3,27 +3,23 @@ package com.sza.fastmediasorter.ui.welcome
 import android.Manifest
 import android.animation.ValueAnimator
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.core.util.PermissionHelper
-import com.sza.fastmediasorter.core.util.SettingsIntentLauncher
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.settings.fragments.PermissionsManagementFragment
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
@@ -31,55 +27,16 @@ import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
 @AndroidEntryPoint
-class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
+class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManagementFragment.WelcomeCompleteListener {
 
     private val viewModel: WelcomeViewModel by viewModels()
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private var currentPage = 0
     private var defaultPlayerPageIndex = -1
-    private var waitingPermissionForFinish = false
     // Separate field so the restored page is applied once in setupViewPager() without
     // affecting currentPage until the ViewPager is ready.
     private var restoredPage = 0
-    private var hasTriggeredLastPagePermissionRequest = false
-    private var hasRequestedManageMediaInSession = false
-    private var hasRequestedAllFilesAccessInSession = false
-    private var hasRequestedBatteryOptimizationInSession = false
-    private var hasRequestedNotificationsInSession = false
-    private val mediaPermissionsLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.values.all { it }
-        Timber.tag(TAG).i(
-            "mediaPermissionsLauncher result: allGranted=%s, perPermission=%s, hasRequiredAfter=%s",
-            allGranted,
-            permissions.entries.joinToString { "${it.key}=${it.value}" },
-            hasRequiredMediaPermissions()
-        )
-        if (allGranted || hasRequiredMediaPermissions()) {
-            onRuntimePermissionsProcessed()
-        } else {
-            showPermissionDeniedDialog()
-        }
-    }
-    private val batteryOptimizationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val pm = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
-        Timber.tag(TAG).i(
-            "batteryOptimizationPermissionLauncher result: resultCode=%d, isIgnoringBatteryOptimizations=%s",
-            result.resultCode,
-            pm.isIgnoringBatteryOptimizations(packageName)
-        )
-        continueSpecialPermissionsFlowOrComplete()
-    }
-    private val notificationsPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        Timber.tag(TAG).i("notificationsPermissionLauncher result: granted=%s", granted)
-        continueSpecialPermissionsFlowOrComplete()
-    }
     private val pageBackgrounds = mutableListOf(
         R.color.welcome_page_1_background,
         R.color.welcome_page_2_background,
@@ -106,31 +63,15 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // No data to observe
     }
 
-    // Preserve permission-flow state across Activity recreation (e.g., night-mode or density
-    // config changes that occur while a system permission dialog is on screen).  Without this,
-    // waitingPermissionForFinish resets to false and continueSpecialPermissionsFlowOrComplete()
-    // never reaches completeWelcomeFlow(), leaving the user permanently stuck on WelcomeActivity.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         savedInstanceState?.let { state ->
-            waitingPermissionForFinish = state.getBoolean(KEY_WAITING_PERMISSION, false)
-            hasRequestedManageMediaInSession = state.getBoolean(KEY_REQUESTED_MANAGE_MEDIA, false)
-            hasRequestedAllFilesAccessInSession = state.getBoolean(KEY_REQUESTED_ALL_FILES, false)
-            hasRequestedBatteryOptimizationInSession = state.getBoolean(KEY_REQUESTED_BATTERY, false)
-            hasRequestedNotificationsInSession = state.getBoolean(KEY_REQUESTED_NOTIFICATIONS, false)
-            hasTriggeredLastPagePermissionRequest = state.getBoolean(KEY_TRIGGERED_PERMISSION_REQUEST, false)
             restoredPage = state.getInt(KEY_CURRENT_PAGE, 0)
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(KEY_WAITING_PERMISSION, waitingPermissionForFinish)
-        outState.putBoolean(KEY_REQUESTED_MANAGE_MEDIA, hasRequestedManageMediaInSession)
-        outState.putBoolean(KEY_REQUESTED_ALL_FILES, hasRequestedAllFilesAccessInSession)
-        outState.putBoolean(KEY_REQUESTED_BATTERY, hasRequestedBatteryOptimizationInSession)
-        outState.putBoolean(KEY_REQUESTED_NOTIFICATIONS, hasRequestedNotificationsInSession)
-        outState.putBoolean(KEY_TRIGGERED_PERMISSION_REQUEST, hasTriggeredLastPagePermissionRequest)
         outState.putInt(KEY_CURRENT_PAGE, currentPage)
     }
 
@@ -156,12 +97,25 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         val cutout = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout())
 
         val marginSmall = resources.getDimensionPixelSize(R.dimen.margin_small)
+        val endInset = maxOf(statusBar.right, cutout.right, navBar.right)
 
-        // Skip button: clear of status bar top and right-side cutout/nav bar (foldable, landscape)
-        (binding.btnSkip.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
-            it.topMargin = statusBar.top + marginSmall
-            it.marginEnd = maxOf(statusBar.right, cutout.right, navBar.right) + marginSmall
-            binding.btnSkip.layoutParams = it
+        val topNav = binding.layoutTopNav
+        if (topNav != null) {
+            // sw480dp / sw720dp: btnSkip lives inside layoutTopNav — push the whole bar below
+            // the status bar by adjusting container padding so all buttons stay aligned.
+            topNav.setPadding(
+                topNav.paddingLeft,
+                statusBar.top + marginSmall,
+                endInset + marginSmall,
+                topNav.paddingBottom
+            )
+        } else {
+            // Default layout: btnSkip is a standalone element constrained to top/end of root.
+            (binding.btnSkip.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
+                it.topMargin = statusBar.top + marginSmall
+                it.marginEnd = endInset + marginSmall
+                binding.btnSkip.layoutParams = it
+            }
         }
 
         // Bottom nav above navigation bar
@@ -184,7 +138,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                     FeatureCard(R.drawable.ic_image, R.string.welcome_feature_photos),
                     FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud),
                     FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_sorting)
-                )
+                ),
+                showLanguagePicker = true,
+                onLanguageSelected = ::onWelcomeLanguageSelected,
             ),
             // Page 2: Resource Types
             WelcomePage(
@@ -260,17 +216,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 )
             )
         }
-
-        pages.add(
-            // Page 6/7: Permissions
-            WelcomePage(
-                iconRes = 0,
-                titleRes = 0,
-                descriptionRes = 0,
-                isPermissionsPage = true,
-                onGrantClick = { requestPermissions() }
-            )
-        )
 
         pagerAdapter = WelcomePagerAdapter(pages)
         binding.viewPager.adapter = pagerAdapter
@@ -414,11 +359,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             // Let's just show Finish button if it's NOT permission page, or if it is but maybe we want to allow skip?
             // The "Skip" button at top handles skipping.
             binding.btnFinish.visibility = View.VISIBLE
-
-            if (!hasTriggeredLastPagePermissionRequest) {
-                hasTriggeredLastPagePermissionRequest = true
-                requestPermissions()
-            }
         } else {
             binding.btnNext.visibility = View.VISIBLE
             binding.btnFinish.visibility = View.GONE
@@ -433,164 +373,35 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         binding.root.setBackgroundResource(pageBackgrounds[backgroundIndex])
     }
 
+    private fun onWelcomeLanguageSelected(code: String) {
+        LocaleHelper.saveLanguage(this, code)
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+            // API < 33: LocaleManager is unavailable — recreate Activity manually.
+            // overridePendingTransition(0, 0) called after recreate() suppresses the
+            // default enter animation of the new Activity instance.
+            recreate()
+            overridePendingTransition(0, 0)
+        }
+        // API 33+: LocaleManager already called in saveLanguage() will recreate the
+        // Activity automatically with no further action needed here.
+    }
+
     private fun finishWelcome() {
-        waitingPermissionForFinish = true
-        requestPermissions()
+        binding.fragmentContainerWelcome.visibility = View.VISIBLE
+        binding.viewPager.visibility = View.GONE
+        binding.layoutBottomNav?.visibility = View.GONE
+        binding.layoutTopNav?.visibility = View.GONE
+        binding.layoutIndicator?.visibility = View.GONE
+        binding.btnSkip.visibility = View.GONE
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.fragment_container_welcome, PermissionsManagementFragment.newInstance(fromWelcome = true))
+            .commit()
     }
 
-    private fun requestPermissions() {
-        val requiredPermissions = getRequiredMediaPermissions()
-        if (requiredPermissions.isEmpty() || hasRequiredMediaPermissions()) {
-            onRuntimePermissionsProcessed()
-            return
-        }
-        mediaPermissionsLauncher.launch(requiredPermissions)
+    override fun onWelcomeComplete() {
+        completeWelcomeFlow()
     }
-
-    private fun onRuntimePermissionsProcessed() {
-        if (hasRequiredMediaPermissions()) {
-            viewModel.setMediaPermissionsGranted(true)
-            Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
-        }
-
-        continueSpecialPermissionsFlowOrComplete()
-    }
-
-    private fun continueSpecialPermissionsFlowOrComplete() {
-        if (requestManageMediaPermissionIfNeeded()) {
-            return
-        }
-
-        if (requestAllFilesAccessPermissionIfNeeded()) {
-            return
-        }
-
-        if (requestBatteryOptimizationIfNeeded()) {
-            return
-        }
-
-        if (requestNotificationsPermissionIfNeeded()) {
-            return
-        }
-
-        if (waitingPermissionForFinish || currentPage == pagerAdapter.itemCount - 1) {
-            waitingPermissionForFinish = false
-            completeWelcomeFlow()
-        }
-    }
-
-    private fun requestManageMediaPermissionIfNeeded(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            return false
-        }
-
-        if (PermissionHelper.hasManageMediaPermission(this) || hasRequestedManageMediaInSession) {
-            return false
-        }
-
-        hasRequestedManageMediaInSession = true
-
-        val intent = try {
-            Intent(Settings.ACTION_REQUEST_MANAGE_MEDIA).apply {
-                data = Uri.parse("package:$packageName")
-            }
-        } catch (_: Exception) {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", packageName, null)
-            }
-        }
-
-        SettingsIntentLauncher.launch(this, intent, PermissionHelper.REQUEST_CODE_MANAGE_MEDIA)
-        return true
-    }
-
-    private fun requestAllFilesAccessPermissionIfNeeded(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            return false
-        }
-
-        if (PermissionHelper.hasAllFilesAccessPermission(this) || hasRequestedAllFilesAccessInSession) {
-            return false
-        }
-
-        hasRequestedAllFilesAccessInSession = true
-
-        val intent = try {
-            Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                data = Uri.parse("package:$packageName")
-            }
-        } catch (_: Exception) {
-            Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-        }
-
-        SettingsIntentLauncher.launch(this, intent, PermissionHelper.REQUEST_CODE_ALL_FILES_ACCESS)
-        return true
-    }
-
-    private fun requestBatteryOptimizationIfNeeded(): Boolean {
-        if (hasRequestedBatteryOptimizationInSession) {
-            return false
-        }
-
-        val pm = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
-        if (pm.isIgnoringBatteryOptimizations(packageName)) {
-            return false
-        }
-
-        hasRequestedBatteryOptimizationInSession = true
-
-        if (isFinishing || isDestroyed) return false
-        AlertDialog.Builder(this)
-            .setTitle(R.string.battery_optimization_dialog_title)
-            .setMessage(R.string.battery_optimization_dialog_message)
-            .setPositiveButton(R.string.battery_optimization_dialog_btn_allow) { _, _ ->
-                try {
-                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                        data = Uri.parse("package:$packageName")
-                    }
-                    batteryOptimizationPermissionLauncher.launch(intent)
-                } catch (_: Exception) {
-                    continueSpecialPermissionsFlowOrComplete()
-                }
-            }
-            .setNegativeButton(R.string.battery_optimization_dialog_btn_skip) { _, _ ->
-                continueSpecialPermissionsFlowOrComplete()
-            }
-            .setCancelable(false)
-            .show()
-
-        return true
-    }
-
-    private fun requestNotificationsPermissionIfNeeded(): Boolean {
-        if (!BuildConfig.ENABLE_SCHEDULED_OPERATIONS) return false
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
-        if (hasRequestedNotificationsInSession) return false
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
-            android.content.pm.PackageManager.PERMISSION_GRANTED) return false
-
-        hasRequestedNotificationsInSession = true
-        notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        return true
-    }
-
-    private fun showPermissionDeniedDialog() {
-        if (isFinishing || isDestroyed) return
-        AlertDialog.Builder(this)
-            .setTitle(R.string.permissions_denied_title)
-            .setMessage(R.string.permissions_denied_warning)
-            .setPositiveButton(R.string.retry) { _, _ ->
-                requestPermissions()
-            }
-            .setNegativeButton(R.string.continue_anyway) { _, _ ->
-                continueSpecialPermissionsFlowOrComplete()
-            }
-            .setCancelable(true)
-            .show()
-    }
-
-    // openDefaultPlayerChooser() removed — Welcome page now calls
-    // DefaultPlayerHelper.openChooserOrFallbackFromActivity() directly per type button.
 
     private fun completeWelcomeFlow() {
         if (hasRequiredMediaPermissions()) {
@@ -660,27 +471,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         }
     }
 
-    // S0043: Manage Media / All Files Access intents are launched via SettingsIntentLauncher
-    // (which carries setLaunchBounds for XR / freeform / foldable). The activity-result launcher
-    // path is bypassed because ActivityOptionsCompat cannot transport setLaunchBounds.
-    @Deprecated("Required for Settings panel bounds — see S0043")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        @Suppress("DEPRECATION")
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PermissionHelper.REQUEST_CODE_MANAGE_MEDIA ||
-            requestCode == PermissionHelper.REQUEST_CODE_ALL_FILES_ACCESS) {
-            continueSpecialPermissionsFlowOrComplete()
-        }
-    }
-
     companion object {
         private const val TAG = "WelcomePerms"
-        private const val KEY_WAITING_PERMISSION = "key_waiting_permission_for_finish"
-        private const val KEY_REQUESTED_MANAGE_MEDIA = "key_requested_manage_media"
-        private const val KEY_REQUESTED_ALL_FILES = "key_requested_all_files"
-        private const val KEY_REQUESTED_BATTERY = "key_requested_battery"
-        private const val KEY_REQUESTED_NOTIFICATIONS = "key_requested_notifications"
-        private const val KEY_TRIGGERED_PERMISSION_REQUEST = "key_triggered_permission_request"
         private const val KEY_CURRENT_PAGE = "key_current_page"
     }
 }

@@ -93,8 +93,17 @@
 {"id":"S0093","name":"vr-single-playback-authority","status":"Verified","priority":80,"tier":3,"file":"PLAN/S0093_vr-single-playback-authority.md","created":"2026-05-05","updated":"2026-05-06 00:16"}
 {"id":"S0094","name":"player-move-currently-playing","status":"Verified","priority":55,"tier":3,"file":"PLAN/S0094_player-move-currently-playing.md","created":"2026-05-05","updated":"2026-05-05 15:44"}
 {"id":"S0095","name":"integration-test-review","status":"Verified","priority":40,"tier":3,"file":"PLAN/S0095_integration-test-review.md","created":"2026-05-05","updated":"2026-05-05 16:03"}
-{"id":"S0096","name":"browse-audio-black-screen","status":"Verified","priority":50,"file":"PLAN/S0096_browse-audio-black-screen.md","created":"2026-05-05","updated":"2026-05-05 17:11"}
-{"id":"S0097","name":"gms-update-once-settings-link","status":"Verified","priority":35,"file":"PLAN/S0094_gms-update-once-settings-link.md","created":"2026-05-06","updated":"2026-05-06 01:48"}
-{"id":"S0098","name":"bugfix-smb-precheck-false-fail","status":"Implemented","priority":65,"tier":2,"file":"PLAN/S0098_bugfix-smb-precheck-false-fail.md","created":"2026-05-06","updated":"2026-05-06 03:32"}
-{"id":"S0099","name":"sftp-concurrent-access-fix","status":"In Progress","priority":70,"tier":3,"file":"PLAN/S0099_sftp-concurrent-access-fix.md","created":"2026-05-06","updated":"2026-05-06 04:02"}
-{"id":"S0100","name":"mic-recording-in-browse","status":"Tactical","priority":50,"tier":3,"file":"PLAN/S0100_mic-recording-in-browse.md","created":"2026-05-06","updated":"2026-05-06 04:02"}
+{"id":"S0096","name":"browse-audio-black-screen","status":"Verified","priority":50,"file":"PLAN/S0096_browse-audio-black-screen.md","created":"2026-05-05","updated":"2026-05-06 16:04"}
+{"id":"S0097","name":"gms-update-once-settings-link","status":"Verified","priority":35,"file":"PLAN/S0097_gms-update-once-settings-link.md","created":"2026-05-06","updated":"2026-05-06 10:00"}
+{"id":"S0098","name":"bugfix-smb-precheck-false-fail","status":"Verified","priority":65,"tier":2,"file":"PLAN/S0098_bugfix-smb-precheck-false-fail.md","created":"2026-05-06","updated":"2026-05-06 10:03"}
+{"id":"S0099","name":"sftp-concurrent-access-fix","status":"Partial","priority":70,"tier":3,"file":"PLAN/S0099_sftp-concurrent-access-fix.md","created":"2026-05-06","updated":"2026-05-06 11:39"}
+{"id":"S0100","name":"mic-recording-in-browse","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0100_mic-recording-in-browse.md","created":"2026-05-06","updated":"2026-05-06 14:49","closed_at":"2026-05-06"}
+{"id":"S0101","name":"unified-permission-onboarding","status":"Verified","priority":5,"tier":4,"file":"PLAN/S0101_unified-permission-onboarding.md","created":"2026-05-06","updated":"2026-05-06 20:35","closed_at":"2026-05-06"}
+{"id":"S0102","name":"spec-catalog-ergonomics","status":"Verified","priority":40,"tier":2,"file":"PLAN/S0102_spec-catalog-ergonomics.md","created":"2026-05-06","updated":"2026-05-06 13:12","closed_at":"2026-05-06"}
+{"id":"S0103","name":"player-top-bar-polish","status":"Verified","priority":55,"tier":2,"file":"PLAN/S0103_player-top-bar-polish.md","created":"2026-05-06","updated":"2026-05-06 15:20","closed_at":"2026-05-06"}
+{"id":"S0104","name":"playback-order-mode","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0104_playback-order-mode.md","created":"2026-05-06","updated":"2026-05-06 15:46","closed_at":"2026-05-06"}
+{"id":"S0105","name":"inline-audio-playback-in-browse","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0105_inline-audio-playback-in-browse.md","created":"2026-05-06","updated":"2026-05-06 15:56","closed_at":"2026-05-06"}
+{"id":"S0106","name":"player-image-crop","status":"Implemented","priority":50,"tier":3,"file":"PLAN/S0106_player-image-crop.md","created":"2026-05-06","updated":"2026-05-06 23:42"}
+{"id":"S0107","name":"image-draw-overlay","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0107_image-draw-overlay.md","created":"2026-05-06","updated":"2026-05-06 22:41","closed_at":"2026-05-06"}
+{"id":"S0108","name":"welcome-language-picker","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0108_welcome-language-picker.md","created":"2026-05-07","updated":"2026-05-07 01:35","closed_at":"2026-05-07"}
+{"id":"S0109","name":"bugfix-chromeos-textinput","status":"Implemented","priority":90,"file":"PLAN/S0109_bugfix-chromeos-textinput.md","created":"2026-05-07","updated":"2026-05-07 03:06"}

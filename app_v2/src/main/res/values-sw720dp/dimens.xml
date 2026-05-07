@@ -55,7 +55,7 @@
     <dimen name="welcome_indicator_margin_bottom">28dp</dimen>
     <dimen name="welcome_title_text_size">42sp</dimen>
     <dimen name="welcome_description_text_size">26sp</dimen>
-    <dimen name="welcome_icon_size">240dp</dimen>
+    <dimen name="welcome_icon_size">134dp</dimen>
     <dimen name="welcome_icon_margin_top">48dp</dimen>
     <dimen name="welcome_title_margin_top">32dp</dimen>
     <dimen name="welcome_description_margin_top">24dp</dimen>

@@ -6505,3 +6505,352 @@ Format: | datetime | file | target | description |
 | 2026-05-06 04:02:55 | `docs/HOW_TO.md` | `How-To guides` | Add guide: How to use FMS on Android TV box |
 | 2026-05-06 04:02:55 | `docs/HOW_TO_RU.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (RU) |
 | 2026-05-06 04:02:55 | `docs/HOW_TO_UK.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (UK) |
+| 2026-05-06 10:04:02 | `PLAN/S0098_bugfix-smb-precheck-false-fail.md` | `spec-all` | Pipeline Verified: S0098 — bugfix-smb-precheck-false-fail |
+| 2026-05-06 11:19:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `SftpConnectionPool` | S0099 Phase 01: add playbackConnectionPool for ExoPlayer session isolation, extend disconnectAll/cleanupIdleConnections to cover both pools, tag Timber calls with [PLAYBACK]/[FILE_OPS] |
+| 2026-05-06 11:24:55 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpDownloadExhaustedException.kt` | `SftpDownloadExhaustedException` | S0099 Phase 02: new typed exception for SFTP download retry exhaustion |
+| 2026-05-06 11:24:55 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `SftpClient` | S0099 Phase 02: replace downloadFile() single-retry with 3-attempt exponential backoff (1s/2s/4s), add kotlinx.coroutines.delay import |
+| 2026-05-06 11:30:52 | `app_v2/src/main/res/values/strings.xml` | `strings.xml (EN)` | S0099 Phase 03: add error_sftp_copy_failed_server, error_sftp_copy_access_denied, error_sftp_connection_limit |
+| 2026-05-06 11:30:52 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml (RU)` | S0099 Phase 03: add error_sftp_copy_failed_server, error_sftp_copy_access_denied, error_sftp_connection_limit |
+| 2026-05-06 11:30:52 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml (UK)` | S0099 Phase 03: add error_sftp_copy_failed_server, error_sftp_copy_access_denied, error_sftp_connection_limit |
+| 2026-05-06 11:30:52 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt` | `SftpFileOperationHandler` | S0099 Phase 03: wire SftpDownloadExhaustedException into bridge-copy error path with localized messages |
+| 2026-05-06 11:35:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `S0099` | Add playbackConnectionPool; isolate ExoPlayer sessions from FILE_OPS sessions |
+| 2026-05-06 11:35:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpDownloadExhaustedException.kt` | `S0099` | New typed exception for exhausted SFTP download retries |
+| 2026-05-06 11:35:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0099` | Replace single-retry downloadFile with 3-attempt backoff loop |
+| 2026-05-06 11:35:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt` | `S0099` | Map SftpDownloadExhaustedException to user-friendly localized error in bridge copy |
+| 2026-05-06 11:35:00 | `app_v2/src/main/res/values/strings.xml` | `S0099` | Add error_sftp_copy_failed_server/access_denied/connection_limit (EN) |
+| 2026-05-06 11:35:00 | `app_v2/src/main/res/values-ru/strings.xml` | `S0099` | Add error_sftp_copy_failed_server/access_denied/connection_limit (RU) |
+| 2026-05-06 11:35:00 | `app_v2/src/main/res/values-uk/strings.xml` | `S0099` | Add error_sftp_copy_failed_server/access_denied/connection_limit (UK) |
+| 2026-05-06 11:39:15 | `PLAN/S0099_sftp-concurrent-access-fix.md` | `spec-check` | Audit S0099 -> Partial; PASS/WARN/FAIL 31/1/0; WARN: SftpFileOperationHandler.kt 430 lines vs budget 420 |
+| 2026-05-06 11:39:37 | `PLAN/S0099_sftp-concurrent-access-fix.md` | `spec-fix` | Annotate Last Audit (S0099): 0 auto-fixed, 1 follow-up (file budget advisory) |
+| 2026-05-06 12:09:56 | `PLAN/S0101_unified-permission-onboarding.md` | `spec` | Add strategic spec S0101 for unified-permission-onboarding (research spike, wishlist) |
+| 2026-05-06 12:15:55 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec` | Add strategic spec S0102 for spec-catalog-ergonomics |
+| 2026-05-06 12:18:56 | `PLAN/S0100_mic-recording-in-browse.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) — 4 applied |
+| 2026-05-06 12:18:56 | `PLAN/S0100_mic-recording-in-browse/PHASE_03__manifest-strings.md` | `spec-update` | Refinement (claude-sonnet-4-6) — Step 3.1 verification predicate clarified |
+| 2026-05-06 12:19:08 | `PLAN/S0101_unified-permission-onboarding.md` | `spec` | S0101: expand with Welcome-screen concept and per-permission action buttons |
+| 2026-05-06 12:28:01 | `CLAUDE.md` | `spec-writing-style` | Add Spec Writing Style and Debug Verification Tags rules to CLAUDE.md (S0102 scope) |
+| 2026-05-06 12:28:01 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec` | Expand S0102 scope: spec minimalism + debug verification tags |
+| 2026-05-06 12:31:41 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec` | Expand S0102 scope: add schema extension (tags, blocked_by, type) as Group 0 |
+| 2026-05-06 12:43:24 | `PLAN/S0101_unified-permission-onboarding.md` | `S0101` | Updated strategic specification to explicitly account for S0100 (microphone) and S0035 (local network) integration |
+| 2026-05-06 12:44:31 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec-update` | Refinement (GPT-5.4, focus: structure, completeness, consistency, style, verifiability) |
+| 2026-05-06 12:49:08 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics/INDEX.md` | `spec-tech` | Create tactical plan for S0102 |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics/PHASE_01__schema-foundations.md` | `spec-tech` | Phase 01: schema-foundations |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics/PHASE_02__read-commands.md` | `spec-tech` | Phase 02: read-commands |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics/PHASE_03__close-command.md` | `spec-tech` | Phase 03: close-command |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics/PHASE_04__bulk-update.md` | `spec-tech` | Phase 04: bulk-update |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics/PHASE_05__skill-integration.md` | `spec-tech` | Phase 05: skill-integration |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-06 13:00:21 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 13:03:04 | `scripts/spec_catalog/SCHEMA.md` | `S0102` | Phase 01.1: add Optional fields section |
+| 2026-05-06 13:03:04 | `scripts/spec_catalog/_lib.ps1` | `S0102` | Phase 01.2: Write-Catalog pass-through for optional fields |
+| 2026-05-06 13:03:04 | `scripts/spec_catalog/update.ps1` | `S0102` | Phase 01.3: update.ps1 copies optional fields to mutable copy |
+| 2026-05-06 13:05:06 | `scripts/spec_catalog/next-id.ps1` | `S0102` | Phase 02.1: create next-id.ps1 — outputs next free S#### token |
+| 2026-05-06 13:05:06 | `scripts/spec_catalog/search.ps1` | `S0102` | Phase 02.2: create search.ps1 — substring + metadata filter |
+| 2026-05-06 13:05:06 | `scripts/spec_catalog/stats.ps1` | `S0102` | Phase 02.3: create stats.ps1 — catalog summary (table\|json) |
+| 2026-05-06 13:06:20 | `scripts/spec_catalog/close.ps1` | `S0102` | Phase 03.1: create close.ps1 — finalize spec with closed_at, Block guard |
+| 2026-05-06 13:07:38 | `scripts/spec_catalog/bulk-update.ps1` | `S0102` | Phase 04.1: create bulk-update.ps1 — atomic multi-record status/priority update |
+| 2026-05-06 13:09:13 | `CLAUDE.md` | `S0102` | Phase 05.1: add operator facade CLI references (next-id, search, close, stats, bulk-update) |
+| 2026-05-06 13:09:13 | `.claude/commands/spec.md` | `S0102` | Phase 05.2: add next-id.ps1 note to spec-creation Catalog hooks |
+| 2026-05-06 13:09:13 | `.claude/commands/spec-check.md` | `S0102` | Phase 05.3: replace update.ps1 Verified with close.ps1 |
+| 2026-05-06 13:10:21 | `PLAN/S0102_spec-catalog-ergonomics/PHASE_06__docs-catalog-cleanup.md` | `S0102` | Phase 06: docs-catalog-cleanup complete |
+| 2026-05-06 13:13:02 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec-check` | Audit S0102 -> Verified; PASS 49/WARN 0/FAIL 0/EXEMPT 1 |
+| 2026-05-06 14:42:05 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | S0100: add micRecordingEnabled + micRecordingAskFilename fields |
+| 2026-05-06 14:42:11 | `app_v2/build.gradle.kts` | `build.gradle.kts` | S0100: add SUPPORT_MIC_RECORDING BuildConfig field to all 6 flavors |
+| 2026-05-06 14:42:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseMicRecordingManager.kt` | `BrowseMicRecordingManager` | S0100: new class — mic recording lifecycle and file save routing in Browse |
+| 2026-05-06 14:42:20 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | S0100: add RECORD_AUDIO permission (android:required=false) |
+| 2026-05-06 14:42:20 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | S0100: add 14 mic recording string resources |
+| 2026-05-06 14:42:20 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | S0100: add 14 mic recording strings in Russian |
+| 2026-05-06 14:42:20 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | S0100: add 14 mic recording strings in Ukrainian |
+| 2026-05-06 14:42:25 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `fragment_settings_audio` | S0100: add mic recording section with two switches |
+| 2026-05-06 14:42:25 | `app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `fragment_settings_audio-land` | S0100: add mic recording section (landscape counterpart) |
+| 2026-05-06 14:42:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `AudioSettingsFragment` | S0100: add mic recording section with permission handling |
+| 2026-05-06 14:42:30 | `app_v2/src/main/res/layout/activity_browse.xml` | `activity_browse` | S0100: add btnMicRecord MaterialButton to command bar |
+| 2026-05-06 14:42:30 | `app_v2/src/main/res/layout-land/activity_browse.xml` | `activity_browse-land` | S0100: add btnMicRecord to landscape layout |
+| 2026-05-06 14:42:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt` | `BrowseButtonSetupHelper` | S0100: add onMicRecord touch callbacks to ButtonCallbacks interface |
+| 2026-05-06 14:42:30 | `app_v2/src/main/res/values/colors.xml` | `colors.xml` | S0100: add recording_active_tint color |
+| 2026-05-06 14:42:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | S0100: wire BrowseMicRecordingManager, permission launcher, button visibility |
+| 2026-05-06 14:42:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | S0100: delegate onMicRecord touch callbacks to BrowseActivity |
+| 2026-05-06 14:42:40 | `docs/FEATURES.md` | `FEATURES.md` | S0100: add microphone recording bullet |
+| 2026-05-06 14:42:40 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0100: add microphone recording bullet (Russian) |
+| 2026-05-06 14:42:40 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0100: add microphone recording bullet (Ukrainian) |
+| 2026-05-06 14:42:40 | `PLAN/S0100_mic-recording-in-browse/PHASE_03__manifest-strings.md` | `PHASE_03` | S0100: phase file updated during implementation |
+| 2026-05-06 14:49:01 | `PLAN/S0103_player-top-bar-polish.md` | `spec` | Add strategic spec S0103 for player-top-bar-polish |
+| 2026-05-06 14:49:51 | `PLAN/S0100_mic-recording-in-browse.md` | `spec-check` | Audit S0100 → Verified; PASS/WARN/FAIL 54/0/0 |
+| 2026-05-06 14:49:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseMicRecordingManager.kt` | `BrowseMicRecordingManager` | S0100 Verified: remove Timber.d debug tags |
+| 2026-05-06 14:56:46 | `PLAN/S0104_playback-order-mode.md` | `spec` | Add strategic spec S0104 for playback-order-mode |
+| 2026-05-06 15:00:46 | `PLAN/S0103_player-top-bar-polish/INDEX.md` | `spec-tech` | Create tactical plan for S0103 |
+| 2026-05-06 15:00:46 | `PLAN/S0103_player-top-bar-polish/PHASE_01__command-visibility-fixes.md` | `spec-tech` | Phase 01: command-visibility-fixes |
+| 2026-05-06 15:00:46 | `PLAN/S0103_player-top-bar-polish/PHASE_02__slideshow-position.md` | `spec-tech` | Phase 02: slideshow-position |
+| 2026-05-06 15:00:46 | `PLAN/S0103_player-top-bar-polish/PHASE_03__sleep-timer-bar.md` | `spec-tech` | Phase 03: sleep-timer-bar |
+| 2026-05-06 15:00:46 | `PLAN/S0103_player-top-bar-polish/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-06 15:00:46 | `PLAN/S0103_player-top-bar-polish.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 15:07:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0103` | Fix audio exclusions for fullscreen/edit; add Timber import; debug tag S0103 |
+| 2026-05-06 15:07:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0103` | Add isAudio local to landscape branch; fix fullscreen/edit audio exclusions; add black screen visibility |
+| 2026-05-06 15:11:13 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0103` | Move btnSlideshowCmd to fixed anchor before nav block |
+| 2026-05-06 15:11:13 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0103` | Add S0103 comment on btnSlideshowCmd fixed-anchor position |
+| 2026-05-06 15:11:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0103` | Remove SLIDESHOW from adaptive buildActiveCommands set |
+| 2026-05-06 15:11:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0103` | Wire slideshow as fixed anchor in portrait; update resolveAvailableCenterWidthPx |
+| 2026-05-06 15:11:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/PlaybackOrderMode.kt` | `S0104` | Add PlaybackOrderMode enum |
+| 2026-05-06 15:11:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlPreferences.kt` | `S0104` | Add playback order prefs keys |
+| 2026-05-06 15:12:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0104` | Add playbackOrderMode + shuffle management |
+| 2026-05-06 15:13:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0104` | Add playbackOrderMode + shuffle management |
+| 2026-05-06 15:15:30 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0103` | Add btnSleepTimerCmd to center group |
+| 2026-05-06 15:15:30 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0103` | Add btnSleepTimerCmd to landscape center group |
+| 2026-05-06 15:15:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0103` | SLEEP_TIMER barCapable=true |
+| 2026-05-06 15:15:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0103` | Wire btnSleepTimerCmd in getOverflowableButtons, barViewForCommand, and click listener |
+| 2026-05-06 15:16:07 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec` | Add strategic spec S0105 for inline-audio-playback-in-browse |
+| 2026-05-06 15:16:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0104` | Add PlayerEvent.StopPlayback |
+| 2026-05-06 15:18:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0103` | Fix audio exclusions for fullscreen/edit; SLIDESHOW removed from adaptive set; SLEEP_TIMER barCapable=true |
+| 2026-05-06 15:18:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0103` | Fix landscape black-screen + audio visibility; slideshow as fixed anchor; sleep timer click listener |
+| 2026-05-06 15:18:06 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0103` | Move btnSlideshowCmd to fixed anchor before nav block; add btnSleepTimerCmd |
+| 2026-05-06 15:18:06 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0103` | Add btnSleepTimerCmd; note slideshow already in correct position |
+| 2026-05-06 15:18:06 | `dev/CATALOG/app_v2.jsonl` | `S0103` | Catalog regen after command panel changes |
+| 2026-05-06 15:19:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt` | `S0104` | Mode-aware nextFile/previousFile |
+| 2026-05-06 15:19:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0104` | Pass sendEvent to navigationCoordinator |
+| 2026-05-06 15:20:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt` | `S0104` | Mode-aware previousFile |
+| 2026-05-06 15:20:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0104` | Add applyPlaybackOrderMode() |
+| 2026-05-06 15:20:54 | `PLAN/S0103_player-top-bar-polish.md` | `spec-check` | Audit S0103 -> Verified; PASS/WARN/FAIL 21/0/0 |
+| 2026-05-06 15:20:54 | `PLAN/S0103_player-top-bar-polish/INDEX.md` | `spec-check` | Status -> Done |
+| 2026-05-06 15:23:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `S0104` | Add StopPlayback branch to event handler |
+| 2026-05-06 15:25:02 | `app_v2/src/main/res/values/strings.xml` | `S0104` | Add playback order mode strings |
+| 2026-05-06 15:25:02 | `app_v2/src/main/res/values-ru/strings.xml` | `S0104` | Mirror playback order strings (RU) |
+| 2026-05-06 15:25:02 | `app_v2/src/main/res/values-uk/strings.xml` | `S0104` | Mirror playback order strings (UK) |
+| 2026-05-06 15:25:29 | `app_v2/src/main/res/drawable/ic_loop_list.xml` | `S0104` | Add loop-list icon |
+| 2026-05-06 15:25:57 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `S0104` | Add menu_playback_order item |
+| 2026-05-06 15:26:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0104` | Add PLAYBACK_ORDER command |
+| 2026-05-06 15:27:06 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0104` | Add btnPlaybackOrderCmd (portrait) |
+| 2026-05-06 15:27:42 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0104` | Add btnPlaybackOrderCmd (landscape) |
+| 2026-05-06 15:30:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0104` | Wire playback order button |
+| 2026-05-06 15:37:28 | `PLAN/S0105_inline-audio-playback-in-browse/INDEX.md` | `spec-tech` | Create tactical plan for S0105 |
+| 2026-05-06 15:37:28 | `PLAN/S0105_inline-audio-playback-in-browse/PHASE_01__adapter-play-condition.md` | `spec-tech` | Phase 01: adapter-play-condition |
+| 2026-05-06 15:37:28 | `PLAN/S0105_inline-audio-playback-in-browse/PHASE_02__stop-on-folder-navigate.md` | `spec-tech` | Phase 02: stop-on-folder-navigate |
+| 2026-05-06 15:37:29 | `PLAN/S0105_inline-audio-playback-in-browse/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-06 15:37:29 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 15:39:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `S0105` | Phase 01: show inline play button for all audio files in any Browse resource |
+| 2026-05-06 15:39:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-dev S0104` | Step 3.8: add onPlaybackOrderClicked(), mode restore in setupCommandPanelControls(), StopPlayback handler |
+| 2026-05-06 15:39:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `spec-dev S0104` | Step 3.8: update StopPlayback branch — pause ExoPlayer/audio service + show toast |
+| 2026-05-06 15:42:17 | `scripts/spec_catalog/complete.ps1` | `S0102` | Add complete.ps1 — validate + dev-log check + close in one command |
+| 2026-05-06 15:42:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0105` | Phase 02: stop inline playback on folder navigation in non-audio-only resources |
+| 2026-05-06 15:42:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0105` | Phase 02: stop inline playback on back-press navigation in non-audio-only resources |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/PlaybackOrderMode.kt` | `S0104` | Add PlaybackOrderMode enum |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlPreferences.kt` | `S0104` | Add playback order prefs keys |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0104` | Add playbackOrderMode + shuffle management |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt` | `S0104` | Mode-aware nextFile/previousFile |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0104` | Add applyPlaybackOrderMode() |
+| 2026-05-06 15:43:47 | `app_v2/src/main/res/drawable/ic_loop_list.xml` | `S0104` | Add loop-list icon |
+| 2026-05-06 15:43:47 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `S0104` | Add menu_playback_order item |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0104` | Add PLAYBACK_ORDER command |
+| 2026-05-06 15:43:47 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0104` | Add btnPlaybackOrderCmd (portrait) |
+| 2026-05-06 15:43:47 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0104` | Add btnPlaybackOrderCmd (landscape) |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0104` | Wire playback order button |
+| 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0104` | Delegate onPlaybackOrderClicked |
+| 2026-05-06 15:43:47 | `docs/FEATURES.md` | `S0104` | Add playback order modes feature bullet |
+| 2026-05-06 15:43:47 | `docs/FEATURES_RU.md` | `S0104` | Mirror playback order modes bullet (RU) |
+| 2026-05-06 15:43:47 | `docs/FEATURES_UK.md` | `S0104` | Mirror playback order modes bullet (UK) |
+| 2026-05-06 15:43:47 | `dev/CATALOG/app_v2.jsonl` | `S0104` | Regenerate after PlaybackOrderMode addition |
+| 2026-05-06 15:46:58 | `PLAN/S0104_playback-order-mode.md` | `spec-check` | Audit S0104 -> Verified; PASS 25 / WARN 0 / FAIL 0 / MANUAL 9 |
+| 2026-05-06 15:50:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `S0105` | Phase 01: show inline play button for all audio files in any Browse resource |
+| 2026-05-06 15:50:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0105` | Phase 02: stop inline playback on folder navigation in non-audio-only resources |
+| 2026-05-06 15:50:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0105` | Phase 02: stop inline playback on back-press navigation in non-audio-only resources |
+| 2026-05-06 15:50:16 | `docs/FEATURES.md` | `S0105` | Phase 03: expand inline mini-player entry to all Browse resources |
+| 2026-05-06 15:50:16 | `docs/FEATURES_RU.md` | `S0105` | Phase 03: expand inline mini-player entry (RU) |
+| 2026-05-06 15:50:16 | `docs/FEATURES_UK.md` | `S0105` | Phase 03: expand inline mini-player entry (UK) |
+| 2026-05-06 15:52:55 | `CLAUDE.md` | `S0102` | Add complete.ps1 to operator facade list |
+| 2026-05-06 15:54:33 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec-check` | Audit S0105 -> Broken; PASS/WARN/FAIL 18/0/1 |
+| 2026-05-06 15:55:06 | `docs/FEATURES_RU.md` | `spec-fix` | S0105: align inline mini-player heading to мини-плеер (was аудио-миниплеер) |
+| 2026-05-06 15:55:06 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec-fix` | Annotate Last Audit (S0105) |
+| 2026-05-06 15:56:06 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec-check` | Audit S0105 -> Verified; PASS/WARN/FAIL 19/0/0 |
+| 2026-05-06 15:58:50 | `scripts/spec_catalog/archive.ps1` | `tooling` | Add archive.ps1 — move spec files to temp/done/ + set Archived status |
+| 2026-05-06 15:58:50 | `.claude/commands/spec-arc.md` | `tooling` | Add spec-arc skill — archive spec to temp/done/ |
+| 2026-05-06 15:58:50 | `CLAUDE.md` | `tooling` | Add archive.ps1 to operator facade list |
+| 2026-05-06 16:05:02 | `PLAN/S0096_browse-audio-black-screen.md` | `spec-check` | Audit S0096 → Verified; PASS 8/WARN 0/FAIL 0 |
+| 2026-05-06 16:13:53 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/INDEX.md` | `spec-tech` | Create tactical plan for S0101 |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_01__registry-domain.md` | `spec-tech` | Phase 01: registry-domain |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_02__registry-impl.md` | `spec-tech` | Phase 02: registry-impl |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_03__welcome-upgrade.md` | `spec-tech` | Phase 03: welcome-upgrade |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_04__contextual-request.md` | `spec-tech` | Phase 04: contextual-request |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_05__settings-screen.md` | `spec-tech` | Phase 05: settings-screen |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_06__ad-hoc-migration.md` | `spec-tech` | Phase 06: ad-hoc-migration |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
+| 2026-05-06 16:32:02 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 16:33:24 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-tech` | Add VR flavor to constraints (§3.2) and research §6.1 |
+| 2026-05-06 16:54:41 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-update` | Resolve all §6 research items (S0101 unblocked) |
+| 2026-05-06 16:54:41 | `PLAN/S0101_unified-permission-onboarding/INDEX.md` | `spec-update` | Check off all 5 blockers; reorder phases (05 before 03) |
+| 2026-05-06 16:54:41 | `PLAN/S0101_unified-permission-onboarding/PHASE_03__welcome-upgrade.md` | `spec-update` | Rewrite Phase 03 for Variant B (Welcome → PermissionsManagementFragment) |
+| 2026-05-06 16:54:41 | `PLAN/S0101_unified-permission-onboarding/PHASE_05__settings-screen.md` | `spec-update` | Add Grant All + Open System Settings to PermissionsManagementFragment |
+| 2026-05-06 16:56:39 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/PermissionEntry.kt` | `S0101/1.1` | New: PermissionEntry, PermissionGroup, PermissionStatus, PermissionGroupHeader domain models |
+| 2026-05-06 16:59:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/PermissionRegistryRepository.kt` | `S0101/1.2` | New: PermissionRegistryRepository interface |
+| 2026-05-06 16:59:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/ContextualRationaleRepository.kt` | `S0101/1.3` | New: ContextualRationaleRepository interface |
+| 2026-05-06 17:04:33 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/CheckPermissionStatusUseCase.kt` | `spec-dev/S0101/step-1.4` | Create CheckPermissionStatusUseCase — returns PermissionStatus from PermissionEntry+Context, delegates special permissions to PermissionHelper |
+| 2026-05-06 17:04:58 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MarkContextualShownUseCase.kt` | `spec-dev/S0101/step-1.5` | Create MarkContextualShownUseCase — delegates markShown/isShown to ContextualRationaleRepository |
+| 2026-05-06 17:10:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryRepositoryImpl.kt` | `spec-dev/S0101/step-2.1` | Create PermissionRegistryRepositoryImpl — in-memory registry with SDK/flavor-gate filtering via BuildConfig reflection |
+| 2026-05-06 17:11:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/ContextualRationaleRepositoryImpl.kt` | `spec-dev/S0101/step-2.2` | Create ContextualRationaleRepositoryImpl — SharedPreferences-backed per-permission shown-once tracker |
+| 2026-05-06 17:11:51 | `app_v2/src/main/java/com/sza/fastmediasorter/di/PermissionModule.kt` | `spec-dev/S0101/step-2.3` | Create PermissionModule — Hilt SingletonComponent bindings for PermissionRegistryRepository and ContextualRationaleRepository |
+| 2026-05-06 17:15:56 | `app_v2/src/main/res/layout/bottom_sheet_permission_rationale.xml` | `spec-dev/S0101/step-4.1` | Create bottom_sheet_permission_rationale.xml — icon/title/desc/grant/skip layout for contextual permission rationale |
+| 2026-05-06 17:16:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/permissions/PermissionRationaleBottomSheet.kt` | `spec-dev/S0101/step-4.2` | Create PermissionRationaleBottomSheet — BottomSheetDialogFragment with grant/skip callback and markShown |
+| 2026-05-06 17:17:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/permissions/PermissionDenialHandler.kt` | `spec-dev/S0101/step-4.3` | Create PermissionDenialHandler — Snackbar with Open Settings action for PERMANENTLY_DENIED permissions |
+| 2026-05-06 17:17:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RequestContextualPermissionUseCase.kt` | `spec-dev/S0101/step-4.4` | Create RequestContextualPermissionUseCase — shows PermissionRationaleBottomSheet once per permission, delegates to MarkContextualShownUseCase |
+| 2026-05-06 17:25:45 | `app_v2/src/main/res/layout/fragment_permissions_management.xml` | `spec-dev/S0101/step-5.1` | Create fragment_permissions_management.xml — grant-all, open-settings, RecyclerView, continue-to-app buttons |
+| 2026-05-06 17:25:45 | `app_v2/src/main/res/layout/item_permission_entry.xml` | `spec-dev/S0101/step-5.1` | Create item_permission_entry.xml — row layout for PermissionRowAdapter |
+| 2026-05-06 17:25:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionRowAdapter.kt` | `spec-dev/S0101/step-5.1` | Create PermissionRowAdapter — Header/Entry sealed class adapter for PermissionsManagementFragment |
+| 2026-05-06 17:25:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `spec-dev/S0101/step-5.1` | Create PermissionsManagementFragment — registry-driven permission list with grant-all, single-request, denial handler |
+| 2026-05-06 17:27:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev/S0101/step-5.2` | Add Manage Permissions navigation — headerPermissions click opens PermissionsManagementFragment via fragment back stack |
+| 2026-05-06 19:47:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt` | `spec-dev S0101 step 5.3` | Replace ad-hoc permission buttons with redirect to PermissionsManagementFragment |
+| 2026-05-06 19:48:35 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0101 step 5.5` | Add perm_btn_grant_all and perm_btn_open_system_settings strings (EN) |
+| 2026-05-06 19:48:35 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0101 step 5.5` | Add perm_btn_grant_all and perm_btn_open_system_settings strings (RU) |
+| 2026-05-06 19:48:35 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0101 step 5.5` | Add perm_btn_grant_all and perm_btn_open_system_settings strings (UK) |
+| 2026-05-06 19:49:34 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0101 step 5.4` | Add settings_manage_permissions and settings_manage_permissions_desc strings (EN) |
+| 2026-05-06 19:49:34 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0101 step 5.4` | Add settings_manage_permissions and settings_manage_permissions_desc strings (RU) |
+| 2026-05-06 19:49:34 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0101 step 5.4` | Add settings_manage_permissions and settings_manage_permissions_desc strings (UK) |
+| 2026-05-06 19:53:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `spec-dev S0101 step 3.1` | Add fromWelcome mode, WelcomeCompleteListener interface, btn_continue_to_app wiring |
+| 2026-05-06 19:55:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `spec-dev S0101 step 3.2` | Remove isPermissionsPage=true wizard page, remove hasTriggeredLastPagePermissionRequest dead code |
+| 2026-05-06 19:59:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `spec-dev S0101 step 3.3` | Implement WelcomeCompleteListener, replace finishWelcome with PermissionsManagementFragment navigation, remove sequential permission chain |
+| 2026-05-06 19:59:57 | `app_v2/src/main/res/layout/activity_welcome.xml` | `spec-dev S0101 step 3.3` | Add fragment_container_welcome FragmentContainerView (GONE) |
+| 2026-05-06 19:59:57 | `app_v2/src/main/res/layout-sw480dp/activity_welcome.xml` | `spec-dev S0101 step 3.3` | Add fragment_container_welcome FragmentContainerView (GONE) |
+| 2026-05-06 19:59:57 | `app_v2/src/main/res/layout-sw720dp/activity_welcome.xml` | `spec-dev S0101 step 3.3` | Add fragment_container_welcome FragmentContainerView (GONE) |
+| 2026-05-06 20:00:42 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0101 step 3.4` | Add perm_continue_to_app string (EN) |
+| 2026-05-06 20:00:42 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0101 step 3.4` | Add perm_continue_to_app string (RU) |
+| 2026-05-06 20:00:42 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0101 step 3.4` | Add perm_continue_to_app string (UK) |
+| 2026-05-06 20:08:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `spec-dev S0101 step 6.1` | Add @AndroidEntryPoint, inject RequestContextualPermissionUseCase, replace recordAudioPermissionLauncher with contextual request |
+| 2026-05-06 20:10:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt` | `spec-dev S0101 step 6.2` | Add RequestContextualPermissionUseCase + PermissionRegistryRepository, add handleNetworkPermissionAction for access_local_network |
+| 2026-05-06 20:10:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev S0101 step 6.2` | Inject RequestContextualPermissionUseCase and PermissionRegistryRepository, pass to permissionsHelper |
+| 2026-05-06 20:11:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt` | `spec-dev S0101 step 6.3` | Add handlePermissionPermanentlyDenied() delegating to PermissionDenialHandler |
+| 2026-05-06 20:18:26 | `docs/FEATURES.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Permission Management bullet to section 19 |
+| 2026-05-06 20:18:26 | `docs/FEATURES_RU.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Управление разрешениями bullet to section 19 |
+| 2026-05-06 20:18:27 | `docs/FEATURES_UK.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Керування дозволами bullet to section 19 |
+| 2026-05-06 20:22:45 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0101 Phase 07 Step 7.2: catalog regen + role/status set for new permission classes |
+| 2026-05-06 20:22:46 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0101 Phase 07 Step 7.2: re-render catalog markdown after permission class updates |
+| 2026-05-06 20:23:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `spec-dev` | S0101 Phase 07 Step 7.3: remove S0101 debug Timber tag from finishWelcome() |
+| 2026-05-06 20:23:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `spec-dev` | S0101 Phase 07 Step 7.3: remove S0101 debug Timber tag from onViewCreated() |
+| 2026-05-06 20:24:28 | `PLAN/S0101_unified-permission-onboarding/PHASE_07__docs-catalog-cleanup.md` | `spec-dev` | S0101 Phase 07: all 3 steps done, phase closed |
+| 2026-05-06 20:24:28 | `PLAN/S0101_unified-permission-onboarding/INDEX.md` | `spec-dev` | S0101: all 7 phases done, status -> Implemented |
+| 2026-05-06 20:32:39 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-check` | Audit S0101 -> Partial; PASS/WARN/FAIL 51/5/0 |
+| 2026-05-06 20:34:01 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-fix` | Annotate Last Audit (S0101): 4 FIXED, 1 PRE-RESOLVED |
+| 2026-05-06 20:34:01 | `PLAN/S0101_unified-permission-onboarding/PHASE_03__welcome-upgrade.md` | `spec-fix` | Tick all Done Criteria checkboxes (all PASS) |
+| 2026-05-06 20:34:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_05__settings-screen.md` | `spec-fix` | Tick all Done Criteria checkboxes (all PASS) |
+| 2026-05-06 20:34:02 | `PLAN/S0101_unified-permission-onboarding/PHASE_06__ad-hoc-migration.md` | `spec-fix` | Tick all Done Criteria checkboxes (all PASS) |
+| 2026-05-06 20:34:03 | `PLAN/S0101_unified-permission-onboarding/PHASE_07__docs-catalog-cleanup.md` | `spec-fix` | Tick 5 of 6 Done Criteria checkboxes; last (spec-check Verified) pending re-audit |
+| 2026-05-06 20:35:12 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-check` | Audit S0101 -> Verified; PASS/WARN/FAIL 52/0/0 |
+| 2026-05-06 20:35:12 | `PLAN/S0101_unified-permission-onboarding/INDEX.md` | `spec-check` | S0101 Completion Gate all checked; status Verified |
+| 2026-05-06 20:35:12 | `PLAN/S0101_unified-permission-onboarding/PHASE_07__docs-catalog-cleanup.md` | `spec-check` | Tick final Done Criterion: spec-check Verified confirmed |
+| 2026-05-06 20:48:57 | `PLAN/S0106_player-image-crop.md` | `S0106 Specification` | Created strategic specification for crop and compress commands |
+| 2026-05-06 20:58:32 | `PLAN/S0106_player-image-crop.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) |
+| 2026-05-06 21:09:32 | `PLAN/S0106_player-image-crop/INDEX.md` | `spec-tech` | Create tactical plan for S0106 |
+| 2026-05-06 21:09:32 | `PLAN/S0106_player-image-crop/PHASE_01__foundations.md` | `spec-tech` | Phase 01: foundations |
+| 2026-05-06 21:09:33 | `PLAN/S0106_player-image-crop/PHASE_02__crop-engine.md` | `spec-tech` | Phase 02: crop-engine |
+| 2026-05-06 21:09:33 | `PLAN/S0106_player-image-crop/PHASE_03__crop-overlay-view.md` | `spec-tech` | Phase 03: crop-overlay-view |
+| 2026-05-06 21:09:33 | `PLAN/S0106_player-image-crop/PHASE_04__player-integration.md` | `spec-tech` | Phase 04: player-integration |
+| 2026-05-06 21:09:33 | `PLAN/S0106_player-image-crop/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-06 21:09:34 | `PLAN/S0106_player-image-crop.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 21:19:24 | `PLAN/S0106_player-image-crop/INDEX.md` | `spec-update` | S0106 §6 resolved: no EXIF, Toast-only after crop-to-file |
+| 2026-05-06 21:19:24 | `PLAN/S0106_player-image-crop/PHASE_01__foundations.md` | `spec-update` | Add crop_file_created string key |
+| 2026-05-06 21:19:24 | `PLAN/S0106_player-image-crop/PHASE_02__crop-engine.md` | `spec-update` | Remove EXIF write from crop pipeline |
+| 2026-05-06 21:19:24 | `PLAN/S0106_player-image-crop/PHASE_04__player-integration.md` | `spec-update` | Specify Toast-only callback for crop-to-file |
+| 2026-05-06 21:20:40 | `PLAN/S0107_image-draw-overlay.md` | `spec` | Add strategic spec S0107 for image-draw-overlay |
+| 2026-05-06 21:27:05 | `app_v2/src/main/res/drawable/ic_crop.xml` | `S0106` | Add ic_crop vector drawable icon for crop command |
+| 2026-05-06 21:27:11 | `app_v2/src/main/res/drawable/ic_crop_to_file.xml` | `S0106` | Add ic_crop_to_file vector drawable icon for crop-to-file command |
+| 2026-05-06 21:27:16 | `app_v2/src/main/res/drawable/ic_compress.xml` | `S0106` | Add ic_compress vector drawable icon for compress-copy command |
+| 2026-05-06 21:27:26 | `app_v2/src/main/res/values/strings.xml` | `S0106` | Add EN string keys for image crop commands (menu_crop, menu_crop_to_file, menu_compress_copy, dialog_crop_filename_hint, crop_save_to_downloads_note, crop_file_created) |
+| 2026-05-06 21:27:31 | `app_v2/src/main/res/values-ru/strings.xml` | `S0106` | Add RU translations for image crop command strings |
+| 2026-05-06 21:27:37 | `app_v2/src/main/res/values-uk/strings.xml` | `S0106` | Add UK translations for image crop command strings |
+| 2026-05-06 21:27:42 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `S0106` | Add menu_crop, menu_crop_to_file, menu_compress_copy items to player overflow menu |
+| 2026-05-06 21:34:50 | `PLAN/S0107_image-draw-overlay/INDEX.md` | `spec-tech` | Create tactical plan for S0107 |
+| 2026-05-06 21:34:50 | `PLAN/S0107_image-draw-overlay/PHASE_01__menu-entry.md` | `spec-tech` | Phase 01: menu-entry |
+| 2026-05-06 21:34:50 | `PLAN/S0107_image-draw-overlay/PHASE_02__draw-canvas-manager.md` | `spec-tech` | Phase 02: draw-canvas-manager |
+| 2026-05-06 21:34:50 | `PLAN/S0107_image-draw-overlay/PHASE_03__draw-toolbar-layout.md` | `spec-tech` | Phase 03: draw-toolbar-layout |
+| 2026-05-06 21:34:50 | `PLAN/S0107_image-draw-overlay/PHASE_04__save-merge-flow.md` | `spec-tech` | Phase 04: save-merge-flow |
+| 2026-05-06 21:34:50 | `PLAN/S0107_image-draw-overlay/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-06 21:34:50 | `PLAN/S0107_image-draw-overlay.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-06 21:36:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0106` | Add ImageCropManager: crop engine with EXIF mapping, region decode, crop-to-file, compressed copy, filename dialog |
+| 2026-05-06 21:39:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/CropOverlayView.kt` | `S0106` | Add CropOverlayView: interactive crop selection with scrim, handles, touch drag, normalized rect output |
+| 2026-05-06 21:39:34 | `app_v2/src/main/res/layout/player_crop_overlay_content.xml` | `S0106` | Add portrait crop overlay layout with CropOverlayView and cancel/confirm buttons |
+| 2026-05-06 21:39:39 | `app_v2/src/main/res/layout-land/player_crop_overlay_content.xml` | `S0106` | Add landscape crop overlay layout with buttons on right edge |
+| 2026-05-06 21:43:20 | `PLAN/S0107_image-draw-overlay.md` | `spec-update` | Refinement: resolved Q1 (screen-resolution save) and Q3 (orientation lock in Draw Mode); removed class names from §5.3; updated §3.2, §5.1, §7; proposed ADR-4 and PHASE_02/03 revision |
+| 2026-05-06 21:43:27 | `PLAN/S0107_image-draw-overlay/INDEX.md` | `spec-update` | Rotation blocker marked resolved (freeze orientation, option b); change log updated |
+| 2026-05-06 21:50:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0106` | Add CROP/CROP_TO_FILE/COMPRESS_COPY enum entries and isStaticBitmap conditions in buildActiveCommands |
+| 2026-05-06 21:50:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0106` | Add onCropClicked/onCropToFileClicked/onCompressCopyClicked to CommandPanelCallback and overflow handler |
+| 2026-05-06 21:50:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0106` | Implement onCropClicked/onCropToFileClicked/onCompressCopyClicked callbacks |
+| 2026-05-06 21:50:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0106` | Instantiate ImageCropManager alongside SaveVideoFrameManager |
+| 2026-05-06 21:50:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0106` | Add imageCropManager field, enterImageCropMode, startCompressedCopy, showCropOverlay, hideCropOverlay, imageCropCallback |
+| 2026-05-06 21:58:20 | `docs/FEATURES.md` | `FEATURES.md` | S0106: add Image Crop and Compress bullet to Media Player section |
+| 2026-05-06 21:58:21 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0106: add RU Image Crop and Compress bullet to player section |
+| 2026-05-06 21:58:21 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0106: add UK Image Crop and Compress bullet to player section |
+| 2026-05-06 22:03:20 | `PLAN/S0106_player-image-crop.md` | `spec-check` | Audit S0106 -> Partial; PASS/WARN/FAIL 49/1/0 |
+| 2026-05-06 22:03:43 | `PLAN/S0106_player-image-crop.md` | `spec-fix` | Annotate Last Audit (S0106) — 0 auto-fixed, 1 follow-up |
+| 2026-05-06 22:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0106` | Change default filename format to {baseName}_crop/shrink_yyMMdd_HHmm.{ext} |
+| 2026-05-06 22:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0106` | Navigate to new file after crop-to-file/compress when same folder; toast only for Downloads |
+| 2026-05-06 22:12:59 | `PLAN/S0106_player-image-crop.md` | `S0106` | Update §5.1G filename format and §6.2 navigation decision |
+| 2026-05-06 22:21:03 | `PLAN/S0106_player-image-crop.md` | `spec-check` | Audit S0106 -> Partial; PASS/WARN/FAIL 52/1/0 |
+| 2026-05-06 22:24:49 | `PLAN/S0107_image-draw-overlay.md` | `spec-check` | Audit S0107 -> Broken; PASS/WARN/FAIL 14/2/2; PHASE_02 Step 2.5 and PHASE_03 prerequisites contradict orientation-freeze resolution |
+| 2026-05-06 22:26:21 | `PLAN/S0107_image-draw-overlay.md` | `spec-fix` | Annotate Last Audit (S0107): 0 auto-fixed, 4 follow-up (all spec-body edits -> /spec-update) |
+| 2026-05-06 22:36:05 | `PLAN/S0107_image-draw-overlay.md` | `spec-update` | Refinement (claude-sonnet-4-5, consistency, --force-locked): applied P-1+P-2, ADR-4 added to strategic s9 |
+| 2026-05-06 22:36:05 | `PLAN/S0107_image-draw-overlay/PHASE_02__draw-canvas-manager.md` | `spec-update` | P-2: Step 2.5 title+prompt+verification updated to orientation-lock approach; Handoff Notes corrected |
+| 2026-05-06 22:36:05 | `PLAN/S0107_image-draw-overlay/PHASE_03__draw-toolbar-layout.md` | `spec-update` | P-2: Prerequisites rotation-blocker text corrected (landscape toolbar IS required) |
+| 2026-05-06 22:41:18 | `PLAN/S0107_image-draw-overlay.md` | `spec-check` | Audit S0107 -> Verified; PASS/WARN/FAIL 13/0/0; spec internally clean, all phases Not started (pre-impl) |
+| 2026-05-06 23:41:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `PlayerCropDelegate` | S0106: extract crop overlay lifecycle from PlayerActivity into dedicated delegate |
+| 2026-05-06 23:41:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0106: slim crop section to thin delegates; add cropDelegate field (1207 -> 1083 LOC) |
+| 2026-05-06 23:41:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | S0106: instantiate PlayerCropDelegate after imageCropManager init |
+| 2026-05-06 23:41:57 | `PLAN/S0106_player-image-crop/INDEX.md` | `INDEX.md` | S0106: fix stale section-6.2 note (old: toast-only; correct: navigate if same parent) |
+| 2026-05-06 23:54:18 | `app_v2/src/main/res/values*/dimens.xml` | `onboarding` | Reduce welcome_icon_size by 30% across all dimens buckets (default/sw320/sw480/sw600/sw720/land) to prevent content overflow on small displays |
+| 2026-05-07 00:29:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryRepositoryImpl.kt` | `S0101-fix` | getGroups() now uses localized R.string.perm_group_* per PermissionGroup |
+| 2026-05-07 00:29:30 | `app_v2/src/main/res/layout/item_permission_entry.xml` | `S0101-fix` | Add tv_perm_entry_desc TextView for permission description display |
+| 2026-05-07 00:29:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionRowAdapter.kt` | `S0101-fix` | Bind descriptionRes in EntryViewHolder; localized group title in HeaderViewHolder |
+| 2026-05-07 00:41:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Fix SKIP button displaced into image area on sw480dp/sw720dp layouts: apply status-bar inset to layoutTopNav padding instead of btnSkip topMargin |
+| 2026-05-07 00:41:03 | `app_v2/src/main/res/values*/dimens.xml` | `onboarding` | Reduce welcome_icon_size by additional 20% across all dimens buckets (67/31/40/101/134dp) |
+| 2026-05-07 00:57:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `ui-fix` | finishWelcome: hide layoutTopNav and layoutIndicator for sw480dp layout variant |
+| 2026-05-07 00:57:47 | `app_v2/src/main/res/layout/fragment_permissions_management.xml` | `ui-fix` | Add fitsSystemWindows; fix btn_open_system_settings style to TextButton with colorPrimary |
+| 2026-05-07 00:57:47 | `app_v2/src/main/res/layout/item_permission_entry.xml` | `ui-fix` | Restructure: vertical layout with status+button on same row |
+| 2026-05-07 00:57:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionRowAdapter.kt` | `ui-fix` | Show localized status with 'Status: X' format using perm_status_* resources |
+| 2026-05-07 00:57:47 | `app_v2/src/main/res/values/strings.xml` | `ui-fix` | Add perm_status_* and perm_current_status; expand perm_desc_* to 50-70% more text |
+| 2026-05-07 00:57:47 | `app_v2/src/main/res/values-ru/strings.xml` | `ui-fix` | Add perm_status_* and perm_current_status RU; expand perm_desc_* RU |
+| 2026-05-07 00:57:47 | `app_v2/src/main/res/values-uk/strings.xml` | `ui-fix` | Add perm_status_* and perm_current_status UK; expand perm_desc_* UK |
+| 2026-05-07 01:10:06 | `PLAN/S0108_welcome-language-picker.md` | `spec` | Add strategic spec S0108 for welcome-language-picker |
+| 2026-05-07 01:16:07 | `PLAN/S0108_welcome-language-picker/INDEX.md` | `spec-tech` | Create tactical plan for S0108 |
+| 2026-05-07 01:16:07 | `PLAN/S0108_welcome-language-picker/PHASE_01__layout-language-picker.md` | `spec-tech` | Phase 01: layout-language-picker |
+| 2026-05-07 01:16:07 | `PLAN/S0108_welcome-language-picker/PHASE_02__strings-resources.md` | `spec-tech` | Phase 02: strings-resources |
+| 2026-05-07 01:16:08 | `PLAN/S0108_welcome-language-picker/PHASE_03__model-and-adapter.md` | `spec-tech` | Phase 03: model-and-adapter |
+| 2026-05-07 01:16:08 | `PLAN/S0108_welcome-language-picker/PHASE_04__activity-integration.md` | `spec-tech` | Phase 04: activity-integration |
+| 2026-05-07 01:16:08 | `PLAN/S0108_welcome-language-picker/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-07 01:16:08 | `PLAN/S0108_welcome-language-picker.md` | `spec-tech` | Status → Tactical |
+| 2026-05-07 01:25:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `ui-fix` | Special permissions (MANAGE_EXTERNAL_STORAGE, MANAGE_MEDIA, BATTERY) routed to system settings intents; excluded from Grant All batch request |
+| 2026-05-07 01:25:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionRowAdapter.kt` | `ui-fix` | GRANT button uses warning_color (orange); MANAGE/SETTINGS buttons use colorPrimary via TypedValue |
+| 2026-05-07 01:25:43 | `app_v2/src/main/res/values/strings.xml` | `ui-fix` | Add welcome_language_picker_hint (missing contentDescription for language picker buttons) |
+| 2026-05-07 01:25:43 | `app_v2/src/main/res/values-ru/strings.xml` | `ui-fix` | Add welcome_language_picker_hint RU |
+| 2026-05-07 01:25:43 | `app_v2/src/main/res/values-uk/strings.xml` | `ui-fix` | Add welcome_language_picker_hint UK |
+| 2026-05-07 01:25:56 | `PLAN/S0108_welcome-language-picker.md` | `S0108` | Run /spec-update pass: add revision history, structural proposals, and fix a strategic spec typo |
+| 2026-05-07 01:27:10 | `app_v2/src/main/res/layout/page_welcome_enhanced.xml` | `S0108` | Phase 01: add language picker strip (portrait) |
+| 2026-05-07 01:27:10 | `app_v2/src/main/res/layout-land/page_welcome_enhanced.xml` | `S0108` | Phase 01: add language picker strip (landscape) |
+| 2026-05-07 01:27:11 | `app_v2/src/main/res/values/strings.xml` | `S0108` | Phase 02: welcome_language_picker_hint (EN) — was pre-existing |
+| 2026-05-07 01:27:11 | `app_v2/src/main/res/values-ru/strings.xml` | `S0108` | Phase 02: welcome_language_picker_hint (RU) — was pre-existing |
+| 2026-05-07 01:27:11 | `app_v2/src/main/res/values-uk/strings.xml` | `S0108` | Phase 02: welcome_language_picker_hint (UK) — was pre-existing |
+| 2026-05-07 01:27:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `S0108` | Phase 03: WelcomePage language picker fields + EnhancedViewHolder wiring |
+| 2026-05-07 01:29:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0108` | Phase 04: page-0 language picker + onWelcomeLanguageSelected handler |
+| 2026-05-07 01:31:56 | `docs/FEATURES.md` | `S0108` | Phase 05: add Welcome language picker bullet (EN) |
+| 2026-05-07 01:31:57 | `docs/FEATURES_RU.md` | `S0108` | Phase 05: add Welcome language picker bullet (RU) |
+| 2026-05-07 01:31:57 | `docs/FEATURES_UK.md` | `S0108` | Phase 05: add Welcome language picker bullet (UK) |
+| 2026-05-07 01:31:57 | `dev/CATALOG/app_v2.jsonl` | `S0108` | Phase 05: catalog regen after WelcomePagerAdapter changes |
+| 2026-05-07 01:31:57 | `dev/CATALOG/app_v2.md` | `S0108` | Phase 05: catalog markdown regen |
+| 2026-05-07 01:35:22 | `PLAN/S0108_welcome-language-picker.md` | `spec-check` | Audit S0108 -> Verified; PASS 18 / WARN 0 / FAIL 0; removed 2 Timber debug tags |
+| 2026-05-07 01:47:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `S0101` | Grant All now also opens system settings for first denied special permission (MANAGE_EXTERNAL_STORAGE / MANAGE_MEDIA / BATTERY_OPT) one at a time |
+| 2026-05-07 01:53:34 | `app_v2/src/main/res/layout/fragment_permissions_management.xml` | `S0101` | RecyclerView: scrollbars=vertical fadeScrollbars=false outsideOverlay — always-visible scroll indicator |
+| 2026-05-07 01:53:34 | `app_v2/src/main/res/layout/item_permission_group_header.xml` | `S0101` | New group header layout: divider + primary-color uppercase label |
+| 2026-05-07 01:53:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionRowAdapter.kt` | `S0101` | HeaderViewHolder: switch to item_permission_group_header layout |
+| 2026-05-07 01:53:45 | `app_v2/src/main/res/layout/fragment_permissions_management.xml` | `S0108` | Replace hardcoded Welcome continue label with localized perm_continue_to_app string |
+| 2026-05-07 01:54:25 | `app_v2/src/main/res/layout/fragment_settings_audio.xml, app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `fragment_settings_audio` | Fix crash: missing layout_height on inner LinearLayout (mic recording section, line 330 portrait / line 169 landscape) — caused InflateException on AudioSettingsFragment open |
+| 2026-05-07 02:01:18 | `app_v2/src/main/res/layout/fragment_settings_audio.xml, app_v2/src/main/res/layout-land/fragment_settings_audio.xml` | `fragment_settings_audio` | Fix second InflateException crash: missing layout_height on second inner LinearLayout (mic ask-filename section, portrait line 362 / landscape line 177) |
+| 2026-05-07 02:45:50 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec` | Add strategic spec S0109 for bugfix-chromeos-textinput |
+| 2026-05-07 02:47:23 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `AppStartupInitializer` | add micRecordingEnabled + micRecordingAskFilename to DEBUG settings dump |
+| 2026-05-07 02:49:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.onPause()` | Fix permanent black screen on back press: detach ExoPlayer from PlayerView Surface when isFinishing=true to unblock ATMS window transition stalled by CCodec holding the Surface |
+| 2026-05-07 02:52:01 | `PLAN/S0109_bugfix-chromeos-textinput/INDEX.md` | `spec-tech` | Create tactical plan for S0109 |
+| 2026-05-07 02:52:01 | `PLAN/S0109_bugfix-chromeos-textinput/PHASE_01__addresource-guard.md` | `spec-tech` | Phase 01: addresource-guard |
+| 2026-05-07 02:52:01 | `PLAN/S0109_bugfix-chromeos-textinput/PHASE_02__resource-editor-escape.md` | `spec-tech` | Phase 02: resource-editor-escape |
+| 2026-05-07 02:52:02 | `PLAN/S0109_bugfix-chromeos-textinput/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-07 02:52:02 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-07 02:53:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceKeyboardDelegate.kt` | `S0109` | Add isTextEditorFocused guard for Chrome OS text input |
+| 2026-05-07 02:54:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0109` | Implement isTextEditorFocused in keyboard delegate callback |
+| 2026-05-07 02:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `AudioSettingsFragment` | fix mic recording toggle self-disable: replace requestContextualPermission (record_audio not registered) with direct ActivityResultContracts.RequestPermission launcher |
+| 2026-05-07 02:59:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorActivity.kt` | `S0109` | Guard Escape key when text editor is focused |
+| 2026-05-07 03:03:52 | `docs/FEATURES.md` | `S0109` | Chrome OS text input fix noted in keyboard navigation feature |
+| 2026-05-07 03:03:52 | `docs/FEATURES_RU.md` | `S0109` | Chrome OS text input fix noted (RU) |
+| 2026-05-07 03:03:53 | `docs/FEATURES_UK.md` | `S0109` | Chrome OS text input fix noted (UK) |

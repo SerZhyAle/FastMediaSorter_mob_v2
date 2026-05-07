@@ -149,12 +149,12 @@ User tap on Default User / Default Password
    - **Решение:** использовать смешанную схему `unit + androidTest`.
    - **Выбранный путь:** unit-тесты покрывают precedence keyboard-layer для surface `SETTINGS`, а один узкий instrumentation test покрывает inline flow `tap -> focus -> text mutation -> commit` для `Default User` / `Default Password`.
    - **Почему:** JVM/unit даёт быстрый и стабильный сигнал для routing-логики, а реальный inline text-input на settings surface требует хотя бы одного device/emulator уровня. Robolectric остаётся допустимым вспомогательным инструментом, но не единственным oracle для этого дефекта.
-   - **Статус:** Resolved on 2026-05-05
+   - **Статус:** Verified
 
 2. **Escape / Back semantics во время редактирования**
    - **Решение:** `Escape` работает по editor-first модели, если активен settings text field: сначала снимает фокус и скрывает IME, и только следующий `Escape` без активного редактора возвращает обычное поведение surface exit. `Back` сохраняет platform-native semantics и не переопределяется этим bugfix.
    - **Почему:** это согласуется с уже существующим паттерном `EditText`-guard в dialog input flow и минимизирует риск регрессии для обычной Android back-navigation.
-   - **Статус:** Resolved on 2026-05-05
+   - **Статус:** Verified
 
 ---
 

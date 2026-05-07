@@ -156,23 +156,23 @@ SMB playback stops
 
 1. **Единица изоляции: server-level или share-level?**
    - Реализовано на server-level (ключ `smb://host:port`). Достаточно для NAS-сценария: у одного SMB-сервера один connection pool.
-   - **Статус:** Resolved — server-level.
+   - **Статус:** Implemented
 
 2. **Что делать с уже запущенными thumbnail tasks при старте playback?**
    - Завершаются кооперативно: extraction timeout возникает, но результат классифицируется как transient (не permanent). Retry при следующем recycle view item.
-   - **Статус:** Resolved — cooperative finish + transient classification.
+   - **Статус:** Implemented
 
 3. **Как хранить transient failures?**
    - `ConcurrentHashMap<path, timestampMs>` с TTL 2 минуты + явная очистка при `decode()` если playback завершён.
-   - **Статус:** Resolved — separate transient cache с TTL.
+   - **Статус:** Implemented
 
 4. **Нужна ли такая же защита для SFTP/FTP?**
    - Не расширяли: `encounteredStaleShare` и stale-share detector привязаны только к `smb://`. Другие протоколы остаются с прежней логикой.
-   - **Статус:** Resolved — only SMB in scope.
+   - **Статус:** Implemented
 
 5. **Можно ли полностью запретить thumbnail extraction по currently playing path?**
    - Нет отдельного запрета по path: thumbnail extraction для playing-file просто получит timeout → transient fail → retry. Достаточно для данного сценария.
-   - **Статус:** Resolved — transient classification covers this case.
+   - **Статус:** Implemented
 
 ---
 

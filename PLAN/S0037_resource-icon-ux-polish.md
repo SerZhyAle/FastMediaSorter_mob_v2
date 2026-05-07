@@ -1,6 +1,6 @@
 # S0037 — Полировка иконок и бейджей ресурсов
 
-**Статус:** Verified  
+**Статус:** Verified
 **Implemented date:** 2026-04-30  
 **Verified date:** 2026-04-30  
 **Tactical plan:** `PLAN/S0037_resource-icon-ux-polish/INDEX.md`  

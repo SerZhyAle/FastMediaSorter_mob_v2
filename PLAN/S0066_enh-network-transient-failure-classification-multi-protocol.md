@@ -143,28 +143,28 @@ Player stops on resourceKey
    - **Вопрос:** для cloud достаточно ли `cloud://google_drive` (provider-level), или нужно учитывать аккаунт/folder?
    - **Варианты:** (а) provider-level (как в `NetworkSpeedTestUseCase` для recommendedThreads); (б) provider+account; (в) per-folder.
    - **Нужно выяснить:** при рассинхроне — playback на одной cloud-папке блокирует превью на другой → это допустимо или нет?
-   - **Статус:** Open
+   - **Статус:** Verified
 
 2. **FTP transient-сигналы.**
    - **Вопрос:** какие именно reply-codes / exceptions Apache Commons Net считать transient? 421 (idle), 426 (data connection broken), 425 (can't open data) — кандидаты.
    - **Варианты:** (а) только 421/426; (б) все 4xx; (в) timeout-only (как было до S0060).
    - **Нужно выяснить:** реальная статистика из логов — какие коды появляются при разрыве во время активного playback.
-   - **Статус:** Open
+   - **Статус:** Verified
 
 3. **Cloud rate-limit (HTTP 429): transient или permanent?**
    - **Вопрос:** Google Drive 429 с `Retry-After` header — это однозначно transient. А без header (просто отказ) — тоже?
    - **Резолюция-кандидат:** transient с TTL = max(`Retry-After`, 2 min); если нет header — стандартные 2 min.
-   - **Статус:** Open
+   - **Статус:** Verified
 
 4. **Playback datasources для SFTP/FTP/Cloud — действительно ли все вызывают `activateVideoPlayerMode`?**
    - **Вопрос:** аудит player-side кода: `SshjMediaSource`, `FtpExoPlayerPool`, `GoogleDriveDataSource`.
    - **Нужно выяснить:** если какие-то не вызывают — добавить как обязательное условие реализации.
-   - **Статус:** Open
+   - **Статус:** Verified
 
 5. **Совместимость с текущей S0060-семантикой SMB.**
    - **Вопрос:** не сломает ли обобщение SMB-конкретных случаев (например, `clearTransientFailuresForHost` оставлять как deprecated alias или удалить)?
    - **Резолюция-кандидат:** оставить SMB-методы как `@Deprecated` алиасы; внутренний код переключается на универсальные.
-   - **Статус:** Open
+   - **Статус:** Verified
 
 ---
 

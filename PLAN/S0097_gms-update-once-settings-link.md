@@ -3,7 +3,7 @@
 <!-- auto-approved by /spec-all — 2026-05-06 -->
 
 **Ticket:** S0097
-**Status:** Approved
+**Status:** Verified
 **Priority:** 35
 **Created:** 2026-05-06
 **Updated:** 2026-05-06

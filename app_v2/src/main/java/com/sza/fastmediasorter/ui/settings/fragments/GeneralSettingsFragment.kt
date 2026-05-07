@@ -47,6 +47,8 @@ class GeneralSettingsFragment : Fragment() {
 
     @Inject lateinit var audioMetadataCacheRepository: AudioMetadataCacheRepository
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
+    @Inject lateinit var requestContextualPermission: com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
+    @Inject lateinit var permissionRegistry: com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
@@ -119,7 +121,7 @@ class GeneralSettingsFragment : Fragment() {
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
     private val logHelper by lazy { GeneralSettingsLogHelper(binding, this, saveLogsLauncher) }
     private val permissionsHelper by lazy {
-        GeneralSettingsPermissionsHelper(binding, this, mediaPermissionsLauncher, notificationPermissionLauncher)
+        GeneralSettingsPermissionsHelper(binding, this, mediaPermissionsLauncher, notificationPermissionLauncher, requestContextualPermission, permissionRegistry)
     }
     private val importExportHelper by lazy {
         GeneralSettingsImportExportHelper(binding, viewModel, this, importSettingsFileLauncher)
@@ -178,6 +180,13 @@ class GeneralSettingsFragment : Fragment() {
         }
         binding.btnDeviceStorageRefresh?.setOnClickListener {
             viewModel.refreshDeviceStorage()
+        }
+        binding.headerPermissions?.setOnClickListener {
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .replace(android.R.id.content, PermissionsManagementFragment())
+                .addToBackStack(null)
+                .commit()
         }
     }
 

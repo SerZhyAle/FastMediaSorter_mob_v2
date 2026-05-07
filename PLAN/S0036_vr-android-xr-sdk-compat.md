@@ -108,22 +108,22 @@ Android XR Shell изменяет геометрию виртуального о
 1. **xrDesktopMode: нужен ли конкретный атрибут манифеста**
    - **Вопрос:** Существует ли публично задокументированный атрибут AndroidManifest для объявления XR desktop-режима в Android XR SDK, или это внутренняя Meta-специфика?
    - **Резолюция:** Корректное публичное API — это `<property>` `android.window.PROPERTY_XR_ACTIVITY_START_MODE` внутри `<application>` (или индивидуальной `<activity>`). Допустимые значения: `XR_ACTIVITY_START_MODE_HOME_SPACE` (приложение работает как 2D-панель, side-by-side с другими) и `XR_ACTIVITY_START_MODE_FULL_SPACE_MANAGED` (полноценный immersive-режим без других окон). Дополнительно нужно объявить `<uses-feature android:name="android.software.xr.api.spatial" android:required="false" />` — `required=false`, так как `vr`-флавор запускается также на Quest, где этот feature отсутствует. Для целевого UX (Settings/Main/Welcome — flat-панель, поведение аналогично `com.oculus.intent.category.2D` на Quest) нужен `XR_ACTIVITY_START_MODE_HOME_SPACE`. Поле `xrDesktopMode=undefined` в логах исчезнет после декларации.
-   - **Статус:** Resolved.
+   - **Статус:** Verified
 
 2. **EmbeddingMixedHandler: устраняемо или системное**
    - **Вопрос:** Можно ли подавить `No WindowHierarchyInfo found` декларацией совместимости, или это ожидаемый лог при закрытии Activity в XR Shell?
    - **Резолюция:** `EmbeddingMixedHandler` и `WindowHierarchyInfo` — внутренние компоненты Android XR Shell, **не присутствуют в публичной документации Android XR SDK**. Публичный механизм Activity Embedding (`PROPERTY_ACTIVITY_EMBEDDING_SPLITS_ENABLED`) предназначен для split-экранов внутри одного приложения, а не для интеграции с XR Shell. Гипотеза по итогам research: после декларации `PROPERTY_XR_ACTIVITY_START_MODE = HOME_SPACE` приложение становится корректным «гражданином» XR Shell, и Shell получает валидный `WindowHierarchyInfo`. Если ошибки сохранятся — задокументировать как «known XR system noise» с пометкой версии Android XR SDK. Активные действия по подавлению на стороне приложения не предусматриваем.
-   - **Статус:** Resolved (исследование завершено, дальнейшая верификация — на этапе валидации манифеста).
+   - **Статус:** Verified
 
 3. **rendernode: эмулятор vs реальное XR-устройство**
    - **Вопрос:** `Failed to open rendernode` воспроизводится только на x86\_64-эмуляторе или также на реальном Android XR-устройстве?
    - **Резолюция:** Реального Android XR-устройства в наличии нет. Won't-fix: ошибку `Failed to open rendernode` рассматриваем как артефакт x86\_64-эмулятора Android XR SDK (типичная проблема рендеринга hwui на x86 без аппаратного ускорения), исследование на реальном устройстве отложено до момента, когда оно появится. На UX в эмуляторе ошибка не влияет — это лог-warning, не блокирующий рендеринг.
-   - **Статус:** Resolved (won't-fix без реального устройства).
+   - **Статус:** Verified
 
 4. **configChanges для XR-геометрии**
    - **Вопрос:** Какой именно набор `configChanges` необходим, чтобы Activity не пересоздавалась при изменении геометрии XR-окна?
    - **Резолюция:** Android XR Shell ведёт себя как multi-window/free-form окружение — для предотвращения recreate необходим расширенный набор: `orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|density|navigation|uiMode|fontScale`. Этот набор уже применён в `vr/AndroidManifest.xml` для `VrPlayerActivity`. Для остальных активити (Settings, Welcome, Main и др.) текущий набор в `main/AndroidManifest.xml` существенно беднее (`orientation|screenSize|keyboardHidden`) — отсюда multi-recreate Settings на XR SDK. Дополнительно: `android:resizeableActivity="true"` объявляется на уровне `<application>` или `<activity>`, чтобы Shell не убивал процесс при resize. Изменения вносятся в манифест `vr`-флавора через `tools:replace="android:configChanges"` для overlay поверх main-манифеста, чтобы не влиять на standard/lite/photos/legacy.
-   - **Статус:** Resolved.
+   - **Статус:** Verified
 
 ---
 

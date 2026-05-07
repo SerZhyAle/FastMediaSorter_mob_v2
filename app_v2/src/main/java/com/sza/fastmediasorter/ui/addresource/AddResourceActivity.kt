@@ -56,6 +56,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             }
             currentFocus?.focusSearch(focusDir)?.requestFocus()
         }
+        override fun isTextEditorFocused(): Boolean =
+            (currentFocus as? android.widget.TextView)?.onCheckIsTextEditor() == true
     })
 
     @Inject lateinit var unifiedAuthManager: UnifiedCloudAuthManager

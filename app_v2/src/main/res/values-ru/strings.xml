@@ -303,6 +303,9 @@
     <string name="error_network_server_error">Ошибка сервера. Нет ответа.</string>
     <string name="error_network_unsupported">Операция не поддерживается этим сервером.</string>
     <string name="error_network_generic">Ошибка сети. Пожалуйста, попробуйте ещё раз.</string>
+    <string name="error_sftp_copy_failed_server">Не удалось скопировать файл с %1$s. Проверьте соединение и попробуйте снова.</string>
+    <string name="error_sftp_copy_access_denied">Нет доступа к файлу на SFTP-сервере. Проверьте права доступа.</string>
+    <string name="error_sftp_connection_limit">Сервер %1$s ограничивает количество соединений. Остановите воспроизведение и попробуйте снова.</string>
     <string name="error_smb_mobile_network">SMB-ресурс недоступен через мобильный интернет. SMB работает только в локальной Wi&#8209;Fi сети. Подключитесь к одной сети с устройством (%1$s).</string>
     <string name="error_smb_not_on_local_network">Не удалось подключиться к SMB ресурсу. Убедитесь, что устройство включено и вы находитесь с ним в одной локальной сети.</string>
 
@@ -740,6 +743,7 @@
     <string name="welcome_description_4">РЕСУРСЫ — Папки из любого типа хранилища.\n\nБЫСТРАЯ СОРТИРОВКА — До 30 папок назначения с цветовой маркировкой для быстрых операций копирования/перемещения.\n\nНастраивайте в Настройках в любое время!</string>
     <string name="welcome_title_5">Дополнительные возможности</string>
     <string name="welcome_description_5">Не только просмотр медиа — FastMediaSorter содержит профессиональные инструменты для текста, документов и аудио.</string>
+    <string name="welcome_language_picker_hint">Выберите язык приложения</string>
     <string name="welcome_permissions_title">Доступ к медиафайлам</string>
     <string name="welcome_permissions_description">FastMediaSorter требуется доступ к вашим фото, видео и аудиофайлам для сканирования и отображения медиа. Мы не передаём ваши файлы третьим лицам.</string>
     <string name="grant_permissions">Предоставить доступ</string>
@@ -2461,6 +2465,49 @@
     <string name="perm_battery_optim_grant">Разрешить работу в фоне</string>
     <string name="perm_battery_optim_manage">Управление оптимизацией батареи</string>
     <string name="perm_battery_optim_hint">Требуется для надёжной работы операций по расписанию</string>
+    <string name="perm_continue_to_app">Продолжить</string>
+    <string name="perm_btn_grant_all">Выдать все</string>
+    <string name="perm_btn_open_system_settings">Открыть настройки системы</string>
+    <string name="settings_manage_permissions">Управление разрешениями</string>
+    <string name="settings_manage_permissions_desc">Просмотр и выдача разрешений приложения</string>
+    <!-- Permission registry: group headers -->
+    <string name="perm_group_storage">Хранилище</string>
+    <string name="perm_group_network">Сеть</string>
+    <string name="perm_group_microphone">Микрофон</string>
+    <string name="perm_group_notification">Уведомления</string>
+    <string name="perm_group_system">Система</string>
+    <string name="perm_group_vr">Виртуальная реальность</string>
+    <!-- Permission status display -->
+    <string name="perm_current_status">Статус: %s</string>
+    <string name="perm_status_granted">Предоставлено</string>
+    <string name="perm_status_denied">Отклонено</string>
+    <string name="perm_status_permanently_denied">Заблокировано</string>
+    <string name="perm_status_not_applicable">Не требуется</string>
+    <!-- Permission registry: per-permission title + description -->
+    <string name="perm_title_read_external_storage">Доступ к локальным медиа</string>
+    <string name="perm_desc_read_external_storage">Просмотр, сортировка и воспроизведение фото, видео и аудио на устройстве. Требуется на Android 12 и ниже вместо гранулированных разрешений.</string>
+    <string name="perm_title_read_media_images">Доступ к фотографиям</string>
+    <string name="perm_desc_read_media_images">Просмотр, сортировка и организация фотографий и изображений на устройстве. Необходимо для отображения миниатюр и доступа к фотобиблиотеке.</string>
+    <string name="perm_title_read_media_video">Доступ к видео</string>
+    <string name="perm_desc_read_media_video">Просмотр, сортировка и воспроизведение видеофайлов на устройстве. Необходимо для отображения миниатюр и доступа к видеотеке.</string>
+    <string name="perm_title_read_media_audio">Доступ к музыке</string>
+    <string name="perm_desc_read_media_audio">Просмотр, сортировка и воспроизведение музыки и аудиофайлов. Необходимо для доступа к аудиотеке и спискам треков.</string>
+    <string name="perm_title_manage_external_storage">Полное управление хранилищем</string>
+    <string name="perm_desc_manage_external_storage">Перемещение, переименование, копирование и удаление файлов во всех разделах хранилища, включая SD-карты и общее хранилище.</string>
+    <string name="perm_title_manage_media">Управление медиафайлами</string>
+    <string name="perm_desc_manage_media">Массовое редактирование, переименование и удаление медиафайлов без запроса подтверждения для каждой операции.</string>
+    <string name="perm_title_access_local_network">Доступ к локальной сети</string>
+    <string name="perm_desc_access_local_network">Подключение к общим папкам SMB и медиасерверам DLNA в домашней Wi-Fi-сети для потоковой передачи и удалённого доступа к файлам.</string>
+    <string name="perm_title_record_audio">Микрофон</string>
+    <string name="perm_desc_record_audio">Запись голосовых заметок и прикрепление их к медиафайлам в качестве аннотаций. Необходимо для функции аудиозаметок и голосовых тегов.</string>
+    <string name="perm_title_post_notifications">Уведомления</string>
+    <string name="perm_desc_post_notifications">Уведомления о ходе фоновых операций с файлами, переносов папок и управление воспроизведением в шторке уведомлений.</string>
+    <string name="perm_title_battery_optimization">Оптимизация аккумулятора</string>
+    <string name="perm_desc_battery_optimization">Предотвращает приостановку фонового воспроизведения и передачи файлов при выключении экрана или сворачивании приложения.</string>
+    <string name="perm_title_hand_tracking">Отслеживание рук</string>
+    <string name="perm_desc_hand_tracking">Управление воспроизведением, просмотром файлов и навигацией по меню жестами на гарнитурах Meta Quest без физического контроллера.</string>
+    <string name="perm_title_headset_camera">Камера passthrough</string>
+    <string name="perm_desc_headset_camera">Доступ к камерам сквозного обзора на Meta Quest для отображения реального мира вокруг окна приложения в режиме смешанной реальности.</string>
     <!-- Print -->
     <string name="menu_print">Печать</string>
     <string name="error_print_unavailable">Службы печати недоступны на этом устройстве</string>
@@ -2846,10 +2893,26 @@
     <string name="vr_cheatsheet_hands_double_pinch">Двойной щипок — пауза / плей</string>
     <string name="vr_cheatsheet_footer">Коснитесь в любом месте чтобы закрыть · долгое Y или F1 — открыть снова</string>
 
+    <!-- S0100 Microphone recording -->
+    <string name="settings_mic_recording_section_title">Запись с микрофона</string>
+    <string name="settings_mic_recording_enable_title">Включить запись с микрофона</string>
+    <string name="settings_mic_recording_enable_desc">Показывать кнопку микрофона в Browse для записи аудио в текущую папку</string>
+    <string name="settings_mic_recording_ask_filename_title">Спрашивать имя файла</string>
+    <string name="settings_mic_recording_ask_filename_desc">Показывать диалог переименования перед сохранением записи</string>
+    <string name="mic_recording_button_content_desc">Запись аудио</string>
+    <string name="mic_recording_hold_hint">Удержите для записи</string>
+    <string name="mic_recording_filename_title">Сохранить запись</string>
+    <string name="mic_recording_permission_rationale">Для записи аудио необходим доступ к микрофону</string>
+    <string name="mic_recording_permission_denied">Доступ к микрофону отклонён. Разрешите его в системных настройках.</string>
+    <string name="mic_recording_saved">Запись сохранена: %s</string>
+    <string name="mic_recording_error_save">Не удалось сохранить запись</string>
+    <string name="mic_recording_error_start">Не удалось начать запись</string>
+    <string name="mic_recording_cancelled">Запись отменена</string>
+
     <!-- Camera Capture Settings -->
     <string name="setting_disable_camera_capture">Отключить вызов фотоаппарата</string>
     <string name="setting_disable_camera_capture_summary">Скрывает команду съёмки в Browse</string>
-    <string name="setting_skip_camera_filename_dialog">Не спрашивать имя файла</string>
+    <string name="setting_skip_camera_filename_dialog">Не спрашивать имя файла для результата съёмки</string>
     <string name="setting_skip_camera_filename_dialog_summary">Использовать имя по времени съёмки без диалога</string>
     <string name="tooltip_camera_capture_title">Съёмка фотоаппаратом</string>
     <string name="tooltip_camera_capture_message">Кнопка фотоаппарата в Browse позволяет снять фото или видео не выходя из приложения. Снятый файл сохраняется в папку текущего ресурса.\n\nЕсли включён «Не спрашивать имя файла», файл автоматически получает имя по времени съёмки; иначе после каждой съёмки появляется диалог переименования.</string>
@@ -3037,4 +3100,22 @@
     <string name="chromeos_banner_body">Доступ к папкам — через системный диалог. Cast и вибрация могут быть недоступны.</string>
     <string name="chromeos_banner_action">Понятно</string>
     <string name="chromeos_banner_shown_pref_key">chromeos_banner_shown</string>
+
+    <!-- S0104: Режимы порядка воспроизведения -->
+    <string name="playback_order_loop_list">По кругу</string>
+    <string name="playback_order_play_through">До конца</string>
+    <string name="playback_order_shuffle">Вперемішку</string>
+    <string name="playback_order_repeat_one">Повторяти один</string>
+    <string name="playback_order_mode_set">Порядок воспроизведения: %1$s</string>
+    <string name="playback_order_button_desc">Порядок воспроизведения: %1$s</string>
+    <string name="playback_order_stopped">Воспроизведение остановлено (конец списка)</string>
+    <string name="playback_order_menu_title">Порядок воспроизведения</string>
+
+    <!-- S0106: Image crop commands -->
+    <string name="menu_crop">Вырезать</string>
+    <string name="menu_crop_to_file">Вырезать в файл</string>
+    <string name="menu_compress_copy">Сжатая копия</string>
+    <string name="dialog_crop_filename_hint">Имя файла</string>
+    <string name="crop_save_to_downloads_note">Источник только для чтения — файл будет сохранён в Загрузки</string>
+    <string name="crop_file_created">Файл %s создан</string>
 </resources>

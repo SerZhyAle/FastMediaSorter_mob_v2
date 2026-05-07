@@ -58,6 +58,12 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
             is PlayerViewModel.PlayerEvent.ShowVrInstallCta -> {
                 showVrInstallCtaDialog()
             }
+            PlayerViewModel.PlayerEvent.StopPlayback -> {
+                activity._videoPlayerManager?.getPlayer()?.pause()
+                activity.audioServiceController?.player?.pause()
+                Toast.makeText(activity, R.string.playback_order_stopped, Toast.LENGTH_SHORT).show()
+                Timber.d("S0104: StopPlayback — playback stopped at end of list")
+            }
         }
     }
 

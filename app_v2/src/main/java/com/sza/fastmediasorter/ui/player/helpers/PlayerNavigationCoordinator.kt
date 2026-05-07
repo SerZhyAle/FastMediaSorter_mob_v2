@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.render.RenderPriority
@@ -26,7 +27,8 @@ class PlayerNavigationCoordinator(
     private val stateFlow: StateFlow<PlayerViewModel.PlayerState>,
     private val updateState: ((PlayerViewModel.PlayerState) -> PlayerViewModel.PlayerState) -> Unit,
     private val saveResumeState: () -> Unit,
-    private val clearPlaybackWatchdogs: () -> Unit = {}
+    private val clearPlaybackWatchdogs: () -> Unit = {},
+    private val sendEvent: (PlayerViewModel.PlayerEvent) -> Unit = {}
 ) {
 
     private var saveLastViewedFileJob: Job? = null
@@ -79,14 +81,52 @@ class PlayerNavigationCoordinator(
             return
         }
 
+        Timber.d("S0104: nextFile mode=${currentState.playbackOrderMode} manual=$manual idx=${currentState.currentIndex}")
+
         if (manual) clearPlaybackWatchdogs()
 
-        var nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
-            Timber.d("nextFile: Looping from last (${currentState.currentIndex}) to first (0)")
-            0
-        } else {
-            Timber.d("nextFile: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex + 1}")
-            currentState.currentIndex + 1
+        var nextIndex = when (currentState.playbackOrderMode) {
+            PlaybackOrderMode.LOOP_LIST -> {
+                if (currentState.currentIndex >= currentState.files.size - 1) 0
+                else currentState.currentIndex + 1
+            }
+            PlaybackOrderMode.PLAY_THROUGH -> {
+                if (currentState.currentIndex >= currentState.files.size - 1) {
+                    if (!manual) {
+                        sendEvent(PlayerViewModel.PlayerEvent.StopPlayback)
+                        return
+                    }
+                    0
+                } else {
+                    currentState.currentIndex + 1
+                }
+            }
+            PlaybackOrderMode.SHUFFLE -> {
+                val shuffleIndices = currentState.shuffleIndices
+                val pos = shuffleIndices.indexOf(currentState.currentIndex)
+                if (pos == -1 || pos >= shuffleIndices.size - 1) {
+                    val files = currentState.files
+                    val newIndices = files.indices.toMutableList().also { it.shuffle(kotlin.random.Random) }
+                    val curIdx = currentState.currentIndex
+                    val curPos = newIndices.indexOf(curIdx)
+                    if (curPos == 0 && newIndices.size > 1) {
+                        val swap = kotlin.random.Random.nextInt(1, newIndices.size)
+                        newIndices[0] = newIndices[swap].also { newIndices[swap] = newIndices[0] }
+                    } else if (curPos > 0) {
+                        newIndices.removeAt(curPos)
+                        newIndices.add(0, curIdx)
+                    }
+                    updateState { it.copy(shuffleIndices = newIndices) }
+                    stateFlow.value.shuffleIndices[0]
+                } else {
+                    shuffleIndices[pos + 1]
+                }
+            }
+            PlaybackOrderMode.REPEAT_ONE -> {
+                updateState { it.copy(currentIndex = currentState.currentIndex) }
+                saveResumeState()
+                return
+            }
         }
 
         if (skipDocuments) {
@@ -141,12 +181,22 @@ class PlayerNavigationCoordinator(
 
         if (manual) clearPlaybackWatchdogs()
 
-        var prevIndex = if (currentState.currentIndex <= 0) {
-            Timber.d("previousFile: Looping from first (${currentState.currentIndex}) to last (${currentState.files.size - 1})")
-            currentState.files.size - 1
-        } else {
-            Timber.d("previousFile: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex - 1}")
-            currentState.currentIndex - 1
+        var prevIndex = when (currentState.playbackOrderMode) {
+            PlaybackOrderMode.LOOP_LIST, PlaybackOrderMode.PLAY_THROUGH -> {
+                if (currentState.currentIndex <= 0) currentState.files.size - 1
+                else currentState.currentIndex - 1
+            }
+            PlaybackOrderMode.SHUFFLE -> {
+                val shuffleIndices = currentState.shuffleIndices
+                val pos = shuffleIndices.indexOf(currentState.currentIndex)
+                if (pos <= 0) shuffleIndices.lastOrNull() ?: (currentState.files.size - 1)
+                else shuffleIndices[pos - 1]
+            }
+            PlaybackOrderMode.REPEAT_ONE -> {
+                updateState { it.copy(currentIndex = currentState.currentIndex) }
+                saveResumeState()
+                return
+            }
         }
 
         if (skipDocuments) {

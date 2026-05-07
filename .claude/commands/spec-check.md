@@ -139,7 +139,7 @@ The block replaces the previous `## Last Audit` block in full. The rest of the s
 
 - **Argument resolution.** First positional argument is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json`.
 - **Status transition** (after the audit verdict is final):
-  - Verdict `Verified` → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Verified`.
+  - Verdict `Verified` → `pwsh -File scripts/spec_catalog/close.ps1 -Id <Sxxxx> -Status Verified`. (`close.ps1` also stamps `closed_at` on the record.)
   - Verdict `Partial`  → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Partial`.
   - Verdict `Broken`   → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
 - **Read-only mode (`--quick`):** still emits the status transition above; the difference is in scope of checks, not in journal effect.

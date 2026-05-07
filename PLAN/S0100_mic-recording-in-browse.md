@@ -1,13 +1,12 @@
 # Стратегическая спецификация: S0100 — Запись с микрофона прямо в Browse
 
 **Ticket:** S0100
-**Status:** Tactical
+**Status:** Verified
 **Priority:** 50
 **Date:** 2026-05-06
 **Tier:** 3 — Moderate
 **Roadmap entry:** Ad-hoc — запрос 2026-05-06
 **Tactical spec:** [`PLAN/S0100_mic-recording-in-browse/INDEX.md`](S0100_mic-recording-in-browse/INDEX.md)
-**Tactical plan:** `PLAN/S0100_mic-recording-in-browse/INDEX.md`
 
 > **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
 
@@ -118,13 +117,13 @@ Browse является центральным экраном приложени
    - **Вопрос:** Что должно произойти с частично записанным файлом, если запись прервана системным событием (звонок, другое приложение перехватывает аудиофокус)?
    - **Варианты:** (а) Сохранить то, что записано; (б) Молча отменить и удалить временный файл; (в) Показать диалог выбора.
    - **Решение:** Вариант (б) — молча отменить, удалить временный файл.
-   - **Статус:** Resolved
+   - **Статус:** Verified
 
 2. **Флейвор `lite`: поддержка микрофонной записи**
    - **Вопрос:** В `lite` нет фонового аудиовоспроизведения, но `SUPPORT_AUDIO=true`. Включать ли микрофонную запись в `lite`?
    - **Варианты:** (а) Включить — микрофонная запись независима от воспроизведения; (б) Исключить — для простоты `lite`-профиля.
    - **Решение:** Вариант (б) — исключить из флейвора `lite`.
-   - **Статус:** Resolved
+   - **Статус:** Verified
 
 ---
 
@@ -151,10 +150,10 @@ Browse является центральным экраном приложени
 
 ## 9. Архитектурные решения (ADR)
 
-**ADR-1: Запись ведётся внутри приложения, а не через `ACTION_RECORD_SOUND`**
+**ADR-1: Запись ведётся внутри приложения, а не через системный интент диктофона**
 
-- **Решение:** Использовать внутреннюю подсистему записи (`MediaRecorder`/`AudioRecord`), а не запускать внешнее приложение-диктофон через Intent.
-- **Альтернативы:** `ACTION_RECORD_SOUND` — аналог camera capture; проще, но зависит от наличия стороннего диктофона и не позволяет сохранять напрямую в сетевой ресурс.
+- **Решение:** Использовать внутреннюю подсистему записи (нативный Android Audio API), а не запускать внешнее приложение-диктофон через системный интент.
+- **Альтернативы:** Системный интент диктофона — аналог camera capture; проще, но зависит от наличия стороннего диктофона и не позволяет сохранять напрямую в сетевой ресурс.
 - **Почему:** Ключевой сценарий — сохранение прямо в SFTP/облако; внешнее приложение не имеет доступа к этим ресурсам. Внутренняя запись даёт полный контроль над потоком данных.
 
 **ADR-2: Формат файла — M4A/AAC, без настройки по умолчанию**
@@ -187,4 +186,38 @@ Browse является центральным экраном приложени
 
 ## 12. Ссылка на тактическую спецификацию
 
-Следующий шаг: `/spec-tech S0100` — создаст `PLAN/S0100_mic-recording-in-browse/` с фазами.
+Тактическая спецификация создана: [`PLAN/S0100_mic-recording-in-browse/INDEX.md`](S0100_mic-recording-in-browse/INDEX.md). 6 фаз, все в статусе «Not started». Следующий шаг: `/spec-dev S0100`.
+
+---
+
+## Revision History
+
+- **2026-05-06** — by `/spec-update` (`claude-sonnet-4-6`, focus: all)
+  - Applied: 4. Proposed (DISCUSS): 0.
+  - Removed duplicate `**Tactical plan:**` header field (same path as `**Tactical spec:**`).
+  - §9 ADR-1: replaced class names `MediaRecorder`/`AudioRecord` and implementation constant `ACTION_RECORD_SOUND` with architectural terms per strategic-spec rules.
+  - §12: updated from stale "run /spec-tech" to reflect tactical plan already exists; added `/spec-dev` as next step.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 54 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 2
+
+### Exempt notes
+
+- **EXEMPT [Step 1.2]** Spec predicate expected `SUPPORT_MIC_RECORDING` exactly 4 times; found 6 — build.gradle.kts has 6 flavors (vr/vrUnlicensed added correctly).
+- **EXEMPT [Step 2.2]** Spec predicate said tag `S0100-MIC`; CLAUDE.md canonical format `S0100:` used — 8 Timber.d/w/e calls confirmed before Verified removal.
+
+### Manual / on-device
+
+- [ ] Hold-to-record UX: start, stop, cancel recording on device
+- [ ] File appears in current folder: local, SFTP, SMB, FTP, cloud
+- [ ] Permission flow: first-enable dialog, deny case shows explanation
+- [ ] Filename dialog appears when setting enabled; skipped when disabled
+- [ ] Scroll-to-file after successful save
+- [ ] Temp file cleanup: no leftover files after cancel or error

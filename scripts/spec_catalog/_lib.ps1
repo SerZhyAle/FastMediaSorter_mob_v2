@@ -107,6 +107,12 @@ function Write-Catalog {
         $ordered['file']    = [string]$r.file
         $ordered['created'] = [string]$r.created
         $ordered['updated'] = [string]$r.updated
+        $fixedKeys = @('id','name','status','priority','tier','file','created','updated')
+        foreach ($prop in ($r.PSObject.Properties | Sort-Object Name)) {
+            if ($fixedKeys -notcontains $prop.Name) {
+                $ordered[$prop.Name] = $prop.Value
+            }
+        }
         $json = ($ordered | ConvertTo-Json -Compress -Depth 5)
         $lines.Add($json)
     }

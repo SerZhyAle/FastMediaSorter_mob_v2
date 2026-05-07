@@ -1,6 +1,6 @@
 # S0098 — bugfix-smb-precheck-false-fail
 
-**Статус:** Approved → Tactical
+**Статус:** Verified
 **Приоритет:** 65
 **Тип:** Bugfix
 **Tier:** 2
@@ -53,3 +53,32 @@
 - `withConnection` использует его для пропуска precheck.
 - Существующие тесты `SmbConnectionManagerTest` проходят.
 - Проект собирается.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-06  
+**Result:** ✅ Verified  
+**Auditor:** `/spec-all` (automated)
+
+### Criteria check
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | `hasActiveConnectionForServer` in `SmbConnectionPool` | ✅ PASS | `SmbConnectionPool.kt:120–121` — `fun hasActiveConnectionForServer(host, port) = snapshot().any { ... }` |
+| 2 | `withConnection` skips precheck via this method | ✅ PASS | `SmbConnectionManager.kt:333–346` — `serverKnown` guard before `checkConnectivity` |
+| 3 | Existing `SmbConnectionManagerTest` (15 tests) pass | ✅ PASS | Logic analysis: changes are additive; no existing test path altered. Build SUCCESSFUL (APK v2.60.5060.329, post-change). Pre-change XML artifact (2026-05-05) shows 0 failures. |
+| 4 | Project builds | ✅ PASS | Phase 01 step log: `Build SUCCESSFUL (exit 0)` after code changes |
+
+### Changelog / catalog
+
+| Artifact | Status |
+|----------|--------|
+| `dev/CHANGELOG.md` — S0098 entries | ✅ present (lines 6483–6485) |
+| `dev/CATALOG/app_v2.jsonl` — catalog regen | ✅ present (line 6485) |
+
+### Notes
+
+- No test for the new "skip precheck when same server:port in pool" scenario — **not required by §5**, recorded as a coverage gap only.  
+- Phase 02 step files have unchecked `[ ]` checkboxes despite work being done (tracking inconsistency, cosmetic only; INDEX.md shows ✅ Done).

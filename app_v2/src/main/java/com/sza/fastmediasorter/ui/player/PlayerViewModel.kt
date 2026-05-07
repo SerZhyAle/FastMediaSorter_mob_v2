@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
 import com.sza.fastmediasorter.domain.model.OffloadOffer
 import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
@@ -110,7 +111,9 @@ class PlayerViewModel @Inject constructor(
         val undoOperationTimestamp: Long? = null,
         val isCasting: Boolean = false,
         val castDeviceName: String? = null,
-        val showBlackScreenButton: Boolean = false
+        val showBlackScreenButton: Boolean = false,
+        val playbackOrderMode: PlaybackOrderMode = PlaybackOrderMode.LOOP_LIST,
+        val shuffleIndices: List<Int> = emptyList()
     ) {
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         // Circular navigation: always allow prev/next if files.size > 1
@@ -140,6 +143,7 @@ class PlayerViewModel @Inject constructor(
         data class CastStateChanged(val isCasting: Boolean, val deviceName: String?) : PlayerEvent()
         /** Standard flavor: 3D content detected, suggest VR edition. */
         data class ShowVrInstallCta(val stereoMode: StereoMode) : PlayerEvent()
+        object StopPlayback : PlayerEvent()
     }
 
     override fun getInitialState(): PlayerState {
@@ -282,7 +286,8 @@ class PlayerViewModel @Inject constructor(
         stateFlow = state,
         updateState = { update -> updateState(update) },
         saveResumeState = { this.saveResumeState() },
-        clearPlaybackWatchdogs = { smbClient.playbackConnectionTracker.clearAllWatchdogs() }
+        clearPlaybackWatchdogs = { smbClient.playbackConnectionTracker.clearAllWatchdogs() },
+        sendEvent = { event -> sendEvent(event) }
     )
 
     // IMPORTANT: init must run AFTER mediaFilesLoader/navigationCoordinator are initialized —
@@ -440,6 +445,36 @@ class PlayerViewModel @Inject constructor(
                 Timber.e(e, "Failed to save background audio exit behavior")
             }
         }
+    }
+
+    private fun rebuildShuffleIndices() {
+        val files = state.value.files
+        if (files.isEmpty()) return
+        val indices = files.indices.toMutableList().also { it.shuffle(kotlin.random.Random) }
+        val current = state.value.currentIndex
+        val pos = indices.indexOf(current)
+        if (pos == 0 && indices.size > 1) {
+            val swap = kotlin.random.Random.nextInt(1, indices.size)
+            indices[0] = indices[swap].also { indices[swap] = indices[0] }
+        } else if (pos > 0) {
+            indices.removeAt(pos)
+            indices.add(0, current)
+        }
+        updateState { it.copy(shuffleIndices = indices) }
+    }
+
+    fun setPlaybackOrderMode(mode: PlaybackOrderMode) {
+        updateState { it.copy(playbackOrderMode = mode) }
+        if (mode == PlaybackOrderMode.SHUFFLE && state.value.files.isNotEmpty()) {
+            rebuildShuffleIndices()
+        }
+    }
+
+    fun cyclePlaybackOrderMode(): PlaybackOrderMode {
+        Timber.d("S0104: cyclePlaybackOrderMode → ${state.value.playbackOrderMode.next()}")
+        val next = state.value.playbackOrderMode.next()
+        setPlaybackOrderMode(next)
+        return next
     }
 
     fun toggleControls() {

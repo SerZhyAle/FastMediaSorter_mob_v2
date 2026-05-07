@@ -100,12 +100,12 @@ parentDir == resourceRoot?
 1. **Глубина подпапки**
    - **Вопрос:** проблема проявляется только для одного уровня вложенности, или `initialFilePath` может указывать на файл в глубоко вложенной директории (`A/B/C/file.mp3`)?
    - **Нужно выяснить:** проверить логику формирования кэша — сохраняется ли `startDirectory` при переходе в подпапку, или только путь к файлу.
-   - **Статус:** Resolved — `lastIndexOf('/')` handles any depth; `initialFileDir` is always the immediate parent of the file, regardless of nesting depth.
+   - **Статус:** Verified
 
 2. **Взаимодействие с рекурсивным сканированием**
    - **Вопрос:** если у ресурса включено рекурсивное сканирование — кэш строится для корня и содержит файлы подпапок; тогда `subfolder mismatch` не должен возникать. Воспроизводится ли баг только при отключённом рекурсивном сканировании?
    - **Нужно выяснить:** настройки ресурса «All Music» в тестовом устройстве (лог не содержит эту информацию).
-   - **Статус:** Resolved — when recursive scan is on, the resource-level cache contains all files (including subfolders), so `cacheMatchesInitialFile` is true. Bug fires only when recursive scan is off and the in-memory cache is empty (cold start) or contains a different subfolder's files.
+   - **Статус:** Verified
 
 ---
 

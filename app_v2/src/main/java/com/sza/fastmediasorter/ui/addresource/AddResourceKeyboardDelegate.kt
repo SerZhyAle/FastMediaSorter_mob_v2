@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
+import timber.log.Timber
 
 /**
  * Keyboard handler for [AddResourceActivity].
@@ -19,6 +20,7 @@ class AddResourceKeyboardDelegate(
         fun showHelp()
         fun activateFocused(): Boolean
         fun moveFocus(direction: FocusDirection)
+        fun isTextEditorFocused(): Boolean
     }
 
     private val shortcutHandler = KeyboardShortcutHandler(
@@ -27,7 +29,13 @@ class AddResourceKeyboardDelegate(
     )
 
     fun handleKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (event != null && shortcutHandler.handleKeyEvent(keyCode, event)) return true
+        if (event == null) return false
+        if (callback.isTextEditorFocused()) {
+            Timber.d("S0109: text field focused, skipping shortcut for keyCode=$keyCode")
+            if (keyCode == KeyEvent.KEYCODE_ESCAPE) { callback.navigateBack(); return true }
+            return false
+        }
+        if (shortcutHandler.handleKeyEvent(keyCode, event)) return true
         return false
     }
 

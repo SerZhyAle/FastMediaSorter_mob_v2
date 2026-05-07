@@ -1,7 +1,8 @@
 # Стратегическая спецификация: S0099 — SFTP: параллельное воспроизведение и файловые операции
 
 **Ticket:** S0099
-**Status:** Tactical
+**Status:** Partial
+**Implemented date:** 2026-05-06
 **Priority:** 70
 **Date:** 2026-05-06
 **Tier:** 3 — Moderate
@@ -128,12 +129,12 @@ FileOperation UseCase → Обработчик SFTP-операций → Сло�
 1. **Поведение JSch при отказе сервера в открытии второй сессии**
    - **Вопрос:** Какое исключение бросает JSch, если OpenSSH-сервер отказал в Session (MaxSessions достигнут)? Отличается ли оно от обычного ConnectException?
    - **Нужно выяснить:** Тип и текст исключения, чтобы корректно классифицировать в категоризаторе ошибок.
-   - **Статус:** Resolved — JSch бросает `JSchException` для всех ошибок уровня сессии, включая отказ по MaxSessions. Типичное сообщение содержит «reject» или SSH disconnect reason code 11 (`SSH_DISCONNECT_TOO_MANY_CONNECTIONS`). В Фазе 03 классификатор перехватывает `JSchException` и отображает `error_sftp_connection_limit` при несоответствии другим категориям.
+   - **Статус:** Partial
 
 2. **Текущее поведение SftpConnectionPool при наличии активного ExoPlayer-канала**
    - **Вопрос:** Инвалидирует ли текущий код сессию, когда ExoPlayer держит канал живым? Есть ли риск закрыть ExoPlayer-канал при создании сессии B?
    - **Нужно выяснить:** Проверить логику `invalidateConnection` в пуле — не трогает ли она ExoPlayer-слот.
-   - **Статус:** Resolved — подтверждено: `invalidateConnection()` удаляет запись по ключу из единого `connectionPool`, который разделяют оба пути. Риск подтверждён — устраняется в Фазе 01 (изолированный `playbackConnectionPool`).
+   - **Статус:** Partial
 
 ---
 
@@ -197,3 +198,24 @@ EN/RU/UK — обязательно.
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: `/spec-tech S0099` — создаст `PLAN/S0099_sftp-concurrent-access-fix/` с фазами.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Partial
+**Counts:** PASS 31 · WARN 1 · FAIL 0 · MANUAL 4 · EXEMPT 0
+
+### Action items
+
+1. [FOLLOW-UP] **[WARN §Phase03 — SftpFileOperationHandler.kt budget]** File is 430 lines vs phase budget ≤420. Overage is 10 lines — direct result of bridge-copy block expansion. No Manager split required (≪1500 limit). Advisory only.
+
+### Manual / on-device
+
+- [ ] §11.1 — Simultaneous SFTP playback + file copy from same server complete without interrupting each other.
+- [ ] §11.2 — Forced SFTP channel drop during copy → auto-recovery; copy completes without user action.
+- [ ] §11.3 — FILE_OPS channel drop does NOT interrupt active ExoPlayer playback.
+- [ ] §11.4 — After all retries exhausted, user sees localized error (EN/RU/UK) with no internal class names.

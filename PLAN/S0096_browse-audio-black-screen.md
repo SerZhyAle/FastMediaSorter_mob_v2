@@ -2,7 +2,7 @@
 
 <!-- auto-approved by /spec-all — 2026-05-05 -->
 
-**Status:** Approved
+**Status:** Verified
 **Priority:** 50
 
 ## Goal
@@ -75,5 +75,19 @@ initializer.blackScreenManager.hide()
 
 ## Last Audit
 
-2026-05-05 — auto-verified by /spec-all. Build: PASS. All 4 phases confirmed in code:
-P1 menu item present; P2 visibility + handler wired; P3 manager instantiated + callback passed; P4 hide() on onPause.
+**Date:** 2026-05-06
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 8 · WARN 0 · FAIL 0 · MANUAL 0 · EXEMPT 0
+
+### Manual / on-device
+
+- [x] P1: `action_black_screen` first item in `menu_resource_ops.xml` — PASS
+- [x] P2: `isAudioOnly` + `onBlackScreenClicked` params in `ResourceOpsMenuManager.showMenu()` — PASS
+- [x] P2: visibility guard `isAudioOnly && onBlackScreenClicked != null` — PASS
+- [x] P2: `R.id.action_black_screen` handler in `when` block — PASS
+- [x] P3: `blackScreenManager: BlackScreenOverlayManager` field in `BrowseManagerInitializer` — PASS
+- [x] P3: instantiated with `SystemBarsManager` before first menu call — PASS
+- [x] P4: `initializer.blackScreenManager.hide()` in `BrowseActivity.onPause()` — PASS
+- [x] No `Timber.d("S0096:` debug tags remaining — PASS

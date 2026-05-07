@@ -2,12 +2,12 @@
 
 **Strategic spec:** [`../S0099_sftp-concurrent-access-fix.md`](../S0099_sftp-concurrent-access-fix.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** 🚧 In Progress
+**Status:** ✅ Done
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02, Phase 03, Phase 04
-**Steps done:** 0 / 6
-**Started:** —
-**Completed:** —
+**Steps done:** 6 / 6
+**Started:** 2026-05-06
+**Completed:** 2026-05-06
 
 ---
 
@@ -102,7 +102,11 @@ Add a dedicated `playbackConnectionPool` to `SftpConnectionPool` so ExoPlayer se
 - `Grep` — `val existing = playbackConnectionPool\[key\]` — 1 match.
 - `Grep` — `playbackConnectionPool\[key\] = pooled` — 1 match.
 
-**Status:** `[~] in progress`
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 3/3 PASS. Files: SftpConnectionPool.kt (+2 LOC). Dev log pending phase end.
 
 ---
 
@@ -127,7 +131,11 @@ Add a dedicated `playbackConnectionPool` to `SftpConnectionPool` so ExoPlayer se
 - `Grep` — `for (pooled in playbackConnectionPool.values)` present in `SftpConnectionPool.kt`.
 - `Grep` — `for (pooled in connectionPool.values)` — 0 matches.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 2/2 PASS. Files: SftpConnectionPool.kt (1 line changed). Dev log pending phase end.
 
 ---
 
@@ -262,7 +270,11 @@ Add a dedicated `playbackConnectionPool` to `SftpConnectionPool` so ExoPlayer se
 - `Grep` — `playbackKeysToRemove` present in `SftpConnectionPool.kt`.
 - `Grep` — `SFTP \[PLAYBACK\] Closed idle` present in `SftpConnectionPool.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 3/3 PASS. Files: SftpConnectionPool.kt (+22 LOC). Dev log pending phase end.
 
 ---
 
@@ -289,7 +301,11 @@ Add a dedicated `playbackConnectionPool` to `SftpConnectionPool` so ExoPlayer se
 - `Grep` — `\[PLAYBACK\]` — ≥ 5 matches in `SftpConnectionPool.kt`.
 - `Grep` — `\[FILE_OPS\]` — ≥ 3 matches in `SftpConnectionPool.kt`.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 3/3 PASS. [PLAYBACK]=11, [FILE_OPS]=5, old tags=0. Files: SftpConnectionPool.kt. Dev log pending phase end.
 
 ---
 
@@ -306,17 +322,21 @@ Add a dedicated `playbackConnectionPool` to `SftpConnectionPool` so ExoPlayer se
 
 - Build exits with code 0.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-06 — Verification 1/1 PASS. Build exit code 0. Dev log recorded.
 
 ---
 
 ## Phase Done Criteria
 
-- [ ] Every step above is `[x] done`.
-- [ ] Project compiles — `/build` exits 0.
-- [ ] `Grep` for `TODO(phase-01)` returns zero hits.
-- [ ] Dev log entries added for `SftpConnectionPool.kt` via `.\scripts\add_to_dev_log.ps1`.
-- [ ] `dev/CATALOG/app_v2.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
+- [x] Every step above is `[x] done`.
+- [x] Project compiles — `/build` exits 0.
+- [x] `Grep` for `TODO(phase-01)` returns zero hits.
+- [x] Dev log entries added for `SftpConnectionPool.kt` via `.\scripts\add_to_dev_log.ps1`.
+- [x] `dev/CATALOG/app_v2.jsonl` regenerated via `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2`.
 
 ---
 
