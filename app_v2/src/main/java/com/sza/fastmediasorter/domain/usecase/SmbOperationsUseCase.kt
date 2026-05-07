@@ -19,9 +19,7 @@ import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
-/**
- * Use case for SMB/CIFS, SFTP and FTP network operations
- */
+/** Use case for SMB/CIFS, SFTP and FTP network operations */
 class SmbOperationsUseCase @Inject constructor(
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
@@ -30,9 +28,7 @@ class SmbOperationsUseCase @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     
-    /**
-     * Test SMB connection with given credentials
-     */
+    /** Test SMB connection with given credentials */
     suspend fun testConnection(
         server: String,
         shareName: String,
@@ -94,9 +90,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * List available shares on SMB server
-     */
+    /** List available shares on SMB server */
     suspend fun listShares(
         server: String,
         username: String = "",
@@ -118,9 +112,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Scan SMB folder for media files
-     */
+    /** Scan SMB folder for media files */
     suspend fun scanMediaFiles(
         server: String,
         shareName: String,
@@ -164,9 +156,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Save SMB credentials to database
-     */
+    /** Save SMB credentials to database */
     suspend fun saveCredentials(
         server: String,
         shareName: String,
@@ -183,11 +173,9 @@ class SmbOperationsUseCase @Inject constructor(
             val parts = normalizedShareName.split('/', limit = 2)
             val actualShareName = parts.getOrElse(0) { "" }
 
-            // Check if credentials already exist for this server+share combination
             val existingCredentials = credentialsRepository.getByServerAndShare(server, actualShareName)
-            
+
             if (existingCredentials != null) {
-                // Update existing credentials instead of creating new ones
                 Timber.d("saveCredentials: Updating existing credentials for $server/$actualShareName (id=${existingCredentials.credentialId})")
                 val updatedEntity = existingCredentials.copy(
                     username = username,
@@ -200,7 +188,6 @@ class SmbOperationsUseCase @Inject constructor(
                 credentialsRepository.addManualShareName(server, port, actualShareName)
                 Result.success(existingCredentials.credentialId)
             } else {
-                // Create new credentials
                 val credentialId = UUID.randomUUID().toString()
                 Timber.d("saveCredentials: Creating new credentials for $server/$actualShareName (id=$credentialId)")
                 val entity = NetworkCredentialsEntity.create(
@@ -225,9 +212,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Get SMB connection info from credentials ID
-     */
+    /** Get SMB connection info from credentials ID */
     suspend fun getConnectionInfo(credentialsId: String): Result<SmbConnectionInfo> = 
         withContext(ioDispatcher) {
             try {
@@ -254,9 +239,7 @@ class SmbOperationsUseCase @Inject constructor(
             }
         }
     
-    /**
-     * List files in SMB directory
-     */
+    /** List files in SMB directory */
     suspend fun listFiles(
         resource: MediaResource,
         remotePath: String = ""
@@ -302,9 +285,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Detect media type from file extension
-     */
+    /** Detect media type from file extension */
     private fun detectMediaType(fileName: String): MediaType {
         val extension = fileName.substringAfterLast('.', "").lowercase()
 
@@ -318,12 +299,8 @@ class SmbOperationsUseCase @Inject constructor(
             else -> MediaType.IMAGE // Default
         }
     }
-    
-    // ========== SFTP Operations ==========
-    
-    /**
-     * Test SFTP connection with given credentials (password or private key)
-     */
+
+    /** Test SFTP connection with given credentials (password or private key) */
     suspend fun testSftpConnection(
         host: String,
         port: Int = 22,
@@ -353,9 +330,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Save SFTP credentials to database (password or private key)
-     */
+    /** Save SFTP credentials to database (password or private key) */
     suspend fun saveSftpCredentials(
         host: String,
         port: Int = 22,
@@ -364,11 +339,9 @@ class SmbOperationsUseCase @Inject constructor(
         privateKey: String? = null
     ): Result<String> = withContext(ioDispatcher) {
         try {
-            // Check if credentials already exist for this host+port combination
             val existingCredentials = credentialsRepository.getByTypeServerAndPort("SFTP", host, port)
-            
+
             if (existingCredentials != null) {
-                // Update existing credentials instead of creating new ones
                 Timber.d("saveSftpCredentials: Updating existing credentials for $host:$port (id=${existingCredentials.credentialId})")
                 val updatedEntity = existingCredentials.copy(
                     username = username,
@@ -378,7 +351,6 @@ class SmbOperationsUseCase @Inject constructor(
                 credentialsRepository.update(updatedEntity)
                 Result.success(existingCredentials.credentialId)
             } else {
-                // Create new credentials
                 val credentialId = UUID.randomUUID().toString()
                 Timber.d("saveSftpCredentials: Creating new credentials for $host:$port (id=$credentialId)")
                 val entity = NetworkCredentialsEntity.create(
@@ -402,9 +374,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Test FTP connection with given credentials
-     */
+    /** Test FTP connection with given credentials */
     suspend fun testFtpConnection(
         host: String,
         port: Int = 21,
@@ -424,9 +394,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Save FTP credentials to database
-     */
+    /** Save FTP credentials to database */
     suspend fun saveFtpCredentials(
         host: String,
         port: Int = 21,
@@ -434,11 +402,9 @@ class SmbOperationsUseCase @Inject constructor(
         password: String
     ): Result<String> = withContext(ioDispatcher) {
         try {
-            // Check if credentials already exist for this host+port combination
             val existingCredentials = credentialsRepository.getByTypeServerAndPort("FTP", host, port)
-            
+
             if (existingCredentials != null) {
-                // Update existing credentials instead of creating new ones
                 Timber.d("saveFtpCredentials: Updating existing credentials for $host:$port (id=${existingCredentials.credentialId})")
                 val updatedEntity = existingCredentials.copy(
                     username = username,
@@ -447,7 +413,6 @@ class SmbOperationsUseCase @Inject constructor(
                 credentialsRepository.update(updatedEntity)
                 Result.success(existingCredentials.credentialId)
             } else {
-                // Create new credentials
                 val credentialId = UUID.randomUUID().toString()
                 Timber.d("saveFtpCredentials: Creating new credentials for $host:$port (id=$credentialId)")
                 val entity = NetworkCredentialsEntity.create(
@@ -470,9 +435,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Get SFTP credentials by credential ID
-     */
+    /** Get SFTP credentials by credential ID */
     suspend fun getSftpCredentials(credentialsId: String): Result<NetworkCredentialsEntity> =
         withContext(ioDispatcher) {
             try {
@@ -490,9 +453,7 @@ class SmbOperationsUseCase @Inject constructor(
             }
         }
     
-    /**
-     * Get FTP credentials by credential ID
-     */
+    /** Get FTP credentials by credential ID */
     suspend fun getFtpCredentials(credentialsId: String): Result<NetworkCredentialsEntity> =
         withContext(ioDispatcher) {
             try {
@@ -510,9 +471,7 @@ class SmbOperationsUseCase @Inject constructor(
             }
         }
     
-    /**
-     * List files in SFTP directory
-     */
+    /** List files in SFTP directory */
     suspend fun listSftpFiles(
         host: String,
         port: Int = 22,
@@ -553,9 +512,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * List files in SFTP directory using saved credentials
-     */
+    /** List files in SFTP directory using saved credentials */
     suspend fun listSftpFilesWithCredentials(
         credentialsId: String,
         remotePath: String = "/"
@@ -584,12 +541,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    // ===== Trash Management =====
-    
-    /**
-     * Check if network resource has trash folders
-     * @return Pair<hasTrash, trashFolderNames>
-     */
+    /** Check if network resource has trash folders; returns Pair<hasTrash, trashFolderNames>. */
     suspend fun checkTrashFolders(
         type: com.sza.fastmediasorter.domain.model.ResourceType,
         credentialsId: String,
@@ -600,15 +552,9 @@ class SmbOperationsUseCase @Inject constructor(
                 com.sza.fastmediasorter.domain.model.ResourceType.SMB -> {
                     val connectionInfo = getConnectionInfo(credentialsId).getOrThrow()
                     
-                    // Extract relative path from full URI if present
-                    // path format: smb://server/share/subfolder
-                    // connectionInfo.shareName: share
+                    // Extract relative subfolder from smb://server/share/subfolder URI
                     val relativePath = if (path.startsWith("smb://")) {
-                        val withoutProtocol = path.substring(6) // server/share/subfolder
-                        val parts = withoutProtocol.split('/', limit = 3)
-                        // parts[0] = server
-                        // parts[1] = share
-                        // parts[2] = subfolder (optional)
+                        val parts = path.substring(6).split('/', limit = 3)
                         if (parts.size > 2) parts[2] else ""
                     } else {
                         path // Fallback
@@ -658,10 +604,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Cleanup all trash folders on network resource
-     * @return Number of deleted folders
-     */
+    /** Cleanup all trash folders on network resource; returns number of deleted folders. */
     suspend fun cleanupTrash(
         type: com.sza.fastmediasorter.domain.model.ResourceType,
         credentialsId: String,
@@ -675,8 +618,7 @@ class SmbOperationsUseCase @Inject constructor(
             when (type) {
                 com.sza.fastmediasorter.domain.model.ResourceType.SMB -> {
                     val connectionInfo = getConnectionInfo(credentialsId).getOrThrow()
-                    
-                    // Extract relative path from full URI if present
+
                     val relativePath = if (path.startsWith("smb://")) {
                         val withoutProtocol = path.substring(6)
                         val parts = withoutProtocol.split('/', limit = 3)
@@ -729,10 +671,7 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
     
-    /**
-     * Clear all pooled SMB/S/FTP connections
-     * Should be called when refreshing resources or on connection issues
-     */
+    /** Clear all pooled SMB/S/FTP connections; call on resource refresh or connection issues. */
     suspend fun clearAllConnectionPools() = withContext(ioDispatcher) {
         try {
             Timber.d("Clearing all network connection pools")

@@ -232,6 +232,14 @@ All three files are now at or below the 700-line stretch target.
 
 `ResourceAdapter.kt` is now under the 700-line stretch target. Clean rebuild required after the changes (incremental cache had a stale entry from a prior partial edit).
 
+**Wave 30 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `domain/usecase/SmbOperationsUseCase.kt` | 746 | 685 | −61 | Collapsed class KDoc (3→1); collapsed 16 single-sentence function KDocs (3→1 each, −32); collapsed 3 multi-line KDocs with @return tag (4→1 each, −9); removed `// ========== SFTP Operations ==========` section separator + blank (−2); removed `// ===== Trash Management =====` separator (−2); removed 3× `// Check if credentials already exist…` (−3); removed 3× `// Update existing credentials…` (−3); removed 3× `// Create new credentials` (−3); collapsed `checkTrashFolders` SMB path-block header (3→1) and removed 3 inner `// parts[n]` comments + inlined `withoutProtocol` (−5); removed duplicate comment in `cleanupTrash` (−1) |
+
+`SmbOperationsUseCase.kt` is now under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -268,7 +276,7 @@ All three files are now at or below the 700-line stretch target.
 | 28 | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 804 | ≤ 700 | 2 | 1 608 |
 | 29 | `app_v2/data/local/LocalMediaScanner.kt` | 785 | ≤ 700 | 2 | 1 570 |
 | 30 | `app_v2/data/network/SmbMediaScanner.kt` | 760 | ≤ 700 | 2 | 1 520 |
-| 31 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 746 | ≤ 700 | 2 | 1 492 |
+| — | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 685 | ✅ | 2 | — |
 | — | `app_v2/ui/main/ResourceAdapter.kt` | 693 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 694 | ✅ | 2 | — |
 | — | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 684 | ✅ | 2 | — |
@@ -319,7 +327,7 @@ All three files are now at or below the 700-line stretch target.
 | 32 | `SearchLyricsUseCase.kt` | 804 | 1 608 |
 | 33 | `LocalMediaScanner.kt` | 785 | 1 570 |
 | 34 | `SmbMediaScanner.kt` | 760 | 1 520 |
-| 35 | `SmbOperationsUseCase.kt` | 746 | 1 492 |
+| — | `SmbOperationsUseCase.kt` | 685 | ✅ |
 | — | `ResourceEditorUseCase.kt` | 694 | ✅ |
 | — | `CloudOperationStrategy.kt` | 684 | ✅ |
 | — | `FtpOperationStrategy.kt` | 698 | ✅ |
@@ -365,7 +373,6 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 
 | File | LOC | Margin |
 | --- | ---: | ---: |
-| `SmbOperationsUseCase.kt` | 746 | 46 |
 | `SmbMediaScanner.kt` | 760 | 60 |
 | `LocalMediaScanner.kt` | 785 | 85 |
 | `SearchLyricsUseCase.kt` | 804 | 104 |
