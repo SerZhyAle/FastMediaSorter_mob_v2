@@ -75,15 +75,7 @@ class ResourceEditorUseCase @Inject constructor(
                 port = normalized.port ?: 445
             )
             OperationMetricsRecorder.recordConnectionTest(ResourceType.SMB, result.isSuccess)
-            if (result.isSuccess) {
-                ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
-            } else {
-                ResourceConnectionTestResult(
-                    status = ResourceConnectionStatus.FAILED,
-                    errorCode = ResourceErrorCode.UNREACHABLE,
-                    diagnosticMessage = result.exceptionOrNull()?.message
-                )
-            }
+            connectionTestResultFrom(result)
         },
         ResourceType.SFTP to SftpResourceStrategy { form ->
             val normalized = normalizeForStrategy(form)
@@ -94,15 +86,7 @@ class ResourceEditorUseCase @Inject constructor(
                 password = normalized.password
             )
             OperationMetricsRecorder.recordConnectionTest(ResourceType.SFTP, result.isSuccess)
-            if (result.isSuccess) {
-                ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
-            } else {
-                ResourceConnectionTestResult(
-                    status = ResourceConnectionStatus.FAILED,
-                    errorCode = ResourceErrorCode.UNREACHABLE,
-                    diagnosticMessage = result.exceptionOrNull()?.message
-                )
-            }
+            connectionTestResultFrom(result)
         },
         ResourceType.FTP to FtpResourceStrategy { form ->
             val normalized = normalizeForStrategy(form)
@@ -113,30 +97,14 @@ class ResourceEditorUseCase @Inject constructor(
                 password = normalized.password
             )
             OperationMetricsRecorder.recordConnectionTest(ResourceType.FTP, result.isSuccess)
-            if (result.isSuccess) {
-                ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
-            } else {
-                ResourceConnectionTestResult(
-                    status = ResourceConnectionStatus.FAILED,
-                    errorCode = ResourceErrorCode.UNREACHABLE,
-                    diagnosticMessage = result.exceptionOrNull()?.message
-                )
-            }
+            connectionTestResultFrom(result)
         },
         ResourceType.CLOUD to CloudResourceStrategy { form ->
             val normalized = normalizeForStrategy(form)
             val candidate = buildPersistenceModel(normalized)
             val result = resourceRepository.testConnection(candidate)
             OperationMetricsRecorder.recordConnectionTest(ResourceType.CLOUD, result.isSuccess)
-            if (result.isSuccess) {
-                ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
-            } else {
-                ResourceConnectionTestResult(
-                    status = ResourceConnectionStatus.FAILED,
-                    errorCode = ResourceErrorCode.UNREACHABLE,
-                    diagnosticMessage = result.exceptionOrNull()?.message
-                )
-            }
+            connectionTestResultFrom(result)
         }
     )
 
@@ -180,19 +148,11 @@ class ResourceEditorUseCase @Inject constructor(
         }
     }
 
-    fun validate(formData: ResourceFormData): ResourceValidationResult {
-        val strategy = strategyFor(formData.type)
-        return strategy.validate(formData)
-    }
+    fun validate(formData: ResourceFormData): ResourceValidationResult = strategyFor(formData.type).validate(formData)
 
-    suspend fun testConnection(formData: ResourceFormData): ResourceConnectionTestResult {
-        val strategy = strategyFor(formData.type)
-        return strategy.testConnection(formData)
-    }
+    suspend fun testConnection(formData: ResourceFormData): ResourceConnectionTestResult = strategyFor(formData.type).testConnection(formData)
 
-    fun fieldSchema(resourceType: ResourceType): List<ResourceFieldSchema> {
-        return strategyFor(resourceType).fieldSchema()
-    }
+    fun fieldSchema(resourceType: ResourceType): List<ResourceFieldSchema> = strategyFor(resourceType).fieldSchema()
 
     fun buildPersistenceModel(formData: ResourceFormData): MediaResource {
         val normalized = normalizeForStrategy(formData)
@@ -237,11 +197,9 @@ class ResourceEditorUseCase @Inject constructor(
             }
 
             val preparedFormData = ensureDestinationMetadata(formData)
-            // Normalize fields (trim host, fix slashes, etc.) before persisting credentials
-            // so that credential lookup keys (server, port) are canonical.
+            // Normalize fields before persisting credentials so lookup keys (server, port) are canonical.
             val normalizedFormData = normalizeForStrategy(preparedFormData)
-            // Persist network credentials (SMB/SFTP/FTP) before building the MediaResource model
-            // so that the generated or updated credentialsId is embedded in the model.
+            // Persist credentials before building the model so credentialsId is embedded.
             val formDataWithCredentials = persistNetworkCredentials(normalizedFormData)
             var model = buildPersistenceModel(formDataWithCredentials)
 
@@ -306,20 +264,21 @@ class ResourceEditorUseCase @Inject constructor(
         }
     }
 
-    private fun strategyFor(type: ResourceType): ResourceStrategy {
-        return strategies[type] ?: LocalResourceStrategy()
-    }
+    private fun strategyFor(type: ResourceType): ResourceStrategy = strategies[type] ?: LocalResourceStrategy()
+
+    private fun connectionTestResultFrom(result: Result<*>) = if (result.isSuccess)
+        ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
+    else
+        ResourceConnectionTestResult(
+            status = ResourceConnectionStatus.FAILED,
+            errorCode = ResourceErrorCode.UNREACHABLE,
+            diagnosticMessage = result.exceptionOrNull()?.message
+        )
 
     /**
-     * Saves or updates network credentials (SMB/SFTP/FTP) for the given form data and returns
-     * a copy of the form data with [ResourceFormData.credentialsId] set to the persisted ID.
-     * For LOCAL and CLOUD resource types the form data is returned unchanged.
-     *
-     * Strategy:
-     * - EDIT mode (credentialsId present): update the EXISTING credential row directly by UUID
-     *   to avoid stale records when server+share lookup would miss.
-     * - CREATE mode (no credentialsId): delegate to SmbOperationsUseCase which does
-     *   insert-or-update by server+share / type+port key.
+     * Persists network credentials (SMB/SFTP/FTP) and returns a copy with credentialsId set.
+     * EDIT mode (credentialsId present): updates in-place by UUID to avoid stale lookups.
+     * CREATE mode: delegates to SmbOperationsUseCase (insert-or-update by server+share key).
      */
     private suspend fun persistNetworkCredentials(formData: ResourceFormData): ResourceFormData {
         if (formData.type !in setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)) {
@@ -371,11 +330,7 @@ class ResourceEditorUseCase @Inject constructor(
         return if (credentialId != null) formData.copy(credentialsId = credentialId) else formData
     }
 
-    /**
-     * Updates an existing [NetworkCredentialsEntity] in-place by its UUID.
-     * If the record is not found (e.g. was deleted externally), falls back to
-     * insert-or-update path by passing null credentialsId.
-     */
+    /** Updates an existing credential in-place by UUID; falls back to insert if not found. */
     private suspend fun updateCredentialInPlace(
         formData: ResourceFormData,
         credentialId: String
@@ -450,9 +405,7 @@ class ResourceEditorUseCase @Inject constructor(
         )
     }
 
-    private fun normalizeForStrategy(formData: ResourceFormData): ResourceFormData {
-        return strategyFor(formData.type).normalizeBeforeSave(formData)
-    }
+    private fun normalizeForStrategy(formData: ResourceFormData) = strategyFor(formData.type).normalizeBeforeSave(formData)
 
     private fun buildResourcePath(formData: ResourceFormData): String {
         return when (formData.type) {
@@ -550,7 +503,6 @@ class ResourceEditorUseCase @Inject constructor(
             else -> "" to sourcePath
         }
 
-        // Load credentials from credential store
         var loadedUsername = ""
         var loadedPassword = ""
         val credentialsId = resource.credentialsId
@@ -734,13 +686,10 @@ class ResourceEditorUseCase @Inject constructor(
         return directories.size
     }
 
-    private fun normalizePath(path: String): String {
-        return path.trim().trimEnd('/').replace("\\\\", "/")
-    }
+    private fun normalizePath(path: String) = path.trim().trimEnd('/').replace("\\\\", "/")
 
     private fun extractParent(path: String): String? {
         val idx = path.lastIndexOf('/')
-        if (idx <= 0) return null
-        return path.substring(0, idx).trimEnd('/')
+        return if (idx <= 0) null else path.substring(0, idx).trimEnd('/')
     }
 }

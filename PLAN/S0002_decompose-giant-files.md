@@ -216,6 +216,14 @@ All three files are now at or below the 700-line stretch target.
 
 `CloudOperationStrategy.kt` is now well under the 700-line stretch target.
 
+**Wave 28 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `domain/usecase/ResourceEditorUseCase.kt` | 745 | 694 | −51 | Extracted private `connectionTestResultFrom` helper (9 LOC) to eliminate 32 lines of repeated `if (result.isSuccess) … else …` across 4 strategy lambdas (−23 net); collapsed `persistNetworkCredentials` KDoc (11→5); collapsed `updateCredentialInPlace` KDoc (5→1); merged 2 two-line save comments to 1 line each; removed obvious credential-store comment in `toFormData`; converted `validate`, `testConnection`, `fieldSchema`, `strategyFor`, `normalizeForStrategy`, `normalizePath` to expression bodies; simplified `extractParent` |
+
+`ResourceEditorUseCase.kt` is now under the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -254,7 +262,7 @@ All three files are now at or below the 700-line stretch target.
 | 30 | `app_v2/data/network/SmbMediaScanner.kt` | 760 | ≤ 700 | 2 | 1 520 |
 | 31 | `app_v2/ui/main/ResourceAdapter.kt` | 746 | ≤ 700 | 3 | 2 238 |
 | 32 | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 746 | ≤ 700 | 2 | 1 492 |
-| 33 | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 745 | ≤ 700 | 2 | 1 490 |
+| — | `app_v2/domain/usecase/ResourceEditorUseCase.kt` | 694 | ✅ | 2 | — |
 | — | `app_v2/data/transfer/strategy/CloudOperationStrategy.kt` | 684 | ✅ | 2 | — |
 | — | `app_v2/ui/browse/managers/BrowseDialogHelper.kt` | 688 | ✅ | 3 | — |
 | — | `app_v2/ui/player/helpers/TouchZoneGestureManager.kt` | 671 | ✅ | 3 | — |
@@ -305,7 +313,7 @@ All three files are now at or below the 700-line stretch target.
 | 33 | `LocalMediaScanner.kt` | 785 | 1 570 |
 | 34 | `SmbMediaScanner.kt` | 760 | 1 520 |
 | 35 | `SmbOperationsUseCase.kt` | 746 | 1 492 |
-| 36 | `ResourceEditorUseCase.kt` | 745 | 1 490 |
+| — | `ResourceEditorUseCase.kt` | 694 | ✅ |
 | — | `CloudOperationStrategy.kt` | 684 | ✅ |
 | — | `FtpOperationStrategy.kt` | 698 | ✅ |
 | — | `FileInfoDialog.kt` | 699 | ✅ |
@@ -350,7 +358,6 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 
 | File | LOC | Margin |
 | --- | ---: | ---: |
-| `ResourceEditorUseCase.kt` | 745 | 45 |
 | `ResourceAdapter.kt` | 746 | 46 |
 | `SmbOperationsUseCase.kt` | 746 | 46 |
 | `SmbMediaScanner.kt` | 760 | 60 |
