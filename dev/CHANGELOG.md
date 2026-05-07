@@ -6854,3 +6854,8 @@ Format: | datetime | file | target | description |
 | 2026-05-07 03:03:52 | `docs/FEATURES.md` | `S0109` | Chrome OS text input fix noted in keyboard navigation feature |
 | 2026-05-07 03:03:52 | `docs/FEATURES_RU.md` | `S0109` | Chrome OS text input fix noted (RU) |
 | 2026-05-07 03:03:53 | `docs/FEATURES_UK.md` | `S0109` | Chrome OS text input fix noted (UK) |
+| 2026-05-07 03:07:59 | `app_v2/src/main/res/layout/fragment_permissions_management.xml` | `S0101` | Add ?android:attr/colorBackground to root ConstraintLayout — fixes transparent overlay over Settings tabs |
+| 2026-05-07 03:10:23 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-check` | Audit S0109 -> Partial; PASS/WARN/FAIL 20/2/0 |
+| 2026-05-07 03:11:17 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-fix` | Annotate Last Audit (S0109): 0 auto-fixed, 2 follow-ups |
+| 2026-05-07 03:14:52 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-check` | Audit S0109 -> Verified; PASS/WARN/FAIL 22/0/0 |
+| 2026-05-07 03:16:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceKeyboardDelegate.kt` | `S0109` | Remove S0109 debug Timber tag (Verified) |

@@ -106,4 +106,4 @@
 {"id":"S0106","name":"player-image-crop","status":"Implemented","priority":50,"tier":3,"file":"PLAN/S0106_player-image-crop.md","created":"2026-05-06","updated":"2026-05-06 23:42"}
 {"id":"S0107","name":"image-draw-overlay","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0107_image-draw-overlay.md","created":"2026-05-06","updated":"2026-05-06 22:41","closed_at":"2026-05-06"}
 {"id":"S0108","name":"welcome-language-picker","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0108_welcome-language-picker.md","created":"2026-05-07","updated":"2026-05-07 01:35","closed_at":"2026-05-07"}
-{"id":"S0109","name":"bugfix-chromeos-textinput","status":"Implemented","priority":90,"file":"PLAN/S0109_bugfix-chromeos-textinput.md","created":"2026-05-07","updated":"2026-05-07 03:06"}
+{"id":"S0109","name":"bugfix-chromeos-textinput","status":"Verified","priority":90,"file":"PLAN/S0109_bugfix-chromeos-textinput.md","created":"2026-05-07","updated":"2026-05-07 03:14","closed_at":"2026-05-07"}

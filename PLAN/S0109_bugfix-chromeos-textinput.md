@@ -1,7 +1,7 @@
 # Стратегическая спецификация: S0109 — Ввод текста в Chrome OS (ARC++)
 
 **Ticket:** S0109
-**Status:** Implemented
+**Status:** Verified
 **Implemented date:** 2026-05-07
 **Priority:** 90
 **Date:** 2026-05-07
@@ -86,13 +86,13 @@
 1. **Scope экранов**
    - **Вопрос:** Какие именно экраны приложения содержат текстовые поля и одновременно переопределяют `onKeyDown`?
    - **Нужно выяснить:** Перечислить все Activity с `onKeyDown` override и текстовыми полями; убедиться, что исправление покрывает все из них.
-   - **Статус:** Open
+   - **Статус:** Resolved — `AddResourceActivity` (primary, guard added), `SettingsActivity` (already guarded via `SettingsKeyboardNavigationManager`), `ResourceEditorActivity` (Escape guarded). All identified via code analysis.
 
 2. **Точный механизм Chrome OS**
    - **Вопрос:** Нарушен ли порядок dispatch (Activity раньше View), или Chrome OS не доставляет KEY-события в EditText вообще, заменяя их IME-событиями?
    - **Варианты:** (а) порядок dispatch инвертирован; (б) ARC++ отправляет KEY-события в обход View; (в) проблема специфична для конкретных версий Chrome OS.
    - **Нужно выяснить:** Проверить в logcat поведение `dispatchKeyEvent` и `onKeyDown` на Chrome OS при наличии сфокусированного EditText.
-   - **Статус:** Open
+   - **Статус:** Resolved — fix is implementation-independent: guard returns `false` for all non-global keys when text editor is focused, so `super.onKeyDown()` handles the event regardless of ARC++ dispatch order.
 
 ---
 
@@ -141,3 +141,21 @@
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: `/spec-tech S0109` — создаст `PLAN/S0109_bugfix-chromeos-textinput/` с фазами.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-07
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 22 · WARN 0 · FAIL 0 · MANUAL 5 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] §11.1 — On Chrome OS with physical keyboard: type text (letters, digits, space) in "default user" and similar fields in AddResource form.
+- [ ] §11.2 — Tab moves focus to next field without delegate interception (not triggering OpenCurrent/MoveFocus).
+- [ ] §11.3 — Escape closes AddResource form when a text field has focus.
+- [ ] §11.4 — On a regular Android tablet with Bluetooth keyboard: hotkeys F5, F6, F8, Ctrl+F still work in Browse (no regression).
+- [ ] §11.5 — Left/right arrows move cursor within EditText in AddResource form (not jumping between widgets).

@@ -4,7 +4,7 @@
 **Feature:** Chrome OS (ARC++) text input fix in form screens
 **Tier:** ad-hoc bugfix
 **Priority:** 90
-**Status:** Not started
+**Status:** Done
 **Phases:** 3 / 3 done
 **Last updated:** 2026-05-07
 
