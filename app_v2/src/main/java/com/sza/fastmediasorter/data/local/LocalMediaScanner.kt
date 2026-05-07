@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.data.local
 
-
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -17,15 +16,9 @@ import com.sza.fastmediasorter.utils.SafHelper
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -248,14 +241,8 @@ class LocalMediaScanner @Inject constructor(
             folder.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
         }
         
-        // Filter out hidden files if showHiddenFiles is false
-        val visibleFiles = if (showHiddenFiles) {
-            Timber.d("LocalMediaScanner: Including hidden files")
-            files
-        } else {
-            Timber.d("LocalMediaScanner: Filtering hidden files")
-            files.filter { !it.isHidden }
-        }
+        if (!showHiddenFiles) Timber.d("LocalMediaScanner: Filtering hidden files")
+        val visibleFiles = if (showHiddenFiles) files else files.filter { !it.isHidden }
         
         var processed = 0
         if (path.contains("mp3", ignoreCase = true)) {
@@ -277,7 +264,6 @@ class LocalMediaScanner @Inject constructor(
             val mediaType = MediaTypeUtils.getMediaType(file.name)
             if (mediaType != null && mediaType in supportedTypes) {
                 if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(file.length(), mediaType, sizeFilter)) {
-                    // Extra debug for MP3s
                     if (mediaType == MediaType.AUDIO && file.name.endsWith(".mp3", ignoreCase = true)) {
                         Timber.d("LocalMediaScanner: Found MP3: ${file.name} (Size: ${file.length()})")
                     }
@@ -286,10 +272,7 @@ class LocalMediaScanner @Inject constructor(
                         path = file.absolutePath,
                         size = file.length(),
                         createdDate = file.lastModified(),
-                        type = mediaType,
-                        duration = null, width = null, height = null,
-                        exifOrientation = null, exifDateTime = null, exifLatitude = null, exifLongitude = null,
-                        videoCodec = null, videoBitrate = null, videoFrameRate = null, videoRotation = null
+                        type = mediaType
                     ))
                 } else {
                     if (file.name.endsWith(".mp3", ignoreCase = true)) {
@@ -410,11 +393,6 @@ class LocalMediaScanner @Inject constructor(
         }
     }
 
-    // SAF and Other methods kept as is or simplifed imports
-    // ... Copying private SAF methods from original file ...
-    // Because write_to_file overwrites, I must include EVERYTHING.
-    // I will include the SAF methods from the read output.
-
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         if (VirtualPathUtils.isVirtualPath(path)) return@withContext false
         if (path.startsWith("content://")) return@withContext isWritableSAF(path)
@@ -422,10 +400,7 @@ class LocalMediaScanner @Inject constructor(
         folder.exists() && folder.canWrite()
     }
     
-    /**
-     * List directory contents for subfolder navigation.
-     * Returns both files and folders in a single list, with folders marked as isDirectory=true.
-     */
+    /** List directory contents; returns files and folders (isDirectory=true for folders). */
     override suspend fun listDirectoryContents(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -451,18 +426,12 @@ class LocalMediaScanner @Inject constructor(
         }
         
         val children = folder.listFiles() ?: return@withContext emptyList()
-        
-        // Filter hidden files if needed
         val visibleChildren = if (showHiddenFiles) children.toList() else children.filter { !it.isHidden }
-        
+
         visibleChildren.mapNotNull { file ->
             if (file.isDirectory) {
                 // Skip .trash directories
                 if (file.name.startsWith(".trash")) return@mapNotNull null
-                
-                // Count children in this folder (for display)
-                val childCount = file.listFiles()?.size ?: 0
-                
                 MediaFile(
                     name = file.name,
                     path = file.absolutePath,
@@ -470,14 +439,12 @@ class LocalMediaScanner @Inject constructor(
                     createdDate = file.lastModified(),
                     type = MediaType.IMAGE, // Placeholder type for folders
                     isDirectory = true,
-                    childCount = childCount
+                    childCount = file.listFiles()?.size ?: 0
                 )
             } else {
-                // Regular file
                 val mediaType = MediaTypeUtils.getMediaType(file.name) ?: return@mapNotNull null
                 if (mediaType !in supportedTypes) return@mapNotNull null
                 if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(file.length(), mediaType, sizeFilter)) return@mapNotNull null
-                
                 MediaFile(
                     name = file.name,
                     path = file.absolutePath,
@@ -487,11 +454,7 @@ class LocalMediaScanner @Inject constructor(
                     isDirectory = false
                 )
             }
-        }.sortedWith(
-            // Sort: folders first, then by name
-            compareBy<MediaFile> { !it.isDirectory }
-                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
-        )
+        }.sortedWith(compareBy<MediaFile> { !it.isDirectory }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name })
     }
     
     private suspend fun listDirectoryContentsSAF(
@@ -502,8 +465,7 @@ class LocalMediaScanner @Inject constructor(
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             val uri = SafHelper.parseUri(uriString)
-            val hasPermission = context.contentResolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }
-            if (!hasPermission) return@withContext emptyList()
+            if (context.contentResolver.persistedUriPermissions.none { it.uri == uri && it.isReadPermission }) return@withContext emptyList()
             
             val folder = DocumentFile.fromTreeUri(context, uri) ?: return@withContext emptyList()
             if (!folder.exists() || !folder.isDirectory) return@withContext emptyList()
@@ -513,13 +475,9 @@ class LocalMediaScanner @Inject constructor(
             
             visibleChildren.mapNotNull { file ->
                 val name = file.name ?: return@mapNotNull null
-                
                 if (file.isDirectory) {
                     // Skip .trash directories
                     if (name.startsWith(".trash")) return@mapNotNull null
-                    
-                    val childCount = file.listFiles().size
-                    
                     MediaFile(
                         name = name,
                         path = file.uri.toString(),
@@ -527,7 +485,7 @@ class LocalMediaScanner @Inject constructor(
                         createdDate = file.lastModified(),
                         type = MediaType.IMAGE, // Placeholder type for folders
                         isDirectory = true,
-                        childCount = childCount
+                        childCount = file.listFiles().size
                     )
                 } else {
                     val mime = file.type
@@ -544,23 +502,14 @@ class LocalMediaScanner @Inject constructor(
                         isDirectory = false
                     )
                 }
-            }.sortedWith(
-                compareBy<MediaFile> { !it.isDirectory }
-                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
-            )
+            }.sortedWith(compareBy<MediaFile> { !it.isDirectory }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name })
         } catch (e: Exception) {
             Timber.e(e, "Error listing SAF directory contents")
             emptyList()
         }
     }
 
-    /**
-     * Fast SAF folder scanning using ContentResolver cursor instead of DocumentFile.
-     * This is 10-20x faster than DocumentFile.listFiles() because it uses a single 
-     * database query instead of individual file operations.
-     * 
-     * Falls back to slow DocumentFile scanning if cursor-based approach fails.
-     */
+    /** Fast SAF scan via cursor query (10-20× faster than DocumentFile.listFiles); falls back on failure. */
     private suspend fun scanFolderSAFFast(
         uriString: String,
         supportedTypes: Set<MediaType>,
@@ -572,10 +521,7 @@ class LocalMediaScanner @Inject constructor(
         val startTime = System.currentTimeMillis()
         try {
             val treeUri = SafHelper.parseUri(uriString)
-            val hasPermission = context.contentResolver.persistedUriPermissions.any { 
-                it.uri == treeUri && it.isReadPermission 
-            }
-            if (!hasPermission) {
+            if (context.contentResolver.persistedUriPermissions.none { it.uri == treeUri && it.isReadPermission }) {
                 Timber.w("LocalMediaScanner.scanFolderSAFFast: No permission for $uriString")
                 return@withContext emptyList()
             }
@@ -625,43 +571,30 @@ class LocalMediaScanner @Inject constructor(
                         val size = cursor.getLong(sizeIndex)
                         val lastModified = cursor.getLong(modifiedIndex)
                         
-                        // Skip hidden files if needed
                         if (!showHiddenFiles && name.startsWith(".")) continue
-                        
-                        // Check if it's a directory
                         val isDirectory = mime == DocumentsContract.Document.MIME_TYPE_DIR
-                        
+
                         if (isDirectory) {
                             // Skip .trash directories
                             if (name.startsWith(".trash")) continue
-                            
                             if (scanSubdirectories) {
                                 val subFolderUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, docId)
                                 foldersToScan.add(subFolderUri)
                             }
                         } else {
-                            // Regular file - check type and filter
                             val mediaType = MediaTypeUtils.getMediaTypeFromMimeOrExtension(mime, name)
                             if (mediaType != null && mediaType in supportedTypes) {
                                 if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(size, mediaType, sizeFilter)) {
                                     if (mediaType == MediaType.AUDIO && name.endsWith(".mp3", ignoreCase = true)) {
                                         Timber.d("LocalMediaScanner: (SAF Fast) Found MP3: $name")
                                     }
-                                    val documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
-                                    results.add(
-                                        MediaFile(
-                                            name = name,
-                                            path = documentUri.toString(),
-                                            size = size,
-                                            createdDate = lastModified,
-                                            type = mediaType,
-                                            duration = null, width = null, height = null,
-                                            exifOrientation = null, exifDateTime = null, 
-                                            exifLatitude = null, exifLongitude = null,
-                                            videoCodec = null, videoBitrate = null, 
-                                            videoFrameRate = null, videoRotation = null
-                                        )
-                                    )
+                                    results.add(MediaFile(
+                                        name = name,
+                                        path = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId).toString(),
+                                        size = size,
+                                        createdDate = lastModified,
+                                        type = mediaType
+                                    ))
                                     
                                     processedCount++
                                     if (processedCount % 50 == 0) {
@@ -694,21 +627,17 @@ class LocalMediaScanner @Inject constructor(
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             val uri = SafHelper.parseUri(uriString)
-            val hasPermission = context.contentResolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }
-            if (!hasPermission) return@withContext emptyList()
-            
+            if (context.contentResolver.persistedUriPermissions.none { it.uri == uri && it.isReadPermission }) return@withContext emptyList()
+
             val folder = DocumentFile.fromTreeUri(context, uri) ?: return@withContext emptyList()
             if (!folder.exists() || !folder.isDirectory) return@withContext emptyList()
-            
+
             val files = if (scanSubdirectories) collectDocumentFilesRecursivelyParallel(folder) else folder.listFiles().filter { it.isFile }
-            
+
             var processedCount = 0
             files.mapNotNull { file ->
-                 processedCount++
-                 if (processedCount % 10 == 0) {
-                     onProgress?.onProgress(processedCount, file.name)
-                 }
-                 
+                 if (++processedCount % 10 == 0) onProgress?.onProgress(processedCount, file.name)
+
                  val mime = file.type
                  val type = MediaTypeUtils.getMediaTypeFromMimeOrExtension(mime, file.name ?: "")
                  if (type != null && type in supportedTypes) {
@@ -718,10 +647,7 @@ class LocalMediaScanner @Inject constructor(
                              path = file.uri.toString(),
                              size = file.length(),
                              createdDate = file.lastModified(),
-                             type = type,
-                             duration = null, width = null, height = null,
-                             exifOrientation = null, exifDateTime = null, exifLatitude = null, exifLongitude = null,
-                             videoCodec = null, videoBitrate = null, videoFrameRate = null, videoRotation = null
+                             type = type
                          )
                      } else null
                  } else null
@@ -732,7 +658,6 @@ class LocalMediaScanner @Inject constructor(
         }
     }
     
-    // ... Repeated helper methods ...
     private suspend fun getFileCountSAF(uriString: String, supportedTypes: Set<MediaType>, sizeFilter: SizeFilter?, scanSubdirectories: Boolean = false): Int {
          return scanFolderSAF(uriString, supportedTypes, sizeFilter, scanSubdirectories, null).size
     }
@@ -743,31 +668,18 @@ class LocalMediaScanner @Inject constructor(
          return folder != null && folder.exists() && folder.canWrite()
     }
 
-    private suspend fun collectDocumentFilesRecursivelyParallel(folder: DocumentFile): List<DocumentFile> = coroutineScope {
-         // Using simplified sequential for stability in rewrite unless I copy-paste exact logic
-         // I'll copy exact logic from pervious view_file
-         // val parallelism = 4
-         // val semaphore = Semaphore(parallelism)
-         // val allFiles = java.util.Collections.synchronizedList(mutableListOf<DocumentFile>())
-         val foldersQueue = java.util.concurrent.ConcurrentLinkedQueue<DocumentFile>()
-         foldersQueue.add(folder)
-         
-         // BFS discovery then parallel scan
-         // For brevity, using sequential fallback here as the original code was complex and I don't want to break imports
-         // actually I'll use the original logic if I can fit it.
-         
-         // Let's use sequential for safety in this refactor to ensure correctness first
-         val result = mutableListOf<DocumentFile>()
-         val queue = ArrayDeque<DocumentFile>()
-         queue.add(folder)
-         while(queue.isNotEmpty()) {
-             val curr = queue.removeFirst()
-             curr.listFiles().forEach { 
-                 if (it.isDirectory && it.name?.startsWith(".trash") != true) queue.add(it)
-                 else if (it.isFile) result.add(it)
-             }
-         }
-         result
+    private fun collectDocumentFilesRecursivelyParallel(folder: DocumentFile): List<DocumentFile> {
+        val result = mutableListOf<DocumentFile>()
+        val queue = ArrayDeque<DocumentFile>()
+        queue.add(folder)
+        while (queue.isNotEmpty()) {
+            val curr = queue.removeFirst()
+            curr.listFiles().forEach {
+                if (it.isDirectory && it.name?.startsWith(".trash") != true) queue.add(it)
+                else if (it.isFile) result.add(it)
+            }
+        }
+        return result
     }
     
     private fun collectFilesRecursively(folder: File): List<File> {

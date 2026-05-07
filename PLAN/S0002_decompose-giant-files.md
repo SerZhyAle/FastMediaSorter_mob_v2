@@ -248,6 +248,14 @@ All three files are now at or below the 700-line stretch target.
 
 `SmbMediaScanner.kt` is now well under the 700-line stretch target.
 
+**Wave 32 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/local/LocalMediaScanner.kt` | 785 | 698 | −87 | Removed 6 unused imports (`async`, `awaitAll`, `coroutineScope`, `Semaphore`, `withPermit`, `ConcurrentLinkedQueue`); collapsed `listDirectoryContents` KDoc (4→1); collapsed `scanFolderSAFFast` KDoc (7→1); removed 3 stale writer-note blocks (~19 lines: SAF rewrite note, `// … Repeated helper methods …`, dead `foldersQueue` code + surrounding comments); refactored `collectDocumentFilesRecursivelyParallel` from `suspend` + `coroutineScope` to plain `fun` (removed dead parallel-BFS scaffold + stale comments, 25→11 lines); removed null fields from 3 `MediaFile` constructions (`scanFolderLegacy`, `scanFolderSAFFast`, `scanFolderSAF`); inlined `hasPermission` checks in `scanFolderSAFFast` (4→2) and `scanFolderSAF` (2→1); compressed `processedCount` bump/report block (3→1); removed `// Filter hidden files if needed` + blank in `scanFolderLegacy` (inlined to 2 lines); inlined `childCount` into `MediaFile` in `listDirectoryContentsSAF` (−3 lines); compressed `sortedWith` in `listDirectoryContentsSAF` (3→1); cleaned cursor loop comments in `scanFolderSAFFast` |
+
+`LocalMediaScanner.kt` is now at the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -282,7 +290,7 @@ All three files are now at or below the 700-line stretch target.
 | 26 | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 826 | ≤ 700 | 2 | 1 652 |
 | 27 | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 824 | ≤ 700 | 3 | 2 472 |
 | 28 | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 804 | ≤ 700 | 2 | 1 608 |
-| 29 | `app_v2/data/local/LocalMediaScanner.kt` | 785 | ≤ 700 | 2 | 1 570 |
+| — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
 | — | `app_v2/data/network/SmbMediaScanner.kt` | 679 | ✅ | 2 | — |
 | — | `app_v2/domain/usecase/SmbOperationsUseCase.kt` | 685 | ✅ | 2 | — |
 | — | `app_v2/ui/main/ResourceAdapter.kt` | 693 | ✅ | 3 | — |
