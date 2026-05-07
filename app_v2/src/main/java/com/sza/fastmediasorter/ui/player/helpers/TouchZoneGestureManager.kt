@@ -315,58 +315,10 @@ class TouchZoneGestureManager(
             }
         }
         
-        // DISABLED: onFling conflicts with onSingleTapConfirmed
-        // GestureDetector cannot reliably distinguish between quick tap and slow swipe.
-        // Even slight finger movement during tap triggers onFling, preventing onSingleTapConfirmed.
-        // For images: use tap zones only (no swipe navigation)
-        // For PDF: use PhotoView.setOnSingleFlingListener (see PlayerGestureSetupManager)
-        /*
-        override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-            val currentFile = viewModel.state.value.currentFile
-            val isFullscreen = !viewModel.state.value.showCommandPanel
-            
-            // Get zone map for current media type and mode
-            val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen)
-            val config = TouchZoneConfig.getConfiguration(zoneMap)
-            
-            // Check if image is zoomed - don't navigate if panning
-            if (isAnyPhotoViewVisible() && getCurrentPhotoViewScale() > 1.05f) {
-                Timber.d("SWIPE: Image zoomed, allowing PhotoView pan")
-                return false
-            }
-            
-            // For REG-3100, ignore swipes that start in middle zone (PhotoView handles)
-            if (config.ignoreMiddleZoneSwipes) {
-                if (touchZoneDetector.shouldIgnoreSwipe(swipeStartX, binding.root.width, zoneMap)) {
-                    Timber.d("SWIPE: Started in middle zone, letting PhotoView handle")
-                    return false
-                }
-            }
-            
-            // Detect swipe direction
-            val minSwipeVelocity = 100f
-            val absVelocityX = kotlin.math.abs(velocityX)
-            val absVelocityY = kotlin.math.abs(velocityY)
-            
-            val direction: SwipeDirection? = when {
-                absVelocityX > absVelocityY && absVelocityX > minSwipeVelocity -> {
-                    if (velocityX > 0) SwipeDirection.RIGHT else SwipeDirection.LEFT
-                }
-                absVelocityY > absVelocityX && absVelocityY > minSwipeVelocity -> {
-                    if (velocityY > 0) SwipeDirection.DOWN else SwipeDirection.UP
-                }
-                else -> null
-            }
-            
-            if (direction == null) return false
-            
-            // Get action for this swipe direction in current zone map
-            val action = TouchZoneConfig.getSwipeAction(zoneMap, direction)
-            Timber.d("SWIPE: $direction in $zoneMap → $action")
-            
-            return executeSwipeAction(action)
-        }
-        */
+        // onFling not overridden: conflicts with onSingleTapConfirmed — GestureDetector
+        // cannot distinguish quick tap from slow swipe (any finger movement triggers
+        // onFling, suppressing onSingleTapConfirmed). Images use tap zones only;
+        // PDF uses PhotoView.setOnSingleFlingListener (see PlayerGestureSetupManager).
         })
     }
     

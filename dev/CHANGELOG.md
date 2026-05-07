@@ -6860,3 +6860,4 @@ Format: | datetime | file | target | description |
 | 2026-05-07 03:14:52 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-check` | Audit S0109 -> Verified; PASS/WARN/FAIL 22/0/0 |
 | 2026-05-07 03:16:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceKeyboardDelegate.kt` | `S0109` | Remove S0109 debug Timber tag (Verified) |
 | 2026-05-07 10:21:32 | `PLAN/S0002_decompose-giant-files.md` | `S0002` | Wave 23 + Wave 24: recorded FileInfoDialog decomposition; refreshed LOC tables; cleanup SftpOperationStrategy/FtpOperationStrategy/FileInfoDialog to ≤700 |
+| 2026-05-07 11:42:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TouchZoneGestureManager.kt` | `TouchZoneGestureManager` | Wave 25: remove 47-line commented-out onFling dead-code block; 719→671 LOC |
