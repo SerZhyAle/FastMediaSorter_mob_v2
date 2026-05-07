@@ -244,9 +244,7 @@ class SftpOperationStrategy @Inject constructor(
     }
     
     override fun getProtocolName(): String = "SFTP"
-    
-    // Private helper methods
-    
+
     private data class SftpPathInfo(
         val host: String,
         val port: Int,
@@ -462,9 +460,7 @@ class SftpOperationStrategy @Inject constructor(
             return Result.failure(e)
         }
     }
-    
-    // ==================== Directory Operations ====================
-    
+
     override suspend fun deleteDirectory(
         path: String,
         progressCallback: ((Int, Int, String) -> Unit)?

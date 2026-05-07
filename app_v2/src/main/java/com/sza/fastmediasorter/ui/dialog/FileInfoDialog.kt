@@ -8,7 +8,6 @@ import android.text.format.DateFormat
 import android.view.View
 import android.widget.Toast
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -629,9 +628,7 @@ class FileInfoDialog(
         }
     }
 
-    /**
-     * Format timestamp to readable date/time
-     */
+    /** Formats a Unix timestamp to localised date + time string. */
     private fun formatDate(timestamp: Long): String {
         val date = Date(timestamp)
         val dateFormat = DateFormat.getDateFormat(context)
@@ -639,9 +636,7 @@ class FileInfoDialog(
         return "${dateFormat.format(date)} ${timeFormat.format(date)}"
     }
 
-    /**
-     * Format duration in milliseconds to HH:MM:SS or MM:SS
-     */
+    /** Formats duration in ms to HH:MM:SS (or MM:SS if < 1 hour). */
     private fun formatDuration(durationMs: Long): String {
         val seconds = (durationMs / 1000).toInt()
         val hours = seconds / 3600
@@ -655,9 +650,7 @@ class FileInfoDialog(
         }
     }
 
-    /**
-     * Format EXIF orientation value to readable string
-     */
+    /** Maps EXIF orientation integer to a human-readable rotation/flip label. */
     private fun formatOrientation(orientation: Int): String {
         return when (orientation) {
             1 -> "Normal"

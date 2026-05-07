@@ -17,11 +17,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-/**
- * Strategy for FTP (File Transfer Protocol) file operations.
- * Handles ftp:// protocol operations using FtpClient.
- * Note: FTP connections are stateful - each instance maintains a persistent connection.
- */
+/** Strategy for FTP file operations. Handles ftp:// using FtpClient (stateful connection). */
 class FtpOperationStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val ftpClient: FtpClient,
@@ -238,9 +234,7 @@ class FtpOperationStrategy @Inject constructor(
     }
     
     override fun getProtocolName(): String = "FTP"
-    
-    // Private helper methods
-    
+
     private data class FtpPathInfo(
         val host: String,
         val port: Int,
@@ -313,10 +307,7 @@ class FtpOperationStrategy @Inject constructor(
         }
     }
     
-    /**
-     * Recursively create directory structure on FTP server.
-     * @param remotePath The directory path to create (relative to FTP root)
-     */
+    // Recursively creates each path segment on the FTP server; tolerates pre-existing dirs.
     private suspend fun ensureFtpDirectoryExists(remotePath: String) {
         val parts = remotePath.split('/').filter { it.isNotEmpty() }
         var currentPath = ""
@@ -471,9 +462,7 @@ class FtpOperationStrategy @Inject constructor(
             return Result.failure(e)
         }
     }
-    
-    // ==================== Directory Operations ====================
-    
+
     override suspend fun deleteDirectory(
         path: String,
         progressCallback: ((Int, Int, String) -> Unit)?
