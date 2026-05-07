@@ -296,6 +296,14 @@ All three files are now at or below the 700-line stretch target.
 
 `SettingsRepositoryImpl.kt` is now well under the 700-line stretch target.
 
+**Wave 38 result:**
+
+| File | Before | After | Δ | What changed |
+| ---- | ---: | ---: | ---: | --- |
+| `data/cloud/OneDriveRestClient.kt` | 900 | 700 | −200 | Collapsed class KDoc (17→1); removed dead `@Keep` import + dead private `serializeAccount`/`deserializeAccount` methods; compressed `resolveOrEnsureFolder` (19→8 lines, removed 6-line heuristic comment block); refactored `findFolderByName` (30→11, expression body + when compression) + `ensureFolderExists` (47→26, removed KDoc + compressed nested when with `.also`); compressed 4 endpoint `if/else` to `?.let ?: ""` (3→2 lines each); compressed `JSONObject().apply` blocks in `renameFile`/`moveFile`/`copyFile` to chained `.put()` (3→1 line each); removed verbose Timber.d in `getFileMetadata`/`downloadFile`/`deleteFile`/`renameFile` (dead actualFileId vars removed); refactored `getFileInputStream` (57→30 lines: expression body, removed dead `actualFileId`, removed 4 Timber.d, compressed Range header); expression bodies for `testConnection`/`listFolders`/`getFileMetadata`/`deleteFile`/`renameFile`/`moveFile`/`fileExists`/`searchFiles`; compressed `getThumbnail` when-block (remove duplicate `size <= 800 → "large"` branch); compressed `downloadFile` guard clause (5→1 line) |
+
+`OneDriveRestClient.kt` is now at the 700-line stretch target.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
@@ -324,7 +332,6 @@ All three files are now at or below the 700-line stretch target.
 | 20 | `app_v2/data/transfer/BaseFileOperationHandler.kt` | 939 | ≤ 700 | 3 | 2 817 |
 | 21 | `app_v2/data/network/FtpFileOperationHandler.kt` | 938 | ≤ 700 | 3 | 2 814 |
 | 22 | `app_v2/ui/browse/managers/BrowseManagerInitializer.kt` | 912 | ≤ 700 | 3 | 2 736 |
-| 23 | `app_v2/data/cloud/OneDriveRestClient.kt` | 900 | ≤ 700 | 2 | 1 800 |
 | — | `app_v2/ui/browse/PagingMediaFileAdapter.kt` | 663 | ✅ | 3 | — |
 | — | `app_v2/domain/usecase/SearchLyricsUseCase.kt` | 658 | ✅ | 2 | — |
 | — | `app_v2/data/local/LocalMediaScanner.kt` | 698 | ✅ | 2 | — |
@@ -341,6 +348,7 @@ All three files are now at or below the 700-line stretch target.
 | — | `app_v2/data/network/glide/NetworkFileModelLoader.kt` | 693 | ✅ | 2 | — |
 | — | `app_v2/data/transfer/strategy/SmbOperationStrategy.kt` | 667 | ✅ | 2 | — |
 | — | `app_v2/data/repository/SettingsRepositoryImpl.kt` | 666 | ✅ | 2 | — |
+| — | `app_v2/data/cloud/OneDriveRestClient.kt` | 700 | ✅ | 2 | — |
 | — | `app_v2/data/remote/ftp/FtpClient.kt` | 289 | ✅ | 2 | — |
 
 ---
@@ -376,7 +384,7 @@ All three files are now at or below the 700-line stretch target.
 | 25 | `FileInfoDialog.kt` | 706 | 2 118 |
 | 26 | `DropboxClient.kt` | 983 | 1 966 |
 | 27 | `SmbClient.kt` | 955 | 1 910 |
-| 28 | `OneDriveRestClient.kt` | 900 | 1 800 |
+| — | `OneDriveRestClient.kt` | 700 | ✅ |
 | 29 | `SettingsRepositoryImpl.kt` | 845 | 1 690 |
 | 30 | `SmbOperationStrategy.kt` | 832 | 1 664 |
 | 31 | `NetworkFileModelLoader.kt` | 826 | 1 652 |
@@ -435,7 +443,6 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 | `NetworkFileModelLoader.kt` | 826 | 126 |
 | `SmbOperationStrategy.kt` | 832 | 132 |
 | `SettingsRepositoryImpl.kt` | 845 | 145 |
-| `OneDriveRestClient.kt` | 900 | 200 |
 | `BrowseManagerInitializer.kt` | 912 | 212 |
 | `FtpFileOperationHandler.kt` | 938 | 238 |
 | `BaseFileOperationHandler.kt` | 939 | 239 |
