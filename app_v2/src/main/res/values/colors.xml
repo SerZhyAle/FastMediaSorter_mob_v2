@@ -178,6 +178,8 @@
     <color name="success_green">@color/success_color</color>
     <color name="error_red">@color/error_color</color>
     <color name="recording_active_tint">#E53935</color>
+    <!-- TV launcher banner background (dark navy) — used by res/drawable/tv_banner.xml -->
+    <color name="tv_banner_bg">#1A1A2E</color>
 </resources>
 
 

@@ -3,8 +3,11 @@ package com.sza.fastmediasorter.wear.ui.browse
 import android.webkit.MimeTypeMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
+import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -31,6 +34,8 @@ class BrowseViewModel @Inject constructor(
     private val mediaRepository: WearMediaRepository,
     private val preferencesRepository: WearPreferencesRepository,
     private val smbDataSource: SmbDataSource,
+    private val ftpDataSource: FtpDataSource,
+    private val sftpDataSource: SftpDataSource,
     private val networkSourceRepository: NetworkSourceRepository,
     private val selectedMediaManager: SelectedMediaManager
 ) : ViewModel() {
@@ -124,66 +129,54 @@ class BrowseViewModel @Inject constructor(
                     return@withContext
                 }
                 
-                Timber.d("Connecting to SMB source: ${source.server}")
-                
-                // Connect to SMB with saved credentials
-                val connectResult = smbDataSource.connect(source)
-                if (connectResult.isFailure) {
-                    val error = connectResult.exceptionOrNull()?.message ?: "Connection failed"
-                    Timber.e("Failed to connect to SMB: $error")
-                    withContext(Dispatchers.Main) {
-                        _uiState.value = BrowseUiState.Error("Connection failed: $error")
-                    }
-                    return@withContext
-                }
-                
-                Timber.d("Connected to SMB, listing files...")
-                
-                // Current directory path relative to share root
                 val currentPath = "/"
-                
-                val result = smbDataSource.listFiles(currentPath)
-                result.fold(
-                    onSuccess = { fileNames ->
-                        // Convert file names to WearMediaFile objects and filter by media type
-                        // Build full path by combining currentPath with fileName
-                        val mediaFiles = fileNames
-                            .mapIndexed { index, fileName -> 
-                                // Build full path relative to share root
-                                val fullPath = if (currentPath == "/" || currentPath.isEmpty()) {
-                                    fileName
-                                } else {
-                                    "${currentPath.trimEnd('/')}/$fileName"
-                                }
-                                WearMediaFile(
-                                    id = index.toLong(),
-                                    name = fileName,
-                                    uri = android.net.Uri.parse(fullPath),
-                                    mimeType = getMimeTypeFromFileName(fileName),
-                                    size = 0,
-                                    dateModified = 0,
-                                    duration = 0
-                                ) 
+                Timber.d("Connecting to ${source.type} source: ${source.server}")
+
+                val mediaFiles: List<WearMediaFile> = when (source.type) {
+                    NetworkSourceType.SMB -> {
+                        val connectResult = smbDataSource.connect(source)
+                        if (connectResult.isFailure) {
+                            val error = connectResult.exceptionOrNull()?.message ?: "Connection failed"
+                            Timber.e("Failed to connect to SMB: $error")
+                            withContext(Dispatchers.Main) {
+                                _uiState.value = BrowseUiState.Error("Connection failed: $error")
                             }
-                            .filter { file -> isSupportedMediaFile(file.mimeType) }
-                        
-                        Timber.d("Loaded ${mediaFiles.size} media files from SMB")
-                        
-                        withContext(Dispatchers.Main) {
-                            _uiState.value = if (mediaFiles.isEmpty()) {
-                                BrowseUiState.Empty("No media files found")
-                            } else {
-                                BrowseUiState.Success(mediaFiles)
-                            }
+                            return@withContext
                         }
-                    },
-                    onFailure = { e ->
-                        Timber.e(e, "Error loading network media files")
-                        withContext(Dispatchers.Main) {
-                            _uiState.value = BrowseUiState.Error(e.message ?: "Failed to load network files")
+                        val result = smbDataSource.listFiles(currentPath)
+                        if (result.isFailure) {
+                            error(result.exceptionOrNull()?.message ?: "SMB list failed")
+                        }
+                        result.getOrDefault(emptyList()).mapIndexed { index, fileName ->
+                            val fullPath = if (currentPath == "/" || currentPath.isEmpty()) {
+                                fileName
+                            } else {
+                                "${currentPath.trimEnd('/')}/$fileName"
+                            }
+                            WearMediaFile(
+                                id = index.toLong(),
+                                name = fileName,
+                                uri = android.net.Uri.parse(fullPath),
+                                mimeType = getMimeTypeFromFileName(fileName),
+                                size = 0,
+                                dateModified = 0,
+                                duration = 0
+                            )
                         }
                     }
-                )
+                    NetworkSourceType.FTP -> ftpDataSource.listDirectory(source, currentPath)
+                    NetworkSourceType.SFTP -> sftpDataSource.listDirectory(source, currentPath)
+                    NetworkSourceType.GOOGLE_DRIVE -> error("Google Drive not supported on Wear")
+                }.filter { isSupportedMediaFile(it.mimeType) }
+
+                Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
+                withContext(Dispatchers.Main) {
+                    _uiState.value = if (mediaFiles.isEmpty()) {
+                        BrowseUiState.Empty("No media files found")
+                    } else {
+                        BrowseUiState.Success(mediaFiles)
+                    }
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Exception loading network files")
                 withContext(Dispatchers.Main) {

@@ -8,11 +8,16 @@ import androidx.core.content.getSystemService
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
+import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
+import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
+import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -32,19 +37,60 @@ private const val PATH_ACK  = "/fms/network_sources/ack"
 class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var importNetworkSourcesUseCase: ImportNetworkSourcesUseCase
+    @Inject lateinit var applyWearSettingsUseCase: ApplyWearSettingsUseCase
     @Inject lateinit var gson: Gson
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onDataChanged(events: DataEventBuffer) {
         for (event in events) {
-            if (event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path == PATH_PUSH) {
-                val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
-                val payloadBytes = dataMap.getByteArray("payload") ?: continue
-                handlePush(payloadBytes, event.dataItem.uri.host ?: "")
+            if (event.type != DataEvent.TYPE_CHANGED) continue
+            val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
+            when (event.dataItem.uri.path) {
+                PATH_PUSH -> {
+                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
+                    handlePush(payloadBytes, event.dataItem.uri.host ?: "")
+                }
+                WearDataLayerPaths.SETTINGS_PUSH -> {
+                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
+                    handleSettingsPush(payloadBytes)
+                }
             }
         }
         events.release()
+    }
+
+    override fun onMessageReceived(event: MessageEvent) {
+        when (event.path) {
+            WearDataLayerPaths.PLAYBACK_CMD -> handlePlaybackCommand(event.data)
+            else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
+        }
+    }
+
+    private fun handleSettingsPush(payloadBytes: ByteArray) {
+        serviceScope.launch {
+            try {
+                val envelope = gson.fromJson(payloadBytes.decodeToString(), WearEventEnvelope::class.java)
+                val payload = gson.fromJson(envelope.data.decodeToString(), WearSettingsPayload::class.java)
+                applyWearSettingsUseCase(payload)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to apply settings push")
+                WatchSyncEvents.settingsErrorFlow.emit(e.message ?: "Settings apply failed")
+            }
+        }
+    }
+
+    private fun handlePlaybackCommand(data: ByteArray) {
+        serviceScope.launch {
+            try {
+                val envelope = gson.fromJson(data.decodeToString(), WearEventEnvelope::class.java)
+                val commandName = gson.fromJson(envelope.data.decodeToString(), String::class.java)
+                val command = WearPlaybackCommand.valueOf(commandName)
+                WatchPlaybackCommandEvents.commandFlow.emit(command)
+            } catch (e: Exception) {
+                Timber.e(e, "S0111: Failed to deserialize playback command")
+            }
+        }
     }
 
     private fun handlePush(payloadBytes: ByteArray, senderNodeId: String) {
@@ -94,6 +140,12 @@ class WatchWearListenerService : WearableListenerService() {
 
 /** Process-wide event bus for sync results on the watch. */
 object WatchSyncEvents {
-    val importResultFlow = MutableSharedFlow<ImportResult>(extraBufferCapacity = 1)
-    val importErrorFlow  = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val importResultFlow  = MutableSharedFlow<ImportResult>(extraBufferCapacity = 1)
+    val importErrorFlow   = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val settingsErrorFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
+}
+
+/** Process-wide event bus for remote playback commands received from the phone. */
+object WatchPlaybackCommandEvents {
+    val commandFlow = MutableSharedFlow<WearPlaybackCommand>(extraBufferCapacity = 4)
 }

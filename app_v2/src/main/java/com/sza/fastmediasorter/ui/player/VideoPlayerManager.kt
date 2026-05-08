@@ -377,6 +377,15 @@ class VideoPlayerManager(
                 return
             }
 
+            // Suppress recoverable SFTP IO errors while ExoPlayer is still in retry state (S0113)
+            val isSftpIoError = error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED &&
+                generateSequence<Throwable>(error) { it.cause }
+                    .any { it is java.io.IOException && it.message?.contains("SFTP", ignoreCase = true) == true }
+            if (isSftpIoError && exoPlayer?.playbackState != Player.STATE_IDLE) {
+                Timber.w("VideoPlayerManager: suppressing SFTP IO error toast — player not idle (will retry)")
+                return
+            }
+
             val isEOFException = error.cause is java.io.EOFException ||
                 error.cause?.cause is java.io.EOFException
             val isMediaCodecError = error.errorCode >= 4000 && error.errorCode < 5000

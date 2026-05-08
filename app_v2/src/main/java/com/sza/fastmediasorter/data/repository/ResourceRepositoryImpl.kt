@@ -485,7 +485,8 @@ class ResourceRepositoryImpl @Inject constructor(
             writeSpeedMbps = writeSpeedMbps,
             recommendedThreads = recommendedThreads,
             lastSpeedTestDate = lastSpeedTestDate,
-            iconId = iconId
+            iconId = iconId,
+            hostKeyFingerprint = hostKeyFingerprint
         )
     }
 
@@ -540,7 +541,8 @@ class ResourceRepositoryImpl @Inject constructor(
             writeSpeedMbps = writeSpeedMbps,
             recommendedThreads = recommendedThreads,
             lastSpeedTestDate = lastSpeedTestDate,
-            iconId = iconId
+            iconId = iconId,
+            hostKeyFingerprint = hostKeyFingerprint
         )
     }
 }

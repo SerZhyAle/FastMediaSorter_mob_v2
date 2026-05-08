@@ -2688,6 +2688,25 @@
     <string name="wear_sync_ready">Готово к синхронизации</string>
     <string name="wear_sync_sending">Отправка на часы…</string>
     <string name="wear_sync_success">Отправлено %d источников на часы</string>
+    <string name="wear_settings_section_title">Настройки часов</string>
+    <string name="wear_settings_audio">Аудио</string>
+    <string name="wear_settings_video">Видео</string>
+    <string name="wear_settings_images">Изображения</string>
+    <string name="wear_settings_slideshow">Слайдшоу</string>
+    <string name="wear_settings_album_art">Обложки альбомов</string>
+    <string name="wear_settings_slideshow_interval">Интервал слайдшоу (сек)</string>
+    <string name="wear_push_settings">Отправить настройки часам</string>
+
+    <!-- Import from Watch strings (S0111 Phase 03) -->
+    <string name="wear_import_pending_title">Получены источники часов</string>
+    <string name="wear_import_pending_desc">%1$d источников от %2$s</string>
+    <string name="wear_import_accept">Импортировать</string>
+    <string name="wear_import_dismiss">Отклонить</string>
+    <!-- Now Playing on Watch strings (S0111 Phase 05) -->
+    <string name="wear_now_playing_title">Сейчас на часах</string>
+    <string name="wear_playback_play_pause">Воспр. / Пауза</string>
+    <string name="wear_playback_next">Следующий</string>
+    <string name="wear_playback_previous">Предыдущий</string>
 
     <!-- 3D видео / Режим стерео (v2.63) -->
     <string name="playback_settings_3d_tab">3D</string>

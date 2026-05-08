@@ -9,11 +9,17 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
+import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -44,12 +50,18 @@ class AudioPlayerViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val smbDataSource: SmbDataSource,
     private val exoPlayer: ExoPlayer,
+    private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
+    private val favoritesRepository: WearFavoritesRepository,
+    private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(AudioPlayerUiState())
     val uiState: StateFlow<AudioPlayerUiState> = _uiState.asStateFlow()
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
     
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
     
@@ -63,21 +75,24 @@ class AudioPlayerViewModel @Inject constructor(
             } else {
                 stopProgressUpdates()
             }
+            publishPlaybackState()
         }
-        
+
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
                 Player.STATE_READY -> {
-                    _uiState.update { 
+                    _uiState.update {
                         it.copy(
                             isLoading = false,
                             durationMs = exoPlayer.duration.coerceAtLeast(0)
-                        ) 
+                        )
                     }
+                    publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
                     _uiState.update { it.copy(isPlaying = false, currentPositionMs = 0) }
                     exoPlayer.seekTo(0)
+                    publishPlaybackState()
                 }
                 Player.STATE_BUFFERING -> {
                     _uiState.update { it.copy(isLoading = true) }
@@ -90,10 +105,22 @@ class AudioPlayerViewModel @Inject constructor(
     init {
         Timber.d("AudioPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
-        
+
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
             loadAudioFile()
+        }
+
+        // Subscribe to remote playback commands from phone
+        viewModelScope.launch {
+            WatchPlaybackCommandEvents.commandFlow.collect { command ->
+                when (command) {
+                    WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
+                    WearPlaybackCommand.NEXT       -> exoPlayer.seekToNextMediaItem()
+                    WearPlaybackCommand.PREVIOUS   -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.STOP       -> exoPlayer.stop()
+                }
+            }
         }
     }
     
@@ -116,7 +143,7 @@ class AudioPlayerViewModel @Inject constructor(
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.MUSIC)
                 if (file != null) {
                     _uiState.update { it.copy(mediaFile = file) }
-                    
+                    checkFavoriteState(sourceId = "local", filePath = file.uri.toString())
                     val mediaItem = MediaItem.fromUri(file.uri)
                     exoPlayer.setMediaItem(mediaItem)
                     exoPlayer.prepare()
@@ -230,7 +257,47 @@ class AudioPlayerViewModel @Inject constructor(
         progressUpdateJob?.cancel()
         progressUpdateJob = null
     }
-    
+
+    private fun publishPlaybackState() {
+        val state = _uiState.value
+        val selected = selectedMediaManager.getSelectedFileById(fileId)
+        val sourceName = if (selected?.isNetworkSource == true) {
+            selected.file.uri.host ?: ""
+        } else {
+            "Local"
+        }
+        val payload = WearPlaybackStatePayload(
+            isPlaying = state.isPlaying,
+            fileName = state.mediaFile?.name ?: "",
+            sourceName = sourceName,
+            positionMs = state.currentPositionMs,
+            durationMs = state.durationMs,
+            mediaType = "AUDIO"
+        )
+        viewModelScope.launch { publishPlaybackStateUseCase(payload) }
+    }
+
+    fun toggleFavorite() {
+        val selected = selectedMediaManager.getSelectedFileById(fileId)
+        val sourceId = if (selected?.isNetworkSource == true) selected.file.uri.host ?: "network" else "local"
+        val filePath = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString() ?: return
+        viewModelScope.launch {
+            if (_isFavorite.value) {
+                favoritesRepository.removeFavorite(sourceId, filePath)
+            } else {
+                favoritesRepository.addFavorite(sourceId, filePath)
+            }
+            _isFavorite.value = !_isFavorite.value
+            sendFavoritesDeltaUseCase()
+        }
+    }
+
+    private fun checkFavoriteState(sourceId: String, filePath: String) {
+        viewModelScope.launch {
+            _isFavorite.value = favoritesRepository.isFavorite(sourceId, filePath)
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         Timber.d("AudioPlayerViewModel cleared")

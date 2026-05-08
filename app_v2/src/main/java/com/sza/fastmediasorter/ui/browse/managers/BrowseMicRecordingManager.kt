@@ -37,6 +37,7 @@ class BrowseMicRecordingManager(
     private var pendingTempFile: File? = null
     private var pendingResource: MediaResource? = null
     private var mediaRecorder: MediaRecorder? = null
+    private var isRecorderStarted = false
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
 
     fun startRecording(resource: MediaResource) {
@@ -106,6 +107,7 @@ class BrowseMicRecordingManager(
             recorder.setOutputFile(tempFile.absolutePath)
             recorder.prepare()
             recorder.start()
+            isRecorderStarted = true
             onRecordingStateChanged(true)
         } catch (e: Exception) {
             Timber.e(e, "S0100: startRecording failed to prepare/start recorder")
@@ -190,11 +192,14 @@ class BrowseMicRecordingManager(
     }
 
     private fun releaseRecorder() {
-        try {
-            mediaRecorder?.stop()
-        } catch (e: Exception) {
-            Timber.w(e, "S0100: releaseRecorder stop threw (may be normal if not started)")
+        if (isRecorderStarted) {
+            try {
+                mediaRecorder?.stop()
+            } catch (e: Exception) {
+                Timber.w(e, "releaseRecorder: stop threw after start — possible focus loss race")
+            }
         }
+        isRecorderStarted = false
         mediaRecorder?.release()
         mediaRecorder = null
     }

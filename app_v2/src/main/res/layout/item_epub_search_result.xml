@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="12dp"
+    android:focusable="true"
     android:background="?attr/selectableItemBackground">
 
     <TextView

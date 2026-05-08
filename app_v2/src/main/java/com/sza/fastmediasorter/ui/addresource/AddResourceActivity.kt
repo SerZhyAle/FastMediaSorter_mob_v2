@@ -293,6 +293,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.btnSftpHelpRememberFileList.setOnClickListener { connectionManager.showRememberFileListHelpDialog() }
 
         formManager.setupCheckboxInteractions()
+        formManager.setupTextInputTapBridges()
         formManager.setupCollapsibleSections()
         formManager.applyFlavorRestrictions()
 

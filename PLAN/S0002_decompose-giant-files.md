@@ -328,14 +328,38 @@ All three files are now at or below the 700-line stretch target.
 
 `BaseFileOperationHandler.kt` is now well under the 700-line stretch target.
 
+**Wave 42 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/helpers/EpubViewerManager.kt` | 2 176 | 1 425 | −751 | `EpubSearchAndTocPresenter` (415 LOC — in-chapter search, cross-chapter full-text search, TOC metadata + spine-fallback presentation), `EpubTranslationOverlayHelper` (344 LOC — overlay gesture setup, font-size control, toggle/forceTranslate/selection-translate, chapter text extraction+translation) |
+
+`EpubViewerManager.kt` is now under the 1500-line hard cap. Also fixed pre-existing broken `buildFileList`/`launchDirectoryOp` references in `BrowseFileOperationsManager.kt` (left by Wave 41) to restore clean build.
+
+**Wave 43 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/helpers/TextViewerManager.kt` | 1 823 | 1 373 | −450 | `TextEditorFindReplaceManager` (235 LOC — editor toolbar setup, find/replace panel lifecycle, cursor position tracking), `TextTranslationOverlayManager` (199 LOC — toggle/forceTranslate, selected-text translate, expand/collapse overlay, hide with state reset) |
+
+`TextViewerManager.kt` is now under the 1500-line hard cap.
+
+**Wave 44 result:**
+
+| File | Before | After | Δ | Helpers introduced |
+| ---- | ---: | ---: | ---: | --- |
+| `ui/player/helpers/PdfViewerManager.kt` | 1 640 | 1 407 | −233 | `PdfLinkAndSearchManager` (link detection/tap-to-open, full-text search state, OCR text extraction, clipboard copy, Google Lens sharing) |
+
+`PdfViewerManager.kt` is now under the 1500-line hard cap.
+
 ---
 
 ## Current sizes (files ≥ 700 LOC)
 
 | # | File | LOC | Target | Weight | Score |
 | --- | ---- | ---: | :----: | :----: | ---: |
-| 1 | `app_v2/ui/player/helpers/EpubViewerManager.kt` | 2 176 | ≤ 700 | 3 | 6 528 |
-| 2 | `app_v2/ui/player/helpers/TextViewerManager.kt` | 1 823 | ≤ 700 | 3 | 5 469 |
+| 1 | `app_v2/ui/player/helpers/EpubViewerManager.kt` | 1 425 | ≤ 700 | 3 | 4 275 |
+| 2 | `app_v2/ui/player/helpers/TextViewerManager.kt` | 1 373 | ≤ 700 | 3 | 4 119 |
 | 3 | `app_v2/ui/player/helpers/PdfViewerManager.kt` | 1 640 | ≤ 700 | 3 | 4 920 |
 | 4 | `app_v2/ui/player/ImageLoadingManager.kt` | 1 256 | ≤ 700 | 3 | 3 768 |
 | 5 | `app_v2/ui/browse/MediaFileAdapter.kt` | 1 108 | ≤ 700 | 3 | 3 324 |
@@ -486,7 +510,7 @@ Next dynamic-loop candidates (smallest margin first, < 1 500 LOC):
 | `GoogleDriveRestClient.kt` | 1 104 | 404 |
 | `MediaFileAdapter.kt` | 1 108 | 408 |
 | `ImageLoadingManager.kt` | 1 256 | 556 |
-| `PdfViewerManager.kt` | 1 640 | DEFERRED (≥ 1 500) |
+| `PdfViewerManager.kt` | 1 407 | ✅ Wave 44 |
 | `TextViewerManager.kt` | 1 823 | DEFERRED |
 | `EpubViewerManager.kt` | 2 176 | DEFERRED |
 

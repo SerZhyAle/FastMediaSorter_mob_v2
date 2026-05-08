@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionEntity
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -31,6 +32,8 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
                     entity.position
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "PlaybackPosition: Failed to get position for $filePath")
             null
@@ -49,6 +52,8 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
             )
             dao.savePosition(entity)
             Timber.d("PlaybackPosition: Saved position ${position}ms/${duration}ms for $filePath (completed=$isCompleted)")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "PlaybackPosition: Failed to save position for $filePath")
         }
@@ -61,6 +66,8 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
                 dao.savePosition(existing.copy(isCompleted = true))
                 Timber.d("PlaybackPosition: Marked as completed: $filePath")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "PlaybackPosition: Failed to mark as completed: $filePath")
         }
@@ -70,6 +77,8 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
         try {
             dao.deletePosition(filePath)
             Timber.d("ResumeState: clearState reason=%s uri=%s", reason, filePath)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ResumeState: clearState FAILED reason=%s uri=%s", reason, filePath)
         }
@@ -79,6 +88,8 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
         try {
             dao.deletePosition(filePath)
             Timber.d("PlaybackPosition: Deleted position for $filePath")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "PlaybackPosition: Failed to delete position for $filePath")
         }
@@ -92,6 +103,8 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
                 dao.keepOnlyRecentPositions(TRIM_TO_COUNT)
                 Timber.d("PlaybackPosition: Count limit exceeded ($currentCount), trimmed to $TRIM_TO_COUNT")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "PlaybackPosition: Failed to cleanup old positions")
         }
@@ -101,6 +114,8 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
         try {
             dao.deleteAllPositions()
             Timber.d("PlaybackPosition: Deleted all positions")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "PlaybackPosition: Failed to delete all positions")
         }

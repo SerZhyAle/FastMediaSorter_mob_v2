@@ -93,5 +93,8 @@ data class ResourceEntity(
     val profile: String = "NONE", // ResourceProfile.name — quick-setup preset applied at creation
 
     @ColumnInfo(name = "icon_id", defaultValue = "NULL")
-    val iconId: String? = null // Format: ico-XX-NNN (XX=set 01..99, NNN=ordinal 001..999); null = unassigned legacy row
+    val iconId: String? = null, // Format: ico-XX-NNN (XX=set 01..99, NNN=ordinal 001..999); null = unassigned legacy row
+
+    @ColumnInfo(name = "host_key_fingerprint", defaultValue = "NULL")
+    val hostKeyFingerprint: String? = null // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive
 )

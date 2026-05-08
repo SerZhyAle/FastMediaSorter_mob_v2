@@ -2,7 +2,7 @@
 
 **Strategic spec:** [`../S0046_sftp-key-auth-hardening.md`](../S0046_sftp-key-auth-hardening.md)
 **Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
+**Status:** 🚧 In Progress
 **Depends on:** none — foundation phase
 **Blocks:** Phase 02, Phase 04
 **Steps done:** 0 / 4
@@ -53,7 +53,11 @@ Add `hostKeyFingerprint` field to `MediaResource` domain model and persist it in
 
 - `Glob` — `temp/AppDatabase.kt.*.bak` matches at least one file with mtime within last 24h.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-07 — Verification 1/1 PASS. Files: temp/AppDatabase.kt.20260507-1621.bak. Dev log recorded.
 
 ---
 
@@ -71,7 +75,11 @@ Add `hostKeyFingerprint` field to `MediaResource` domain model and persist it in
 - `Grep` — `val hostKeyFingerprint: String\? = null` matches exactly once in `Models.kt`.
 - `Grep` — `data class MediaResource\(` still matches exactly once.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-07 — Verification 2/2 PASS. Files: Models.kt (+2 LOC). Dev log recorded.
 
 ---
 
@@ -92,7 +100,11 @@ Add `hostKeyFingerprint` field to `MediaResource` domain model and persist it in
 - `Grep` — `host_key_fingerprint` matches in `ResourceEntity.kt` and `AppDatabase.kt`.
 - `Grep -n "Log\.d\("` returns zero hits in both modified files.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-07 — Verification 4/4 PASS. Files: ResourceEntity.kt (+4 LOC), AppDatabase.kt (+7 LOC), DatabaseModule.kt (+1 LOC). Dev log recorded.
 
 ---
 
@@ -110,7 +122,11 @@ Add `hostKeyFingerprint` field to `MediaResource` domain model and persist it in
 - `Grep` — `hostKeyFingerprint` matches at least twice in `ResourceRepositoryImpl.kt` (one read, one write).
 - `Grep -n "Log\.d\("` returns zero hits in the modified file.
 
-**Status:** `[ ]` not done
+**Status:** `[x] done`
+
+**Step Log:**
+
+- 2026-05-07 — Verification 2/2 PASS. Files: ResourceRepositoryImpl.kt (+2 LOC). Dev log recorded.
 
 ---
 

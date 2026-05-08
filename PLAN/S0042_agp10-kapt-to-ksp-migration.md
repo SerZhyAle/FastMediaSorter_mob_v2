@@ -1,6 +1,6 @@
 ---
 ticket: S0042
-status: Draft
+status: Tactical
 priority: 55
 tier: 4
 date: 2026-05-01
@@ -9,12 +9,12 @@ date: 2026-05-01
 # Стратегическая спецификация: S0042 — Миграция AGP 9/10: kapt → KSP и устранение deprecation-варнингов
 
 **Ticket:** S0042
-**Status:** Draft
+**Status:** Tactical
 **Priority:** 55
 **Date:** 2026-05-01
 **Tier:** 4 — Strategic (ad-hoc)
 **Roadmap entry:** Ad-hoc — запрос 2026-05-01 (анализ предсборочного вывода Gradle на текущем `main`)
-**Tactical spec:** `PLAN/S0042_agp10-kapt-to-ksp-migration/` (будет создан через `/spec-tech`)
+**Tactical plan:** `PLAN/S0042_agp10-kapt-to-ksp-migration/INDEX.md`
 
 > **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
 
@@ -216,3 +216,4 @@ date: 2026-05-01
 ## 12. Ссылка на тактическую спецификацию
 
 Следующий шаг: `/spec-tech S0042` — создаст `PLAN/S0042_agp10-kapt-to-ksp-migration/` с фазами.
+

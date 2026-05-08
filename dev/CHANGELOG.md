@@ -6878,3 +6878,181 @@ Format: | datetime | file | target | description |
 | 2026-05-07 14:30:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | S0002 Wave 39: compress 912->696 LOC (-216) |
 | 2026-05-07 14:47:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/FtpFileOperationHandler.kt` | `FtpFileOperationHandler` | S0002 Wave 40: 938→567 LOC (−371): collapsed strategies to 1-line each; compressed executeMove branches; executeRename try-catch compressed; downloadFromFtp/uploadToFtp/deleteFromFtp/copyFtpToFtp/prepareFtpDestinationForOverwrite/parseFtpPath all compressed; removed verbose Timbers and inline comments |
 | 2026-05-07 14:55:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/BaseFileOperationHandler.kt` | `BaseFileOperationHandler` | S0002 Wave 41: 939→404 LOC (−535): collapsed class KDoc+getStrategies/getStrategyForPath; executeCopy/executeMove each compressed to ~30 lines; executeDelete comment blocks removed; copyCrossProtocol 63→18 lines; moveFile/deleteFile/moveToTrash compressed; joinPath expression body; createTrashFolder collapsed; checkBatchDeletePermissionBeforeMove KDoc+filter+Timbers compressed; requestBatchDeletePermission KDoc+Timbers removed; getSafePath/buildCopyResult/buildMoveResult/buildDeleteResult all on compact 1-liners; listFiles expression body |
+| 2026-05-07 15:10:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `S0002 Wave 42` | EpubViewerManager 2176→1425 LOC (-751): extracted EpubSearchAndTocPresenter (415 LOC) and EpubTranslationOverlayHelper (344 LOC) |
+| 2026-05-07 15:17:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `S0002 Wave 43` | TextViewerManager 1823→1373 LOC (-450): extracted TextEditorFindReplaceManager (235 LOC) and TextTranslationOverlayManager (199 LOC) |
+| 2026-05-07 15:22:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `S0002 Wave 44` | Extract PdfLinkAndSearchManager from PdfViewerManager: link detection, tap-to-open, search, OCR copy, Google Lens sharing. PdfViewerManager 1640→1407 LOC (−233) |
+| 2026-05-07 16:25:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `S0046` | Add hostKeyFingerprint field to MediaResource domain model |
+| 2026-05-07 16:25:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ResourceEntity.kt` | `S0046` | Add host_key_fingerprint column to ResourceEntity |
+| 2026-05-07 16:25:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `S0046` | Bump DB version 27→28, add MIGRATION_27_28 for host_key_fingerprint |
+| 2026-05-07 16:25:35 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt` | `S0046` | Register MIGRATION_27_28 in addMigrations |
+| 2026-05-07 16:25:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `S0046` | Round-trip hostKeyFingerprint in toDomain/toEntity mappers |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/INDEX.md` | `spec-tech` | Create tactical plan for S0042 |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/PHASE_01__glide-to-ksp.md` | `spec-tech` | Phase 01: glide-to-ksp |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/PHASE_02__room-to-ksp.md` | `spec-tech` | Phase 02: room-to-ksp |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/PHASE_03__hilt-to-ksp.md` | `spec-tech` | Phase 03: hilt-to-ksp |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/PHASE_04__kapt-plugin-removal.md` | `spec-tech` | Phase 04: kapt-plugin-removal |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/PHASE_05__compat-flags-removal.md` | `spec-tech` | Phase 05: compat-flags-removal |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/PHASE_06__wear-and-sourcesets-unify.md` | `spec-tech` | Phase 06: wear-and-sourcesets-unify |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
+| 2026-05-07 16:27:59 | `PLAN/S0042_agp10-kapt-to-ksp-migration.md` | `spec-tech` | Status → Tactical |
+| 2026-05-07 23:21:03 | `PLAN/S0111_wear-bidirectional-sync.md` | `spec` | Add strategic spec S0111 for wear-bidirectional-sync |
+| 2026-05-07 23:27:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `S0110` | Fix thumbnail loading during fast scroll: assign correct placeholder immediately on scroll, use cache-only Glide requests, suppress markThumbnailAsFailed listeners during scroll |
+| 2026-05-07 23:29:44 | `PLAN/S0110_bugfix-thumbnails-during-scroll.md` | `spec-check` | Audit S0110 → Verified; PASS 9 / WARN 0 / FAIL 0 / MANUAL 3 |
+| 2026-05-07 23:32:08 | `PLAN/S0111_wear-bidirectional-sync/INDEX.md` | `spec-tech` | Create tactical plan for S0111 |
+| 2026-05-07 23:32:09 | `PLAN/S0111_wear-bidirectional-sync/PHASE_01__data-layer-envelope.md` | `spec-tech` | Phase 01: data-layer-envelope |
+| 2026-05-07 23:32:09 | `PLAN/S0111_wear-bidirectional-sync/PHASE_02__settings-sync.md` | `spec-tech` | Phase 02: settings-sync |
+| 2026-05-07 23:32:09 | `PLAN/S0111_wear-bidirectional-sync/PHASE_03__sources-watch-to-phone.md` | `spec-tech` | Phase 03: sources-watch-to-phone |
+| 2026-05-07 23:32:09 | `PLAN/S0111_wear-bidirectional-sync/PHASE_04__ftp-sftp-browse.md` | `spec-tech` | Phase 04: ftp-sftp-browse |
+| 2026-05-07 23:32:10 | `PLAN/S0111_wear-bidirectional-sync/PHASE_05__playback-state-remote-control.md` | `spec-tech` | Phase 05: playback-state-remote-control |
+| 2026-05-07 23:32:10 | `PLAN/S0111_wear-bidirectional-sync/PHASE_06__favorites-sync.md` | `spec-tech` | Phase 06: favorites-sync |
+| 2026-05-07 23:32:10 | `PLAN/S0111_wear-bidirectional-sync/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
+| 2026-05-07 23:32:10 | `PLAN/S0111_wear-bidirectional-sync.md` | `spec-tech` | Status → Tactical |
+| 2026-05-07 23:44:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearEventEnvelope.kt` | `S0111 Phase01` | Create WearEventEnvelope — versioned Data Layer transport wrapper |
+| 2026-05-07 23:44:44 | `app_v2/src/main/java/com/sza/fastmediasorter/service/WearDataLayerPaths.kt` | `S0111 Phase01` | Create WearDataLayerPaths — path and eventType constants for bidirectional Data Layer |
+| 2026-05-07 23:45:08 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/WearableDataLayerRepository.kt` | `S0111 Phase01` | Add putEnvelopeDataItem to WearableDataLayerRepository interface |
+| 2026-05-07 23:45:45 | `app_v2/src/main/java/com/sza/fastmediasorter/data/wear/WearableDataLayerRepositoryImpl.kt` | `S0111 Phase01` | Inject Gson + implement putEnvelopeDataItem in WearableDataLayerRepositoryImpl |
+| 2026-05-07 23:46:25 | `app_v2/src/main/java/com/sza/fastmediasorter/service/PhoneWearListenerService.kt` | `S0111 Phase01` | Add dispatch stubs for SOURCES_EXPORT, FAVORITES_DELTA, PLAYBACK_STATE in PhoneWearListenerService |
+| 2026-05-07 23:46:48 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearEventEnvelope.kt` | `S0111 Phase01` | Create WearEventEnvelope mirror on watch side |
+| 2026-05-07 23:47:16 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WearDataLayerPaths.kt` | `S0111 Phase01` | Create WearDataLayerPaths mirror on watch side — identical path and eventType constants |
+| 2026-05-07 23:48:04 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WatchWearListenerService.kt` | `S0111 Phase01` | Extend WatchWearListenerService dispatch for SETTINGS_PUSH and PLAYBACK_CMD stubs |
+| 2026-05-07 23:52:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearEventEnvelope.kt` | `WearEventEnvelope` | Fix unclosed block comment: /* inside KDoc treated as nested comment in Kotlin |
+| 2026-05-07 23:52:00 | `app_v2/src/main/java/com/sza/fastmediasorter/service/WearDataLayerPaths.kt` | `WearDataLayerPaths` | Fix unclosed block comment: /* inside KDoc treated as nested comment in Kotlin |
+| 2026-05-07 23:53:53 | `dev/CATALOG/wear.jsonl` | `S0111 Phase01` | Regenerate wear catalog after Phase 01 new classes |
+| 2026-05-07 23:53:53 | `dev/CATALOG/app_v2.jsonl` | `S0111 Phase01` | Regenerate app_v2 catalog after Phase 01 new classes |
+| 2026-05-07 23:59:26 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearSettingsPayload.kt` | `S0111 Phase02` | Create WearSettingsPayload — phone-to-watch settings push payload |
+| 2026-05-07 23:59:47 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearSettingsPayload.kt` | `S0111 Phase02` | Create WearSettingsPayload mirror on watch side |
+| 2026-05-08 00:00:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/PushWearSettingsUseCase.kt` | `S0111 Phase02` | Create PushWearSettingsUseCase — push watch companion settings via Data Layer envelope |
+| 2026-05-08 00:00:20 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/RepositoryModule.kt` | `S0111 Phase02` | Add provideGson @Provides to RepositoryModule companion object |
+| 2026-05-08 00:00:46 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ApplyWearSettingsUseCase.kt` | `S0111 Phase02` | Create ApplyWearSettingsUseCase — apply phone-pushed settings to WearPreferencesRepository |
+| 2026-05-08 00:01:34 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WatchWearListenerService.kt` | `S0111 Phase02` | Wire ApplyWearSettingsUseCase into handleSettingsPush; add settingsErrorFlow to WatchSyncEvents |
+| 2026-05-08 00:02:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/WearSyncViewModel.kt` | `S0111 Phase02` | Add pushSettings(), watchSettingsState, SettingsPushed state to WearSyncViewModel |
+| 2026-05-08 00:03:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/WearSyncSettingsFragment.kt` | `S0111 Phase02` | Add Watch Settings collapsible section with switches, interval slider, and Push Settings button |
+| 2026-05-08 00:04:08 | `app_v2/src/main/res/values/strings.xml` | `S0111 Phase02` | Add wear_settings_* and wear_push_settings string keys (EN) |
+| 2026-05-08 00:04:08 | `app_v2/src/main/res/values-ru/strings.xml` | `S0111 Phase02` | Add wear_settings_* and wear_push_settings string keys (RU) |
+| 2026-05-08 00:04:08 | `app_v2/src/main/res/values-uk/strings.xml` | `S0111 Phase02` | Add wear_settings_* and wear_push_settings string keys (UK) |
+| 2026-05-08 00:04:46 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsViewModel.kt` | `S0111 Phase02` | Add settingsErrorFlow observer and reloadSettings() to SettingsViewModel |
+| 2026-05-08 00:07:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/BeamAnimationDialog.kt` | `S0111 Phase02` | Add SettingsPushed branch to exhaustive when expression |
+| 2026-05-08 00:07:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `SettingsActivity` | Fix toolbar overlap with Chrome OS caption bar: include captionBar() inset type in applyWindowInsets() alongside statusBars() |
+| 2026-05-08 00:08:16 | `dev/CATALOG/app_v2.jsonl` | `S0111 Phase02` | Regenerate app_v2 catalog after Phase 02 new classes |
+| 2026-05-08 00:08:16 | `dev/CATALOG/wear.jsonl` | `S0111 Phase02` | Regenerate wear catalog after Phase 02 new classes |
+| 2026-05-08 00:12:32 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearSourcesExportPayload.kt` | `spec-dev S0111 step-3.1` | Create WearSourcesExportPayload data class on watch side |
+| 2026-05-08 00:12:56 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearSourcesExportPayload.kt` | `spec-dev S0111 step-3.2` | Create WearSourcesExportPayload data class on phone side (mirror) |
+| 2026-05-08 00:14:13 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ExportSourcesUseCase.kt` | `spec-dev S0111 step-3.3` | Create ExportSourcesUseCase on watch side |
+| 2026-05-08 00:15:08 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/viewmodel/NetworkSourcesViewModel.kt` | `spec-dev S0111 step-3.4` | Add ExportState sealed class and exportToPhone() to NetworkSourcesViewModel |
+| 2026-05-08 00:16:41 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/NetworkSourcesScreen.kt` | `spec-dev S0111 step-3.5` | Add Send to phone chip and ExportToPhoneChip to NetworkSourcesScreen |
+| 2026-05-08 00:18:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportWatchSourcesUseCase.kt` | `spec-dev S0111 step-3.6` | Create ImportWatchSourcesUseCase on phone side |
+| 2026-05-08 00:19:37 | `wear/src/main/res/values/strings.xml` | `spec-dev S0111 step-3.7` | Add wear_export_to_phone / wear_import_* localized strings |
+| 2026-05-08 00:19:37 | `wear/src/main/res/values-ru/strings.xml` | `spec-dev S0111 step-3.7` | Add wear_export_to_phone / wear_import_* localized strings |
+| 2026-05-08 00:19:38 | `wear/src/main/res/values-uk/strings.xml` | `spec-dev S0111 step-3.7` | Add wear_export_to_phone / wear_import_* localized strings |
+| 2026-05-08 00:19:38 | `app_v2/src/main/res/values/strings.xml` | `spec-dev S0111 step-3.7` | Add wear_export_to_phone / wear_import_* localized strings |
+| 2026-05-08 00:19:38 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0111 step-3.7` | Add wear_export_to_phone / wear_import_* localized strings |
+| 2026-05-08 00:19:38 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0111 step-3.7` | Add wear_export_to_phone / wear_import_* localized strings |
+| 2026-05-08 00:20:52 | `app_v2/src/main/java/com/sza/fastmediasorter/service/PhoneWearListenerService.kt` | `spec-dev S0111 step-3.8` | Wire handleSourcesExport and add watchSourcesReceivedFlow to WearSyncEvents |
+| 2026-05-08 00:21:58 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Fix: add KEY_MIC_RECORDING_ENABLED and KEY_MIC_RECORDING_ASK_FILENAME to DataStore — fields were missing from both read and write, causing micRecordingEnabled to never persist (always reset to false on next settings emission) |
+| 2026-05-08 00:22:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/WearSyncViewModel.kt` | `spec-dev S0111 step-3.9` | Add pendingWatchSources, acceptWatchImport, dismissWatchImport and import Card UI |
+| 2026-05-08 00:22:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/WearSyncSettingsFragment.kt` | `spec-dev S0111 step-3.9` | Add pendingWatchSources, acceptWatchImport, dismissWatchImport and import Card UI |
+| 2026-05-08 00:25:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `GeneralSettingsViewSetupHelper` | Remove showSoftInput from credential field focus listeners and activateCredentialEditor; add explicit filters=arrayOf() — fixes Chrome OS physical keyboard routing issue where IME bridge was blocking input to defaultUser/defaultPassword fields |
+| 2026-05-08 00:27:45 | `wear/build.gradle.kts` | `spec-dev S0111 step-4.1` | Add commons-net:3.10.0 and jsch:0.2.17 for FTP/SFTP browse on Wear |
+| 2026-05-08 00:28:29 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt` | `spec-dev S0111 step-4.2` | Create FtpDataSource with commons-net FTPClient for directory listing |
+| 2026-05-08 00:29:42 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpDataSource.kt` | `spec-dev S0111 step-4.3` | Create SftpDataSource with JSch for directory listing on Wear |
+| 2026-05-08 00:30:13 | `wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt` | `spec-dev S0111 step-4.4` | Add provideFtpDataSource and provideSftpDataSource bindings to WearAppModule |
+| 2026-05-08 00:33:13 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/browse/BrowseViewModel.kt` | `S0111 phase-04 step-4.5` | Route FTP/SFTP in loadNetworkFiles via when(source.type) block |
+| 2026-05-08 00:39:53 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPlaybackStatePayload.kt` | `S0111 phase-05 step-5.1` | Create WearPlaybackStatePayload domain model on watch side |
+| 2026-05-08 00:39:53 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearPlaybackStatePayload.kt` | `S0111 phase-05 step-5.2` | Create WearPlaybackStatePayload domain model mirror on phone side |
+| 2026-05-08 00:39:53 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPlaybackCommand.kt` | `S0111 phase-05 step-5.3` | Create WearPlaybackCommand enum on watch side |
+| 2026-05-08 00:39:53 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearPlaybackCommand.kt` | `S0111 phase-05 step-5.3` | Create WearPlaybackCommand enum on phone side |
+| 2026-05-08 00:40:43 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/PublishPlaybackStateUseCase.kt` | `S0111 phase-05 step-5.4` | Create PublishPlaybackStateUseCase — publishes watch playback state to phone via Data Layer |
+| 2026-05-08 00:42:06 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt` | `S0111 phase-05 step-5.5` | Inject PublishPlaybackStateUseCase; publish playback state on isPlaying toggle and STATE_READY/ENDED |
+| 2026-05-08 00:42:57 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt` | `S0111 phase-05 step-5.6` | Inject PublishPlaybackStateUseCase; publish video playback state on isPlaying toggle and STATE_READY/ENDED |
+| 2026-05-08 00:43:39 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WatchWearListenerService.kt` | `S0111 phase-05 step-5.7` | Add WatchPlaybackCommandEvents bus; implement handlePlaybackCommand deserializing WearPlaybackCommand |
+| 2026-05-08 00:44:35 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt` | `S0111 phase-05 step-5.8` | Subscribe to WatchPlaybackCommandEvents.commandFlow; dispatch PLAY_PAUSE/NEXT/PREVIOUS/STOP |
+| 2026-05-08 00:44:35 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt` | `S0111 phase-05 step-5.9` | Subscribe to WatchPlaybackCommandEvents.commandFlow; dispatch PLAY_PAUSE/NEXT/PREVIOUS/STOP |
+| 2026-05-08 00:45:06 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SendPlaybackCommandUseCase.kt` | `S0111 phase-05 step-5.10` | Create SendPlaybackCommandUseCase — sends remote playback command to watch via Data Layer |
+| 2026-05-08 00:45:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `GeneralSettingsViewSetupHelper` | Remove setOnClickListener from tilDefaultUser/etDefaultUser/tilDefaultPassword/etDefaultPassword and delete activateCredentialEditor — root cause on Chrome OS: custom listener replaced system performClick() which is where ARC establishes IME keyboard routing; TextInputLayout already forwards container clicks to inner EditText natively |
+| 2026-05-08 00:45:54 | `app_v2/src/main/java/com/sza/fastmediasorter/service/PhoneWearListenerService.kt` | `S0111 phase-05 step-5.11` | Wire PLAYBACK_STATE Data Item handler; add watchPlaybackStateFlow to WearSyncEvents |
+| 2026-05-08 00:46:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/WearSyncViewModel.kt` | `S0111 phase-05 step-5.12` | Inject SendPlaybackCommandUseCase; add watchPlaybackState flow; add sendPlaybackCommand fun |
+| 2026-05-08 00:48:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/WearSyncSettingsFragment.kt` | `S0111 phase-05 step-5.13` | Add Now Playing card with progress bar and remote control buttons |
+| 2026-05-08 00:48:50 | `app_v2/src/main/res/values/strings.xml` | `S0111 phase-05 step-5.13` | Add wear_now_playing_title, wear_playback_play_pause, wear_playback_next, wear_playback_previous strings (EN) |
+| 2026-05-08 00:48:50 | `app_v2/src/main/res/values-ru/strings.xml` | `S0111 phase-05 step-5.13` | Add wear now playing strings (RU) |
+| 2026-05-08 00:48:50 | `app_v2/src/main/res/values-uk/strings.xml` | `S0111 phase-05 step-5.13` | Add wear now playing strings (UK) |
+| 2026-05-08 00:55:36 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearFavoritesPayload.kt` | `spec-dev S0111 step 6.1` | Create WearFavoriteDeltaItem and WearFavoritesDeltaPayload on watch side |
+| 2026-05-08 00:55:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearFavoritesPayload.kt` | `spec-dev S0111 step 6.1` | Create WearFavoriteDeltaItem and WearFavoritesDeltaPayload on phone side |
+| 2026-05-08 00:56:06 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/WearFavoritesRepository.kt` | `spec-dev S0111 step 6.2` | Create WearFavoritesRepository interface with 5 suspend methods |
+| 2026-05-08 00:57:23 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/repository/WearFavoritesRepositoryImpl.kt` | `spec-dev S0111 step 6.3` | Create WearFavoritesRepositoryImpl using EncryptedSharedPreferences |
+| 2026-05-08 00:58:03 | `wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt` | `spec-dev S0111 step 6.4` | Provide WearFavoritesRepository binding in WearAppModule |
+| 2026-05-08 01:01:09 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/SendFavoritesDeltaUseCase.kt` | `spec-dev S0111 step 6.5` | Create SendFavoritesDeltaUseCase — sends favorites delta to phone via MessageClient |
+| 2026-05-08 01:03:00 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt` | `spec-dev S0111 step 6.6` | Add isFavorite StateFlow and toggleFavorite to AudioPlayerViewModel |
+| 2026-05-08 01:04:15 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerScreen.kt` | `spec-dev S0111 step 6.7` | Add favorite toggle button to AudioPlayerScreen |
+| 2026-05-08 01:06:11 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/image/ImageViewerViewModel.kt` | `spec-dev S0111 step 6.8` | Add isFavorite StateFlow and toggleFavorite to ImageViewerViewModel |
+| 2026-05-08 01:06:11 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/image/ImageViewerScreen.kt` | `spec-dev S0111 step 6.8` | Add favorite toggle button to ImageViewerScreen |
+| 2026-05-08 01:07:04 | `wear/src/main/res/values/strings.xml` | `spec-dev S0111 step 6.9` | Add wear_toggle_favorite and wear_favorite_sent strings (EN) |
+| 2026-05-08 01:07:04 | `wear/src/main/res/values-ru/strings.xml` | `spec-dev S0111 step 6.9` | Add wear_toggle_favorite and wear_favorite_sent strings (RU) |
+| 2026-05-08 01:07:04 | `wear/src/main/res/values-uk/strings.xml` | `spec-dev S0111 step 6.9` | Add wear_toggle_favorite and wear_favorite_sent strings (UK) |
+| 2026-05-08 01:07:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ApplyWatchFavoritesDeltaUseCase.kt` | `spec-dev S0111 step 6.10` | Create ApplyWatchFavoritesDeltaUseCase — applies watch favorites delta to phone FavoritesRepository |
+| 2026-05-08 01:08:56 | `app_v2/src/main/java/com/sza/fastmediasorter/service/PhoneWearListenerService.kt` | `spec-dev S0111 step 6.11` | Wire handleFavoritesDelta to ApplyWatchFavoritesDeltaUseCase in PhoneWearListenerService |
+| 2026-05-08 01:13:56 | `docs/FEATURES.md` | `spec-dev S0111 step 7.1` | Add 5 new Wear OS bidirectional sync bullets to section 21 |
+| 2026-05-08 01:14:34 | `docs/FEATURES_RU.md` | `spec-dev S0111 step 7.2` | Add 5 new Wear OS bidirectional sync bullets to section 21 (RU) |
+| 2026-05-08 01:15:16 | `docs/FEATURES_UK.md` | `spec-dev S0111 step 7.3` | Add 5 new Wear OS bidirectional sync bullets to section 21 (UK) |
+| 2026-05-08 01:15:49 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0111 step 7.4` | Regenerate app_v2 catalog for S0111 Phase 07 |
+| 2026-05-08 01:15:49 | `dev/CATALOG/wear.jsonl` | `spec-dev S0111 step 7.5` | Regenerate wear catalog for S0111 Phase 07 |
+| 2026-05-08 01:20:17 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/PublishPlaybackStateUseCase.kt` | `spec-dev S0111` | S0111 step 7.6: remove Timber.d debug tag |
+| 2026-05-08 01:20:26 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ExportSourcesUseCase.kt` | `spec-dev S0111` | S0111 step 7.6: remove Timber.d debug tag |
+| 2026-05-08 01:20:26 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ApplyWearSettingsUseCase.kt` | `spec-dev S0111` | S0111 step 7.6: remove Timber.d debug tag, remove unused Timber import |
+| 2026-05-08 01:20:26 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpDataSource.kt` | `spec-dev S0111` | S0111 step 7.6: remove Timber.d debug tag, remove unused Timber import |
+| 2026-05-08 01:20:27 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt` | `spec-dev S0111` | S0111 step 7.6: remove Timber.d debug tag, remove unused Timber import |
+| 2026-05-08 01:21:54 | `PLAN/S0111_wear-bidirectional-sync/PHASE_07__docs-catalog-cleanup.md` | `spec-dev S0111` | S0111 Phase 07: all steps done, phase marked complete |
+| 2026-05-08 01:21:54 | `PLAN/S0111_wear-bidirectional-sync/INDEX.md` | `spec-dev S0111` | S0111 INDEX: 7/7 phases done, status -> Done |
+| 2026-05-08 01:21:54 | `PLAN/S0111_wear-bidirectional-sync.md` | `spec-dev S0111` | S0111 strategic spec: Status -> Implemented |
+| 2026-05-08 01:24:37 | `PLAN/S0111_wear-bidirectional-sync.md` | `spec-check` | Audit S0111 -> Verified; PASS/WARN/FAIL 30/0/0 |
+| 2026-05-08 01:24:37 | `PLAN/S0111_wear-bidirectional-sync/INDEX.md` | `spec-check` | S0111 INDEX: Completion Gate closed, status Verified |
+| 2026-05-08 01:25:07 | `PLAN/S0112_android-tv-launcher-support.md` | `spec-all` | Strategic spec S0112: Android TV launcher visibility + D-pad focus |
+| 2026-05-08 01:25:48 | `PLAN/S0112_android-tv-launcher-support/INDEX.md` | `spec-all` | Tactical plan S0112: 3 phases — manifest, item focus, player controls |
+| 2026-05-08 01:27:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `GeneralSettingsViewSetupHelper` | Added non-consuming tap-to-focus bridge for default credential fields and non-Chrome OS IME assist |
+| 2026-05-08 01:27:31 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/settings/DefaultCredentialsInputTest.kt` | `DefaultCredentialsInputTest` | Added regression test for TextInputLayout tap routing to default credential editors |
+| 2026-05-08 01:30:06 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | S0112: Add LEANBACK_LAUNCHER category + android:banner for TV launcher visibility |
+| 2026-05-08 01:30:06 | `app_v2/src/main/res/drawable/tv_banner.xml` | `tv_banner` | S0112: Create TV launcher banner XML placeholder (320x180dp, dark navy bg + app icon) |
+| 2026-05-08 01:30:06 | `app_v2/src/main/res/values/colors.xml` | `colors` | S0112: Add tv_banner_bg color (#1A1A2E) |
+| 2026-05-08 01:30:07 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | S0112: Add Timber debug tag for TV launcher support verification |
+| 2026-05-08 01:30:20 | `app_v2/src/main/res/layout/item_duplicate_file.xml` | `item_duplicate_file` | S0112: Add android:focusable=true for TV D-pad navigation |
+| 2026-05-08 01:30:20 | `app_v2/src/main/res/layout/item_epub_search_result.xml` | `item_epub_search_result` | S0112: Add android:focusable=true for TV D-pad navigation |
+| 2026-05-08 01:30:20 | `app_v2/src/main/res/layout/item_epub_toc.xml` | `item_epub_toc` | S0112: Add android:focusable=true for TV D-pad navigation |
+| 2026-05-08 01:30:20 | `app_v2/src/main/res/layout/item_duplicate_group.xml` | `item_duplicate_group` | S0112: Add android:focusable=true for TV D-pad navigation |
+| 2026-05-08 01:30:21 | `app_v2/src/main/res/layout/item_scheduled_operation.xml` | `item_scheduled_operation` | S0112: Add android:focusable=true for TV D-pad navigation |
+| 2026-05-08 01:33:34 | `PLAN/S0112_android-tv-launcher-support.md` | `spec-all` | Pipeline BlockNeedUserTest: S0112 — build passed, on-device TV verification pending |
+| 2026-05-08 01:40:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/TextInputTapFocusBridge.kt` | `TextInputTapFocusBridge` | Added shared non-consuming tap-to-focus bridge for outlined Material text inputs |
+| 2026-05-08 01:40:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `ResourceEditorFragment` | Added outlined text field tap-to-focus bridge wiring for inline resource editor inputs |
+| 2026-05-08 01:40:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt` | `AddResourceFormManager` | Added tap-to-focus bridge wiring for SMB and SFTP outlined inputs |
+| 2026-05-08 01:40:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | Wired AddResource text input tap bridges during view setup |
+| 2026-05-08 01:40:37 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorCredentialsInstrumentationTest.kt` | `ResourceEditorCredentialsInstrumentationTest` | Added TextInputLayout tap-routing regression coverage for ResourceEditor SMB fields |
+| 2026-05-08 01:40:37 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/ui/addresource/AddResourceInputTapTest.kt` | `AddResourceInputTapTest` | Added SMB and SFTP outlined input tap-routing regression tests |
+| 2026-05-08 01:48:22 | `PLAN/S0113_sftp-pool-stability.md` | `spec` | Add strategic spec S0113: SFTP pool stability — idle eviction, duplicate downloads, recoverable error toasts |
+| 2026-05-08 01:54:46 | `PLAN/S0113_sftp-pool-stability/INDEX.md` | `spec-tech` | Create tactical plan for S0113 |
+| 2026-05-08 01:54:46 | `PLAN/S0113_sftp-pool-stability/PHASE_01__pool-active-guard.md` | `spec-tech` | Phase 01: pool-active-guard |
+| 2026-05-08 01:54:46 | `PLAN/S0113_sftp-pool-stability/PHASE_02__download-dedup.md` | `spec-tech` | Phase 02: download-dedup |
+| 2026-05-08 01:54:46 | `PLAN/S0113_sftp-pool-stability/PHASE_03__error-triage.md` | `spec-tech` | Phase 03: error-triage |
+| 2026-05-08 01:54:46 | `PLAN/S0113_sftp-pool-stability/PHASE_04__unified-session.md` | `spec-tech` | Phase 04: unified-session (blocked) |
+| 2026-05-08 01:54:46 | `PLAN/S0113_sftp-pool-stability/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-08 01:54:46 | `PLAN/S0113_sftp-pool-stability.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-08 02:16:49 | `PLAN/S0114_bugfix-smb-scan-subfolders-flat-list.md` | `spec` | Add strategic spec S0114 for bugfix-smb-scan-subfolders-flat-list |
+| 2026-05-08 02:23:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseMicRecordingManager.kt` | `S0100` | Guard MediaRecorder.stop() in releaseRecorder() with isRecorderStarted flag — prevents stop failed -1007 on quick tap before recorder reaches RECORDING state |
+| 2026-05-08 02:26:40 | `PLAN/S0100_mic-recording-in-browse.md` | `spec-check` | Audit S0100 -> Verified; PASS 59 / WARN 0 / FAIL 0; regression fix for isRecorderStarted guard confirmed |
+| 2026-05-08 02:27:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceLoadManager.kt` | `S0114` | Fix orphaned scan job: cancel-before-launch in loadMediaFiles() |
+| 2026-05-08 02:30:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `S0113` | Phase 01+04: activeStreamCount guard + unified SSH session (ChannelPurpose, PooledChannel, single pooledSessions map) |
+| 2026-05-08 02:30:57 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/NetworkDownloadDeduplicator.kt` | `S0113` | Phase 02: new protocol-agnostic download deduplicator object |
+| 2026-05-08 02:30:57 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/NetworkFileDownloader.kt` | `S0113` | Phase 02: wrap downloadToTemp in NetworkDownloadDeduplicator.deduplicate |
+| 2026-05-08 02:30:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `S0113` | Phase 03: JSchException retry in open() + attemptOpen() helper extracted |
+| 2026-05-08 02:30:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0113` | Phase 03: suppress recoverable SFTP IO error toast when ExoPlayer not idle |
+| 2026-05-08 02:32:31 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `S0114` | Invalidate caches when scanSubdirectories changes on resource save |
+| 2026-05-08 02:36:23 | `PLAN/S0113_sftp-pool-stability.md` | `spec-check` | Audit S0113 -> Verified; PASS/WARN/FAIL 41/0/0; 5 manual on-device |
+| 2026-05-08 02:36:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `S0113` | Remove S0113 Timber debug tags (Verified transition) |
+| 2026-05-08 02:36:23 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/NetworkDownloadDeduplicator.kt` | `S0113` | Remove S0113 Timber debug tag |
+| 2026-05-08 02:36:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `S0113` | Remove S0113 Timber debug tag |
+| 2026-05-08 02:36:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0113` | Remove S0113 Timber debug tag |
+| 2026-05-08 02:36:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceLoadManager.kt` | `S0114` | Remove S0114 debug tag after verification |
+| 2026-05-08 02:36:49 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `S0114` | Remove S0114 debug tag after verification |
+| 2026-05-08 02:36:49 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Regenerate after S0114 changes |
+| 2026-05-08 02:39:04 | `PLAN/S0114_bugfix-smb-scan-subfolders-flat-list.md` | `spec-check` | Audit S0114 → Verified; PASS/WARN/FAIL 16/0/0 |
+| 2026-05-08 02:44:28 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/PlaybackPositionRepositoryImpl.kt` | `PlaybackPositionRepositoryImpl` | Never swallow CancellationException: add rethrow guard before catch(Exception) in all suspend methods |
+| 2026-05-08 02:44:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt` | `PlaybackPositionHelper` | Never swallow CancellationException: add rethrow guard in saveCurrentPosition catch block |
+| 2026-05-08 02:46:31 | `PLAN/S0115_unified-error-display.md` | `spec` | Add strategic spec S0115 for unified-error-display |
+| 2026-05-08 02:50:05 | `PLAN/S0106_player-image-crop.md` | `bug-report` | S0106 Broken: PhotoView collapses to zero-size rect on enterCropMode (display rect 360,0,360,0 after crop mode entry) |

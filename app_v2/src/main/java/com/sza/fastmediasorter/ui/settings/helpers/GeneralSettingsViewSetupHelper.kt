@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.content.Context
 import android.content.Intent
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -271,32 +273,35 @@ class GeneralSettingsViewSetupHelper(
         lastCommittedDefaultUser = currentSettings.defaultUser
         lastCommittedDefaultPassword = currentSettings.defaultPassword
 
+        // Clear any programmatic filters — these fields accept any character including Cyrillic.
+        binding.etDefaultUser.filters = arrayOf()
+        binding.etDefaultPassword.filters = arrayOf()
+        binding.etDefaultUser.isFocusableInTouchMode = true
+        binding.etDefaultPassword.isFocusableInTouchMode = true
+
         binding.etDefaultUser.setText(lastCommittedDefaultUser)
         binding.etDefaultUser.imeOptions = EditorInfo.IME_ACTION_NEXT
-        binding.tilDefaultUser.setOnClickListener { activateCredentialEditor(binding.etDefaultUser) }
-        binding.etDefaultUser.setOnClickListener { activateCredentialEditor(binding.etDefaultUser) }
+        // No setOnClickListener on til/et — overriding performClick() breaks Chrome OS IME
+        // connection: ARC establishes keyboard routing inside the system click handler, and a
+        // custom listener replaces it.  TextInputLayout already forwards container clicks to the
+        // inner EditText automatically, so no click listeners are needed here.
+        installTapFocusBridge(binding.tilDefaultUser, binding.etDefaultUser)
         binding.etDefaultUser.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == binding.etDefaultUser.imeOptions) {
                 commitDefaultUserIfChanged()
-                activateCredentialEditor(binding.etDefaultPassword)
+                binding.etDefaultPassword.requestFocus()
                 true
             } else {
                 false
             }
         }
-        binding.etDefaultUser.setOnFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
-                val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-            }
-            if (!hasFocus) {
-                commitDefaultUserIfChanged()
-            }
+        binding.etDefaultUser.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) commitDefaultUserIfChanged()
         }
+
         binding.etDefaultPassword.setText(lastCommittedDefaultPassword)
         binding.etDefaultPassword.imeOptions = EditorInfo.IME_ACTION_DONE
-        binding.tilDefaultPassword.setOnClickListener { activateCredentialEditor(binding.etDefaultPassword) }
-        binding.etDefaultPassword.setOnClickListener { activateCredentialEditor(binding.etDefaultPassword) }
+        installTapFocusBridge(binding.tilDefaultPassword, binding.etDefaultPassword)
         binding.etDefaultPassword.setOnEditorActionListener { view, actionId, _ ->
             if (actionId == binding.etDefaultPassword.imeOptions) {
                 commitDefaultPasswordIfChanged()
@@ -308,23 +313,35 @@ class GeneralSettingsViewSetupHelper(
                 false
             }
         }
-        binding.etDefaultPassword.setOnFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
-                val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-            }
-            if (!hasFocus) {
-                commitDefaultPasswordIfChanged()
-            }
+        binding.etDefaultPassword.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) commitDefaultPasswordIfChanged()
         }
     }
 
-    private fun activateCredentialEditor(target: TextInputEditText) {
-        target.requestFocus()
-        target.setSelection(target.text?.length ?: 0)
-        target.post {
+    private fun installTapFocusBridge(container: View, editor: TextInputEditText) {
+        val listener = View.OnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_UP && !editor.hasFocus()) {
+                focusEditorFromTap(editor)
+            }
+            false
+        }
+        container.setOnTouchListener(listener)
+        editor.setOnTouchListener(listener)
+    }
+
+    private fun focusEditorFromTap(editor: TextInputEditText) {
+        editor.requestFocusFromTouch()
+        editor.requestFocus()
+        editor.setSelection(editor.text?.length ?: 0)
+
+        // Non-Chrome OS devices in this screen can miss the editor-focus hand-off after a box tap.
+        // Keep ARC on the native click path and only add explicit IME assist for other devices.
+        if (ChromeOsCompat.isChromeOs(fragment.requireContext())) return
+
+        editor.post {
+            if (!editor.isAttachedToWindow) return@post
             val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(target, InputMethodManager.SHOW_IMPLICIT)
+            imm.showSoftInput(editor, InputMethodManager.SHOW_IMPLICIT)
         }
     }
 

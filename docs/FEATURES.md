@@ -340,6 +340,11 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **On-watch source management**: Add SMB, FTP, and SFTP sources directly on the watch with a protocol-aware setup flow, and remove misconfigured sources from the watch list with a long press and confirmation dialog.
 - **Polished on-watch controls and localization**: The watch companion now uses localized loading, empty-state, error, and retry labels, replaces emoji-only home shortcuts with native icons, and provides an on-watch slideshow interval stepper for quick tuning.
 - **Reactive source list refresh**: Network sources on the watch now refresh automatically after sync, import, and delete operations, and the error screen retries in place instead of forcing navigation away.
+- **Two-way source sync**: Network sources added directly on the watch can be pushed to the phone with a single tap on the Network Sources screen; the phone presents an import confirmation card in the Wear Sync settings.
+- **Remote playback control**: The phone's Wear Sync settings screen shows the track currently playing on the watch (name, source, progress bar) with play/pause, next, and previous buttons.
+- **Watch settings from phone**: Wear companion settings (enabled media types, slideshow interval) can be pushed from the phone's Wear Sync screen without manually opening the watch settings.
+- **Favorites sync**: Files marked as favorites on the watch are automatically synced to the phone's favorites database on each toggle.
+- **FTP and SFTP file browsing**: FTP and SFTP sources added to the watch are now fully browsable — not limited to connection testing.
 
 ## 22. Background & System Services
 

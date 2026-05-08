@@ -9,8 +9,10 @@ import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -37,12 +39,17 @@ class ImageViewerViewModel @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
     private val selectedMediaManager: SelectedMediaManager,
     private val smbDataSource: SmbDataSource,
+    private val favoritesRepository: WearFavoritesRepository,
+    private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ImageViewerUiState())
     val uiState: StateFlow<ImageViewerUiState> = _uiState.asStateFlow()
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
     
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
     private var allImages: List<WearMediaFile> = emptyList()
@@ -118,14 +125,15 @@ class ImageViewerViewModel @Inject constructor(
                             
                             withContext(Dispatchers.Main) {
                                 allImages = listOf(localFile) // For SMB, we only show one image
-                                _uiState.update { 
+                                _uiState.update {
                                     it.copy(
                                         isLoading = false,
                                         mediaFile = localFile,
                                         currentIndex = 0,
                                         totalCount = 1
-                                    ) 
+                                    )
                                 }
+                                checkFavoriteState(sourceId = "network", filePath = filePath)
                             }
                         },
                         onFailure = { e ->
@@ -159,15 +167,16 @@ class ImageViewerViewModel @Inject constructor(
                         allImages = files
                         val currentIndex = files.indexOfFirst { it.id == fileId }
                         if (currentIndex >= 0) {
-                            _uiState.update { 
+                            _uiState.update {
                                 it.copy(
                                     isLoading = false,
                                     mediaFile = files[currentIndex],
                                     currentIndex = currentIndex,
                                     totalCount = files.size
-                                ) 
+                                )
                             }
-                            
+                            checkFavoriteState(sourceId = "local", filePath = files[currentIndex].uri.toString())
+
                             // Initialize slideshow controller
                             initializeSlideshowController(currentIndex)
                         } else {
@@ -265,6 +274,31 @@ class ImageViewerViewModel @Inject constructor(
         }
     }
     
+    fun toggleFavorite() {
+        val selected = selectedMediaManager.getSelectedFileById(fileId)
+        val sourceId = if (selected?.isNetworkSource == true) "network" else "local"
+        val filePath = if (selected?.isNetworkSource == true) {
+            selected.streamUri
+        } else {
+            _uiState.value.mediaFile?.uri?.toString() ?: return
+        }
+        viewModelScope.launch {
+            if (_isFavorite.value) {
+                favoritesRepository.removeFavorite(sourceId, filePath)
+            } else {
+                favoritesRepository.addFavorite(sourceId, filePath)
+            }
+            _isFavorite.value = !_isFavorite.value
+            sendFavoritesDeltaUseCase()
+        }
+    }
+
+    private fun checkFavoriteState(sourceId: String, filePath: String) {
+        viewModelScope.launch {
+            _isFavorite.value = favoritesRepository.isFavorite(sourceId, filePath)
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         slideshowController?.stop()

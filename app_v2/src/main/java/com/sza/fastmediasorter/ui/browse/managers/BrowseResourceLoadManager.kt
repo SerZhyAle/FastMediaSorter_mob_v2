@@ -83,6 +83,8 @@ class BrowseResourceLoadManager(
     private val sortFiles: (List<MediaFile>, SortMode, Boolean) -> List<MediaFile>,
     private val setPagingDataFlow: (Flow<PagingData<MediaFile>>?) -> Unit
 ) {
+    private var currentScanJob: Job? = null
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
@@ -273,8 +275,11 @@ class BrowseResourceLoadManager(
 
         Timber.d("BrowseResourceLoadManager.loadMediaFiles: '${resource.name}' (id=${resource.id})")
 
-        // Cancel any previous load
-        // (loadFilesJob is owned externally via setLoadFilesJobRef — we cancel the current before launching)
+        // Cancel any previous scan before starting a new one
+        if (currentScanJob?.isActive == true) {
+            currentScanJob?.cancel()
+        }
+        shouldStopScanRef.set(false)
         updateState { it.copy(loadingProgress = 0, isScanCancellable = showStopImmediately) }
 
         var lastProgressUpdate = 0
@@ -346,12 +351,15 @@ class BrowseResourceLoadManager(
                 stopTimerJob?.cancel()
             }
         }
+        currentScanJob = filesJob
         setLoadFilesJobRef(filesJob)
     }
 
     /** Cancel [loadFilesJob] and set [shouldStopScan] (used by navigation manager). */
     fun cancelLoad(loadFilesJob: Job?) {
         loadFilesJob?.cancel()
+        currentScanJob?.cancel()
+        currentScanJob = null
         shouldStopScanRef.set(true)
     }
 

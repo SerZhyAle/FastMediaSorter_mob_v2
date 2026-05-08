@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -65,6 +66,8 @@ internal fun VideoPlayerManager.saveCurrentPosition() {
         managerScope.launch(Dispatchers.IO) {
             try {
                 playbackPositionRepository.savePosition(path, position, duration)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "VideoPlayerManager: Failed to save position")
             }

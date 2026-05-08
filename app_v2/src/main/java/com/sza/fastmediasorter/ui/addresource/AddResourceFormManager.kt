@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import com.sza.fastmediasorter.utils.NetworkUtils
 import kotlinx.coroutines.launch
 
@@ -91,6 +92,23 @@ internal class AddResourceFormManager(
                 binding.cbSftpSupportImage, binding.cbSftpSupportVideo, binding.cbSftpSupportAudio,
                 binding.cbSftpSupportGif, binding.cbSftpSupportText, binding.cbSftpSupportPdf, binding.cbSftpSupportEpub)
         }
+    }
+
+    fun setupTextInputTapBridges() {
+        installTextInputTapFocusBridge(activity, binding.tilSmbServer, binding.etSmbServer)
+        installTextInputTapFocusBridge(activity, binding.tilSmbUsername, binding.etSmbUsername)
+        installTextInputTapFocusBridge(activity, binding.tilSmbPassword, binding.etSmbPassword)
+        installTextInputTapFocusBridge(activity, binding.tilSmbShareName, binding.etSmbShareName)
+        installTextInputTapFocusBridge(activity, binding.tilSmbResourceName, binding.etSmbResourceName)
+        installTextInputTapFocusBridge(activity, binding.tilSmbPinCode, binding.etSmbPinCode)
+
+        installTextInputTapFocusBridge(activity, binding.tilSftpHost, binding.etSftpHost)
+        installTextInputTapFocusBridge(activity, binding.tilSftpPort, binding.etSftpPort)
+        installTextInputTapFocusBridge(activity, binding.tilSftpUsername, binding.etSftpUsername)
+        installTextInputTapFocusBridge(activity, binding.tilSftpPassword, binding.etSftpPassword)
+        installTextInputTapFocusBridge(activity, binding.tilSftpPath, binding.etSftpPath)
+        installTextInputTapFocusBridge(activity, binding.tilSftpResourceName, binding.etSftpResourceName)
+        installTextInputTapFocusBridge(activity, binding.tilSftpPinCode, binding.etSftpPinCode)
     }
 
     private fun updateMediaTypeCheckboxes(

@@ -24,12 +24,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
+import com.sza.fastmediasorter.wear.R
 import timber.log.Timber
 
 /**
@@ -41,9 +45,10 @@ fun AudioPlayerScreen(
     viewModel: AudioPlayerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+    val isFavorite by viewModel.isFavorite.collectAsState()
+
     Timber.d("AudioPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -60,9 +65,11 @@ fun AudioPlayerScreen(
             else -> {
                 AudioPlayerContent(
                     uiState = uiState,
+                    isFavorite = isFavorite,
                     onPlayPause = viewModel::togglePlayPause,
                     onSeekForward = viewModel::seekForward,
-                    onSeekBackward = viewModel::seekBackward
+                    onSeekBackward = viewModel::seekBackward,
+                    onToggleFavorite = viewModel::toggleFavorite
                 )
             }
         }
@@ -72,9 +79,11 @@ fun AudioPlayerScreen(
 @Composable
 private fun AudioPlayerContent(
     uiState: AudioPlayerUiState,
+    isFavorite: Boolean,
     onPlayPause: () -> Unit,
     onSeekForward: () -> Unit,
-    onSeekBackward: () -> Unit
+    onSeekBackward: () -> Unit,
+    onToggleFavorite: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -156,6 +165,8 @@ private fun AudioPlayerContent(
         
         Spacer(modifier = Modifier.height(8.dp))
         
+        val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+
         // Playback controls
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -189,6 +200,19 @@ private fun AudioPlayerContent(
                 colors = ButtonDefaults.secondaryButtonColors()
             ) {
                 Text("⏩", style = MaterialTheme.typography.body2)
+            }
+
+            // Favorite toggle button
+            Button(
+                onClick = onToggleFavorite,
+                modifier = Modifier.size(36.dp),
+                colors = if (isFavorite) ButtonDefaults.primaryButtonColors() else ButtonDefaults.secondaryButtonColors()
+            ) {
+                Text(
+                    text = if (isFavorite) "❤️" else "🤍",
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.semantics { contentDescription = favoriteDesc }
+                )
             }
         }
     }

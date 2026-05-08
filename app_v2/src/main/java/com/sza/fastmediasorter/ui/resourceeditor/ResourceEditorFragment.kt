@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.widget.ResourceLaunchWidgetProvider
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
+import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
@@ -109,6 +110,7 @@ class ResourceEditorFragment : Fragment() {
         reorderScanningAboveMediaTypes()
         setupToolbar()
         setupFieldListeners()
+        setupFieldTapBridges()
         setupButtons()
         setupIconPicker()
         setupCollapsibleSections()
@@ -308,7 +310,6 @@ class ResourceEditorFragment : Fragment() {
         binding.cbDisableThumbnails.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onFieldChanged(ResourceFieldKey.DISABLE_THUMBNAILS, isChecked)
         }
-
         binding.cbShowHiddenFiles.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onFieldChanged(ResourceFieldKey.SHOW_HIDDEN_FILES, isChecked)
         }
@@ -342,6 +343,22 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbPdf.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbEpub.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+    }
+
+    private fun setupFieldTapBridges() {
+        val context = requireContext()
+
+        installTextInputTapFocusBridge(context, binding.tilName, binding.etName)
+        installTextInputTapFocusBridge(context, binding.tilPath, binding.etPath)
+        installTextInputTapFocusBridge(context, binding.tilHost, binding.etHost)
+        installTextInputTapFocusBridge(context, binding.tilPort, binding.etPort)
+        installTextInputTapFocusBridge(context, binding.tilUsername, binding.etUsername)
+        installTextInputTapFocusBridge(context, binding.tilPassword, binding.etPassword)
+        installTextInputTapFocusBridge(context, binding.tilServerPath, binding.etServerPath)
+        installTextInputTapFocusBridge(context, binding.tilCloudFolderId, binding.etCloudFolderId)
+        installTextInputTapFocusBridge(context, binding.tilComment, binding.etComment)
+        installTextInputTapFocusBridge(context, binding.tilAccessPin, binding.etAccessPin)
+        installTextInputTapFocusBridge(context, binding.tilSlideshowInterval, binding.etSlideshowInterval)
     }
 
     private fun updateMediaTypes() {

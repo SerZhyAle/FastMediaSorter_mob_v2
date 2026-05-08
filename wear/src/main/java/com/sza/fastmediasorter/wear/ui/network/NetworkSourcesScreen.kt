@@ -28,6 +28,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.ExportState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.SyncState
@@ -44,6 +45,7 @@ fun NetworkSourcesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
+    val exportState by viewModel.exportState.collectAsState()
 
     // State for delete confirmation dialog
     var pendingDeleteSource by remember { mutableStateOf<SourceItem?>(null) }
@@ -65,6 +67,7 @@ fun NetworkSourcesScreen(
             SourcesListContent(
                 sources = state.sources,
                 syncState = syncState,
+                exportState = exportState,
                 onSourceClick = { sourceId, sourceName ->
                     Timber.d("Source selected: $sourceName (ID: $sourceId)")
                     navController.navigate("browse/music?sourceId=$sourceId&sourceName=$sourceName")
@@ -74,6 +77,9 @@ fun NetworkSourcesScreen(
                 },
                 onSyncClick = {
                     viewModel.requestSyncFromPhone()
+                },
+                onExportClick = {
+                    viewModel.exportToPhone()
                 },
                 onDeleteClick = { source ->
                     pendingDeleteSource = source
@@ -151,9 +157,11 @@ private fun LoadingContent() {
 private fun SourcesListContent(
     sources: List<SourceItem>,
     syncState: SyncState,
+    exportState: ExportState = ExportState.Idle,
     onSourceClick: (String, String) -> Unit,
     onAddClick: () -> Unit,
     onSyncClick: () -> Unit,
+    onExportClick: () -> Unit = {},
     onDeleteClick: (SourceItem) -> Unit = {}
 ) {
     ScalingLazyColumn(
@@ -193,6 +201,21 @@ private fun SourcesListContent(
 
         item {
             SyncFromPhoneChip(syncState = syncState, onClick = onSyncClick)
+        }
+
+        item {
+            ExportToPhoneChip(exportState = exportState, onClick = onExportClick)
+        }
+
+        if (exportState is ExportState.Success) {
+            item {
+                Text(
+                    text = stringResource(R.string.wear_export_success),
+                    style = MaterialTheme.typography.caption2,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                )
+            }
         }
 
         item {
@@ -297,6 +320,26 @@ private fun SyncFromPhoneChip(
         },
         modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.primaryChipColors()
+    )
+}
+
+@Composable
+private fun ExportToPhoneChip(
+    exportState: ExportState,
+    onClick: () -> Unit
+) {
+    Chip(
+        onClick = onClick,
+        enabled = exportState !is ExportState.Exporting,
+        label = {
+            if (exportState is ExportState.Exporting) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            } else {
+                Text(text = stringResource(R.string.wear_export_to_phone))
+            }
+        },
+        modifier = Modifier.fillMaxWidth(),
+        colors = ChipDefaults.secondaryChipColors()
     )
 }
 

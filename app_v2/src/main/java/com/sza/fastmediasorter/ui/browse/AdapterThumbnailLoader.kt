@@ -81,11 +81,7 @@ class AdapterThumbnailLoader(
     ): String? {
         val binarySizePx = binaryGeneratorSizePx ?: CACHED_THUMBNAIL_SIZE
         val context = imageView.context
-
-        if (getIsScrolling()) {
-            Timber.v("loadThumbnail: SKIPPED during scroll for ${file.name}")
-            return null
-        }
+        val isScrolling = getIsScrolling()
 
         // AUDIO: extension bitmap only; cover art loads exclusively in Player
         if (file.type == MediaType.AUDIO) {
@@ -126,6 +122,13 @@ class AdapterThumbnailLoader(
         val generatedPlaceholder = createPlaceholderDrawable(file, context.resources)
         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
 
+        // S0110: during scroll assign correct placeholder immediately — prevents stale extension
+        // from previous ViewHolder occupant; Glide will then attempt a synchronous cache-only hit.
+        if (isScrolling) {
+            showGeneratedPlaceholder(imageView, file)
+            Timber.d("S0110: scroll-mode load for ${file.name} — placeholder assigned, attempting cache-only fetch")
+        }
+
         if (getDisableThumbnails()) {
             showGeneratedPlaceholder(imageView, file)
             return newKey
@@ -144,10 +147,10 @@ class AdapterThumbnailLoader(
         }
 
         when (file.type) {
-            MediaType.EPUB -> loadEpub(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode)
-            MediaType.PDF -> loadPdf(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode)
-            MediaType.IMAGE, MediaType.GIF -> loadImage(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder)
-            MediaType.VIDEO -> loadVideo(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode)
+            MediaType.EPUB -> loadEpub(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
+            MediaType.PDF -> loadPdf(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
+            MediaType.IMAGE, MediaType.GIF -> loadImage(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isScrolling)
+            MediaType.VIDEO -> loadVideo(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
             MediaType.AUDIO -> {
                 val ext = file.name.substringAfterLast('.', "").uppercase()
                 imageView.setImageBitmap(createExtensionBitmap(ext))
@@ -161,7 +164,8 @@ class AdapterThumbnailLoader(
             }
             else -> {} // TEXT handled above
         }
-        return newKey
+        // S0110: return null during scroll so lastLoadedKey stays unset → full reload fires on scroll stop
+        return if (isScrolling) null else newKey
     }
 
     // ─── Style utilities (formerly companion object / ViewHolder statics) ─────
@@ -242,7 +246,8 @@ class AdapterThumbnailLoader(
     private fun loadEpub(
         imageView: ImageView, file: MediaFile, context: Context,
         isNetworkPath: Boolean, isCloudPath: Boolean,
-        generatedPlaceholder: BitmapDrawable, isListMode: Boolean
+        generatedPlaceholder: BitmapDrawable, isListMode: Boolean,
+        isScrolling: Boolean
     ) {
         if (!isCloudPath && !isNetworkPath) {
             val epubFile = File(file.path)
@@ -254,6 +259,7 @@ class AdapterThumbnailLoader(
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
                     .into(imageView)
             } else {
@@ -278,8 +284,10 @@ class AdapterThumbnailLoader(
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
-                if (isListMode) {
+                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
                             if (e != null) {
@@ -310,7 +318,8 @@ class AdapterThumbnailLoader(
     private fun loadPdf(
         imageView: ImageView, file: MediaFile, context: Context,
         isNetworkPath: Boolean, isCloudPath: Boolean,
-        generatedPlaceholder: BitmapDrawable, isListMode: Boolean
+        generatedPlaceholder: BitmapDrawable, isListMode: Boolean,
+        isScrolling: Boolean
     ) {
         val largePdfThumbnails = getShowPdfThumbnails()
         Timber.v("PDF_THUMB_DEBUG: Loading PDF thumbnail for ${file.name}, largePdfMode=$largePdfThumbnails, isNetwork=$isNetworkPath, isCloud=$isCloudPath, size=${file.size}")
@@ -325,6 +334,7 @@ class AdapterThumbnailLoader(
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
                     .into(imageView)
             } else {
@@ -367,8 +377,10 @@ class AdapterThumbnailLoader(
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
-                if (isListMode) {
+                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
                             if (e != null) {
@@ -402,7 +414,8 @@ class AdapterThumbnailLoader(
     private fun loadImage(
         imageView: ImageView, file: MediaFile, context: Context,
         isNetworkPath: Boolean, isCloudPath: Boolean,
-        generatedPlaceholder: BitmapDrawable
+        generatedPlaceholder: BitmapDrawable,
+        isScrolling: Boolean
     ) {
         val fileExt = file.name.substringAfterLast('.', "").lowercase()
         if (!HeifSupportUtils.isSupported(fileExt)) {
@@ -423,6 +436,7 @@ class AdapterThumbnailLoader(
                     ))
                     .priority(Priority.HIGH)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
@@ -434,7 +448,7 @@ class AdapterThumbnailLoader(
                     showGeneratedPlaceholder(imageView, file)
                     return
                 }
-                Glide.with(context)
+                val imageBuilder = Glide.with(context)
                     .load(NetworkFileData(
                         path = file.path,
                         credentialsId = getCredentialsId(),
@@ -442,7 +456,17 @@ class AdapterThumbnailLoader(
                         size = file.size,
                         createdDate = file.createdDate
                     ))
-                    .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                    .priority(Priority.HIGH)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+                    .centerCrop()
+                    .onlyRetrieveFromCache(isScrolling)
+                    .dontAnimate()
+                    .placeholder(generatedPlaceholder)
+                    .error(generatedPlaceholder)
+                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                if (!isScrolling) {
+                    imageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
                             if (e != null) {
                                 Timber.w("Network image load failed: ${file.name}, ${e.message}")
@@ -457,15 +481,10 @@ class AdapterThumbnailLoader(
                             resetThumbnailStyle(imageView)
                             return false
                         }
-                    })
-                    .priority(Priority.HIGH)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
-                    .centerCrop()
-                    .dontAnimate()
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .into(imageView)
+                    }).into(imageView)
+                } else {
+                    imageBuilder.into(imageView)
+                }
             }
             else -> {
                 val data: Any = when {
@@ -473,9 +492,20 @@ class AdapterThumbnailLoader(
                     !File(file.path).canRead() && !file.contentUri.isNullOrEmpty() -> Uri.parse(file.contentUri)
                     else -> File(file.path)
                 }
-                Glide.with(context)
+                val localImageBuilder = Glide.with(context)
                     .load(data)
-                    .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                    .signature(ObjectKey("${file.path}_${file.size}"))
+                    .priority(Priority.HIGH)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+                    .centerCrop()
+                    .onlyRetrieveFromCache(isScrolling)
+                    .dontAnimate()
+                    .placeholder(generatedPlaceholder)
+                    .error(generatedPlaceholder)
+                // S0110: no error/stats listener during scroll — cache miss triggers .error() placeholder naturally
+                if (!isScrolling) {
+                    localImageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
                             if (e != null) Timber.w("Local image load failed: ${file.name}, ${e.message}")
                             applyPlaceholderStyle(imageView, file.type)
@@ -487,16 +517,10 @@ class AdapterThumbnailLoader(
                             resetThumbnailStyle(imageView)
                             return false
                         }
-                    })
-                    .signature(ObjectKey("${file.path}_${file.size}"))
-                    .priority(Priority.HIGH)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
-                    .centerCrop()
-                    .dontAnimate()
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .into(imageView)
+                    }).into(imageView)
+                } else {
+                    localImageBuilder.into(imageView)
+                }
             }
         }
     }
@@ -504,7 +528,8 @@ class AdapterThumbnailLoader(
     private fun loadVideo(
         imageView: ImageView, file: MediaFile, context: Context,
         isNetworkPath: Boolean, isCloudPath: Boolean,
-        generatedPlaceholder: BitmapDrawable, isListMode: Boolean
+        generatedPlaceholder: BitmapDrawable, isListMode: Boolean,
+        isScrolling: Boolean
     ) {
         when {
             isCloudPath -> {
@@ -519,6 +544,7 @@ class AdapterThumbnailLoader(
                     ))
                     .priority(Priority.NORMAL)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .onlyRetrieveFromCache(isScrolling)
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
@@ -548,7 +574,7 @@ class AdapterThumbnailLoader(
                     showGeneratedPlaceholder(imageView, file)
                     return
                 }
-                Glide.with(context)
+                val videoBuilder = Glide.with(context)
                     .load(NetworkFileData(
                         path = file.path,
                         credentialsId = getCredentialsId(),
@@ -557,7 +583,16 @@ class AdapterThumbnailLoader(
                         createdDate = file.createdDate
                     ))
                     .priority(Priority.NORMAL)
-                    .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+                    .centerCrop()
+                    .onlyRetrieveFromCache(isScrolling)
+                    .dontAnimate()
+                    .placeholder(generatedPlaceholder)
+                    .error(generatedPlaceholder)
+                // S0110: skip failure-marking listener during scroll — cache miss is expected, not a real error
+                if (!isScrolling) {
+                    videoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
                             if (isVideoDecoderException(e)) {
                                 NetworkFileDataFetcher.markVideoAsFailed(file.path)
@@ -574,14 +609,10 @@ class AdapterThumbnailLoader(
                             resetThumbnailStyle(imageView)
                             return false
                         }
-                    })
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
-                    .centerCrop()
-                    .dontAnimate()
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .into(imageView)
+                    }).into(imageView)
+                } else {
+                    videoBuilder.into(imageView)
+                }
             }
             else -> {
                 if (isListMode && !getShowVideoThumbnails()) {
@@ -593,12 +624,20 @@ class AdapterThumbnailLoader(
                     !File(file.path).canRead() && !file.contentUri.isNullOrEmpty() -> Uri.parse(file.contentUri)
                     else -> File(file.path)
                 }
-                Glide.with(context)
+                val localVideoBuilder = Glide.with(context)
                     .load(data)
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .priority(Priority.NORMAL)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+                    .centerCrop()
+                    .onlyRetrieveFromCache(isScrolling)
+                    .dontAnimate()
+                    .placeholder(generatedPlaceholder)
+                    .error(generatedPlaceholder)
+                // S0110: no failure-marking listener during scroll — cache miss triggers .error() placeholder naturally
+                if (!isScrolling) {
+                    localVideoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
                             if (isListMode) applyPlaceholderStyle(imageView, file.type)
                             return false
@@ -609,13 +648,10 @@ class AdapterThumbnailLoader(
                             resetThumbnailStyle(imageView)
                             return false
                         }
-                    })
-                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
-                    .centerCrop()
-                    .dontAnimate()
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .into(imageView)
+                    }).into(imageView)
+                } else {
+                    localVideoBuilder.into(imageView)
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.repository
 
 import com.google.android.gms.wearable.Node
+import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 
 interface WearableDataLayerRepository {
     /** Returns all currently connected Wear OS nodes (paired watches). */
@@ -11,4 +12,7 @@ interface WearableDataLayerRepository {
 
     /** Sends a fire-and-forget message to a specific node. */
     suspend fun sendMessage(nodeId: String, path: String, data: ByteArray)
+
+    /** Serializes [envelope] to JSON and stores it as a Data Item at [path]. */
+    suspend fun putEnvelopeDataItem(path: String, envelope: WearEventEnvelope)
 }

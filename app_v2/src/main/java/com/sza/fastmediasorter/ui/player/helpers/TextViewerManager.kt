@@ -35,6 +35,9 @@ import kotlin.math.abs
  * - Supports copy-to-clipboard and in-place edit/save (when resource is writable)
  * - Supports translation of text content via TranslationManager
  * - Supports dynamic font size adjustment via horizontal swipe gestures
+ *
+ * Find & Replace / editor toolbar: delegated to [TextEditorFindReplaceManager].
+ * Translation overlay: delegated to [TextTranslationOverlayManager].
  */
 @android.annotation.SuppressLint("SetTextI18n")
 class TextViewerManager(
@@ -54,7 +57,7 @@ class TextViewerManager(
         private const val DEFAULT_TEXT_FONT_SIZE_SP = 14f
         private const val DEFAULT_TRANSLATION_FONT_SIZE_SP = 14f
         private const val FONT_SIZE_STEP_SP = 2f
-        
+
         // Swipe threshold as percentage of screen dimension
         private const val SWIPE_THRESHOLD_PERCENT = 0.05f // 5% of screen width/height
         private const val SWIPE_VELOCITY_THRESHOLD = 100
@@ -70,8 +73,6 @@ class TextViewerManager(
 
     private var currentFile: MediaFile? = null
     private var currentLocalFile: java.io.File? = null
-    private var translationEnabled = false
-    private var isTranslationExpanded = false
 
     // Paged reader
     private var textFilePager: TextFilePager? = null
@@ -92,30 +93,50 @@ class TextViewerManager(
     private var undoRedoManager: TextUndoRedoManager? = null
     private var autoSaveManager: TextEditorAutoSaveManager? = null
 
-    // Find & Replace state
-    private var findMatches = mutableListOf<IntRange>()
-    private var findCurrentIndex = -1
-    
     // Dynamic font sizes (session-scoped, persist until user exits player)
     private var textFontSizeSp: Float = DEFAULT_TEXT_FONT_SIZE_SP
     private var translationFontSizeSp: Float = DEFAULT_TRANSLATION_FONT_SIZE_SP
-    
+
     // Current font family (loaded from settings, applied to all text views)
     private var currentTypeface: android.graphics.Typeface = android.graphics.Typeface.SANS_SERIF
-    
+
     // Store original text without line numbers for editing/translation
     private var originalTextWithoutNumbers: String = ""
-    
+
     // Gesture detectors for font size adjustment
     private lateinit var textGestureDetector: GestureDetector
     private lateinit var translationGestureDetector: GestureDetector
-    
+
     // Track which view was active before OCR (to restore after close)
     private var previousActiveView: View? = null
-    
+
     // Track EPUB WebView visibility state (to restore after translation close)
     private var wasEpubWebViewVisible = false
     private val safeViews = PlayerBindingSafeViews(binding)
+
+    // Delegated helpers
+    private val findReplaceManager = TextEditorFindReplaceManager(
+        context = context,
+        safeViews = safeViews,
+        undoRedoProvider = { undoRedoManager }
+    )
+
+    private val translationOverlayManager = TextTranslationOverlayManager(
+        context = context,
+        safeViews = safeViews,
+        settingsRepository = settingsRepository,
+        coroutineScope = coroutineScope,
+        translationManager = translationManager,
+        getTranslationFontSizeSp = { translationFontSizeSp },
+        applyTranslationFontSize = ::applyTranslationFontSize,
+        callback = object : TextTranslationOverlayManager.TranslationCallback {
+            override fun showError(message: String) = callback.showError(message)
+            override fun showTranslationSettingsDialog() =
+                callback.showTranslationSettingsDialog()
+            override fun onTranslationToggled(enabled: Boolean) =
+                updateTranslateButtonTint(enabled)
+        }
+    )
 
     fun setupControls() {
         // Setup gesture detectors for font size adjustment
@@ -134,7 +155,7 @@ class TextViewerManager(
         safeViews.tvTextEncodingIndicator.setOnClickListener {
             callback.showEncodingDialog()
         }
-        
+
         // Close button for text viewer (OCR result or text file)
         safeViews.btnCloseTextViewer.setOnClickListener {
             UserActionLogger.logButtonClick("CloseTextViewer", "TextViewerManager")
@@ -152,24 +173,24 @@ class TextViewerManager(
                 callback.exitFullscreenMode()
             }
         }
-        
+
         // Close button for translation overlay
         safeViews.btnCloseTranslation.setOnClickListener {
             UserActionLogger.logButtonClick("CloseTranslation", "TextViewerManager")
-            hideTranslationOverlay()
+            translationOverlayManager.hideOverlay()
         }
-        
+
         // Click on background to close translation overlay
         safeViews.translationOverlayBackground.setOnClickListener {
             Timber.d("BUTTON: translationOverlayBackground clicked - hiding translation overlay")
-            hideTranslationOverlay()
+            translationOverlayManager.hideOverlay()
         }
-        
+
         // Setup translation overlay click to expand/collapse + swipe for font size
         safeViews.translationOverlay.setOnClickListener {
-            toggleTranslationOverlaySize()
+            translationOverlayManager.toggleOverlaySize()
         }
-        
+
         // Setup translation overlay touch listener for horizontal swipe gestures
         safeViews.translationScrollView.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) v.performClick()
@@ -180,19 +201,20 @@ class TextViewerManager(
             }
             true
         }
-        
+
         // Setup text viewer touch listener for horizontal swipe gestures
         safeViews.textScrollView.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) v.performClick()
             textGestureDetector.onTouchEvent(event)
             false // Let ScrollView handle scrolling
         }
-        
+
         // Text action buttons (now in top command panel)
         binding.btnCopyTextCmd.setOnClickListener {
             val text = safeViews.tvTextContent.text.toString()
             if (text.isNotEmpty()) {
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clipboard =
+                    context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("text", text)
                 clipboard.setPrimaryClip(clip)
                 Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show()
@@ -211,24 +233,23 @@ class TextViewerManager(
             saveEditedText()
         }
 
-        // Editor toolbar buttons
-        setupEditorToolbar()
-        
+        // Editor toolbar buttons — delegated
+        findReplaceManager.setupEditorToolbar()
+
         binding.btnTranslateTextCmd.setOnClickListener {
-            toggleTranslation()
+            translationOverlayManager.toggleTranslation { originalTextForTranslation() }
         }
         binding.btnTranslateTextCmd.setOnLongClickListener {
             callback.showTranslationSettingsDialog()
             true
         }
-        
+
         // Click outside OCR text to dismiss (tap on container background, not on text itself)
         safeViews.textViewerContainer.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 v.performClick()
                 // Only dismiss if showing OCR text (currentFile is null for OCR)
                 if (currentFile == null && safeViews.textViewerContainer.isVisible) {
-                    // Check if touch is outside the text content area
                     val textViewLocation = IntArray(2)
                     safeViews.tvTextContent.getLocationOnScreen(textViewLocation)
                     val textViewRect = android.graphics.Rect(
@@ -237,12 +258,12 @@ class TextViewerManager(
                         textViewLocation[0] + safeViews.tvTextContent.width,
                         textViewLocation[1] + safeViews.tvTextContent.height
                     )
-                    
+
                     val containerLocation = IntArray(2)
                     safeViews.textViewerContainer.getLocationOnScreen(containerLocation)
                     val touchX = containerLocation[0] + event.x.toInt()
                     val touchY = containerLocation[1] + event.y.toInt()
-                    
+
                     if (!textViewRect.contains(touchX, touchY)) {
                         hideOcrText()
                         return@setOnTouchListener true
@@ -253,165 +274,154 @@ class TextViewerManager(
         }
 
         // Extend the native selection ActionMode with "Translate" and "Search in Google"
-        safeViews.tvTextContent.customSelectionActionModeCallback = DocumentSelectionActionModeCallback(
-            showTranslate = BuildConfig.ENABLE_TRANSLATION,
-            getSelectedText = {
-                val start = safeViews.tvTextContent.selectionStart.coerceAtLeast(0)
-                val end   = safeViews.tvTextContent.selectionEnd.coerceAtLeast(0)
-                safeViews.tvTextContent.text?.substring(minOf(start, end), maxOf(start, end)) ?: ""
-            },
-            onTranslate    = ::translateSelectedText,
-            onSearchGoogle = { openGoogleSearch(context, it) }
-        )
+        safeViews.tvTextContent.customSelectionActionModeCallback =
+            DocumentSelectionActionModeCallback(
+                showTranslate = BuildConfig.ENABLE_TRANSLATION,
+                getSelectedText = {
+                    val start = safeViews.tvTextContent.selectionStart.coerceAtLeast(0)
+                    val end = safeViews.tvTextContent.selectionEnd.coerceAtLeast(0)
+                    safeViews.tvTextContent.text
+                        ?.substring(minOf(start, end), maxOf(start, end)) ?: ""
+                },
+                onTranslate = { translationOverlayManager.translateSelectedText(it) },
+                onSearchGoogle = { openGoogleSearch(context, it) }
+            )
     }
-    
+
     /**
      * Setup gesture detectors for horizontal swipe to change font size
      */
     private fun setupGestureDetectors() {
         // Gesture detector for text content (tvTextContent)
-        textGestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onFling(
-                e1: MotionEvent?,
-                e2: MotionEvent,
-                velocityX: Float,
-                velocityY: Float
-            ): Boolean {
-                if (e1 == null) return false
-                
-                // Calculate swipe threshold based on screen size (5% of smaller dimension)
-                val screenWidth = binding.root.width
-                val screenHeight = binding.root.height
-                val swipeThreshold = (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT).toInt().coerceAtLeast(50)
-                
-                val diffX = e2.x - e1.x
-                val diffY = e2.y - e1.y
-                
-                // Check for horizontal swipes (font size adjustment)
-                if (abs(diffX) > abs(diffY) && 
-                    abs(diffX) > swipeThreshold && 
-                    abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                    
-                    if (diffX > 0) {
-                        // Swipe right = increase font size
-                        increaseTextFontSize()
-                    } else {
-                        // Swipe left = decrease font size
-                        decreaseTextFontSize()
+        textGestureDetector =
+            GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onFling(
+                    e1: MotionEvent?,
+                    e2: MotionEvent,
+                    velocityX: Float,
+                    velocityY: Float
+                ): Boolean {
+                    if (e1 == null) return false
+
+                    val screenWidth = binding.root.width
+                    val screenHeight = binding.root.height
+                    val swipeThreshold =
+                        (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT)
+                            .toInt().coerceAtLeast(50)
+
+                    val diffX = e2.x - e1.x
+                    val diffY = e2.y - e1.y
+
+                    // Horizontal swipe → font size adjustment
+                    if (abs(diffX) > abs(diffY) &&
+                        abs(diffX) > swipeThreshold &&
+                        abs(velocityX) > SWIPE_VELOCITY_THRESHOLD
+                    ) {
+                        if (diffX > 0) increaseTextFontSize() else decreaseTextFontSize()
+                        return true
                     }
-                    return true
-                }
-                
-                // Check for vertical swipes
-                if (abs(diffY) > abs(diffX) && 
-                    abs(diffY) > swipeThreshold && 
-                    abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                    
-                    val scrollView = safeViews.textScrollView
-                    val isAtTop = !scrollView.canScrollVertically(-1)
-                    val isAtBottom = !scrollView.canScrollVertically(1)
-                    
-                    // For OCR text (currentFile is null), close only when at scroll edges
-                    if (currentFile == null && safeViews.textViewerContainer.isVisible) {
+
+                    // Vertical swipe → page navigation or fullscreen exit
+                    if (abs(diffY) > abs(diffX) &&
+                        abs(diffY) > swipeThreshold &&
+                        abs(velocityY) > SWIPE_VELOCITY_THRESHOLD
+                    ) {
+                        val scrollView = safeViews.textScrollView
+                        val isAtTop = !scrollView.canScrollVertically(-1)
+                        val isAtBottom = !scrollView.canScrollVertically(1)
+
+                        // For OCR text (currentFile is null) close only at scroll edges
+                        if (currentFile == null && safeViews.textViewerContainer.isVisible) {
+                            if (diffY < 0 && isAtBottom) {
+                                Timber.d("OCR text: Swipe up at bottom - closing OCR viewer")
+                                hideOcrText()
+                                return true
+                            } else if (diffY > 0 && isAtTop) {
+                                Timber.d("OCR text: Swipe down at top - closing OCR viewer")
+                                hideOcrText()
+                                return true
+                            }
+                            return false
+                        }
+
+                        val pager = textFilePager
                         if (diffY < 0 && isAtBottom) {
-                            // Swipe up at bottom = close OCR
-                            Timber.d("OCR text: Swipe up at bottom - closing OCR viewer")
-                            hideOcrText()
+                            if (pager != null && pager.hasNextPage()) {
+                                Timber.d("Text: Swipe up at bottom - next page")
+                                nextPage()
+                                return true
+                            }
+                            Timber.d("Text: Swipe up at bottom - exit fullscreen")
+                            callback.exitFullscreenMode()
                             return true
                         } else if (diffY > 0 && isAtTop) {
-                            // Swipe down at top = close OCR
-                            Timber.d("OCR text: Swipe down at top - closing OCR viewer")
-                            hideOcrText()
+                            if (pager != null && pager.hasPreviousPage()) {
+                                Timber.d("Text: Swipe down at top - previous page")
+                                previousPage()
+                                return true
+                            }
+                            Timber.d("Text: Swipe down at top - exit fullscreen")
+                            callback.exitFullscreenMode()
                             return true
                         }
-                        // Not at edge - let scroll happen
-                        return false
                     }
-                    
-                    // For regular text files:
-                    // - Multi-page: navigate pages at edges
-                    // - Single page: exit fullscreen at edges
-                    val pager = textFilePager
-                    if (diffY < 0 && isAtBottom) {
-                        if (pager != null && pager.hasNextPage()) {
-                            Timber.d("Text: Swipe up at bottom - next page")
-                            nextPage()
-                            return true
-                        }
-                        Timber.d("Text: Swipe up at bottom - exit fullscreen")
-                        callback.exitFullscreenMode()
-                        return true
-                    } else if (diffY > 0 && isAtTop) {
-                        if (pager != null && pager.hasPreviousPage()) {
-                            Timber.d("Text: Swipe down at top - previous page")
-                            previousPage()
-                            return true
-                        }
-                        Timber.d("Text: Swipe down at top - exit fullscreen")
-                        callback.exitFullscreenMode()
-                        return true
-                    }
+
+                    return false
                 }
-                
-                return false
-            }
-        })
-        
+            })
+
         // Gesture detector for translation overlay (tvTranslatedText)
-        translationGestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onFling(
-                e1: MotionEvent?,
-                e2: MotionEvent,
-                velocityX: Float,
-                velocityY: Float
-            ): Boolean {
-                if (e1 == null) return false
-                
-                // Calculate swipe threshold based on screen size
-                val screenWidth = binding.root.width
-                val screenHeight = binding.root.height
-                val swipeThreshold = (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT).toInt().coerceAtLeast(50)
-                
-                val diffX = e2.x - e1.x
-                val diffY = e2.y - e1.y
-                
-                // Only handle horizontal swipes (ignore vertical scrolling)
-                if (abs(diffX) > abs(diffY) && 
-                    abs(diffX) > swipeThreshold && 
-                    abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                    
-                    if (diffX > 0) {
-                        // Swipe right = increase font size
-                        increaseTranslationFontSize()
-                    } else {
-                        // Swipe left = decrease font size
-                        decreaseTranslationFontSize()
+        translationGestureDetector =
+            GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onFling(
+                    e1: MotionEvent?,
+                    e2: MotionEvent,
+                    velocityX: Float,
+                    velocityY: Float
+                ): Boolean {
+                    if (e1 == null) return false
+
+                    val screenWidth = binding.root.width
+                    val screenHeight = binding.root.height
+                    val swipeThreshold =
+                        (minOf(screenWidth, screenHeight) * SWIPE_THRESHOLD_PERCENT)
+                            .toInt().coerceAtLeast(50)
+
+                    val diffX = e2.x - e1.x
+                    val diffY = e2.y - e1.y
+
+                    // Only handle horizontal swipes (ignore vertical scrolling)
+                    if (abs(diffX) > abs(diffY) &&
+                        abs(diffX) > swipeThreshold &&
+                        abs(velocityX) > SWIPE_VELOCITY_THRESHOLD
+                    ) {
+                        if (diffX > 0) increaseTranslationFontSize()
+                        else decreaseTranslationFontSize()
+                        return true
                     }
+                    return false
+                }
+
+                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                    translationOverlayManager.toggleOverlaySize()
                     return true
                 }
-                return false
-            }
-            
-            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                // Single tap toggles overlay size
-                toggleTranslationOverlaySize()
-                return true
-            }
-        })
+            })
     }
-    
+
     /**
-     * Apply font settings from session configuration
-     * Called when user changes font settings in translation settings dialog
+     * Apply font settings from session configuration.
+     * Called when user changes font settings in translation settings dialog.
      */
     fun applyFontSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
         val baseTextSize = DEFAULT_TEXT_FONT_SIZE_SP
         val baseTranslationSize = DEFAULT_TRANSLATION_FONT_SIZE_SP
-        
-        // Apply font size multiplier
+
         if (settings.fontSize != com.sza.fastmediasorter.domain.models.TranslationFontSize.AUTO) {
-            textFontSizeSp = (baseTextSize * settings.fontSize.multiplier).coerceIn(MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
-            translationFontSizeSp = (baseTranslationSize * settings.fontSize.multiplier).coerceIn(MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
+            textFontSizeSp = (baseTextSize * settings.fontSize.multiplier)
+                .coerceIn(MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
+            translationFontSizeSp = (baseTranslationSize * settings.fontSize.multiplier)
+                .coerceIn(MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
             applyTextFontSize()
             applyTranslationFontSize()
         } else {
@@ -421,73 +431,62 @@ class TextViewerManager(
             applyTextFontSize()
             applyTranslationFontSize()
         }
-        
+
         // Apply font family and save to class variable for later use (e.g., displayOcrText)
         currentTypeface = when (settings.fontFamily) {
-            com.sza.fastmediasorter.domain.models.TranslationFontFamily.SERIF -> android.graphics.Typeface.SERIF
-            com.sza.fastmediasorter.domain.models.TranslationFontFamily.MONOSPACE -> android.graphics.Typeface.MONOSPACE
+            com.sza.fastmediasorter.domain.models.TranslationFontFamily.SERIF ->
+                android.graphics.Typeface.SERIF
+            com.sza.fastmediasorter.domain.models.TranslationFontFamily.MONOSPACE ->
+                android.graphics.Typeface.MONOSPACE
             else -> android.graphics.Typeface.SANS_SERIF
         }
         safeViews.tvTextContent.typeface = currentTypeface
         safeViews.tvTranslatedText.typeface = currentTypeface
-        
-        Timber.d("Applied font settings: size=${settings.fontSize.name} (${textFontSizeSp}sp), family=${settings.fontFamily.name}")
+
+        Timber.d(
+            "Applied font settings: size=${settings.fontSize.name} " +
+                    "(${textFontSizeSp}sp), family=${settings.fontFamily.name}"
+        )
     }
-    
-    /**
-     * Increase text viewer font size
-     */
+
     private fun increaseTextFontSize() {
         textFontSizeSp = (textFontSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
         applyTextFontSize()
         Timber.d("Text font size increased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
-    
-    /**
-     * Decrease text viewer font size
-     */
+
     private fun decreaseTextFontSize() {
         textFontSizeSp = (textFontSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
         applyTextFontSize()
         Timber.d("Text font size decreased to ${textFontSizeSp}sp")
         showFontSizeToast(textFontSizeSp)
     }
-    
-    /**
-     * Apply current text font size to text content TextView
-     */
+
     private fun applyTextFontSize() {
         safeViews.tvTextContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
     }
-    
-    /**
-     * Increase translation overlay font size
-     */
+
     private fun increaseTranslationFontSize() {
-        translationFontSizeSp = (translationFontSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
+        translationFontSizeSp =
+            (translationFontSizeSp + FONT_SIZE_STEP_SP).coerceAtMost(MAX_FONT_SIZE_SP)
         applyTranslationFontSize()
         Timber.d("Translation font size increased to ${translationFontSizeSp}sp")
         showFontSizeToast(translationFontSizeSp)
     }
-    
-    /**
-     * Decrease translation overlay font size
-     */
+
     private fun decreaseTranslationFontSize() {
-        translationFontSizeSp = (translationFontSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
+        translationFontSizeSp =
+            (translationFontSizeSp - FONT_SIZE_STEP_SP).coerceAtLeast(MIN_FONT_SIZE_SP)
         applyTranslationFontSize()
         Timber.d("Translation font size decreased to ${translationFontSizeSp}sp")
         showFontSizeToast(translationFontSizeSp)
     }
-    
-    /**
-     * Apply current translation font size to translated text TextView
-     */
+
     private fun applyTranslationFontSize() {
         safeViews.tvTranslatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, translationFontSizeSp)
     }
-    
+
     /**
      * Apply translation font size (called from PlayerActivity for image translation).
      * Uses the same font size setting as text translation to keep consistency.
@@ -495,10 +494,7 @@ class TextViewerManager(
     fun applyTranslationFontSizeForImageTranslation() {
         applyTranslationFontSize()
     }
-    
-    /**
-     * Show brief toast with current font size
-     */
+
     private fun showFontSizeToast(sizeSp: Float) {
         UserActionLogger.logGesture("FontSizeChange", "TextViewerManager", "size=${sizeSp.toInt()}sp")
         Toast.makeText(context, "${sizeSp.toInt()}sp", Toast.LENGTH_SHORT).show()
@@ -517,17 +513,17 @@ class TextViewerManager(
         binding.audioInfoOverlay.isVisible = false
         safeViews.pdfControlsLayout.isVisible = false
         safeViews.btnTranslateImage.isVisible = false
-        
+
         // Hide PDF action buttons (they are for PDF files only)
         binding.btnGoogleLensPdfCmd.isVisible = false
         binding.btnOcrPdfCmd.isVisible = false
         binding.btnTranslatePdfCmd.isVisible = false
         binding.btnSearchPdfCmd.isVisible = false
-        
+
         // Hide EPUB action buttons (they are for EPUB files only)
         binding.btnSearchEpubCmd.isVisible = false
         binding.btnTranslateEpubCmd.isVisible = false
-        
+
         // Hide EPUB WebView and controls (they are for EPUB files only)
         binding.epubWebView.isVisible = false
         safeViews.epubControlsLayout.isVisible = false
@@ -538,21 +534,22 @@ class TextViewerManager(
         safeViews.textEditContainer.isVisible = false
         safeViews.tvTextContent.text = ""
         binding.progressBar.isVisible = true
-        
+
         // Show text action buttons in command panel
         binding.btnCopyTextCmd.isVisible = true
         // Restore text-copy handler (may have been overridden by PdfViewerManager)
         binding.btnCopyTextCmd.setOnClickListener {
             val text = safeViews.tvTextContent.text.toString()
             if (text.isNotEmpty()) {
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clipboard =
+                    context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = android.content.ClipData.newPlainText("text", text)
                 clipboard.setPrimaryClip(clip)
                 Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show()
             }
         }
         binding.btnSearchTextCmd.isVisible = true
-        
+
         // Apply saved font size (persists during session)
         applyTextFontSize()
 
@@ -560,10 +557,11 @@ class TextViewerManager(
 
         coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
-            
+
             withContext(Dispatchers.Main) {
                 // Show translate button only if translation is enabled in settings AND supported by flavor
-                binding.btnTranslateTextCmd.isVisible = BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
+                binding.btnTranslateTextCmd.isVisible =
+                    BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
             }
             try {
                 val file = try {
@@ -587,10 +585,12 @@ class TextViewerManager(
                 // Check file size against maximum (100MB)
                 if (file.length() > TextFilePager.MAX_FILE_SIZE) {
                     val fileSizeMb = "%.1f MB".format(file.length().toDouble() / (1024 * 1024))
-                    val maxSizeMb = "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
+                    val maxSizeMb =
+                        "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        safeViews.tvTextContent.text = context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
+                        safeViews.tvTextContent.text =
+                            context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
                         safeViews.textPageNavigation.isVisible = false
                     }
                     return@launch
@@ -609,7 +609,7 @@ class TextViewerManager(
                 val pageText = pager.readPage(0)
                 originalTextWithoutNumbers = pageText
 
-                // Load H.2 rendering settings
+                // Load rendering settings
                 markdownRendered = settings.markdownRendered
                 syntaxHighlightingEnabled = settings.syntaxHighlighting
                 currentReaderTheme = resolveTheme(settings.textReaderTheme)
@@ -627,7 +627,7 @@ class TextViewerManager(
                     safeViews.textPageNavigation.isVisible = multiPage
                     if (multiPage) {
                         updatePageIndicator()
-                        // Add bottom padding to ScrollView so page bar doesn't cover content
+                        // Add bottom padding so page bar doesn't cover content
                         safeViews.textScrollView.setPadding(
                             safeViews.textScrollView.paddingLeft,
                             safeViews.textScrollView.paddingTop,
@@ -648,7 +648,10 @@ class TextViewerManager(
                     // Show encoding indicator
                     safeViews.tvTextEncodingIndicator.text = currentCharset.name()
 
-                    Timber.d("TextViewerManager: Displaying page 0, ${pageText.length} chars, charset=$currentCharset")
+                    Timber.d(
+                        "TextViewerManager: Displaying page 0, " +
+                                "${pageText.length} chars, charset=$currentCharset"
+                    )
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
@@ -665,9 +668,12 @@ class TextViewerManager(
      * @param text Raw text content
      * @param showLineNumbers Whether to add line numbers
      * @param startLineNumber Starting line number (1-based)
-     * @return Text with or without line numbers
      */
-    private fun applyLineNumbers(text: String, showLineNumbers: Boolean, startLineNumber: Int): String {
+    private fun applyLineNumbers(
+        text: String,
+        showLineNumbers: Boolean,
+        startLineNumber: Int
+    ): String {
         if (!showLineNumbers || text.isEmpty()) return text
 
         val lines = text.lines()
@@ -680,9 +686,6 @@ class TextViewerManager(
         }.joinToString("\n")
     }
 
-    /**
-     * Navigate to next page
-     */
     fun nextPage() {
         val pager = textFilePager ?: return
         if (!pager.hasNextPage()) return
@@ -705,9 +708,6 @@ class TextViewerManager(
         }
     }
 
-    /**
-     * Navigate to previous page
-     */
     fun previousPage() {
         val pager = textFilePager ?: return
         if (!pager.hasPreviousPage()) return
@@ -731,7 +731,7 @@ class TextViewerManager(
     }
 
     /**
-     * Reopen current file with a different encoding
+     * Reopen current file with a different encoding.
      */
     fun reopenWithEncoding(charset: Charset) {
         val file = currentLocalFile ?: return
@@ -768,19 +768,12 @@ class TextViewerManager(
         }
     }
 
-    /**
-     * Get the list of supported charsets for the encoding picker
-     */
+    /** Get the list of supported charsets for the encoding picker. */
     fun getSupportedCharsets(): List<Pair<String, Charset>> = CharsetDetector.SUPPORTED_CHARSETS
 
-    /**
-     * Get current charset name for display
-     */
+    /** Get current charset name for display. */
     fun getCurrentCharsetName(): String = currentCharset.name()
 
-    /**
-     * Update page indicator and navigation button states
-     */
     private fun updatePageIndicator() {
         val pager = textFilePager ?: return
         val current = pager.currentPage + 1
@@ -798,9 +791,6 @@ class TextViewerManager(
         safeViews.btnTextPageNext.alpha = if (pager.hasNextPage()) 1f else 0.3f
     }
 
-    /**
-     * Close the current TextFilePager and release resources
-     */
     private fun closePager() {
         textFilePager?.close()
         textFilePager = null
@@ -828,7 +818,6 @@ class TextViewerManager(
      */
     fun closeTextViewerFromBackPress() {
         if (currentFile != null) {
-            // Text file - perform complete cleanup matching close button behavior
             closePager()
             safeViews.textViewerContainer.isVisible = false
             safeViews.textScrollView.isVisible = false
@@ -871,9 +860,7 @@ class TextViewerManager(
         Timber.d("TextViewerManager: Reader theme changed to ${theme.name}")
     }
 
-    /**
-     * Get current reader theme.
-     */
+    /** Get current reader theme. */
     fun getCurrentTheme(): TextReaderTheme = currentReaderTheme
 
     /**
@@ -886,7 +873,6 @@ class TextViewerManager(
                     and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
             return if (isNight) TextReaderTheme.DARK else TextReaderTheme.LIGHT
         }
-        // Known enums; fall back to system default for anything unrecognised
         return TextReaderTheme.entries.find { it.name.equals(name, ignoreCase = true) }
             ?: resolveTheme("SYSTEM")
     }
@@ -903,24 +889,14 @@ class TextViewerManager(
         ttsManager?.toggle(originalTextWithoutNumbers)
     }
 
-    /**
-     * Check if current file is a markdown file.
-     */
     private fun isMarkdownFile(): Boolean {
         val ext = currentFile?.path?.substringAfterLast('.', "")?.lowercase() ?: ""
         return ext == "md" || ext == "markdown" || ext == "mdown"
     }
 
-    /**
-     * Get file extension for syntax highlighting.
-     */
-    private fun getFileExtension(): String {
-        return currentFile?.path?.substringAfterLast('.', "")?.lowercase() ?: ""
-    }
+    private fun getFileExtension(): String =
+        currentFile?.path?.substringAfterLast('.', "")?.lowercase() ?: ""
 
-    /**
-     * Apply current theme colors to text viewer views.
-     */
     private fun applyThemeToViews() {
         safeViews.tvTextContent.setBackgroundColor(currentReaderTheme.bgColor)
         safeViews.tvTextContent.setTextColor(currentReaderTheme.textColor)
@@ -929,11 +905,12 @@ class TextViewerManager(
 
     /**
      * Render page content with Markwon, syntax highlighting, and theme applied.
-     * @param pageText Raw page text (without line numbers)
-     * @param showLineNumbers Whether to apply line numbers
-     * @param startLineNumber Starting line number for this page
      */
-    private fun renderPageContent(pageText: String, showLineNumbers: Boolean, startLineNumber: Int) {
+    private fun renderPageContent(
+        pageText: String,
+        showLineNumbers: Boolean,
+        startLineNumber: Int
+    ) {
         if (pageText.isEmpty()) {
             safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
             return
@@ -965,9 +942,6 @@ class TextViewerManager(
         applyThemeToViews()
     }
 
-    /**
-     * Reload the current page with updated rendering settings.
-     */
     private fun reloadCurrentPage() {
         val pager = textFilePager ?: return
         coroutineScope.launch(Dispatchers.IO) {
@@ -981,203 +955,7 @@ class TextViewerManager(
         }
     }
 
-    // ===== H.3: Editor toolbar, find & replace, cursor position =====
-
-    /**
-     * Setup editor toolbar buttons (undo/redo/find/find-replace)
-     */
-    private fun setupEditorToolbar() {
-        safeViews.btnUndo.setOnClickListener {
-            undoRedoManager?.undo()
-        }
-        safeViews.btnRedo.setOnClickListener {
-            undoRedoManager?.redo()
-        }
-        safeViews.btnEditorFind.setOnClickListener {
-            showFindPanel(withReplace = false)
-        }
-        safeViews.btnEditorFindReplace.setOnClickListener {
-            showFindPanel(withReplace = true)
-        }
-
-        // Find panel buttons
-        safeViews.btnFindClose.setOnClickListener { closeFindPanel() }
-        safeViews.btnFindNext.setOnClickListener { navigateFind(forward = true) }
-        safeViews.btnFindPrev.setOnClickListener { navigateFind(forward = false) }
-        safeViews.btnReplace.setOnClickListener { replaceCurrent() }
-        safeViews.btnReplaceAll.setOnClickListener { replaceAll() }
-
-        // Live search on query text change
-        safeViews.etFindQuery.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable) {
-                performFindInEditor(s.toString())
-            }
-        })
-    }
-
-    /**
-     * Track cursor line/column in EditText and update status bar.
-     */
-    private fun setupCursorPositionTracking() {
-        safeViews.etTextContent.setAccessibilityDelegate(null)
-        safeViews.etTextContent.post {
-            updateCursorPosition()
-        }
-        safeViews.etTextContent.setOnClickListener { updateCursorPosition() }
-        safeViews.etTextContent.accessibilityLiveRegion = android.view.View.ACCESSIBILITY_LIVE_REGION_NONE
-    }
-
-    private fun updateCursorPosition() {
-        val text = safeViews.etTextContent.text ?: return
-        val pos = safeViews.etTextContent.selectionStart.coerceIn(0, text.length)
-        val textBefore = text.subSequence(0, pos)
-        val line = textBefore.count { it == '\n' } + 1
-        val lastNewline = textBefore.lastIndexOf('\n')
-        val col = if (lastNewline >= 0) pos - lastNewline else pos + 1
-        safeViews.tvEditorCursorPos.text = context.getString(R.string.cursor_position, line, col)
-    }
-
-    /**
-     * Show the find (and optionally replace) panel.
-     */
-    private fun showFindPanel(withReplace: Boolean) {
-        safeViews.textFindReplacePanel.isVisible = true
-        safeViews.replaceRow.isVisible = withReplace
-        safeViews.etFindQuery.requestFocus()
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(safeViews.etFindQuery, InputMethodManager.SHOW_IMPLICIT)
-    }
-
-    /**
-     * Close find/replace panel and clear highlights.
-     */
-    private fun closeFindPanel() {
-        safeViews.textFindReplacePanel.isVisible = false
-        safeViews.etFindQuery.setText("")
-        safeViews.etReplaceQuery.setText("")
-        safeViews.tvFindCounter.text = ""
-        findMatches.clear()
-        findCurrentIndex = -1
-        // Remove highlight spans
-        clearEditorHighlights()
-    }
-
-    /**
-     * Find all occurrences of query in the EditText content.
-     */
-    private fun performFindInEditor(query: String) {
-        findMatches.clear()
-        findCurrentIndex = -1
-        clearEditorHighlights()
-
-        if (query.isEmpty()) {
-            safeViews.tvFindCounter.text = ""
-            return
-        }
-
-        val text = safeViews.etTextContent.text?.toString() ?: return
-        val lowerQuery = query.lowercase()
-        val lowerText = text.lowercase()
-
-        var startIndex = 0
-        while (true) {
-            val found = lowerText.indexOf(lowerQuery, startIndex)
-            if (found < 0) break
-            findMatches.add(found until found + query.length)
-            startIndex = found + 1
-        }
-
-        if (findMatches.isEmpty()) {
-            safeViews.tvFindCounter.text = context.getString(R.string.find_no_results)
-        } else {
-            findCurrentIndex = 0
-            highlightFindMatch()
-            updateFindCounter()
-        }
-    }
-
-    /**
-     * Navigate to next/previous find match.
-     */
-    private fun navigateFind(forward: Boolean) {
-        if (findMatches.isEmpty()) return
-        findCurrentIndex = if (forward) {
-            (findCurrentIndex + 1) % findMatches.size
-        } else {
-            (findCurrentIndex - 1 + findMatches.size) % findMatches.size
-        }
-        highlightFindMatch()
-        updateFindCounter()
-    }
-
-    /**
-     * Highlight current find match in EditText by selecting it.
-     */
-    private fun highlightFindMatch() {
-        if (findCurrentIndex < 0 || findCurrentIndex >= findMatches.size) return
-        val range = findMatches[findCurrentIndex]
-        val editText = safeViews.etTextContent
-        editText.setSelection(range.first.coerceAtMost(editText.text.length), range.last.coerceAtMost(editText.text.length))
-        // Scroll to selection
-        val layout = editText.layout ?: return
-        val line = layout.getLineForOffset(range.first)
-        val y = layout.getLineTop(line)
-        (editText.parent as? android.widget.ScrollView)?.smoothScrollTo(0, y)
-    }
-
-    private fun updateFindCounter() {
-        if (findMatches.isEmpty()) {
-            safeViews.tvFindCounter.text = context.getString(R.string.find_no_results)
-        } else {
-            safeViews.tvFindCounter.text = context.getString(R.string.find_counter, findCurrentIndex + 1, findMatches.size)
-        }
-    }
-
-    /**
-     * Replace current match with replacement text.
-     */
-    private fun replaceCurrent() {
-        if (findCurrentIndex < 0 || findCurrentIndex >= findMatches.size) return
-        val replacement = safeViews.etReplaceQuery.text?.toString() ?: ""
-        val range = findMatches[findCurrentIndex]
-        val editable = safeViews.etTextContent.text ?: return
-
-        editable.replace(range.first, range.last, replacement)
-
-        // Re-run find to update matches after replacement
-        performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
-    }
-
-    /**
-     * Replace all matches.
-     */
-    private fun replaceAll() {
-        if (findMatches.isEmpty()) return
-        val replacement = safeViews.etReplaceQuery.text?.toString() ?: ""
-        val editable = safeViews.etTextContent.text ?: return
-        val count = findMatches.size
-
-        // Replace in reverse order to preserve indices
-        for (range in findMatches.asReversed()) {
-            editable.replace(range.first, range.last, replacement)
-        }
-
-        Toast.makeText(context, context.getString(R.string.replaced_n_occurrences, count), Toast.LENGTH_SHORT).show()
-        performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
-    }
-
-    /**
-     * Clear any find-highlight spans from EditText.
-     */
-    private fun clearEditorHighlights() {
-        // With selection-based highlighting, just deselect
-        val et = safeViews.etTextContent
-        if (et.hasSelection()) {
-            et.setSelection(et.selectionEnd)
-        }
-    }
+    // ===== H.3: Editor enter/exit/save =====
 
     private fun enterEditMode() {
         val pager = textFilePager
@@ -1186,9 +964,8 @@ class TextViewerManager(
             return
         }
 
-        // Use original text without line numbers for editing
-        var textToEdit = originalTextWithoutNumbers.ifBlank { 
-            safeViews.tvTextContent.text.toString() 
+        var textToEdit = originalTextWithoutNumbers.ifBlank {
+            safeViews.tvTextContent.text.toString()
         }
 
         // Check for auto-save draft
@@ -1206,7 +983,6 @@ class TextViewerManager(
         safeViews.etTextContent.setText(textToEdit)
 
         safeViews.textScrollView.isVisible = false
-        // Hide text action buttons in command panel during edit
         binding.btnCopyTextCmd.isVisible = false
         binding.btnEditTextCmd.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
@@ -1216,8 +992,7 @@ class TextViewerManager(
 
         // Detach previous undo/redo manager if exists (M-10 fix)
         undoRedoManager?.detach()
-        
-        // Attach undo/redo
+
         undoRedoManager = TextUndoRedoManager(safeViews.etTextContent) { canUndo, canRedo ->
             safeViews.btnUndo.alpha = if (canUndo) 1f else 0.3f
             safeViews.btnUndo.isEnabled = canUndo
@@ -1226,11 +1001,10 @@ class TextViewerManager(
         }
         undoRedoManager?.attach()
 
-        // Start auto-save
         autoSaveManager?.startAutoSave(safeViews.etTextContent, filePath)
 
-        // Setup cursor position tracking
-        setupCursorPositionTracking()
+        // Cursor position tracking — delegated
+        findReplaceManager.setupCursorPositionTracking()
 
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(safeViews.etTextContent, InputMethodManager.SHOW_IMPLICIT)
@@ -1240,17 +1014,15 @@ class TextViewerManager(
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(safeViews.etTextContent.windowToken, 0)
 
-        // Detach undo/redo and stop auto-save
         undoRedoManager?.detach()
         undoRedoManager = null
         autoSaveManager?.stopAutoSave()
 
-        // Close find panel if open
-        closeFindPanel()
+        // Close find panel if open — delegated
+        findReplaceManager.closeFindPanel()
 
         safeViews.textEditContainer.isVisible = false
         safeViews.textScrollView.isVisible = true
-        // Restore text action buttons in command panel
         binding.btnCopyTextCmd.isVisible = true
         binding.btnEditTextCmd.isVisible = true
         binding.btnSearchTextCmd.isVisible = true
@@ -1283,34 +1055,33 @@ class TextViewerManager(
 
                 val isNetworkFile = !fileToSave.path.startsWith("/")
                 if (isNetworkFile) {
-                    val uploadSuccess = networkFileManager.uploadEditedFile(fileToSave, localFile)
+                    val uploadSuccess =
+                        networkFileManager.uploadEditedFile(fileToSave, localFile)
                     if (!uploadSuccess) {
                         withContext(Dispatchers.Main) {
                             binding.progressBar.isVisible = false
-                            callback.showError("File saved locally but failed to upload to server")
+                            callback.showError(
+                                "File saved locally but failed to upload to server"
+                            )
                         }
                         return@launch
                     }
-
                     networkFileManager.clearEditingCache()
                 }
 
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
-                    // Update original text and re-display with line numbers if enabled
                     originalTextWithoutNumbers = newText
                 }
-                    
+
                 // Read settings on IO, not Main (C-3 fix)
                 val settings = settingsRepository.getSettings().first()
-                
+
                 withContext(Dispatchers.Main) {
                     val displayText = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
                     safeViews.tvTextContent.text = displayText
 
-                    // Delete auto-save draft after successful save
                     autoSaveManager?.stopAutoSave(deleteDraft = true)
-                    
                     exitEditMode()
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()
                 }
@@ -1323,225 +1094,65 @@ class TextViewerManager(
             }
         }
     }
-    
-    /**
-     * Scroll text viewer down (one screen height)
-     */
+
+    // ===== Scroll helpers =====
+
     fun scrollDown() {
         val scrollView = safeViews.textScrollView
-        val scrollAmount = scrollView.height
-        scrollView.smoothScrollBy(0, scrollAmount)
+        scrollView.smoothScrollBy(0, scrollView.height)
     }
-    
-    /**
-     * Scroll text viewer up (one screen height)
-     */
+
     fun scrollUp() {
         val scrollView = safeViews.textScrollView
-        val scrollAmount = scrollView.height
-        scrollView.smoothScrollBy(0, -scrollAmount)
+        scrollView.smoothScrollBy(0, -scrollView.height)
     }
-    
-    /**
-     * Handle mouse wheel scroll for smooth scrolling
-     */
+
     fun handleMouseWheelScroll(verticalScroll: Float) {
-        val scrollView = safeViews.textScrollView
         // Negative because scroll down is negative in MotionEvent
         // Multiply by 100 for reasonable scroll speed
-        val scrollAmount = (verticalScroll * -100).toInt()
-        scrollView.smoothScrollBy(0, scrollAmount)
+        safeViews.textScrollView.smoothScrollBy(0, (verticalScroll * -100).toInt())
     }
-    
+
+    // ===== Translation public API — delegated =====
+
     /**
      * Force enable translation and translate current text.
      * Used when settings are changed via long-press dialog.
      */
     fun forceTranslate() {
-        translationEnabled = true
-        translateCurrentText()
-        updateTranslateButtonTint()
-    }
-    
-    /**
-     * Toggle translation on/off for current text content
-     */
-    private fun toggleTranslation() {
-        translationEnabled = !translationEnabled
-        
-        if (translationEnabled) {
-            translateCurrentText()
-        } else {
-            hideTranslationOverlay()
-        }
-        
-        updateTranslateButtonTint()
-    }
-    
-    /**
-     * Hide translation overlay and reset to compact mode
-     */
-    private fun hideTranslationOverlay() {
-        safeViews.translationOverlay.isVisible = false
-        safeViews.translationOverlayBackground.isVisible = false
-        // Reset to compact mode when closing
-        if (isTranslationExpanded) {
-            isTranslationExpanded = true // Set to true so toggle makes it false
-            toggleTranslationOverlaySize()
-        }
-        translationEnabled = false
-        updateTranslateButtonTint()
-    }
-    
-    /**
-     * Toggle translation overlay between compact and fullscreen modes
-     */
-    private fun toggleTranslationOverlaySize() {
-        isTranslationExpanded = !isTranslationExpanded
-        
-        val layoutParams = safeViews.translationOverlay.layoutParams as android.widget.FrameLayout.LayoutParams
-        val scrollViewLayoutParams = safeViews.translationScrollView.layoutParams as android.widget.RelativeLayout.LayoutParams
-        
-        if (isTranslationExpanded) {
-            // Fullscreen mode: match_parent height, no margin, opaque background
-            layoutParams.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-            layoutParams.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-            layoutParams.setMargins(0, 0, 0, 0)
-            layoutParams.gravity = android.view.Gravity.NO_GRAVITY
-            
-            scrollViewLayoutParams.height = android.widget.RelativeLayout.LayoutParams.MATCH_PARENT
-            scrollViewLayoutParams.setMargins(0, 0, 0, 0)
-            
-            safeViews.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#FF000000")) // Opaque black
-            
-            Timber.d("Translation overlay expanded to fullscreen")
-        } else {
-            // Compact mode: wrap_content with maxHeight=300dp, margin, semi-transparent
-            layoutParams.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-            layoutParams.height = android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
-            val margin = (8 * binding.root.context.resources.displayMetrics.density).toInt()
-            layoutParams.setMargins(margin, margin, margin, margin)
-            layoutParams.gravity = android.view.Gravity.TOP or android.view.Gravity.START
-            
-            // Use 40% of screen height for compact mode (adapts to all screen sizes)
-            val screenHeight = binding.root.context.resources.displayMetrics.heightPixels
-            val maxHeightPx = (screenHeight * 0.4f).toInt()
-            scrollViewLayoutParams.height = maxHeightPx
-            scrollViewLayoutParams.setMargins(0, 0, 0, 0)
-            
-            safeViews.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#B0000000")) // Semi-transparent
-            
-            Timber.d("Translation overlay collapsed to compact mode")
-        }
-        
-        safeViews.translationOverlay.layoutParams = layoutParams
-        safeViews.translationScrollView.layoutParams = scrollViewLayoutParams
-    }
-    
-    /**
-     * Translate current text content
-     */
-    private fun translateCurrentText() {
-        // Use original text without line numbers for translation
-        val textToTranslate = originalTextWithoutNumbers.ifBlank { 
-            safeViews.tvTextContent.text.toString() 
-        }
-        
-        if (textToTranslate.isBlank()) {
-            callback.showError("No text to translate")
-            return
-        }
-        
-        safeViews.translationOverlay.isVisible = true
-        safeViews.translationOverlayBackground.isVisible = true
-        // Apply saved translation font size
-        applyTranslationFontSize()
-        
-        coroutineScope.launch(Dispatchers.IO) {
-            val settings = settingsRepository.getSettings().first()
-            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-            val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
-            
-            Timber.d("translateCurrentText: source=${settings.translationSourceLanguage} → mlkit=$sourceLang, target=${settings.translationTargetLanguage} → mlkit=$targetLang")
-            
-            val translated = translationManager.translate(
-                textToTranslate,
-                sourceLang,
-                targetLang
-            )
-            
-            withContext(Dispatchers.Main) {
-                if (translated != null) {
-                    safeViews.tvTranslatedText.text = translated
-                } else {
-                    safeViews.tvTranslatedText.text = context.getString(R.string.translation_failed)
-                }
-            }
-        }
-    }
-    
-    /**
-     * Translate only the selected text fragment and show it in the translation overlay.
-     * Called from DocumentSelectionActionModeCallback.
-     */
-    private fun translateSelectedText(text: String) {
-        if (text.isBlank()) return
-        safeViews.translationOverlay.isVisible = true
-        safeViews.translationOverlayBackground.isVisible = true
-        applyTranslationFontSize()
-        coroutineScope.launch(Dispatchers.IO) {
-            val settings = settingsRepository.getSettings().first()
-            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-            val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
-            val translated = translationManager.translate(text, sourceLang, targetLang)
-            withContext(Dispatchers.Main) {
-                safeViews.tvTranslatedText.text = translated ?: context.getString(R.string.translation_error)
-            }
-        }
+        translationOverlayManager.forceTranslate { originalTextForTranslation() }
     }
 
-    /**
-     * Update translate button tint based on translation state
-     */
     fun updateCloseButtonVisibility(showCommandPanel: Boolean) {
         // Show close button only in fullscreen mode (when command panel is hidden)
-        // User request: "right top corner close button... needed if I play text file in fullscreen... not needed if command panel is on top"
         safeViews.btnCloseTextViewer.isVisible = !showCommandPanel
     }
 
-    private fun updateTranslateButtonTint() {
+    private fun updateTranslateButtonTint(enabled: Boolean) {
         // Use alpha instead of imageTintList: tinting with a solid colour destroys
         // the LanguageBadgeDrawable text, making the badge appear as a solid block.
-        binding.btnTranslateTextCmd.alpha = if (translationEnabled) 1.0f else 0.55f
+        binding.btnTranslateTextCmd.alpha = if (enabled) 1.0f else 0.55f
     }
 
-    /**
-     * Update translation button icon with language codes
-     */
     fun updateTranslationButtonIcon(sourceLang: String, targetLang: String) {
         // Clear XML tint first — otherwise selector_player_button_tint (white)
         // colours the entire drawable and makes the badge text invisible.
         binding.btnTranslateTextCmd.imageTintList = null
         val drawable = LanguageBadgeDrawable(context, sourceLang, targetLang)
         binding.btnTranslateTextCmd.setImageDrawable(drawable)
-        // Keep alpha consistent with current translation state
-        binding.btnTranslateTextCmd.alpha = if (translationEnabled) 1.0f else 0.55f
+        binding.btnTranslateTextCmd.alpha =
+            if (translationOverlayManager.isEnabled) 1.0f else 0.55f
     }
+
+    // ===== OCR / translated text display =====
 
     /**
      * Display OCR result text (from image or PDF) in text viewer.
-     * Uses same UI as TXT files but with read-only mode and OCR-specific styling.
-     * Supports:
-     * - Text selection for copying
-     * - Swipe left/right to decrease/increase font size
-     * - Swipe up at bottom or down at top to close
-     * - Close button in corner
      */
     fun displayOcrText(text: String) {
         currentFile = null // Mark as OCR result (not a file)
-        translationEnabled = false
-        
-        // Save which view was active before OCR
+        translationOverlayManager.resetState()
+
         previousActiveView = when {
             binding.photoView.isVisible -> binding.photoView
             binding.imageView.isVisible -> binding.imageView
@@ -1549,8 +1160,7 @@ class TextViewerManager(
             safeViews.pdfControlsLayout.isVisible -> safeViews.pdfControlsLayout
             else -> null
         }
-        
-        // Hide all other viewers and overlays
+
         binding.playerView.isVisible = false
         binding.photoView.isVisible = false
         binding.imageView.isVisible = false
@@ -1560,62 +1170,39 @@ class TextViewerManager(
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.btnTranslateImage.isVisible = false
-        
-        
-        // Disable touch zones to allow text selection and interaction
+
         callback.setTouchZonesEnabled(false)
-        // Show text viewer container
         safeViews.textViewerContainer.isVisible = true
         safeViews.textScrollView.isVisible = true
         safeViews.textEditContainer.isVisible = false
         binding.progressBar.isVisible = false
-        safeViews.btnCloseTextViewer.isVisible = true  // Show close button for OCR result
-        
-        // OCR result is read-only - hide edit/translate/search buttons
+        safeViews.btnCloseTextViewer.isVisible = true
+
         binding.btnEditTextCmd.isVisible = false
         safeViews.btnSaveText.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
-        
-        // Copy button is visible for copying OCR text
         binding.btnCopyTextCmd.isVisible = true
-        
-        // Apply styling for OCR text: dark text on white background, selectable
+
         safeViews.tvTextContent.apply {
-            // Set OCR text
             setText(text)
-            
-            // Apply font size and family from settings
             setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
             typeface = currentTypeface
-            
-            // Dark gray text on white background for readability
             setTextColor(0xFF424242.toInt()) // Material Gray 800
-            setBackgroundColor(0xFFFFFFFF.toInt()) // White
-            
-            // Enable text selection for copying
+            setBackgroundColor(0xFFFFFFFF.toInt())
             setTextIsSelectable(true)
         }
-        
-        // Use standard textGestureDetector for swipe gestures (font size + close at edges)
-        // The existing gesture detector already handles:
-        // - Swipe left = decrease font, swipe right = increase font
-        // - Swipe up at bottom = close, swipe down at top = close (for OCR, currentFile is null)
+
         safeViews.textScrollView.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) v.performClick()
             textGestureDetector.onTouchEvent(event)
-            false // Let ScrollView handle scrolling
+            false
         }
-        
-        // Remove container click handler - only close via button or swipe gestures
+
         safeViews.textViewerContainer.setOnClickListener(null)
-        
         Timber.d("OCR text displayed (${text.length} chars)")
     }
-    
-    /**
-     * Hide OCR text viewer (dismissal when user taps outside)
-     */
+
     fun hideOcrText() {
         safeViews.textViewerContainer.isVisible = false
         safeViews.textScrollView.isVisible = false
@@ -1623,41 +1210,33 @@ class TextViewerManager(
         safeViews.translationOverlay.isVisible = false
         safeViews.translationOverlayBackground.isVisible = false
         currentFile = null
-        translationEnabled = false
-        
-        // Restore previously active view without navigation
+        translationOverlayManager.resetState()
+
         previousActiveView?.isVisible = true
         previousActiveView = null
-        
-        // Restore EPUB WebView if it was visible before translation
+
         if (wasEpubWebViewVisible) {
             binding.epubWebView.isVisible = true
             wasEpubWebViewVisible = false
             Timber.d("OCR text hidden, EPUB WebView restored")
         }
-        
-        // Re-enable touch zones for navigation
+
         callback.setTouchZonesEnabled(true)
-        
         Timber.d("OCR text hidden, previous view restored")
     }
-    
+
     /**
      * Display translated text in text viewer (for non-lens mode translations).
-     * Similar to displayOcrText but styled for translation results.
-     * Shows with a close button to return to previous view.
      */
     fun displayTranslatedText(text: String) {
-        currentFile = null // Mark as translation result (not a file)
-        translationEnabled = false
-        
-        // Save which view was active before showing translation
+        currentFile = null
+        translationOverlayManager.resetState()
+
         val isPdfActive = safeViews.pdfControlsLayout.isVisible
         val isEpubActive = safeViews.epubControlsLayout.isVisible
-        
-        // Track EPUB WebView visibility state BEFORE hiding it
+
         wasEpubWebViewVisible = binding.epubWebView.isVisible
-        
+
         previousActiveView = when {
             binding.photoView.isVisible -> binding.photoView
             binding.imageView.isVisible -> binding.imageView
@@ -1666,12 +1245,10 @@ class TextViewerManager(
             isEpubActive -> safeViews.epubControlsLayout
             else -> null
         }
-        
-        // Hide all other viewers and overlays (but keep PDF/EPUB controls visible if they were active)
+
         binding.playerView.isVisible = false
         binding.photoView.isVisible = false
         binding.imageView.isVisible = false
-        // Keep PDF/EPUB controls visible if they were active for navigation
         if (!isPdfActive) safeViews.pdfControlsLayout.isVisible = false
         if (!isEpubActive) safeViews.epubControlsLayout.isVisible = false
         binding.epubWebView.isVisible = false
@@ -1680,70 +1257,53 @@ class TextViewerManager(
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.btnTranslateImage.isVisible = false
-        
-        // Disable touch zones to allow text selection and interaction
+
         callback.setTouchZonesEnabled(false)
-        
-        // Show text viewer container
+
         safeViews.textViewerContainer.isVisible = true
         safeViews.textScrollView.isVisible = true
         safeViews.textEditContainer.isVisible = false
         binding.progressBar.isVisible = false
-        safeViews.btnCloseTextViewer.isVisible = true  // Show close button for translation result
-        
+        safeViews.btnCloseTextViewer.isVisible = true
+
         // Add bottom padding if PDF/EPUB controls are visible so they're not covered
         val bottomPadding = if (isPdfActive || isEpubActive) {
-            // Convert 60dp to pixels (approximate control height + margin)
             (60 * binding.root.context.resources.displayMetrics.density).toInt()
-        } else {
-            0
-        }
+        } else 0
         safeViews.textScrollView.setPadding(
             safeViews.textScrollView.paddingLeft,
             safeViews.textScrollView.paddingTop,
             safeViews.textScrollView.paddingRight,
             bottomPadding
         )
-        
-        // Translation result is read-only - hide edit/translate/search buttons
+
         binding.btnEditTextCmd.isVisible = false
         safeViews.btnSaveText.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
         binding.btnSearchTextCmd.isVisible = false
-        
-        // Copy button is visible for copying translated text
         binding.btnCopyTextCmd.isVisible = true
-        
-        // Apply styling for translated text: dark text on light blue background, selectable
+
         safeViews.tvTextContent.apply {
-            // Set translated text
             setText(text)
-            
-            // Apply font size and family from settings
             setTextSize(TypedValue.COMPLEX_UNIT_SP, textFontSizeSp)
             typeface = currentTypeface
-            
-            // Dark blue-gray text on light blue background for translation distinction
             setTextColor(0xFF1A237E.toInt()) // Material Indigo 900
-            setBackgroundColor(0xFFE3F2FD.toInt()) // Material Blue 50 (light blue)
-            
-            // Enable text selection for copying
+            setBackgroundColor(0xFFE3F2FD.toInt()) // Material Blue 50
             setTextIsSelectable(true)
         }
-        
-        // Use standard textGestureDetector for swipe gestures (font size + close at edges)
+
         safeViews.textScrollView.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) v.performClick()
             textGestureDetector.onTouchEvent(event)
-            false // Let ScrollView handle scrolling
+            false
         }
-        
-        // Remove container click handler - only close via button or swipe gestures
+
         safeViews.textViewerContainer.setOnClickListener(null)
-        
         Timber.d("Translated text displayed (${text.length} chars)")
     }
-    
+
+    // ===== Search public API (viewer read-only search, distinct from editor find) =====
+
     /**
      * Search for text in current document.
      * Returns number of matches found.
@@ -1753,57 +1313,44 @@ class TextViewerManager(
             clearSearch()
             return 0
         }
-        
+
         val fullText = safeViews.tvTextContent.text.toString()
         if (fullText.isBlank()) return 0
-        
-        // Find all occurrences (case-insensitive)
-        val matches = Regex(Regex.escape(query), RegexOption.IGNORE_CASE).findAll(fullText)
-        val matchCount = matches.count()
-        
+
+        val matchCount =
+            Regex(Regex.escape(query), RegexOption.IGNORE_CASE).findAll(fullText).count()
         Timber.d("Search for '$query' found $matchCount matches")
         return matchCount
     }
-    
+
     /**
      * Highlight current search match in TextView.
-     * Uses BackgroundColorSpan to highlight the match.
      */
     fun highlightSearchMatch(query: String, matchIndex: Int) {
         if (query.isBlank()) return
-        
+
         val fullText = safeViews.tvTextContent.text.toString()
-        val matches = Regex(Regex.escape(query), RegexOption.IGNORE_CASE).findAll(fullText).toList()
-        
+        val matches =
+            Regex(Regex.escape(query), RegexOption.IGNORE_CASE).findAll(fullText).toList()
+
         if (matchIndex >= 0 && matchIndex < matches.size) {
             val match = matches[matchIndex]
             val start = match.range.first
-            val end = match.range.last + 1
-            
-            // Scroll to match position
+
             val layout = safeViews.tvTextContent.layout
             if (layout != null) {
                 val line = layout.getLineForOffset(start)
                 val y = layout.getLineTop(line)
-                safeViews.textScrollView.smoothScrollTo(0, y - 100) // Offset for visibility
+                safeViews.textScrollView.smoothScrollTo(0, y - 100)
             }
-            
-            Timber.d("Highlighted match $matchIndex at position $start-$end")
+            Timber.d("Highlighted match $matchIndex at position $start-${match.range.last + 1}")
         }
     }
-    
-    
-    /**
-     * Clear search highlighting
-     */
+
     fun clearSearch() {
-        // Clear search state if needed
         Timber.d("Search cleared")
     }
-    
-    /**
-     * Scroll text viewer to the very top (Home)
-     */
+
     fun scrollToTop() {
         safeViews.textScrollView.post {
             safeViews.textScrollView.fullScroll(android.view.View.FOCUS_UP)
@@ -1811,13 +1358,16 @@ class TextViewerManager(
         UserActionLogger.logNavigation("Top", "TextViewerManager")
     }
 
-    /**
-     * Scroll text viewer to the very bottom (End)
-     */
     fun scrollToBottom() {
         safeViews.textScrollView.post {
             safeViews.textScrollView.fullScroll(android.view.View.FOCUS_DOWN)
         }
         UserActionLogger.logNavigation("Bottom", "TextViewerManager")
     }
+
+    // ===== Private helpers =====
+
+    /** Returns the text to translate: original page text without line numbers, or displayed text. */
+    private fun originalTextForTranslation(): String =
+        originalTextWithoutNumbers.ifBlank { safeViews.tvTextContent.text.toString() }
 }

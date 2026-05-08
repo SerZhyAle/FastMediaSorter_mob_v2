@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ExportSourcesUseCase
 import com.sza.fastmediasorter.wear.ui.network.SourceItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,6 +25,13 @@ sealed class SyncState {
     data class Error(val message: String) : SyncState()
 }
 
+sealed class ExportState {
+    data object Idle : ExportState()
+    data object Exporting : ExportState()
+    data class Success(val count: Int) : ExportState()
+    data class Error(val message: String) : ExportState()
+}
+
 /**
  * ViewModel for managing network sources list.
  * Handles loading and displaying available SMB connections and requesting sync from phone.
@@ -31,7 +39,8 @@ sealed class SyncState {
 @HiltViewModel
 class NetworkSourcesViewModel @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val exportSourcesUseCase: ExportSourcesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<NetworkSourcesUiState>(NetworkSourcesUiState.Loading)
@@ -39,6 +48,9 @@ class NetworkSourcesViewModel @Inject constructor(
 
     private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
     val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
+
+    private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
+    val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
 
     init {
         Timber.d("NetworkSourcesViewModel initialized")
@@ -102,6 +114,19 @@ class NetworkSourcesViewModel @Inject constructor(
                 _syncState.value = SyncState.Error(e.message ?: "Sync request failed")
             }
         }
+    }
+
+    fun exportToPhone() {
+        _exportState.value = ExportState.Exporting
+        viewModelScope.launch {
+            exportSourcesUseCase()
+                .onSuccess { count -> _exportState.value = ExportState.Success(count) }
+                .onFailure { e -> _exportState.value = ExportState.Error(e.message ?: "Export failed") }
+        }
+    }
+
+    fun resetExportState() {
+        _exportState.value = ExportState.Idle
     }
 
     fun resetSyncState() {

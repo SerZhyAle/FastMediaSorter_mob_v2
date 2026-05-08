@@ -11,6 +11,7 @@ import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.hasFocus
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -29,7 +30,7 @@ class ResourceEditorCredentialsInstrumentationTest {
     @Test
     fun smbCredentialsFields_acceptAndDisplayTypedText() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        val intent = ResourceEditorActivity.createIntent(context, ResourceType.SMB).apply {
+        val intent = ResourceEditorActivity.createAddIntent(context, ResourceType.SMB).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
@@ -53,6 +54,30 @@ class ResourceEditorCredentialsInstrumentationTest {
 
             onView(withId(R.id.etName)).check(matches(withText(TestFixtures.TEST_SMB_RESOURCE_NAME)))
             onView(withId(R.id.etUsername)).check(matches(withText(TestFixtures.DEFAULT_USER)))
+            assertEquals(Lifecycle.State.RESUMED, scenario.state)
+        } finally {
+            scenario.close()
+        }
+    }
+
+    @Test
+    fun smbCredentialBoxesForwardTapToEditors() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val intent = ResourceEditorActivity.createAddIntent(context, ResourceType.SMB).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        val scenario = ActivityScenario.launch<ResourceEditorActivity>(intent)
+        try {
+            onView(withId(R.id.tilName)).perform(scrollTo(), click())
+            onView(withId(R.id.etName)).check(matches(hasFocus()))
+
+            onView(withId(R.id.tilUsername)).perform(scrollTo(), click())
+            onView(withId(R.id.etUsername)).check(matches(hasFocus()))
+
+            onView(withId(R.id.tilPassword)).perform(scrollTo(), click())
+            onView(withId(R.id.etPassword)).check(matches(hasFocus()))
+
             assertEquals(Lifecycle.State.RESUMED, scenario.state)
         } finally {
             scenario.close()

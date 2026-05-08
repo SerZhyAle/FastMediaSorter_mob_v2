@@ -60,6 +60,10 @@
     <string name="wear_sync_stats">Добавлено: %1$d  Обновлено: %2$d</string>
     <string name="wear_sync_browse_now">Открыть</string>
 
+    <!-- Export to Phone strings (S0111 Phase 03) -->
+    <string name="wear_export_to_phone">Отправить на телефон</string>
+    <string name="wear_export_success">Источники отправлены</string>
+
     <!-- Phase 2: Source CRUD -->
     <string name="delete_source">Удалить источник</string>
     <string name="delete_source_confirm">Удалить \u00ab%s\u00bb?</string>
@@ -106,4 +110,8 @@
     <string name="port_required">Требуется порт</string>
     <string name="server_and_share_required">Требуются сервер и имя шаринга</string>
     <string name="ssh_key_required">Требуется приватный SSH-ключ</string>
+
+    <!-- Favorites sync (S0111 Phase 06) -->
+    <string name="wear_toggle_favorite">Избранное</string>
+    <string name="wear_favorite_sent">Избранное синхронизировано</string>
 </resources>

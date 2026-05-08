@@ -36,10 +36,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
-/**
- * Pending move operation info for retry after permission grant.
- * Contains destination resource since user already selected it before permission dialog appeared.
- */
+/** Pending move operation for retry after permission grant. Includes pre-selected destination. */
 data class PendingMoveOperation(
     val selectedPaths: List<String>,
     val mediaFiles: List<MediaFile>,
@@ -48,10 +45,7 @@ data class PendingMoveOperation(
     val settings: AppSettings
 )
 
-/**
- * Manages file operations (copy, move, delete, share) in BrowseActivity.
- * Coordinates with FileOperationUseCase and handles progress/result feedback.
- */
+/** Manages copy/move/delete/share operations in BrowseActivity. */
 class BrowseFileOperationsManager(
     private val context: Context,
     private val coroutineScope: CoroutineScope,
@@ -65,7 +59,6 @@ class BrowseFileOperationsManager(
     private val dirOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler? = null
 ) {
     
-    // Pending move operation for retry after permission grant
     private var pendingMoveOperation: PendingMoveOperation? = null
     
     interface FileOperationCallbacks {
@@ -89,48 +82,25 @@ class BrowseFileOperationsManager(
         )
     }
     
-    /**
-     * Check if there's a pending move operation that can be retried after permission grant.
-     */
     fun hasPendingMoveOperation(): Boolean = pendingMoveOperation != null
-    
-    /**
-     * Retry the pending move operation after permission has been granted.
-     * Should be called from Activity after permission result is RESULT_OK.
-     * This executes the move directly to the saved destination (no dialog).
-     */
+
     fun retryPendingMoveOperation() {
-        val pending = pendingMoveOperation
-        if (pending != null) {
-            Timber.i("retryPendingMoveOperation: Retrying move for ${pending.selectedPaths.size} files to ${pending.destinationResource.name}")
-            pendingMoveOperation = null // Clear before retry to avoid infinite loops
-            
-            // Execute move directly to saved destination (user already selected it)
-            executeMoveDirectly(pending)
-        } else {
-            Timber.w("retryPendingMoveOperation: No pending operation to retry")
-        }
+        val pending = pendingMoveOperation ?: return
+        pendingMoveOperation = null
+        executeMoveDirectly(pending)
     }
-    
-    /**
-     * Execute move operation directly without showing dialog.
-     * Used for retry after permission grant.
-     */
+
     private fun executeMoveDirectly(pending: PendingMoveOperation) {
         val mediaFilesMap = pending.mediaFiles.associateBy { it.path }
         val selectedSet = pending.selectedPaths.toSet()
-
-        // Partition into directory items and regular file items
-        val (dirItems, fileItems) = pending.mediaFiles
-            .filter { it.path in selectedSet }
-            .partition { it.isDirectory }
+        val (dirItems, fileItems) = pending.mediaFiles.filter { it.path in selectedSet }.partition { it.isDirectory }
         val unresolvedPaths = selectedSet - pending.mediaFiles.map { it.path }.toSet()
         val fileOnlyPaths = fileItems.map { it.path } + unresolvedPaths
-
         val selectedFiles = fileOnlyPaths.map { path ->
             val size = mediaFilesMap[path]?.size ?: 0L
-            if (path.startsWith("smb://") || path.startsWith("sftp://") || 
-                path.startsWith("ftp://") || path.startsWith("cloud://")) {
+            if (path.startsWith("smb://") || path.startsWith("sftp://") ||
+                path.startsWith("ftp://") || path.startsWith("cloud://")
+            ) {
                 object : File(path) {
                     override fun getAbsolutePath(): String = path
                     override fun getPath(): String = path
@@ -140,90 +110,32 @@ class BrowseFileOperationsManager(
                 File(path)
             }
         }
-        
-        // Show progress toast
-        Toast.makeText(
-            context, 
-            context.getString(R.string.msg_move_started, pending.destinationResource.name),
-            Toast.LENGTH_SHORT
-        ).show()
-        
+
+        Toast.makeText(context, context.getString(R.string.msg_move_started, pending.destinationResource.name), Toast.LENGTH_SHORT).show()
+
         coroutineScope.launch {
             try {
-                // Move regular files via FileOperationUseCase
                 if (selectedFiles.isNotEmpty()) {
-                    val destinationFolder = File(pending.destinationResource.path)
-                    
                     val operation = FileOperation.Move(
                         sources = selectedFiles,
-                        destination = destinationFolder,
+                        destination = File(pending.destinationResource.path),
                         overwrite = pending.settings.overwriteOnMove,
                         sourceCredentialsId = pending.sourceResource.credentialsId
                     )
-                    
-                    Timber.i("executeMoveDirectly: Executing Move for ${selectedFiles.size} files to ${pending.destinationResource.path}")
-                    val result = fileOperationUseCase.execute(operation)
-                    
-                    when (result) {
-                        is FileOperationResult.Success -> {
-                            Timber.i("executeMoveDirectly: SUCCESS - ${result.processedCount} files moved")
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.moved_n_files, result.processedCount),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        is FileOperationResult.PartialSuccess -> {
-                            Timber.w("executeMoveDirectly: PARTIAL - ${result.processedCount} of ${result.processedCount + result.failedCount}")
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.moved_n_files, result.processedCount),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        is FileOperationResult.Failure -> {
-                            Timber.e("executeMoveDirectly: FAILURE - ${result.error}")
-                            Toast.makeText(context, result.error, Toast.LENGTH_LONG).show()
-                        }
-                        is FileOperationResult.PermissionRequired -> {
-                            Timber.e("executeMoveDirectly: UNEXPECTED PermissionRequired after grant!")
-                            Toast.makeText(context, R.string.permission_error_retry, Toast.LENGTH_LONG).show()
-                        }
-                        is FileOperationResult.AuthenticationRequired -> {
-                            Timber.w("executeMoveDirectly: Auth required for ${result.provider}")
-                            callbacks.onAuthRequest(result.provider)
-                        }
+                    when (val result = fileOperationUseCase.execute(operation)) {
+                        is FileOperationResult.Success -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                        is FileOperationResult.PartialSuccess -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                        is FileOperationResult.Failure -> Toast.makeText(context, result.error, Toast.LENGTH_LONG).show()
+                        is FileOperationResult.PermissionRequired -> Toast.makeText(context, R.string.permission_error_retry, Toast.LENGTH_LONG).show()
+                        is FileOperationResult.AuthenticationRequired -> callbacks.onAuthRequest(result.provider)
                     }
                 }
-
-                // Move directory items via dirOperationHandler
                 if (dirItems.isNotEmpty() && dirOperationHandler != null) {
                     val destPath = pending.destinationResource.path
-                    var dirSucceeded = 0
-                    var dirFailed = 0
-                    var crossProtocol = false
                     for (dir in dirItems) {
                         dirOperationHandler.executeMoveDirectory(dir.path, destPath)
-                            .onSuccess { dirSucceeded++ }
-                            .onFailure { e ->
-                                Timber.e(e, "executeMoveDirectly: dir move failed for ${dir.path}")
-                                if (e is UnsupportedOperationException) crossProtocol = true
-                                dirFailed++
-                            }
-                    }
-                    withContext(Dispatchers.Main) {
-                        if (dirFailed > 0) {
-                            if (crossProtocol) {
-                                callbacks.onShowError(context.getString(R.string.error_cross_protocol_dir_not_supported))
-                            } else {
-                                callbacks.onShowError(
-                                    context.getString(R.string.error_some_operations_failed, dirFailed, dirSucceeded + dirFailed)
-                                )
-                            }
-                        }
                     }
                 }
-
                 callbacks.clearSelection()
                 callbacks.onOperationCompleted()
             } catch (e: Exception) {

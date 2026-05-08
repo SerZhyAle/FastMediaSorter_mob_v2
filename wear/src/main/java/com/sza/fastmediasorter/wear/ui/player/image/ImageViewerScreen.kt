@@ -22,15 +22,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
+import com.sza.fastmediasorter.wear.R
 import timber.log.Timber
 import kotlin.math.abs
 
@@ -45,9 +51,10 @@ fun ImageViewerScreen(
     viewModel: ImageViewerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+    val isFavorite by viewModel.isFavorite.collectAsState()
+
     Timber.d("ImageViewerScreen composing, index: ${uiState.currentIndex}")
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,9 +71,11 @@ fun ImageViewerScreen(
             uiState.mediaFile != null -> {
                 ImageViewerContent(
                     uiState = uiState,
+                    isFavorite = isFavorite,
                     onSwipeLeft = viewModel::navigateToNext,
                     onSwipeRight = viewModel::navigateToPrevious,
-                    onToggleSlideshow = viewModel::toggleSlideshow
+                    onToggleSlideshow = viewModel::toggleSlideshow,
+                    onToggleFavorite = viewModel::toggleFavorite
                 )
             }
         }
@@ -76,9 +85,11 @@ fun ImageViewerScreen(
 @Composable
 private fun ImageViewerContent(
     uiState: ImageViewerUiState,
+    isFavorite: Boolean,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit,
-    onToggleSlideshow: () -> Unit
+    onToggleSlideshow: () -> Unit,
+    onToggleFavorite: () -> Unit
 ) {
     var dragOffset by remember { mutableFloatStateOf(0f) }
     
@@ -128,6 +139,8 @@ private fun ImageViewerContent(
             )
         }
         
+        val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+
         // Bottom info overlay
         Column(
             modifier = Modifier
@@ -177,6 +190,21 @@ private fun ImageViewerContent(
                     style = MaterialTheme.typography.caption3,
                     color = Color.Green,
                     modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
+            // Favorite toggle button
+            Button(
+                onClick = onToggleFavorite,
+                modifier = Modifier
+                    .size(32.dp)
+                    .padding(top = 4.dp),
+                colors = if (isFavorite) ButtonDefaults.primaryButtonColors() else ButtonDefaults.secondaryButtonColors()
+            ) {
+                Text(
+                    text = if (isFavorite) "❤️" else "🤍",
+                    style = MaterialTheme.typography.caption3,
+                    modifier = Modifier.semantics { contentDescription = favoriteDesc }
                 )
             }
         }

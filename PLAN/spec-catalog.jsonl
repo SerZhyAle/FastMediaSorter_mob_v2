@@ -1,5 +1,5 @@
 {"id":"S0001","name":"spec-catalog","status":"Archived","priority":0,"tier":4,"file":"PLAN/S0001_spec-catalog.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
-{"id":"S0002","name":"decompose-giant-files","status":"In Progress","priority":50,"file":"PLAN/S0002_decompose-giant-files.md","created":"2026-04-27","updated":"2026-05-07 14:48"}
+{"id":"S0002","name":"decompose-giant-files","status":"In Progress","priority":50,"file":"PLAN/S0002_decompose-giant-files.md","created":"2026-04-27","updated":"2026-05-07 15:11"}
 {"id":"S0003","name":"link-receive-download","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0003_link-receive-download.md","created":"2026-04-27","updated":"2026-05-01 02:44"}
 {"id":"S0004","name":"resource-icon-quick-slideshow","status":"Archived","priority":50,"file":"PLAN/S0004_resource-icon-quick-slideshow.md","created":"2026-04-27","updated":"2026-05-05 23:34"}
 {"id":"S0005","name":"vr-auto-immersive-setting","status":"Archived","priority":0,"tier":2,"file":"PLAN/S0005_vr-auto-immersive-setting.md","created":"2026-04-27","updated":"2026-04-28 01:32"}
@@ -39,11 +39,11 @@
 {"id":"S0039","name":"bugfix-vr-panel-swapchain-regression","status":"Verified","priority":80,"tier":3,"file":"PLAN/S0039_bugfix-vr-panel-swapchain-regression.md","created":"2026-04-30","updated":"2026-04-30 12:25"}
 {"id":"S0040","name":"bugfix-vr-hud-button-affordance","status":"Verified","priority":65,"tier":2,"file":"PLAN/S0040_bugfix-vr-hud-button-affordance.md","created":"2026-04-30","updated":"2026-04-30 15:28"}
 {"id":"S0041","name":"debug-vr180-fisheye-quality-regression","status":"BlockNeedUserTest","priority":90,"tier":3,"file":"PLAN/S0041_debug-vr180-fisheye-quality-regression.md","created":"2026-04-30","updated":"2026-05-03 04:28"}
-{"id":"S0042","name":"agp10-kapt-to-ksp-migration","status":"Draft","priority":55,"tier":4,"file":"PLAN/S0042_agp10-kapt-to-ksp-migration.md","created":"2026-05-01","updated":"2026-05-01 01:59"}
+{"id":"S0042","name":"agp10-kapt-to-ksp-migration","status":"BlockQuestions","priority":55,"tier":4,"file":"PLAN/S0042_agp10-kapt-to-ksp-migration.md","created":"2026-05-01","updated":"2026-05-07 17:07"}
 {"id":"S0043","name":"bugfix-settings-window-bounds-xr","status":"BlockNeedUserTest","priority":90,"tier":1,"file":"PLAN/S0043_bugfix-settings-window-bounds-xr.md","created":"2026-05-01","updated":"2026-05-01 03:57"}
 {"id":"S0044","name":"settings-layout-compactness","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0044_settings-layout-compactness.md","created":"2026-05-01","updated":"2026-05-02 01:52"}
 {"id":"S0045","name":"per-resource-sort-type-memory","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0045_per-resource-sort-type-memory.md","created":"2026-05-01","updated":"2026-05-02 00:31"}
-{"id":"S0046","name":"sftp-key-auth-hardening","status":"Tactical","priority":50,"tier":3,"file":"PLAN/S0046_sftp-key-auth-hardening.md","created":"2026-05-02","updated":"2026-05-02 01:31"}
+{"id":"S0046","name":"sftp-key-auth-hardening","status":"In Progress","priority":50,"tier":3,"file":"PLAN/S0046_sftp-key-auth-hardening.md","created":"2026-05-02","updated":"2026-05-07 16:19"}
 {"id":"S0047","name":"bugfix-sftp-pool-broken-channel","status":"BlockNeedUserTest","priority":90,"tier":1,"file":"PLAN/S0047_bugfix-sftp-pool-broken-channel.md","created":"2026-05-02","updated":"2026-05-02 03:09"}
 {"id":"S0048","name":"info-dialog-extended-metadata","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0048_info-dialog-extended-metadata.md","created":"2026-05-02","updated":"2026-05-02 05:31"}
 {"id":"S0049","name":"bugfix-icon-pick-save-disabled","status":"Verified","priority":70,"tier":1,"file":"PLAN/S0049_bugfix-icon-pick-save-disabled.md","created":"2026-05-02","updated":"2026-05-02 04:05"}
@@ -97,13 +97,19 @@
 {"id":"S0097","name":"gms-update-once-settings-link","status":"Verified","priority":35,"file":"PLAN/S0097_gms-update-once-settings-link.md","created":"2026-05-06","updated":"2026-05-06 10:00"}
 {"id":"S0098","name":"bugfix-smb-precheck-false-fail","status":"Verified","priority":65,"tier":2,"file":"PLAN/S0098_bugfix-smb-precheck-false-fail.md","created":"2026-05-06","updated":"2026-05-06 10:03"}
 {"id":"S0099","name":"sftp-concurrent-access-fix","status":"Partial","priority":70,"tier":3,"file":"PLAN/S0099_sftp-concurrent-access-fix.md","created":"2026-05-06","updated":"2026-05-06 11:39"}
-{"id":"S0100","name":"mic-recording-in-browse","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0100_mic-recording-in-browse.md","created":"2026-05-06","updated":"2026-05-06 14:49","closed_at":"2026-05-06"}
+{"id":"S0100","name":"mic-recording-in-browse","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0100_mic-recording-in-browse.md","created":"2026-05-06","updated":"2026-05-08 02:26","closed_at":"2026-05-08"}
 {"id":"S0101","name":"unified-permission-onboarding","status":"Verified","priority":5,"tier":4,"file":"PLAN/S0101_unified-permission-onboarding.md","created":"2026-05-06","updated":"2026-05-06 20:35","closed_at":"2026-05-06"}
 {"id":"S0102","name":"spec-catalog-ergonomics","status":"Verified","priority":40,"tier":2,"file":"PLAN/S0102_spec-catalog-ergonomics.md","created":"2026-05-06","updated":"2026-05-06 13:12","closed_at":"2026-05-06"}
 {"id":"S0103","name":"player-top-bar-polish","status":"Verified","priority":55,"tier":2,"file":"PLAN/S0103_player-top-bar-polish.md","created":"2026-05-06","updated":"2026-05-06 15:20","closed_at":"2026-05-06"}
 {"id":"S0104","name":"playback-order-mode","status":"Verified","priority":50,"tier":2,"file":"PLAN/S0104_playback-order-mode.md","created":"2026-05-06","updated":"2026-05-06 15:46","closed_at":"2026-05-06"}
 {"id":"S0105","name":"inline-audio-playback-in-browse","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0105_inline-audio-playback-in-browse.md","created":"2026-05-06","updated":"2026-05-06 15:56","closed_at":"2026-05-06"}
-{"id":"S0106","name":"player-image-crop","status":"Implemented","priority":50,"tier":3,"file":"PLAN/S0106_player-image-crop.md","created":"2026-05-06","updated":"2026-05-06 23:42"}
+{"id":"S0106","name":"player-image-crop","status":"Broken","priority":50,"tier":3,"file":"PLAN/S0106_player-image-crop.md","created":"2026-05-06","updated":"2026-05-08 02:49"}
 {"id":"S0107","name":"image-draw-overlay","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0107_image-draw-overlay.md","created":"2026-05-06","updated":"2026-05-06 22:41","closed_at":"2026-05-06"}
 {"id":"S0108","name":"welcome-language-picker","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0108_welcome-language-picker.md","created":"2026-05-07","updated":"2026-05-07 01:35","closed_at":"2026-05-07"}
 {"id":"S0109","name":"bugfix-chromeos-textinput","status":"Verified","priority":90,"file":"PLAN/S0109_bugfix-chromeos-textinput.md","created":"2026-05-07","updated":"2026-05-07 03:14","closed_at":"2026-05-07"}
+{"id":"S0110","name":"bugfix-thumbnails-during-scroll","status":"Verified","priority":90,"file":"PLAN/S0110_bugfix-thumbnails-during-scroll.md","created":"2026-05-07","updated":"2026-05-07 23:29","closed_at":"2026-05-07"}
+{"id":"S0111","name":"wear-bidirectional-sync","status":"Verified","priority":50,"tier":3,"file":"PLAN/S0111_wear-bidirectional-sync.md","created":"2026-05-07","updated":"2026-05-08 01:24","closed_at":"2026-05-08"}
+{"id":"S0112","name":"android-tv-launcher-support","status":"BlockNeedUserTest","priority":55,"file":"PLAN/S0112_android-tv-launcher-support.md","created":"2026-05-08","updated":"2026-05-08 01:33"}
+{"id":"S0113","name":"sftp-pool-stability","status":"Verified","priority":80,"tier":3,"file":"PLAN/S0113_sftp-pool-stability.md","created":"2026-05-08","updated":"2026-05-08 02:36","closed_at":"2026-05-08"}
+{"id":"S0114","name":"bugfix-smb-scan-subfolders-flat-list","status":"Verified","priority":90,"tier":1,"file":"PLAN/S0114_bugfix-smb-scan-subfolders-flat-list.md","created":"2026-05-08","updated":"2026-05-08 02:39","closed_at":"2026-05-08"}
+{"id":"S0115","name":"unified-error-display","status":"Approved","priority":50,"tier":3,"file":"PLAN/S0115_unified-error-display.md","created":"2026-05-08","updated":"2026-05-08 02:46"}

@@ -205,7 +205,12 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
-        val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+        // Include captionBar() so Chrome OS windowed-mode caption bar is respected;
+        // captionBar() returns zero on standard Android — no behaviour change there.
+        val statusBar = insets.getInsets(
+            androidx.core.view.WindowInsetsCompat.Type.statusBars() or
+            androidx.core.view.WindowInsetsCompat.Type.captionBar()
+        )
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
         statusBarInsetPx = statusBar.top
 

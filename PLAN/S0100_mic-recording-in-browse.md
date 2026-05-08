@@ -202,16 +202,22 @@ Browse является центральным экраном приложени
 
 ## Last Audit
 
-**Date:** 2026-05-06
+**Date:** 2026-05-08
 **Mode:** full
 **Flags:** —
 **Outcome:** Verified
-**Counts:** PASS 54 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 2
+**Counts:** PASS 59 · WARN 0 · FAIL 0 · MANUAL 6 · EXEMPT 2
 
 ### Exempt notes
 
 - **EXEMPT [Step 1.2]** Spec predicate expected `SUPPORT_MIC_RECORDING` exactly 4 times; found 6 — build.gradle.kts has 6 flavors (vr/vrUnlicensed added correctly).
-- **EXEMPT [Step 2.2]** Spec predicate said tag `S0100-MIC`; CLAUDE.md canonical format `S0100:` used — 8 Timber.d/w/e calls confirmed before Verified removal.
+- **EXEMPT [Step 2.2]** Spec predicate said tag `S0100-MIC`; CLAUDE.md canonical format `S0100:` used — confirmed removed at Verified.
+
+### Regression fix (2026-05-08)
+
+Regression: `releaseRecorder()` called `MediaRecorder.stop()` unconditionally, throwing `-1007` on quick tap before `start()` reached `RECORDING` state.
+Fix: `isRecorderStarted: Boolean` flag declared at line 40; set `true` only after `recorder.start()` succeeds (line 110); guard `if (isRecorderStarted)` wraps `stop()` call in `releaseRecorder()` (line 195); reset `false` unconditionally in `releaseRecorder()` (line 202).
+All 5 new predicates PASS. No `Timber.d("S0100:` tags in codebase.
 
 ### Manual / on-device
 

@@ -4,6 +4,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
+import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
+import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.PushWearSettingsUseCase
+import com.sza.fastmediasorter.domain.usecase.SendPlaybackCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import com.sza.fastmediasorter.service.WearSyncEvents
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,17 +26,30 @@ sealed class WearSyncUiState {
     data object Idle : WearSyncUiState()
     data object Sending : WearSyncUiState()
     data class Success(val sent: Int, val skipped: Int) : WearSyncUiState()
+    data object SettingsPushed : WearSyncUiState()
     data class Error(val message: String) : WearSyncUiState()
 }
 
 @HiltViewModel
 class WearSyncViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val sendResourcesToWatchUseCase: SendResourcesToWatchUseCase
+    private val sendResourcesToWatchUseCase: SendResourcesToWatchUseCase,
+    private val pushWearSettingsUseCase: PushWearSettingsUseCase,
+    private val importWatchSourcesUseCase: ImportWatchSourcesUseCase,
+    private val sendPlaybackCommandUseCase: SendPlaybackCommandUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<WearSyncUiState>(WearSyncUiState.Idle)
     val uiState: StateFlow<WearSyncUiState> = _uiState.asStateFlow()
+
+    private val _watchSettingsState = MutableStateFlow<WearSettingsPayload?>(null)
+    val watchSettingsState: StateFlow<WearSettingsPayload?> = _watchSettingsState.asStateFlow()
+
+    private val _pendingWatchSources = MutableStateFlow<WearSourcesExportPayload?>(null)
+    val pendingWatchSources: StateFlow<WearSourcesExportPayload?> = _pendingWatchSources.asStateFlow()
+
+    private val _watchPlaybackState = MutableStateFlow<WearPlaybackStatePayload?>(null)
+    val watchPlaybackState: StateFlow<WearPlaybackStatePayload?> = _watchPlaybackState.asStateFlow()
 
     val lastSyncTimestamp: Long
         get() = context
@@ -46,6 +66,16 @@ class WearSyncViewModel @Inject constructor(
                     _uiState.value = WearSyncUiState.Success(sent, 0)
                     Timber.i("Wear sync ack received: $ackJson")
                 }
+            }
+        }
+        viewModelScope.launch {
+            WearSyncEvents.watchSourcesReceivedFlow.collect { payload ->
+                _pendingWatchSources.value = payload
+            }
+        }
+        viewModelScope.launch {
+            WearSyncEvents.watchPlaybackStateFlow.collect { state ->
+                _watchPlaybackState.value = state
             }
         }
     }
@@ -69,6 +99,51 @@ class WearSyncViewModel @Inject constructor(
 
     fun reset() {
         _uiState.value = WearSyncUiState.Idle
+    }
+
+    fun pushSettings(settings: WearSettingsPayload) {
+        _watchSettingsState.value = settings
+        _uiState.value = WearSyncUiState.Sending
+        viewModelScope.launch {
+            pushWearSettingsUseCase(settings)
+                .onSuccess {
+                    _uiState.value = WearSyncUiState.SettingsPushed
+                }
+                .onFailure { e ->
+                    Timber.e(e, "Failed to push watch settings")
+                    _uiState.value = WearSyncUiState.Error(e.message ?: "Settings push failed")
+                }
+        }
+    }
+
+    fun updateWatchSettingsLocally(settings: WearSettingsPayload) {
+        _watchSettingsState.value = settings
+    }
+
+    fun acceptWatchImport() {
+        val payload = _pendingWatchSources.value ?: return
+        viewModelScope.launch {
+            importWatchSourcesUseCase(payload)
+                .onSuccess { result ->
+                    Timber.i("Watch import accepted: added=${result.added} skipped=${result.skipped}")
+                }
+                .onFailure { e ->
+                    Timber.e(e, "Watch import failed")
+                }
+            _pendingWatchSources.value = null
+        }
+    }
+
+    fun dismissWatchImport() {
+        _pendingWatchSources.value = null
+    }
+
+    fun sendPlaybackCommand(command: WearPlaybackCommand) {
+        viewModelScope.launch {
+            sendPlaybackCommandUseCase(command).onFailure { e ->
+                Timber.e(e, "Failed to send playback command $command")
+            }
+        }
     }
 
     private fun parseSentCount(json: String): Int = try {

@@ -68,20 +68,23 @@ class NetworkFileDownloader(
         // No need for legacy metadata_temp - all files now go to UnifiedFileCache
         // Get cache destination path
         val cacheFile = unifiedCache.getCacheFile(networkPath, fileSize)
-        
-        return try {
-            when {
-                networkPath.startsWith("smb://") && smbClient != null -> downloadFromSmb(networkPath, cacheFile, fileType, useExtendedSize)
-                networkPath.startsWith("sftp://") && sftpClient != null -> downloadFromSftp(networkPath, cacheFile)
-                networkPath.startsWith("ftp://") && ftpClient != null -> downloadFromFtp(networkPath, cacheFile)
-                else -> {
-                    Timber.e("No client available for $networkPath")
-                    null
+
+        // Deduplicate concurrent downloads for the same URL (S0113 Phase 02)
+        return NetworkDownloadDeduplicator.deduplicate(networkPath) {
+            try {
+                when {
+                    networkPath.startsWith("smb://") && smbClient != null -> downloadFromSmb(networkPath, cacheFile, fileType, useExtendedSize)
+                    networkPath.startsWith("sftp://") && sftpClient != null -> downloadFromSftp(networkPath, cacheFile)
+                    networkPath.startsWith("ftp://") && ftpClient != null -> downloadFromFtp(networkPath, cacheFile)
+                    else -> {
+                        Timber.e("No client available for $networkPath")
+                        null
+                    }
                 }
+            } catch (e: Exception) {
+                Timber.e(e, "Exception downloading network file: $networkPath")
+                null
             }
-        } catch (e: Exception) {
-            Timber.e(e, "Exception downloading network file: $networkPath")
-            null
         }
     }
     

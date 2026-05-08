@@ -8,9 +8,13 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
+import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +45,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val smbDataSource: SmbDataSource,
     private val exoPlayer: ExoPlayer,
+    private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -65,19 +70,21 @@ class VideoPlayerViewModel @Inject constructor(
                 stopProgressUpdates()
                 showControls()
             }
+            publishPlaybackState()
         }
-        
+
         override fun onPlaybackStateChanged(playbackState: Int) {
             Timber.d("Playback state changed: $playbackState")
             when (playbackState) {
                 Player.STATE_READY -> {
                     Timber.d("Player STATE_READY, duration: ${exoPlayer.duration}")
-                    _uiState.update { 
+                    _uiState.update {
                         it.copy(
                             isLoading = false,
                             durationMs = exoPlayer.duration.coerceAtLeast(0)
-                        ) 
+                        )
                     }
+                    publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
                     Timber.d("Player STATE_ENDED - video finished")
@@ -88,6 +95,7 @@ class VideoPlayerViewModel @Inject constructor(
                     exoPlayer.seekTo(0)
                     // Update position after seek
                     _uiState.update { it.copy(currentPositionMs = 0) }
+                    publishPlaybackState()
                 }
                 Player.STATE_BUFFERING -> {
                     Timber.d("Player STATE_BUFFERING")
@@ -113,10 +121,22 @@ class VideoPlayerViewModel @Inject constructor(
     init {
         Timber.d("VideoPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
-        
+
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
             loadVideoFile()
+        }
+
+        // Subscribe to remote playback commands from phone
+        viewModelScope.launch {
+            WatchPlaybackCommandEvents.commandFlow.collect { command ->
+                when (command) {
+                    WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
+                    WearPlaybackCommand.NEXT       -> exoPlayer.seekToNextMediaItem()
+                    WearPlaybackCommand.PREVIOUS   -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.STOP       -> exoPlayer.stop()
+                }
+            }
         }
     }
     
@@ -290,7 +310,26 @@ class VideoPlayerViewModel @Inject constructor(
         progressUpdateJob?.cancel()
         progressUpdateJob = null
     }
-    
+
+    private fun publishPlaybackState() {
+        val state = _uiState.value
+        val selected = selectedMediaManager.getSelectedFileById(fileId)
+        val sourceName = if (selected?.isNetworkSource == true) {
+            selected.file.uri.host ?: ""
+        } else {
+            "Local"
+        }
+        val payload = WearPlaybackStatePayload(
+            isPlaying = state.isPlaying,
+            fileName = state.mediaFile?.name ?: "",
+            sourceName = sourceName,
+            positionMs = state.currentPositionMs,
+            durationMs = state.durationMs,
+            mediaType = "VIDEO"
+        )
+        viewModelScope.launch { publishPlaybackStateUseCase(payload) }
+    }
+
     override fun onCleared() {
         super.onCleared()
         Timber.d("VideoPlayerViewModel cleared")

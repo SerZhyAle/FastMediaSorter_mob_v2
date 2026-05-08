@@ -1,17 +1,11 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.Matrix
-import android.graphics.RectF
 import android.graphics.pdf.PdfRenderer
-import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.view.GestureDetector
 import android.view.MotionEvent
-import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -119,8 +113,15 @@ class PdfViewerManager(
         pdfTextSelectionManager = pdfTextSelectionManager
     )
 
-    // URL link detection cache: pageIndex → list of (boundingBoxInBitmapPx, url)
-    private val urlBoxCache = mutableMapOf<Int, List<Pair<RectF, String>>>()
+    // Delegate for link detection, tap-to-open, search, OCR text copy, and Google Lens sharing
+    private val pdfLinkAndSearchManager = PdfLinkAndSearchManager(
+        binding            = binding,
+        settingsRepository = settingsRepository,
+        coroutineScope     = coroutineScope,
+        translationManager = translationManager,
+        onError            = { callback.showError(it) },
+        onShareToGoogleLens = { file -> callback.shareFileToGoogleLens(file) }
+    )
     
     init {
         
@@ -298,7 +299,7 @@ class PdfViewerManager(
         binding.btnTranslateEpubCmd.isVisible = false
         
         closePdfRenderer()
-        urlBoxCache.clear()
+        pdfLinkAndSearchManager.clearUrlCache()
         // Note: Translation cache is NOT cleared here - preserves translations when switching files
         
         // Show immediate toast for network files (they always take time to download)
@@ -739,49 +740,14 @@ class PdfViewerManager(
     }
     
     /**
-     * Extract text from current PDF page using OCR (no translation)
-     * Shows recognized text in overlay for user to copy
+     * Extract text from current PDF page using OCR (no translation).
+     * Shows recognized text in overlay for user to copy.
      */
     fun extractTextFromCurrentPage() {
-        if (currentPageBitmap == null) {
-            callback.showError("No page rendered for OCR")
-            return
-        }
-        
-        coroutineScope.launch(Dispatchers.IO) {
-            val settings = settingsRepository.getSettings().first()
-            
-            // Get source language for OCR
-            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-            
-            // Perform OCR on current page bitmap (M4 fix: safe access after async gap)
-            val originalBitmap = currentPageBitmap ?: return@launch
-            val shouldScale = originalBitmap.width >= 1500 && originalBitmap.height >= 1500
-            
-            val ocrBitmap = if (shouldScale) {
-                val targetWidth = 1200
-                val targetHeight = (originalBitmap.height * targetWidth / originalBitmap.width.toFloat()).toInt()
-                Bitmap.createScaledBitmap(originalBitmap, targetWidth, targetHeight, true)
-            } else {
-                originalBitmap
-            }
-            
-            // Extract text using TranslationManager (OCR only, no translation)
-            val recognizedText = translationManager.extractTextOnly(ocrBitmap, sourceLang)
-            
-            // Release scaled bitmap if created
-            if (shouldScale) {
-                ocrBitmap.recycle()
-            }
-            
-            withContext(Dispatchers.Main) {
-                if (recognizedText != null && recognizedText.isNotBlank()) {
-                    callback.displayOcrText(recognizedText)
-                } else {
-                    callback.showError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
-                }
-            }
-        }
+        pdfLinkAndSearchManager.extractTextFromCurrentPage(
+            currentBitmap = currentPageBitmap,
+            onOcrResult   = { callback.displayOcrText(it) }
+        )
     }
     
     /**
@@ -789,39 +755,7 @@ class PdfViewerManager(
      * Does not switch views — stays on the PDF page.
      */
     fun copyPageTextToClipboard() {
-        if (currentPageBitmap == null) {
-            callback.showError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
-            return
-        }
-
-        coroutineScope.launch(Dispatchers.IO) {
-            val settings = settingsRepository.getSettings().first()
-            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-
-            val originalBitmap = currentPageBitmap ?: return@launch
-            val shouldScale = originalBitmap.width >= 1500 && originalBitmap.height >= 1500
-            val ocrBitmap = if (shouldScale) {
-                val targetWidth = 1200
-                val targetHeight = (originalBitmap.height * targetWidth / originalBitmap.width.toFloat()).toInt()
-                Bitmap.createScaledBitmap(originalBitmap, targetWidth, targetHeight, true)
-            } else {
-                originalBitmap
-            }
-
-            val recognizedText = translationManager.extractTextOnly(ocrBitmap, sourceLang)
-            if (shouldScale) ocrBitmap.recycle()
-
-            withContext(Dispatchers.Main) {
-                if (!recognizedText.isNullOrBlank()) {
-                    val ctx = binding.root.context
-                    val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("pdf_text", recognizedText))
-                    android.widget.Toast.makeText(ctx, ctx.getString(com.sza.fastmediasorter.R.string.text_copied), android.widget.Toast.LENGTH_SHORT).show()
-                } else {
-                    callback.showError(binding.root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
-                }
-            }
-        }
+        pdfLinkAndSearchManager.copyPageTextToClipboard(currentPageBitmap)
     }
 
     /**
@@ -1103,8 +1037,8 @@ class PdfViewerManager(
         pageRenderJob = null
 
         // Clear link cache
-        urlBoxCache.clear()
-        
+        pdfLinkAndSearchManager.clearUrlCache()
+
         // Detach adapter BEFORE closing renderer to trigger onViewRecycled → cancel render jobs (C1 fix)
         safeViews.pdfScrollRecyclerView.adapter = null
         pdfPageAdapter?.invalidateCache()
@@ -1213,7 +1147,7 @@ class PdfViewerManager(
 
                 // Extract PDF link annotations for tap-to-open (API 35+, fast — no OCR needed)
                 if (Build.VERSION.SDK_INT >= 35) {
-                    urlBoxCache[index] = extractLinksNative(currentPdfFile!!, index, width, height)
+                    pdfLinkAndSearchManager.extractLinksNative(currentPdfFile!!, index, width, height)
                 }
 
                 // Switch to main thread to update UI
@@ -1429,212 +1363,45 @@ class PdfViewerManager(
     }
     
     /**
-     * Search state for PDF documents
-     */
-    private var searchResults = mutableListOf<Int>() // Match positions in current page text
-    private var currentSearchIndex = -1
-    private var lastSearchQuery = ""
-    private var currentPageText = "" // Cache of current page OCR text
-    
-    /**
      * Search for text in current PDF page.
      * Returns total number of matches found on current page.
-     * 
+     *
      * Note: Searches only in current page's cached OCR/translation text.
      */
-    suspend fun searchInPdf(query: String): Int {
-        if (query.isBlank()) {
-            searchResults.clear()
-            currentSearchIndex = -1
-            lastSearchQuery = ""
-            return 0
-        }
-        
-        lastSearchQuery = query
-        searchResults.clear()
-        currentSearchIndex = -1
-        
-        return withContext(Dispatchers.IO) {
-            // Search in current page's cached translation text
-            val cachedText = currentPageText.ifBlank {
-                com.sza.fastmediasorter.core.cache.TranslationCacheManager.getTranslation(
-                    currentPdfPath ?: "", 
-                    currentPdfPageIndex
-                ) ?: ""
-            }
-            
-            if (cachedText.isNotBlank()) {
-                val matches = Regex(Regex.escape(query), RegexOption.IGNORE_CASE).findAll(cachedText)
-                matches.forEach {
-                    searchResults.add(it.range.first)
-                }
-            }
-            
-            Timber.d("PDF search for '$query': found ${searchResults.size} matches on current page")
-            searchResults.size
-        }
-    }
-    
-    /**
-     * Navigate to next search result (highlights on screen)
-     */
-    fun nextSearchResult() {
-        if (searchResults.isEmpty()) return
-        
-        currentSearchIndex = (currentSearchIndex + 1) % searchResults.size
-        Timber.d("Navigated to search result ${currentSearchIndex + 1}/${searchResults.size}")
-    }
-    
-    /**
-     * Navigate to previous search result
-     */
-    fun previousSearchResult() {
-        if (searchResults.isEmpty()) return
-        
-        currentSearchIndex = if (currentSearchIndex <= 0) {
-            searchResults.size - 1
-        } else {
-            currentSearchIndex - 1
-        }
-        
-        Timber.d("Navigated to search result ${currentSearchIndex + 1}/${searchResults.size}")
-    }
-    
-    /**
-     * Get current search state
-     */
-    fun getSearchState(): Triple<Int, Int, String> {
-        // Returns (currentIndex+1, totalMatches, query)
-        return Triple(
-            if (searchResults.isEmpty()) 0 else currentSearchIndex + 1,
-            searchResults.size,
-            lastSearchQuery
-        )
-    }
-    
-    /**
-     * Extracts hyperlink annotations from a PDF page using the native API (Android 15 / API 35+).
-     * Returns bounding boxes pre-scaled to rendered bitmap pixel coordinates so hit-testing
-     * in handlePdfTap() requires no further conversion.
-     *
-     * Coordinate system: PdfPageLinkContent.getBounds() uses the Android convention
-     * (origin top-left, Y increases downward, units in PDF points = 1/72").
-     * PdfRenderer.Page.getWidth/Height() also returns points, so the scale factor is
-     * straightforward: bitmapPx = pdfPt × (bitmapDimension / pageDimensionPt).
-     */
-    @RequiresApi(35)
-    private fun extractLinksNative(file: File, pageIndex: Int, bitmapWidth: Int, bitmapHeight: Int): List<Pair<RectF, String>> {
-        var pfd: ParcelFileDescriptor? = null
-        var renderer: android.graphics.pdf.PdfRendererPreV? = null
-        return try {
-            pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-            renderer = android.graphics.pdf.PdfRendererPreV(pfd)
-            val page = renderer.openPage(pageIndex)
-            val pageWidthPt = page.width
-            val pageHeightPt = page.height
-            val links = page.getLinkContents()
-            page.close()
+    suspend fun searchInPdf(query: String): Int =
+        pdfLinkAndSearchManager.searchInPdf(query, currentPdfPath, currentPdfPageIndex)
 
-            if (links.isEmpty()) {
-                Timber.d("PDF: page ${pageIndex + 1} — no links")
-                return emptyList()
-            }
+    /** Navigate to next search result (highlights on screen). */
+    fun nextSearchResult() = pdfLinkAndSearchManager.nextSearchResult()
 
-            val scaleX = bitmapWidth.toFloat() / pageWidthPt
-            val scaleY = bitmapHeight.toFloat() / pageHeightPt
-
-            links.flatMap { link ->
-                link.getBounds().map { bounds ->
-                    Pair(
-                        RectF(bounds.left * scaleX, bounds.top * scaleY,
-                            bounds.right * scaleX, bounds.bottom * scaleY),
-                        link.getUri().toString()
-                    )
-                }
-            }.also { result ->
-                Timber.d("PDF: page ${pageIndex + 1} — ${result.size} link(s) extracted natively")
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "PDF: native link extraction failed for page $pageIndex")
-            emptyList()
-        } finally {
-            renderer?.close()
-            pfd?.close()
-        }
-    }
+    /** Navigate to previous search result. */
+    fun previousSearchResult() = pdfLinkAndSearchManager.previousSearchResult()
 
     /**
-     * Called on single-tap in page mode. Maps view tap coordinates to bitmap pixel
-     * coordinates via the inverted PhotoView display matrix, then checks the URL cache
-     * for the current page. Opens the first matching link in the browser.
+     * Get current search state as (currentIndex+1, totalMatches, query).
+     */
+    fun getSearchState(): Triple<Int, Int, String> = pdfLinkAndSearchManager.getSearchState()
+    
+    /**
+     * Called on single-tap in page mode. Delegates to [PdfLinkAndSearchManager].
      * Returns true if a link was found and opened.
      */
-    fun handlePdfTap(tapX: Float, tapY: Float): Boolean {
-        if (pdfRenderer == null || isScrollMode) return false
-        val bitmap = currentPageBitmap ?: return false
-        val boxes = urlBoxCache[currentPdfPageIndex]
-        if (boxes.isNullOrEmpty()) return false
-
-        val displayMatrix = Matrix()
-        binding.photoView.getDisplayMatrix(displayMatrix)
-        val invertedMatrix = Matrix()
-        if (!displayMatrix.invert(invertedMatrix)) return false
-
-        val point = floatArrayOf(tapX, tapY)
-        invertedMatrix.mapPoints(point)
-        val bitmapX = point[0]
-        val bitmapY = point[1]
-
-        if (bitmapX < 0 || bitmapY < 0 || bitmapX > bitmap.width || bitmapY > bitmap.height) return false
-
-        val hitUrl = boxes.firstOrNull { (rect, _) -> rect.contains(bitmapX, bitmapY) }?.second
-            ?: return false
-
-        openUrlInBrowser(hitUrl)
-        return true
-    }
-
-    private fun openUrlInBrowser(url: String) {
-        val context = binding.root.context
-        try {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
-            Timber.d("PDF: opened link → $url")
-        } catch (e: Exception) {
-            Timber.e(e, "PDF: failed to open URL: $url")
-            callback.showError("Cannot open link: $url")
-        }
-    }
+    fun handlePdfTap(tapX: Float, tapY: Float): Boolean =
+        pdfLinkAndSearchManager.handlePdfTap(
+            tapX               = tapX,
+            tapY               = tapY,
+            currentPageIndex   = currentPdfPageIndex,
+            currentBitmap      = currentPageBitmap,
+            isScrollMode       = isScrollMode,
+            pdfRendererActive  = pdfRenderer != null
+        )
 
     /**
      * Share current PDF page to Google Lens for visual search/text recognition.
      * Saves current page bitmap to temp file and delegates to activity callback.
      */
     fun shareCurrentPageToGoogleLens() {
-        val bitmap = getCurrentPageBitmap() ?: return
-
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                // Save bitmap to temp file
-                val context = binding.root.context
-                val cacheDir = context.externalCacheDir ?: context.cacheDir
-                val tempFile = File(cacheDir, "lens_share_temp.png")
-                java.io.FileOutputStream(tempFile).use { out ->
-                    bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
-                }
-
-                withContext(Dispatchers.Main) {
-                    callback.shareFileToGoogleLens(tempFile)
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to save PDF page for Google Lens")
-                withContext(Dispatchers.Main) {
-                    callback.showError("Failed to prepare image for Google Lens")
-                }
-            }
-        }
+        pdfLinkAndSearchManager.shareCurrentPageToGoogleLens(getCurrentPageBitmap())
     }
 }
 

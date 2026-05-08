@@ -7,6 +7,7 @@ import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -76,36 +77,65 @@ class SftpDataSource(
                 throw IOException("Failed to get connected SFTP channel from pool")
             }
 
-            val fileAttributes = channel?.stat(remotePath)
-            val rawLength = fileAttributes?.size ?: 0L
-            val fileLength = if (rawLength > 0) rawLength else C.LENGTH_UNSET.toLong()
-
-            val position = dataSpec.position
-            inputStream = openStream(channel!!, remotePath, position)
-
-            bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
-                dataSpec.length
-            } else if (fileLength != C.LENGTH_UNSET.toLong()) {
-                fileLength - position
-            } else {
-                C.LENGTH_UNSET.toLong()
-            }
-
-            opened = true
-            openPosition = position
-            readCallCount = 0L
-            openTimeMs = System.currentTimeMillis()
-            transferStarted(dataSpec)
-
-            Timber.d("SftpDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength")
-
-            return if (bytesRemaining == C.LENGTH_UNSET.toLong()) fileLength else bytesRemaining
+            return attemptOpen(channel!!, remotePath, dataSpec)
         } catch (e: Exception) {
+            val isJSchEx = generateSequence<Throwable>(e) { it.cause }.any { it is JSchException }
+            if (isJSchEx && connectionAcquired) {
+                Timber.d("SftpDataSource: retrying open() after JSchException — ${e.cause?.message}")
+                // Release broken connection before retry
+                val brokenCh = channel
+                channel = null; session = null
+                sftpClient.releaseExoPlayerConnection(brokenCh, broken = true)
+                connectionAcquired = false
+                try {
+                    val retryInfo = SftpClient.SftpConnectionInfo(host, port, username, password)
+                    val retryConn = sftpClient.getConnectionForExoPlayer(retryInfo)
+                    session = retryConn.session
+                    channel = retryConn.channel
+                    connectionAcquired = true
+                    if (channel == null || !channel!!.isConnected) throw IOException("SFTP retry: channel not connected")
+                    val encodedPath = uri?.encodedPath ?: throw IOException("SFTP retry: URI unavailable")
+                    return attemptOpen(channel!!, Uri.decode(encodedPath), dataSpec)
+                } catch (retryEx: Exception) {
+                    // Retry failed — rethrow original exception to preserve ExoPlayer's error code
+                    if (connectionAcquired) channelBroken = true
+                    Timber.e(e, "SftpDataSource: Error opening SFTP file (retry also failed)")
+                    close()
+                    throw IOException("Failed to open SFTP file: ${e.message}", e)
+                }
+            }
             if (connectionAcquired) channelBroken = true
             Timber.e(e, "SftpDataSource: Error opening SFTP file")
             close()
             throw IOException("Failed to open SFTP file: ${e.message}", e)
         }
+    }
+
+    /**
+     * Executes the stat + openStream logic after a connection is acquired.
+     * Sets all open-state fields and returns bytes remaining.
+     * Extracted to allow clean retry in [open] without duplicating logic.
+     */
+    private fun attemptOpen(ch: ChannelSftp, remotePath: String, dataSpec: DataSpec): Long {
+        val fileAttributes = ch.stat(remotePath)
+        val rawLength = fileAttributes?.size ?: 0L
+        val fileLength = if (rawLength > 0) rawLength else C.LENGTH_UNSET.toLong()
+        val position = dataSpec.position
+        inputStream = openStream(ch, remotePath, position)
+        bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
+            dataSpec.length
+        } else if (fileLength != C.LENGTH_UNSET.toLong()) {
+            fileLength - position
+        } else {
+            C.LENGTH_UNSET.toLong()
+        }
+        opened = true
+        openPosition = position
+        readCallCount = 0L
+        openTimeMs = System.currentTimeMillis()
+        transferStarted(dataSpec)
+        Timber.d("SftpDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength")
+        return if (bytesRemaining == C.LENGTH_UNSET.toLong()) fileLength else bytesRemaining
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {

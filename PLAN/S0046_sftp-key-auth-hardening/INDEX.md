@@ -4,7 +4,7 @@
 **Feature:** SFTP key-auth hardening (predefined-XML key support + host-key fingerprint pinning)
 **Tier:** 3 — Moderate (ad-hoc)
 **Priority:** 50
-**Status:** Not started
+**Status:** 🚧 In Progress
 **Phases:** 0 / 6 done
 **Last updated:** 2026-05-02
 

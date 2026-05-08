@@ -183,6 +183,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }
         }
 
+        Timber.d("S0112: TV launcher support active — LEANBACK_LAUNCHER registered")
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
         
         // Log detailed app startup information

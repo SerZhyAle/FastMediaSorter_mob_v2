@@ -15,84 +15,83 @@ import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+
+/** Purpose of an SFTP channel within a pooled session (S0113: unified-session). */
+enum class ChannelPurpose { PLAYBACK, FILE_OPS }
 
 /**
  * SFTP session + channel pool for SftpClient.
  *
- * One [PooledConnection] per (host, port, user) holds a JSch [Session] plus a small bag of
- * [ChannelSftp]s. The pool serves both:
- *   - the suspending file-operation surface via [withConnection], which serializes per-channel
- *     work through a [Mutex] and rebuilds the session on hard failure;
- *   - the BLOCKING ExoPlayer DataSource path via [getConnectionForExoPlayer] /
- *     [releaseExoPlayerConnection], which uses a dedicated synchronized lock to avoid TOCTOU
- *     races with [invalidateConnection] (ML-008).
+ * One [PooledConnection] per (host, port, user) holds a single JSch [Session] and a list of
+ * [PooledChannel]s partitioned by [ChannelPurpose]. The unified design (S0113 Phase 04) eliminates
+ * the two-SSH-session problem — PLAYBACK and FILE_OPS channels share one session per account.
  *
- * Idle entries past [IDLE_TIMEOUT_MS] are reaped on the [cleanupScope] (ML-009).
+ * Active PLAYBACK streams are tracked via [PooledConnection.activeStreamCount] so idle cleanup
+ * never evicts a session that ExoPlayer is reading from (S0113 Phase 01).
  *
  * Extracted to keep SftpClient below the 1000-line cap.
  */
 class SftpConnectionPool {
 
-    private data class PooledConnection(
+    /** Single SFTP channel with its serialization mutex and declared purpose. */
+    data class PooledChannel(
+        val channel: ChannelSftp,
+        val mutex: Mutex,
+        val purpose: ChannelPurpose
+    )
+
+    private class PooledConnection(
         val session: Session,
         val jsch: JSch,
-        val channels: MutableList<ChannelSftp> = mutableListOf(),
-        val channelMutexes: MutableList<Mutex> = mutableListOf(),
+        val pooledChannels: MutableList<PooledChannel> = mutableListOf(),
         val sessionMutex: Mutex = Mutex(),
-        var lastUsed: Long = System.currentTimeMillis()
+        // Guards session.openChannel() across both suspend and blocking callers (Research #2)
+        val openChannelLock: ReentrantLock = ReentrantLock(),
+        var lastUsed: Long = System.currentTimeMillis(),
+        // Non-zero while ExoPlayer is actively streaming; idle cleanup skips such sessions
+        val activeStreamCount: AtomicInteger = AtomicInteger(0)
     )
 
     private data class ConnectionKey(val host: String, val port: Int, val username: String)
 
-    private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
-    private val playbackConnectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
+    /** Unified pool — one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
+    private val pooledSessions = ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
     private val poolMutex = Mutex()
-
-    // Dedicated lock for ExoPlayer (blocking) path to avoid race with concurrent invalidateConnection() (ML-008)
-    private val exoPlayerPoolLock = Any()
-
-    // Cleanup scope for idle connection maintenance (ML-009)
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** ExoPlayer-facing wrapper. Both [session] and [channel] are owned by the pool — do not close. */
     data class ExoPlayerConnection(val session: Session, val channel: ChannelSftp)
 
-    /**
-     * Acquire a channel from the pool, run [block], and release. On channel failure the channel
-     * is removed; on session failure the entire entry is invalidated and a single retry runs
-     * against a fresh entry.
-     */
+    // ── Suspend path (FILE_OPS) ──────────────────────────────────────────────────────────────────
+
     suspend fun <T> withConnection(
         info: SftpClient.SftpConnectionInfo,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
         val key = ConnectionKey(info.host, info.port, info.username)
-
         try {
             connectionSemaphore.acquire()
             try {
-                val pooled = getOrCreateConnection(key, info)
+                val pooled = getOrCreateSession(key, info)
                 pooled.lastUsed = System.currentTimeMillis()
-
-                val (channel, mutex) = getOrCreateChannel(pooled, info)
-
+                val pc = getOrCreateFileOpsChannel(pooled, info)
                 try {
-                    // Serialize operations on the same channel to prevent race conditions
-                    mutex.withLock { block(channel) }
+                    pc.mutex.withLock { block(pc.channel) }
                 } catch (e: Exception) {
-                    if (!channel.isConnected) {
+                    if (!pc.channel.isConnected) {
                         Timber.w("SFTP [FILE_OPS] channel lost: ${e.message}")
-                        removeChannel(pooled, channel)
+                        removeChannel(pooled, pc.channel)
                     }
-
                     if (!pooled.session.isConnected) {
                         Timber.w("SFTP [FILE_OPS] session lost, retrying: ${e.message}")
-                        invalidateConnection(key)
-                        val newPooled = getOrCreateConnection(key, info)
+                        invalidateSession(key)
+                        val newPooled = getOrCreateSession(key, info)
                         newPooled.lastUsed = System.currentTimeMillis()
-                        val (newChannel, newMutex) = getOrCreateChannel(newPooled, info)
-                        return@withContext newMutex.withLock { block(newChannel) }
+                        val newPc = getOrCreateFileOpsChannel(newPooled, info)
+                        return@withContext newPc.mutex.withLock { block(newPc.channel) }
                     }
                     throw e
                 }
@@ -103,9 +102,8 @@ class SftpConnectionPool {
             Timber.d("SFTP operation cancelled")
             throw e
         } catch (e: InterruptedException) {
-            // Blocking Semaphore.acquire() throws InterruptedException when the coroutine is cancelled
             Timber.d("SFTP operation interrupted (coroutine cancelled)")
-            Thread.currentThread().interrupt() // restore interrupt flag
+            Thread.currentThread().interrupt()
             throw CancellationException("SFTP interrupted", e)
         } catch (e: Exception) {
             Timber.e(e, "SFTP [FILE_OPS] operation failed")
@@ -113,119 +111,90 @@ class SftpConnectionPool {
         }
     }
 
-    private suspend fun getOrCreateChannel(
+    private suspend fun getOrCreateFileOpsChannel(
         pooled: PooledConnection,
         info: SftpClient.SftpConnectionInfo
-    ): Pair<ChannelSftp, Mutex> = pooled.sessionMutex.withLock {
-        // First connected channel wins
-        pooled.channels.forEachIndexed { index, channel ->
-            if (channel.isConnected) {
-                return@withLock channel to pooled.channelMutexes[index]
-            }
+    ): PooledChannel = pooled.sessionMutex.withLock {
+        pooled.pooledChannels
+            .firstOrNull { it.purpose == ChannelPurpose.FILE_OPS && it.channel.isConnected }
+            ?.let { return@withLock it }
+
+        val fileOpsCount = pooled.pooledChannels.count { it.purpose == ChannelPurpose.FILE_OPS }
+        if (fileOpsCount < MAX_FILE_OPS_CHANNELS) {
+            val ch = openChannelSafe(pooled)
+            val pc = PooledChannel(ch, Mutex(), ChannelPurpose.FILE_OPS)
+            pooled.pooledChannels.add(pc)
+            Timber.d("SFTP [FILE_OPS] new channel (total=${pooled.pooledChannels.size}) for ${info.host}")
+            return@withLock pc
         }
 
-        // No available channels — create new one if under limit
-        if (pooled.channels.size < MAX_CHANNELS_PER_SESSION) {
-            val newChannel = pooled.session.openChannel("sftp") as ChannelSftp
-            newChannel.connect(CONNECTION_TIMEOUT)
-            val newMutex = Mutex()
-
-            pooled.channels.add(newChannel)
-            pooled.channelMutexes.add(newMutex)
-
-            Timber.d("Created new SFTP channel (${pooled.channels.size}/${MAX_CHANNELS_PER_SESSION}) for ${info.host}")
-            return@withLock newChannel to newMutex
-        }
-
-        // All channels in use — fall back to first one (callers wait on its mutex)
-        Timber.d("All SFTP channels in use for ${info.host}, reusing first channel")
-        pooled.channels[0] to pooled.channelMutexes[0]
+        Timber.d("SFTP [FILE_OPS] all channels busy for ${info.host}, reusing first")
+        pooled.pooledChannels.first { it.purpose == ChannelPurpose.FILE_OPS }
     }
 
     private suspend fun removeChannel(pooled: PooledConnection, channel: ChannelSftp) {
         pooled.sessionMutex.withLock {
-            val index = pooled.channels.indexOf(channel)
-            if (index >= 0) {
-                try {
-                    channel.disconnect()
-                } catch (e: Exception) {
-                    Timber.w("Error disconnecting channel: ${e.message}")
-                }
-                pooled.channels.removeAt(index)
-                pooled.channelMutexes.removeAt(index)
-                Timber.d("Removed failed channel, ${pooled.channels.size} remaining")
+            val target = pooled.pooledChannels.firstOrNull { it.channel == channel } ?: return@withLock
+            try { channel.disconnect() } catch (e: Exception) {
+                Timber.w("Error disconnecting channel: ${e.message}")
             }
+            pooled.pooledChannels.remove(target)
+            Timber.d("SFTP removed failed channel, ${pooled.pooledChannels.size} remaining")
         }
     }
 
-    private suspend fun getOrCreateConnection(
+    private suspend fun getOrCreateSession(
         key: ConnectionKey,
         info: SftpClient.SftpConnectionInfo
     ): PooledConnection {
         poolMutex.lock()
         try {
-            val existing = connectionPool[key]
-            if (existing != null && existing.session.isConnected) {
-                if (existing.channels.any { it.isConnected }) {
-                    return existing
-                }
-            }
+            val existing = pooledSessions[key]
+            if (existing != null && existing.session.isConnected) return existing
 
-            // Remove invalid connection if exists
             if (existing != null) {
                 try {
-                    existing.channels.forEach { it.disconnect() }
+                    existing.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
                     existing.session.disconnect()
-                } catch (e: Exception) {
-                    Timber.w("Error closing invalid connection: ${e.message}")
-                }
-                connectionPool.remove(key)
+                } catch (e: Exception) { Timber.w("Error closing stale session: ${e.message}") }
+                pooledSessions.remove(key)
             }
 
             val jsch = JSch()
             applyIdentity(jsch, info, namePrefix = "key")
-
             val session = jsch.getSession(info.username, info.host, info.port)
             applyAuth(session, info)
             session.timeout = SOCKET_TIMEOUT
             session.connect(CONNECTION_TIMEOUT)
 
-            val channel = session.openChannel("sftp") as ChannelSftp
-            channel.connect(CONNECTION_TIMEOUT)
-
-            val pooled = PooledConnection(
-                session = session,
-                jsch = jsch,
-                channels = mutableListOf(channel),
-                channelMutexes = mutableListOf(Mutex()),
-                sessionMutex = Mutex()
-            )
-            connectionPool[key] = pooled
-
-            Timber.d("Created new SFTP connection to ${info.host} with channel pool")
+            val pooled = PooledConnection(session = session, jsch = jsch)
+            val firstCh = openChannelSafe(pooled)
+            pooled.pooledChannels.add(PooledChannel(firstCh, Mutex(), ChannelPurpose.FILE_OPS))
+            pooledSessions[key] = pooled
+            Timber.d("SFTP new session for ${info.host}")
             return pooled
         } finally {
             poolMutex.unlock()
         }
     }
 
-    /** Drop the pooled session for [info]. Public entry point for client-driven retry. */
     suspend fun invalidate(info: SftpClient.SftpConnectionInfo) {
-        invalidateConnection(ConnectionKey(info.host, info.port, info.username))
+        invalidateSession(ConnectionKey(info.host, info.port, info.username))
     }
 
-    private suspend fun invalidateConnection(key: ConnectionKey) {
+    private suspend fun invalidateSession(key: ConnectionKey) {
         poolMutex.lock()
         try {
-            connectionPool.remove(key)?.let { pooled ->
-                try {
-                    pooled.channels.forEach { channel ->
-                        if (channel.isConnected) channel.disconnect()
-                    }
-                    pooled.session.disconnect()
-                    Timber.d("Invalidated SFTP connection with ${pooled.channels.size} channels")
-                } catch (e: Exception) {
-                    Timber.w("Error closing invalidated connection: ${e.message}")
+            pooledSessions.remove(key)?.let { pooled ->
+                // Defer session disconnect if ExoPlayer is actively streaming on it
+                if (pooled.activeStreamCount.get() == 0) {
+                    try {
+                        pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
+                        pooled.session.disconnect()
+                        Timber.d("SFTP invalidated session with ${pooled.pooledChannels.size} channels")
+                    } catch (e: Exception) { Timber.w("Error closing invalidated session: ${e.message}") }
+                } else {
+                    Timber.d("SFTP [FILE_OPS] session invalidated but PLAYBACK active — deferred disconnect")
                 }
             }
         } finally {
@@ -233,155 +202,145 @@ class SftpConnectionPool {
         }
     }
 
+    // ── Idle cleanup ─────────────────────────────────────────────────────────────────────────────
+
     private fun cleanupIdleConnections() {
         val now = System.currentTimeMillis()
-        val keysToRemove = connectionPool.filter { (_, conn) ->
-            now - conn.lastUsed > IDLE_TIMEOUT_MS
+        val keysToRemove = pooledSessions.filter { (_, conn) ->
+            val shouldEvict = now - conn.lastUsed > IDLE_TIMEOUT_MS && conn.activeStreamCount.get() == 0
+            if (!shouldEvict && now - conn.lastUsed > IDLE_TIMEOUT_MS) {
+                Timber.d("SFTP [PLAYBACK] idle cleanup skipped — active=${conn.activeStreamCount.get()}")
+            }
+            shouldEvict
         }.keys
-
-        val playbackKeysToRemove = playbackConnectionPool.filter { (_, conn) ->
-            now - conn.lastUsed > IDLE_TIMEOUT_MS
-        }.keys
-
-        if (keysToRemove.isEmpty() && playbackKeysToRemove.isEmpty()) return
+        if (keysToRemove.isEmpty()) return
 
         cleanupScope.launch {
             poolMutex.withLock {
                 keysToRemove.forEach { key ->
-                    connectionPool.remove(key)?.let { pooled ->
+                    pooledSessions.remove(key)?.let { pooled ->
                         try {
-                            pooled.channels.forEach { channel ->
-                                if (channel.isConnected) channel.disconnect()
-                            }
+                            pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
                             pooled.session.disconnect()
-                            Timber.d("SFTP [FILE_OPS] Closed idle connection to ${key.host}")
-                        } catch (e: Exception) {
-                            Timber.w("SFTP [FILE_OPS] Error closing idle connection: ${e.message}")
-                        }
-                    }
-                }
-            }
-            playbackKeysToRemove.forEach { key ->
-                playbackConnectionPool.remove(key)?.let { pooled ->
-                    try {
-                        pooled.channels.forEach { channel ->
-                            if (channel.isConnected) channel.disconnect()
-                        }
-                        pooled.session.disconnect()
-                        Timber.d("SFTP [PLAYBACK] Closed idle connection to ${key.host}")
-                    } catch (e: Exception) {
-                        Timber.w("SFTP [PLAYBACK] Error closing idle connection: ${e.message}")
+                            Timber.d("SFTP closed idle session for ${key.host}")
+                        } catch (e: Exception) { Timber.w("SFTP error closing idle session: ${e.message}") }
                     }
                 }
             }
         }
     }
 
-    /**
-     * Get a pooled SFTP connection for ExoPlayer DataSource. BLOCKING (not suspend) because
-     * `DataSource.open()` is itself blocking. Caller must NOT close session or channel.
-     */
+    // ── Blocking path (ExoPlayer / PLAYBACK) ────────────────────────────────────────────────────
+
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpClient.SftpConnectionInfo): ExoPlayerConnection {
         val key = ConnectionKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
-
         try {
             connectionSemaphore.acquire()
+            val pooled = getOrCreateSessionBlocking(key, connectionInfo)
+            pooled.lastUsed = System.currentTimeMillis()
 
-            // Dedicated lock to eliminate TOCTOU race with invalidateConnection() (ML-008)
-            synchronized(exoPlayerPoolLock) {
-                val existing = playbackConnectionPool[key]
-                if (existing != null && existing.session.isConnected) {
-                    existing.lastUsed = System.currentTimeMillis()
-
-                    synchronized(existing) {
-                        existing.channels.firstOrNull { it.isConnected }?.let { channel ->
-                            Timber.d("SFTP [PLAYBACK]Reusing pooled connection to ${connectionInfo.host}")
-                            return ExoPlayerConnection(existing.session, channel)
-                        }
-
-                        // No connected channel — create new one if under limit
-                        if (existing.channels.size < MAX_CHANNELS_PER_SESSION) {
-                            val newChannel = existing.session.openChannel("sftp") as ChannelSftp
-                            newChannel.connect(CONNECTION_TIMEOUT)
-                            existing.channels.add(newChannel)
-                            existing.channelMutexes.add(Mutex())
-                            Timber.d("SFTP [PLAYBACK]Created new channel (${existing.channels.size}/$MAX_CHANNELS_PER_SESSION)")
-                            return ExoPlayerConnection(existing.session, newChannel)
-                        }
-
-                        // All channels busy — fall back to first one (caller will wait on I/O)
-                        Timber.d("SFTP [PLAYBACK]All channels busy, reusing first channel")
-                        return ExoPlayerConnection(existing.session, existing.channels[0])
-                    }
+            // openChannelLock serializes session.openChannel() across both blocking and suspend callers
+            pooled.openChannelLock.lock()
+            try {
+                val existing = pooled.pooledChannels
+                    .firstOrNull { it.purpose == ChannelPurpose.PLAYBACK && it.channel.isConnected }
+                if (existing != null) {
+                    pooled.activeStreamCount.incrementAndGet()
+                    Timber.d("SFTP [PLAYBACK] acquired (reuse) — active=${pooled.activeStreamCount.get()} host=${connectionInfo.host}")
+                    return ExoPlayerConnection(pooled.session, existing.channel)
                 }
 
-                Timber.d("SFTP [PLAYBACK]Creating new pooled connection to ${connectionInfo.host}")
+                val playbackCount = pooled.pooledChannels.count { it.purpose == ChannelPurpose.PLAYBACK }
+                if (playbackCount < MAX_PLAYBACK_CHANNELS) {
+                    val ch = pooled.session.openChannel("sftp") as ChannelSftp
+                    ch.connect(CONNECTION_TIMEOUT)
+                    pooled.pooledChannels.add(PooledChannel(ch, Mutex(), ChannelPurpose.PLAYBACK))
+                    Timber.d("SFTP [PLAYBACK] new channel (total=${pooled.pooledChannels.size}/$MAX_CHANNELS_PER_SESSION)")
+                    pooled.activeStreamCount.incrementAndGet()
+                    Timber.d("SFTP [PLAYBACK] acquired (new channel) — active=${pooled.activeStreamCount.get()} host=${connectionInfo.host}")
+                    return ExoPlayerConnection(pooled.session, ch)
+                }
 
-                val jsch = JSch()
-                applyIdentity(jsch, connectionInfo, namePrefix = "exoplayer_key")
-
-                val session = jsch.getSession(connectionInfo.username, connectionInfo.host, connectionInfo.port)
-                applyAuth(session, connectionInfo)
-                session.timeout = SOCKET_TIMEOUT
-                session.connect(CONNECTION_TIMEOUT)
-
-                val channel = session.openChannel("sftp") as ChannelSftp
-                channel.connect(CONNECTION_TIMEOUT)
-
-                val pooled = PooledConnection(
-                    session = session,
-                    jsch = jsch,
-                    channels = mutableListOf(channel),
-                    channelMutexes = mutableListOf(Mutex()),
-                    sessionMutex = Mutex()
-                )
-                playbackConnectionPool[key] = pooled
-
-                Timber.d("SFTP [PLAYBACK]New connection added to pool for ${connectionInfo.host}")
-                return ExoPlayerConnection(session, channel)
+                // All PLAYBACK slots taken — reuse first (caller waits on I/O)
+                val fallback = pooled.pooledChannels.first { it.purpose == ChannelPurpose.PLAYBACK }
+                Timber.d("SFTP [PLAYBACK] all slots busy, reusing first channel")
+                pooled.activeStreamCount.incrementAndGet()
+                Timber.d("SFTP [PLAYBACK] acquired (fallback) — active=${pooled.activeStreamCount.get()} host=${connectionInfo.host}")
+                return ExoPlayerConnection(pooled.session, fallback.channel)
+            } finally {
+                pooled.openChannelLock.unlock()
             }
         } catch (e: Exception) {
             connectionSemaphore.release()
-            Timber.e(e, "SFTP [PLAYBACK]Failed to get connection for ${connectionInfo.host}")
+            Timber.e(e, "SFTP [PLAYBACK] failed to get connection for ${connectionInfo.host}")
             throw IOException("Failed to establish SFTP connection: ${e.message}", e)
         }
     }
 
-    private fun evictExoPlayerChannel(channel: ChannelSftp) {
-        synchronized(exoPlayerPoolLock) {
-            for (pooled in playbackConnectionPool.values) {
-                val index = pooled.channels.indexOf(channel)
-                if (index >= 0) {
-                    try {
-                        channel.disconnect()
-                    } catch (e: Exception) {
-                        Timber.w("SFTP [PLAYBACK]Eviction disconnect failed: ${e.message}")
-                    }
-                    pooled.channels.removeAt(index)
-                    pooled.channelMutexes.removeAt(index)
-                    Timber.d("SFTP [PLAYBACK]Evicted broken channel from pool")
-                    return
-                }
+    /** Blocking (non-suspend) session lookup/creation for the ExoPlayer path. */
+    private fun getOrCreateSessionBlocking(
+        key: ConnectionKey,
+        info: SftpClient.SftpConnectionInfo
+    ): PooledConnection {
+        // Synchronized on pooledSessions to avoid TOCTOU on session creation from the blocking path
+        synchronized(pooledSessions) {
+            val existing = pooledSessions[key]
+            if (existing != null && existing.session.isConnected) return existing
+
+            if (existing != null) {
+                try {
+                    existing.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
+                    existing.session.disconnect()
+                } catch (e: Exception) { Timber.w("Error closing stale PLAYBACK session: ${e.message}") }
+                pooledSessions.remove(key)
             }
-            Timber.d("SFTP [PLAYBACK]Eviction skipped — channel not in pool")
+
+            val jsch = JSch()
+            applyIdentity(jsch, info, namePrefix = "exoplayer_key")
+            val session = jsch.getSession(info.username, info.host, info.port)
+            applyAuth(session, info)
+            session.timeout = SOCKET_TIMEOUT
+            session.connect(CONNECTION_TIMEOUT)
+            val pooled = PooledConnection(session = session, jsch = jsch)
+            pooledSessions[key] = pooled
+            Timber.d("SFTP [PLAYBACK] new unified session created — host=${info.host}")
+            return pooled
         }
     }
 
-    /** Release semaphore slot after ExoPlayer is done. Triggers idle-pool sweep. */
     fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) {
-        if (broken && channel != null) {
-            evictExoPlayerChannel(channel)
+        // Decrement before eviction so channel can still be found in the pool
+        if (channel != null) {
+            pooledSessions.values
+                .find { pooled -> pooled.pooledChannels.any { it.channel == channel } }
+                ?.activeStreamCount
+                ?.updateAndGet { maxOf(0, it - 1) }
+        } else {
+            pooledSessions.values.firstOrNull()
+                ?.activeStreamCount
+                ?.updateAndGet { maxOf(0, it - 1) }
         }
+        if (broken && channel != null) evictPlaybackChannel(channel)
         connectionSemaphore.release()
         cleanupIdleConnections()
     }
 
-    /**
-     * Open an input stream against [remotePath] using a freshly opened SFTP channel on the
-     * pooled session for [info]. The returned stream owns the channel — closing it disconnects.
-     * Falls back to a fresh session if the existing one is dead or the channel fails to connect.
-     */
+    private fun evictPlaybackChannel(channel: ChannelSftp) {
+        pooledSessions.values.forEach { pooled ->
+            val target = pooled.pooledChannels.firstOrNull { it.channel == channel } ?: return@forEach
+            try { channel.disconnect() } catch (e: Exception) {
+                Timber.w("SFTP [PLAYBACK] eviction disconnect: ${e.message}")
+            }
+            pooled.pooledChannels.remove(target)
+            Timber.d("SFTP [PLAYBACK] evicted broken channel, ${pooled.pooledChannels.size} remaining")
+            return
+        }
+        Timber.d("SFTP [PLAYBACK] eviction skipped — channel not in pool")
+    }
+
+    // ── InputStream (own-channel, not pooled) ────────────────────────────────────────────────────
+
     suspend fun openInputStream(
         info: SftpClient.SftpConnectionInfo,
         remotePath: String
@@ -390,34 +349,28 @@ class SftpConnectionPool {
         try {
             connectionSemaphore.acquire()
             try {
-                val pooled = getOrCreateConnection(key, info)
+                val pooled = getOrCreateSession(key, info)
                 pooled.lastUsed = System.currentTimeMillis()
 
                 if (!pooled.session.isConnected) {
                     Timber.w("SFTP session disconnected, recreating")
-                    connectionPool.remove(key)
-                    val newPooled = getOrCreateConnection(key, info)
-                    pooled.session.disconnect()
-                    newPooled.lastUsed = System.currentTimeMillis()
+                    pooledSessions.remove(key)
+                    getOrCreateSession(key, info).lastUsed = System.currentTimeMillis()
                 }
 
                 val channel = pooled.session.openChannel("sftp") as ChannelSftp
-
                 if (!channel.isConnected) {
                     try {
                         channel.connect(CONNECTION_TIMEOUT)
                     } catch (e: com.jcraft.jsch.JSchException) {
-                        // Channel connection failed — recreate session and retry once
-                        Timber.w(e, "SFTP channel connection failed, recreating session")
-                        connectionPool.remove(key)
+                        Timber.w(e, "SFTP channel connect failed, recreating session")
+                        pooledSessions.remove(key)
                         pooled.session.disconnect()
-
-                        val newPooled = getOrCreateConnection(key, info)
+                        val newPooled = getOrCreateSession(key, info)
                         val newChannel = newPooled.session.openChannel("sftp") as ChannelSftp
                         newChannel.connect(CONNECTION_TIMEOUT)
-
                         val stream = newChannel.get(remotePath)
-                        val wrapper = object : java.io.FilterInputStream(stream) {
+                        return@withContext Result.success(object : java.io.FilterInputStream(stream) {
                             override fun close() {
                                 try { super.close() } finally {
                                     try { newChannel.disconnect() } catch (e: Exception) {
@@ -425,14 +378,13 @@ class SftpConnectionPool {
                                     }
                                 }
                             }
-                        }
-                        return@withContext Result.success(wrapper)
+                        })
                     }
                 }
 
                 try {
                     val stream = channel.get(remotePath)
-                    val wrapper = object : java.io.FilterInputStream(stream) {
+                    Result.success(object : java.io.FilterInputStream(stream) {
                         override fun close() {
                             try { super.close() } finally {
                                 try { channel.disconnect() } catch (e: Exception) {
@@ -440,12 +392,8 @@ class SftpConnectionPool {
                                 }
                             }
                         }
-                    }
-                    Result.success(wrapper)
-                } catch (e: Exception) {
-                    channel.disconnect()
-                    throw e
-                }
+                    })
+                } catch (e: Exception) { channel.disconnect(); throw e }
             } finally {
                 connectionSemaphore.release()
                 cleanupIdleConnections()
@@ -456,32 +404,34 @@ class SftpConnectionPool {
         }
     }
 
-    /** Disconnect every pooled session. Call on app shutdown. */
+    // ── Disconnect all ───────────────────────────────────────────────────────────────────────────
+
     suspend fun disconnectAll() {
         poolMutex.lock()
         try {
-            connectionPool.values.forEach { pooled ->
+            pooledSessions.values.forEach { pooled ->
                 try {
-                    pooled.channels.forEach { channel ->
-                        if (channel.isConnected) channel.disconnect()
-                    }
+                    pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
                     pooled.session.disconnect()
                 } catch (_: Exception) {}
             }
-            connectionPool.clear()
+            pooledSessions.clear()
         } finally {
             poolMutex.unlock()
         }
-        synchronized(exoPlayerPoolLock) {
-            playbackConnectionPool.values.forEach { pooled ->
-                try {
-                    pooled.channels.forEach { channel ->
-                        if (channel.isConnected) channel.disconnect()
-                    }
-                    pooled.session.disconnect()
-                } catch (_: Exception) {}
-            }
-            playbackConnectionPool.clear()
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────────────────────────
+
+    /** Thread-safe openChannel — serializes via [PooledConnection.openChannelLock] (Research #2). */
+    private fun openChannelSafe(pooled: PooledConnection): ChannelSftp {
+        pooled.openChannelLock.lock()
+        return try {
+            val ch = pooled.session.openChannel("sftp") as ChannelSftp
+            ch.connect(CONNECTION_TIMEOUT)
+            ch
+        } finally {
+            pooled.openChannelLock.unlock()
         }
     }
 
@@ -533,7 +483,9 @@ class SftpConnectionPool {
         private const val CONNECTION_TIMEOUT = 10_000
         private const val SOCKET_TIMEOUT = 30_000
         private const val MAX_CONCURRENT_CONNECTIONS = 15
-        private const val MAX_CHANNELS_PER_SESSION = 5
+        private const val MAX_CHANNELS_PER_SESSION = 5   // total across all purposes (Research #1)
+        private const val MAX_PLAYBACK_CHANNELS = 1      // reserved for ExoPlayer streaming
+        private const val MAX_FILE_OPS_CHANNELS = 4      // for suspend file operations
         private const val IDLE_TIMEOUT_MS = 25_000L
     }
 }

@@ -12,6 +12,7 @@ import androidx.test.espresso.action.ViewActions.pressImeActionButton
 import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.hasFocus
 import androidx.test.espresso.matcher.ViewMatchers.Visibility
 import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -68,6 +69,22 @@ class DefaultCredentialsInputTest {
 
             onView(withId(R.id.etDefaultUser)).check(matches(withText(TestFixtures.DEFAULT_USER)))
             onView(withId(R.id.searchOverlay)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        }
+    }
+
+    @Test
+    fun defaultCredentialBoxesForwardTapToEditors() {
+        val intent = Intent(context, SettingsActivity::class.java).apply {
+            putExtra(SettingsActivity.EXTRA_INITIAL_TAB, 0)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        ActivityScenario.launch<SettingsActivity>(intent).use {
+            onView(withId(R.id.tilDefaultUser)).perform(scrollTo(), click())
+            onView(withId(R.id.etDefaultUser)).check(matches(hasFocus()))
+
+            onView(withId(R.id.tilDefaultPassword)).perform(scrollTo(), click())
+            onView(withId(R.id.etDefaultPassword)).check(matches(hasFocus()))
         }
     }
 }

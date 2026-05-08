@@ -179,7 +179,8 @@ data class MediaResource(
     val recommendedThreads: Int? = null,
     val lastSpeedTestDate: Long? = null,
 
-    val iconId: String? = null // Format: ico-XX-NNN; null until S0034 backfill assigns one
+    val iconId: String? = null, // Format: ico-XX-NNN; null until S0034 backfill assigns one
+    val hostKeyFingerprint: String? = null // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive (no pinning)
 ) {
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)

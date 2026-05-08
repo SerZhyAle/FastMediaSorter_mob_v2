@@ -25,7 +25,7 @@ import com.sza.fastmediasorter.data.input.InputBindingEntity
         StreamingCacheEntry::class,
         InputBindingEntity::class
     ],
-    version = 27,
+    version = 28,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -662,6 +662,13 @@ abstract class AppDatabase : RoomDatabase() {
                 if (!hasColumn(db, "network_credentials", "manual_share_names")) {
                     db.execSQL("ALTER TABLE network_credentials ADD COLUMN manual_share_names TEXT NOT NULL DEFAULT ''")
                 }
+            }
+        }
+
+        /** S0046: host-key fingerprint pinning for SFTP resources. */
+        val MIGRATION_27_28 = object : Migration(27, 28) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE resources ADD COLUMN host_key_fingerprint TEXT DEFAULT NULL")
             }
         }
 

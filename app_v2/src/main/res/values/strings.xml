@@ -2762,6 +2762,25 @@
     <string name="wear_sync_ready">Ready to sync</string>
     <string name="wear_sync_sending">Sending to watch…</string>
     <string name="wear_sync_success">Sent %d source(s) to watch</string>
+    <string name="wear_settings_section_title">Watch Settings</string>
+    <string name="wear_settings_audio">Audio</string>
+    <string name="wear_settings_video">Video</string>
+    <string name="wear_settings_images">Images</string>
+    <string name="wear_settings_slideshow">Slideshow</string>
+    <string name="wear_settings_album_art">Album Art</string>
+    <string name="wear_settings_slideshow_interval">Slideshow interval (seconds)</string>
+    <string name="wear_push_settings">Push Watch Settings</string>
+
+    <!-- Import from Watch strings (S0111 Phase 03) -->
+    <string name="wear_import_pending_title">Watch sources received</string>
+    <string name="wear_import_pending_desc">%1$d sources from %2$s</string>
+    <string name="wear_import_accept">Import</string>
+    <string name="wear_import_dismiss">Dismiss</string>
+    <!-- Now Playing on Watch strings (S0111 Phase 05) -->
+    <string name="wear_now_playing_title">Now Playing on Watch</string>
+    <string name="wear_playback_play_pause">Play / Pause</string>
+    <string name="wear_playback_next">Next</string>
+    <string name="wear_playback_previous">Previous</string>
 
     <!-- 3D Video / Stereo mode settings (v2.63) -->
     <string name="playback_settings_3d_tab">3D</string>

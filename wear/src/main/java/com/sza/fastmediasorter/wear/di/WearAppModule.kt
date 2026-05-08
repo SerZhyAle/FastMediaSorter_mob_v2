@@ -6,14 +6,18 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.sza.fastmediasorter.wear.data.network.itunes.ITunesApiService
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
+import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest
+import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
 import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.google.gson.Gson
@@ -138,6 +142,14 @@ object WearAppModule {
 
     @Provides
     @Singleton
+    fun provideFtpDataSource(): FtpDataSource = FtpDataSource()
+
+    @Provides
+    @Singleton
+    fun provideSftpDataSource(): SftpDataSource = SftpDataSource()
+
+    @Provides
+    @Singleton
     fun provideNetworkSourceRepository(
         @EncryptedPrefs encryptedPrefs: SharedPreferences,
         smbDataSource: SmbDataSource,
@@ -146,4 +158,8 @@ object WearAppModule {
     ): NetworkSourceRepository {
         return NetworkSourceRepositoryImpl(encryptedPrefs, smbDataSource, ftpConnectionTest, sftpConnectionTest)
     }
+
+    @Provides
+    @Singleton
+    fun provideWearFavoritesRepository(impl: WearFavoritesRepositoryImpl): WearFavoritesRepository = impl
 }
