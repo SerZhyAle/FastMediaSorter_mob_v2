@@ -79,6 +79,13 @@ Resources for developers, QA, and contributors.
 |---|---|---|
 | [Google Play Specification](../dev/google_play_spec.md) | Developer specs for store compliance. | N/A |
 
+### UI Communication Policy
+| Document | Description | Last Updated |
+|---|---|---|
+| [Communication Policy](COMMUNICATION_POLICY.md) | Canonical tone-of-voice policy for all user-visible strings (EN). Voice, message formulas by type, next-step rules, feedback channels, tone checklist. Origin: S0118. | 2026-05-09 |
+| [Communication Policy — Russian](COMMUNICATION_POLICY_RU.md) | Mirror of communication policy in Russian. | 2026-05-09 |
+| [Communication Policy — Ukrainian](COMMUNICATION_POLICY_UK.md) | Mirror of communication policy in Ukrainian. | 2026-05-09 |
+
 ---
 *Note: Some links in the project's `index.html` (website) may refer to outdated or missing files (`V2_Specification.md`, `V2_architecture_overview.md`, `V2_TERMS.md`, `TODO_V2.md`). Use this map for the most accurate list of available documentation.*
 

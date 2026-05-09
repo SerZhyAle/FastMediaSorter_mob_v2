@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ScreenType
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
@@ -98,6 +99,7 @@ class PlayerViewModel @Inject constructor(
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = true,
+        val imageEditMode: PlayerImageEditMode = PlayerImageEditMode.NONE,
         val showSmallControls: Boolean = false,
         val useCompactElements: Boolean = false, // True if global compact mode is enabled
         val allowRename: Boolean = true,
@@ -554,7 +556,13 @@ class PlayerViewModel @Inject constructor(
             toggleCommandPanel()
         }
     }
-    
+
+    fun setImageEditMode(mode: PlayerImageEditMode) {
+        if (state.value.imageEditMode == mode) return
+        Timber.d("S0127: setImageEditMode $mode")
+        updateState { it.copy(imageEditMode = mode) }
+    }
+
     /**
      * Delete the current file and navigate to next/previous file.
      * @return true if file deleted successfully and navigation occurred, false if deletion failed, null if no files remain (should finish activity)

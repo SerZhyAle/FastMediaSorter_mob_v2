@@ -54,6 +54,7 @@ class ImageCropManager(
 
     private var currentMode: CropMode? = null
     private var activeCallback: Callback? = null
+    var editModeCallback: ((com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode) -> Unit)? = null
 
     // ── Entry / exit ────────────────────────────────────────────────────────
 
@@ -64,12 +65,14 @@ class ImageCropManager(
         callback: Callback
     ) {
         Timber.d("S0106: enterCropMode mode=$mode file=${currentFile.name}")
+        editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.CROP)
         currentMode = mode
         activeCallback = callback
         callback.onCropModeEntered(mode)
     }
 
     fun exitCropMode() {
+        editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.NONE)
         currentMode = null
         activeCallback?.onCropModeExited()
         activeCallback = null

@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.media3.common.Player
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
@@ -74,7 +75,7 @@ internal fun VideoPlayerManager.checkPlaybackHealth() {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(
                     context,
-                    "Audio playback issue detected, switching to alternative player..",
+                    context.getString(R.string.player_health_switching_to_fallback),
                     Toast.LENGTH_SHORT
                 ).show()
                 playWithMediaPlayer(currentFilePath!!)
@@ -128,57 +129,33 @@ internal fun VideoPlayerManager.playWithMediaPlayer(path: String) {
                 playerCallback.onPlaybackEnded()
             }
             setOnErrorListener { _, what, extra ->
+                Timber.d("S0118: PlaybackHealthHelper — building localized MediaPlayer error message")
                 Timber.e("MediaPlayer error: what=$what, extra=$extra, file=$path")
 
                 // MediaPlayer error codes (what):
                 // MEDIA_ERROR_UNKNOWN = 1, MEDIA_ERROR_SERVER_DIED = 100
                 // Extra codes: IO=-1004, MALFORMED=-1007, UNSUPPORTED=-1010, TIMED_OUT=-110
 
+                val errorTypeText = when (what) {
+                    1 -> context.getString(R.string.player_health_error_type_unknown)
+                    100 -> context.getString(R.string.player_health_error_type_server_died)
+                    else -> context.getString(R.string.player_health_error_type_code, what)
+                }
+                val extraBlock = when (extra) {
+                    -1004 -> context.getString(R.string.player_health_io_block)
+                    -1007 -> context.getString(R.string.player_health_malformed_block)
+                    -1010 -> context.getString(R.string.player_health_unsupported_block)
+                    -110 -> context.getString(R.string.player_health_timeout_block)
+                    else -> context.getString(R.string.player_health_default_block, extra)
+                }
                 val errorMessage = buildString {
-                    append("MediaPlayer fallback failed\n\n")
-                    append("Error type: ")
-                    when (what) {
-                        1 -> append("Unknown error")
-                        100 -> append("Media server died")
-                        else -> append("Code $what")
-                    }
+                    append(context.getString(R.string.player_health_dialog_header))
                     append("\n\n")
-                    when (extra) {
-                        -1004 -> {
-                            append("Issue: I/O error - file may be corrupted, incomplete, or inaccessible")
-                            append("\n\nTroubleshooting:")
-                            append("\n• Check if file is complete (not partially downloaded)")
-                            append("\n• Verify file is not corrupted")
-                            append("\n• For network files: check connection stability")
-                        }
-                        -1007 -> {
-                            append("Issue: File format is malformed or corrupted")
-                            append("\n\nThe file structure doesn't conform to media specifications.")
-                            append("\n\nTroubleshooting:")
-                            append("\n• File may be damaged or incomplete")
-                            append("\n• Try re-downloading or re-encoding the file")
-                            append("\n• Check if file was properly transferred")
-                        }
-                        -1010 -> {
-                            append("Issue: Format not supported")
-                            append("\n\nThis file format/codec is not supported by MediaPlayer.")
-                            append("\n\nTroubleshooting:")
-                            append("\n• Try opening in external media player")
-                            append("\n• Consider converting to a standard format (MP4, H.264)")
-                        }
-                        -110 -> {
-                            append("Issue: Operation timed out")
-                            append("\n\nTroubleshooting:")
-                            append("\n• Check network connection")
-                            append("\n• Verify server is responsive")
-                            append("\n• Try again later")
-                        }
-                        else -> {
-                            append("Details: Extra error code: $extra")
-                            append("\n\nFile may be corrupted, incomplete, or in unsupported format.")
-                        }
-                    }
-                    append("\n\nFile: ${path.substringAfterLast('/')}")
+                    append(errorTypeText)
+                    append("\n\n")
+                    append(extraBlock)
+                    append("\n\n")
+                    append(context.getString(R.string.player_health_file_label, path.substringAfterLast('/')))
                 }
 
                 playerCallback.showError(errorMessage)
@@ -191,7 +168,9 @@ internal fun VideoPlayerManager.playWithMediaPlayer(path: String) {
         Timber.i("VideoPlayerManager: Using MediaPlayer fallback for: $path")
     } catch (e: Exception) {
         Timber.e(e, "VideoPlayerManager: MediaPlayer fallback failed")
-        playerCallback.showError("Failed to play with MediaPlayer: ${e.message}")
+        playerCallback.showError(
+            context.getString(R.string.player_health_fallback_failed, e.message ?: e.javaClass.simpleName)
+        )
         isUsingMediaPlayer = false
     }
 }

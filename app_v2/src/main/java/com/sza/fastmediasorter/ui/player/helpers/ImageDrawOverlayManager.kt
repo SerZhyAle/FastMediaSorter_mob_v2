@@ -51,6 +51,7 @@ class ImageDrawOverlayManager(
     var selectedTool: DrawTool = DrawTool.BRUSH
     var selectedColor: DrawColor = DrawColor.BLACK
     var saveCallback: DrawOverlaySaveCallback? = null
+    var editModeCallback: ((com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode) -> Unit)? = null
 
     private var drawCanvasView: DrawCanvasView? = null
     private var toolbarRoot: View? = null
@@ -64,6 +65,7 @@ class ImageDrawOverlayManager(
         if (isDrawModeActive) return
         isDrawModeActive = true
         Timber.d("S0107: enterDrawMode")
+        editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.DRAW)
 
         // Inflate canvas and add to image container
         val canvas = DrawCanvasView(activity)
@@ -134,6 +136,7 @@ class ImageDrawOverlayManager(
         imageContainer.requestDisallowInterceptTouchEvent(false)
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         toolbarRoot?.visibility = View.GONE
+        editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.NONE)
     }
 
     fun getOverlayBitmap(): Bitmap? = drawCanvasView?.getBitmap()

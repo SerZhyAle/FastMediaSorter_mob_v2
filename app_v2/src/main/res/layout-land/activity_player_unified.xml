@@ -156,8 +156,16 @@
         <!-- Photo path overlay for audio slideshow photo mode -->
         <TextView android:id="@+id/audioSlideshowSongLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|start" android:layout_margin="12dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="4dp" android:paddingBottom="4dp" android:background="#88000000" android:textColor="#FFFFFF" android:textSize="10sp" android:maxLines="1" android:ellipsize="end" android:visibility="gone" android:elevation="4dp" />
 
-        <!-- PhotoView -->
-        <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+        <!-- Dual-surface container for static image rendering (A=current, B=next) — mirrors portrait layout -->
+        <FrameLayout android:id="@+id/photoDualSurfaceContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+
+            <!-- Surface B (prepared/next), kept below A by z-order -->
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoViewSurfaceB" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+            <!-- Surface A (current/top). Keep legacy id for compatibility -->
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
+
+        </FrameLayout>
 
         <!-- PDF Vertical Scroll Mode RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/pdfScrollRecyclerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/activity_player_unified_topCommandPanel_background" android:clipToPadding="false" android:scrollbars="vertical" />

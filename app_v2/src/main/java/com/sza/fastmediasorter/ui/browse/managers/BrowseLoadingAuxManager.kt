@@ -175,12 +175,13 @@ class BrowseLoadingAuxManager(
             }
         }
 
+        Timber.d("S0118: BrowseLoadingAuxManager — building localized error details")
         val details = buildString {
-            append("Resource: ${resource.name}\n")
-            append("Path: ${resource.path}\n")
-            append("Type: ${resource.type}\n\n")
-            append("Error: ${e.message ?: e.javaClass.simpleName}\n\n")
-            append("Stack trace:\n${e.stackTraceToString()}")
+            append("${context.getString(R.string.error_details_resource)}: ${resource.name}\n")
+            append("${context.getString(R.string.error_details_path)}: ${resource.path}\n")
+            append("${context.getString(R.string.error_details_resource_type)}: ${resource.type}\n\n")
+            append("${context.getString(R.string.error_details_error)}: ${e.message ?: e.javaClass.simpleName}\n\n")
+            append("${context.getString(R.string.error_details_stack_trace)}:\n${e.stackTraceToString()}")
         }
 
         sendEvent(BrowseEvent.ShowError(

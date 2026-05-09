@@ -11,6 +11,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import timber.log.Timber
 
 /**
  * Full-screen canvas-based custom View that shows a draggable crop rectangle
@@ -35,6 +36,8 @@ class CropOverlayView @JvmOverloads constructor(
     }
 
     var cropChangedListener: OnCropChangedListener? = null
+
+    var pinchPassthroughTarget: View? = null
 
     // ── Dimensions ──────────────────────────────────────────────────────────
 
@@ -138,6 +141,12 @@ class CropOverlayView @JvmOverloads constructor(
     // ── Touch ────────────────────────────────────────────────────────────────
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.pointerCount >= 2 || event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
+            Timber.d("S0127: CropOverlayView routing multi-pointer event to passthrough target")
+            dragTarget = DragTarget.NONE
+            pinchPassthroughTarget?.dispatchTouchEvent(event)
+            return false
+        }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 dragTarget = hitTest(event.x, event.y)

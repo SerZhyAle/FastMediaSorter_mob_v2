@@ -65,10 +65,11 @@ Dependency version policy:
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
 - Feature specs, roadmaps, proposals: `PLAN/` folder
 - Documentation map: `docs/DOCS_MAP.md`
+- **Activity entry points** (navigation anchors, intents, deeplinks): `dev/ACTIVITY_CATALOG/` — query via `pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "<keyword>"` or browse `app_v2.md` / `wear.md`.
 
 ## 8) Quick Start Research Checklist
 1. Confirm target module (`app_v2` or `wear`) and flavor impact.
-2. Locate feature area in `ui/domain/data` path.
+2. **Which Activity handles X?** → query `dev/ACTIVITY_CATALOG/` first (`query.ps1 -Search "<keyword>"`), then locate the feature area in `ui/domain/data` path.
 3. Validate constraints from this file + `.github/copilot-instructions.md`.
 4. Open the one domain-specific doc from section 7.
 5. Only then inspect implementation files.

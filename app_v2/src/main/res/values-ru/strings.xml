@@ -3193,6 +3193,25 @@
     <string name="friendly_copy_next_step_report">Сообщить о проблеме</string>
     <string name="friendly_copy_next_step_feedback">Оставить отзыв</string>
 
+    <!-- S0118: technical-details labels for browse error surfaces -->
+    <string name="error_details_resource_type">Тип</string>
+    <string name="error_details_error">Ошибка</string>
+    <string name="error_details_stack_trace">Стек вызовов</string>
+
+    <!-- S0118: MediaPlayer fallback diagnostics (PlaybackHealthHelper) -->
+    <string name="player_health_switching_to_fallback">С аудио что-то не так — переключаюсь на резервный плеер..</string>
+    <string name="player_health_fallback_failed">Резервный плеер тоже не справился. %1$s</string>
+    <string name="player_health_dialog_header">Резервный плеер не смог проиграть файл</string>
+    <string name="player_health_error_type_unknown">Тип ошибки: неизвестная</string>
+    <string name="player_health_error_type_server_died">Тип ошибки: медиа-сервер остановлен</string>
+    <string name="player_health_error_type_code">Тип ошибки: код %1$d</string>
+    <string name="player_health_io_block">Что случилось: ошибка ввода-вывода — файл может быть повреждён, неполный или недоступен.\n\nЧто можно попробовать:\n• Убедиться, что файл загружен полностью\n• Проверить, не повреждён ли файл\n• Для сетевых файлов — проверить соединение</string>
+    <string name="player_health_malformed_block">Что случилось: формат файла повреждён или собран некорректно.\n\nСтруктура файла не соответствует медиа-спецификации.\n\nЧто можно попробовать:\n• Файл может быть повреждён или неполный\n• Перекачать или перекодировать файл\n• Проверить, корректно ли файл был передан</string>
+    <string name="player_health_unsupported_block">Что случилось: формат не поддерживается.\n\nРезервный плеер не справляется с этим форматом или кодеком.\n\nЧто можно попробовать:\n• Открыть во внешнем плеере\n• Сконвертировать в стандартный формат (MP4, H.264)</string>
+    <string name="player_health_timeout_block">Что случилось: операция превысила лимит ожидания.\n\nЧто можно попробовать:\n• Проверить сетевое соединение\n• Убедиться, что сервер отвечает\n• Повторить попытку позже</string>
+    <string name="player_health_default_block">Подробности: дополнительный код ошибки %1$d.\n\nФайл может быть повреждён, неполный или в неподдерживаемом формате.</string>
+    <string name="player_health_file_label">Файл: %1$s</string>
+
     <!-- S0118 Phase 04: settings copy revisions -->
     <string name="settings_cache_size_range_error">Размер кэша должен быть от 512 до 16384 МБ.</string>
     <string name="settings_network_permissions_already_granted">Сетевые разрешения уже включены — здесь делать нечего.</string>

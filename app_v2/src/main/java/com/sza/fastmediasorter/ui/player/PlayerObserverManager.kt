@@ -80,6 +80,15 @@ internal class PlayerObserverManager(
                         activity.activityBinding.btnFavorite.isVisible = shouldShow
                     }
                 }
+
+                launch {
+                    viewModel.state
+                        .distinctUntilChangedBy { it.imageEditMode }
+                        .collect { state ->
+                            Timber.d("S0127: PlayerObserverManager observed imageEditMode=${state.imageEditMode}")
+                            activity.immersiveModeManager.apply(state.imageEditMode)
+                        }
+                }
             }
         }
     }

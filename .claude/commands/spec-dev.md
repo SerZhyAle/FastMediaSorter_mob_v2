@@ -93,6 +93,7 @@ Stop immediately and report — never guess or recover — on any of:
 10. **Catalog-affecting change without regen step** — public API change in touched file but no catalog regen step in phase. Stop, suggest `/spec-update --tactical --phase NN`.
 11. **External system touch** — network, file deletion outside `temp/`, force push, CI edit. Stop, require explicit permission.
 12. **Trilingual gap** — step adds UI string but prompt names <3 `values/` files. Stop, never fabricate translations.
+12a. **Communication policy violation** — step adds or modifies a user-visible string that fails §6 tone checklist of `docs/COMMUNICATION_POLICY.md` (raw exception text as primary message, "Are you sure?" without consequence, "operation completed successfully", empty state with no CTA). Rewrite the string to comply before proceeding; do not commit policy-violating copy.
 13. **External dependency missing** — step needs library version / hardware / third-party state not present. Set status `BlockExternal`, stop.
 
 ---

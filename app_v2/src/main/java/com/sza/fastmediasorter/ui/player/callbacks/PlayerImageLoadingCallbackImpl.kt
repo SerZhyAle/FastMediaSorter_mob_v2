@@ -64,6 +64,9 @@ class PlayerImageLoadingCallbackImpl(
     override fun isSlideshowActive(): Boolean =
         viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
 
+    override fun isImageCropEditMode(): Boolean =
+        activity.viewModel.state.value.imageEditMode == com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.CROP
+
     override fun setAnimatedBadgeVisible(visible: Boolean) {
         activity.activityBinding.tvAnimatedBadge.isVisible = visible
     }

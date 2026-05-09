@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -193,9 +194,19 @@ class PermissionsManagementFragment : Fragment() {
                 }
             else -> null
         }
-        startActivity(intent ?: Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        val target = intent ?: Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", pkg, null)
-        })
+        }
+        Timber.d("launchSpecialGrantSettings: ${entry.manifestName} → ${target.action}")
+        try {
+            startActivity(target)
+        } catch (e: ActivityNotFoundException) {
+            // Some ROMs / emulators do not provide an activity for this intent action.
+            Timber.e(e, "launchSpecialGrantSettings: no activity for ${target.action}, falling back to app settings")
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", pkg, null)
+            })
+        }
     }
 
     private fun openAppSettings() {

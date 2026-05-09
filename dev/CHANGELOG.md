@@ -7439,3 +7439,100 @@ Format: | datetime | file | target | description |
 | 2026-05-09 04:20:29 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-fix` | Annotate Last Audit (S0118): 0 auto-fixed, 3 follow-ups (all require non-mechanical method-body edits) |
 | 2026-05-09 04:20:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0126` | Phase 02: use ImageEditorFileNamer for crop/compress naming |
 | 2026-05-09 04:21:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0126` | Phase 02: use ImageEditorFileNamer for draw naming |
+| 2026-05-09 04:41:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `PermissionsManagementFragment` | Wrap startActivity in launchSpecialGrantSettings with try-catch for ActivityNotFoundException; add Timber.d trace and Timber.e fallback log |
+| 2026-05-09 04:47:41 | `gradle.properties` | `Gradle` | Cap workers.max=8 -- Android single-module build saturates at 4-6 workers; was spawning 20 idle threads (logical CPU count) |
+| 2026-05-09 04:53:48 | `app_v2/src/main/AndroidManifest.xml` | `TV device support` | Override implicit hardware.microphone requirement caused by RECORD_AUDIO permission to restore Android TV eligibility on Google Play (regression: 2879 -> 9) |
+| 2026-05-09 13:05:36 | `docs/FEATURES.md` | `S0126` | Phase 03: update output filename examples |
+| 2026-05-09 13:05:36 | `docs/FEATURES_RU.md` | `S0126` | Phase 03: update output filename examples (RU) |
+| 2026-05-09 13:05:36 | `docs/FEATURES_UK.md` | `S0126` | Phase 03: update output filename examples (UK) |
+| 2026-05-09 13:05:36 | `dev/CATALOG/app_v2.jsonl` | `S0126` | Phase 03: regen catalog after ImageEditorFileNamer |
+| 2026-05-09 13:05:36 | `dev/CATALOG/app_v2.md` | `S0126` | Phase 03: render catalog markdown |
+| 2026-05-09 13:06:20 | `PLAN/S0126_image-editor-output-autoname.md` | `S0126` | Status -> Implemented (BlockNeedUserTest pending on-device verification) |
+| 2026-05-09 13:11:10 | `PLAN/S0125_settings-activity-revision.md` | `S0125` | Added §12 with three follow-up tasks: text audit in 30-line batches, communication policy doc, wiring policy into CLAUDE.md and skills |
+| 2026-05-09 13:18:55 | `PLAN/S0127_image-player-draw-crop-immersive/INDEX.md` | `spec-tech` | Create tactical plan for S0127 |
+| 2026-05-09 13:18:55 | `PLAN/S0127_image-player-draw-crop-immersive/PHASE_01__state-foundation.md` | `spec-tech` | Phase 01: state foundation |
+| 2026-05-09 13:18:55 | `PLAN/S0127_image-player-draw-crop-immersive/PHASE_02__edit-mode-callbacks.md` | `spec-tech` | Phase 02: edit-mode callbacks |
+| 2026-05-09 13:18:56 | `PLAN/S0127_image-player-draw-crop-immersive/PHASE_03__immersive-controller.md` | `spec-tech` | Phase 03: immersive controller |
+| 2026-05-09 13:18:56 | `PLAN/S0127_image-player-draw-crop-immersive/PHASE_04__crop-fullscreen-override.md` | `spec-tech` | Phase 04: crop-to-fullscreen override |
+| 2026-05-09 13:18:56 | `PLAN/S0127_image-player-draw-crop-immersive/PHASE_05__pinch-passthrough.md` | `spec-tech` | Phase 05: pinch passthrough |
+| 2026-05-09 13:18:56 | `PLAN/S0127_image-player-draw-crop-immersive/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs and catalog cleanup |
+| 2026-05-09 13:18:57 | `PLAN/S0127_image-player-draw-crop-immersive.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-09 13:19:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/state/PlayerImageEditMode.kt` | `S0127` | New enum PlayerImageEditMode (NONE/DRAW/CROP) |
+| 2026-05-09 13:20:04 | `PLAN/S0118_friendly-ui-copy-revision.md` | `S0118` | added section 13 with three follow-up tasks: parallel 30-line batch rewrite, communication policy doc in docs/, enforcement of policy in CLAUDE.md rules and UI-related skills |
+| 2026-05-09 13:20:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0127` | Add imageEditMode field and setImageEditMode() to PlayerState/ViewModel |
+| 2026-05-09 13:23:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0127` | Add editModeCallback hook for immersive mode |
+| 2026-05-09 13:23:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0127` | Add editModeCallback hook for immersive mode |
+| 2026-05-09 13:25:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0127` | Add setupEditModeCallbacks() wiring Draw+Crop edit mode to ViewModel |
+| 2026-05-09 13:25:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0127` | Invoke setupEditModeCallbacks after Draw overlay setup |
+| 2026-05-09 13:27:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerImmersiveModeManager.kt` | `S0127` | New PlayerImmersiveModeManager: hides system bars and command panels for image editor immersive modes |
+| 2026-05-09 13:28:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0127` | Add lateinit immersiveModeManager |
+| 2026-05-09 13:28:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0127` | Instantiate PlayerImmersiveModeManager |
+| 2026-05-09 13:29:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `S0127` | Observe imageEditMode flow and route to PlayerImmersiveModeManager |
+| 2026-05-09 13:30:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0127` | Reset stale imageEditMode to NONE in setupEditModeCallbacks |
+| 2026-05-09 13:31:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `S0127` | Force FIT_CENTER scale type on PhotoView/ImageView when entering crop mode |
+| 2026-05-09 13:33:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `S0127` | Suppress cropImagesToFullscreen when imageEditMode == CROP |
+| 2026-05-09 13:33:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerImageLoadingCallbackImpl.kt` | `S0127` | Override isImageCropEditMode() in callback impl |
+| 2026-05-09 13:35:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/CropOverlayView.kt` | `S0127` | Add pinchPassthroughTarget for multi-pointer routing to underlying PhotoView |
+| 2026-05-09 13:35:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `S0127` | Wire CropOverlayView.pinchPassthroughTarget to photoView |
+| 2026-05-09 13:38:10 | `docs/FEATURES.md` | `S0127` | Add immersive Draw/Crop bullet |
+| 2026-05-09 13:38:11 | `docs/FEATURES_RU.md` | `S0127` | Add immersive Draw/Crop bullet (RU) |
+| 2026-05-09 13:38:11 | `docs/FEATURES_UK.md` | `S0127` | Add immersive Draw/Crop bullet (UK) |
+| 2026-05-09 13:39:17 | `dev/CATALOG/app_v2.jsonl` | `S0127` | Catalog scan + role/status for new classes |
+| 2026-05-09 13:39:18 | `dev/CATALOG/app_v2.md` | `S0127` | Catalog render after S0127 implementation |
+| 2026-05-09 13:41:05 | `PLAN/S0127_image-player-draw-crop-immersive.md` | `S0127` | Status -> Implemented; awaiting on-device verification |
+| 2026-05-09 13:50:51 | `app_v2/src/main/res/values/strings.xml` | `S0118` | added 15 new keys for browse error details labels and PlaybackHealthHelper MediaPlayer fallback diagnostics |
+| 2026-05-09 13:50:55 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118` | mirrored RU translations for new browse error labels and PlaybackHealthHelper diagnostics keys |
+| 2026-05-09 13:50:59 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118` | mirrored UK translations for new browse error labels and PlaybackHealthHelper diagnostics keys |
+| 2026-05-09 13:51:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt` | `S0118` | replaced hardcoded Error/Stack trace labels in applyFilter catch block with R.string lookup; added Context constructor param and S0118 Timber tag |
+| 2026-05-09 13:51:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt` | `S0118` | replaced hardcoded Resource/Path/Type/Error/Stack trace labels in handleLoadingError details builder with R.string lookup; added S0118 Timber tag |
+| 2026-05-09 13:51:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt` | `S0118` | replaced hardcoded English MediaPlayer fallback diagnostics (toast, dialog header, error type, 4 issue blocks, default block, file label, fallback-failed) with R.string lookup; added S0118 Timber tag |
+| 2026-05-09 13:51:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `S0118` | passed context to BrowseSortFilterManager constructor for R.string access in localized error details |
+| 2026-05-09 13:54:22 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-update` | Sync S0120 strategic markdown status with verified catalog state |
+| 2026-05-09 13:54:23 | `PLAN/S0120_memory-growth-endurance-scenarios/INDEX.md` | `spec-update` | Sync S0120 tactical index status with verified catalog state |
+| 2026-05-09 13:54:23 | `PLAN/S0120_memory-growth-endurance-scenarios/phase-4-runbook.md` | `spec-update` | Mark S0120 runbook phase as authored and done |
+| 2026-05-09 14:02:11 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED/INCONCLUSIVE 5/0/5/3; build 2.60.5091.341-DEBUG verified, Optimize Cache Size dialog tone confirmed; 6 manual items still need real-device driving |
+| 2026-05-09 14:18:01 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `PlayerActivity landscape` | Add photoDualSurfaceContainer+photoViewSurfaceB to landscape layout — missing caused NPE in PlayerManagerInitializer.initCoreCoordination:194 on landscape launch (S0107) |
+| 2026-05-09 14:20:00 | `PLAN/S0118_friendly-ui-copy-revision.md` | `S0118` | Mark all 3 FAIL action items as RESOLVED 2026-05-09 |
+| 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY.md` | `communication-policy` | Create canonical UI communication policy (EN) |
+| 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY_RU.md` | `communication-policy` | Create UI communication policy mirror (RU) |
+| 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY_UK.md` | `communication-policy` | Create UI communication policy mirror (UK) |
+| 2026-05-09 14:20:05 | `CLAUDE.md` | `UI Communication Policy` | Add UI Communication Policy section referencing docs/COMMUNICATION_POLICY.md |
+| 2026-05-09 14:20:05 | `.claude/commands/quick.md` | `quick` | Add communication policy check to Step 3 |
+| 2026-05-09 14:20:05 | `.claude/commands/doc-update.md` | `doc-update` | Add C0 communication policy tone check to string resources section |
+| 2026-05-09 14:20:05 | `.claude/commands/spec-dev.md` | `spec-dev` | Add hard stop 12a for communication policy violations in user strings |
+| 2026-05-09 14:20:06 | `.claude/commands/spec.md` | `spec` | Add communication policy note to step 5 |
+| 2026-05-09 14:20:06 | `.claude/commands/spec-tech.md` | `spec-tech` | Add communication policy gate to step 5 phase writing |
+| 2026-05-09 14:20:32 | `docs/DOCS_MAP.md` | `DOCS_MAP` | Add UI Communication Policy section with EN/RU/UK entries |
+| 2026-05-09 14:45:39 | `PLAN/S0129_bugfix-landscape-overflow-commands.md` | `spec` | Add strategic spec S0129 for bugfix-landscape-overflow-commands |
+| 2026-05-09 14:45:44 | `PLAN/S0128_activity-catalog.md` | `spec` | Add strategic spec S0128 for activity-catalog |
+| 2026-05-09 14:47:50 | `PLAN/S0129_bugfix-landscape-overflow-commands/INDEX.md` | `spec-tech` | Create tactical plan for S0129 |
+| 2026-05-09 14:47:50 | `PLAN/S0129_bugfix-landscape-overflow-commands/PHASE_01__overflow-fix.md` | `spec-tech` | Phase 01: overflow-fix |
+| 2026-05-09 14:47:51 | `PLAN/S0129_bugfix-landscape-overflow-commands/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-09 14:47:51 | `PLAN/S0129_bugfix-landscape-overflow-commands.md` | `spec-tech` | Status → Tactical |
+| 2026-05-09 14:51:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0129` | Expose overflow-only commands in landscape mode via btnOverflowMenu |
+| 2026-05-09 14:52:25 | `PLAN/S0128_activity-catalog/INDEX.md` | `spec-tech` | Create tactical plan for S0128 |
+| 2026-05-09 14:52:25 | `PLAN/S0128_activity-catalog/PHASE_01__schema-foundation.md` | `spec-tech` | Phase 01: schema-foundation |
+| 2026-05-09 14:52:25 | `PLAN/S0128_activity-catalog/PHASE_02__scan-script.md` | `spec-tech` | Phase 02: scan-script |
+| 2026-05-09 14:52:25 | `PLAN/S0128_activity-catalog/PHASE_03__query-render-set.md` | `spec-tech` | Phase 03: query-render-set |
+| 2026-05-09 14:52:26 | `PLAN/S0128_activity-catalog/PHASE_04__initial-population.md` | `spec-tech` | Phase 04: initial-population |
+| 2026-05-09 14:52:26 | `PLAN/S0128_activity-catalog/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-09 14:52:26 | `PLAN/S0128_activity-catalog.md` | `spec-tech` | Status Tactical |
+| 2026-05-09 14:52:33 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Regenerate after S0129 CommandPanelController change |
+| 2026-05-09 14:53:23 | `dev/ACTIVITY_CATALOG/scripts/.gitkeep` | `spec-dev S0128.01.1` | Create ACTIVITY_CATALOG directory structure |
+| 2026-05-09 14:54:04 | `dev/ACTIVITY_CATALOG/SCHEMA.md` | `spec-dev S0128.01.2` | Write ACTIVITY_CATALOG JSONL schema definition |
+| 2026-05-09 14:57:55 | `dev/ACTIVITY_CATALOG/scripts/scan.ps1` | `spec-dev S0128.02` | Write scan.ps1 for ACTIVITY_CATALOG |
+| 2026-05-09 15:00:48 | `dev/ACTIVITY_CATALOG/scripts/query.ps1` | `spec-dev S0128.03.1` | Write query.ps1 for ACTIVITY_CATALOG |
+| 2026-05-09 15:00:48 | `dev/ACTIVITY_CATALOG/scripts/render.ps1` | `spec-dev S0128.03.2` | Write render.ps1 for ACTIVITY_CATALOG |
+| 2026-05-09 15:00:48 | `dev/ACTIVITY_CATALOG/scripts/set.ps1` | `spec-dev S0128.03.3` | Write set.ps1 for ACTIVITY_CATALOG |
+| 2026-05-09 15:03:54 | `dev/ACTIVITY_CATALOG/app_v2.jsonl` | `spec-dev S0128.04` | Initial activity data for app_v2 |
+| 2026-05-09 15:03:54 | `dev/ACTIVITY_CATALOG/wear.jsonl` | `spec-dev S0128.04` | Initial activity data for wear |
+| 2026-05-09 15:03:55 | `dev/ACTIVITY_CATALOG/app_v2.md` | `spec-dev S0128.04` | Generated render for app_v2 |
+| 2026-05-09 15:03:55 | `dev/ACTIVITY_CATALOG/wear.md` | `spec-dev S0128.04` | Generated render for wear |
+| 2026-05-09 15:03:55 | `dev/ACTIVITY_CATALOG/scripts/set.ps1` | `spec-dev S0128.04` | Fix exact-match logic in set.ps1 |
+| 2026-05-09 15:03:55 | `dev/ACTIVITY_CATALOG/scripts/render.ps1` | `spec-dev S0128.04` | Fix footer variable in render.ps1 |
+| 2026-05-09 15:05:20 | `dev/ACTIVITY_CATALOG/README.md` | `spec-dev S0128.05.1` | Write ACTIVITY_CATALOG README |
+| 2026-05-09 15:05:21 | `dev/PROJECT_OPERATIONS_INDEX.md` | `spec-dev S0128.05.2` | Add ACTIVITY_CATALOG reference to project index |
+| 2026-05-09 15:09:49 | `PLAN/S0128_activity-catalog.md` | `spec-check` | Audit S0128 -> Verified; PASS 19/WARN 0/FAIL 0 |
+| 2026-05-09 15:09:49 | `dev/ACTIVITY_CATALOG/scripts/scan.ps1` | `spec-check` | Fix wear noFlavors (always empty for wear module) |
+| 2026-05-09 15:09:50 | `dev/ACTIVITY_CATALOG/wear.jsonl` | `spec-check` | Rescan wear after noFlavors fix |
+| 2026-05-09 15:09:50 | `dev/ACTIVITY_CATALOG/wear.md` | `spec-check` | Re-render wear after noFlavors fix |

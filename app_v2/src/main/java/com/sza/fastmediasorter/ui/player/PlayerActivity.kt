@@ -616,6 +616,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     internal lateinit var cropDelegate: com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate
 
+    internal lateinit var immersiveModeManager: com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager
+
     internal open fun enterImageCropMode(mode: com.sza.fastmediasorter.ui.player.helpers.ImageCropManager.CropMode) =
         cropDelegate.enterCropMode(mode)
 
@@ -716,6 +718,17 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                 }
             }
     }
+
+    internal fun setupEditModeCallbacks() {
+        Timber.d("S0127: setupEditModeCallbacks wiring Draw + Crop → ViewModel")
+        val cb: (com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode) -> Unit = { mode ->
+            viewModel.setImageEditMode(mode)
+        }
+        imageDrawOverlayManager.editModeCallback = cb
+        imageCropManager.editModeCallback = cb
+        viewModel.setImageEditMode(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.NONE)
+    }
+
     /**
      * Crops the draw canvas overlay to the image display region (imageRect) and scales
      * the result to the base bitmap dimensions for pixel-accurate compositing.

@@ -367,8 +367,6 @@ class CommandPanelController(
             safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
 
         } else if (showInLandscape) {
-            safeViews.btnOverflowMenu.isVisible = false
-            latestOverflowCommands = emptyList()
             val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
             val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
             val isPdf = currentFile.type == MediaType.PDF
@@ -434,6 +432,16 @@ class CommandPanelController(
                 safeViews.btnGoogleLensImageCmd.isVisible = false
             }
             safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage
+            // S0129: expose overflow-only commands (barCapable=false) in landscape via the ⋯ button
+            val landscapeOverflowCmds = planner.buildActiveCommands(
+                state, canWrite, canRead, isWifiConnected(binding.root.context),
+                showFavorite = lastKnownFavoriteVisible,
+                showRandom = showRandomNavigation,
+                allowSeparateWindow = lastKnownAllowSeparateWindow
+            ).filter { !it.barCapable }
+            latestOverflowCommands = landscapeOverflowCmds
+            safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
+            Timber.d("S0129: landscape overflow - ${landscapeOverflowCmds.size} items for ${currentFile.type}")
         } else {
             // Command panel hidden
             safeViews.btnOverflowMenu.isVisible = false

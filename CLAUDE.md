@@ -142,6 +142,15 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 
 `docs/FEATURES.md` is canonical (21 feature areas). Read before implementing anything to avoid duplication. Mirrors: `docs/FEATURES_RU.md`, `docs/FEATURES_UK.md`.
 
+## UI Communication Policy
+
+`docs/COMMUNICATION_POLICY.md` is the canonical source for tone, message formulas, and feedback-channel routing. Mirrors: `docs/COMMUNICATION_POLICY_RU.md`, `docs/COMMUNICATION_POLICY_UK.md`. Origin: S0118.
+
+- **Read before writing or modifying any user-visible string** — applies to toasts, dialogs, empty states, errors, progress, confirmations, and next-step CTAs.
+- **Tone checklist** (§6 of the policy) must pass before any string batch is committed.
+- **Exceptions:** legal texts, Terms of Service, machine-readable artifacts — keep formal neutral style, do not apply friendly rewrite.
+- **Deviations** from the policy are allowed only for the exempted categories above; any other deviation must be justified and noted in the spec or commit message.
+
 ## Post-Change Steps (mandatory, all agents)
 
 1. **Dev Changelog** after every code/config change — run

@@ -195,6 +195,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
         activity.setupDrawOverlaySaveCallback()
+        activity.immersiveModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager(
+            activity = activity,
+            safeViews = com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews(activity.activityBinding)
+        )
+        activity.setupEditModeCallbacks()
         activity.eventHandler = PlayerEventHandler(activity = activity)
     }
 

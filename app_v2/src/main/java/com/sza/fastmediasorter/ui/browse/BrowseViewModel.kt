@@ -309,6 +309,7 @@ class BrowseViewModel @Inject constructor(
 
     // --- Sort / Filter (delegated to BrowseSortFilterManager) ---
     private val sortFilterManager = com.sza.fastmediasorter.ui.browse.managers.BrowseSortFilterManager(
+        context = context,
         updateResourceUseCase = updateResourceUseCase,
         getResourcesUseCase = getResourcesUseCase,
         getMediaFilesUseCase = getMediaFilesUseCase,

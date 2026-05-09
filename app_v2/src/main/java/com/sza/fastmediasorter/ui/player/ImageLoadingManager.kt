@@ -90,6 +90,7 @@ class ImageLoadingManager(
         fun getString(resId: Int): String
         fun isShowingCommandPanel(): Boolean
         fun isSlideshowActive(): Boolean
+        fun isImageCropEditMode(): Boolean
         fun setAnimatedBadgeVisible(visible: Boolean)
         /** S0107: Called when a static (non-GIF) image is fully loaded; null on load failure or video transition. */
         fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {}
@@ -622,16 +623,18 @@ class ImageLoadingManager(
             )
             
             // Store context for scale type determination in onResourceReady
-            currentCropSetting = settings.cropImagesToFullscreen
+            val isCropEditMode = callback.isImageCropEditMode()
+            currentCropSetting = settings.cropImagesToFullscreen && !isCropEditMode
+            Timber.d("S0127: ImageLoadingManager.displayImage cropSetting=${settings.cropImagesToFullscreen} isCropEditMode=$isCropEditMode → effective=$currentCropSetting")
             currentIsFullscreenOrSlideshow = isFullscreenOrSlideshow
             currentDeviceWidth = deviceWidth
             currentDeviceHeight = deviceHeight
             currentTargetView = targetView
-            
+
             // Apply initial scale type based on settings
             // Note: This is a heuristic - we don't have image dimensions yet
             // The actual scale type will be re-evaluated in onResourceReady when we have image dims
-            val initialScaleType = if (settings.cropImagesToFullscreen && isFullscreenOrSlideshow) {
+            val initialScaleType = if (currentCropSetting && isFullscreenOrSlideshow) {
                 android.widget.ImageView.ScaleType.CENTER_CROP
             } else {
                 android.widget.ImageView.ScaleType.FIT_CENTER

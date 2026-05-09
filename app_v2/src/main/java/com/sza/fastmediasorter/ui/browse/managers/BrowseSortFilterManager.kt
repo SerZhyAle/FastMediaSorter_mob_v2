@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -36,6 +38,7 @@ import kotlin.random.Random
  * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
  */
 class BrowseSortFilterManager(
+    private val context: Context,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val getResourcesUseCase: GetResourcesUseCase,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
@@ -240,13 +243,17 @@ class BrowseSortFilterManager(
 
             getMediaFilesUseCase(resource, stateFlow.value.sortMode, sizeFilter)
                 .catch { e ->
+                    Timber.d("S0118: BrowseSortFilterManager.applyFilter — building localized error details")
                     Timber.e(e, "BrowseSortFilterManager.applyFilter: loading failure")
                     sendEvent(BrowseEvent.ShowError(
                         message = getFriendlyErrorMessage(e),
                         details = buildString {
-                            append("Error: ")
+                            append(context.getString(R.string.error_details_error))
+                            append(": ")
                             append(e.message ?: e.javaClass.simpleName)
-                            append("\n\nStack trace:\n")
+                            append("\n\n")
+                            append(context.getString(R.string.error_details_stack_trace))
+                            append(":\n")
                             append(e.stackTraceToString())
                         },
                         exception = e

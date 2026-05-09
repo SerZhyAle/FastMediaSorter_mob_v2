@@ -80,6 +80,8 @@ Target 3–8 phases. >10 → split the feature into multiple specs.
 
 **5 — Write each `PHASE_NN__<slug>.md`** using the phase template. Steps numbered `NN.M`.
 
+> **Communication policy gate:** For any step that adds or rewrites user-visible strings, include in its `Prompt for developer:` a check against `docs/COMMUNICATION_POLICY.md` §2 (message formula for the relevant type) and §6 (tone checklist). Make the tone checklist a Verification predicate: `Strings pass COMMUNICATION_POLICY §6 checklist`.
+
 **6 — Update strategic spec.** Flip `Status:` to `Tactical`. Add:
 
 ```markdown

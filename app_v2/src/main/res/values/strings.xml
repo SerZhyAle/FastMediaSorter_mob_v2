@@ -3254,6 +3254,25 @@
     <string name="friendly_copy_next_step_report">Report a problem</string>
     <string name="friendly_copy_next_step_feedback">Leave feedback</string>
 
+    <!-- S0118: technical-details labels for browse error surfaces -->
+    <string name="error_details_resource_type">Type</string>
+    <string name="error_details_error">Error</string>
+    <string name="error_details_stack_trace">Stack trace</string>
+
+    <!-- S0118: MediaPlayer fallback diagnostics (PlaybackHealthHelper) -->
+    <string name="player_health_switching_to_fallback">Audio playback is having trouble — switching to the backup player..</string>
+    <string name="player_health_fallback_failed">Couldn\'t play this file with the backup player. %1$s</string>
+    <string name="player_health_dialog_header">The backup player couldn\'t play this file</string>
+    <string name="player_health_error_type_unknown">Error type: unknown</string>
+    <string name="player_health_error_type_server_died">Error type: media server stopped</string>
+    <string name="player_health_error_type_code">Error type: code %1$d</string>
+    <string name="player_health_io_block">What happened: I/O error — the file may be corrupted, incomplete, or unreachable.\n\nWhat you can try:\n• Make sure the file is fully downloaded\n• Check whether the file is corrupted\n• For network files, check the connection</string>
+    <string name="player_health_malformed_block">What happened: the file format is malformed or damaged.\n\nThe file structure doesn\'t match the media specification.\n\nWhat you can try:\n• The file may be damaged or incomplete\n• Re-download or re-encode the file\n• Make sure the file was transferred properly</string>
+    <string name="player_health_unsupported_block">What happened: this format isn\'t supported.\n\nThe backup player can\'t handle this format or codec.\n\nWhat you can try:\n• Open the file in an external media player\n• Convert it to a standard format (MP4, H.264)</string>
+    <string name="player_health_timeout_block">What happened: the operation timed out.\n\nWhat you can try:\n• Check the network connection\n• Make sure the server is responding\n• Try again later</string>
+    <string name="player_health_default_block">Details: extra error code %1$d.\n\nThe file may be corrupted, incomplete, or in an unsupported format.</string>
+    <string name="player_health_file_label">File: %1$s</string>
+
     <!-- S0118 Phase 04: settings copy revisions -->
     <string name="settings_cache_size_range_error">Cache size needs to be between 512 and 16384 MB.</string>
     <string name="settings_network_permissions_already_granted">Network access is already on — nothing to do here.</string>

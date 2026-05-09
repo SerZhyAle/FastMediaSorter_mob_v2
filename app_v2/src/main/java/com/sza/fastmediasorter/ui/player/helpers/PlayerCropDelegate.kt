@@ -31,6 +31,9 @@ class PlayerCropDelegate(
         val file = activity.viewModel.state.value.currentFile ?: return
         val resource = activity.viewModel.state.value.resource
         imageCropManager.enterCropMode(mode, file, resource, imageCropCallback)
+        Timber.d("S0127: PlayerCropDelegate forcing FIT_CENTER on photoView/imageView for crop")
+        activity.activityBinding.photoView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        activity.activityBinding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
         showCropOverlay(mode)
     }
 
@@ -67,6 +70,8 @@ class PlayerCropDelegate(
         Timber.d("S0106: showCropOverlay attached to mediaContentArea size=${parent.width}x${parent.height}")
 
         val cropView = overlay.findViewById<CropOverlayView>(R.id.crop_overlay_view)
+        cropView.pinchPassthroughTarget = activity.activityBinding.photoView
+        Timber.d("S0127: PlayerCropDelegate wired pinchPassthroughTarget=photoView")
         val btnConfirm = overlay.findViewById<View>(R.id.btn_crop_confirm)
         val btnCancel = overlay.findViewById<View>(R.id.btn_crop_cancel)
 
