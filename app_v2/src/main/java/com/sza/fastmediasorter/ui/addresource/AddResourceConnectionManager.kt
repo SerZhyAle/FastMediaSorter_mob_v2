@@ -21,8 +21,10 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.ui.common.DialogUtils
 import com.sza.fastmediasorter.ui.dialog.ErrorDialog
+import com.sza.fastmediasorter.util.AppErrorNotifier
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -150,7 +152,7 @@ internal class AddResourceConnectionManager(
                 7 -> "Network error. Check your internet connection."
                 else -> activity.getString(R.string.google_drive_authentication_failed)
             }
-            Toast.makeText(activity, errorMessage, Toast.LENGTH_LONG).show()
+            AppErrorNotifier.show(activity, errorMessage, ErrorSeverity.CRITICAL)
         }
     }
 
@@ -234,11 +236,11 @@ internal class AddResourceConnectionManager(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check OneDrive authentication")
-                Toast.makeText(
+                AppErrorNotifier.show(
                     activity,
                     activity.getString(R.string.onedrive_authentication_failed) + ": ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    ErrorSeverity.CRITICAL
+                )
             }
         }
     }
@@ -304,12 +306,12 @@ internal class AddResourceConnectionManager(
     fun testSmbConnection() {
         val server = binding.etSmbServer.text.toString().trim().replace(',', '.')
         if (!binding.etSmbServer.isValid()) {
-            Toast.makeText(activity, activity.getString(R.string.invalid_server_address), Toast.LENGTH_SHORT).show()
+            AppErrorNotifier.show(activity, activity.getString(R.string.invalid_server_address), ErrorSeverity.CRITICAL)
             binding.etSmbServer.requestFocus()
             return
         }
         if (server.isEmpty()) {
-            Toast.makeText(activity, activity.getString(R.string.server_address_required), Toast.LENGTH_SHORT).show()
+            AppErrorNotifier.show(activity, activity.getString(R.string.server_address_required), ErrorSeverity.CRITICAL)
             return
         }
         viewModel.testSmbConnection(
@@ -326,12 +328,12 @@ internal class AddResourceConnectionManager(
         val protocolType = getSelectedProtocol()
         val host = binding.etSftpHost.text.toString().trim()
         if (!binding.etSftpHost.isValid()) {
-            Toast.makeText(activity, activity.getString(R.string.invalid_host_address), Toast.LENGTH_SHORT).show()
+            AppErrorNotifier.show(activity, activity.getString(R.string.invalid_host_address), ErrorSeverity.CRITICAL)
             binding.etSftpHost.requestFocus()
             return
         }
         if (host.isEmpty()) {
-            Toast.makeText(activity, activity.getString(R.string.host_required), Toast.LENGTH_SHORT).show()
+            AppErrorNotifier.show(activity, activity.getString(R.string.host_required), ErrorSeverity.CRITICAL)
             return
         }
         val defaultPort = if (protocolType == ResourceType.SFTP) 22 else 21
@@ -341,7 +343,7 @@ internal class AddResourceConnectionManager(
         if (protocolType == ResourceType.SFTP && binding.rbSftpSshKey.isChecked) {
             val privateKey = binding.etSftpPrivateKey.text.toString().trim()
             if (privateKey.isEmpty()) {
-                Toast.makeText(activity, activity.getString(R.string.ssh_key_required), Toast.LENGTH_SHORT).show()
+                AppErrorNotifier.show(activity, activity.getString(R.string.ssh_key_required), ErrorSeverity.CRITICAL)
                 return
             }
             viewModel.testSftpConnectionWithKey(
@@ -456,7 +458,7 @@ internal class AddResourceConnectionManager(
                     activity.getString(android.R.string.ok)
                 )
             } else {
-                Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+                AppErrorNotifier.show(activity, message, ErrorSeverity.CRITICAL)
             }
         }
     }

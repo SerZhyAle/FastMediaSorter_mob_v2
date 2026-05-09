@@ -7056,3 +7056,386 @@ Format: | datetime | file | target | description |
 | 2026-05-08 02:44:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt` | `PlaybackPositionHelper` | Never swallow CancellationException: add rethrow guard in saveCurrentPosition catch block |
 | 2026-05-08 02:46:31 | `PLAN/S0115_unified-error-display.md` | `spec` | Add strategic spec S0115 for unified-error-display |
 | 2026-05-08 02:50:05 | `PLAN/S0106_player-image-crop.md` | `bug-report` | S0106 Broken: PhotoView collapses to zero-size rect on enterCropMode (display rect 360,0,360,0 after crop mode entry) |
+| 2026-05-08 02:53:24 | `PLAN/S0115_unified-error-display/INDEX.md` | `spec-tech` | Create tactical plan for S0115 |
+| 2026-05-08 02:53:25 | `PLAN/S0115_unified-error-display/PHASE_01__error-severity-model.md` | `spec-tech` | Phase 01: error-severity-model |
+| 2026-05-08 02:53:25 | `PLAN/S0115_unified-error-display/PHASE_02__enhanced-error-dialog.md` | `spec-tech` | Phase 02: enhanced-error-dialog |
+| 2026-05-08 02:53:25 | `PLAN/S0115_unified-error-display/PHASE_03__browse-player-wiring.md` | `spec-tech` | Phase 03: browse-player-wiring |
+| 2026-05-08 02:53:25 | `PLAN/S0115_unified-error-display/PHASE_04__addresource-main-wiring.md` | `spec-tech` | Phase 04: addresource-main-wiring |
+| 2026-05-08 02:53:25 | `PLAN/S0115_unified-error-display/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-08 02:53:26 | `PLAN/S0115_unified-error-display.md` | `spec-tech` | Status → Tactical |
+| 2026-05-08 02:54:26 | `app_v2/src/main/java/com/sza/fastmediasorter/core/error/ErrorSeverity.kt` | `S0115/01.1` | New ErrorSeverity enum (CRITICAL, DEBUG_ONLY) |
+| 2026-05-08 02:55:16 | `app_v2/src/main/java/com/sza/fastmediasorter/util/AppErrorNotifier.kt` | `S0115/01.2` | New AppErrorNotifier facade (Snackbar-based, CRITICAL/DEBUG_ONLY) |
+| 2026-05-08 02:55:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager` | Fix: ensureLocalSource passed file path as FileOperation.Copy destination which treats it as a directory; now uses a real temp dir and renames the downloaded file to the expected path |
+| 2026-05-08 02:55:58 | `app_v2/src/main/java/com/sza/fastmediasorter/util/ToastThrottler.kt` | `S0115/01.3` | Wire showNetworkError to AppErrorNotifier when Activity provided |
+| 2026-05-08 02:59:39 | `app_v2/src/main/res/layout/dialog_error_detail.xml` | `S0115/02.1` | New error detail dialog layout (portrait) |
+| 2026-05-08 02:59:40 | `app_v2/src/main/res/layout-land/dialog_error_detail.xml` | `S0115/02.1` | New error detail dialog layout (landscape) |
+| 2026-05-08 03:00:52 | `app_v2/src/main/res/values/strings.xml` | `S0115/02.2` | Add error_dialog_* and error_save* strings (EN) |
+| 2026-05-08 03:00:53 | `app_v2/src/main/res/values-ru/strings.xml` | `S0115/02.2` | Add error_dialog_* and error_save* strings (RU) |
+| 2026-05-08 03:00:53 | `app_v2/src/main/res/values-uk/strings.xml` | `S0115/02.2` | Add error_dialog_* and error_save* strings (UK) |
+| 2026-05-08 10:20:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ErrorDialog.kt` | `ErrorDialog` | S0115: Rebuilt with dialog_error_detail layout — collapsible details, Save-to-file, Share, Copy actions |
+| 2026-05-08 10:20:45 | `app_v2/src/main/res/layout/dialog_error_detail.xml` | `dialog_error_detail` | S0115: New dialog layout with selectable message, collapsible details, Save button |
+| 2026-05-08 10:20:45 | `app_v2/src/main/res/layout-land/dialog_error_detail.xml` | `dialog_error_detail` | S0115: Landscape counterpart for dialog_error_detail |
+| 2026-05-08 10:20:45 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | S0115: Add error_dialog_*, error_saved_to_downloads, error_log_save_failed keys |
+| 2026-05-08 10:20:45 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | S0115: Add Russian translations for error dialog strings |
+| 2026-05-08 10:20:46 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | S0115: Add Ukrainian translations for error dialog strings |
+| 2026-05-08 10:25:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt` | `BrowseErrorDisplayManager` | S0115: Replace ToastThrottler.showNetworkError with AppErrorNotifier.show CRITICAL in showError else-branch |
+| 2026-05-08 10:25:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | S0115: Replace ToastThrottler.showNetworkError with AppErrorNotifier.show CRITICAL in showError else-branch |
+| 2026-05-08 10:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | S0115: Replace error Toast calls (auth failures, validation errors, showError else-branch) with AppErrorNotifier.show CRITICAL |
+| 2026-05-08 10:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | S0115: Replace Toast in showError else-branch with AppErrorNotifier.show CRITICAL |
+| 2026-05-08 10:35:50 | `docs/FEATURES.md` | `FEATURES.md` | S0115: Add unified error display bullet to section 19 Settings |
+| 2026-05-08 10:35:50 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0115: Add Russian unified error display bullet to section 19 |
+| 2026-05-08 10:35:50 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0115: Add Ukrainian unified error display bullet to section 19 |
+| 2026-05-08 10:35:50 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl` | S0115: Catalog regen — ErrorSeverity (core-enum), AppErrorNotifier (ui-util) entries added/updated |
+| 2026-05-08 10:41:20 | `PLAN/S0115_unified-error-display.md` | `spec-check` | Audit S0115 -> Verified; PASS/WARN/FAIL 36/0/0 |
+| 2026-05-08 10:41:21 | `app_v2/src/main/java/com/sza/fastmediasorter/util/AppErrorNotifier.kt` | `AppErrorNotifier` | S0115 Verified: remove Timber.d debug tag |
+| 2026-05-08 10:41:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ErrorDialog.kt` | `ErrorDialog` | S0115 Verified: remove Timber.d debug tag |
+| 2026-05-08 10:41:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt` | `BrowseErrorDisplayManager` | S0115 Verified: remove Timber.d debug tag |
+| 2026-05-08 10:41:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | S0115 Verified: remove Timber.d debug tag |
+| 2026-05-08 10:41:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | S0115 Verified: remove Timber.d debug tag |
+| 2026-05-08 10:41:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | S0115 Verified: remove Timber.d debug tag |
+| 2026-05-08 10:47:00 | `PLAN/S0116_url-media-downloader.md` | `spec` | Add strategic spec S0116 for url-media-downloader (streams, platforms, auth) |
+| 2026-05-08 10:57:23 | `PLAN/S0116_url-media-downloader.md` | `S0116` | Updated spec with yt-dlp concepts, generic stream sniffing, and WebView cookie extraction |
+| 2026-05-08 11:11:47 | `PLAN/S0116_url-media-downloader.md` | `spec-update` | Refined strategic spec: platform-neutral positioning, corrected streaming assumptions, single-result MVP scope |
+| 2026-05-08 11:13:36 | `PLAN/S0116_url-media-downloader.md` | `spec-update` | Finalized strategic wording cleanup: platform-neutral positioning and clarified single-result/store-safe scope |
+| 2026-05-08 11:23:12 | `PLAN/S0116_url-media-downloader.md` | `spec-update` | Refinement (claude-opus-4-5, focus: completeness, consistency) — noLegal flavor decision, §6.6 closed, §6.1 partial, multi-item scope, Instagram/Threads whitelist |
+| 2026-05-08 11:40:10 | `PLAN/S0116_url-media-downloader.md` | `spec` | S0116: strategic deep-update — research-driven boundary redraw (capability matrix §13, HLS/DASH→MP4 via MediaMuxer in standard, generic streaming sniffer, universal WebView auth; noLegal becomes optional Phase 2) |
+| 2026-05-08 11:58:26 | `PLAN/S0116_url-media-downloader.md` | `spec` | S0116 v2 strategic update: post-download UX (column M), graceful degradation to S0003 (5.4), debug logging strategy (5.5) |
+| 2026-05-08 11:58:30 | `PLAN/S0117_url-media-downloader-nolegal-flavor.md` | `spec` | S0117 created: noLegal sideload-only flavor for site-specific extractors and album batch (split from S0116) |
+| 2026-05-08 12:01:28 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `SftpDataSource` | Removed noisy per-read SFTP playback logging from read() |
+| 2026-05-08 12:01:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/FtpDataSource.kt` | `FtpDataSource` | Removed noisy per-read FTP playback logging from read() |
+| 2026-05-08 12:01:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `SmbDataSource` | Removed per-read SMB playback logging and kept coarse transfer summaries |
+| 2026-05-08 12:06:04 | `ui/browse/BrowseViewModel.kt, ui/browse/managers/BrowseLoadingAuxManager.kt` | `BrowseViewModel, BrowseLoadingAuxManager` | Map raw SMB IOException messages to user-friendly strings in error state view and toast; add 'Host Unreachable' case for Server unreachable errors |
+| 2026-05-08 12:13:48 | `PLAN/S0116_url-media-downloader/INDEX.md` | `spec-tech` | Create tactical plan for S0116 (8 phases) |
+| 2026-05-08 12:13:51 | `PLAN/S0116_url-media-downloader/PHASE_01__foundations.md` | `spec-tech` | S0116 Phase 01: foundations (BuildConfig, AppSettings, sealed types, Hilt skeleton) |
+| 2026-05-08 12:13:55 | `PLAN/S0116_url-media-downloader/PHASE_02__streaming-sniffer.md` | `spec-tech` | S0116 Phase 02: generic streaming sniffer (m3u8/mpd in HTML/JSON-LD) |
+| 2026-05-08 12:13:59 | `PLAN/S0116_url-media-downloader/PHASE_03__streaming-downloader.md` | `spec-tech` | S0116 Phase 03: streaming downloader HLS/DASH to MP4 via Media3 + MediaMuxer |
+| 2026-05-08 12:14:03 | `PLAN/S0116_url-media-downloader/PHASE_04__cookie-storage.md` | `spec-tech` | S0116 Phase 04: encrypted cookie storage and OkHttp/Media3 injection |
+| 2026-05-08 12:14:06 | `PLAN/S0116_url-media-downloader/PHASE_05__webview-auth.md` | `spec-tech` | S0116 Phase 05: universal WebView authentication and saved auth sessions list |
+| 2026-05-08 12:14:10 | `.github/agents/friendly-android-doc-writer.agent.md` | `Friendly Android Doc Writer` | Added a workspace custom agent for friendly Android documentation, explanations, and UI copy rewriting |
+| 2026-05-08 12:14:10 | `PLAN/S0116_url-media-downloader/PHASE_06__post-download-ux.md` | `spec-tech` | S0116 Phase 06: post-download UX presenter (toast vs auto-open) and s0116_toast_ strings |
+| 2026-05-08 12:14:14 | `PLAN/S0116_url-media-downloader/PHASE_07__degradation-and-logging.md` | `spec-tech` | S0116 Phase 07: graceful degradation instrumentation tests and verbose logging audit |
+| 2026-05-08 12:14:18 | `PLAN/S0116_url-media-downloader/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | S0116 Phase 08: docs/FEATURES trilingual + catalog regen + final lint gates |
+| 2026-05-08 12:14:21 | `PLAN/S0116_url-media-downloader.md` | `spec-tech` | S0116 status -> Tactical |
+| 2026-05-08 12:14:42 | `.github/agents/friendly-android-doc-writer.agent.md` | `Friendly Android Doc Writer` | Refined agent voice rules so light irony also applies to technical explanations without reducing precision |
+| 2026-05-08 12:22:57 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Refined S0118: clarified self-ironic tone and added contextual docs, bug-report, and improvement-feedback scope |
+| 2026-05-08 12:26:37 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Refined S0118: short actionable toast-style notifications, richer helpful dialogs, and friendly recovery wording for error states |
+| 2026-05-08 12:34:13 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Closed S0118 product questions: full UI text coverage, no emoji icons, neutral legal/machine-readable texts, fixed support channels, and contextual next-step rules |
+| 2026-05-08 12:46:12 | `PLAN/S0116_url-media-downloader/INDEX.md` | `spec-tech` | S0116 tactical plan: post-author audit applied across all 8 phases (interface placement, EncryptedSharedPreferences API, settings nav, instrumentation tests) |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/INDEX.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_01__foundations.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_02__streaming-sniffer.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_03__streaming-downloader.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_04__cookie-storage.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_05__webview-auth.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_06__post-download-ux.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_07__degradation-and-logging.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 12:58:05 | `PLAN/S0116_url-media-downloader/PHASE_08__docs-catalog-cleanup.md` | `spec-update` | S0116 tactical refinement pass |
+| 2026-05-08 13:20:43 | `app_v2/build.gradle.kts` | `spec-dev` | S0116 Phase 01 step 1: add LOG_LINK_DOWNLOAD BuildConfig flag (debug=true, release=false) |
+| 2026-05-08 13:21:34 | `app_v2/build.gradle.kts` | `spec-dev` | S0116 Phase 01 step 2: re-enable media3-exoplayer-hls/dash for standard/legacy/vr/vrUnlicensed flavors |
+| 2026-05-08 13:22:24 | `.gitignore` | `.gitignore` | Ignored PLAN directory in git |
+| 2026-05-08 13:23:01 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-dev` | S0116 Phase 01 step 4: add linkDownloadMaxResolution and linkDownloadAudioOnly fields |
+| 2026-05-08 13:24:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-dev` | S0116 Phase 01 step 5: persist linkDownloadMaxResolution + linkDownloadAudioOnly with whitelist validation |
+| 2026-05-08 13:25:11 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `spec-dev` | S0116 Phase 01 step 6: add nullable linkDownloadMaxResolution + linkDownloadAudioOnly fields |
+| 2026-05-08 13:25:12 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `spec-dev` | S0116 Phase 01 step 6: propagate quality preference fields in toBackup/fromBackup |
+| 2026-05-08 13:26:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/link/StreamingManifest.kt` | `spec-dev` | S0116 Phase 01 step 7: new sealed StreamingManifest (Hls/Dash) for streaming pipeline |
+| 2026-05-08 13:26:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/link/MediaQualityPreference.kt` | `spec-dev` | S0116 Phase 01 step 7: new MediaQualityPreference with fromSettings mapper |
+| 2026-05-08 13:26:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/UrlExtractionStrategy.kt` | `spec-dev` | S0116 Phase 01 step 7: extend OpenResult with Streaming; extend BlockedReason with DrmProtected/StreamingDisabled/MuxFailed/AuthRequired |
+| 2026-05-08 13:26:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-dev` | S0116 Phase 01 step 7: compile-safe placeholder branches for OpenResult.Streaming and new BlockedReason variants |
+| 2026-05-08 13:27:45 | `app_v2/src/main/java/com/sza/fastmediasorter/core/log/LinkDownloadTrace.kt` | `spec-dev` | S0116 Phase 01 step 8: new LinkDownloadTrace privacy-safe logger (tag/verbose/truncateUrl/truncateCookies) |
+| 2026-05-08 13:27:45 | `app_v2/src/main/java/com/sza/fastmediasorter/di/LinkDownloadModule.kt` | `spec-dev` | S0116 Phase 01 step 8: marker comment for streaming/cookie/auth bindings landing in later phases |
+| 2026-05-08 13:36:52 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0116 Phase 01: regenerated catalog with 3 new classes (StreamingManifest, MediaQualityPreference, LinkDownloadTrace) |
+| 2026-05-08 13:37:40 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlMediaCandidate.kt` | `spec-dev` | S0116 Phase 02 step 1: add HLS_MANIFEST/DASH_MANIFEST sources and manifest field |
+| 2026-05-08 13:38:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/StreamingManifestSniffer.kt` | `spec-dev` | S0116 Phase 02 step 2: new StreamingManifestSniffer with 4 source harvesters (meta/JSON-LD/regex/data-attr) |
+| 2026-05-08 13:40:17 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `spec-dev` | S0116 Phase 02 step 3: wire StreamingManifestSniffer into harvestCandidates with debug tag |
+| 2026-05-08 13:41:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/CandidateSelectionPolicy.kt` | `spec-dev` | S0116 Phase 02 step 4: streaming manifest fallback rule |
+| 2026-05-08 13:41:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `spec-dev` | S0116 Phase 02 step 4: route HLS/DASH chosen candidates to OpenResult.Streaming with derived MP4 filename |
+| 2026-05-08 13:42:41 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/StreamingManifestSnifferTest.kt` | `spec-dev` | S0116 Phase 02 step 5: 6 @Test cases for StreamingManifestSniffer |
+| 2026-05-08 13:46:52 | `app_v2/build.gradle.kts` | `spec-dev` | S0116 Phase 03 step 1: wire streamingEnabled/streamingDisabled shared source-sets into video and lite/photos flavors |
+| 2026-05-08 13:47:44 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/streaming/StreamingPipeline.kt` | `spec-dev` | S0116 Phase 03 step 1b: StreamingPipeline interface + PipelineOutcome sealed hierarchy in main/ |
+| 2026-05-08 14:02:02 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/ManifestDrmDetector.kt` | `spec-dev` | S0116 Phase 03 step 2: ManifestDrmDetector best-effort HLS/DASH DRM pre-flight |
+| 2026-05-08 14:03:08 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/Media3SegmentDownloader.kt` | `spec-dev` | S0116 Phase 03 step 3: Media3SegmentDownloader (HlsDownloader/DashDownloader + per-session SimpleCache) |
+| 2026-05-08 14:04:11 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/MediaMuxerRemuxer.kt` | `spec-dev` | S0116 Phase 03 step 4: MediaMuxerRemuxer (sample-copy AVC/HEVC/AV1 + AAC into MP4) |
+| 2026-05-08 14:04:58 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/StreamingCacheCleaner.kt` | `spec-dev` | S0116 Phase 03 step 5: StreamingCacheCleaner (session id, sessionDir, preflight, cleanup) |
+| 2026-05-08 14:06:52 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/StreamingDownloadStrategy.kt` | `spec-dev` | S0116 Phase 03 step 6: StreamingDownloadStrategy orchestrator (DRM->preflight->download->remux->cleanup) |
+| 2026-05-08 14:09:39 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-dev` | S0116 Phase 03 step 7: extend Failed sealed (DrmBlocked/StreamingDisabled/MuxFailed); inject StreamingPipeline; runStreaming flow |
+| 2026-05-08 14:09:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `spec-dev` | S0116 Phase 03 step 7: temporary handleLinkAutoDownloadResult branches for DrmBlocked/StreamingDisabled/MuxFailed |
+| 2026-05-08 14:10:52 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/di/StreamingModule.kt` | `spec-dev` | S0116 Phase 03 step 8: Hilt StreamingModule binding StreamingDownloadStrategy as StreamingPipeline (video flavors) |
+| 2026-05-08 14:10:52 | `app_v2/src/streamingDisabled/java/com/sza/fastmediasorter/data/link/streaming/NoOpStreamingPipeline.kt` | `spec-dev` | S0116 Phase 03 step 8: NoOpStreamingPipeline returning Disabled outcome (lite/photos) |
+| 2026-05-08 14:10:53 | `app_v2/src/streamingDisabled/java/com/sza/fastmediasorter/di/StreamingModule.kt` | `spec-dev` | S0116 Phase 03 step 8: Hilt StreamingModule binding NoOpStreamingPipeline (lite/photos) |
+| 2026-05-08 14:12:28 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/data/link/streaming/MediaMuxerRemuxerInstrumentationTest.kt` | `spec-dev` | S0116 Phase 03 step 9: instrumentation test (3 @Test) for MediaMuxerRemuxer; placeholder fixtures with assumeTrue skip |
+| 2026-05-08 14:18:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStore.kt` | `spec-dev` | S0116 Phase 04 step 1: EncryptedCookieStore (MasterKey AES256 + JSON per-domain payload) |
+| 2026-05-08 14:19:39 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadCookieJar.kt` | `spec-dev` | S0116 Phase 04 step 2: LinkDownloadCookieJar (load-only, save no-op) |
+| 2026-05-08 14:20:50 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/AuthSessionRepository.kt` | `spec-dev` | S0116 Phase 04 step 3: AuthSessionRepository interface + AuthSessionDomain |
+| 2026-05-08 14:20:50 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `spec-dev` | S0116 Phase 04 step 3: AuthSessionRepositoryImpl (StateFlow snapshot over EncryptedCookieStore) |
+| 2026-05-08 14:22:02 | `app_v2/src/main/java/com/sza/fastmediasorter/di/LinkDownloadModule.kt` | `spec-dev` | S0116 Phase 04 step 4: wire LinkDownloadCookieJar into linkDownload OkHttpClient + bind AuthSessionRepository |
+| 2026-05-08 14:23:01 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/Media3SegmentDownloader.kt` | `spec-dev` | S0116 Phase 04 step 5: inject domain cookies into Media3 DefaultHttpDataSource |
+| 2026-05-08 14:23:54 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStoreTest.kt` | `spec-dev` | S0116 Phase 04 step 6: 4 @Test Robolectric cases for EncryptedCookieStore contract |
+| 2026-05-08 14:28:47 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec` | Add strategic spec S0120 for memory growth endurance scenarios |
+| 2026-05-08 14:30:35 | `app_v2/src/main/res/layout/fragment_permissions_management.xml` | `PermissionsManagementFragment` | Add MaterialToolbar with back navigation to permissions screen (replaces android.R.id.content, no activity toolbar visible) |
+| 2026-05-08 14:34:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `spec-dev` | S0116 Phase 05 step 2: WebViewAuthDialogFragment with cookie harvest + WebView state cleanup |
+| 2026-05-08 14:34:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthViewModel.kt` | `spec-dev` | S0116 Phase 05 step 2: WebViewAuthViewModel forwards cookies to AuthSessionRepository |
+| 2026-05-08 14:34:35 | `app_v2/src/main/res/layout/dialog_webview_auth.xml` | `spec-dev` | S0116 Phase 05 step 2: portrait WebView auth dialog layout |
+| 2026-05-08 14:34:35 | `app_v2/src/main/res/layout-land/dialog_webview_auth.xml` | `spec-dev` | S0116 Phase 05 step 2: landscape WebView auth dialog layout (side-by-side) |
+| 2026-05-08 14:36:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `spec-dev` | S0116 Phase 05 step 3: AuthSessionsListFragment with delete + add CTA |
+| 2026-05-08 14:36:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListViewModel.kt` | `spec-dev` | S0116 Phase 05 step 3: AuthSessionsListViewModel |
+| 2026-05-08 14:36:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionAdapter.kt` | `spec-dev` | S0116 Phase 05 step 3: AuthSessionAdapter (single-tap delete, ImageButton 48dp) |
+| 2026-05-08 14:36:46 | `app_v2/src/main/res/layout/fragment_auth_sessions_list.xml` | `spec-dev` | S0116 Phase 05 step 3: portrait sessions list layout |
+| 2026-05-08 14:36:47 | `app_v2/src/main/res/layout-land/fragment_auth_sessions_list.xml` | `spec-dev` | S0116 Phase 05 step 3: landscape sessions list layout (parity) |
+| 2026-05-08 14:36:47 | `app_v2/src/main/res/layout/item_auth_session.xml` | `spec-dev` | S0116 Phase 05 step 3: auth session row item layout |
+| 2026-05-08 14:40:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsActivity.kt` | `spec-dev` | S0116 Phase 05 step 4: AuthSessionsActivity host (sub-screen pattern for ViewPager2-based Settings) |
+| 2026-05-08 14:40:34 | `app_v2/src/main/res/layout/activity_auth_sessions.xml` | `spec-dev` | S0116 Phase 05 step 4: activity_auth_sessions.xml fragment container |
+| 2026-05-08 14:40:35 | `app_v2/src/main/AndroidManifest.xml` | `spec-dev` | S0116 Phase 05 step 4: register AuthSessionsActivity |
+| 2026-05-08 14:40:35 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `spec-dev` | S0116 Phase 05 step 4: row_saved_authorizations entry |
+| 2026-05-08 14:40:35 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `spec-dev` | S0116 Phase 05 step 4: landscape parity copy with row_saved_authorizations |
+| 2026-05-08 14:40:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev` | S0116 Phase 05 step 4: wire row_saved_authorizations click + enable rule |
+| 2026-05-08 14:42:38 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0116 Phase 05 step 5: EN strings for auth_sessions_*, webview_auth_*, setting_saved_authorizations_* |
+| 2026-05-08 14:42:38 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0116 Phase 05 step 5: RU strings for auth_sessions_*, webview_auth_* |
+| 2026-05-08 14:42:38 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0116 Phase 05 step 5: UK strings for auth_sessions_*, webview_auth_* |
+| 2026-05-08 14:45:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/DirectFileExtractionStrategy.kt` | `spec-dev` | S0116 Phase 05 step 6: 401/403 -> Blocked(AuthRequired) |
+| 2026-05-08 14:45:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `spec-dev` | S0116 Phase 05 step 6: HtmlFetchResult tri-state, 401/403 -> Blocked(AuthRequired) |
+| 2026-05-08 14:45:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-dev` | S0116 Phase 05 step 6: Result.Failed.AuthRequired variant + BlockedReason.AuthRequired mapping |
+| 2026-05-08 14:45:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `spec-dev` | S0116 Phase 05 step 6: temporary AuthRequired toast (Phase 06 replaces with WebView launch) |
+| 2026-05-08 14:51:20 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0116 Phase 06 step 1: EN s0116_toast_* strings (7 keys) |
+| 2026-05-08 14:51:20 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0116 Phase 06 step 1: RU s0116_toast_* strings |
+| 2026-05-08 14:51:20 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0116 Phase 06 step 1: UK s0116_toast_* strings |
+| 2026-05-08 14:52:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `spec-dev` | S0116 Phase 06 step 2: LinkAutoDownloadResultPresenter (single Result UX entry point) |
+| 2026-05-08 14:54:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `spec-dev` | S0116 Phase 06 step 3: delegate Result handling to LinkAutoDownloadResultPresenter |
+| 2026-05-08 14:55:21 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0116 Phase 06 step 4: link_autodownload_open_in_player_summary mentions toast fallback |
+| 2026-05-08 14:55:21 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0116 Phase 06 step 4: RU summary mentions toast fallback |
+| 2026-05-08 14:55:21 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0116 Phase 06 step 4: UK summary mentions toast fallback |
+| 2026-05-08 14:56:33 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenterTest.kt` | `spec-dev` | S0116 Phase 06 step 5: 7 @Test cases for LinkAutoDownloadResultPresenter (Robolectric + ShadowToast) |
+| 2026-05-08 15:06:58 | `AGENTS.md` | `AGENTS.md` | Add opt-in caveman mode rules for repo-wide agent surfaces |
+| 2026-05-08 15:06:59 | `CLAUDE.md` | `CLAUDE.md` | Add optional caveman mode guidance and safety limits |
+| 2026-05-08 15:07:00 | `.github/copilot-instructions.md` | `copilot-instructions.md` | Register /caveman prompt and opt-in caveman mode policy |
+| 2026-05-08 15:07:01 | `.github/prompts/caveman.prompt.md` | `caveman.prompt.md` | Add /caveman prompt for opt-in terse response mode |
+| 2026-05-08 15:09:40 | `.gitignore` | `.gitignore` | Unignore shared agent prompt surfaces and AGENTS.md for caveman tooling |
+| 2026-05-08 15:10:04 | `app_v2/build.gradle.kts` | `spec-dev` | S0116 Phase 07 step 0: add MockWebServer androidTestImplementation |
+| 2026-05-08 15:12:11 | `app_v2/src/androidTest/java/com/sza/fastmediasorter/data/link/GracefulDegradationTest.kt` | `spec-dev` | S0116 Phase 07 step 1: GracefulDegradationTest with FakeStreamingModule (3 @Test, MockWebServer) |
+| 2026-05-08 15:14:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/StreamingManifestSniffer.kt` | `spec-dev` | S0116 Phase 07 step 2: sniff wrapper with fallback to emptyList |
+| 2026-05-08 15:14:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStore.kt` | `spec-dev` | S0116 Phase 07 step 2: loadFor wrapper with fallback to emptyList |
+| 2026-05-08 15:14:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `spec-dev` | S0116 Phase 07 step 2: harvestAndDismiss try/catch with dismiss-no-save fallback |
+| 2026-05-08 15:14:37 | `app_v2/src/streamingEnabled/java/com/sza/fastmediasorter/data/link/streaming/StreamingDownloadStrategy.kt` | `spec-dev` | S0116 Phase 07 step 2: standardise fallback= verbose log shape |
+| 2026-05-08 15:16:35 | `app_v2/src/test/java/com/sza/fastmediasorter/core/log/LinkDownloadTraceTest.kt` | `spec-dev` | S0116 Phase 07 step 4: 4 @Test cases for LinkDownloadTrace truncateUrl + truncateCookies |
+| 2026-05-08 15:16:58 | `PLAN/S0116_url-media-downloader/PHASE_07__degradation-and-logging.md` | `spec-tech` | S0116 Phase 07: degradation tests + verbose logging audit verified |
+| 2026-05-08 15:20:13 | `docs/FEATURES.md` | `spec-dev` | S0116 Phase 08 step 1: Extended URL download (S0116) bullet in 22 Background services |
+| 2026-05-08 15:21:46 | `docs/FEATURES_RU.md` | `spec-dev` | S0116 Phase 08 step 2: RU mirror for Extended URL download (S0116) bullet |
+| 2026-05-08 15:21:46 | `docs/FEATURES_UK.md` | `spec-dev` | S0116 Phase 08 step 2: UK mirror for Extended URL download (S0116) bullet |
+| 2026-05-08 15:23:16 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0116 Phase 08 step 3: regenerate catalog with new main/ classes (11 added; flavor source-sets unindexed by design) |
+| 2026-05-08 15:26:30 | `.github/copilot-instructions.md` | `copilot-instructions.md` | Register /caveman-commit and /caveman-review prompt routing |
+| 2026-05-08 15:26:31 | `.github/prompts/caveman-commit.prompt.md` | `caveman-commit.prompt.md` | Add /caveman-commit prompt for terse conventional commit messages |
+| 2026-05-08 15:26:32 | `.github/prompts/caveman-review.prompt.md` | `caveman-review.prompt.md` | Add /caveman-review prompt for terse code review findings |
+| 2026-05-08 15:34:10 | `PLAN/S0116_url-media-downloader.md` | `spec-check` | Audit S0116 -> Verified; PASS/WARN/FAIL 26/0/0; 4 manual on-device items; 1 catalog scanner exemption documented |
+| 2026-05-08 15:35:35 | `app_v2/src/main/java/com/sza/fastmediasorter/core/log/LinkDownloadTrace.kt` | `spec-check` | S0116 transition to Verified: retire Timber.d(S0116:) emission per CLAUDE.md rule (tag() now no-op, 6 call sites preserved as documented markers) |
+| 2026-05-08 15:40:31 | `app_v2/src/main/res/layout/activity_keybinding_remap.xml` | `activity_keybinding_remap.xml` | Add fitsSystemWindows=true to root LinearLayout so status bar inset is applied and toolbar with back button is visible |
+| 2026-05-08 15:46:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `SettingsActivity` | Fix toolbar height jump on open: register insets listener in onCreate() before first frame; remove Chrome OS captionBar() inset type |
+| 2026-05-08 15:52:14 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-all` | Strategic spec approved: S0120 — resolved all 5 open questions, memory endurance scenarios |
+| 2026-05-08 15:54:15 | `PLAN/S0120_memory-growth-endurance-scenarios/INDEX.md` | `spec-all` | Tactical plan created: S0120 — 4 phases (contract, tracker, integration, runbook) |
+| 2026-05-08 16:01:17 | `app_v2/src/main/java/com/sza/fastmediasorter/core/debug/MemoryEnduranceTracker.kt` | `MemoryEnduranceTracker` | S0120: new debug-only memory endurance tracker — structured checkpoint logging, PLATEAU/SUSPICIOUS/FAIL verdict |
+| 2026-05-08 16:01:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/SlideshowController.kt` | `SlideshowController` | S0120: wire MemoryEnduranceTracker checkpoints on slideshow start/transition/stop |
+| 2026-05-08 16:01:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ExoPlayerControlsManager.kt` | `ExoPlayerControlsManager` | S0120: wire TRANSITION checkpoint on next/prev file buttons |
+| 2026-05-08 16:01:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/filelist/BrowseFileListManager.kt` | `BrowseFileListManager` | S0120: wire SORT_CHANGE checkpoint on large-folder sort (>=500 files) |
+| 2026-05-08 16:01:23 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `AppStartupInitializer` | S0120: startup Timber debug tag confirming endurance tracker wiring |
+| 2026-05-08 16:03:28 | `PLAN/S0119_settings-information-architecture-revision.md` | `spec-update` | Refined S0119 strategic spec with non-regression, multi-input, theme parity, multilingual search, and responsive contracts |
+| 2026-05-08 16:05:58 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-check` | Audit S0120 -> Partial; PASS/WARN/FAIL 18/3/0; 3 action items (AUD scenario name, VID endScenario, MIX coverage) |
+| 2026-05-08 16:07:07 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-fix` | Annotate Last Audit (S0120): 0 auto-fixed, 3 FOLLOW-UP (method body changes: AUD scenario name, VID endScenario, MIX coverage) |
+| 2026-05-08 16:16:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | S0120: checkpoint AUD-playback vs VID-playback on auto-advance in onPlaybackEnded |
+| 2026-05-08 16:16:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | S0120: call endScenario in releasePlayer to emit SUMMARY and schedule cooldown |
+| 2026-05-08 16:16:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioSlideshowPhotoModeManager.kt` | `AudioSlideshowPhotoModeManager` | S0120: MIX-audio-slideshow checkpoint in advancePhoto |
+| 2026-05-08 16:16:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ExoPlayerControlsManager.kt` | `ExoPlayerControlsManager` | S0120: MIX-audio-browse detection via AudioPlaybackService.isRunning on next/prev |
+| 2026-05-08 16:18:52 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-check` | Audit S0120 -> Verified; PASS/WARN/FAIL 24/0/0; all follow-ups resolved |
+| 2026-05-08 16:19:09 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `AppStartupInitializer` | S0120: remove Verified-transition debug tag (spec-lifecycle rule) |
+| 2026-05-08 16:36:46 | `PLAN/S0118_friendly-ui-copy-revision/INDEX.md` | `spec-tech` | Create tactical plan index for S0118 |
+| 2026-05-08 16:36:47 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_01__copy-foundations.md` | `spec-tech` | Add Phase 01 tactical spec for S0118 |
+| 2026-05-08 16:36:48 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_02__error-projection.md` | `spec-tech` | Add Phase 02 tactical spec for S0118 |
+| 2026-05-08 16:36:48 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_03__help-routing.md` | `spec-tech` | Add Phase 03 tactical spec for S0118 |
+| 2026-05-08 16:36:49 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_04__settings-surface-sweep.md` | `spec-tech` | Add Phase 04 tactical spec for S0118 |
+| 2026-05-08 16:36:50 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_05__feature-surface-sweep.md` | `spec-tech` | Add Phase 05 tactical spec for S0118 |
+| 2026-05-08 16:36:51 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_06__locale-tests.md` | `spec-tech` | Add Phase 06 tactical spec for S0118 |
+| 2026-05-08 16:37:11 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_04__settings-surface-sweep.md` | `spec-tech` | Add Phase 04 tactical spec for S0118 |
+| 2026-05-08 16:37:12 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_05__feature-surface-sweep.md` | `spec-tech` | Add Phase 05 tactical spec for S0118 |
+| 2026-05-08 16:37:12 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_06__locale-tests.md` | `spec-tech` | Add Phase 06 tactical spec for S0118 |
+| 2026-05-08 16:37:13 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Add Phase 07 tactical spec for S0118 |
+| 2026-05-08 16:37:14 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-tech` | Status -> Tactical and link tactical plan for S0118 |
+| 2026-05-08 16:41:59 | `PLAN/S0119_settings-information-architecture-revision/INDEX.md` | `spec-tech` | Create tactical plan for S0119 |
+| 2026-05-08 16:41:59 | `PLAN/S0119_settings-information-architecture-revision/PHASE_01__settings-inventory.md` | `spec-tech` | Phase 01: settings-inventory |
+| 2026-05-08 16:41:59 | `PLAN/S0119_settings-information-architecture-revision/PHASE_02__ia-model.md` | `spec-tech` | Phase 02: ia-model |
+| 2026-05-08 16:41:59 | `PLAN/S0119_settings-information-architecture-revision/PHASE_03__migration-map.md` | `spec-tech` | Phase 03: migration-map |
+| 2026-05-08 16:41:59 | `PLAN/S0119_settings-information-architecture-revision/PHASE_04__multilingual-search.md` | `spec-tech` | Phase 04: multilingual-search |
+| 2026-05-08 16:41:59 | `PLAN/S0119_settings-information-architecture-revision/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-08 16:41:59 | `PLAN/S0119_settings-information-architecture-revision.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-08 16:48:18 | `PLAN/S0119_settings-information-architecture-revision/docs/settings-inventory.md` | `S0119` | Phase 01: complete settings inventory — 4 tabs, 7 anomalies, 9 behavior contracts |
+| 2026-05-08 16:51:45 | `PLAN/S0119_settings-information-architecture-revision/docs/ia-model.md` | `S0119` | Phase 02: canonical IA model — surface hierarchy, entity types, placement checklist, flavor/input/theme/search contracts |
+| 2026-05-08 16:56:28 | `PLAN/S0119_settings-information-architecture-revision/docs/migration-map.md` | `spec-dev` | Phase 03: create migration map with canonical placements, confirmed misplacements, search index fixes, and wave strategy |
+| 2026-05-08 17:02:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchIndex.kt` | `SettingsSearchIndex` | S0119 Phase 04: add localizedKeywords Map field, extend search() for EN/RU/UK alias matching, populate RU/UK aliases for all 45 registry entries |
+| 2026-05-08 17:05:30 | `docs/FEATURES.md` | `FEATURES` | S0119: add multilingual settings search bullet (EN) |
+| 2026-05-08 17:05:30 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0119: add multilingual settings search bullet (RU) |
+| 2026-05-08 17:05:31 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0119: add multilingual settings search bullet (UK) |
+| 2026-05-08 17:06:03 | `PLAN/S0119_settings-information-architecture-revision/` | `S0119` | Settings IA revision — all phases complete |
+| 2026-05-08 17:06:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchIndex.kt` | `SettingsSearchIndex` | S0119: remove Timber.d debug tag (spec transition to Verified) |
+| 2026-05-08 17:08:44 | `PLAN/S0119_settings-information-architecture-revision.md` | `spec-check` | Audit S0119 -> Verified; PASS/WARN/FAIL 28/0/0 |
+| 2026-05-08 17:09:27 | `PLAN/S0119_settings-information-architecture-revision/INDEX.md` | `spec-dev` | S0119: all 5 phases done — spec Verified |
+| 2026-05-08 17:09:27 | `PLAN/S0119_settings-information-architecture-revision/PHASE_05__docs-catalog-cleanup.md` | `spec-dev` | Phase 05 docs-catalog-cleanup: all steps done |
+| 2026-05-08 20:24:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/copy/UiMessageFamily.kt` | `S0118` | Add UiMessageFamily enum — shared message family model for friendly copy contract |
+| 2026-05-08 20:24:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/copy/UiNextStep.kt` | `S0118` | Add UiNextStep sealed interface — contextual follow-up actions (help, report, feedback) |
+| 2026-05-08 20:24:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/copy/UiMessageSpec.kt` | `S0118` | Add UiMessageSpec data class — payload shape for S0118 friendly copy contract |
+| 2026-05-08 20:24:44 | `app_v2/src/main/res/values/strings.xml` | `S0118` | Add S0118 baseline friendly_copy_ key family (EN) |
+| 2026-05-08 20:24:51 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118` | Add S0118 baseline friendly_copy_ key family (RU) |
+| 2026-05-08 20:24:55 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118` | Add S0118 baseline friendly_copy_ key family (UK) |
+| 2026-05-08 20:25:02 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/common/copy/UiMessageSpecTest.kt` | `S0118` | Add UiMessageSpecTest — unit tests for copy contract invariants |
+| 2026-05-08 20:39:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/copy/UiMessageProjector.kt` | `S0118` | Add UiMessageProjector — UI projector for UiMessageSpec rendering to Snackbar/Dialog |
+| 2026-05-08 20:39:59 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/FileOperationErrorFormatter.kt` | `S0118` | Strip emoji prefixes; add formatAsSpec for friendly copy contract |
+| 2026-05-08 20:39:59 | `app_v2/src/main/java/com/sza/fastmediasorter/util/ConnectionErrorFormatter.kt` | `S0118` | Add formatAsSpec wrapper returning UiMessageSpec |
+| 2026-05-08 20:39:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorMessageMapper.kt` | `S0118` | Add toUiSpec wrapper returning UiMessageSpec |
+| 2026-05-08 20:40:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt` | `S0118` | Route short error copy through UiMessageProjector.showShort |
+| 2026-05-08 20:40:04 | `app_v2/src/test/java/com/sza/fastmediasorter/core/util/FileOperationErrorFormatterTest.kt` | `S0118` | Add unit tests covering emoji-strip and timeout/generic paths |
+| 2026-05-08 20:40:04 | `app_v2/src/test/java/com/sza/fastmediasorter/util/ConnectionErrorFormatterTest.kt` | `S0118` | Add unit tests for ConnectionErrorFormatter and formatAsSpec |
+| 2026-05-08 20:47:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportDestination.kt` | `S0118` | Add SupportDestination enum — canonical S0118 follow-up channels |
+| 2026-05-08 20:47:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt` | `S0118` | Add SupportIntentFactory — shared intent builder for help/report/feedback |
+| 2026-05-08 20:47:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/input/InputHelpDialogFragment.kt` | `S0118` | Route F1 help launch through SupportIntentFactory.openUrl |
+| 2026-05-08 20:47:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/input/InputHelpLinkResolver.kt` | `S0118` | Cross-reference SupportIntentFactory in KDoc |
+| 2026-05-08 20:47:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `S0118` | Route bug-report email through SupportIntentFactory |
+| 2026-05-08 20:47:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0118` | Resolve user-guide URL via SupportIntentFactory |
+| 2026-05-08 20:47:30 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactoryTest.kt` | `S0118` | Add unit tests covering localized help URL, mailto path, Play Store URI |
+| 2026-05-08 20:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt` | `S0118` | Replace hardcoded picker/empty-file/import-failed strings with localized keys |
+| 2026-05-08 20:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt` | `S0118` | Replace hardcoded reset-failure strings with localized keys |
+| 2026-05-08 20:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt` | `S0118` | Replace 'Unknown error' fallbacks with localized settings_unknown_error |
+| 2026-05-08 20:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0118` | Replace cache-range, no-browser, network-permission hardcoded toasts with R.string keys |
+| 2026-05-08 20:55:35 | `app_v2/src/main/res/values/strings.xml` | `S0118` | Add Phase 04+05 friendly copy keys (EN) |
+| 2026-05-08 20:55:36 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118` | Add Phase 04+05 friendly copy keys (RU) |
+| 2026-05-08 20:55:36 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118` | Add Phase 04+05 friendly copy keys (UK) |
+| 2026-05-08 21:02:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesFragment.kt` | `S0118` | Replace hardcoded duplicate-delete toasts with localized friendly_copy_ keys |
+| 2026-05-08 21:07:20 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118` | Localize error_reason_unknown into RU |
+| 2026-05-08 21:07:20 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118` | Localize error_reason_unknown into UK |
+| 2026-05-08 21:07:20 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenterTest.kt` | `S0118` | Add friendly-copy regression test |
+| 2026-05-08 21:07:20 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/common/input/InputHelpRegistryTest.kt` | `S0118` | Add S0118 support-routing test |
+| 2026-05-08 21:07:24 | `app_v2/src/test/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorMessageMapperTest.kt` | `S0118` | Add unit tests for network error mapping |
+| 2026-05-08 21:07:24 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/common/copy/FriendlyCopyParityTest.kt` | `S0118` | Add friendly-copy parity invariants test |
+| 2026-05-08 21:12:43 | `docs/FEATURES.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (EN) |
+| 2026-05-08 21:12:44 | `docs/FEATURES_RU.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (RU) |
+| 2026-05-08 21:12:44 | `docs/FEATURES_UK.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (UK) |
+| 2026-05-08 21:12:44 | `dev/CATALOG/app_v2.jsonl` | `S0118` | Regenerate app_v2 class catalog after S0118 phases |
+| 2026-05-08 21:12:44 | `dev/CATALOG/app_v2.md` | `S0118` | Regenerate human-readable catalog |
+| 2026-05-08 21:21:05 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-check` | Audit S0118 → Verified; PASS/WARN/FAIL 41/1/0; Timber.d S0118 tags removed |
+| 2026-05-08 21:21:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/copy/UiMessageProjector.kt` | `S0118` | Strip Timber.d S0118 verification tags on Verified transition |
+| 2026-05-08 21:43:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `S0106` | Fix crop overlay collapsing PhotoView to 0x0: mount overlay to mediaContentArea instead of vertical LinearLayout root |
+| 2026-05-08 23:04:25 | `PLAN/S0119_settings-information-architecture-revision/` | `spec-all` | S0119 re-audit: fixed Phase 02 step statuses and INDEX completion gate; all 59 verifications PASS |
+| 2026-05-08 23:08:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt` | `GeneralSettingsBackupHelper` | Use settings_unknown_error fallback for backup sign-in launch failure |
+| 2026-05-08 23:08:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/BackupRestoreFragment.kt` | `BackupRestoreFragment` | Use settings_unknown_error fallback for backup sign-in launch failure |
+| 2026-05-08 23:08:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt` | `ErrorDialogHelper` | Localize default error dialog title/button labels and unknown fallback copy |
+| 2026-05-08 23:08:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/GoogleDriveFolderPickerViewModel.kt` | `GoogleDriveFolderPickerViewModel` | Replace raw picker error strings with S0118-friendly localized messages |
+| 2026-05-08 23:08:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerViewModel.kt` | `OneDriveFolderPickerViewModel` | Replace raw picker error strings with S0118-friendly localized messages |
+| 2026-05-08 23:08:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/DropboxFolderPickerViewModel.kt` | `DropboxFolderPickerViewModel` | Replace raw picker error strings with S0118-friendly localized messages |
+| 2026-05-08 23:08:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt` | `AddResourceVirtualCoordinator` | Replace raw virtual-resource add fallback with friendly localized error copy |
+| 2026-05-08 23:08:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ErrorDialog.kt` | `ErrorDialog` | Use localized unknown-error fallback in Throwable overload |
+| 2026-05-08 23:08:40 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-check` | Re-audit S0118 -> Broken; PASS/WARN/FAIL 9/0/3 |
+| 2026-05-08 23:09:13 | `dev/CATALOG/app_v2.jsonl` | `S0118 follow-up` | Regenerate app_v2 catalog after S0118 follow-up fixes |
+| 2026-05-08 23:09:13 | `dev/CATALOG/app_v2.md` | `S0118 follow-up` | Render human-readable app_v2 catalog after S0118 follow-up fixes |
+| 2026-05-08 23:24:07 | `PLAN/S0121_settings-general-tab-wave1-visual-grouping.md` | `spec-all` | Strategic spec S0121: Settings General Tab Wave 1 visual grouping |
+| 2026-05-08 23:25:49 | `PLAN/S0121_settings-general-tab-wave1-visual-grouping/INDEX.md` | `spec-all` | Tactical plan S0121: 4 phases, portrait+landscape layout + strings |
+| 2026-05-08 23:37:37 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `fragment_settings_general` | S0121 M4+M5: add sub-section headers for network/cache/settings-data/cloud-backup/reset and About card in portrait layout |
+| 2026-05-08 23:37:41 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `fragment_settings_general (land)` | S0121 M4+M5: add sub-section headers and About card in landscape layout |
+| 2026-05-08 23:37:47 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0121: add 6 sub-section header string keys (EN/RU/UK) |
+| 2026-05-08 23:39:29 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `fragment_settings_general (land)` | S0121 fix: rename containerDocLinks→containerAbout in About card for consistency with portrait |
+| 2026-05-08 23:39:53 | `PLAN/S0121_settings-general-tab-wave1-visual-grouping.md` | `spec-check` | Audit S0121 → Verified; PASS/WARN/FAIL 16/0/0 |
+| 2026-05-08 23:46:20 | `PLAN/S0122_settings-ia-wave2-cross-tab-relocations.md` | `spec-all` | Strategic spec: S0122 Settings IA Wave 2 cross-tab relocations |
+| 2026-05-08 23:49:01 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `PlaybackSettingsFragment` | S0122 M2: Remove containerDeleteConfirm (switchAllowDelete + switchConfirmDelete) from playback layout |
+| 2026-05-08 23:49:01 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `PlaybackSettingsFragment` | S0122 M2: Remove containerDeleteConfirm from playback landscape layout |
+| 2026-05-08 23:49:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | S0122 M1+M2: Remove switchAllowDelete and switchConfirmDelete listeners and observer bindings |
+| 2026-05-08 23:49:02 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `OperationsSettingsFragment` | S0122 M1: Add switchAllowDelete row to Safety section in destinations layout |
+| 2026-05-08 23:49:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `OperationsSettingsFragment` | S0122 M1: Add switchAllowDelete listener and observer binding |
+| 2026-05-08 23:49:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchIndex.kt` | `SettingsSearchRegistry` | S0122 M1: Update playback.allow_delete entry to destination=DESTINATIONS, sectionId=operations |
+| 2026-05-08 23:50:26 | `PLAN/S0122_settings-ia-wave2-cross-tab-relocations.md` | `spec-all` | Pipeline Verified: S0122 Settings IA Wave 2 cross-tab relocations |
+| 2026-05-08 23:54:15 | `PLAN/S0123_settings-ia-wave3-saved-authorizations-to-general.md` | `spec-all` | Strategic spec S0123: Settings IA Wave 3 — move rowSavedAuthorizations to General tab |
+| 2026-05-08 23:59:29 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0123` | Add rowSavedAuthorizations to General tab Network/Credentials area |
+| 2026-05-08 23:59:29 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0123` | Add rowSavedAuthorizations to General tab landscape layout |
+| 2026-05-08 23:59:30 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `S0123` | Remove rowSavedAuthorizations from Playback tab portrait layout |
+| 2026-05-08 23:59:30 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `S0123` | Remove rowSavedAuthorizations from Playback tab landscape layout |
+| 2026-05-08 23:59:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `S0123` | Remove rowSavedAuthorizations click handler and isEnabled tie from PlaybackSettingsFragment |
+| 2026-05-08 23:59:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0123` | Add setupSavedAuthorizations() — wire rowSavedAuthorizations click to AuthSessionsActivity |
+| 2026-05-08 23:59:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchIndex.kt` | `S0123` | Add search entry general.saved_authorizations with GENERAL destination and RU/UK keywords |
+| 2026-05-08 23:59:37 | `PLAN/S0123_settings-ia-wave3-saved-authorizations-to-general.md` | `spec-all` | Pipeline Verified: S0123 — Settings IA Wave 3 rowSavedAuthorizations to General |
+| 2026-05-09 01:04:38 | `PLAN/S0124_rollback-s0121-sub-headers.md` | `spec-all` | Compact spec: S0124 rollback of S0121 sub-headers |
+| 2026-05-09 01:11:19 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `fragment_settings_general` | S0124: rollback 5 S0121 sub-header wrappers (portrait+land); remove orphan settings_section_* strings (EN/RU/UK); preserve containerAbout |
+| 2026-05-09 01:12:17 | `PLAN/S0124_rollback-s0121-sub-headers.md` | `spec-all` | Pipeline complete: S0124 Verified |
+| 2026-05-09 01:39:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/` | `rollback` | Reverted all S0119/S0121/S0122/S0123/S0124 settings changes — General tab broke after S0124. Restored sources from HEAD + temp _234633 backups. S0116 working-tree work preserved. All 5 specs archived. |
+| 2026-05-09 01:52:56 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-check` | Audit S0120 → Broken; PASS/WARN/FAIL: 19/2/5; audio endScenario missing, browse FILTER_CHANGE/FOLDER_ENTER/endScenario missing, VID startScenario implicit only |
+| 2026-05-09 01:54:13 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-fix` | Annotate Last Audit (S0120) |
+| 2026-05-09 01:54:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ExoPlayerControlsManager.kt` | `spec-fix` | S0120: replace MIX-audio-browse with VID-playback; remove dead AudioPlaybackService import |
+| 2026-05-09 01:55:42 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-check` | Audit S0120 → Broken; PASS/WARN/FAIL: 20/1/5; MIX-audio-browse fixed, 5 fails remain (AUD endScenario, BRW FILTER_CHANGE/FOLDER_ENTER/endScenario, VID startScenario) |
+| 2026-05-09 01:56:31 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-fix` | Annotate Last Audit (S0120): 0 auto-fixed, 6 follow-ups |
+| 2026-05-09 02:12:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `S0120` | Add startScenario(AUD-playback) on connect + endScenario() on release |
+| 2026-05-09 02:12:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0120` | Add startScenario(VID-playback) on first media load (exoPlayer==null guard) |
+| 2026-05-09 02:12:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `S0120` | Add FOLDER_ENTER checkpoint on navigateToFolder overloads; FILTER_CHANGE on applyFilter |
+| 2026-05-09 02:12:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0120` | Add endScenario() in onStop (guarded by !isChangingConfigurations) for BRW-sort |
+| 2026-05-09 02:16:10 | `PLAN/S0120_memory-growth-endurance-scenarios.md` | `spec-check` | Audit S0120 → Verified; PASS/WARN/FAIL: 30/0/0; all 5 integration gaps repaired |
+| 2026-05-09 02:20:18 | `docs/DEV_OPS.md` | `docs` | Sync DEV_OPS.md to current build.gradle.kts state: add vrUnlicensed flavor, fix lite/photos/legacy feature matrix, add a.ps1 shortcuts, build types table, NDK/ABI section, extended per-flavor BuildConfig flags |
+| 2026-05-09 02:35:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager` | Fix EISDIR: copyToDestination bypasses FileOperationUseCase for local paths; network paths now rename source to target filename before Copy |
+| 2026-05-09 02:40:59 | `app_v2/build.gradle.kts` | `sourceSets` | Replace deprecated srcDir() with directories += file() per AGP deprecation warning |
+| 2026-05-09 02:42:29 | `app_v2/build.gradle.kts` | `sourceSets` | Fix build error: directories is val MutableSet<String>, use .add(String) not += file() |
+| 2026-05-09 02:50:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager` | Fix 180deg rotation in crop/compress output: apply EXIF rotation to decoded bitmap before saving (BitmapRegionDecoder/BitmapFactory return raw unrotated pixels) |
+| 2026-05-09 02:56:29 | `PLAN/S0125_settings-activity-revision.md` | `spec` | Add strategic spec S0125 for settings activity revision |
+| 2026-05-09 03:02:49 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `S0107 Phase 01 Step 1.1` | Add menu_draw_overlay item to overflow menu (IMAGE only) |
+| 2026-05-09 03:02:49 | `app_v2/src/main/res/drawable/ic_draw_overlay.xml` | `S0107 Phase 01 Step 1.1` | Add ic_draw_overlay vector drawable stub (pencil icon) |
+| 2026-05-09 03:04:10 | `app_v2/src/main/res/values/strings.xml` | `S0107 Phase 01 Step 1.2` | Add S0107 draw overlay string keys (EN) |
+| 2026-05-09 03:04:10 | `app_v2/src/main/res/values-ru/strings.xml` | `S0107 Phase 01 Step 1.2` | Add S0107 draw overlay string keys (RU) |
+| 2026-05-09 03:04:10 | `app_v2/src/main/res/values-uk/strings.xml` | `S0107 Phase 01 Step 1.2` | Add S0107 draw overlay string keys (UK) |
+| 2026-05-09 03:07:56 | `PLAN/S0125_settings-activity-revision.md` | `S0125` | Apply final strategic delta: add goals 11-15 (non-regression, input/theme/locale parity, affordance contract), element-bound behavior parity + theme parity constraints, code-anchored context block (SettingsActivity:349, SettingsKeyboardNavigationManager, PermissionsManagementFragment:30, OperationsSettingsFragment:437, themes.xml:3), five new 5.1 pillars, four 5.2 flow bullets, four new §6 questions + partially-resolved evidence markers, three new risk rows, ADR-7 (theme parity), ADR-8 (multilingual search as IA), criteria 13-16 + evidence block in §11 |
+| 2026-05-09 03:08:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `S0107 Phase 01 Step 1.3` | Add DRAW_OVERLAY to PlayerCommand enum and buildActiveCommands condition |
+| 2026-05-09 03:08:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0107 Phase 01 Step 1.3` | Add onDrawOverlayClicked to Callback interface and click handler |
+| 2026-05-09 03:08:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0107 Phase 01 Step 1.3` | Implement onDrawOverlayClicked with Timber tag and enterDrawMode call |
+| 2026-05-09 03:08:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0107 Phase 01 Step 1.3` | Declare lateinit var imageDrawOverlayManager for S0107 |
+| 2026-05-09 03:19:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0107 Phase 02 Steps 2.1-2.5` | Full ImageDrawOverlayManager: state machine, DrawCanvasView, swipe block, orientation lock, back press |
+| 2026-05-09 03:19:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0107 Phase 02 Step 2.4` | Construct ImageDrawOverlayManager in PlayerManagerInitializer |
+| 2026-05-09 03:19:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0107 Phase 02 Step 2.5` | Add isDrawOverlayManagerReady helper property |
+| 2026-05-09 03:19:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `S0107 Phase 02 Step 2.5` | Wire imageDrawOverlayManager.handleBackPress() in setupBackPressHandler |
+| 2026-05-09 03:23:34 | `PLAN/S0125_settings-activity-revision.md` | `S0125` | Add Row layout contract to §3.2: toggle-left / text / helper-right is a preserved hard constraint, not just an observation |
+| 2026-05-09 03:25:48 | `app_v2/src/main/res/layout/player_draw_overlay_toolbar_content.xml` | `S0107 Phase 03 Step 3.1` | Create portrait draw overlay toolbar layout |
+| 2026-05-09 03:25:49 | `app_v2/src/main/res/layout-land/player_draw_overlay_toolbar_content.xml` | `S0107 Phase 03 Step 3.2` | Create landscape draw overlay toolbar layout |
+| 2026-05-09 03:25:49 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0107 Phase 03 Step 3.3` | Include draw_overlay_toolbar_stub in player layout |
+| 2026-05-09 03:25:49 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0107 Phase 03 Step 3.3` | Include draw_overlay_toolbar_stub in landscape player layout |
+| 2026-05-09 03:25:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0107 Phase 03 Step 3.4` | Implement bindToolbar with tool/color/action button listeners and selection indicator |
+| 2026-05-09 03:25:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0107 Phase 03 Step 3.4` | Call bindToolbar with draw_overlay_toolbar_stub.root |
+| 2026-05-09 03:25:50 | `app_v2/src/main/res/drawable/ic_draw_rect.xml` | `S0107 Phase 03` | Add ic_draw_rect vector drawable stub |
+| 2026-05-09 03:25:50 | `app_v2/src/main/res/drawable/ic_eraser.xml` | `S0107 Phase 03` | Add ic_eraser vector drawable stub |
+| 2026-05-09 03:25:50 | `app_v2/src/main/res/drawable/draw_color_swatch.xml` | `S0107 Phase 03` | Add draw_color_swatch oval shape drawable |
+| 2026-05-09 03:26:16 | `temp/S0125_baseline_20260509_0326` | `S0125` | Baseline snapshot before settings revision: 58 .kt + 33 .xml files, commit 01042db |
+| 2026-05-09 03:31:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MergeDrawOverlayUseCase.kt` | `S0107 Phase 04 Step 4.1` | Create MergeDrawOverlayUseCase: in-memory composite of base + overlay bitmaps, compress to ByteArray on Dispatchers.IO |
+| 2026-05-09 03:34:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0107 Phase 04 Step 4.2` | Add currentDisplayedBitmap: Bitmap? property (internal set) for draw overlay merge access |
+| 2026-05-09 03:34:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `S0107 Phase 04 Step 4.2` | Add onStaticImageLoaded(bitmap) to ImageLoadingCallback interface; call from static Glide onResourceReady |
+| 2026-05-09 03:34:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerImageLoadingCallbackImpl.kt` | `S0107 Phase 04 Step 4.2` | Implement onStaticImageLoaded to set viewModel.currentDisplayedBitmap with Timber log |
+| 2026-05-09 03:35:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0107 Phase 04 Step 4.3` | Implement filename AlertDialog in handleSaveRequest: default name <base>_draw_YYMMdd_HHmm.<ext>, invokes saveCallback on confirm |
+| 2026-05-09 03:40:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0107 Phase 04 Step 4.4` | Add mergeDrawOverlayUseCase @Inject, setupDrawOverlaySaveCallback(): merge + write to same-dir or Downloads + cleanup |
+| 2026-05-09 03:40:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0107 Phase 04 Step 4.4` | Call setupDrawOverlaySaveCallback() after bindToolbar() |
+| 2026-05-09 03:40:38 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Force-locked refinement: align stale next-step guidance and audit history with Broken state |
+| 2026-05-09 03:40:38 | `PLAN/S0118_friendly-ui-copy-revision/INDEX.md` | `spec-update` | Force-locked refinement: mark Broken audit as current gate truth in tactical index |
+| 2026-05-09 03:40:39 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_07__docs-catalog-cleanup.md` | `spec-update` | Force-locked refinement: mark Step 07.4 Verified audit as historical only |
+| 2026-05-09 03:43:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0107 Phase 04 Step 4.5` | Add onFileCreatedInCurrentDirectory(newFile): inserts new MediaFile after currentIndex and navigates to it |
+| 2026-05-09 03:43:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0107 Phase 04 Step 4.5` | Call viewModel.onFileCreatedInCurrentDirectory() after save to same-dir for navigation to new file |
+| 2026-05-09 03:47:36 | `docs/FEATURES.md` | `S0107 Phase 05 Step 5.1` | Add Draw annotations bullet to section 5 Image Viewer |
+| 2026-05-09 03:47:36 | `docs/FEATURES_RU.md` | `S0107 Phase 05 Step 5.1` | Add Russian draw overlay feature bullet to section 5 |
+| 2026-05-09 03:47:37 | `docs/FEATURES_UK.md` | `S0107 Phase 05 Step 5.1` | Add Ukrainian draw overlay feature bullet to section 5 |
+| 2026-05-09 03:47:46 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Force-locked refinement: trimmed S0118 strategic prose for execution |
+| 2026-05-09 03:49:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0107 Phase 05 Step 5.2` | Remove Timber.d('S0107:') debug tags from enterDrawMode and exitDrawMode |
+| 2026-05-09 03:49:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0107 Phase 05 Step 5.2` | Remove Timber.d('S0107:') debug tag from onDrawOverlayClicked |
+| 2026-05-09 03:49:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerImageLoadingCallbackImpl.kt` | `S0107 Phase 05 Step 5.2` | Remove Timber.d('S0107:') debug tag from onStaticImageLoaded + remove unused Timber import |
+| 2026-05-09 03:49:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0107 Phase 05 Step 5.2` | Remove Timber.d('S0107: overlay merged') debug tag from save callback |
+| 2026-05-09 03:52:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Replaced hardcoded browse error copy with resource-backed fallback mapping for S0118 |
+| 2026-05-09 03:52:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt` | `BrowseSortFilterManager` | Moved applyFilter primary error copy to resource-backed friendly browse message |
+| 2026-05-09 03:52:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt` | `BrowseLoadingAuxManager` | Replaced generic browse loading title/body copy with resource-backed friendly message |
+| 2026-05-09 04:00:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `PlayerDialogHelper` | S0118: replaced PDF export raw fallback toast detail with generic localized copy and kept exception detail in Timber |
+| 2026-05-09 04:00:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/FileInfoLaunchManager.kt` | `FileInfoLaunchManager` | S0118: replaced raw download/open failure toast detail with localized generic copy |
+| 2026-05-09 04:00:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/RenameDialog.kt` | `RenameDialog` | S0118: replaced raw rename failure toast aggregation/detail with generic localized copy and Timber logging |
+| 2026-05-09 04:00:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt` | `LyricsManager` | S0118: replaced generic lyrics failure raw message with localized friendly fallback |
+| 2026-05-09 04:08:22 | `PLAN/S0126_image-editor-output-autoname.md` | `spec` | Add strategic spec S0126 for image editor output auto-naming unification |
+| 2026-05-09 04:11:10 | `PLAN/S0126_image-editor-output-autoname/INDEX.md` | `spec-tech` | Create tactical plan for S0126 |
+| 2026-05-09 04:11:10 | `PLAN/S0126_image-editor-output-autoname/PHASE_01__naming-generator.md` | `spec-tech` | Phase 01: naming-generator |
+| 2026-05-09 04:11:10 | `PLAN/S0126_image-editor-output-autoname/PHASE_02__wire-into-managers.md` | `spec-tech` | Phase 02: wire-into-managers |
+| 2026-05-09 04:11:10 | `PLAN/S0126_image-editor-output-autoname/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-09 04:11:10 | `PLAN/S0126_image-editor-output-autoname.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-09 04:12:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageEditorFileNamer.kt` | `S0126` | Phase 01: add ImageEditorFileNamer utility |
+| 2026-05-09 04:15:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0107` | Fix eraser strokeWidth 24f→48f; add filled GradientDrawable (OVAL, solid color, white stroke) backgrounds for color swatches in bindToolbar() |
+| 2026-05-09 04:15:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0107` | Fix overlay coordinate mismatch: read photoView.displayRect before coroutine, crop+scale overlay to image region via cropOverlayToImage(); fix missing file extension for extensionless source files |
+| 2026-05-09 04:16:11 | `PLAN/S0127_image-player-draw-crop-immersive.md` | `spec` | Add strategic spec S0127: image-player draw/crop immersive mode |
+| 2026-05-09 04:20:29 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-fix` | Annotate Last Audit (S0118): 0 auto-fixed, 3 follow-ups (all require non-mechanical method-body edits) |
+| 2026-05-09 04:20:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0126` | Phase 02: use ImageEditorFileNamer for crop/compress naming |
+| 2026-05-09 04:21:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0126` | Phase 02: use ImageEditorFileNamer for draw naming |

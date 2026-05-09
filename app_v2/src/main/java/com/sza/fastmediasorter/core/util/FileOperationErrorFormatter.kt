@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.core.util
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
+import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
 import timber.log.Timber
 
 /**
@@ -37,10 +39,8 @@ object FileOperationErrorFormatter {
         // Extract key error type
         val errorType = detectErrorType(cleanMessage)
         
-        // Build user-friendly message
+        // Build user-friendly message — S0118: emoji-free, short primary line + optional details.
         return buildString {
-            // Main header with emoji for visual clarity
-            append("❌ ")
             when (operation.lowercase()) {
                 "copy" -> append(context.getString(R.string.error_operation_title_copy))
                 "move" -> append(context.getString(R.string.error_operation_title_move))
@@ -48,29 +48,41 @@ object FileOperationErrorFormatter {
                 else -> append(context.getString(R.string.error_operation_failed))
             }
             append("\n")
-            
-            // File name (always shown)
-            append("📄 ").append(fileName).append("\n\n")
-            
-            // User-friendly reason
-            append("💡 ").append(getUserFriendlyReason(context, errorType, cleanMessage))
-            
+            append(fileName).append("\n\n")
+            append(getUserFriendlyReason(context, errorType, cleanMessage))
+
             if (showDetailedErrors) {
-                // Show paths if available
                 if (sourcePath != null) {
-                    append("\n\n📂 ${context.getString(R.string.source_path)}:\n")
+                    append("\n\n${context.getString(R.string.source_path)}:\n")
                     append(shortenPath(sourcePath))
                 }
                 if (destPath != null) {
-                    append("\n\n📁 ${context.getString(R.string.destination_path)}:\n")
+                    append("\n\n${context.getString(R.string.destination_path)}:\n")
                     append(shortenPath(destPath))
                 }
-                
-                // Technical details (cleaned)
-                append("\n\n🔧 ${context.getString(R.string.technical_details)}:\n")
+                append("\n\n${context.getString(R.string.technical_details)}:\n")
                 append(cleanMessage)
             }
         }
+    }
+
+    /**
+     * S0118: Build a [UiMessageSpec] payload for a single file operation error.
+     * Short message holds the primary user-facing copy; detailed message carries
+     * the technical details surface (paths + cleaned exception text) for callers
+     * that want the projector to decide where to render them.
+     */
+    fun formatAsSpec(
+        context: Context,
+        fileName: String,
+        operation: String,
+        errorMessage: String,
+        sourcePath: String? = null,
+        destPath: String? = null,
+    ): UiMessageSpec {
+        val short = formatError(context, fileName, operation, errorMessage, showDetailedErrors = false)
+        val detailed = formatError(context, fileName, operation, errorMessage, showDetailedErrors = true, sourcePath, destPath)
+        return UiMessageSpec(family = UiMessageFamily.ERROR, shortMessage = short, detailedMessage = detailed.takeIf { it != short })
     }
 
     /**
@@ -88,13 +100,12 @@ object FileOperationErrorFormatter {
         
         return buildString {
             if (failedCount == totalCount) {
-                // All failed - more dramatic
-                append("❌ ${context.getString(R.string.error_all_operations_failed)}\n\n")
+                // S0118: emoji-free summary line.
+                append("${context.getString(R.string.error_all_operations_failed)}\n\n")
             } else {
-                // Partial success
-                append("⚠️ ${context.getString(R.string.error_partial_success)}\n\n")
-                append("✅ ${context.getString(R.string.success_count, successCount)}\n")
-                append("❌ ${context.getString(R.string.failed_count, failedCount)}\n\n")
+                append("${context.getString(R.string.error_partial_success)}\n\n")
+                append("${context.getString(R.string.success_count, successCount)}\n")
+                append("${context.getString(R.string.failed_count, failedCount)}\n\n")
             }
             
             if (showDetailedErrors) {

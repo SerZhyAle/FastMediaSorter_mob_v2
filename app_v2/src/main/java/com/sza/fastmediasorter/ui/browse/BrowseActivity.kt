@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -412,6 +413,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun onStop() {
         super.onStop()
         if (!isChangingConfigurations) {
+            // S0120: emit BRW-sort SUMMARY and schedule cooldown on genuine browse exit
+            MemoryEnduranceTracker.endScenario()
             viewModel.inlineStop()
         }
         if (!isFinishing) {

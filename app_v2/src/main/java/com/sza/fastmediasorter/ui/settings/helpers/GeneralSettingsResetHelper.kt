@@ -61,7 +61,8 @@ class GeneralSettingsResetHelper(
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to reset SMB connections")
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(fragment.requireContext(), "Failed to reset SMB connections: ${e.message}", Toast.LENGTH_LONG).show()
+                            val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
+                            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_smb_failed, reason), Toast.LENGTH_LONG).show()
                             binding.btnResetSmbConnections.isEnabled = true
                             binding.btnResetSmbConnections.text = fragment.getString(R.string.reset_smb_connections)
                         }
@@ -79,9 +80,10 @@ class GeneralSettingsResetHelper(
                 Toast.makeText(fragment.requireContext(), R.string.reset_general_section_success, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to reset general section")
+                val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
                 Toast.makeText(
                     fragment.requireContext(),
-                    fragment.getString(R.string.reset_general_section_failed, e.message ?: "Unknown error"),
+                    fragment.getString(R.string.reset_general_section_failed, reason),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -95,7 +97,8 @@ class GeneralSettingsResetHelper(
                 Toast.makeText(fragment.requireContext(), R.string.reset_settings_success, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to reset settings")
-                Toast.makeText(fragment.requireContext(), "Failed to reset settings: ${e.message}", Toast.LENGTH_LONG).show()
+                val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_settings_failed, reason), Toast.LENGTH_LONG).show()
             }
         }
     }

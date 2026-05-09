@@ -21,6 +21,15 @@ Applies to ALL text output — docs, UI strings (`strings.xml`), chat responses,
 1. **Ellipsis**: Use `..` (two dots) — NEVER `...` (three dots).
 2. **Ё/ё**: Always use `ё`/`Ё` in Russian text where grammatically correct — NEVER substitute with `е`/`Е`. Common cases: `всё`, `ещё`, `чёрный`, `объём`, `тёмный`, `учётный`, `надёжный`, `удалённый`, `лёгкий`, `жёсткий`. When editing Russian text — read and fix manually; do NOT use blind script replacement.
 
+## Caveman Mode (OPTIONAL)
+
+When the user explicitly asks for `caveman`, `less tokens`, `be brief`, `ultra-terse`, or `/caveman`:
+- Keep RUSSIAN in chat and ENGLISH in code/docs/logs.
+- Drop filler, pleasantries, and hedging. Keep technical terms exact.
+- Treat caveman as opt-in for the current chat, not the default repo voice.
+- Repo safety and workflow rules override brevity. Do NOT compress security warnings, destructive/irreversible confirmations, or ordered multi-step instructions where compression harms clarity.
+- Mandatory prompt routing still applies.
+
 ---
 
 ## Skill Rules (MANDATORY — Auto-invoke on trigger)
@@ -41,6 +50,9 @@ These prompt files MUST be used automatically — load them via the `/` slash co
 | User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** — provides structured Android logcat analysis with the search-log.ps1 scripts |
 | User asks how to build, which build command to use, or wants to trigger a build | `/build` | **Mandatory** — routes to the correct flavor/variant build command |
 | User asks about git commits, staging, pushing, diffs, old file versions, or "what should I commit" | `/git` | **Mandatory** — provides project-aware git workflow guidance |
+| User asks for caveman mode, fewer tokens, ultra-terse replies, or `/caveman` | `/caveman` | **Optional** — switches the current chat to terse caveman mode while preserving Russian chat, English code/docs/logs, and existing safety/workflow constraints |
+| User asks for a terse commit message, caveman commit message, or `/caveman-commit` | `/caveman-commit` | **Optional** — generates a compressed Conventional Commit message while preserving English commit format and critical why-context |
+| User asks for terse code review comments, caveman review, or `/caveman-review` | `/caveman-review` | **Optional** — produces compressed review findings with exact file/line anchors, severity, and fix direction |
 
 Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc — always route through the corresponding prompt.
 

@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260508023
-        versionName = "2.60.5080.232"
+        versionCode = 260509042
+        versionName = "2.60.5090.424"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -325,12 +325,22 @@ android {
     
     // vrUnlicensed shares the same VR Kotlin/Java/C++ sources as vr.
     // AGP does not inherit flavor source sets automatically, so we add src/vr/ dirs explicitly.
+    //
+    // S0116 §3.2: streamingEnabled — Media3 HLS/DASH + MediaMuxer; streamingDisabled — NoOp pipeline for lite/photos.
+    // Both shared source-sets are mounted into every flavor that needs them; AGP does not
+    // expose pseudo-flavor inheritance, so each flavor explicitly maps to one of the two.
     sourceSets {
         getByName("vrUnlicensed") {
-            java.srcDir("src/vr/java")
-            res.srcDir("src/vr/res")
+            java.directories.add("src/vr/java")
+            res.directories.add("src/vr/res")
             manifest.srcFile("src/vr/AndroidManifest.xml")
+            java.directories.add("src/streamingEnabled/java")
         }
+        getByName("standard") { java.directories.add("src/streamingEnabled/java") }
+        getByName("legacy") { java.directories.add("src/streamingEnabled/java") }
+        getByName("vr") { java.directories.add("src/streamingEnabled/java") }
+        getByName("lite") { java.directories.add("src/streamingDisabled/java") }
+        getByName("photos") { java.directories.add("src/streamingDisabled/java") }
     }
 
     testOptions {
@@ -406,6 +416,7 @@ android {
             }
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "true")
+            buildConfigField("boolean", "LOG_LINK_DOWNLOAD", "true")
             buildConfigField("boolean", "ENABLE_LEAKCANARY", "false")
             buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "true")
             buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
@@ -419,6 +430,7 @@ android {
             isShrinkResources = true
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "false")
+            buildConfigField("boolean", "LOG_LINK_DOWNLOAD", "false")
             buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "true")
             buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
             ndk {
@@ -643,13 +655,21 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     
-    // ExoPlayer (optimized - exclude streaming modules, save ~1-2 MB)
+    // ExoPlayer (HLS/DASH re-enabled per-flavor below for S0116; SmoothStreaming stays excluded)
     implementation("androidx.media3:media3-exoplayer:1.2.1") {
-        // Exclude DASH/HLS/SmoothStreaming - only need local/network file playback
-        exclude(group = "androidx.media3", module = "media3-exoplayer-dash")
-        exclude(group = "androidx.media3", module = "media3-exoplayer-hls")
+        // Exclude SmoothStreaming - not used by url-download or playback
         exclude(group = "androidx.media3", module = "media3-exoplayer-smoothstreaming")
     }
+    // S0116: HLS/DASH offline downloader is wired only into video-supporting market flavors.
+    // lite/photos stay without these modules to preserve their APK size budget.
+    "standardImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
+    "standardImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    "legacyImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
+    "legacyImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    "vrImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
+    "vrImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    "vrUnlicensedImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
+    "vrUnlicensedImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
@@ -773,6 +793,8 @@ dependencies {
     
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    // S0116 Phase 07 step 0: MockWebServer for graceful-degradation instrumentation tests.
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     androidTestImplementation("androidx.navigation:navigation-testing:2.7.6")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")

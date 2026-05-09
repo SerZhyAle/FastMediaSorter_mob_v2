@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -24,7 +25,8 @@ class GeneralSettingsCredentialHelper(
         try {
             importCredentialsLauncher.launch(arrayOf("application/json", "*/*"))
         } catch (e: Exception) {
-            Toast.makeText(fragment.requireContext(), "Failed to launch file picker", Toast.LENGTH_SHORT).show()
+            // S0118: friendly copy via resource, no protocol-style error.
+            Toast.makeText(fragment.requireContext(), R.string.settings_credentials_picker_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -38,7 +40,7 @@ class GeneralSettingsCredentialHelper(
                     }
                 }
                 if (json.isNullOrBlank()) {
-                    Toast.makeText(fragment.requireContext(), "File is empty or could not be read", Toast.LENGTH_LONG).show()
+                    Toast.makeText(fragment.requireContext(), R.string.settings_credentials_file_empty, Toast.LENGTH_LONG).show()
                     return@launch
                 }
 
@@ -153,18 +155,19 @@ class GeneralSettingsCredentialHelper(
                     settingsImported = true
                 }
 
-                val message = buildString {
-                    append("✅ Import successful:\n")
-                    append("• $credentialsImported credentials\n")
-                    append("• $resourcesImported resources")
-                    if (settingsImported) append("\n• Settings updated")
+                // S0118: emoji-free, localized success copy.
+                val message = if (settingsImported) {
+                    fragment.getString(R.string.settings_credentials_import_success_with_settings, credentialsImported, resourcesImported)
+                } else {
+                    fragment.getString(R.string.settings_credentials_import_success, credentialsImported, resourcesImported)
                 }
                 Toast.makeText(fragment.requireContext(), message, Toast.LENGTH_LONG).show()
                 Timber.i("Import complete: $credentialsImported credentials, $resourcesImported resources, settings=$settingsImported")
 
             } catch (e: Exception) {
                 Timber.e(e, "Failed to import test credentials")
-                Toast.makeText(fragment.requireContext(), "Failed to import: ${e.message}", Toast.LENGTH_LONG).show()
+                val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_credentials_import_failed, reason), Toast.LENGTH_LONG).show()
             }
         }
     }

@@ -207,6 +207,8 @@ object BackupMapper {
             linkAutoDownloadEnabled = settings.linkAutoDownloadEnabled,
             linkAutoDownloadResourceId = settings.linkAutoDownloadResourceId,
             linkAutoDownloadOpenInPlayer = settings.linkAutoDownloadOpenInPlayer,
+            linkDownloadMaxResolution = settings.linkDownloadMaxResolution,
+            linkDownloadAudioOnly = settings.linkDownloadAudioOnly,
             vrAutoDetectFormat = settings.vrAutoDetectFormat,
             vrForcedPlatFormat = settings.vrForcedPlatFormat,
             vrForcedSphericalFormat = settings.vrForcedSphericalFormat,
@@ -363,6 +365,9 @@ object BackupMapper {
             linkAutoDownloadEnabled = backup.linkAutoDownloadEnabled ?: current.linkAutoDownloadEnabled,
             linkAutoDownloadResourceId = backup.linkAutoDownloadResourceId,
             linkAutoDownloadOpenInPlayer = backup.linkAutoDownloadOpenInPlayer ?: current.linkAutoDownloadOpenInPlayer,
+            // S0116: null in older backups → preserve current setting
+            linkDownloadMaxResolution = backup.linkDownloadMaxResolution ?: current.linkDownloadMaxResolution,
+            linkDownloadAudioOnly = backup.linkDownloadAudioOnly ?: current.linkDownloadAudioOnly,
             vrAutoDetectFormat = backup.vrAutoDetectFormat,
             vrForcedPlatFormat = backup.vrForcedPlatFormat.gsonSafe(migratedPlatFormat),
             vrForcedSphericalFormat = backup.vrForcedSphericalFormat.gsonSafe(migratedSphericalFormat),

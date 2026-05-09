@@ -6,8 +6,10 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.util.AppErrorNotifier
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -115,7 +117,11 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     )
                 }
             } else {
-                com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(activity, message)
+                AppErrorNotifier.show(
+                    activity = activity,
+                    message = message,
+                    severity = ErrorSeverity.CRITICAL
+                )
             }
         }
     }

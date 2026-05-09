@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.cloudfolders
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.AuthResult
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
@@ -70,7 +71,7 @@ class OneDriveFolderPickerViewModel @Inject constructor(
                 val authResult = oneDriveClient.authenticate()
                 if (authResult is AuthResult.Error) {
                     Timber.e("OneDrive authentication failed: ${authResult.message}")
-                    _events.send(OneDriveFolderPickerEvent.ShowError("Authentication failed: ${authResult.message}"))
+                    _events.send(OneDriveFolderPickerEvent.ShowError(authFailedMessage()))
                     _state.update { it.copy(isLoading = false) }
                     return@launch
                 }
@@ -90,13 +91,13 @@ class OneDriveFolderPickerViewModel @Inject constructor(
                     }
                     is CloudResult.Error -> {
                         Timber.e("Failed to load OneDrive folders: ${result.message}")
-                        _events.send(OneDriveFolderPickerEvent.ShowError(result.message))
+                        _events.send(OneDriveFolderPickerEvent.ShowError(genericErrorMessage()))
                         _state.update { it.copy(isLoading = false) }
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading OneDrive folders")
-                _events.send(OneDriveFolderPickerEvent.ShowError(e.message ?: "Unknown error"))
+                _events.send(OneDriveFolderPickerEvent.ShowError(genericErrorMessage()))
                 _state.update { it.copy(isLoading = false) }
             }
         }
@@ -123,11 +124,7 @@ class OneDriveFolderPickerViewModel @Inject constructor(
                 }
                 if (duplicate != null) {
                     Timber.w("OneDriveFolderPicker: folder ${folder.id} already added as '${duplicate.name}'")
-                    _events.send(
-                        OneDriveFolderPickerEvent.ShowError(
-                            "Folder \"${folder.name}\" already added as resource \"${duplicate.name}\". Remove it first if you want to re-add."
-                        )
-                    )
+                    _events.send(OneDriveFolderPickerEvent.ShowError(alreadyAddedMessage()))
                     return@launch
                 }
 
@@ -156,11 +153,11 @@ class OneDriveFolderPickerViewModel @Inject constructor(
                     _events.send(OneDriveFolderPickerEvent.FolderSelected)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add folder")
-                    _events.send(OneDriveFolderPickerEvent.ShowError(e.message ?: "Failed to add folder"))
+                    _events.send(OneDriveFolderPickerEvent.ShowError(genericErrorMessage()))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to add folder")
-                _events.send(OneDriveFolderPickerEvent.ShowError(e.message ?: "Failed to add folder"))
+                _events.send(OneDriveFolderPickerEvent.ShowError(genericErrorMessage()))
             }
         }
     }
@@ -190,4 +187,10 @@ class OneDriveFolderPickerViewModel @Inject constructor(
             false
         }
     }
+
+    private fun alreadyAddedMessage(): String = context.getString(R.string.virtual_resource_already_added)
+
+    private fun authFailedMessage(): String = context.getString(R.string.friendly_copy_error_auth_failed)
+
+    private fun genericErrorMessage(): String = context.getString(R.string.friendly_copy_error_generic)
 }

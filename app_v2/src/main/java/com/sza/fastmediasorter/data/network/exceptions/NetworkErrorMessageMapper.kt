@@ -5,6 +5,8 @@ import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
+import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
 
 /**
  * Maps [NetworkException] subtypes to user-facing string resource IDs.
@@ -69,4 +71,20 @@ object NetworkErrorMessageMapper {
 
         return context.getString(toMessageRes(exception))
     }
+
+    /**
+     * S0118: Wrap [toContextAwareMessage] as a [UiMessageSpec] so error callers
+     * can route through [com.sza.fastmediasorter.ui.common.copy.UiMessageProjector]
+     * without rebuilding the friendly-copy contract per surface.
+     */
+    fun toUiSpec(
+        context: Context,
+        exception: NetworkException,
+        resourceType: ResourceType,
+        resourcePath: String,
+        contextAnalyzer: NetworkContextAnalyzer,
+    ): UiMessageSpec = UiMessageSpec(
+        family = UiMessageFamily.ERROR,
+        shortMessage = toContextAwareMessage(context, exception, resourceType, resourcePath, contextAnalyzer),
+    )
 }

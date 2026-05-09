@@ -143,6 +143,9 @@ data class BackupSettings(
     val linkAutoDownloadEnabled: Boolean? = null,
     val linkAutoDownloadResourceId: Long? = null,
     val linkAutoDownloadOpenInPlayer: Boolean? = null,
+    // S0116 §5.1 pillar J: streaming/quality preference (nullable for forward-compat).
+    val linkDownloadMaxResolution: String? = null,
+    val linkDownloadAudioOnly: Boolean? = null,
     // VR settings (spec §5.7 / Phase 8)
     val vrAutoDetectFormat: Boolean = true,
     val vrForcedPlatFormat: String = "AUTO",

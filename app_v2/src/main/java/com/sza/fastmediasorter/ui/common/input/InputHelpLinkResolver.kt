@@ -5,7 +5,10 @@ package com.sza.fastmediasorter.ui.common.input
  * help dialog CTA.
  *
  * Base URL and surface anchors are kept here so a future documentation
- * reshuffle does not require touching every call site.
+ * reshuffle does not require touching every call site. The resolver is
+ * surface-specific; for general support routing (help, bug report, feedback)
+ * use [com.sza.fastmediasorter.ui.common.support.SupportIntentFactory] —
+ * that factory owns the canonical S0118 channels.
  */
 object InputHelpLinkResolver {
 

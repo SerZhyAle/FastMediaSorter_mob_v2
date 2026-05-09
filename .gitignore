@@ -126,6 +126,7 @@ lint/tmp/
 # TEMPORARY & SCRATCH FILES
 # ============================================================================
 temp/
+PLAN/
 *.tmp
 *.log
 *.swp
@@ -193,6 +194,10 @@ Desktop.ini
 .github/*
 !.github/workflows/
 !.github/copilot-instructions.md
+!.github/prompts/
+!.github/prompts/*.prompt.md
+!.github/agents/
+!.github/agents/*.agent.md
 
 # ============================================================================
 # MISCELLANEOUS
@@ -211,6 +216,7 @@ vcs.xml
 # Agents documentation (internal AI instructions)
 AGENTS.md
 GEMINI.md
+!AGENTS.md
 
 # Google site verification
 google*.html

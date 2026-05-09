@@ -11,7 +11,6 @@ import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.smbj.share.File
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.SmbErrorClassifier
@@ -488,9 +487,8 @@ class SmbDataSource(
     }
     
     private fun logProgress(bytesJustRead: Int) {
-        if (BuildConfig.LOG_SMB_IO) {
-            Timber.d("SmbDataSource: READ - bytes=$bytesJustRead total=$totalBytesRead remaining=${formatRemaining()} file=${uri?.lastPathSegment}")
-        } else if (totalBytesRead >= nextLogThresholdBytes) {
+        if (totalBytesRead >= nextLogThresholdBytes) {
+            // SMB playback can produce thousands of small reads, so keep only coarse transfer summaries.
             val transferredMb = totalBytesRead / BYTES_IN_MEBIBYTE
             Timber.d(
                 String.format(

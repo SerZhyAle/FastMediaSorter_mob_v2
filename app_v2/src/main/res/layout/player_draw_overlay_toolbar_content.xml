@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0107: Draw overlay toolbar — portrait variant -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawOverlayToolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    android:background="#CC000000"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:visibility="gone">
+
+    <!-- Row 1: Tool buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_draw_tool_brush"
+            android:layout_width="@dimen/player_cmd_button_size"
+            android:layout_height="@dimen/player_cmd_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/draw_overlay_toolbar_brush"
+            android:padding="8dp"
+            android:src="@drawable/ic_draw_overlay"
+            android:tint="#FFFFFFFF" />
+
+        <ImageButton
+            android:id="@+id/btn_draw_tool_rect"
+            android:layout_width="@dimen/player_cmd_button_size"
+            android:layout_height="@dimen/player_cmd_button_size"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/draw_overlay_toolbar_rect"
+            android:padding="8dp"
+            android:src="@drawable/ic_draw_rect"
+            android:tint="#FFFFFFFF" />
+
+        <ImageButton
+            android:id="@+id/btn_draw_tool_eraser"
+            android:layout_width="@dimen/player_cmd_button_size"
+            android:layout_height="@dimen/player_cmd_button_size"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/draw_overlay_toolbar_eraser"
+            android:padding="8dp"
+            android:src="@drawable/ic_eraser"
+            android:tint="#FFFFFFFF" />
+
+    </LinearLayout>
+
+    <!-- Row 2: Color palette -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/color_white"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/draw_color_swatch"
+            android:backgroundTint="#FFFFFFFF"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true" />
+
+        <View
+            android:id="@+id/color_black"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/draw_color_swatch"
+            android:backgroundTint="#FF000000"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true" />
+
+        <View
+            android:id="@+id/color_gray"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/draw_color_swatch"
+            android:backgroundTint="#FF808080"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true" />
+
+        <View
+            android:id="@+id/color_red"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/draw_color_swatch"
+            android:backgroundTint="#FFE53935"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true" />
+
+        <View
+            android:id="@+id/color_blue"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/draw_color_swatch"
+            android:backgroundTint="#FF1E88E5"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true" />
+
+        <View
+            android:id="@+id/color_green"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/draw_color_swatch"
+            android:backgroundTint="#FF43A047"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true" />
+
+        <View
+            android:id="@+id/color_yellow"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/draw_color_swatch"
+            android:backgroundTint="#FFFDD835"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <!-- Row 3: Action buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_draw_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/cancel" />
+
+        <Button
+            android:id="@+id/btn_draw_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="@string/draw_overlay_save_button" />
+
+    </LinearLayout>
+
+</LinearLayout>

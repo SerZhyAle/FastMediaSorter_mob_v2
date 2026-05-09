@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import timber.log.Timber
 
 /**
@@ -77,6 +78,8 @@ class PlayerPlaybackCallbackImpl(
     
     override fun onPlaybackEnded() {
         val wasAudio = viewModel.state.value.currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.AUDIO
+        // S0120: track auto-advance transitions with correct scenario name per media type
+        MemoryEnduranceTracker.checkpoint("TRANSITION", if (wasAudio) "AUD-playback" else "VID-playback")
         if (viewModel.state.value.isSlideShowActive) {
             Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Playback ended (slideshow)")
             viewModel.nextFile(skipDocuments = true)

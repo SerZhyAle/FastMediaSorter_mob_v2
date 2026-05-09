@@ -10,6 +10,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
@@ -65,6 +66,8 @@ class AudioServiceController(
             try {
                 val controller = future.get()
                 mediaController = controller
+                // S0120: record BASELINE for AUD-playback endurance session on first connection
+                MemoryEnduranceTracker.startScenario("AUD-playback")
                 Timber.d("AudioServiceController: connected successfully")
                 onConnected(controller)
             } catch (e: Exception) {
@@ -258,6 +261,8 @@ class AudioServiceController(
      * Must be called when the Activity is destroyed.
      */
     fun release() {
+        // S0120: emit AUD-playback SUMMARY and schedule cooldown checkpoint
+        MemoryEnduranceTracker.endScenario()
         Timber.d("AudioServiceController: releasing")
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null

@@ -10,6 +10,7 @@ import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -344,6 +345,7 @@ class AudioSlideshowPhotoModeManager(
     fun advancePhoto() {
         val intervalSec = (viewModel.state.value.slideShowInterval / 1000).toInt()
         Timber.d("AudioSlideshow: advanceAudioBackgroundPhoto called (interval=${intervalSec}s)")
+        MemoryEnduranceTracker.checkpoint("TRANSITION", "MIX-audio-slideshow") // S0120
         audioBackgroundPhotosManager.advanceToNextPhoto()
     }
 

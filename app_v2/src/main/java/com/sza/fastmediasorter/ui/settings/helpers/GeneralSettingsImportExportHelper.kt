@@ -48,13 +48,13 @@ class GeneralSettingsImportExportHelper(
                     com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
                         fragment.requireContext(),
                         fragment.getString(R.string.import_failed_title),
-                        error.message ?: "Unknown error",
+                        error.message ?: fragment.getString(R.string.settings_unknown_error),
                         fragment.getString(android.R.string.ok)
                     )
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Import settings from URI failed")
-                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.import_failed, e.message ?: "Unknown error"), Toast.LENGTH_LONG).show()
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.import_failed, e.message ?: fragment.getString(R.string.settings_unknown_error)), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -66,11 +66,11 @@ class GeneralSettingsImportExportHelper(
                 result.onSuccess {
                     Toast.makeText(fragment.requireContext(), fragment.getString(R.string.export_success), Toast.LENGTH_LONG).show()
                 }.onFailure { error ->
-                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.export_failed, error.message ?: "Unknown error"), Toast.LENGTH_LONG).show()
+                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.export_failed, error.message ?: fragment.getString(R.string.settings_unknown_error)), Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Export settings failed")
-                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.export_failed, e.message ?: "Unknown error"), Toast.LENGTH_LONG).show()
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.export_failed, e.message ?: fragment.getString(R.string.settings_unknown_error)), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -103,9 +103,9 @@ class GeneralSettingsImportExportHelper(
                     Toast.makeText(fragment.requireContext(), fragment.getString(R.string.import_success), Toast.LENGTH_LONG).show()
                     showRestartAfterImportDialog()
                 }.onFailure { error ->
-                    val message = error.message ?: "Unknown error"
+                    val message = error.message ?: fragment.getString(R.string.settings_unknown_error)
                     val displayMessage = if (message.contains("File not found")) message
-                    else fragment.getString(R.string.import_failed, message)
+                        else fragment.getString(R.string.import_failed, message)
                     com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
                         fragment.requireContext(),
                         fragment.getString(R.string.import_failed_title),
@@ -115,7 +115,7 @@ class GeneralSettingsImportExportHelper(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Import settings failed")
-                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.import_failed, e.message ?: "Unknown error"), Toast.LENGTH_LONG).show()
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.import_failed, e.message ?: fragment.getString(R.string.settings_unknown_error)), Toast.LENGTH_LONG).show()
             }
         }
     }

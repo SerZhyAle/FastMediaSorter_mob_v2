@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.views.CropOverlayView
@@ -56,10 +57,14 @@ class PlayerCropDelegate(
     // ── Private overlay lifecycle ────────────────────────────────────────────
 
     private fun showCropOverlay(mode: ImageCropManager.CropMode) {
-        val rootVg = activity.activityBinding.root as? ViewGroup ?: return
-        val overlay = activity.layoutInflater.inflate(R.layout.player_crop_overlay_content, rootVg, false)
+        // S0106 fix: mount overlay to mediaContentArea (FrameLayout sized to the photo display area).
+        // Mounting to activityBinding.root (vertical LinearLayout) collapsed PhotoView height to 0
+        // because a match_parent overlay without layout_weight starves the weighted media slot.
+        val parent: ViewGroup = activity.activityBinding.mediaContentArea
+        val overlay = activity.layoutInflater.inflate(R.layout.player_crop_overlay_content, parent, false)
         cropOverlayView = overlay
-        rootVg.addView(overlay)
+        parent.addView(overlay)
+        Timber.d("S0106: showCropOverlay attached to mediaContentArea size=${parent.width}x${parent.height}")
 
         val cropView = overlay.findViewById<CropOverlayView>(R.id.crop_overlay_view)
         val btnConfirm = overlay.findViewById<View>(R.id.btn_crop_confirm)

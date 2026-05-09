@@ -91,6 +91,7 @@ class CommandPanelController(
         fun onCropClicked()
         fun onCropToFileClicked()
         fun onCompressCopyClicked()
+        fun onDrawOverlayClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -855,6 +856,7 @@ class CommandPanelController(
                 R.id.menu_crop -> callback.onCropClicked()
                 R.id.menu_crop_to_file -> callback.onCropToFileClicked()
                 R.id.menu_compress_copy -> callback.onCompressCopyClicked()
+                R.id.menu_draw_overlay -> callback.onDrawOverlayClicked()
             }
             true
         }

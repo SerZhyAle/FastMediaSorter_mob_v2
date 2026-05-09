@@ -18,6 +18,7 @@ import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
@@ -680,6 +681,9 @@ class VideoPlayerManager(
     ) {
         Timber.d("VideoPlayerManager: playVideo - path=$path, type=$resourceType")
 
+        // S0120: establish BASELINE before first media load; endScenario() fires in releasePlayer()
+        if (exoPlayer == null) MemoryEnduranceTracker.startScenario("VID-playback")
+
         // Reset per-file stereo detection before every new video
         playerCallback.onBeforeVideoLoad(path)
         // Reset the panel single-eye toast one-shot for the new media session.
@@ -869,6 +873,7 @@ class VideoPlayerManager(
     /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
     fun releasePlayer() {
         if (exoPlayer == null && activeResourceKey == null) return
+        MemoryEnduranceTracker.endScenario() // S0120: emit SUMMARY + schedule cooldown for VID-playback
 
         pendingEffectsRunnable?.let { effectsHandler.removeCallbacks(it) }
         pendingEffectsRunnable = null

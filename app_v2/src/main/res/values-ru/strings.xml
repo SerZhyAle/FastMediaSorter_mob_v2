@@ -942,7 +942,7 @@
     <string name="link_autodownload_resource_label">Ресурс для закачки</string>
     <string name="link_autodownload_resource_not_set">Не выбран (сохраняется в Downloads)</string>
     <string name="link_autodownload_open_in_player_label">Открывать скачанное в плеере</string>
-    <string name="link_autodownload_open_in_player_summary">После успешной загрузки файл сразу открывается во встроенном плеере.</string>
+    <string name="link_autodownload_open_in_player_summary">После успешной загрузки файл открывается во встроенном плеере. Если выключено, результат показывается тостом.</string>
     <string name="link_autodownload_progress_starting">Подготовка к загрузке..</string>
     <string name="link_autodownload_progress_downloading">Скачивание..</string>
     <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
@@ -1453,6 +1453,12 @@
     <string name="sort_by_title">Сортировать по</string>
     <string name="error_title">Ошибка</string>
     <string name="error_details_title">Детали ошибки</string>
+    <string name="error_dialog_hide_details">▼ Подробности</string>
+    <string name="error_dialog_save_to_file">Сохранить в файл</string>
+    <string name="error_dialog_share">Отправить</string>
+    <string name="error_dialog_show_details">▶ Подробности</string>
+    <string name="error_log_save_failed">Не удалось сохранить лог ошибки</string>
+    <string name="error_saved_to_downloads">Лог ошибки сохранён в Downloads</string>
     <string name="show_details">Показать детали</string>
     <string name="later">Позже</string>
 
@@ -1947,7 +1953,7 @@
     <string name="default_zero">0</string>
     <string name="epub_chapter_indicator_default">1/1</string>
     <string name="epub_e">EPUB (E)</string>
-    <string name="error_reason_unknown">An unexpected error occurred. Please try again.</string>
+    <string name="error_reason_unknown">Произошла непредвиденная ошибка. Попробуйте ещё раз.</string>
     <string name="find_counter">%1$d / %2$d</string>
     <string name="forward_30_seconds">Forward 30 seconds</string>
     <string name="gifs_g">GIFs (G)</string>
@@ -3137,4 +3143,75 @@
     <string name="dialog_crop_filename_hint">Имя файла</string>
     <string name="crop_save_to_downloads_note">Источник только для чтения — файл будет сохранён в Загрузки</string>
     <string name="crop_file_created">Файл %s создан</string>
+
+    <!-- S0107: Draw overlay commands -->
+    <string name="menu_draw_overlay">Рисовать</string>
+    <string name="draw_overlay_toolbar_brush">Кисть</string>
+    <string name="draw_overlay_toolbar_rect">Прямоугольник</string>
+    <string name="draw_overlay_toolbar_eraser">Ластик</string>
+    <string name="draw_overlay_save_button">Сохранить как новый файл</string>
+    <string name="draw_overlay_filename_hint">Имя файла</string>
+    <string name="draw_overlay_saved_to_downloads">Сохранено в Загрузки: %s</string>
+
+    <!-- S0116 §5.1 pillar M: post-download UX toasts -->
+    <string name="s0116_toast_saved_to_resource">Сохранено: %1$s</string>
+    <string name="s0116_toast_saved_to_downloads">Сохранено в Загрузки: %1$s</string>
+    <string name="s0116_toast_streaming_started">Загружается стрим..</string>
+    <string name="s0116_toast_drm_blocked">Защищённый контент, скачивание невозможно</string>
+    <string name="s0116_toast_mux_failed">Не удалось собрать MP4 (codec: %1$s)</string>
+    <string name="s0116_toast_streaming_disabled">Стримы недоступны в этой сборке</string>
+    <string name="s0116_toast_auth_required">Требуется вход для %1$s — откройте настройки</string>
+
+    <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
+    <string name="setting_saved_authorizations_title">Сохранённые авторизации</string>
+    <string name="setting_saved_authorizations_summary">Управление входами, сохранёнными через встроенный веб-экран входа.</string>
+    <string name="auth_sessions_empty">Нет сохранённых авторизаций</string>
+    <string name="auth_sessions_add_button">+ Добавить авторизацию</string>
+    <string name="auth_sessions_delete_button_desc">Удалить сохранённую авторизацию</string>
+    <plurals name="auth_sessions_cookie_count">
+        <item quantity="one">%d cookie</item>
+        <item quantity="few">%d cookie</item>
+        <item quantity="many">%d cookie</item>
+        <item quantity="other">%d cookie</item>
+    </plurals>
+    <string name="webview_auth_save_button">Сохранить авторизацию</string>
+    <string name="webview_auth_cancel_button">Отмена</string>
+    <string name="webview_auth_url_prompt">Введите URL (https://..)</string>
+    <string name="webview_auth_invalid_url">Некорректный URL — должен начинаться с http:// или https://</string>
+
+    <!-- S0118: Friendly copy baseline keys -->
+    <string name="friendly_copy_error_generic">Что-то пошло не так. Попробуйте ещё раз.</string>
+    <string name="friendly_copy_error_no_connection">Сервер сейчас недоступен. Проверьте соединение и попробуйте снова.</string>
+    <string name="friendly_copy_error_auth_failed">Авторизация не удалась. Проверьте учётные данные и попробуйте снова.</string>
+    <string name="friendly_copy_error_access_denied">Доступ запрещён. Возможно, у вас нет прав на это действие.</string>
+    <string name="friendly_copy_error_not_found">Файл или ресурс не найден. Возможно, он был перемещён или удалён.</string>
+    <string name="friendly_copy_empty_state_generic">Здесь пока ничего нет.</string>
+    <string name="friendly_copy_empty_state_invite">Здесь пока ничего нет. Добавьте что-нибудь, чтобы начать.</string>
+    <string name="friendly_copy_progress_generic">Выполняется…</string>
+    <string name="friendly_copy_success_generic">Готово.</string>
+    <string name="friendly_copy_next_step_help">Открыть справку</string>
+    <string name="friendly_copy_next_step_report">Сообщить о проблеме</string>
+    <string name="friendly_copy_next_step_feedback">Оставить отзыв</string>
+
+    <!-- S0118 Phase 04: settings copy revisions -->
+    <string name="settings_cache_size_range_error">Размер кэша должен быть от 512 до 16384 МБ.</string>
+    <string name="settings_network_permissions_already_granted">Сетевые разрешения уже включены — здесь делать нечего.</string>
+    <string name="settings_credentials_picker_failed">Не получилось открыть выбор файла. Попробуйте ещё раз.</string>
+    <string name="settings_credentials_file_empty">Кажется, файл пуст или его не удалось прочитать.</string>
+    <string name="settings_credentials_import_failed">Импорт не получился: %1$s</string>
+    <string name="settings_credentials_import_success">Импорт готов: %1$d учётных данных, %2$d ресурсов.</string>
+    <string name="settings_credentials_import_success_with_settings">Импорт готов: %1$d учётных данных, %2$d ресурсов, настройки обновлены.</string>
+    <string name="settings_reset_smb_failed">Не удалось сбросить SMB-подключения: %1$s</string>
+    <string name="settings_reset_settings_failed">Не удалось сбросить настройки: %1$s</string>
+    <string name="settings_unknown_error">Что-то пошло не по плану. Попробуйте ещё раз.</string>
+    <string name="settings_no_browser_for_docs">Не нашёлся браузер, чтобы открыть документацию.</string>
+    <string name="settings_no_browser_for_privacy">Не нашёлся браузер, чтобы открыть Политику конфиденциальности.</string>
+
+    <!-- S0118 Phase 05: feature surface sweep -->
+    <string name="duplicates_deleted_short">Выбранные файлы удалены.</string>
+    <string name="duplicates_deleted_count">Удалено %1$d файлов.</string>
+    <string name="addresource_validation_generic">Похоже, чего-то не хватает — проверьте форму и попробуйте снова.</string>
+    <string name="addresource_signed_out">Вышли из аккаунта.</string>
+    <string name="addresource_permission_needed">Нам нужно это разрешение, чтобы просканировать папки.</string>
+    <string name="addresource_scan_failed_short">Сканирование не завершилось. Попробуйте ещё раз.</string>
 </resources>

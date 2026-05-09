@@ -1055,6 +1055,15 @@
     <string name="crop_save_to_downloads_note">Read-only source — file will be saved to Downloads</string>
     <string name="crop_file_created">File %s created</string>
 
+    <!-- S0107: Draw overlay commands -->
+    <string name="menu_draw_overlay">Draw</string>
+    <string name="draw_overlay_toolbar_brush">Brush</string>
+    <string name="draw_overlay_toolbar_rect">Rectangle</string>
+    <string name="draw_overlay_toolbar_eraser">Eraser</string>
+    <string name="draw_overlay_save_button">Save as new file</string>
+    <string name="draw_overlay_filename_hint">File name</string>
+    <string name="draw_overlay_saved_to_downloads">Saved to Downloads: %s</string>
+
     <!-- Link auto-download (S0003) -->
     <string name="link_autodownload_section_title">Behaviour</string>
     <string name="link_autodownload_master_label">Auto-download incoming links</string>
@@ -1062,7 +1071,7 @@
     <string name="link_autodownload_resource_label">Download destination resource</string>
     <string name="link_autodownload_resource_not_set">Not selected (saves to Downloads)</string>
     <string name="link_autodownload_open_in_player_label">Open downloaded file in player</string>
-    <string name="link_autodownload_open_in_player_summary">After a successful download the file opens automatically in the built-in player.</string>
+    <string name="link_autodownload_open_in_player_summary">After a successful download the file opens automatically in the built-in player. If disabled, the result is shown as a toast.</string>
     <string name="link_autodownload_progress_starting">Preparing download..</string>
     <string name="link_autodownload_progress_downloading">Downloading..</string>
     <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
@@ -1732,6 +1741,12 @@
     <string name="sort_by_title">Sort by</string>
     <string name="error_title">Error</string>
     <string name="error_details_title">Error Details</string>
+    <string name="error_dialog_hide_details">▼ Details</string>
+    <string name="error_dialog_save_to_file">Save to file</string>
+    <string name="error_dialog_share">Share</string>
+    <string name="error_dialog_show_details">▶ Details</string>
+    <string name="error_log_save_failed">Failed to save error log</string>
+    <string name="error_saved_to_downloads">Error log saved to Downloads</string>
     <string name="show_details">Show Details</string>
     <string name="later">Later</string>
 
@@ -3200,6 +3215,66 @@
     <string name="playback_order_button_desc">Playback order: %1$s</string>
     <string name="playback_order_stopped">Playback stopped (end of list)</string>
     <string name="playback_order_menu_title">Playback order</string>
+
+    <!-- S0116 §5.1 pillar M: post-download UX toasts (used when linkAutoDownloadOpenInPlayer == false) -->
+    <string name="s0116_toast_saved_to_resource">Saved: %1$s</string>
+    <string name="s0116_toast_saved_to_downloads">Saved to Downloads: %1$s</string>
+    <string name="s0116_toast_streaming_started">Downloading stream..</string>
+    <string name="s0116_toast_drm_blocked">Protected content — download not possible</string>
+    <string name="s0116_toast_mux_failed">Could not assemble MP4 (codec: %1$s)</string>
+    <string name="s0116_toast_streaming_disabled">Streams not available in this build</string>
+    <string name="s0116_toast_auth_required">Sign-in required for %1$s — open Settings</string>
+
+    <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
+    <string name="setting_saved_authorizations_title">Saved authorizations</string>
+    <string name="setting_saved_authorizations_summary">Manage logins captured via the in-app web sign-in screen.</string>
+    <string name="auth_sessions_empty">No saved authorizations</string>
+    <string name="auth_sessions_add_button">+ Add authorization</string>
+    <string name="auth_sessions_delete_button_desc">Delete saved authorization</string>
+    <plurals name="auth_sessions_cookie_count">
+        <item quantity="one">%d cookie</item>
+        <item quantity="other">%d cookies</item>
+    </plurals>
+    <string name="webview_auth_save_button">Save authorization</string>
+    <string name="webview_auth_cancel_button">Cancel</string>
+    <string name="webview_auth_url_prompt">Enter URL (https://..)</string>
+    <string name="webview_auth_invalid_url">Invalid URL — must start with http:// or https://</string>
+
+    <!-- S0118: Friendly copy baseline keys -->
+    <string name="friendly_copy_error_generic">Something went wrong. Try again.</string>
+    <string name="friendly_copy_error_no_connection">Can\'t reach the server right now. Check your connection and try again.</string>
+    <string name="friendly_copy_error_auth_failed">Authentication failed. Check the credentials and try again.</string>
+    <string name="friendly_copy_error_access_denied">Access denied. You may not have permission to do that.</string>
+    <string name="friendly_copy_error_not_found">Couldn\'t find what you were looking for. It may have been moved or deleted.</string>
+    <string name="friendly_copy_empty_state_generic">Nothing here yet.</string>
+    <string name="friendly_copy_empty_state_invite">Nothing here yet. Add something to get started.</string>
+    <string name="friendly_copy_progress_generic">Working on it…</string>
+    <string name="friendly_copy_success_generic">Done.</string>
+    <string name="friendly_copy_next_step_help">Open help</string>
+    <string name="friendly_copy_next_step_report">Report a problem</string>
+    <string name="friendly_copy_next_step_feedback">Leave feedback</string>
+
+    <!-- S0118 Phase 04: settings copy revisions -->
+    <string name="settings_cache_size_range_error">Cache size needs to be between 512 and 16384 MB.</string>
+    <string name="settings_network_permissions_already_granted">Network access is already on — nothing to do here.</string>
+    <string name="settings_credentials_picker_failed">Couldn\'t open the file picker. Try again.</string>
+    <string name="settings_credentials_file_empty">That file looks empty or unreadable.</string>
+    <string name="settings_credentials_import_failed">Couldn\'t import: %1$s</string>
+    <string name="settings_credentials_import_success">Import done: %1$d credentials, %2$d resources.</string>
+    <string name="settings_credentials_import_success_with_settings">Import done: %1$d credentials, %2$d resources, settings updated.</string>
+    <string name="settings_reset_smb_failed">Couldn\'t reset SMB connections: %1$s</string>
+    <string name="settings_reset_settings_failed">Couldn\'t reset settings: %1$s</string>
+    <string name="settings_unknown_error">Something didn\'t quite work out. Try again.</string>
+    <string name="settings_no_browser_for_docs">Couldn\'t find a browser to open the docs.</string>
+    <string name="settings_no_browser_for_privacy">Couldn\'t find a browser to open the Privacy Policy.</string>
+
+    <!-- S0118 Phase 05: feature surface sweep -->
+    <string name="duplicates_deleted_short">Selected files are gone.</string>
+    <string name="duplicates_deleted_count">Removed %1$d files.</string>
+    <string name="addresource_validation_generic">Looks like something\'s missing — check the form and try again.</string>
+    <string name="addresource_signed_out">Signed out.</string>
+    <string name="addresource_permission_needed">We need that permission to scan your folders.</string>
+    <string name="addresource_scan_failed_short">Scan didn\'t complete. Try again.</string>
 </resources>
 
 

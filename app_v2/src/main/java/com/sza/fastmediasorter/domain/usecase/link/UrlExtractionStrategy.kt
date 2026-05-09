@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.link
 
+import com.sza.fastmediasorter.domain.model.link.StreamingManifest
 import java.io.InputStream
 
 /**
@@ -31,6 +32,17 @@ sealed interface OpenResult {
         val close: () -> Unit,
     ) : OpenResult
 
+    /**
+     * S0116 §5.1 pillar I: a streaming manifest (HLS/DASH) was discovered. The
+     * coordinator routes this outcome to the streaming pipeline (Phase 03), which
+     * downloads segments and remuxes to a standard MP4 before continuing through
+     * [com.sza.fastmediasorter.data.link.LinkDownloadWriter].
+     */
+    data class Streaming(
+        val manifest: StreamingManifest,
+        val tentativeFileName: String,
+    ) : OpenResult
+
     data class NotFound(val reason: String) : OpenResult
     data class Blocked(val reason: BlockedReason) : OpenResult
     data class Error(val cause: Throwable) : OpenResult
@@ -40,4 +52,10 @@ enum class BlockedReason {
     MimeNotAllowed,
     NonHttpScheme,
     RedirectToNonHttp,
+    // S0116 §5.1 pillars I/L: streaming pipeline outcomes surface through the same
+    // Blocked enumeration so the coordinator can map them to dedicated user UX.
+    DrmProtected,
+    StreamingDisabled,
+    MuxFailed,
+    AuthRequired,
 }

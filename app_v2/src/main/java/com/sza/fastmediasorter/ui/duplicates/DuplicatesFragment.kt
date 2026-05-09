@@ -217,7 +217,7 @@ class DuplicatesFragment : Fragment() {
                     .show()
             }
             is DuplicatesEvent.ShowError -> Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
-            is DuplicatesEvent.FileDeleted -> Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
+            is DuplicatesEvent.FileDeleted -> Toast.makeText(requireContext(), R.string.friendly_copy_success_generic, Toast.LENGTH_SHORT).show()
             is DuplicatesEvent.ScanComplete -> {
                 // Режим «Найти и удалить»: автоматически запускаем удаление без дополнительного подтверждения
                 if (viewModel.autoDeleteMode && viewModel.state.value.selectedFilePaths.isNotEmpty()) {
@@ -225,7 +225,7 @@ class DuplicatesFragment : Fragment() {
                 }
             }
             is DuplicatesEvent.BatchDeletionComplete -> {
-                Toast.makeText(requireContext(), "Selected files deleted successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.duplicates_deleted_short, Toast.LENGTH_SHORT).show()
                 requireActivity().finish()
             }
         }

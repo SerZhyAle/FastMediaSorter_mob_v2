@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionStatus
@@ -112,6 +113,10 @@ class PermissionsManagementFragment : Fragment() {
 
         view.findViewById<Button>(R.id.btn_open_system_settings).setOnClickListener {
             openAppSettings()
+        }
+
+        view.findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         val btnContinue = view.findViewById<Button>(R.id.btn_continue_to_app)

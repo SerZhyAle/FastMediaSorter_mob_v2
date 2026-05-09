@@ -9,6 +9,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.common.support.SupportDestination
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,18 +93,21 @@ class GeneralSettingsLogHelper(
     }
 
     private fun openEmailClient() {
+        // S0118: route the bug-report channel through SupportIntentFactory so the
+        // mailto target lives in one place. Subject keeps the existing wording so
+        // downstream support filters do not need to be retrained.
         val version = com.sza.fastmediasorter.BuildConfig.VERSION_NAME
         val subject = "About FastImageSorter (mobile) $version"
-        val mailtoUri = android.net.Uri.parse("mailto:sza@ukr.net")
-            .buildUpon()
-            .appendQueryParameter("subject", subject)
-            .build()
-        val emailIntent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-            data = mailtoUri
-            putExtra(android.content.Intent.EXTRA_SUBJECT, subject)
-        }
+        val intent = android.content.Intent.createChooser(
+            SupportIntentFactory.build(
+                context = fragment.requireContext(),
+                destination = SupportDestination.REPORT_PROBLEM,
+                emailSubject = subject,
+            ),
+            fragment.getString(R.string.send_email),
+        )
         try {
-            fragment.startActivity(android.content.Intent.createChooser(emailIntent, fragment.getString(R.string.send_email)))
+            fragment.startActivity(intent)
         } catch (e: Exception) {
             Timber.e(e, "Failed to open email client")
             Toast.makeText(fragment.requireContext(), R.string.no_email_client, Toast.LENGTH_SHORT).show()

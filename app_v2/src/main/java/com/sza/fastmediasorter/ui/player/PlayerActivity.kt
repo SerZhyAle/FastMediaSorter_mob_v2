@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -621,6 +622,124 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal open fun startCompressedCopy() = cropDelegate.startCompressedCopy()
 
     // ── End S0106 ────────────────────────────────────────────────────────────
+
+    // ── S0107: Draw overlay ────────────────────────────────────────────────
+    lateinit var imageDrawOverlayManager: com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager
+    /** True once imageDrawOverlayManager has been constructed (Phase 02 init). */
+    internal val isDrawOverlayManagerReady: Boolean get() = ::imageDrawOverlayManager.isInitialized
+
+    @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
+
+    /**
+     * Wires the DrawOverlaySaveCallback to the merge + write + navigate pipeline.
+     * Called from PlayerManagerInitializer after bindToolbar().
+     */
+    internal fun setupDrawOverlaySaveCallback() {
+        imageDrawOverlayManager.saveCallback =
+            object : com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager.DrawOverlaySaveCallback {
+                override fun onSaveRequested(overlayBitmap: android.graphics.Bitmap, filename: String) {
+                    val baseBitmap = viewModel.currentDisplayedBitmap ?: run {
+                        Toast.makeText(this@PlayerActivity, getString(R.string.draw_overlay_saved_to_downloads), Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    val currentFile = viewModel.state.value.currentFile ?: return
+                    val ext = currentFile.name.substringAfterLast('.', "").lowercase()
+                    val outputFormat = if (ext == "jpg" || ext == "jpeg") {
+                        android.graphics.Bitmap.CompressFormat.JPEG
+                    } else {
+                        android.graphics.Bitmap.CompressFormat.PNG
+                    }
+                    val isReadOnly = viewModel.state.value.resource?.isReadOnly ?: false
+                    val isLocalFile = currentFile.path.startsWith("/")
+
+                    // Append extension when original file has none (e.g. /3DVR/ assets without ext)
+                    val effectiveFilename = if (!filename.contains('.')) {
+                        filename + if (outputFormat == android.graphics.Bitmap.CompressFormat.JPEG) ".jpg" else ".png"
+                    } else filename
+
+                    // Read image rect on main thread — PhotoView shifts up when toolbar is visible;
+                    // crop must reflect actual image position at draw time, not full canvas size
+                    val displayRect = activityBinding.photoView.displayRect
+
+                    lifecycleScope.launch {
+                        // Crop overlay to image region and scale to base bitmap dimensions
+                        val croppedOverlay = cropOverlayToImage(overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height)
+                        val result = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
+                        result.onFailure { e ->
+                            Timber.e(e, "S0107: overlay merge failed")
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@PlayerActivity, e.message ?: getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
+                            }
+                            return@launch
+                        }
+                        val bytes = result.getOrNull() ?: return@launch
+
+                        val targetPath = withContext(Dispatchers.IO) {
+                            if (!isReadOnly && isLocalFile) {
+                                val parentDir = java.io.File(currentFile.path).parentFile
+                                    ?: android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+                                val target = java.io.File(parentDir, effectiveFilename)
+                                java.io.FileOutputStream(target).use { it.write(bytes) }
+                                target.absolutePath
+                            } else {
+                                val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                                    android.os.Environment.DIRECTORY_DOWNLOADS
+                                )
+                                val target = java.io.File(downloadsDir, effectiveFilename)
+                                java.io.FileOutputStream(target).use { it.write(bytes) }
+                                target.absolutePath
+                            }
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            Timber.d("S0107: overlay merged and saved to $targetPath")
+                            imageDrawOverlayManager.exitDrawMode(save = false)
+                            if (!isReadOnly && isLocalFile) {
+                                // Step 4.5: navigate to newly created file
+                                val newMediaFile = MediaFile(
+                                    path = targetPath,
+                                    name = effectiveFilename,
+                                    type = MediaType.IMAGE,
+                                    size = bytes.size.toLong(),
+                                    createdDate = System.currentTimeMillis()
+                                )
+                                viewModel.onFileCreatedInCurrentDirectory(newMediaFile)
+                            } else {
+                                Toast.makeText(
+                                    this@PlayerActivity,
+                                    getString(R.string.draw_overlay_saved_to_downloads, targetPath),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                }
+            }
+    }
+    /**
+     * Crops the draw canvas overlay to the image display region (imageRect) and scales
+     * the result to the base bitmap dimensions for pixel-accurate compositing.
+     * Required because the canvas covers the full container; when the draw toolbar is
+     * visible the image is offset upward, so canvas coordinates ≠ image coordinates.
+     */
+    private fun cropOverlayToImage(
+        overlay: android.graphics.Bitmap,
+        imageRect: android.graphics.RectF,
+        targetW: Int,
+        targetH: Int
+    ): android.graphics.Bitmap {
+        val left = imageRect.left.toInt().coerceAtLeast(0)
+        val top = imageRect.top.toInt().coerceAtLeast(0)
+        val right = imageRect.right.toInt().coerceAtMost(overlay.width)
+        val bottom = imageRect.bottom.toInt().coerceAtMost(overlay.height)
+        val cropW = (right - left).coerceAtLeast(1)
+        val cropH = (bottom - top).coerceAtLeast(1)
+        val cropped = android.graphics.Bitmap.createBitmap(overlay, left, top, cropW, cropH)
+        return if (cropW == targetW && cropH == targetH) cropped
+        else android.graphics.Bitmap.createScaledBitmap(cropped, targetW, targetH, true)
+    }
+
+    // ── End S0107 ─────────────────────────────────────────────────────────
 
     fun toggleBlackScreenOverlay() {
         if (blackScreenOverlayManager.isVisible) blackScreenOverlayManager.hide()

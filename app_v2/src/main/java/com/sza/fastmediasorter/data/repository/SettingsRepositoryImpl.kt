@@ -162,6 +162,10 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID = longPreferencesKey("link_auto_download_resource_id")
         private val KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER = booleanPreferencesKey("link_auto_download_open_in_player")
 
+        // S0116 §5.1 pillar J: streaming/quality preference for url-download pipeline.
+        private val KEY_LINK_DOWNLOAD_MAX_RESOLUTION = stringPreferencesKey("link_download_max_resolution")
+        private val KEY_LINK_DOWNLOAD_AUDIO_ONLY = booleanPreferencesKey("link_download_audio_only")
+
         private val KEY_RESUME_ON_NEXT_LAUNCH = booleanPreferencesKey("resume_on_next_launch")
 
         // S0050: Black Screen button visibility in player toolbar
@@ -360,6 +364,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     linkAutoDownloadEnabled = preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] ?: true,
                     linkAutoDownloadResourceId = preferences[KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID],
                     linkAutoDownloadOpenInPlayer = preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] ?: true,
+                    // S0116 §5.1 pillar J: whitelist guard mirrors the videoSnapshotFormat pattern.
+                    linkDownloadMaxResolution = preferences[KEY_LINK_DOWNLOAD_MAX_RESOLUTION]
+                        ?.takeIf { it in setOf("480p", "720p", "1080p", "best") } ?: "1080p",
+                    linkDownloadAudioOnly = preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] ?: false,
 
                     // VR settings (spec §5.7 / Phase 8)
                     vrAutoDetectFormat = preferences[KEY_VR_AUTO_DETECT_FORMAT] ?: true,
@@ -540,6 +548,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LINK_AUTO_DOWNLOAD_ENABLED] = settings.linkAutoDownloadEnabled
             preferences.setOrRemove(KEY_LINK_AUTO_DOWNLOAD_RESOURCE_ID, settings.linkAutoDownloadResourceId)
             preferences[KEY_LINK_AUTO_DOWNLOAD_OPEN_IN_PLAYER] = settings.linkAutoDownloadOpenInPlayer
+            // S0116 §5.1 pillar J
+            preferences[KEY_LINK_DOWNLOAD_MAX_RESOLUTION] = settings.linkDownloadMaxResolution
+            preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] = settings.linkDownloadAudioOnly
 
             // VR settings (spec §5.7 / Phase 8 split). Legacy key is removed on write so
             // existing installs migrate forward after the first successful save.

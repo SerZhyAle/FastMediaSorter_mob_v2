@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.widget.ImageButton
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
@@ -51,10 +52,14 @@ class ExoPlayerControlsManager(
         // Find custom navigation buttons in PlayerView's controller
         binding.playerView.findViewById<ImageButton>(R.id.exo_prev_file)?.setOnClickListener {
             UserActionLogger.logButtonClick("ExoPrevFile", "ExoPlayerControlsManager")
+            // S0120: track manual video navigation; always VID-playback per spec matrix
+            MemoryEnduranceTracker.checkpoint("TRANSITION", "VID-playback")
             callback.onPreviousFile()
         }
         binding.playerView.findViewById<ImageButton>(R.id.exo_next_file)?.setOnClickListener {
             UserActionLogger.logButtonClick("ExoNextFile", "ExoPlayerControlsManager")
+            // S0120: track manual video navigation; always VID-playback per spec matrix
+            MemoryEnduranceTracker.checkpoint("TRANSITION", "VID-playback")
             callback.onNextFile()
         }
         

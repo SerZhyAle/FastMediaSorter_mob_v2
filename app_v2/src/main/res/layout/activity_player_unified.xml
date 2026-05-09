@@ -308,6 +308,11 @@
 
     <include layout="@layout/player_bottom_panels_container_content" />
 
+    <!-- S0107: Draw overlay toolbar (visibility managed by ImageDrawOverlayManager) -->
+    <include
+        android:id="@+id/draw_overlay_toolbar_stub"
+        layout="@layout/player_draw_overlay_toolbar_content" />
+
 </LinearLayout>
 
 

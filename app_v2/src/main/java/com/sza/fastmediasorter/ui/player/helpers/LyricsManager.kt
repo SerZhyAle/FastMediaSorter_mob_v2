@@ -75,7 +75,7 @@ class LyricsManager(
                     val errorMessage = when {
                         error.message == "Lyrics not found" -> context.getString(R.string.lyrics_not_found)
                         error is java.net.SocketTimeoutException -> context.getString(R.string.error_timeout_lyrics)
-                        else -> "Error: ${error.localizedMessage ?: "Unknown error"}"
+                        else -> context.getString(R.string.friendly_copy_error_generic)
                     }
                     
                     Timber.d("LyricsManager: Showing toast: $errorMessage")

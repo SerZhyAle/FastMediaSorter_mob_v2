@@ -18,6 +18,7 @@ import androidx.core.view.setPadding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 
 /**
@@ -74,9 +75,12 @@ class InputHelpDialogFragment : DialogFragment() {
             setTextColor(Color.parseColor("#2196F3"))
             text = ctx.getString(R.string.kbm_help_full_docs_link)
             setOnClickListenerDebounced {
+                // S0118: route through SupportIntentFactory so help launches share the
+                // factory's intent shape across surfaces, while InputHelpLinkResolver
+                // continues to own the per-surface anchor.
                 val url = InputHelpLinkResolver.urlFor(surface)
                 runCatching {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    startActivity(SupportIntentFactory.openUrl(url))
                 }
             }
         }

@@ -91,6 +91,8 @@ class ImageLoadingManager(
         fun isShowingCommandPanel(): Boolean
         fun isSlideshowActive(): Boolean
         fun setAnimatedBadgeVisible(visible: Boolean)
+        /** S0107: Called when a static (non-GIF) image is fully loaded; null on load failure or video transition. */
+        fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {}
     }
     
     // Context for scale type determination (set before loading image)
@@ -1090,6 +1092,10 @@ class ImageLoadingManager(
                     
                     // Log memory state AFTER successful image load
                     logMemoryStats("AFTER onResourceReady")
+
+                    // S0107: expose loaded bitmap for draw overlay merge
+                    val loadedBitmap = (resource as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                    callback.onStaticImageLoaded(loadedBitmap)
 
                     // Trigger dynamic background extension if enabled.
                     // Guard with isInImageDisplayMode: a stale Glide request that completes

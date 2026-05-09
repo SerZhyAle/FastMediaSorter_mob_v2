@@ -274,4 +274,11 @@
         android:title="@string/menu_compress_copy"
         app:showAsAction="never" />
 
+    <!-- S0107: Draw overlay (IMAGE only) -->
+    <item
+        android:id="@+id/menu_draw_overlay"
+        android:icon="@drawable/ic_draw_overlay"
+        android:title="@string/menu_draw_overlay"
+        app:showAsAction="never" />
+
 </menu>

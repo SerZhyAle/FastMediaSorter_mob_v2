@@ -2,9 +2,15 @@ package com.sza.fastmediasorter.domain.usecase.link
 
 import android.net.Uri
 import com.sza.fastmediasorter.data.link.LinkDownloadWriter
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.link.MediaQualityPreference
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.link.streaming.PipelineOutcome
+import com.sza.fastmediasorter.domain.usecase.link.streaming.StreamingPipeline
 import kotlinx.coroutines.flow.first
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import timber.log.Timber
+import java.io.FileInputStream
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -24,6 +30,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val registry: LinkExtractionRegistry,
     private val writer: LinkDownloadWriter,
+    private val streamingPipeline: StreamingPipeline,
 ) {
 
     suspend fun handle(url: String, callbacks: Callbacks): Result {
@@ -54,8 +61,20 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 openedStream = opened
                                 break
                             }
+                            is OpenResult.Streaming -> return runStreaming(opened, settings, callbacks)
                             is OpenResult.NotFound -> return Result.Failed.NoMediaFound
-                            is OpenResult.Blocked -> return Result.Failed.MimeBlocked
+                            is OpenResult.Blocked -> when (opened.reason) {
+                                BlockedReason.MimeNotAllowed,
+                                BlockedReason.NonHttpScheme,
+                                BlockedReason.RedirectToNonHttp -> return Result.Failed.MimeBlocked
+                                BlockedReason.DrmProtected -> return Result.Failed.DrmBlocked
+                                BlockedReason.StreamingDisabled -> return Result.Failed.StreamingDisabled
+                                BlockedReason.MuxFailed -> return Result.Failed.MuxFailed(codec = "unknown")
+                                BlockedReason.AuthRequired -> return Result.Failed.AuthRequired(
+                                    host = url.toHttpUrlOrNull()?.host ?: url,
+                                    originalUrl = url,
+                                )
+                            }
                             is OpenResult.Error -> return mapIoError(opened.cause)
                         }
                     }
@@ -111,6 +130,73 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
     }
 
+    /**
+     * S0116 §5.1 pillar I: route a Streaming outcome through the [StreamingPipeline]
+     * (Media3 download + MediaMuxer remux on video flavors; no-op `Disabled` on
+     * lite/photos) and project the resulting MP4 file into the existing
+     * [LinkDownloadWriter] contract so [Saved] / [FellBackToDownloads] reuse the
+     * S0003 user-visible UX.
+     */
+    private suspend fun runStreaming(
+        streaming: OpenResult.Streaming,
+        settings: AppSettings,
+        callbacks: Callbacks,
+    ): Result {
+        val quality = MediaQualityPreference.fromSettings(
+            maxResolution = settings.linkDownloadMaxResolution,
+            audioOnly = settings.linkDownloadAudioOnly,
+        )
+        val outcome = streamingPipeline.fetchAndRemux(
+            manifest = streaming.manifest,
+            fileName = streaming.tentativeFileName,
+            quality = quality,
+        ) { read, total ->
+            callbacks.onProgress(ProgressState.Downloading(read, total))
+        }
+        return when (outcome) {
+            is PipelineOutcome.Success -> {
+                val input = FileInputStream(outcome.file)
+                try {
+                    val writeResult = writer.writeFromStream(
+                        stream = input,
+                        mime = outcome.mime,
+                        suggestedFileName = streaming.tentativeFileName,
+                        resourceId = settings.linkAutoDownloadResourceId,
+                        onBytesCopied = { bytes ->
+                            callbacks.onProgress(ProgressState.Downloading(bytes, outcome.file.length()))
+                        },
+                    )
+                    val openInPlayer = settings.linkAutoDownloadOpenInPlayer
+                    when (writeResult) {
+                        is LinkDownloadWriter.WriteResult.Saved -> Result.Saved(
+                            resourceLabel = writeResult.resourceLabel,
+                            fileName = writeResult.fileName,
+                            mime = outcome.mime,
+                            openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                        )
+                        is LinkDownloadWriter.WriteResult.FellBackToDownloads -> Result.FellBackToDownloads(
+                            fileName = writeResult.fileName,
+                            reason = when (writeResult.reason) {
+                                LinkDownloadWriter.FallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
+                                LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
+                                LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
+                            },
+                            openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                        )
+                        is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
+                    }
+                } finally {
+                    runCatching { input.close() }
+                    runCatching { outcome.file.delete() }
+                }
+            }
+            PipelineOutcome.DrmBlocked -> Result.Failed.DrmBlocked
+            PipelineOutcome.Disabled -> Result.Failed.StreamingDisabled
+            is PipelineOutcome.MuxFailed -> Result.Failed.MuxFailed(codec = outcome.codec)
+            is PipelineOutcome.NetworkError -> mapIoError(outcome.cause)
+        }
+    }
+
     interface Callbacks {
         fun onProgress(state: ProgressState)
     }
@@ -134,6 +220,12 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             object Timeout : Failed
             object NoMediaFound : Failed
             object MimeBlocked : Failed
+            // S0116 §5.1 pillar I: streaming pipeline-specific terminal outcomes.
+            data object DrmBlocked : Failed
+            data object StreamingDisabled : Failed
+            data class MuxFailed(val codec: String) : Failed
+            // S0116 §5.1 pillar L: source returned 401/403 — UI offers WebView sign-in flow.
+            data class AuthRequired(val host: String, val originalUrl: String) : Failed
             data class Other(val cause: Throwable) : Failed
         }
     }

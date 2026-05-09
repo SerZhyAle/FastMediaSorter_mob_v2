@@ -936,7 +936,7 @@
     <string name="link_autodownload_resource_label">Ресурс для завантаження</string>
     <string name="link_autodownload_resource_not_set">Не вибрано (зберігається в Downloads)</string>
     <string name="link_autodownload_open_in_player_label">Відкривати завантажене у плеєрі</string>
-    <string name="link_autodownload_open_in_player_summary">Після успішного завантаження файл одразу відкривається у вбудованому плеєрі.</string>
+    <string name="link_autodownload_open_in_player_summary">Після успішного завантаження файл відкривається у вбудованому плеєрі. Якщо вимкнено, результат показується тостом.</string>
     <string name="link_autodownload_progress_starting">Підготовка до завантаження..</string>
     <string name="link_autodownload_progress_downloading">Завантаження..</string>
     <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
@@ -1442,6 +1442,12 @@
     <string name="sort_by_title">Сортувати за</string>
     <string name="error_title">Помилка</string>
     <string name="error_details_title">Деталі помилки</string>
+    <string name="error_dialog_hide_details">▼ Деталі</string>
+    <string name="error_dialog_save_to_file">Зберегти у файл</string>
+    <string name="error_dialog_share">Надіслати</string>
+    <string name="error_dialog_show_details">▶ Деталі</string>
+    <string name="error_log_save_failed">Не вдалося зберегти лог помилки</string>
+    <string name="error_saved_to_downloads">Лог помилки збережено у Downloads</string>
     <string name="show_details">Показати деталі</string>
     <string name="later">Пізніше</string>
 
@@ -1955,7 +1961,7 @@
     <string name="default_zero">0</string>
     <string name="epub_chapter_indicator_default">1/1</string>
     <string name="epub_e">EPUB (E)</string>
-    <string name="error_reason_unknown">An unexpected error occurred. Please try again.</string>
+    <string name="error_reason_unknown">Сталася непередбачена помилка. Спробуйте ще раз.</string>
     <string name="find_counter">%1$d / %2$d</string>
     <string name="forward_30_seconds">Forward 30 seconds</string>
     <string name="gifs_g">GIFs (G)</string>
@@ -3096,4 +3102,75 @@
     <string name="dialog_crop_filename_hint">Ім\'я файлу</string>
     <string name="crop_save_to_downloads_note">Джерело лише для читання — файл буде збережено у Завантаження</string>
     <string name="crop_file_created">Файл %s створено</string>
+
+    <!-- S0107: Draw overlay commands -->
+    <string name="menu_draw_overlay">Малювати</string>
+    <string name="draw_overlay_toolbar_brush">Пензель</string>
+    <string name="draw_overlay_toolbar_rect">Прямокутник</string>
+    <string name="draw_overlay_toolbar_eraser">Ластик</string>
+    <string name="draw_overlay_save_button">Зберегти як новий файл</string>
+    <string name="draw_overlay_filename_hint">Ім\'я файлу</string>
+    <string name="draw_overlay_saved_to_downloads">Збережено у Завантаження: %s</string>
+
+    <!-- S0116 §5.1 pillar M: post-download UX toasts -->
+    <string name="s0116_toast_saved_to_resource">Збережено: %1$s</string>
+    <string name="s0116_toast_saved_to_downloads">Збережено у Завантаження: %1$s</string>
+    <string name="s0116_toast_streaming_started">Завантажується стрім..</string>
+    <string name="s0116_toast_drm_blocked">Захищений контент — завантаження неможливе</string>
+    <string name="s0116_toast_mux_failed">Не вдалося зібрати MP4 (codec: %1$s)</string>
+    <string name="s0116_toast_streaming_disabled">Стріми недоступні у цій збірці</string>
+    <string name="s0116_toast_auth_required">Потрібен вхід для %1$s — відкрийте налаштування</string>
+
+    <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
+    <string name="setting_saved_authorizations_title">Збережені авторизації</string>
+    <string name="setting_saved_authorizations_summary">Керування входами, збереженими через вбудований веб-екран входу.</string>
+    <string name="auth_sessions_empty">Немає збережених авторизацій</string>
+    <string name="auth_sessions_add_button">+ Додати авторизацію</string>
+    <string name="auth_sessions_delete_button_desc">Видалити збережену авторизацію</string>
+    <plurals name="auth_sessions_cookie_count">
+        <item quantity="one">%d cookie</item>
+        <item quantity="few">%d cookie</item>
+        <item quantity="many">%d cookie</item>
+        <item quantity="other">%d cookie</item>
+    </plurals>
+    <string name="webview_auth_save_button">Зберегти авторизацію</string>
+    <string name="webview_auth_cancel_button">Скасувати</string>
+    <string name="webview_auth_url_prompt">Введіть URL (https://..)</string>
+    <string name="webview_auth_invalid_url">Некоректний URL — має починатися з http:// або https://</string>
+
+    <!-- S0118: Friendly copy baseline keys -->
+    <string name="friendly_copy_error_generic">Щось пішло не так. Спробуйте ще раз.</string>
+    <string name="friendly_copy_error_no_connection">Сервер зараз недоступний. Перевірте з\'єднання та спробуйте знову.</string>
+    <string name="friendly_copy_error_auth_failed">Авторизація не вдалася. Перевірте облікові дані та спробуйте знову.</string>
+    <string name="friendly_copy_error_access_denied">Доступ заборонено. Можливо, у вас немає прав на цю дію.</string>
+    <string name="friendly_copy_error_not_found">Файл або ресурс не знайдено. Можливо, його переміщено або видалено.</string>
+    <string name="friendly_copy_empty_state_generic">Тут поки нічого немає.</string>
+    <string name="friendly_copy_empty_state_invite">Тут поки нічого немає. Додайте щось, щоб розпочати.</string>
+    <string name="friendly_copy_progress_generic">Виконується…</string>
+    <string name="friendly_copy_success_generic">Готово.</string>
+    <string name="friendly_copy_next_step_help">Відкрити довідку</string>
+    <string name="friendly_copy_next_step_report">Повідомити про проблему</string>
+    <string name="friendly_copy_next_step_feedback">Залишити відгук</string>
+
+    <!-- S0118 Phase 04: settings copy revisions -->
+    <string name="settings_cache_size_range_error">Розмір кешу має бути від 512 до 16384 МБ.</string>
+    <string name="settings_network_permissions_already_granted">Мережеві дозволи вже увімкнені — тут немає що робити.</string>
+    <string name="settings_credentials_picker_failed">Не вдалося відкрити вибір файлів. Спробуйте ще раз.</string>
+    <string name="settings_credentials_file_empty">Здається, файл порожній або його не вдалося прочитати.</string>
+    <string name="settings_credentials_import_failed">Імпорт не вдався: %1$s</string>
+    <string name="settings_credentials_import_success">Імпорт готовий: %1$d облікових даних, %2$d ресурсів.</string>
+    <string name="settings_credentials_import_success_with_settings">Імпорт готовий: %1$d облікових даних, %2$d ресурсів, налаштування оновлено.</string>
+    <string name="settings_reset_smb_failed">Не вдалося скинути SMB-підключення: %1$s</string>
+    <string name="settings_reset_settings_failed">Не вдалося скинути налаштування: %1$s</string>
+    <string name="settings_unknown_error">Щось пішло не за планом. Спробуйте ще раз.</string>
+    <string name="settings_no_browser_for_docs">Не знайшовся браузер, щоб відкрити документацію.</string>
+    <string name="settings_no_browser_for_privacy">Не знайшовся браузер, щоб відкрити Політику конфіденційності.</string>
+
+    <!-- S0118 Phase 05: feature surface sweep -->
+    <string name="duplicates_deleted_short">Вибрані файли видалено.</string>
+    <string name="duplicates_deleted_count">Видалено %1$d файлів.</string>
+    <string name="addresource_validation_generic">Схоже, чогось не вистачає — перевірте форму та спробуйте знову.</string>
+    <string name="addresource_signed_out">Вийшли з акаунта.</string>
+    <string name="addresource_permission_needed">Нам потрібен цей дозвіл, щоб просканувати папки.</string>
+    <string name="addresource_scan_failed_short">Сканування не завершилося. Спробуйте ще раз.</string>
 </resources>

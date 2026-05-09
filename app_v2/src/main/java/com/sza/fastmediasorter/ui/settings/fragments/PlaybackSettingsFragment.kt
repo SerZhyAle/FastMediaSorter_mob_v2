@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import kotlinx.coroutines.launch
 
@@ -253,6 +254,13 @@ class PlaybackSettingsFragment : Fragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(linkAutoDownloadOpenInPlayer = isChecked))
         }
+        // S0116 §5.1 pillar K: saved authorizations sub-screen entry. SettingsActivity uses
+        // ViewPager2 tabs at the host level, so a non-tab settings surface is an Activity
+        // launch (mirrors the project's existing keybinding sub-screen pattern). The actual
+        // AuthSessionsListFragment is attached inside AuthSessionsActivity.onCreate.
+        binding.rowSavedAuthorizations.setOnClickListener {
+            AuthSessionsActivity.start(requireContext())
+        }
 
         binding.switchResumeOnNextLaunch.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -445,6 +453,8 @@ class PlaybackSettingsFragment : Fragment() {
                     binding.switchLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
                     binding.rowLinkAutodownloadResource.isEnabled = settings.linkAutoDownloadEnabled
                     binding.tvLinkAutodownloadResourceValue.isEnabled = settings.linkAutoDownloadEnabled
+                    // S0116 §5.1 pillar K: saved authorizations row follows the same enable rule.
+                    binding.rowSavedAuthorizations.isEnabled = settings.linkAutoDownloadEnabled
                     binding.tvLinkAutodownloadResourceValue.text = if (settings.linkAutoDownloadResourceId == null) {
                         getString(R.string.link_autodownload_resource_not_set)
                     } else {

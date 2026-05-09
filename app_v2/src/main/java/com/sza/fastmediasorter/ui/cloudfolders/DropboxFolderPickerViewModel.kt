@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.cloudfolders
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.AuthResult
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
@@ -70,7 +71,7 @@ class DropboxFolderPickerViewModel @Inject constructor(
                 val authResult = dropboxClient.authenticate()
                 if (authResult is AuthResult.Error) {
                     Timber.e("Dropbox authentication failed: ${authResult.message}")
-                    _events.send(DropboxFolderPickerEvent.ShowError("Authentication failed: ${authResult.message}"))
+                    _events.send(DropboxFolderPickerEvent.ShowError(authFailedMessage()))
                     _state.update { it.copy(isLoading = false) }
                     return@launch
                 }
@@ -90,13 +91,13 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     }
                     is CloudResult.Error -> {
                         Timber.e("Failed to load Dropbox folders: ${result.message}")
-                        _events.send(DropboxFolderPickerEvent.ShowError(result.message))
+                        _events.send(DropboxFolderPickerEvent.ShowError(genericErrorMessage()))
                         _state.update { it.copy(isLoading = false) }
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading Dropbox folders")
-                _events.send(DropboxFolderPickerEvent.ShowError(e.message ?: "Unknown error"))
+                _events.send(DropboxFolderPickerEvent.ShowError(genericErrorMessage()))
                 _state.update { it.copy(isLoading = false) }
             }
         }
@@ -123,11 +124,7 @@ class DropboxFolderPickerViewModel @Inject constructor(
                 }
                 if (duplicate != null) {
                     Timber.w("DropboxFolderPicker: folder ${folder.id} already added as '${duplicate.name}'")
-                    _events.send(
-                        DropboxFolderPickerEvent.ShowError(
-                            "Folder \"${folder.name}\" already added as resource \"${duplicate.name}\". Remove it first if you want to re-add."
-                        )
-                    )
+                    _events.send(DropboxFolderPickerEvent.ShowError(alreadyAddedMessage()))
                     return@launch
                 }
 
@@ -156,11 +153,11 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     _events.send(DropboxFolderPickerEvent.FolderSelected)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add folder")
-                    _events.send(DropboxFolderPickerEvent.ShowError(e.message ?: "Failed to add folder"))
+                    _events.send(DropboxFolderPickerEvent.ShowError(genericErrorMessage()))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to add folder")
-                _events.send(DropboxFolderPickerEvent.ShowError(e.message ?: "Failed to add folder"))
+                _events.send(DropboxFolderPickerEvent.ShowError(genericErrorMessage()))
             }
         }
     }
@@ -190,4 +187,10 @@ class DropboxFolderPickerViewModel @Inject constructor(
             false
         }
     }
+
+    private fun alreadyAddedMessage(): String = context.getString(R.string.virtual_resource_already_added)
+
+    private fun authFailedMessage(): String = context.getString(R.string.friendly_copy_error_auth_failed)
+
+    private fun genericErrorMessage(): String = context.getString(R.string.friendly_copy_error_generic)
 }

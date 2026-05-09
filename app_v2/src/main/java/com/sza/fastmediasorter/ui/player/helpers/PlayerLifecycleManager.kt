@@ -346,6 +346,9 @@ class PlayerLifecycleManager(
     fun setupBackPressHandler() {
         activity.onBackPressedDispatcher.addCallback(activity, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // S0107: Draw Mode intercepts back before all other handlers
+                if (activity.isDrawOverlayManagerReady &&
+                    activity.imageDrawOverlayManager.handleBackPress()) return
                 if (activity._pdfViewerManager != null && activity.pdfViewerManager.isInFullscreenMode()) {
                     activity.pdfViewerManager.exitFullscreenMode()
                     return

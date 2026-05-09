@@ -22,7 +22,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
-import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
+// LinkAutoDownloadResultPresenter is in the same package — no import needed.
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,6 +50,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var linkAutoDownloadCoordinator: LinkAutoDownloadCoordinator
+    @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
 
     private var linkDownloadJob: Job? = null
 
@@ -179,41 +180,15 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     private fun handleLinkAutoDownloadResult(result: LinkAutoDownloadCoordinator.Result) {
-        val message = when (result) {
-            is LinkAutoDownloadCoordinator.Result.Saved ->
-                getString(R.string.link_autodownload_done_resource, result.resourceLabel)
-            is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ->
-                getString(R.string.link_autodownload_fallback_downloads)
-            LinkAutoDownloadCoordinator.Result.Failed.NoNetwork ->
-                getString(R.string.link_autodownload_error_no_network)
-            LinkAutoDownloadCoordinator.Result.Failed.Timeout ->
-                getString(R.string.link_autodownload_error_timeout)
-            LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound ->
-                getString(R.string.link_autodownload_error_no_media)
-            LinkAutoDownloadCoordinator.Result.Failed.MimeBlocked ->
-                getString(R.string.link_autodownload_error_mime_blocked)
-            is LinkAutoDownloadCoordinator.Result.Failed.Other ->
-                getString(R.string.receive_share_cache_failed, result.cause.message ?: result.cause::class.java.simpleName)
-        }
-        // Use applicationContext: this transparent activity finishes immediately after the
-        // toast is queued, and Toasts anchored to a finishing/transparent host don't always
-        // render on Android 8.1 — the application context survives the teardown.
-        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
-
-        val openUri: Uri? = when (result) {
-            is LinkAutoDownloadCoordinator.Result.Saved -> result.openInPlayerUri
-            is LinkAutoDownloadCoordinator.Result.FellBackToDownloads -> result.openInPlayerUri
-            else -> null
-        }
-        if (openUri != null) {
-            try {
-                val intent = Intent(this, StandalonePlayerActivity::class.java)
-                    .setData(openUri)
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                startActivity(intent)
-            } catch (t: Throwable) {
-                Timber.e(t, "ReceiveShareActivity: failed to launch player for %s", openUri)
-            }
+        // S0116 §5.1 pillar M: all UX projection lives in LinkAutoDownloadResultPresenter.
+        // The retry hook re-runs `processLinkAutoDownload` so the WebView auth flow can
+        // resume the original download once cookies are saved.
+        lifecycleScope.launch {
+            resultPresenter.present(
+                result = result,
+                hostActivity = this@ReceiveShareActivity,
+                onAuthRetryRequested = { retryUrl -> processLinkAutoDownload(retryUrl) },
+            )
         }
     }
 

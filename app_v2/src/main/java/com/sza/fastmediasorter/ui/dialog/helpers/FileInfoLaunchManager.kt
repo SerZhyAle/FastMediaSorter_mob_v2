@@ -51,7 +51,7 @@ class FileInfoLaunchManager(
                         Timber.w("FileInfoLaunchManager.openInExternalPlayer: File does not exist!")
                         Toast.makeText(
                             context,
-                            context.getString(R.string.error_opening_file, "File not found"),
+                            context.getString(R.string.file_not_found),
                             Toast.LENGTH_SHORT
                         ).show()
                         return
@@ -80,7 +80,10 @@ class FileInfoLaunchManager(
             Timber.e(e, "Failed to open file in external player")
             Toast.makeText(
                 context,
-                context.getString(R.string.error_opening_file, e.message),
+                context.getString(
+                    R.string.error_opening_file,
+                    context.getString(R.string.friendly_copy_error_generic)
+                ),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -94,7 +97,10 @@ class FileInfoLaunchManager(
             Timber.e("DownloadNetworkFileUseCase not available")
             Toast.makeText(
                 context,
-                context.getString(R.string.download_failed, "UseCase not available"),
+                context.getString(
+                    R.string.download_failed,
+                    context.getString(R.string.friendly_copy_error_generic)
+                ),
                 Toast.LENGTH_SHORT
             ).show()
             return
@@ -146,7 +152,10 @@ class FileInfoLaunchManager(
                         Timber.e("Download failed")
                         Toast.makeText(
                             context,
-                            context.getString(R.string.download_failed, "Unknown error"),
+                            context.getString(
+                                R.string.download_failed,
+                                context.getString(R.string.friendly_copy_error_generic)
+                            ),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -157,7 +166,10 @@ class FileInfoLaunchManager(
                     progressDialog.dismiss()
                     Toast.makeText(
                         context,
-                        context.getString(R.string.download_failed, e.message),
+                        context.getString(
+                            R.string.download_failed,
+                            context.getString(R.string.friendly_copy_error_generic)
+                        ),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -187,14 +199,20 @@ class FileInfoLaunchManager(
             Timber.w(e, "No app to open downloaded file")
             Toast.makeText(
                 context,
-                context.getString(R.string.error_opening_file, e.message),
+                context.getString(
+                    R.string.error_opening_file,
+                    context.getString(R.string.friendly_copy_error_generic)
+                ),
                 Toast.LENGTH_SHORT
             ).show()
         } catch (e: Exception) {
             Timber.e(e, "Error opening downloaded file")
             Toast.makeText(
                 context,
-                context.getString(R.string.error_opening_file, e.message),
+                context.getString(
+                    R.string.error_opening_file,
+                    context.getString(R.string.friendly_copy_error_generic)
+                ),
                 Toast.LENGTH_SHORT
             ).show()
         }

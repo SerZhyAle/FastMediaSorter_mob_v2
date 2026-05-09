@@ -188,6 +188,13 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activity = activity,
             imageCropManager = activity.imageCropManager,
         )
+        // S0107: Draw overlay manager
+        activity.imageDrawOverlayManager = com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager(
+            activity = activity,
+            imageContainer = activity.activityBinding.photoDualSurfaceContainer!!
+        )
+        activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
+        activity.setupDrawOverlaySaveCallback()
         activity.eventHandler = PlayerEventHandler(activity = activity)
     }
 

@@ -84,7 +84,7 @@ internal class AddResourceVirtualCoordinator(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to add virtual resource: $virtualPath")
-                bridge.emit(AddResourceEvent.ShowError(e.message ?: "Unknown error"))
+                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.friendly_copy_error_generic)))
             } finally {
                 bridge.markLoading(false)
             }

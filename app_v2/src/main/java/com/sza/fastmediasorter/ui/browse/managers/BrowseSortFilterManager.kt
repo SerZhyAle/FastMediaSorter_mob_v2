@@ -46,6 +46,7 @@ class BrowseSortFilterManager(
     private val sendEvent: (BrowseEvent) -> Unit,
     private val setLoading: (Boolean) -> Unit,
     private val loadMediaFiles: () -> Unit,
+    private val getFriendlyErrorMessage: (Throwable) -> String,
     private val getSettings: suspend () -> AppSettings,
     private val fileListManager: BrowseFileListManager,
     private val resourceId: Long,
@@ -239,10 +240,15 @@ class BrowseSortFilterManager(
 
             getMediaFilesUseCase(resource, stateFlow.value.sortMode, sizeFilter)
                 .catch { e ->
-                    Timber.e(e, "BrowseSortFilterManager.applyFilter: error loading files")
+                    Timber.e(e, "BrowseSortFilterManager.applyFilter: loading failure")
                     sendEvent(BrowseEvent.ShowError(
-                        message = "Failed to load media files: ${e.message ?: "Unknown error"}",
-                        details = e.stackTraceToString(),
+                        message = getFriendlyErrorMessage(e),
+                        details = buildString {
+                            append("Error: ")
+                            append(e.message ?: e.javaClass.simpleName)
+                            append("\n\nStack trace:\n")
+                            append(e.stackTraceToString())
+                        },
                         exception = e
                     ))
                 }

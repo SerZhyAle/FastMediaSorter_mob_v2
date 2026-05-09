@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Rect
+import android.os.Bundle
 import android.os.SystemClock
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -94,18 +95,21 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
     }
     
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Measure actionBarSize and register insets listener before the first frame
+        // to prevent toolbarContainer height from jumping on activity open.
+        val tv = TypedValue()
+        theme.resolveAttribute(android.R.attr.actionBarSize, tv, true)
+        actionBarSizePx = TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
+        applyEdgeToEdgeInsets()
+    }
+
     override fun getViewBinding(): ActivitySettingsBinding {
         return ActivitySettingsBinding.inflate(layoutInflater)
     }
 
     override fun setupViews() {
-        val tv = TypedValue()
-        theme.resolveAttribute(android.R.attr.actionBarSize, tv, true)
-        actionBarSizePx = TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
-
-        // Apply edge-to-edge insets: toolbar below status bar, ViewPager above nav bar
-        applyEdgeToEdgeInsets()
-
         if (BuildConfig.DEBUG) setupStartUptimeMs = SystemClock.uptimeMillis()
         fun elapsed() = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() - setupStartUptimeMs else 0L
 
@@ -205,12 +209,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
-        // Include captionBar() so Chrome OS windowed-mode caption bar is respected;
-        // captionBar() returns zero on standard Android — no behaviour change there.
-        val statusBar = insets.getInsets(
-            androidx.core.view.WindowInsetsCompat.Type.statusBars() or
-            androidx.core.view.WindowInsetsCompat.Type.captionBar()
-        )
+        val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
         statusBarInsetPx = statusBar.top
 

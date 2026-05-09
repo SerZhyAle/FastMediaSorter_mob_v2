@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -25,6 +26,7 @@ import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -317,6 +319,7 @@ class BrowseViewModel @Inject constructor(
         sendEvent = { event -> sendEvent(event) },
         setLoading = { isLoading -> setLoading(isLoading) },
         loadMediaFiles = { loadMediaFiles() },
+        getFriendlyErrorMessage = { throwable -> getFriendlyBrowseErrorMessage(throwable) },
         getSettings = { getSettings() },
         fileListManager = fileListManager,
         resourceId = resourceId,
@@ -472,6 +475,62 @@ class BrowseViewModel @Inject constructor(
 
     override fun getInitialState() = BrowseState()
 
+    private fun getFriendlyBrowseErrorMessage(throwable: Throwable): String =
+        context.getString(resolveFriendlyBrowseErrorRes(throwable))
+
+    private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
+        val message = throwable.message.orEmpty()
+        return when {
+            message.contains("Authentication", ignoreCase = true) ||
+                message.contains("LOGON_FAILURE", ignoreCase = true) ||
+                message.contains("Not authenticated", ignoreCase = true) ->
+                R.string.friendly_copy_error_auth_failed
+
+            (message.contains("permission", ignoreCase = true) &&
+                message.contains("denied", ignoreCase = true)) ||
+                message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
+                message.contains("access denied", ignoreCase = true) ->
+                R.string.friendly_copy_error_access_denied
+
+            message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
+                message.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true) ||
+                message.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true) ||
+                message.contains("not found", ignoreCase = true) ->
+                R.string.friendly_copy_error_not_found
+
+            message.contains("unreachable", ignoreCase = true) ||
+                message.contains("Cannot resolve host", ignoreCase = true) ||
+                message.contains("Unknown host", ignoreCase = true) ->
+                R.string.friendly_copy_error_no_connection
+
+            message.contains("Connection reset", ignoreCase = true) ||
+                message.contains("connection closed", ignoreCase = true) ||
+                message.contains("broken pipe", ignoreCase = true) ||
+                message.contains("connection lost", ignoreCase = true) ->
+                R.string.error_network_connection_lost
+
+            message.contains("timed out", ignoreCase = true) ||
+                message.contains("timeout", ignoreCase = true) ||
+                message.contains("SocketTimeoutException", ignoreCase = true) ->
+                R.string.error_network_timeout
+
+            message.contains("Connection", ignoreCase = true) ||
+                message.contains("Network", ignoreCase = true) ->
+                R.string.error_network_connection
+
+            else -> R.string.friendly_copy_error_generic
+        }
+    }
+
+    /**
+     * Map raw exception messages to concise, resource-backed user-facing strings.
+     * BaseViewModel default leaks technical details (e.g. "Server unreachable (192.168.1.112:445)").
+     */
+    override fun handleError(throwable: Throwable) {
+        setError(getFriendlyBrowseErrorMessage(throwable))
+        setLoading(false)
+    }
+
     init {
         lifecycleSetupManager.initialize()
         loadResource()
@@ -570,7 +629,11 @@ class BrowseViewModel @Inject constructor(
         }
     }
 
-    fun navigateToFolder(folderPath: String) = navigationManager.navigateToFolder(folderPath)
+    fun navigateToFolder(folderPath: String) {
+        // S0120: track folder-enter events for BRW-sort endurance analysis
+        MemoryEnduranceTracker.checkpoint("FOLDER_ENTER", "BRW-sort")
+        navigationManager.navigateToFolder(folderPath)
+    }
     fun navigateBack(): Boolean = navigationManager.navigateBack()
     fun getCurrentBreadcrumb(): String = navigationManager.getCurrentBreadcrumb()
     fun enableSubfolderMode() = navigationManager.enableSubfolderMode()
@@ -650,7 +713,11 @@ class BrowseViewModel @Inject constructor(
     
     // Filter - delegated to BrowseSortFilterManager
     fun setFilter(filter: FileFilter?) = sortFilterManager.setFilter(filter)
-    fun applyFilter() = sortFilterManager.applyFilter()
+    fun applyFilter() {
+        // S0120: track filter-change events for BRW-sort endurance analysis
+        MemoryEnduranceTracker.checkpoint("FILTER_CHANGE", "BRW-sort")
+        sortFilterManager.applyFilter()
+    }
     internal fun applyFilterToList(files: List<com.sza.fastmediasorter.domain.model.MediaFile>, filter: com.sza.fastmediasorter.domain.model.FileFilter): List<MediaFile> = sortFilterManager.applyFilterToList(files, filter)
     private fun sortFiles(
         files: List<MediaFile>,
@@ -695,7 +762,11 @@ class BrowseViewModel @Inject constructor(
     fun isIgnoringFileChanges(): Boolean = fileObserverManager.ignoringFileChanges
     
     suspend fun isSubfolderModeEnabled(): Boolean = navigationManager.isSubfolderModeEnabled()
-    fun navigateToFolder(folder: MediaFile) = navigationManager.navigateToFolder(folder)
+    fun navigateToFolder(folder: MediaFile) {
+        // S0120: track folder-enter events for BRW-sort endurance analysis
+        MemoryEnduranceTracker.checkpoint("FOLDER_ENTER", "BRW-sort")
+        navigationManager.navigateToFolder(folder)
+    }
     fun canNavigateUp(): Boolean = navigationManager.canNavigateUp()
     fun navigateUp(): Boolean = navigationManager.navigateUp()
     fun resetToRoot() = navigationManager.resetToRoot()

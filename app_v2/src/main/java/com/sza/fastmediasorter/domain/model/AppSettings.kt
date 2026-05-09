@@ -164,6 +164,13 @@ data class AppSettings(
     val linkAutoDownloadResourceId: Long? = null,
     val linkAutoDownloadOpenInPlayer: Boolean = true,
 
+    // S0116 §5.1 pillar J: quality preference applied to streaming variant selection
+    // and direct-file candidates with declared resolution.
+    // `linkDownloadMaxResolution` allowed values: "480p", "720p", "1080p", "best".
+    // `linkDownloadAudioOnly` requests audio-only rendition when the manifest exposes one.
+    val linkDownloadMaxResolution: String = "1080p",
+    val linkDownloadAudioOnly: Boolean = false,
+
     // VR settings (spec §5.7/§8 — visible only when SUPPORT_VR_PLAYER == true)
     val vrAutoDetectFormat: Boolean = true,          // Detect SBS/OU/Mono plus panoramic layouts via metadata & heuristics
     val vrForcedPlatFormat: String = "AUTO",        // Forced flat-family override: AUTO, SBS, OU, MONO

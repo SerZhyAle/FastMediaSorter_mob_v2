@@ -123,6 +123,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Augmented Reality translation**: Read signs, menus, or documents in foreign languages using a Google Lens-style overlay. Translated text blocks are synthetically drawn precisely over their original positions on the image.
 - **Send to Google Lens**: Quickly bridge any photo to the external Google Lens app with a dedicated button for deeper AI analysis, shopping, or advanced visual search.
 - Crop (overwrite original), Crop to file (save fragment as new file), and Compressed copy (JPG 70%, long side ≤ 1024 px) commands in the overflow menu; work on local and network sources (SMB, SFTP, cloud); read-only sources auto-redirect to Downloads.
+- **Draw annotations**: Activate "Draw" from the image overflow menu to enter draw mode. Select from a brush, rectangle, or eraser tool with a 7-color palette (white, black, gray, red, blue, green, yellow). Tap "Save as new file" to merge annotations onto the image and save it as a new file (original untouched). The new file is named `<original>_draw_YYMMDD_hhmm.<ext>` and the player navigates to it automatically. For read-only sources, the file is saved to the device Downloads folder.
 
 ## 6. GIF Viewer
 
@@ -298,6 +299,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 
 The Settings module provides deeply comprehensive control over nearly every facet of the application:
 
+- **Friendly UI copy & support routing**: User-facing messages across errors, empty states, progress, and success feedback are rewritten in a clearer, friendlier tone. Problem surfaces can offer one contextual next step — open the docs, report a bug to the maintainer, or leave product feedback on Google Play — without scattering raw URLs or email targets across screens.
 - **Welcome language picker**: On the first launch screen the user can switch the app language (English / Russian / Ukrainian) before completing the setup. The choice takes effect immediately for all subsequent Welcome pages and the entire app.
 
 | Area | Key features explained |
@@ -322,6 +324,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Landscape-adaptive dialogs**: All dialogs across the app include dedicated landscape layout variants (`layout-land/`). In landscape orientation every dialog is constrained to 320 dp maximum height and made scrollable, with action buttons and close controls pinned at the top of content so they are always immediately reachable regardless of how far the user has scrolled. Applies to all product flavors (Standard, Lite, Photos, Legacy).
 - **Keyboard navigation**: Navigate the settings layout entirely by keyboard — **Arrow keys** and **Tab** move focus between rows, **Enter** activates the focused toggle or row, **Ctrl+F** opens the built-in settings search overlay inline, and **Escape** closes it. The same keyboard delegate keeps navigation live inside search results.
 - **Device storage info**: Quick access to available storage on your device from General Settings, with a manual refresh button — no need to dig into system settings.
+- **Unified error display:** Critical errors appear in red with an extended on-screen duration; debug-only warnings appear in amber and are suppressed in release builds. The "Detailed errors" dialog (Settings → Developer) gains Save to file and Share actions for diagnostics export, with a collapsible stack-trace section.
 
 
 ## 20. Settings Search
@@ -358,6 +361,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Credential audit**: Manage network keys securely definitively. The audit mechanism logs precise timestamp metrics corresponding to remote login validations, automatically drawing specific attention regarding completely stagnant, unused password profiles ready for strict manual deletion explicitly.
 - **Default player system hooks**: Integrate with Android intent routing when user-enabled. Runtime component toggles control ACTION_VIEW aliases (audio/video/image/document groups), ACTION_SEND aliases for share-sheet intake, and media-button wake-up wiring through the audio playback service path.
 - **Auto-download incoming links (S0003)**: When a plain http(s) URL arrives via the system Share sheet, the app fetches the referenced file (direct media or HTML-embedded media candidate ≥ 1 MiB) into the destination resource you pick — or to system Downloads when no resource is selected or it is unavailable. A second toggle controls whether the saved file opens automatically in the built-in player. Whitelisted MIME types only; non-`http(s)` redirects are blocked. Master toggle and both child controls live under Settings → Share/Receive → Behaviour.
+- **Extended URL download (S0116)**: Direct media URLs, embedded media in HTML, and standard streaming manifests (HLS / DASH) are saved as standard MP4 / MP3 / JPEG. If the site requires a login, you can authenticate inside an embedded WebView — subsequent downloads from that domain reuse the saved session. Quality preferences apply automatically. Whether the result auto-opens in the built-in player or shows a toast is configured by the existing "Open downloaded file in player" toggle.
 - **Standalone player file operations**: Perform file actions directly when opening media from external apps via "Open with" or Share. Delete the file (with confirmation), share it to other apps, toggle favorite status, or navigate to its folder in the main FMS browser — all from the standalone player toolbar.
 - **Rename file from standalone player**: Rename files directly from the standalone "Open with" player, including audio files (MP3, FLAC, OGG, WAV, M4A). Button is shown only for SAF documents with `FLAG_SUPPORTS_RENAME` and MediaStore files with write access. For audio, playback continues uninterrupted after rename — the ExoPlayer media source is hot-swapped to the new URI without restarting the service.
 - **Standalone player lifecycle & reliability**: Playback pauses automatically when leaving the app and resumes on return; screen stays awake during video and audio playback; playback errors (codec not supported, file not found, network failure) show a clear localized message instead of silently stopping.

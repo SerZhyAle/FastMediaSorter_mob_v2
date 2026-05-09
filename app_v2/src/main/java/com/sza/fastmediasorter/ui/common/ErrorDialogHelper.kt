@@ -15,9 +15,9 @@ object ErrorDialogHelper {
     fun showSimpleError(context: Context, message: String) {
         DialogUtils.showScrollableDialog(
             context,
-            "Error",
+            context.getString(R.string.error),
             message,
-            "OK"
+            context.getString(R.string.close)
         )
     }
 
@@ -27,24 +27,28 @@ object ErrorDialogHelper {
      */
     fun showDetailedError(
         context: Context,
-        title: String = "Error Details",
+        title: String? = null,
         message: String,
         errorDetails: String? = null
     ) {
+        val resolvedTitle = title ?: context.getString(R.string.error)
+
         // Compose full error text
         val fullText = buildString {
             append(message)
             if (errorDetails != null) {
-                append("\n\n--- Details ---\n")
+                append("\n\n")
+                append(context.getString(R.string.show_details))
+                append("\n")
                 append(errorDetails)
             }
         }
         
         DialogUtils.showScrollableDialog(
             context,
-            title,
+            resolvedTitle,
             fullText,
-            "Close"
+            context.getString(R.string.close)
         )
     }
 
@@ -53,10 +57,10 @@ object ErrorDialogHelper {
      */
     fun showDetailedError(
         context: Context,
-        title: String = "Error Details",
+        title: String? = null,
         exception: Throwable
     ) {
-        val message = exception.message ?: "Unknown error"
+        val message = exception.message ?: context.getString(R.string.error_reason_unknown)
         val stackTrace = exception.stackTraceToString()
         showDetailedError(context, title, message, stackTrace)
     }

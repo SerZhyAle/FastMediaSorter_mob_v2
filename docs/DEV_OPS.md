@@ -3,27 +3,60 @@
 ## BUILD COMMANDS (PowerShell)
 
 ```powershell
-# PRIMARY DEBUG
+# PRIMARY DEBUG (standard flavor, auto-versions)
 .\dev\build-with-version.ps1
 
-# FAST DEBUG
-.\build-debug.PS1
+# PER-FLAVOR SCRIPTS
+.\scripts\builders\build-standard-debug.ps1
+.\scripts\builders\build-standard-release.ps1
+.\scripts\builders\build-lite-debug.ps1
+.\scripts\builders\build-lite-release.ps1
+.\scripts\builders\build-photos-debug.ps1
+.\scripts\builders\build-photos-release.ps1
+.\scripts\builders\build-legacy-debug.ps1
+.\scripts\builders\build-legacy-release.ps1
 
-# FLAVORS
-.\gradlew.bat assembleStandardDebug
-.\gradlew.bat assembleLiteDebug
-.\gradlew.bat assemblePhotosDebug
-.\gradlew.bat assembleLegacyDebug
-.\gradlew.bat assembleVrDebug
+# VR
+.\scripts\builders\build-vr-debug.ps1                   # alias: .\a.ps1 vrd
+.\scripts\builders\build-vr-release.ps1                 # alias: .\a.ps1 vr
+.\scripts\builders\build-vr-aab.ps1                     # AAB for Meta Horizon Store
+.\scripts\builders\install-vr-debug-to-device.ps1       # install, NO launch | alias: .\a.ps1 ivrd
+.\scripts\builders\install-vr-release-to-device.ps1     # install, NO launch | alias: .\a.ps1 ivr
+.\scripts\builders\build-vr-device.ps1                  # build+install+launch — smoke only, bypasses HorizonOS shell
+
+# RELEASE AAB (standard, for Google Play)
+.\scripts\builders\build-aab-release.ps1                # alias: .\a.ps1 r
 
 # WEAR OS
 .\gradlew.bat :wear:assembleDebug
 
-# RELEASE
+# DIRECT GRADLE (any flavor×buildType combination)
+.\gradlew.bat assembleStandardDebug
 .\gradlew.bat assembleStandardRelease
+.\gradlew.bat assembleLiteDebug
+.\gradlew.bat assemblePhotosDebug
+.\gradlew.bat assembleLegacyDebug
+.\gradlew.bat assembleVrDebug
 .\gradlew.bat assembleVrRelease
-.\gradlew.bat bundleVrRelease          # AAB for Google Play / Android XR
+.\gradlew.bat assembleVrUnlicensedRelease
+.\gradlew.bat bundleVrRelease                            # AAB for Meta Horizon Store
+.\gradlew.bat assembleStandardStaging                    # staging = minified but debuggable
 ```
+
+## a.ps1 SHORTCUTS
+
+| Alias | Action |
+|:------|:-------|
+| `.\a.ps1 r`    | Build standard AAB release |
+| `.\a.ps1 vr`   | Build VR release APK |
+| `.\a.ps1 vrd`  | Build VR debug APK |
+| `.\a.ps1 ivr`  | Install VR release to device (no launch) |
+| `.\a.ps1 ivrd` | Install VR debug to device (no launch) |
+| `.\a.ps1 d`    | Build debug (standard) |
+| `.\a.ps1 db`   | Build debug, skip zip |
+| `.\a.ps1 dc`   | Clean + debug build |
+| `.\a.ps1 cls`  | Clean Gradle caches |
+| `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
 
 ## TEST & VERIFY
 
@@ -35,21 +68,70 @@
 .\gradlew.bat lintStandardDebug
 ```
 
+## BUILD TYPES
+
+| Type | minify | shrink | debuggable | appId suffix | notes |
+|:-----|:------:|:------:|:----------:|:------------:|:------|
+| `debug`   | — | — | ✓ | `.debug` | Custom keystore via `debug.keystore.properties`; `LOG_NETWORK_THUMBNAILS=true`; dedicated Dropbox key |
+| `staging` | — | — | ✓ | `.staging` | `initWith(release)` — release proguard, shrink disabled; `matchingFallbacks=["release"]` |
+| `release` | ✓ | ✓ | — | — | `debugSymbolLevel=FULL`; keystore via `keystore.properties` |
+
 ## FEATURE FLAGS (BuildConfig)
 
-| FLAVOR       | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM | VR  |
-| :----------- | :---: | :---: | :----: | :---: | :--: | :--: | :-: |
-| **standard** |  [+]  |  [+]  |  [+]   |  [+]  | [+]  | [+]  | [-] |
-| **vr**       |  [+]  |  [+]  |  [+]   |  [+]  | [+]  | [+]  | [+] |
-| **lite**     |  [+]  |  [-]  |  [+]   |  [-]  | [-]  | [-]  | [-] |
-| **photos**   |  [-]  |  [-]  |  [+]   |  [-]  | [-]  | [+]  | [-] |
-| **legacy**   |  [+]  |  [+]  |  [+]   |  [-]  | [-]  | [+]  | [-] |
+### Core feature matrix
+
+| Flavor           | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM | VR  |
+|:-----------------|:-----:|:-----:|:------:|:-----:|:----:|:----:|:---:|
+| **standard**     | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [-] |
+| **lite**         | [+]   | [+]   | [+]    | [-]   | [-]  | [-]  | [-] |
+| **photos**       | [-]   | [-]   | [+]    | [+]   | [-]  | [+]  | [-] |
+| **legacy**       | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [-] |
+| **vr**           | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [+] |
+| **vrUnlicensed** | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [+] |
+
+### Extended per-flavor flags
+
+| Flag | std | lite | photos | legacy | vr | vrU |
+|:-----|:---:|:----:|:------:|:------:|:--:|:---:|
+| `SUPPORT_MIC_RECORDING`            | [+] | [-] | [-] | [+] | [+] | [+] |
+| `ENABLE_EPUB`                      | [+] | [-] | [-] | [+] | [+] | [+] |
+| `ENABLE_TRANSLATION`               | [+] | [-] | [-] | [+] | [+] | [+] |
+| `ENABLE_PERSISTENT_AUDIO_PLAYBACK` | [+] | [-] | [-] | [+] | [+] | [+] |
+| `SUPPORTS_DEFAULT_PLAYER`          | [+] | [-] | [+] | [+] | [+] | [+] |
+| `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [+] | [-] | [-] |
+| `ENABLE_DTS_DECODER`               | [+] | [-] | [-] | [+] | [+] | [+] |
+| `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [-] |
+| `VR_UI_COMPOSITION_LAYER_ENABLED`  | —   | —   | —   | —   | [+] | [+] |
+
+`vrU` = `vrUnlicensed`. Cast is disabled in VR flavors: Horizon OS lacks the Google Play Services Cast module. `vrUnlicensed` always ships DTS — no store-review restrictions.
+
+### Build-type flags (all flavors)
+
+| Flag | debug | staging | release |
+|:-----|:-----:|:-------:|:-------:|
+| `LOG_SMB_IO`                  | [-] | [-] | [-] |
+| `LOG_NETWORK_THUMBNAILS`      | [+] | [-] | [-] |
+| `LOG_LINK_DOWNLOAD`           | [+] | [-] | [-] |
+| `ENABLE_LEAKCANARY`           | [-] | —   | —   |
+| `ENABLE_SCHEDULED_OPERATIONS` | [+] | [+] | [+] |
+| `ENABLE_BACKGROUND_AUDIO`     | [+] | [+] | [+] |
+
+`ENABLE_LEAKCANARY` is debug-only (`debugImplementation`); field absent in staging/release.
 
 ## DATABASE
 
-Room Config: Version 6.
+Room schema version: 6.
+Library: `room-runtime:2.7.0`.
 Migrations: `AppDatabase.kt`.
-**Rule**: Increment version on schema change.
+**Rule**: Increment schema version on every schema change.
+
+## NDK & ABI
+
+NDK r27c (`27.2.12479018`) — first NDK release with 16 KB page-size aligned `libc++_shared.so` (Google Play requirement since 2025-11-01 for apps targeting Android 15+).
+
+ABI strategy is flavor-local, not buildType-local (AGP merges buildType+flavor `abiFilters` as UNION, not intersection — a buildType-level list would leak non-VR ABIs into VR AABs):
+- Non-VR flavors: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`
+- `vr` + `vrUnlicensed`: `arm64-v8a` only (Meta Quest 2/3/Pro)
 
 ## QUEST DEBUGGING (VR flavor)
 

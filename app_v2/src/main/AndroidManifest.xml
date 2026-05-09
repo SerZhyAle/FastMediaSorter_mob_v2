@@ -105,6 +105,9 @@
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
+        <!-- S0116 §5.1 pillar K: saved auth sessions sub-screen launched from PlaybackSettingsFragment. -->
+        <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <activity android:name=".ui.resourceeditor.ResourceEditorActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />

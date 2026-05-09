@@ -4,6 +4,8 @@ import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
+import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
@@ -99,7 +101,26 @@ object ConnectionErrorFormatter {
         
         return Pair(userMessage, technicalDetails)
     }
-    
+
+    /**
+     * S0118: Wrap [formatConnectionError] output as a [UiMessageSpec] so callers can
+     * route through [com.sza.fastmediasorter.ui.common.copy.UiMessageProjector] without
+     * juggling a `Pair<String, String?>` at every error surface.
+     */
+    fun formatAsSpec(
+        context: Context,
+        resource: MediaResource,
+        error: Throwable,
+        showTechnicalDetails: Boolean,
+    ): UiMessageSpec {
+        val (short, detailed) = formatConnectionError(context, resource, error, showTechnicalDetails)
+        return UiMessageSpec(
+            family = UiMessageFamily.ERROR,
+            shortMessage = short,
+            detailedMessage = detailed,
+        )
+    }
+
     private fun buildTechnicalDetails(
         context: Context,
         resource: MediaResource,

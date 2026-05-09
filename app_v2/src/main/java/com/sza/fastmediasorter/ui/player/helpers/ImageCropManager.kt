@@ -7,6 +7,7 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RectF
+import android.media.MediaScannerConnection
 import android.os.Environment
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -27,8 +28,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+
 
 /**
  * Self-contained engine for image crop and compress operations in the player.
@@ -173,7 +173,9 @@ class ImageCropManager(
                 .also { srcTemp = if (it.path != currentFile.path.removePrefix("file://")) it else null }
 
             val bitmap = withContext(Dispatchers.IO) {
-                decodeRegion(srcFile.path, mappedRect)
+                // BitmapRegionDecoder returns raw (unrotated) pixels — rotate to match display orientation.
+                val raw = decodeRegion(srcFile.path, mappedRect)
+                rotateBitmapIfNeeded(raw, readExifDegrees(currentFile.path))
             }
 
             withContext(Dispatchers.IO) {
@@ -217,7 +219,11 @@ class ImageCropManager(
             val srcFile = ensureLocalSource(currentFile, currentResource, timestamp, ext)
                 .also { srcTemp = if (it.path != currentFile.path.removePrefix("file://")) it else null }
 
-            val bitmap = withContext(Dispatchers.IO) { decodeRegion(srcFile.path, mappedRect) }
+            val bitmap = withContext(Dispatchers.IO) {
+                // BitmapRegionDecoder returns raw (unrotated) pixels — rotate to match display orientation.
+                val raw = decodeRegion(srcFile.path, mappedRect)
+                rotateBitmapIfNeeded(raw, readExifDegrees(currentFile.path))
+            }
 
             val targetPath = withContext(Dispatchers.IO) {
                 compressToFile(bitmap, outTemp, ext)
@@ -257,13 +263,14 @@ class ImageCropManager(
                 .also { srcTemp = if (it.path != currentFile.path.removePrefix("file://")) it else null }
 
             val bitmap = withContext(Dispatchers.IO) {
-                val opts = BitmapFactory.Options()
                 val rawOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeFile(srcFile.path, rawOpts)
                 val longSide = maxOf(rawOpts.outWidth, rawOpts.outHeight)
-                opts.inSampleSize = computeSampleSize(longSide, 1024)
-                BitmapFactory.decodeFile(srcFile.path, opts)
+                val opts = BitmapFactory.Options().apply { inSampleSize = computeSampleSize(longSide, 1024) }
+                val raw = BitmapFactory.decodeFile(srcFile.path, opts)
                     ?: throw IllegalStateException("Failed to decode source image")
+                // BitmapFactory does not apply EXIF orientation — rotate to match display orientation.
+                rotateBitmapIfNeeded(raw, readExifDegrees(currentFile.path))
             }
 
             val targetPath = withContext(Dispatchers.IO) {
@@ -297,13 +304,12 @@ class ImageCropManager(
         isReadOnly: Boolean,
         onConfirm: (String) -> Unit
     ) {
-        val ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMdd_HHmm"))
         val ext = sourceFile.name.substringAfterLast('.', "jpg")
         val baseName = sourceFile.name.substringBeforeLast('.')
         val defaultName = when (mode) {
-            CropMode.CROP_TO_FILE -> "${baseName}_crop_${ts}.${ext}"
-            CropMode.COMPRESS_COPY -> "${baseName}_shrink_${ts}.${ext}"
-            CropMode.CROP -> "${baseName}_crop_${ts}.${ext}"
+            CropMode.CROP_TO_FILE -> ImageEditorFileNamer.buildName(baseName, ext, ImageEditorFileNamer.CROP)
+            CropMode.COMPRESS_COPY -> ImageEditorFileNamer.buildName(baseName, ext, ImageEditorFileNamer.COMPRESS)
+            CropMode.CROP -> ImageEditorFileNamer.buildName(baseName, ext, ImageEditorFileNamer.CROP)
         }
 
         val container = LinearLayout(activity).apply {
@@ -355,18 +361,28 @@ class ImageCropManager(
         if (isLocal) {
             return@withContext File(localPath)
         }
-        // Network source: copy to cache
-        val tempDest = File(context.cacheDir, "crop_src_$timestamp.$ext")
+        // Network source: copy to cache.
+        // FileOperation.Copy treats destination as a directory (joinPath appends source filename),
+        // so we pass a real temp dir and rename the result to the expected single-file path.
+        val tempDir = File(context.cacheDir, "crop_src_dir_$timestamp")
+        tempDir.mkdirs()
         val result = fileOperationUseCase.execute(
             FileOperation.Copy(
                 sources = listOf(File(file.path)),
-                destination = tempDest,
+                destination = tempDir,
                 overwrite = true
             )
         )
+        val tempDest = File(context.cacheDir, "crop_src_$timestamp.$ext")
         if (result is FileOperationResult.Success) {
+            val copiedPath = (result as FileOperationResult.Success).copiedFilePaths.firstOrNull()
+                ?: File(tempDir, file.name).absolutePath
+            File(copiedPath).renameTo(tempDest)
+            tempDir.deleteRecursively()
+            if (!tempDest.exists()) throw IllegalStateException("Failed to place downloaded file: ${file.path}")
             tempDest
         } else {
+            tempDir.deleteRecursively()
             throw IllegalStateException("Failed to download source file: ${file.path}")
         }
     }
@@ -381,6 +397,33 @@ class ImageCropManager(
             decoder.recycle()
             bm ?: throw IllegalStateException("decodeRegion returned null")
         }
+    }
+
+    /**
+     * Reads EXIF orientation from a local file and converts it to clockwise degrees.
+     * Returns 0 for network paths or unreadable EXIF.
+     * Must be called on a background thread.
+     */
+    private fun readExifDegrees(filePath: String): Int {
+        if (!filePath.startsWith("/") && !filePath.startsWith("file://")) return 0
+        return try {
+            val path = filePath.removePrefix("file://")
+            val exif = ExifInterface(path)
+            exifOrientationToDegrees(
+                exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            )
+        } catch (_: Exception) { 0 }
+    }
+
+    /**
+     * Rotates [bitmap] by [degrees] clockwise. Returns original bitmap if degrees == 0.
+     * Recycles the original when a new bitmap is created.
+     */
+    private fun rotateBitmapIfNeeded(bitmap: Bitmap, degrees: Int): Bitmap {
+        if (degrees == 0) return bitmap
+        val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            .also { bitmap.recycle() }
     }
 
     private fun compressToFile(bitmap: Bitmap, dest: File, ext: String) {
@@ -399,15 +442,37 @@ class ImageCropManager(
         destPath: String,
         destResource: MediaResource?
     ) = withContext(Dispatchers.IO) {
-        val result = fileOperationUseCase.execute(
-            FileOperation.Copy(
-                sources = listOf(sourceFile),
-                destination = File(destPath),
-                overwrite = true
+        // FileOperation.Copy treats `destination` as a directory and appends source.name,
+        // so passing a full file path would cause Kotlin's copyTo to create a directory
+        // at that path (EISDIR). For local destinations, write directly and notify MediaScanner.
+        val isNetworkPath = destPath.contains("://")
+        if (!isNetworkPath) {
+            val destFile = File(destPath)
+            destFile.parentFile?.mkdirs()
+            sourceFile.copyTo(destFile, overwrite = true)
+            MediaScannerConnection.scanFile(context, arrayOf(destPath), null, null)
+            return@withContext
+        }
+
+        // Network destination: FileOperation.Copy uses destination as a directory and appends
+        // source.name — rename source to target filename first so the remote path is correct.
+        val destFile = File(destPath)
+        val destDir = destFile.parentFile ?: throw IllegalStateException("No parent dir for $destPath")
+        val renamedSource = File(sourceFile.parent, destFile.name)
+        sourceFile.renameTo(renamedSource)
+        try {
+            val result = fileOperationUseCase.execute(
+                FileOperation.Copy(
+                    sources = listOf(renamedSource),
+                    destination = destDir,
+                    overwrite = true
+                )
             )
-        )
-        if (result !is FileOperationResult.Success && result !is FileOperationResult.PartialSuccess) {
-            throw IllegalStateException("Copy to destination failed: $destPath")
+            if (result !is FileOperationResult.Success && result !is FileOperationResult.PartialSuccess) {
+                throw IllegalStateException("Copy to destination failed: $destPath")
+            }
+        } finally {
+            runCatching { renamedSource.delete() }
         }
     }
 

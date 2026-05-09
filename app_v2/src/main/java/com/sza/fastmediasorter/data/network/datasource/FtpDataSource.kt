@@ -34,11 +34,6 @@ class FtpDataSource(
     private val context: Context
 ) : BaseDataSource(true) {
 
-    companion object {
-        private const val LOG_INITIAL_CALLS = 3L
-        private const val LOG_PERIODIC_INTERVAL = 1000L
-    }
-
     // Connection from pool - DO NOT disconnect, managed by pool
     private var client: FTPClient? = null
 
@@ -197,11 +192,7 @@ class FtpDataSource(
             // bytesRead > 0: successful read
             totalBytesRead += bytesRead
             readCallCount++
-            if (readCallCount <= LOG_INITIAL_CALLS || readCallCount % LOG_PERIODIC_INTERVAL == 0L) {
-                Timber.v(
-                    "FtpDataSource: read #$readCallCount — requested=$bytesToRead actual=$bytesRead total=${totalBytesRead}B file=${uri?.lastPathSegment}"
-                )
-            }
+            // ExoPlayer may read network streams in tiny chunks, so per-read logs flood logcat during playback.
 
             if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
                 bytesRemaining -= bytesRead.toLong()

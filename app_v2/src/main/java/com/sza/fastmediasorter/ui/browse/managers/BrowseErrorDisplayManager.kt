@@ -9,8 +9,12 @@ import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.core.error.ErrorSeverity
+import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
+import com.sza.fastmediasorter.ui.common.copy.UiMessageProjector
+import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
 import com.sza.fastmediasorter.ui.dialog.ErrorDialog
-import com.sza.fastmediasorter.util.ToastThrottler
+import com.sza.fastmediasorter.util.AppErrorNotifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -78,7 +82,16 @@ class BrowseErrorDisplayManager(
                     )
                 }
             } else {
-                ToastThrottler.showNetworkError(activity, message)
+                // S0118: route the short copy through UiMessageProjector so all error
+                // surfaces share the same Snackbar formula and severity defaults.
+                UiMessageProjector.showShort(
+                    activity = activity,
+                    spec = UiMessageSpec(
+                        family = UiMessageFamily.ERROR,
+                        shortMessage = message,
+                    ),
+                    severity = ErrorSeverity.CRITICAL,
+                )
             }
         }
     }

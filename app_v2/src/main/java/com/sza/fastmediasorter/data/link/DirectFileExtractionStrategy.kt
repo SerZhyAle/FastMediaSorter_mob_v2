@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.link
 
+import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.domain.usecase.link.BlockedReason
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
@@ -83,6 +84,14 @@ class DirectFileExtractionStrategy @Inject constructor(
             if (finalScheme != "http" && finalScheme != "https") {
                 response.close()
                 return@withContext OpenResult.Blocked(BlockedReason.RedirectToNonHttp)
+            }
+            // S0116 §5.1 pillar L: surface authentication-required outcomes for the WebView flow.
+            if (response.code == 401 || response.code == 403) {
+                LinkDownloadTrace.verbose(
+                    "auth-required for ${LinkDownloadTrace.truncateUrl(url)} status=${response.code} strategy=$id",
+                )
+                response.close()
+                return@withContext OpenResult.Blocked(BlockedReason.AuthRequired)
             }
             val mime = response.header("Content-Type")?.substringBefore(';')?.trim()
             if (!MediaMimeWhitelist.isAllowed(mime)) {

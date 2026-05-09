@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 
 class RenameDialog(
@@ -161,9 +162,14 @@ class RenameDialog(
                                 newName
                             )
                         } else {
+                            Timber.w(
+                                "RenameDialog: rename failed for %s: %s",
+                                file.path,
+                                result.error
+                            )
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.rename_failed, result.error),
+                                R.string.rename_failed_generic,
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -173,7 +179,8 @@ class RenameDialog(
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, context.getString(R.string.toast_rename_error, e.message), Toast.LENGTH_LONG).show()
+                Timber.e(e, "RenameDialog: rename failed for ${file.path}")
+                Toast.makeText(context, R.string.rename_failed_generic, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -227,7 +234,12 @@ class RenameDialog(
                         }
 
                         is FileOperationResult.Failure -> {
-                            errors.add("${file.name}: ${result.error}")
+                            Timber.w(
+                                "RenameDialog: batch rename failed for %s: %s",
+                                file.path,
+                                result.error
+                            )
+                            errors.add("${file.name}: ${context.getString(R.string.rename_failed_generic)}")
                         }
 
                         else -> {
@@ -235,7 +247,8 @@ class RenameDialog(
                         }
                     }
                 } catch (e: Exception) {
-                    errors.add("${file.name}: ${e.message ?: "Unknown error"}")
+                    Timber.e(e, "RenameDialog: batch rename failed for ${file.path}")
+                    errors.add("${file.name}: ${context.getString(R.string.rename_failed_generic)}")
                 }
             }
 

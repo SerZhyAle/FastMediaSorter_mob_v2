@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -58,6 +59,53 @@ class BrowseLoadingAuxManager(
     private var playerWarmupJob: Job? = null
     private var lastWarmupSignature: String? = null
     private var audioMetadataEnrichmentJob: Job? = null
+
+    private fun getFriendlyBrowseErrorMessage(throwable: Throwable): String =
+        context.getString(resolveFriendlyBrowseErrorRes(throwable))
+
+    private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
+        val message = throwable.message.orEmpty()
+        return when {
+            message.contains("Authentication", ignoreCase = true) ||
+                message.contains("LOGON_FAILURE", ignoreCase = true) ||
+                message.contains("Not authenticated", ignoreCase = true) ->
+                R.string.friendly_copy_error_auth_failed
+
+            (message.contains("permission", ignoreCase = true) &&
+                message.contains("denied", ignoreCase = true)) ||
+                message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
+                message.contains("access denied", ignoreCase = true) ->
+                R.string.friendly_copy_error_access_denied
+
+            message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
+                message.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true) ||
+                message.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true) ||
+                message.contains("not found", ignoreCase = true) ->
+                R.string.friendly_copy_error_not_found
+
+            message.contains("unreachable", ignoreCase = true) ||
+                message.contains("Cannot resolve host", ignoreCase = true) ||
+                message.contains("Unknown host", ignoreCase = true) ->
+                R.string.friendly_copy_error_no_connection
+
+            message.contains("Connection reset", ignoreCase = true) ||
+                message.contains("connection closed", ignoreCase = true) ||
+                message.contains("broken pipe", ignoreCase = true) ||
+                message.contains("connection lost", ignoreCase = true) ->
+                R.string.error_network_connection_lost
+
+            message.contains("timed out", ignoreCase = true) ||
+                message.contains("timeout", ignoreCase = true) ||
+                message.contains("SocketTimeoutException", ignoreCase = true) ->
+                R.string.error_network_timeout
+
+            message.contains("Connection", ignoreCase = true) ||
+                message.contains("Network", ignoreCase = true) ->
+                R.string.error_network_connection
+
+            else -> R.string.friendly_copy_error_generic
+        }
+    }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -116,7 +164,8 @@ class BrowseLoadingAuxManager(
                 val isConnErr = e.message?.contains("Connection", ignoreCase = true) == true ||
                     e.message?.contains("Network", ignoreCase = true) == true ||
                     e.message?.contains("Authentication", ignoreCase = true) == true ||
-                    e.message?.contains("timed out", ignoreCase = true) == true
+                    e.message?.contains("timed out", ignoreCase = true) == true ||
+                    e.message?.contains("unreachable", ignoreCase = true) == true
                 if (isConnErr && resource.isAvailable) {
                     updateResourceUseCase(resource.copy(isAvailable = false))
                     Timber.d("BrowseLoadingAuxManager: marked resource unavailable due to connection error")
@@ -126,56 +175,19 @@ class BrowseLoadingAuxManager(
             }
         }
 
-        val title = when {
-            e.message?.contains("Authentication failed", ignoreCase = true) == true ||
-                e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> "Authentication Failed"
-            e.message?.contains("Connection error", ignoreCase = true) == true ||
-                e.message?.contains("Network", ignoreCase = true) == true -> "Network Connection Error"
-            e.message?.contains("Permission denied", ignoreCase = true) == true -> "Permission Denied"
-            else -> "Error Loading Files"
-        }
-
-        val body = when {
-            e.message?.contains("Authentication failed", ignoreCase = true) == true ||
-                e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true ->
-                "Invalid username or password.\n\nRecommendations:\n" +
-                    "• Edit this resource and update credentials\n" +
-                    "• Verify username and password are correct\n" +
-                    "• Check if account is locked or expired"
-            e.message?.contains("Connection error", ignoreCase = true) == true ||
-                e.message?.contains("Network", ignoreCase = true) == true ->
-                "Cannot connect to server.\n\nRecommendations:\n" +
-                    "• Check your network connection\n" +
-                    "• Verify server address and port\n" +
-                    "• Check if server is online and accessible\n" +
-                    "• Try pinging the server from another device"
-            e.message?.contains("timed out", ignoreCase = true) == true ||
-                e.message?.contains("SocketTimeoutException", ignoreCase = true) == true ->
-                "Connection timeout.\n\nPossible causes:\n" +
-                    "• Server is slow or overloaded\n" +
-                    "• Network latency is too high\n" +
-                    "• Firewall blocking data connection (FTP passive mode)\n\n" +
-                    "Recommendations:\n" +
-                    "• Check server status and load\n" +
-                    "• Configure firewall to allow FTP passive mode\n" +
-                    "• Contact server administrator if problem persists"
-            e.message?.contains("Permission denied", ignoreCase = true) == true ->
-                "No access to this folder.\n\nRecommendations:\n" +
-                    "• Check folder permissions on server\n" +
-                    "• Verify your account has read access\n" +
-                    "• Try accessing from root directory first"
-            else -> "Failed to load media files.\n\nSee error details below for more information."
-        }
-
         val details = buildString {
             append("Resource: ${resource.name}\n")
             append("Path: ${resource.path}\n")
             append("Type: ${resource.type}\n\n")
-            append("Error: ${e.message ?: "Unknown error"}\n\n")
+            append("Error: ${e.message ?: e.javaClass.simpleName}\n\n")
             append("Stack trace:\n${e.stackTraceToString()}")
         }
 
-        sendEvent(BrowseEvent.ShowError(message = "$title\n\n$body", details = details, exception = e))
+        sendEvent(BrowseEvent.ShowError(
+            message = getFriendlyBrowseErrorMessage(e),
+            details = details,
+            exception = e
+        ))
         onHandleError(e)
     }
 

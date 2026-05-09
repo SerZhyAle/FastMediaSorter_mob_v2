@@ -630,9 +630,13 @@ class PlayerDialogHelper(
                         Toast.LENGTH_LONG
                     ).show()
                 }.onFailure { e ->
+                    Timber.e(e, "PDF export failed")
                     Toast.makeText(
                         activity,
-                        activity.getString(R.string.pdf_export_failed, e.message ?: "Unknown error"),
+                        activity.getString(
+                            R.string.pdf_export_failed,
+                            activity.getString(R.string.friendly_copy_error_generic)
+                        ),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -640,7 +644,10 @@ class PlayerDialogHelper(
                 Timber.e(e, "PDF export failed")
                 Toast.makeText(
                     activity,
-                    activity.getString(R.string.pdf_export_failed, e.message ?: "Unknown error"),
+                    activity.getString(
+                        R.string.pdf_export_failed,
+                        activity.getString(R.string.friendly_copy_error_generic)
+                    ),
                     Toast.LENGTH_LONG
                 ).show()
             }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.link
 
+import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
@@ -34,6 +35,7 @@ import javax.inject.Singleton
 class HtmlPageExtractionStrategy @Inject constructor(
     @Named("linkDownload") private val httpClient: OkHttpClient,
     private val direct: DirectFileExtractionStrategy,
+    private val streamingSniffer: StreamingManifestSniffer,
 ) : UrlExtractionStrategy {
 
     override val id: String = "html"
@@ -63,18 +65,36 @@ class HtmlPageExtractionStrategy @Inject constructor(
         val httpUrl = url.toHttpUrlOrNull()
             ?: return OpenResult.Blocked(com.sza.fastmediasorter.domain.usecase.link.BlockedReason.NonHttpScheme)
 
-        val rawHtml: String = try {
+        val fetchResult: HtmlFetchResult = try {
             withContext(Dispatchers.IO) {
                 val request = Request.Builder().url(httpUrl).get().build()
                 httpClient.newCall(request).execute().use { resp ->
-                    if (!resp.isSuccessful) return@withContext null
-                    val limit = MAX_HTML_BYTES
-                    resp.peekBody(limit).string()
+                    when {
+                        // S0116 §5.1 pillar L: surface auth requirement for the WebView flow.
+                        resp.code == 401 || resp.code == 403 -> {
+                            LinkDownloadTrace.verbose(
+                                "auth-required for ${LinkDownloadTrace.truncateUrl(url)} status=${resp.code} strategy=$id",
+                            )
+                            HtmlFetchResult.AuthRequired
+                        }
+                        !resp.isSuccessful -> HtmlFetchResult.Failed
+                        else -> {
+                            val limit = MAX_HTML_BYTES
+                            HtmlFetchResult.Body(resp.peekBody(limit).string())
+                        }
+                    }
                 }
-            } ?: return OpenResult.NotFound("html_fetch_failed")
+            }
         } catch (io: IOException) {
             Timber.w(io, "HtmlPageExtractionStrategy: html fetch failed")
             return OpenResult.Error(io)
+        }
+
+        val rawHtml: String = when (fetchResult) {
+            is HtmlFetchResult.Body -> fetchResult.value
+            HtmlFetchResult.AuthRequired ->
+                return OpenResult.Blocked(com.sza.fastmediasorter.domain.usecase.link.BlockedReason.AuthRequired)
+            HtmlFetchResult.Failed -> return OpenResult.NotFound("html_fetch_failed")
         }
 
         val candidates = harvestCandidates(rawHtml, baseUri = httpUrl.toString())
@@ -85,6 +105,11 @@ class HtmlPageExtractionStrategy @Inject constructor(
         // Carry through any candidates we didn't probe (kept in input order).
         val full = probed + candidates.drop(MAX_HEAD_PROBES)
         val filtered = full.filter { c ->
+            // S0116 §5.1 pillar G: streaming manifests carry non-media MIME
+            // (`application/vnd.apple.mpegurl` / `application/dash+xml`) and must
+            // bypass the direct-file MIME whitelist.
+            if (c.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
+                c.source == HtmlMediaCandidate.Source.DASH_MANIFEST) return@filter true
             val mime = c.tentativeMime
             mime == null || MediaMimeWhitelist.isAllowed(mime)
         }
@@ -92,7 +117,28 @@ class HtmlPageExtractionStrategy @Inject constructor(
         val chosen = CandidateSelectionPolicy.choose(filtered)
             ?: return OpenResult.NotFound("no_media_in_html")
 
+        // S0116 §5.1 pillar G: streaming candidates short-circuit to OpenResult.Streaming;
+        // the coordinator routes them into the streaming pipeline (Phase 03).
+        if (chosen.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
+            chosen.source == HtmlMediaCandidate.Source.DASH_MANIFEST
+        ) {
+            val manifest = chosen.manifest
+                ?: return OpenResult.NotFound("streaming_candidate_missing_manifest")
+            return OpenResult.Streaming(
+                manifest = manifest,
+                tentativeFileName = deriveStreamingFileName(chosen.url),
+            )
+        }
+
         return direct.open(chosen.url, onProgress)
+    }
+
+    private fun deriveStreamingFileName(url: String): String {
+        val lastSegment = url.toHttpUrlOrNull()?.pathSegments?.lastOrNull { it.isNotBlank() }
+        if (lastSegment.isNullOrBlank()) return "download_${System.currentTimeMillis()}.mp4"
+        val withoutExt = lastSegment.substringBeforeLast('.', missingDelimiterValue = lastSegment)
+        val safe = withoutExt.replace(Regex("[^a-zA-Z0-9_.\\-]"), "_").take(80).ifBlank { "download" }
+        return "$safe.mp4"
     }
 
     private suspend fun probeCandidates(input: List<HtmlMediaCandidate>): List<HtmlMediaCandidate> {
@@ -164,8 +210,34 @@ class HtmlPageExtractionStrategy @Inject constructor(
             }
         }
 
+        // S0116 §5.1 pillar G: append HLS/DASH manifest candidates harvested from the
+        // same HTML body. distinctBy below dedups overlapping URLs (same manifest reachable
+        // via multiple sources).
+        out.addAll(streamingSniffer.sniff(html, baseUri = doc.baseUri()))
+
+        val deduped = out.distinctBy { it.url }
+        val directCount = deduped.count {
+            it.source != HtmlMediaCandidate.Source.HLS_MANIFEST &&
+                it.source != HtmlMediaCandidate.Source.DASH_MANIFEST &&
+                it.source != HtmlMediaCandidate.Source.OG_IMAGE &&
+                it.source != HtmlMediaCandidate.Source.IMG_TAG &&
+                it.source != HtmlMediaCandidate.Source.IMG_SRCSET
+        }
+        val streamingCount = deduped.count {
+            it.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
+                it.source == HtmlMediaCandidate.Source.DASH_MANIFEST
+        }
+        val imageCount = deduped.count {
+            it.source == HtmlMediaCandidate.Source.OG_IMAGE ||
+                it.source == HtmlMediaCandidate.Source.IMG_TAG ||
+                it.source == HtmlMediaCandidate.Source.IMG_SRCSET
+        }
+        LinkDownloadTrace.tag(
+            "html-sniffer harvested ${deduped.size} candidates (direct=$directCount, " +
+                "streaming=$streamingCount, image=$imageCount) for ${LinkDownloadTrace.truncateUrl(baseUri)}",
+        )
         // De-duplicate by URL while preserving first occurrence (and its source ordinal).
-        return out.distinctBy { it.url }
+        return deduped
     }
 
     private companion object {
@@ -173,4 +245,15 @@ class HtmlPageExtractionStrategy @Inject constructor(
         const val MAX_HEAD_PROBES: Int = 8
         const val CANDIDATE_BUDGET_MS: Long = 4_000L
     }
+}
+
+/**
+ * S0116 §5.1 pillar L: tri-state outcome of the initial HTML GET so the strategy
+ * can distinguish "auth required" (401/403 → BlockedReason.AuthRequired) from a
+ * generic non-2xx failure (→ NotFound) without relying on null-as-signal.
+ */
+private sealed interface HtmlFetchResult {
+    data class Body(val value: String) : HtmlFetchResult
+    data object AuthRequired : HtmlFetchResult
+    data object Failed : HtmlFetchResult
 }

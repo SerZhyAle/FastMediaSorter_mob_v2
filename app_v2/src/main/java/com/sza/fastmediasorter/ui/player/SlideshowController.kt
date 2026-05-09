@@ -6,6 +6,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.core.constants.AppConstants
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import timber.log.Timber
 
 /**
@@ -59,6 +60,8 @@ class SlideshowController(
     private var isPaused = false
     private var intervalMs = AppConstants.DEFAULT_SLIDESHOW_INTERVAL_MS
     private var slideCounter = 0
+    // S0120: endurance cycle counter (resets with scenario, independent of slideCounter)
+    private var enduranceTransitions = 0
 
     /**
      * When true, slideshow timer and countdown are suppressed.
@@ -92,7 +95,14 @@ class SlideshowController(
             slideshowCallback.onCountdownTick(0) // Signal to clear countdown
             
             val shouldSchedule = slideshowCallback.onSlideAdvance()
-            
+
+            // S0120: checkpoint every transition; CYCLE_END every 25 for delta analysis
+            enduranceTransitions++
+            MemoryEnduranceTracker.checkpoint("TRANSITION")
+            if (enduranceTransitions % 25 == 0) {
+                MemoryEnduranceTracker.checkpoint("CYCLE_END")
+            }
+
             // Clear memory cache every 5 slides to prevent OOM during long slideshows
             slideCounter++
             if (slideCounter >= 5) {
@@ -134,10 +144,12 @@ class SlideshowController(
      */
     fun startSlideshow(intervalSeconds: Int) {
         Timber.d("SlideshowController: Starting slideshow with interval ${intervalSeconds}s")
-        
+
         intervalMs = intervalSeconds * 1000L
         isActive = true
         isPaused = false
+        enduranceTransitions = 0
+        MemoryEnduranceTracker.startScenario("IMG-slideshow")
         
         // D.8: Force screen-on during slideshow
         slideshowCallback.setKeepScreenAwake(true)
@@ -182,7 +194,8 @@ class SlideshowController(
      */
     fun stopSlideshow() {
         Timber.d("SlideshowController: Stopping slideshow")
-        
+
+        MemoryEnduranceTracker.endScenario()
         isActive = false
         isPaused = false
         handler.removeCallbacks(slideShowRunnable)
@@ -276,6 +289,8 @@ class SlideshowController(
     }
     
     private fun cleanup() {
+        // S0120: end scenario on destroy if stopSlideshow() was not called explicitly
+        if (isActive) MemoryEnduranceTracker.endScenario()
         handler.removeCallbacksAndMessages(null)
         countdownHandler.removeCallbacksAndMessages(null)
         lifecycle.removeObserver(this)

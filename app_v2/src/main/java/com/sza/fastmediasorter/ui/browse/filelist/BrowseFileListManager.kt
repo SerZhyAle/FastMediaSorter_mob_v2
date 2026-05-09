@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.filelist
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.SortMode
 import timber.log.Timber
@@ -119,7 +120,12 @@ class BrowseFileListManager(
         randomSeed: Long? = null
     ): List<MediaFile> {
         if (!forceSort && files.size < 2) return files // Optimization: single-item list is always sorted
-        
+
+        // S0120: track sort changes on large folders for memory endurance analysis
+        if (forceSort && files.size >= 500) {
+            MemoryEnduranceTracker.checkpoint("SORT_CHANGE", "BRW-sort")
+        }
+
         // Separate directories and regular files
         val directories = files.filter { it.isDirectory }
         val regularFiles = files.filter { !it.isDirectory }

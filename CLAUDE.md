@@ -15,6 +15,15 @@ references live in `dev/` and `docs/`.
 
 Non-negotiable — not typos.
 
+## Caveman Mode (optional)
+
+- Trigger only on explicit user request: `caveman`, `less tokens`, `be brief`, `ultra-terse`, `/caveman`.
+- Keep Russian in chat. Keep code/docs/logs/commits in English.
+- Drop filler, pleasantries, and hedging. Keep technical terms exact. Default level: `full`. `lite` keeps full sentences. `ultra` compresses harder.
+- Repo workflow and safety rules override brevity. Mandatory skill routing still applies.
+- Do not use caveman compression for security warnings, destructive/irreversible confirmations, or multi-step sequences where compression creates ambiguity.
+- `stop caveman` or `normal mode` disables it.
+
 ## Spec Writing Style
 
 Applied by all `/spec*` skills when writing `.md` artefacts. Reader is a senior developer — convey the idea, not the explanation of the idea.

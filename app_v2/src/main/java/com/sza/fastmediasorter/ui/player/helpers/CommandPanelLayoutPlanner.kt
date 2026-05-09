@@ -138,7 +138,9 @@ class CommandPanelLayoutPlanner {
         // S0106: Image crop & compress (IMAGE only — static formats JPEG/PNG/WebP)
         CROP(620, R.id.menu_crop, false, R.string.menu_crop, R.drawable.ic_crop),
         CROP_TO_FILE(630, R.id.menu_crop_to_file, false, R.string.menu_crop_to_file, R.drawable.ic_crop_to_file),
-        COMPRESS_COPY(640, R.id.menu_compress_copy, false, R.string.menu_compress_copy, R.drawable.ic_compress);
+        COMPRESS_COPY(640, R.id.menu_compress_copy, false, R.string.menu_compress_copy, R.drawable.ic_compress),
+        // S0107: Draw overlay — annotate static images (IMAGE only, not GIF/APNG)
+        DRAW_OVERLAY(650, R.id.menu_draw_overlay, false, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay);
     }
 
     data class LayoutResult(
@@ -242,6 +244,8 @@ class CommandPanelLayoutPlanner {
             if (isStaticBitmap && canWrite && !isReadOnly) add(PlayerCommand.CROP)
             if (isStaticBitmap) add(PlayerCommand.CROP_TO_FILE)
             if (isStaticBitmap) add(PlayerCommand.COMPRESS_COPY)
+            // S0107: Draw overlay — static images only (same guard as crop)
+            if (isStaticBitmap) add(PlayerCommand.DRAW_OVERLAY)
         }.sortedBy { it.priority }
     }
 

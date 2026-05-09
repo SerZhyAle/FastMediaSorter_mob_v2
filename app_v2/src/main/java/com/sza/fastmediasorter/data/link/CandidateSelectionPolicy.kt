@@ -8,8 +8,11 @@ package com.sza.fastmediasorter.data.link
  * 2. If any candidate has known size ≥ 1 MiB → return the **first** such candidate.
  * 3. Else if any candidate has a non-null size → return the candidate with max size,
  *    ties broken by [HtmlMediaCandidate.Source] ordinal then input order.
- * 4. Else return the first candidate by input order.
- * 5. Empty filtered list → null.
+ * 4. S0116 §5.1 pillar G/J: streaming manifests have unknown size; rank them just
+ *    below ≥ 1 MiB direct files and above plain inline anchors. Returns the first
+ *    HLS or DASH manifest candidate by input order.
+ * 5. Else return the first candidate by input order.
+ * 6. Empty filtered list → null.
  */
 object CandidateSelectionPolicy {
 
@@ -32,7 +35,14 @@ object CandidateSelectionPolicy {
                 .minByOrNull { it.source.ordinal * 10_000 + httpOnly.indexOf(it) }
         }
 
-        // Step 4: first by input order.
+        // Step 4: streaming manifest fallback (S0116). HLS preferred over DASH for
+        // wider device compatibility; first-by-input-order within a kind.
+        httpOnly.firstOrNull {
+            it.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
+                it.source == HtmlMediaCandidate.Source.DASH_MANIFEST
+        }?.let { return it }
+
+        // Step 5: first by input order.
         return httpOnly.first()
     }
 

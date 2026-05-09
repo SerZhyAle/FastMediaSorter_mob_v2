@@ -52,4 +52,18 @@ class InputHelpRegistryTest {
             InputHelpRegistry.get(InputSurface.VR_PLAYER),
         )
     }
+
+    @Test
+    fun `S0118 support-routing - every surface URL is launchable as a browser intent`() {
+        // Regression cover for the F1 dialog launch path that now goes through
+        // SupportIntentFactory.openUrl. The factory builds an ACTION_VIEW intent,
+        // so the resolver's URL must always be syntactically launchable.
+        for (surface in InputSurface.values()) {
+            val url = InputHelpLinkResolver.urlFor(surface)
+            assertTrue("non-empty url for $surface", url.isNotBlank())
+            // Anchors are added by the resolver; this guard ensures that a URL
+            // is always present for the support-routing intent to consume.
+            assertTrue("absolute URL for $surface: $url", url.contains("://"))
+        }
+    }
 }

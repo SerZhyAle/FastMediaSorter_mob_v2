@@ -52,8 +52,10 @@ import com.sza.fastmediasorter.ui.common.input.InputSurface
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
+import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.util.AppErrorNotifier
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -828,8 +830,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     details = details
                 )
             } else {
-                // Simple toast for users who don't want details
-                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                AppErrorNotifier.show(
+                    activity = this@MainActivity,
+                    message = message,
+                    severity = ErrorSeverity.CRITICAL,
+                    showDetailedErrors = false
+                )
             }
         }
     }

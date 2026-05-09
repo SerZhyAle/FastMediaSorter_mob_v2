@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import timber.log.Timber
 
 /**
  * Implementation of ImageLoadingManager.ImageLoadingCallback extracted from PlayerActivity.
@@ -65,5 +66,11 @@ class PlayerImageLoadingCallbackImpl(
 
     override fun setAnimatedBadgeVisible(visible: Boolean) {
         activity.activityBinding.tvAnimatedBadge.isVisible = visible
+    }
+
+    // S0107: expose loaded bitmap so ImageDrawOverlayManager can access it for merge
+    override fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {
+        Timber.d("S0107: currentDisplayedBitmap set, size=${bitmap?.byteCount}")
+        viewModel.currentDisplayedBitmap = bitmap
     }
 }

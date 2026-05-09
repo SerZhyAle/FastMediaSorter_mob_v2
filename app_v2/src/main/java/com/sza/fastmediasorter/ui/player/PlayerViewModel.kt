@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.graphics.Bitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -196,6 +197,12 @@ class PlayerViewModel @Inject constructor(
         stereoCoordinator.resetStereoModeForNewFile(filePath)
     fun rememberStereoModeIfEnabled(mode: StereoMode) = stereoCoordinator.rememberStereoModeIfEnabled(mode)
 
+    // ── S0107: Draw overlay current-frame bitmap ──────────────────────────────
+    /** Bitmap currently displayed in the image viewer; set by ImageLoadingManager on load. Null for video/audio. */
+    var currentDisplayedBitmap: Bitmap? = null
+        internal set
+    // ── End S0107 ─────────────────────────────────────────────────────────────
+
     fun showMessage(message: String) {
         sendEvent(PlayerEvent.ShowMessage(message))
     }
@@ -245,6 +252,17 @@ class PlayerViewModel @Inject constructor(
      */
     fun reloadFiles() {
         loadMediaFiles()
+    }
+
+    /**
+     * S0107: Inserts a newly created file immediately after the current file and navigates to it.
+     * Used after a draw overlay save to the same directory.
+     */
+    fun onFileCreatedInCurrentDirectory(newFile: MediaFile) {
+        val currentFiles = state.value.files.toMutableList()
+        val insertAt = (state.value.currentIndex + 1).coerceAtMost(currentFiles.size)
+        currentFiles.add(insertAt, newFile)
+        updateState { it.copy(files = currentFiles, currentIndex = insertAt) }
     }
 
     fun updateCastState(isCasting: Boolean, deviceName: String?) {

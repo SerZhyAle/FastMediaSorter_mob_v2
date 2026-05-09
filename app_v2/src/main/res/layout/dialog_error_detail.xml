@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Error detail dialog: selectable main message + collapsible details section + Save to file button -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_large">
+
+    <!-- Main user-readable error message -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_content_height_large"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:id="@+id/tvErrorMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"
+            android:breakStrategy="simple"
+            android:lineSpacingMultiplier="1.2"
+            android:paddingStart="@dimen/dialog_button_icon_padding"
+            android:paddingEnd="@dimen/dialog_button_icon_padding"
+            android:textSize="@dimen/resource_card_desc_text_size" />
+
+    </ScrollView>
+
+    <!-- Collapsible details toggle (hidden when no details provided) -->
+    <TextView
+        android:id="@+id/tvDetailsToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_large"
+        android:clickable="true"
+        android:focusable="true"
+        android:textStyle="bold"
+        android:textSize="@dimen/toggler_title_text_size"
+        android:text="@string/error_dialog_show_details"
+        android:visibility="gone" />
+
+    <!-- Collapsible details section (stack trace / technical info) -->
+    <ScrollView
+        android:id="@+id/scrollDetails"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_content_height_large"
+        android:layout_marginTop="@dimen/padding_large"
+        android:scrollbars="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvErrorDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"
+            android:breakStrategy="simple"
+            android:lineSpacingMultiplier="1.2"
+            android:paddingStart="@dimen/dialog_button_icon_padding"
+            android:paddingEnd="@dimen/dialog_button_icon_padding"
+            android:textSize="@dimen/resource_card_desc_text_size" />
+
+    </ScrollView>
+
+    <!-- Save to file action (wired programmatically in ErrorDialog) -->
+    <Button
+        android:id="@+id/btnSaveToFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_large"
+        android:text="@string/error_dialog_save_to_file"
+        style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+</LinearLayout>

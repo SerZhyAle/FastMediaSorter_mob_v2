@@ -30,11 +30,6 @@ class SftpDataSource(
     private val context: Context
 ) : BaseDataSource(true) {
 
-    companion object {
-        private const val LOG_INITIAL_CALLS = 3L
-        private const val LOG_PERIODIC_INTERVAL = 1000L
-    }
-
     // Connection from pool — DO NOT close; lifecycle managed by SftpClient pool
     private var session: Session? = null
     private var channel: ChannelSftp? = null
@@ -166,11 +161,7 @@ class SftpDataSource(
 
         totalBytesRead += bytesRead
         readCallCount++
-        if (readCallCount <= LOG_INITIAL_CALLS || readCallCount % LOG_PERIODIC_INTERVAL == 0L) {
-            Timber.v(
-                "SftpDataSource: read #$readCallCount — requested=$bytesToRead actual=$bytesRead total=${totalBytesRead}B file=${uri?.lastPathSegment}"
-            )
-        }
+        // JSch caps individual SFTP reads to small chunks, so per-read playback logs quickly flood logcat.
         if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
             bytesRemaining -= bytesRead.toLong()
         }
