@@ -9,9 +9,11 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -51,6 +53,19 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         ActivityWelcomeBinding.inflate(layoutInflater)
 
     override fun setupViews() {
+        // On the permission screen (fromWelcome mode) Back completes the flow instead of closing
+        // the app — WelcomeActivity is the root task at this point so a naked finish() would exit.
+        // On the slide pages, Back minimises instead of finishing for the same reason.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.fragmentContainerWelcome.isVisible) {
+                    completeWelcomeFlow()
+                } else {
+                    moveTaskToBack(true)
+                }
+            }
+        })
+
         // Apply edge-to-edge insets: skip button below status bar, bottom nav above nav bar
         applyEdgeToEdgeInsets()
 

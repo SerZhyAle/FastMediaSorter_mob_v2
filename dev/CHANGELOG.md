@@ -7536,3 +7536,4 @@ Format: | datetime | file | target | description |
 | 2026-05-09 15:09:49 | `dev/ACTIVITY_CATALOG/scripts/scan.ps1` | `spec-check` | Fix wear noFlavors (always empty for wear module) |
 | 2026-05-09 15:09:50 | `dev/ACTIVITY_CATALOG/wear.jsonl` | `spec-check` | Rescan wear after noFlavors fix |
 | 2026-05-09 15:09:50 | `dev/ACTIVITY_CATALOG/wear.md` | `spec-check` | Re-render wear after noFlavors fix |
+| 2026-05-09 15:44:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Fix: Back press from permission screen (fromWelcome mode) now calls completeWelcomeFlow() instead of finishing root activity; Back on slides minimises with moveTaskToBack(true) |
