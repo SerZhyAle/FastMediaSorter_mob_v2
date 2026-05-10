@@ -79,6 +79,5 @@ internal class PauseAwareLoadControl(
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
         isPlayWhenReady = playWhenReady
-        Timber.d("S0051: PauseAwareLoadControl playWhenReady=$playWhenReady — network buffering ${if (playWhenReady) "resumes" else "stops"}")
     }
 }

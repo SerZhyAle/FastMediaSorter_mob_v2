@@ -159,7 +159,6 @@ class ReceiveShareActivity : AppCompatActivity() {
      * add an authorization first; otherwise fall through to the normal download path.
      */
     private fun maybeOfferAuthThenDownload(url: String) {
-        Timber.d("S0144: share-auth offer evaluated")
         val resource = KnownAuthResources.matchHost(Uri.parse(url).host)
         if (resource == null) {
             processLinkAutoDownload(url)

@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -486,6 +487,10 @@ class BrowseViewModel @Inject constructor(
         context.getString(resolveFriendlyBrowseErrorRes(throwable))
 
     private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
+        // WifiRequiredException fires before any socket attempt — clearly a Wi-Fi gate rejection,
+        // not a generic outage. Must be checked by type before the message-based heuristics below.
+        if (throwable is WifiRequiredException) return R.string.error_wifi_required_smb
+
         val message = throwable.message.orEmpty()
         return when {
             message.contains("Authentication", ignoreCase = true) ||

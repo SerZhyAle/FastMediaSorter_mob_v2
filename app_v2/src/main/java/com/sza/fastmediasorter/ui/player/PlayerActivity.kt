@@ -197,10 +197,11 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal val batchDeletePermissionLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        lifecycleManager.handleBatchDeleteResult(
-            result.resultCode,
-            viewModel.state.value.currentFile?.path
-        )
+        // Do NOT pass currentFile here — the player may have already advanced to the next
+        // file via optimistic navigation before the dialog was shown. The correct source
+        // path was stored in lifecycleManager.storePendingBatchDeleteFilePath() at the
+        // moment the dialog was launched.
+        lifecycleManager.handleBatchDeleteResult(result.resultCode)
     }
 
     internal val folderPickerLauncher = registerForActivityResult(
@@ -718,7 +719,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     }
 
     internal fun setupEditModeCallbacks() {
-        Timber.d("S0127: setupEditModeCallbacks wiring Draw + Crop → ViewModel")
         val cb: (com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode) -> Unit = { mode ->
             viewModel.setImageEditMode(mode)
         }

@@ -104,7 +104,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
                 view: WebView?,
                 request: WebResourceRequest?,
             ): Boolean {
-                Timber.d("S0144: webview-auth redirect intercepted")
                 val uri = request?.url ?: return false
                 val scheme = uri.scheme?.lowercase()
                 if (scheme == "http" || scheme == "https") return false

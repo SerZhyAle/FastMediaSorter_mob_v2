@@ -564,7 +564,6 @@ class PlayerViewModel @Inject constructor(
 
     fun setImageEditMode(mode: PlayerImageEditMode) {
         if (state.value.imageEditMode == mode) return
-        Timber.d("S0127: setImageEditMode $mode")
         updateState { it.copy(imageEditMode = mode) }
     }
 

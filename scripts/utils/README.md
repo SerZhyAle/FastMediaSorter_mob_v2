@@ -38,6 +38,13 @@ Development utilities and tools for FastMediaSorter v2.
 .\scripts\utils\create-run-configs.ps1             # Generate IDE run configs
 ```
 
+### String Resources
+
+```powershell
+.\scripts\utils\set-android-string.ps1             # Update single string
+.\scripts\utils\batch-set-android-string.ps1       # Update multiple strings from JSON
+```
+
 ### Source Control
 
 ```powershell

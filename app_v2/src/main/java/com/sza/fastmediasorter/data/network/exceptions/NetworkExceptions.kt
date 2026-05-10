@@ -28,8 +28,19 @@ class NetworkFileNotFoundException(message: String = "File not found", cause: Th
 /**
  * Connection lost during operation
  */
-class NetworkConnectionLostException(message: String = "Connection lost", cause: Throwable? = null) : 
+open class NetworkConnectionLostException(message: String = "Connection lost", cause: Throwable? = null) :
     NetworkException(message, cause)
+
+/**
+ * Thrown by [com.sza.fastmediasorter.core.network.NetworkReachabilityGate.requireWifi] when a
+ * Wi-Fi (or ethernet) transport is required but not currently active. Distinct from a general
+ * [NetworkConnectionLostException]: the Wi-Fi gate fires *before* any socket attempt, meaning
+ * the server was never contacted. UI should explain the Wi-Fi requirement, not a generic outage.
+ */
+class WifiRequiredException(
+    message: String = "Wi-Fi required",
+    cause: Throwable? = null
+) : NetworkConnectionLostException(message, cause)
 
 /**
  * Unsupported protocol or operation

@@ -844,6 +844,7 @@ Close the player and try again.</string>
     <string name="error_network_access_denied">Access denied. Check your credentials.</string>
     <string name="error_network_not_found">File or resource not found.</string>
     <string name="error_network_connection_lost">No connection.</string>
+    <string name="error_wifi_required_smb">Wi-Fi required. SMB resources are only accessible on a local Wi-Fi network.</string>
     <string name="error_network_rate_limit">Too many requests. Please wait and try again.</string>
     <string name="error_network_server_error">Server error. No response.</string>
     <string name="error_network_unsupported">Operation not supported by this server.</string>
@@ -910,6 +911,7 @@ Close the player and try again.</string>
     <string name="welcome_feature_scheduled_ops">Scheduled Tasks</string>
     <string name="welcome_feature_favorites">Favorites</string>
     <string name="welcome_feature_quick_sort">Color Sort</string>
+    <string name="welcome_feature_search">File Search</string>
 
     <!-- VR-exclusive welcome page (overridden in vr/ source set; kept here for compilation) -->
     <string name="welcome_vr_title">3D &amp; VR Experience</string>

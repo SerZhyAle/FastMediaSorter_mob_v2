@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -64,6 +65,10 @@ class BrowseLoadingAuxManager(
         context.getString(resolveFriendlyBrowseErrorRes(throwable))
 
     private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
+        // WifiRequiredException fires before any socket attempt — clearly a Wi-Fi gate rejection,
+        // not a generic outage. Must be checked by type before the message-based heuristics below.
+        if (throwable is WifiRequiredException) return R.string.error_wifi_required_smb
+
         val message = throwable.message.orEmpty()
         return when {
             message.contains("Authentication", ignoreCase = true) ||

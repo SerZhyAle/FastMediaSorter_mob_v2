@@ -142,7 +142,6 @@ class CropOverlayView @JvmOverloads constructor(
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.pointerCount >= 2 || event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
-            Timber.d("S0127: CropOverlayView routing multi-pointer event to passthrough target")
             dragTarget = DragTarget.NONE
             pinchPassthroughTarget?.dispatchTouchEvent(event)
             return false

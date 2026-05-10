@@ -342,7 +342,15 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     activity.eventHandler.showCloudAuthenticationError(provider)
                 }
 
-                override fun onBatchDeletePermissionRequired(pendingIntent: android.app.PendingIntent) {
+                override fun onBatchDeletePermissionRequired(
+                    pendingIntent: android.app.PendingIntent,
+                    sourceFilePath: String
+                ) {
+                    // Store the source path before launching the dialog. The player may
+                    // already be showing the next file (optimistic advance in onBeforeMove),
+                    // so reading currentFile inside the launcher result callback would
+                    // attribute the deletion to the wrong file.
+                    activity.lifecycleManager.storePendingBatchDeleteFilePath(sourceFilePath)
                     timber.log.Timber.i("PlayerActivity: Launching batch delete permission dialog")
                     try {
                         activity.batchDeletePermissionLauncher.launch(

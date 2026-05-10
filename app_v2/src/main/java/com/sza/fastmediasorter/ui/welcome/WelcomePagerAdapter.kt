@@ -88,7 +88,6 @@ class WelcomePagerAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        Timber.d("S0143: welcome page details bound at $position")
         when (holder) {
             is TouchZonesViewHolder -> holder.bind(pages[position])
             is PermissionsViewHolder -> holder.bind(pages[position])
@@ -122,7 +121,6 @@ class WelcomePagerAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
-            Timber.d("S0143: touch-zones grid page bound")
             binding.tvTitle.text = binding.root.context.getString(page.titleRes)
             bindDetails(binding.tvDetails, page)
 
@@ -188,7 +186,6 @@ class WelcomePagerAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
-            Timber.d("S0143: extras grid page bound")
             val context = binding.root.context
             binding.ivIcon.setImageResource(page.iconRes)
             binding.tvTitle.text = context.getString(page.titleRes)

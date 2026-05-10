@@ -69,7 +69,6 @@ class ImagePreloadHelper(
     }
 
     fun preloadNextImageIfNeeded() {
-        Timber.d("S0131: preloadNextImageIfNeeded — adaptive heap check")
         val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
         val nativeHeapTotal = android.os.Debug.getNativeHeapSize() / (1024 * 1024)
         val freePercent = if (nativeHeapTotal > 0) (nativeHeapFree * 100 / nativeHeapTotal).toInt() else 0

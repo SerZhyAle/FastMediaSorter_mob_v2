@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.network
 
 import com.sza.fastmediasorter.data.network.exceptions.NetworkConnectionLostException
+import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,7 +41,9 @@ class NetworkReachabilityGate @Inject constructor(
         requireAnyNetwork(resourceLabel)
         if (!analyzer.hasWifi()) {
             Timber.w("NetworkReachabilityGate: no-wifi for $resourceLabel")
-            throw NetworkConnectionLostException()
+            // WifiRequiredException signals that the Wi-Fi gate fired before any socket attempt —
+            // UIs should explain the Wi-Fi requirement, not a generic connection outage.
+            throw WifiRequiredException()
         }
     }
 }

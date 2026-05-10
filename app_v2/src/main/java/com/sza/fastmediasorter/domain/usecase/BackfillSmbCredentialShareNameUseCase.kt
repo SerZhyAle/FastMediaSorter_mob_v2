@@ -42,7 +42,6 @@ class BackfillSmbCredentialShareNameUseCase @Inject constructor(
         if (prefs.getBoolean(KEY_DONE, false)) {
             return BackfillResult(scanned = 0, updated = 0, skipped = 0)
         }
-        Timber.d("S0139: backfill scanning SMB credentials for empty shareName")
 
         return try {
             val allCredentials = credentialsRepository.getAllCredentials().first()

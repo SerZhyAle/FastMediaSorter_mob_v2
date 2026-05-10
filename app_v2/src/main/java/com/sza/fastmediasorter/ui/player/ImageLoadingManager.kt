@@ -625,7 +625,6 @@ class ImageLoadingManager(
             // Store context for scale type determination in onResourceReady
             val isCropEditMode = callback.isImageCropEditMode()
             currentCropSetting = settings.cropImagesToFullscreen && !isCropEditMode
-            Timber.d("S0127: ImageLoadingManager.displayImage cropSetting=${settings.cropImagesToFullscreen} isCropEditMode=$isCropEditMode → effective=$currentCropSetting")
             currentIsFullscreenOrSlideshow = isFullscreenOrSlideshow
             currentDeviceWidth = deviceWidth
             currentDeviceHeight = deviceHeight

@@ -92,7 +92,10 @@ class FileOperationsHandler(
         fun onDeleteSuccess(deletedFilePath: String)
         fun onOperationError(message: String, throwable: Throwable? = null)
         fun onAuthenticationRequired(provider: String, message: String)
-        fun onBatchDeletePermissionRequired(pendingIntent: PendingIntent)
+        // sourceFilePath: the file that was being moved/deleted when the permission dialog was
+        // requested. Must be captured before any optimistic navigation so that the caller can
+        // correctly attribute the deletion to the right file after the dialog returns.
+        fun onBatchDeletePermissionRequired(pendingIntent: PendingIntent, sourceFilePath: String)
         fun getCurrentFile(): MediaFile?
         fun getCurrentResource(): MediaResource?
     }
@@ -263,7 +266,7 @@ class FileOperationsHandler(
                             callback.onAuthenticationRequired(result.provider, result.message)
                         }
                         is FileOperationResult.PermissionRequired -> {
-                            callback.onBatchDeletePermissionRequired(result.pendingIntent)
+                            callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
                         }
                     }
                 }
@@ -369,7 +372,7 @@ class FileOperationsHandler(
                             callback.onOperationError(msg, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
-                        is FileOperationResult.PermissionRequired -> callback.onBatchDeletePermissionRequired(result.pendingIntent)
+                        is FileOperationResult.PermissionRequired -> callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
                     }
                 }
             } catch (e: Exception) {
@@ -431,7 +434,7 @@ class FileOperationsHandler(
                         // Android 11+ batch delete - launch permission dialog
                         Timber.i("FileOperationsHandler.performDelete: Batch delete permission required, launching intent")
                         deleteInProgress = false
-                        callback.onBatchDeletePermissionRequired(result.pendingIntent)
+                        callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
                     }
                     is FileOperationResult.Failure -> {
                         Timber.e("FileOperationsHandler.performDelete: Delete FAILED - ${result.error}")

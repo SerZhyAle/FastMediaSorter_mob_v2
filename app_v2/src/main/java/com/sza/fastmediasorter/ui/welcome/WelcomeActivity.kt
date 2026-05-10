@@ -72,7 +72,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         setupViewPager()
         setupButtons()
         updateUI()
-        Timber.d("S0143: WelcomeActivity navigation consolidated")
     }
 
     override fun observeData() {
@@ -143,7 +142,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 featureCards = listOf(
                     FeatureCard(R.drawable.ic_image, R.string.welcome_feature_photos),
                     FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud),
-                    FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_sorting)
+                    FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_sorting),
+                    FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network)
                 ),
                 showLanguagePicker = true,
                 onLanguageSelected = ::onWelcomeLanguageSelected,
@@ -409,6 +409,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         add(FeatureCard(R.drawable.ic_schedule, R.string.welcome_feature_scheduled_ops))
         add(FeatureCard(R.drawable.ic_favorite, R.string.welcome_feature_favorites))
         add(FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_quick_sort))
+        add(FeatureCard(R.drawable.ic_search, R.string.welcome_feature_search))
     }
 
     private fun finishWelcome() {

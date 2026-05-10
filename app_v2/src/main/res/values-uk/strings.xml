@@ -307,6 +307,7 @@
     <string name="error_network_access_denied">Доступ заборонено. Перевірте облікові дані.</string>
     <string name="error_network_not_found">Файл або ресурс не знайдено.</string>
     <string name="error_network_connection_lost">З\'єднання відсутнє.</string>
+    <string name="error_wifi_required_smb">Потрібен Wi-Fi. SMB-ресурси доступні лише в локальній Wi-Fi-мережі.</string>
     <string name="error_network_rate_limit">Забагато запитів. Зачекайте та спробуйте ще раз.</string>
     <string name="error_network_server_error">Помилка сервера. Немає відповіді.</string>
     <string name="error_network_unsupported">Операція не підтримується цим сервером.</string>
@@ -794,6 +795,7 @@
     <string name="welcome_feature_scheduled_ops">Планові задачі</string>
     <string name="welcome_feature_favorites">Обране</string>
     <string name="welcome_feature_quick_sort">Сортування за кольором</string>
+    <string name="welcome_feature_search">Пошук файлів</string>
 
     <!-- VR-exclusive welcome page (overridden in vr/ source set) -->
     <string name="welcome_vr_title">3D та VR</string>

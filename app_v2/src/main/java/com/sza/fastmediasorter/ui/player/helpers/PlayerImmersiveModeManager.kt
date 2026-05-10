@@ -23,7 +23,6 @@ class PlayerImmersiveModeManager(
     }
 
     private fun enter() {
-        Timber.d("S0127: PlayerImmersiveModeManager.enter")
         activity.activityBinding.topCommandPanel.isVisible = false
         activity.activityBinding.tvFileNameOverlay.isVisible = false
         safeViews.copyToPanel.isVisible = false
@@ -32,7 +31,6 @@ class PlayerImmersiveModeManager(
     }
 
     private fun exit() {
-        Timber.d("S0127: PlayerImmersiveModeManager.exit")
         showSystemBars()
         activity.viewModel.enterCommandPanelMode()
         activity.updatePanelVisibility(activity.viewModel.state.value.showCommandPanel)

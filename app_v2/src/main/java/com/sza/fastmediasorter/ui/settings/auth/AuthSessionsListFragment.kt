@@ -87,7 +87,6 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     }
 
     private fun promptForUrlAndOpenWebView() {
-        Timber.d("S0144: auth-add picker shown")
         val resources = KnownAuthResources.all
         val labels = (resources.map { it.displayName } + getString(R.string.auth_add_enter_manually)).toTypedArray()
         MaterialAlertDialogBuilder(requireContext())

@@ -313,6 +313,7 @@
     <string name="error_network_access_denied">Доступ запрещён. Проверьте учётные данные.</string>
     <string name="error_network_not_found">Файл или ресурс не найден.</string>
     <string name="error_network_connection_lost">Соединения нет.</string>
+    <string name="error_wifi_required_smb">Нужен Wi-Fi. SMB-ресурсы доступны только в локальной Wi-Fi-сети.</string>
     <string name="error_network_rate_limit">Слишком много запросов. Подождите и попробуйте ещё раз.</string>
     <string name="error_network_server_error">Ошибка сервера. Нет ответа.</string>
     <string name="error_network_unsupported">Операция не поддерживается этим сервером.</string>
@@ -800,6 +801,7 @@
     <string name="welcome_feature_scheduled_ops">Плановые задачи</string>
     <string name="welcome_feature_favorites">Избранное</string>
     <string name="welcome_feature_quick_sort">Сортировка по цвету</string>
+    <string name="welcome_feature_search">Поиск файлов</string>
 
     <!-- VR-exclusive welcome page (overridden in vr/ source set) -->
     <string name="welcome_vr_title">3D и VR</string>

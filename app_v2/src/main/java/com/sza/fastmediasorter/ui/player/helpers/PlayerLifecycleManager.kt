@@ -47,6 +47,10 @@ class PlayerLifecycleManager(
     private var isFirstResume = true
     private val modifiedFiles = mutableSetOf<String>()
     private var slideshowModeRequested = false
+    // Holds the path of the file that triggered the batch delete permission dialog.
+    // Must be set before navigating away (optimistic advance) so that when the dialog
+    // result arrives the correct file is attributed, not the one currently on screen.
+    private var pendingBatchDeleteFilePath: String? = null
     
     // Resource tracking for cleanup
     private var activeResourceKey: String? = null
@@ -231,7 +235,6 @@ class PlayerLifecycleManager(
 
         // Release PdfViewerManager - closes PdfRenderer, cancels render jobs, clears caches (ML-001 fix)
         if (activity._pdfViewerManager != null) activity.pdfViewerManager.close()
-        Timber.d("S0131: releaseResources — lazy-viewer null guards applied")
         
         // Release PlayerSettingsManager - cancel pending coroutine operations (ML-005)
         try {
@@ -276,6 +279,17 @@ class PlayerLifecycleManager(
     fun trackModifiedFile(path: String) {
         modifiedFiles.add(path)
         Timber.d("PlayerLifecycleManager: Tracked modified file: $path")
+    }
+
+    /**
+     * Store the path of the file whose deletion requires a system permission dialog.
+     * Called before the dialog is launched so that when the result arrives the correct
+     * file is attributed — [handleBatchDeleteResult] reads this field, not currentFile,
+     * because currentFile may have already advanced via optimistic navigation.
+     */
+    fun storePendingBatchDeleteFilePath(path: String) {
+        pendingBatchDeleteFilePath = path
+        Timber.d("PlayerLifecycleManager: Stored pending batch delete path: $path")
     }
     
     /**
@@ -487,11 +501,21 @@ class PlayerLifecycleManager(
     /**
      * Handle Android 11+ batch delete permission result (createDeleteRequest).
      * Called from the batchDeletePermissionLauncher result callback.
+     *
+     * Uses [pendingBatchDeleteFilePath] rather than the current file because the player
+     * may have already performed an optimistic advance to the next file before the dialog
+     * was shown — reading currentFile here would attribute the deletion to the wrong file.
      */
-    fun handleBatchDeleteResult(resultCode: Int, currentFilePath: String?) {
+    fun handleBatchDeleteResult(resultCode: Int) {
+        val filePath = pendingBatchDeleteFilePath
+        pendingBatchDeleteFilePath = null
         if (resultCode == Activity.RESULT_OK) {
             Timber.i("PlayerLifecycleManager: Batch delete permission granted")
-            if (currentFilePath != null) handleDeleteSuccess(currentFilePath)
+            if (filePath != null) {
+                handleDeleteSuccess(filePath)
+            } else {
+                Timber.e("PlayerLifecycleManager: Batch delete granted but pendingBatchDeleteFilePath was null — no file attributed")
+            }
         } else {
             Timber.w("PlayerLifecycleManager: Batch delete permission denied")
             Toast.makeText(
