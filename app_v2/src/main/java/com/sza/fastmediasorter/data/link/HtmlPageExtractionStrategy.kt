@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.link
 
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
@@ -9,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -36,6 +38,8 @@ class HtmlPageExtractionStrategy @Inject constructor(
     @Named("linkDownload") private val httpClient: OkHttpClient,
     private val direct: DirectFileExtractionStrategy,
     private val streamingSniffer: StreamingManifestSniffer,
+    private val structuredMediaSniffer: StructuredMediaSniffer,
+    private val settingsRepository: SettingsRepository,
 ) : UrlExtractionStrategy {
 
     override val id: String = "html"
@@ -80,7 +84,10 @@ class HtmlPageExtractionStrategy @Inject constructor(
                         !resp.isSuccessful -> HtmlFetchResult.Failed
                         else -> {
                             val limit = MAX_HTML_BYTES
-                            HtmlFetchResult.Body(resp.peekBody(limit).string())
+                            HtmlFetchResult.Body(
+                                value = resp.peekBody(limit).string(),
+                                finalUrl = resp.request.url.toString(),
+                            )
                         }
                     }
                 }
@@ -96,9 +103,19 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 return OpenResult.Blocked(com.sza.fastmediasorter.domain.usecase.link.BlockedReason.AuthRequired)
             HtmlFetchResult.Failed -> return OpenResult.NotFound("html_fetch_failed")
         }
+        val finalUrl = (fetchResult as? HtmlFetchResult.Body)?.finalUrl ?: httpUrl.toString()
 
-        val candidates = harvestCandidates(rawHtml, baseUri = httpUrl.toString())
-        if (candidates.isEmpty()) return OpenResult.NotFound("no_media_in_html")
+        val candidates = harvestCandidates(rawHtml, baseUri = finalUrl)
+        if (candidates.isEmpty()) {
+            val loginWallEnabled = settingsRepository.getSettings().first().linkDownloadLoginWallHeuristicEnabled
+            if (loginWallEnabled && looksLikeSoftLoginWall(rawHtml, finalUrl)) {
+                LinkDownloadTrace.verbose(
+                    "auth-required soft-login-wall for ${LinkDownloadTrace.truncateUrl(finalUrl)} strategy=$id",
+                )
+                return OpenResult.Blocked(com.sza.fastmediasorter.domain.usecase.link.BlockedReason.AuthRequired)
+            }
+            return OpenResult.NotFound("no_media_in_html")
+        }
 
         // HEAD-probe (capped fan-out + total budget).
         val probed = probeCandidates(candidates.take(MAX_HEAD_PROBES))
@@ -162,7 +179,41 @@ class HtmlPageExtractionStrategy @Inject constructor(
         return timed ?: input
     }
 
-    private fun harvestCandidates(html: String, baseUri: String): List<HtmlMediaCandidate> {
+    private suspend fun harvestCandidates(html: String, baseUri: String): List<HtmlMediaCandidate> {
+        val structured = structuredMediaSniffer.sniff(html, baseUri = baseUri)
+        val staticCandidates = harvestStaticCandidates(html, baseUri)
+        val merged = (structured + staticCandidates).distinctBy { it.url }
+
+        val structuredCount = merged.count {
+            it.source == HtmlMediaCandidate.Source.JSON_LD ||
+                it.source == HtmlMediaCandidate.Source.OEMBED
+        }
+        val directCount = merged.count {
+            it.source != HtmlMediaCandidate.Source.JSON_LD &&
+                it.source != HtmlMediaCandidate.Source.OEMBED &&
+                it.source != HtmlMediaCandidate.Source.HLS_MANIFEST &&
+                it.source != HtmlMediaCandidate.Source.DASH_MANIFEST &&
+                it.source != HtmlMediaCandidate.Source.OG_IMAGE &&
+                it.source != HtmlMediaCandidate.Source.IMG_TAG &&
+                it.source != HtmlMediaCandidate.Source.IMG_SRCSET
+        }
+        val streamingCount = merged.count {
+            it.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
+                it.source == HtmlMediaCandidate.Source.DASH_MANIFEST
+        }
+        val imageCount = merged.count {
+            it.source == HtmlMediaCandidate.Source.OG_IMAGE ||
+                it.source == HtmlMediaCandidate.Source.IMG_TAG ||
+                it.source == HtmlMediaCandidate.Source.IMG_SRCSET
+        }
+        LinkDownloadTrace.tag(
+            "html-sniffer harvested ${merged.size} candidates (structured=$structuredCount, direct=$directCount, " +
+                "streaming=$streamingCount, image=$imageCount) for ${LinkDownloadTrace.truncateUrl(baseUri)}",
+        )
+        return merged
+    }
+
+    private fun harvestStaticCandidates(html: String, baseUri: String): List<HtmlMediaCandidate> {
         val doc = Jsoup.parse(html, baseUri)
         val out = mutableListOf<HtmlMediaCandidate>()
 
@@ -215,35 +266,47 @@ class HtmlPageExtractionStrategy @Inject constructor(
         // via multiple sources).
         out.addAll(streamingSniffer.sniff(html, baseUri = doc.baseUri()))
 
-        val deduped = out.distinctBy { it.url }
-        val directCount = deduped.count {
-            it.source != HtmlMediaCandidate.Source.HLS_MANIFEST &&
-                it.source != HtmlMediaCandidate.Source.DASH_MANIFEST &&
-                it.source != HtmlMediaCandidate.Source.OG_IMAGE &&
-                it.source != HtmlMediaCandidate.Source.IMG_TAG &&
-                it.source != HtmlMediaCandidate.Source.IMG_SRCSET
+        return out.distinctBy { it.url }
+    }
+
+    private fun looksLikeSoftLoginWall(html: String, finalUrl: String): Boolean {
+        val doc = runCatching { Jsoup.parse(html, finalUrl) }.getOrNull() ?: return false
+        var signals = 0
+
+        val finalPath = finalUrl.toHttpUrlOrNull()?.encodedPath.orEmpty()
+        if (LOGIN_MARKERS.any { marker -> finalPath.contains(marker, ignoreCase = true) }) {
+            signals += 1
         }
-        val streamingCount = deduped.count {
-            it.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
-                it.source == HtmlMediaCandidate.Source.DASH_MANIFEST
+
+        val hasLoginForm = doc.select("input[type=password]").isNotEmpty() ||
+            doc.select("form[action]").any { form ->
+                LOGIN_MARKERS.any { marker -> form.attr("action").contains(marker, ignoreCase = true) }
+            }
+        val hasLoginLinks = doc.select("a[href]").any { anchor ->
+            LOGIN_MARKERS.any { marker -> anchor.attr("href").contains(marker, ignoreCase = true) }
         }
-        val imageCount = deduped.count {
-            it.source == HtmlMediaCandidate.Source.OG_IMAGE ||
-                it.source == HtmlMediaCandidate.Source.IMG_TAG ||
-                it.source == HtmlMediaCandidate.Source.IMG_SRCSET
+        if (hasLoginForm || hasLoginLinks) {
+            signals += 1
         }
-        LinkDownloadTrace.tag(
-            "html-sniffer harvested ${deduped.size} candidates (direct=$directCount, " +
-                "streaming=$streamingCount, image=$imageCount) for ${LinkDownloadTrace.truncateUrl(baseUri)}",
-        )
-        // De-duplicate by URL while preserving first occurrence (and its source ordinal).
-        return deduped
+
+        val hasMediaIntent = doc.select("meta[property=og:type], meta[property=og:video], meta[name=twitter:card]").any { meta ->
+            val content = meta.attr("content")
+            content.contains("video", ignoreCase = true) || content.contains("player", ignoreCase = true)
+        }
+        if (hasMediaIntent) {
+            signals += 1
+        }
+
+        return signals >= MIN_LOGIN_WALL_SIGNALS
     }
 
     private companion object {
         const val MAX_HTML_BYTES: Long = 2L * 1024L * 1024L
         const val MAX_HEAD_PROBES: Int = 8
         const val CANDIDATE_BUDGET_MS: Long = 4_000L
+        const val MIN_LOGIN_WALL_SIGNALS: Int = 2
+
+        val LOGIN_MARKERS = listOf("login", "signin", "auth")
     }
 }
 
@@ -253,7 +316,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
  * generic non-2xx failure (→ NotFound) without relying on null-as-signal.
  */
 private sealed interface HtmlFetchResult {
-    data class Body(val value: String) : HtmlFetchResult
+    data class Body(val value: String, val finalUrl: String) : HtmlFetchResult
     data object AuthRequired : HtmlFetchResult
     data object Failed : HtmlFetchResult
 }

@@ -14,37 +14,39 @@ Review the current change and update all affected documentation files.
 ```
 
 - `/doc-update Chromecast cast integration`
-- `/doc-update` - infer scope from `git diff --name-only HEAD~1 HEAD`
+- `/doc-update` — infer scope from `git diff --name-only HEAD~1 HEAD`
 
 ---
 
 ## Process
 
-**1 - Determine scope.**
+**1 — Determine scope.**
 
 Use `$ARGUMENTS` as the feature/change description, or run `git diff --name-only HEAD~1 HEAD` and read changed files briefly.
 
-**2 - Work through the checklist below in order.**
+**2 — Work through the checklist below in order.**
 
 Decide per item: *affected* or *not affected*. Apply every affected update. Skip non-affected items silently.
 
-**3 - Run dev log for every file modified** (mandatory):
+If a repo documentation/helper script required for the update is broken or insufficient, fix the script first instead of working around it.
+
+**3 — Run dev log for every file modified** (mandatory):
 
 ```powershell
 .\scripts\add_to_dev_log.ps1 "<relative_path>" "<class_or_target>" "<short_description>"
 ```
 
-**Chat output:** table of every document - `Updated` or `Skipped (reason)`.
+**Chat output:** table of every document — `Updated` or `Skipped (reason)`.
 
 ---
 
 ## Documentation Checklist
 
-### A - Always Required
+### A — Always Required
 
 #### A1. `dev/CHANGELOG.md`
 
-**When:** After every code or config change - no exceptions.
+**When:** After every code or config change — no exceptions.
 **How:** Run the script once per modified file. Never edit directly.
 
 ```powershell
@@ -53,7 +55,7 @@ Decide per item: *affected* or *not affected*. Apply every affected update. Skip
 
 ---
 
-### B - User-Facing Features
+### B — User-Facing Features
 
 A change is "user-facing" if it adds, removes, or materially alters something the end user can see or do.
 
@@ -67,29 +69,29 @@ Mirror the B1 change. Identical section numbers and bullet layout.
 
 ---
 
-### C - String Resources
+### C — String Resources
 
-#### C0. `docs/COMMUNICATION_POLICY.md` - tone check (user-visible strings)
+#### C0. `docs/COMMUNICATION_POLICY.md` — tone check (user-visible strings)
 
 **When:** Any new or updated user-visible string (toast, dialog, error, empty state, progress, CTA, confirmation).
 **How:** Verify the string satisfies §2 (message-type formula) and §6 (tone checklist) of the policy before committing. If it fails any checklist item, rewrite first.
 
 #### C1. `app_v2/src/main/res/values/strings.xml` (English)
 
-Add `<string name="key">value</string>` in alphabetical or logical grouping order.
+For single-key updates, prefer `pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "<key>" -Value "<text>"`. Use manual XML edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
 
 #### C2. `values-ru/strings.xml` (Russian) · C3. `values-uk/strings.xml` (Ukrainian)
 
-Add same key with translation. All three files are mandatory on every new string.
+Mirror the same key with locale-specific values. For single-key updates, prefer `scripts/utils/set-android-string.ps1` once per locale. All three files are mandatory on every new string.
 
 ---
 
-### D - Architecture & Tech Docs
+### D — Architecture & Tech Docs
 
 #### D1. `docs/ARCHITECTURE.md`
 
 **When:** New layer, module, major class, or data-flow path. Not for minor fixes or internal refactors.
-**How:** Update relevant diagram/section at C4 level - components and responsibilities, not signatures.
+**How:** Update relevant diagram/section at C4 level — components and responsibilities, not signatures.
 
 #### D2. `docs/TECH_STACK.md`
 
@@ -117,16 +119,16 @@ Add same key with translation. All three files are mandatory on every new string
 
 ---
 
-### E - Spec Files
+### E — Spec Files
 
 #### E1. `PLAN/spec_<name>.md`
 
 **When:** Before implementing any non-trivial feature (Tier 2+).
-**How:** Use `/spec` - never write manually. After implementation, advance `Status` to `Implemented`.
+**How:** Use `/spec` — never write manually. After implementation, advance `Status` to `Implemented`.
 
 ---
 
-### F - User Help Docs
+### F — User Help Docs
 
 Update only sections directly relevant to the change.
 
@@ -160,16 +162,16 @@ Update only sections directly relevant to the change.
 
 ---
 
-### G - Website / Landing Pages
+### G — Website / Landing Pages
 
 #### G1. `index.html` · G2. `index-ru.html` · G3. `index-uk.html`
 
 **When:** New major feature added to "Key Features" list, or existing removed/renamed.
-**How:** Add `<li>` entry (<=10 words). Mirror in all three files. Do not change layout or SEO meta.
+**How:** Add `<li>` entry (≤10 words). Mirror in all three files. Do not change layout or SEO meta.
 
 ---
 
-### H - Wear OS
+### H — Wear OS
 
 #### H1. `docs/WEAR_OS_STATUS.md`
 
@@ -181,7 +183,7 @@ Update only sections directly relevant to the change.
 
 ---
 
-### I - Documentation Map
+### I — Documentation Map
 
 #### I1. `docs/DOCS_MAP.md`
 
@@ -199,8 +201,8 @@ Update only sections directly relevant to the change.
 | SDK / platform version change | A1, D3, D4, D5 |
 | Room schema change | A1, D5, D6 |
 | New string resource | A1, C1, C2, C3 |
-| New user-facing feature | A1, B1-B3, F6, F7 + relevant F + G1-G3 |
-| New feature + new strings | A1, B1-B3, C1-C3, F6, F7 + relevant F + G1-G3 |
+| New user-facing feature | A1, B1–B3, F6, F7 + relevant F + G1–G3 |
+| New feature + new strings | A1, B1–B3, C1–C3, F6, F7 + relevant F + G1–G3 |
 | New architectural component | A1, D1, D4 |
 | Wear module change | A1, H1, H2 |
 | New doc file created | I1 |
@@ -212,9 +214,9 @@ Update only sections directly relevant to the change.
 
 ## Constraints
 
-- Never edit `CHANGELOG.md` manually - always use the script.
+- Never edit `CHANGELOG.md` manually — always use the script.
 - Never skip RU/UK when updating EN user-facing docs (B, C, F groups).
-- Do not rewrite sections you are not updating - only touch affected parts.
+- Do not rewrite sections you are not updating — only touch affected parts.
 - Do not create new doc files outside `docs/` or `dev/` unless explicitly instructed.
 - "User-facing" rule: if a user would notice the difference in normal use, it is user-facing.
-- Keep `docs/DOCS_MAP.md` in sync - any new file added must appear there.
+- Keep `docs/DOCS_MAP.md` in sync — any new file added must appear there.

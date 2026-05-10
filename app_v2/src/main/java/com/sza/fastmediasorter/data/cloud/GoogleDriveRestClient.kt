@@ -64,6 +64,9 @@ class GoogleDriveRestClient @Inject constructor(
 
     fun getAccountEmail(): String? = auth.accountEmail
 
+    private fun googleDriveReauthRequiredMessage(): String =
+        context.getString(R.string.cloud_auth_required, context.getString(R.string.google_drive))
+
     companion object {
         private const val DRIVE_API_BASE = "https://www.googleapis.com/drive/v3"
         private const val DRIVE_UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3"
@@ -157,7 +160,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun testConnection(): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val url = URL("$DRIVE_API_BASE/about?fields=user")
                 val response = makeAuthenticatedRequest(url, "GET", token)
@@ -165,11 +168,22 @@ class GoogleDriveRestClient @Inject constructor(
                 if (response.isSuccess) {
                     CloudResult.Success(true)
                 } else {
-                    CloudResult.Error("Connection test failed: ${response.errorMessage}")
+                    CloudResult.Error(
+                        context.getString(
+                            R.string.google_drive_connection_test_failed,
+                            response.errorMessage ?: context.getString(R.string.error_reason_unknown)
+                        )
+                    )
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Connection test failed")
-                CloudResult.Error("Connection test failed: ${e.message}", e)
+                CloudResult.Error(
+                    context.getString(
+                        R.string.google_drive_connection_test_failed,
+                        e.message ?: context.getString(R.string.error_reason_unknown)
+                    ),
+                    e
+                )
             }
         }
     }
@@ -183,7 +197,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Proactively refresh token if old
                 ensureTokenFresh()
                 
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val query = if (folderId != null) {
                     "'$folderId' in parents and trashed = false"
@@ -217,11 +231,11 @@ class GoogleDriveRestClient @Inject constructor(
                     
                     CloudResult.Success(cloudFiles to nextToken)
                 } else {
-                    CloudResult.Error("Failed to list files: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_list_files_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to list files")
-                CloudResult.Error("Failed to list files: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             }
         }
     }
@@ -229,7 +243,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun listFolders(parentFolderId: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val parentQuery = if (parentFolderId != null) {
                     "'$parentFolderId' in parents"
@@ -254,11 +268,11 @@ class GoogleDriveRestClient @Inject constructor(
                     
                     CloudResult.Success(folders)
                 } else {
-                    CloudResult.Error("Failed to list folders: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_list_folders_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to list folders")
-                CloudResult.Error("Failed to list folders: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_folders_failed), e)
             }
         }
     }
@@ -273,7 +287,7 @@ class GoogleDriveRestClient @Inject constructor(
                     fileId
                 }
 
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val fields = URLEncoder.encode("id, name, mimeType, size, modifiedTime, thumbnailLink, webViewLink, parents", "UTF-8")
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId?fields=$fields")
@@ -289,11 +303,11 @@ class GoogleDriveRestClient @Inject constructor(
                     }
                     CloudResult.Success(parseItem(json, parentId))
                 } else {
-                    CloudResult.Error("Failed to get metadata: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_metadata_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get file metadata")
-                CloudResult.Error("Failed to get metadata: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_metadata_failed), e)
             }
         }
     }
@@ -308,7 +322,7 @@ class GoogleDriveRestClient @Inject constructor(
     private suspend fun resolveFileIdFromName(fileName: String, parentFolderId: String?): CloudResult<String> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
@@ -333,14 +347,14 @@ class GoogleDriveRestClient @Inject constructor(
                         val fileId = files.getJSONObject(0).getString("id")
                         CloudResult.Success(fileId)
                     } else {
-                        CloudResult.Error("File not found: $fileName")
+                        CloudResult.Error(context.getString(R.string.error_reason_not_found))
                     }
                 } else {
-                    CloudResult.Error("Search failed: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_search_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to resolve file ID from name: $fileName")
-                CloudResult.Error("Failed to resolve file ID: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
         }
     }
@@ -419,12 +433,12 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated - token missing. Please re-authenticate.")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
                 if (actualFileId == null) {
-                    return@withContext CloudResult.Error("Could not resolve file ID from: $fileId")
+                    return@withContext CloudResult.Error(context.getString(R.string.error_reason_not_found))
                 }
 
                 // Get file size first
@@ -460,7 +474,13 @@ class GoogleDriveRestClient @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to download file")
-                CloudResult.Error("Download failed: ${e.message}", e)
+                CloudResult.Error(
+                    context.getString(
+                        R.string.download_failed,
+                        e.message ?: context.getString(R.string.error_reason_unknown)
+                    ),
+                    e
+                )
             }
         }
     }
@@ -490,7 +510,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated - token missing. Please re-authenticate.")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val resolvedParentId = resolveFolderId(parentFolderId)
                 
@@ -550,14 +570,14 @@ class GoogleDriveRestClient @Inject constructor(
                         CloudResult.Success(parseItem(json, parentId))
                     } else {
                         val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-                        CloudResult.Error("Upload failed: $error")
+                        CloudResult.Error(context.getString(R.string.cloud_upload_failed))
                     }
                 } finally {
                     connection.disconnect()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to upload file")
-                CloudResult.Error("Upload failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
             }
         }
     }
@@ -568,7 +588,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val resolvedParentId = resolveFolderId(parentFolderId)
                 
@@ -593,11 +613,11 @@ class GoogleDriveRestClient @Inject constructor(
                     }
                     CloudResult.Success(parseItem(json, parentId))
                 } else {
-                    CloudResult.Error("Failed to create folder: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_create_folder_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to create folder")
-                CloudResult.Error("Failed to create folder: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
         }
     }
@@ -605,12 +625,12 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun deleteFile(fileId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
                 if (actualFileId == null) {
-                    return@withContext CloudResult.Error("Could not resolve file ID from: $fileId")
+                    return@withContext CloudResult.Error(context.getString(R.string.error_reason_not_found))
                 }
 
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId")
@@ -619,11 +639,11 @@ class GoogleDriveRestClient @Inject constructor(
                 if (response.isSuccess) {
                     CloudResult.Success(true)
                 } else {
-                    CloudResult.Error("Failed to delete: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.error_delete_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to delete file")
-                CloudResult.Error("Deletion failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_delete_failed), e)
             }
         }
     }
@@ -631,7 +651,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun renameFile(fileId: String, newName: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val requestBody = JSONObject().apply {
                     put("name", newName)
@@ -640,7 +660,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Resolve fileId (may be filename, folderId/filename, or actual ID)
                 val actualFileId = parseAndResolveFileId(fileId)
                 if (actualFileId == null) {
-                    return@withContext CloudResult.Error("Could not resolve file ID from: $fileId")
+                    return@withContext CloudResult.Error(context.getString(R.string.error_reason_not_found))
                 }
 
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId")
@@ -656,11 +676,11 @@ class GoogleDriveRestClient @Inject constructor(
                     }
                     CloudResult.Success(parseItem(json, parentId))
                 } else {
-                    CloudResult.Error("Failed to rename: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.rename_failed_generic))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to rename file")
-                CloudResult.Error("Rename failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.rename_failed_generic), e)
             }
         }
     }
@@ -668,20 +688,21 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun moveFile(fileId: String, newParentId: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Get current parents
                 val metadataResult = getFileMetadata(fileId)
-                if (metadataResult !is CloudResult.Success) {
-                    return@withContext CloudResult.Error("Failed to get file metadata")
+                val metadata = when (metadataResult) {
+                    is CloudResult.Success -> metadataResult.data
+                    is CloudResult.Error -> return@withContext CloudResult.Error(metadataResult.message, metadataResult.cause)
                 }
                 
                 // Get current parent from path (simplified)
-                val currentParentId = metadataResult.data.path.substringBeforeLast("/")
+                val currentParentId = metadata.path.substringBeforeLast("/")
                 
                 val fields = URLEncoder.encode("id, name, mimeType, size, modifiedTime, parents", "UTF-8")
                 val actualFileId = parseAndResolveFileId(fileId)
-                    ?: return@withContext CloudResult.Error("Could not resolve file ID from: $fileId")
+                    ?: return@withContext CloudResult.Error(context.getString(R.string.error_reason_not_found))
 
                 val urlString = buildString {
                     append("$DRIVE_API_BASE/files/$actualFileId")
@@ -699,11 +720,11 @@ class GoogleDriveRestClient @Inject constructor(
                     val json = JSONObject(response.data)
                     CloudResult.Success(parseItem(json, newParentId))
                 } else {
-                    CloudResult.Error("Failed to move: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.error_move_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to move file")
-                CloudResult.Error("Move failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_move_failed), e)
             }
         }
     }
@@ -715,7 +736,7 @@ class GoogleDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val requestBody = JSONObject().apply {
                     put("parents", JSONArray().put(newParentId))
@@ -725,7 +746,7 @@ class GoogleDriveRestClient @Inject constructor(
                 }.toString()
                 
                 val actualFileId = parseAndResolveFileId(fileId)
-                    ?: return@withContext CloudResult.Error("Could not resolve file ID from: $fileId")
+                    ?: return@withContext CloudResult.Error(context.getString(R.string.error_reason_not_found))
 
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId/copy")
                 val response = makeAuthenticatedRequest(url, "POST", token, requestBody)
@@ -734,11 +755,11 @@ class GoogleDriveRestClient @Inject constructor(
                     val json = JSONObject(response.data)
                     CloudResult.Success(parseItem(json, newParentId))
                 } else {
-                    CloudResult.Error("Failed to copy: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.error_copy_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to copy file")
-                CloudResult.Error("Copy failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             }
         }
     }
@@ -746,7 +767,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun fileExists(fileName: String, parentId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Escape backslash and single quote per Drive API query language spec
                 val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
@@ -764,11 +785,11 @@ class GoogleDriveRestClient @Inject constructor(
                     val files = json.getJSONArray("files")
                     CloudResult.Success(files.length() > 0)
                 } else {
-                    CloudResult.Error("Failed to check file existence: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_check_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check file existence")
-                CloudResult.Error("Check failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_check_failed), e)
             }
         }
     }
@@ -776,7 +797,7 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun searchFiles(query: String, mimeType: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val searchQuery = buildString {
                     append("name contains '$query' and trashed = false")
@@ -798,11 +819,11 @@ class GoogleDriveRestClient @Inject constructor(
                     val cloudFiles = parseItems(files, "search")
                     CloudResult.Success(cloudFiles)
                 } else {
-                    CloudResult.Error("Search failed: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_search_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Search failed")
-                CloudResult.Error("Search failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
         }
     }
@@ -818,7 +839,7 @@ class GoogleDriveRestClient @Inject constructor(
     suspend fun findFolderByName(folderName: String, parentFolderId: String? = null): CloudResult<CloudFile?> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 val parentQuery = if (parentFolderId != null && parentFolderId != "root") {
                     "'$parentFolderId' in parents"
@@ -845,11 +866,11 @@ class GoogleDriveRestClient @Inject constructor(
                         CloudResult.Success(null) // Not found
                     }
                 } else {
-                    CloudResult.Error("Search failed: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_search_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to find folder: $folderName")
-                CloudResult.Error("Find folder failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
         }
     }
@@ -897,7 +918,7 @@ class GoogleDriveRestClient @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "ensureFolderExists failed")
-                CloudResult.Error("ensureFolderExists failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
         }
     }
@@ -905,12 +926,13 @@ class GoogleDriveRestClient @Inject constructor(
     override suspend fun getThumbnail(fileId: String, size: Int): CloudResult<InputStream> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
                 
                 // Get thumbnail link from metadata
                 val metadataResult = getFileMetadata(fileId)
                 if (metadataResult !is CloudResult.Success) {
-                    return@withContext CloudResult.Error("Failed to get metadata")
+                    // Surface a preview-specific message because metadata lookup is internal to thumbnail loading.
+                    return@withContext CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed))
                 }
                 
                 val thumbnailLink = metadataResult.data.thumbnailUrl
@@ -932,14 +954,14 @@ class GoogleDriveRestClient @Inject constructor(
                         CloudResult.Success(bytes.inputStream())
                     } else {
                         val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-                        CloudResult.Error("Thumbnail failed: $error")
+                        CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed))
                     }
                 } finally {
                     connection.disconnect()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get thumbnail")
-                CloudResult.Error("Thumbnail failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             }
         }
     }
@@ -962,7 +984,7 @@ class GoogleDriveRestClient @Inject constructor(
                 auth.clearAuth()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign out")
-                signOutError = CloudResult.Error("Sign-out failed: ${e.message}", e)
+                signOutError = CloudResult.Error(context.getString(R.string.cloud_sign_out_failed), e)
             }
         }
         if (signOutError != null) return signOutError!!
@@ -1037,14 +1059,14 @@ class GoogleDriveRestClient @Inject constructor(
         }
         if (account == null) {
             Timber.e("getFileInputStream: No signed-in account")
-            return CloudResult.Error("Not authenticated")
+            return CloudResult.Error(googleDriveReauthRequiredMessage())
         }
         
         // Get fresh OAuth token
         val token = getAccessToken(account)
         if (token == null) {
             Timber.e("getFileInputStream: Failed to obtain access token")
-            return CloudResult.Error("Failed to obtain access token")
+            return CloudResult.Error(googleDriveReauthRequiredMessage())
         }
         
         val result = httpClient.getFileInputStream(fileId, DRIVE_API_BASE, token, position, length)
@@ -1072,7 +1094,7 @@ class GoogleDriveRestClient @Inject constructor(
             }
             
             Timber.e("getFileInputStream: All retry attempts exhausted ($TOKEN_MAX_RETRY_ATTEMPTS attempts). Returning error.")
-            return CloudResult.Error("Authentication expired after $TOKEN_MAX_RETRY_ATTEMPTS retry attempts. Token invalid. Please re-authenticate in Settings.")
+            return CloudResult.Error(googleDriveReauthRequiredMessage())
         }
         
         return when (result) {

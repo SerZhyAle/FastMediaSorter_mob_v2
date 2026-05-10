@@ -83,9 +83,7 @@ class BrowseResourceStateManager(
                     )
                 }
                 sendEvent(BrowseEvent.ShowError(
-                    message = context.getString(R.string.error_favorite_status_update_failed),
-                    details = e.message,
-                    exception = e
+                    message = context.getString(R.string.error_favorite_status_update_failed)
                 ))
             }
         }
@@ -170,9 +168,7 @@ class BrowseResourceStateManager(
                 sendEvent(BrowseEvent.ResourceAddedAsDestination(resource.id))
             }.onFailure { e ->
                 sendEvent(BrowseEvent.ShowError(
-                    message = context.getString(R.string.error_add_destination_failed),
-                    details = e.message,
-                    exception = e
+                    message = context.getString(R.string.error_add_destination_failed)
                 ))
             }
         }

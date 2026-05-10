@@ -14,6 +14,8 @@
     <string name="settings_category_grid_view">Сітка</string>
     <string name="settings_category_player_ui">Інтерфейс плеєра</string>
     <string name="settings_category_touch_zones">Сенсорні зони</string>
+    <string name="settings_subcategory_incoming_links">Вхідні посилання</string>
+    <string name="settings_subcategory_camera_capture">Захоплення з камери</string>
     <string name="start_player">Запустити плеєр</string>
     <string name="add">Додати</string>
     <string name="settings">Налаштування</string>
@@ -83,6 +85,7 @@
     <string name="renamed_n_files">Перейменували %1$d файлів.</string>
     <string name="rename_failed">Не вдалося перейменувати файли.</string>
     <string name="rename_failed_generic">Не вдалося перейменувати файл.</string>
+    <string name="rename_file_name_empty">Ім’я файлу не може бути порожнім.</string>
     <string name="file_already_exists">Файл вже існує: %1$s</string>
     <string name="file_already_exists_skip">%1$s (пропущено - файл вже існує)</string>
     <string name="file_already_exists_in_folder">%1$s (пропущено - вже є в %2$s)</string>
@@ -289,6 +292,15 @@
     <string name="error_cloud_auth_expired">Не вдається отримати доступ до \"%1$s\" - автентифікація втрачена або сесія завершилась</string>
     <string name="error_cloud_auth_suggestion">Будь ласка, повторно увійдіть у ваш хмарний обліковий запис у Налаштування → Редагувати ресурс</string>
     <string name="error_cloud_connection_failed">Не вдається отримати доступ до \"%1$s\" - помилка підключення до хмарного сховища</string>
+    <string name="cloud_list_files_failed">Не вдалося завантажити файли з хмари. Спробуйте ще раз.</string>
+    <string name="cloud_list_folders_failed">Не вдалося завантажити теки з хмари. Спробуйте ще раз.</string>
+    <string name="cloud_metadata_failed">Не вдалося завантажити відомості про файл із хмари. Спробуйте ще раз.</string>
+    <string name="cloud_create_folder_failed">Не вдалося створити теку в хмарі. Спробуйте ще раз.</string>
+    <string name="cloud_upload_failed">Не вдалося завантажити файл у хмару. Спробуйте ще раз.</string>
+    <string name="cloud_search_failed">Не вдалося виконати пошук у хмарному сховищі. Спробуйте ще раз.</string>
+    <string name="cloud_thumbnail_failed">Не вдалося завантажити попередній перегляд із хмари. Спробуйте ще раз.</string>
+    <string name="cloud_check_failed">Не вдалося перевірити файл у хмарі. Спробуйте ще раз.</string>
+    <string name="cloud_sign_out_failed">Не вдалося вийти з хмарного облікового запису. Спробуйте ще раз.</string>
 
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">З\'єднання вичерпано. Перевірте мережу та повторіть спробу.</string>
@@ -550,6 +562,9 @@
     <string name="epub_search_no_results">Результатів не знайдено</string>
     <string name="epub_searching">Пошук…</string>
     <string name="translation_error_no_text">Немає тексту для перекладу</string>
+    <string name="player_webview_unavailable">Не вдалося отримати доступ до області читання. Спробуйте ще раз.</string>
+    <string name="player_page_not_ready">Ця сторінка ще не готова. Спробуйте ще раз.</string>
+    <string name="player_open_link_failed">Не вдалося відкрити це посилання.</string>
     <string name="show_pdf_thumbnails">Мініатюри для великих PDF (довго)</string>
     <string name="show_pdf_thumbnails_description">Завантажувати та генерувати мініатюри для великих PDF: до 50 МБ для SMB, до 10 МБ для S/FTP/Хмари (може зайняти значний час)</string>
     <string name="enable_translation">Увімкнути переклад</string>
@@ -749,6 +764,11 @@
     <string name="welcome_description_4">РЕСУРСИ — Папки з будь-якого типу сховища.\n\nШВИДКЕ СОРТУВАННЯ — До 30 папок призначення з кольоровим маркуванням для швидких операцій копіювання/переміщення.\n\nНалаштовуйте в Налаштуваннях у будь-який час!</string>
     <string name="welcome_title_5">Додаткові можливості</string>
     <string name="welcome_description_5">Не лише перегляд медіа — FastMediaSorter містить професійні інструменти для тексту, документів та аудіо.</string>
+    <string name="welcome_description_1_details">FastMediaSorter збирає всі види медіа в одному місці. Відкривайте фото, відео, GIF і музику з пристрою, з мережевої папки або з хмари — і розкладайте їх швидкими дотиками замість довгих меню.\n\nУсе, що ви налаштуєте тут, потім можна змінити в налаштуваннях, тож неправильного вибору на цьому екрані немає — просто натисніть «Далі».</string>
+    <string name="welcome_description_2_details">Локальні джерела — це папки на пристрої та карти пам\'яті. Мережеві підключаються через SMB/CIFS, SFTP і FTP. Хмарні зв\'язують Google Drive, OneDrive і Dropbox.\n\nВикористовуйте скільки завгодно — кожне джерело з\'явиться окремим рядком на головному екрані. Додати чи прибрати джерело можна будь-коли в «Налаштування → Ресурси».</string>
+    <string name="welcome_description_3_details" formatted="false">У повноекранному перегляді фото та відео екран поділено на сітку 3×3. Кутові зони гортають файли, бічні — виконують копіювання, переміщення й видалення поточного файлу, центральна — відкриває панель команд.\n\nМаленька схема вище показує, що робить кожна зона. Дії зон можна перепризначити пізніше в налаштуваннях.</string>
+    <string name="welcome_description_4_details">Ресурс — це папка, яку ви переглядаєте, у будь-якому сховищі. Призначення швидкого сортування — папка, куди файл надсилається одним дотиком; їх можна задати до 30, у кожної свій колір і підпис.\n\nТоркніться кольору під час перегляду файлу — і він одразу скопіюється або переміститься туди. І ресурси, і призначення налаштовуються в «Налаштування → Ресурси».</string>
+    <string name="welcome_description_5_details">Окрім перегляду, FastMediaSorter — це ще плеєр і майстерня: аудіоплеєр для музичних бібліотек, відеотека з керуванням відтворенням, читалка PDF та EPUB, перегляд і редагування тексту, OCR і переклад просто на зображенні, слайдшоу, віджети на домашньому екрані, планові операції з файлами, обране та сортування за кольором одним дотиком.\n\nЩо з цього доступно, залежить від редакції застосунку — картки нижче показують, що входить до вашої.</string>
     <string name="welcome_language_picker_hint">Оберіть мову застосунку</string>
     <string name="welcome_permissions_title">Доступ до медіафайлів</string>
     <string name="welcome_permissions_description">FastMediaSorter потребує доступу до ваших фото, відео та аудіофайлів для сканування і відображення медіа. Ми не передаємо ваші файли третім сторонам.</string>
@@ -764,6 +784,16 @@
     <string name="welcome_feature_ocr">OCR і Переклад</string>
     <string name="welcome_feature_audio">Аудіоплеєр</string>
     <string name="welcome_feature_ebook">Книги і PDF</string>
+    <string name="welcome_feature_text_editor">Текстовий редактор</string>
+    <string name="welcome_feature_video_library">Відеотека</string>
+    <string name="welcome_feature_slideshow">Слайдшоу</string>
+    <string name="welcome_feature_gif">Перегляд GIF</string>
+    <string name="welcome_feature_network">Мережеві джерела</string>
+    <string name="welcome_feature_cloud_sync">Синхронізація з хмарою</string>
+    <string name="welcome_feature_widgets">Віджети</string>
+    <string name="welcome_feature_scheduled_ops">Планові задачі</string>
+    <string name="welcome_feature_favorites">Обране</string>
+    <string name="welcome_feature_quick_sort">Сортування за кольором</string>
 
     <!-- VR-exclusive welcome page (overridden in vr/ source set) -->
     <string name="welcome_vr_title">3D та VR</string>
@@ -1349,6 +1379,7 @@
     <string name="slide_interval_error">Мінімальний інтервал 5 хвилин</string>
     <string name="log_copied">Лог скопійовано в буфер</string>
     <string name="storage_permissions_granted">Дозволи вже надано</string>
+    <string name="storage_permission_granted_continue">Доступ до сховища надано. Продовжуйте вибирати теку.</string>
 
     <!-- File Operations -->
     <string name="msg_copy_started">Копіюємо до %1$s..</string>
@@ -1436,6 +1467,7 @@
     <string name="image_edit_apply_adjustments">Застосувати налаштування</string>
     <string name="msg_image_edit_completed">Редагування зображення завершено</string>
     <string name="error_image_load_failed">Не вдалося завантажити зображення.</string>
+    <string name="image_scroll_too_fast">Будь ласка, гортайте трохи повільніше.</string>
     <string name="error_gif_load_failed">Не вдалося завантажити GIF.</string>
     <string name="msg_failed_reload_image">Не вдалося перезавантажити зображення.</string>
 
@@ -2228,6 +2260,7 @@
     <string name="text_file_display_error">Не вдалося показати цей текстовий файл. Спробуйте ще раз.</string>
     <string name="text_file_reopen_failed">Не вдалося знову відкрити цей файл з вибраним кодуванням.</string>
     <string name="text_file_save_failed">Не вдалося зберегти цей файл. Спробуйте ще раз.</string>
+    <string name="text_file_upload_failed_after_local_save">Файл збережено на цьому пристрої, але не вдалося завантажити його назад на сервер.</string>
     <string name="text_page_indicator">Сторінка %1$d / %2$d</string>
     <string name="text_page_indicator_estimated">Сторінка %1$d / ~%2$d</string>
     <string name="text_size_limit">Максимальний розмір текстового файлу (внутрішній переглядач)</string>
@@ -2539,6 +2572,8 @@
     <string name="perm_continue_to_app">Продовжити</string>
     <string name="perm_btn_grant_all">Надати всі</string>
     <string name="perm_btn_open_system_settings">Відкрити налаштування системи</string>
+    <string name="permission_open_settings_for_feature">Щоб увімкнути «%1$s», відкрийте налаштування застосунку.</string>
+    <string name="permission_open_settings_generic">Потрібен дозвіл. Відкрийте налаштування застосунку й увімкніть його.</string>
     <string name="settings_manage_permissions">Керування дозволами</string>
     <string name="settings_manage_permissions_desc">Перегляд та надання дозволів застосунку</string>
     <!-- Permission registry: group headers -->
@@ -2554,6 +2589,10 @@
     <string name="perm_status_denied">Відхилено</string>
     <string name="perm_status_permanently_denied">Заблоковано</string>
     <string name="perm_status_not_applicable">Не потрібно</string>
+    <!-- Permission row action buttons -->
+    <string name="perm_action_grant">Надати</string>
+    <string name="perm_action_manage">Керування</string>
+    <string name="perm_action_settings">Налаштування</string>
     <!-- Permission registry: per-permission title + description -->
     <string name="perm_title_read_external_storage">Доступ до локальних медіа</string>
     <string name="perm_desc_read_external_storage">Перегляд, сортування та відтворення фото, відео й аудіо на пристрої. Потрібно на Android 12 і нижче замість гранульованих дозволів.</string>
@@ -2581,10 +2620,12 @@
     <string name="perm_desc_headset_camera">Доступ до камер наскрізного перегляду на Meta Quest для відображення реального світу навколо вікна застосунку в режимі змішаної реальності.</string>
     <!-- Print -->
     <string name="menu_print">Друк</string>
-    <string name="error_print_unavailable">Служби друку недоступні на цьому пристрої</string>
+    <string name="error_print_unavailable">Служба друку не знайдена. Поділіться файлом або встановіть застосунок для друку.</string>
     <string name="print_job_label">Друк: %s</string>
     <string name="error_print_file_too_large">Файл завеликий для друку (макс. 30 МБ)</string>
     <string name="error_print_download_failed">Не вдалося завантажити файл для друку</string>
+    <string name="print_share_chooser_title">Надіслати на друк</string>
+    <string name="print_fallback_to_share">Діалог друку не відкрився — відкрито меню «Поділитися». Виберіть застосунок для друку.</string>
 
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Трансляція…</string>
@@ -2686,6 +2727,8 @@
     <string name="archive_progress_message">%1$d з %2$d: %3$s</string>
     <string name="archive_success">Архів створено: %1$s (%2$d файлів)</string>
     <string name="archive_error">Помилка архівації: %1$s</string>
+    <string name="archive_destination_not_found">Тека призначення більше недоступна.</string>
+    <string name="archive_create_failed">Не вдалося створити архів. Спробуйте ще раз.</string>
     <string name="archive_error_network_not_supported">Архівація підтримується лише для локальних файлів. Мережеві та хмарні джерела не підтримуються.</string>
     <string name="unarchive_dialog_title">Розпакувати архів?</string>
     <string name="unarchive_dialog_message">"%1$s" -> тека "%2$s"</string>
@@ -2969,6 +3012,8 @@
     <string name="setting_skip_camera_filename_dialog_summary">Використовувати ім\'я за часом зйомки без діалогу</string>
     <string name="tooltip_camera_capture_title">Зйомка камерою</string>
     <string name="tooltip_camera_capture_message">Кнопка камери у Browse дозволяє зняти фото або відео, не виходячи з застосунку. Знятий файл зберігається до папки поточного ресурсу.\n\nЯкщо увімкнено «Не питати ім\'я файлу», файл автоматично отримує ім\'я за часом зйомки; інакше після кожної зйомки з\'являється діалог перейменування.</string>
+    <string name="tooltip_saved_authorizations_title">Збережені авторизації</string>
+    <string name="tooltip_saved_authorizations_message">Екран веб-входу всередині застосунку зберігає cookie та логіни, які використовуються під час автозавантаження файлів із сайтів, що вимагають входу. Відкрийте цей екран, щоб переглянути збережені авторизації та видалити непотрібні.</string>
 
     <!-- Controls & Keybindings -->
     <string name="settings_controls_keybindings_title">Керування та клавіші</string>
@@ -3222,6 +3267,14 @@
     <string name="webview_auth_cancel_button">Скасувати</string>
     <string name="webview_auth_url_prompt">Введіть URL (https://..)</string>
     <string name="webview_auth_invalid_url">Некоректний URL — має починатися з http:// або https://</string>
+    <!-- S0144: resource picker for "Add authorization" -->
+    <string name="auth_add_picker_title">Виберіть ресурс</string>
+    <string name="auth_add_enter_manually">Ввести адресу вручну</string>
+    <!-- S0144: offer to add an authorization when a social-media link is shared -->
+    <string name="auth_offer_dialog_title">Увійти в %1$s?</string>
+    <string name="auth_offer_dialog_message">Збережена авторизація дозволить застосунку завантажувати з %1$s контент, для якого потрібен вхід.</string>
+    <string name="auth_offer_dialog_add">Додати авторизацію</string>
+    <string name="auth_offer_dialog_skip">Не зараз</string>
 
     <!-- S0118: Friendly copy baseline keys -->
     <string name="friendly_copy_error_generic">Щось пішло не так. Спробуйте ще раз.</string>
@@ -3304,4 +3357,7 @@
     <string name="receive_share_cache_failed">Не вдалося підготувати спільний файл. Спробуйте ще раз.</string>
     <string name="receive_share_copied_to_folder">Збережено у вибрану теку</string>
     <string name="receive_share_copy_to_folder_failed">Не вдалося зберегти спільний файл у цю теку. Спробуйте ще раз.</string>
+    <string name="favorites_slideshow_open_first">Спочатку відкрийте Обране, а потім запустіть там слайд-шоу.</string>
+    <string name="google_drive_sign_in_unavailable">Зараз не вдається ввійти в Google Диск. Спробуйте ще раз пізніше.</string>
+    <string name="google_sign_in_cancelled">Вхід через Google скасовано</string>
 </resources>

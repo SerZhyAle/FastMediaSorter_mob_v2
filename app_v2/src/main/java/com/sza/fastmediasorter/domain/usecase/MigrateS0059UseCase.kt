@@ -59,7 +59,7 @@ class MigrateS0059UseCase @Inject constructor(
         if (recent != null) {
             if (!recent.allFiles) {
                 resourceRepository.updateResource(recent.copy(allFiles = true))
-                Timber.i("S0059: set allFiles=true on Recent (id=${recent.id})")
+                Timber.i("MigrateS0059UseCase: set allFiles=true on Recent (id=${recent.id})")
             }
         } else {
             // Recent was manually deleted — recreate it with allFiles=true appended to the list
@@ -84,7 +84,7 @@ class MigrateS0059UseCase @Inject constructor(
                 )
             )
             resourceRepository.addResource(newRecent)
-            Timber.i("S0059: recreated Recent with allFiles=true (displayOrder=${maxOrder + 1})")
+            Timber.i("MigrateS0059UseCase: recreated Recent with allFiles=true (displayOrder=${maxOrder + 1})")
         }
     }
 
@@ -98,7 +98,7 @@ class MigrateS0059UseCase @Inject constructor(
             .filter { it.type == ResourceType.LOCAL && it.path == downloadsPath && !it.allFiles }
             .forEach { resource ->
                 resourceRepository.updateResource(resource.copy(allFiles = true))
-                Timber.i("S0059: set allFiles=true on Downloads resource (id=${resource.id})")
+                Timber.i("MigrateS0059UseCase: set allFiles=true on Downloads resource (id=${resource.id})")
             }
     }
 }

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.main
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -30,9 +31,11 @@ import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -115,6 +118,15 @@ class MainViewModel @Inject constructor(
 
     override fun getInitialState() = MainState()
 
+    /**
+     * MainActivity renders BaseViewModel.error directly in the empty-state surface,
+     * so this path must stay resource-backed instead of exposing raw exception text.
+     */
+    override fun handleError(throwable: Throwable) {
+        setError(context.getString(R.string.toast_error_loading_resources))
+        setLoading(false)
+    }
+
     companion object {
         const val FAVORITES_RESOURCE_ID = -100L
     }
@@ -140,8 +152,15 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(ioDispatcher) {
-            provisionDefaultResourcesUseCase()
-            provisionDownloadsDestinationUseCase()
+            // NonCancellable: provisioning must finish atomically even if this ViewModel
+            // is destroyed during WelcomeActivity's ephemeral first MainActivity creation.
+            // Without this, viewModelScope.cancel() can interrupt after "Recent" is inserted
+            // but before the other virtual resources are written, leaving the DB in a partial
+            // state. The next launch then sees a non-empty resource list and skips provisioning.
+            withContext(NonCancellable) {
+                provisionDefaultResourcesUseCase()
+                provisionDownloadsDestinationUseCase()
+            }
             migrateCameraResourceUseCase()
             migrateS0059UseCase()
             // Backfill icon ids for resources that existed before S0034 (DB v25 → v26 migration)

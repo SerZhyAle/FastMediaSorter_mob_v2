@@ -6,6 +6,7 @@
     <!-- Grid column counts for 480x480 -->
     <integer name="grid_column_count">3</integer>
     <integer name="grid_column_count_landscape">2</integer>
+    <integer name="welcome_feature_grid_columns">3</integer>
     <integer name="resource_grid_column_count">1</integer>
     <integer name="grid_columns_main">2</integer>
     <integer name="grid_columns_gallery">2</integer>

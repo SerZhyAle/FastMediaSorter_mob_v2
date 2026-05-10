@@ -5,9 +5,10 @@ import javax.inject.Singleton
 
 /**
  * S0003: ordered registry of [UrlExtractionStrategy] instances.
- * Canonical order: `site` first when present, then `direct`, then `html`. This
- * keeps S0117's noLegal resolver ahead of the generic strategies without forcing
- * market flavors to bind a no-op implementation.
+ * Canonical order: `site` first when present, then `direct`, then `html`, then
+ * `dynamic`. This keeps S0117's noLegal resolver ahead of the generic strategies
+ * while still letting S0140 fall through from static HTML parsing into JS-rendered
+ * discovery when the first HTML pass returns NotFound.
  */
 @Singleton
 class LinkExtractionRegistry @Inject constructor(
@@ -25,6 +26,6 @@ class LinkExtractionRegistry @Inject constructor(
     fun ordered(): List<UrlExtractionStrategy> = orderedStrategies
 
     private companion object {
-        val CANONICAL_ORDER = listOf("site", "direct", "html")
+        val CANONICAL_ORDER = listOf("site", "direct", "html", "dynamic")
     }
 }

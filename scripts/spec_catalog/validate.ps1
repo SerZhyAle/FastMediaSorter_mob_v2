@@ -81,18 +81,32 @@ if ($orphans.Count -gt 0) {
     Add-Result 'FS->Journal' 'OK' ('all {0} prefixed entries have a record' -f $prefixed.Count)
 }
 
-# 5. Journal -> filesystem: every non-archived record has its file present
-$missing = New-Object System.Collections.Generic.List[string]
+# 5. Journal -> filesystem: every record should point at an existing file.
+#    - Archived            : skipped — soft-deleted, file is expected to live under temp/done/.
+#    - Verified / Implemented : strategic spec already consumed by /spec-tech & /spec-dev; a
+#                            missing .md is recoverable hygiene debt, not a blocker -> WARN.
+#    - any other (in-flight) status : the spec is being worked on right now and MUST exist -> FAIL.
+$workDoneStatuses = @('Verified', 'Implemented')
+$missingActive = New-Object System.Collections.Generic.List[string]   # in-flight -> FAIL
+$missingDone   = New-Object System.Collections.Generic.List[string]   # work-done -> WARN
 foreach ($r in $records) {
     if ($r.status -eq 'Archived') { continue }
     $path = Join-Path $repoRoot $r.file
     if (-not (Test-Path -LiteralPath $path)) {
-        $missing.Add(('{0} ({1})' -f $r.id, $r.file))
+        if ($workDoneStatuses -contains $r.status) {
+            $missingDone.Add(('{0} [{1}] ({2})' -f $r.id, $r.status, $r.file))
+        } else {
+            $missingActive.Add(('{0} [{1}] ({2})' -f $r.id, $r.status, $r.file))
+        }
     }
 }
-if ($missing.Count -gt 0) {
-    Add-Result 'Journal->FS' 'FAIL' ('missing files for: {0}' -f ($missing -join ', '))
-} else {
+if ($missingActive.Count -gt 0) {
+    Add-Result 'Journal->FS' 'FAIL' ('missing files for in-flight specs: {0}' -f ($missingActive -join ', '))
+}
+if ($missingDone.Count -gt 0) {
+    Add-Result 'Journal->FS' 'WARN' ('Verified/Implemented specs with missing .md (hygiene debt — restore or archive): {0}' -f ($missingDone -join ', '))
+}
+if ($missingActive.Count -eq 0 -and $missingDone.Count -eq 0) {
     Add-Result 'Journal->FS' 'OK' 'every non-archived record points at an existing file'
 }
 

@@ -624,9 +624,6 @@ class MediaFileAdapter(
             val shouldShow = file.type == MediaType.AUDIO && !file.isDirectory && !(isGridMode && hideGridActionButtons)
             binding.btnPlayInline.isVisible = shouldShow
             if (!shouldShow) return
-            if (!isAudioOnlyMode && shouldShow) {
-                Timber.d("S0105: showing inline play button for audio file '${file.name}' in mixed resource")
-            }
 
             // In audio-only mode update info line with detail / cache progress; in other modes leave tvFileInfo as-is
             if (isAudioOnlyMode) {

@@ -160,9 +160,14 @@ class DeleteDialog(
                 }
             }
             is FileOperationResult.Failure -> {
+                val message = if (result.errorRes != null) {
+                    context.getString(result.errorRes, *result.formatArgs.toTypedArray())
+                } else {
+                    result.error
+                }
                 Toast.makeText(
                     context,
-                    context.getString(R.string.delete_failed, result.error),
+                    message,
                     Toast.LENGTH_LONG
                 ).show()
             }

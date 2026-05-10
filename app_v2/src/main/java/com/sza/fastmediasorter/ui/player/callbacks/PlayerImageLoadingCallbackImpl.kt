@@ -73,7 +73,6 @@ class PlayerImageLoadingCallbackImpl(
 
     // S0107: expose loaded bitmap so ImageDrawOverlayManager can access it for merge
     override fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {
-        Timber.d("S0107: currentDisplayedBitmap set, size=${bitmap?.byteCount}")
         viewModel.currentDisplayedBitmap = bitmap
     }
 }

@@ -52,6 +52,15 @@ class BrowseDeleteManager(
     private val reloadFiles: () -> Unit,
     private val loadResource: () -> Unit
 ) {
+    // Prefer structured delete failures so browse surfaces reuse localized copy when handlers provide it.
+    private fun formatFailureDetails(result: FileOperationResult.Failure): String {
+        return if (result.errorRes != null) {
+            context.getString(result.errorRes, *result.formatArgs.toTypedArray())
+        } else {
+            result.error.ifBlank { context.getString(R.string.error_reason_unknown) }
+        }
+    }
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
@@ -139,7 +148,7 @@ class BrowseDeleteManager(
                         sendEvent(
                             BrowseEvent.ShowError(
                                 message = context.getString(R.string.all_delete_operations_failed),
-                                details = result.error
+                                details = formatFailureDetails(result)
                             )
                         )
                         return@launch
@@ -170,7 +179,7 @@ class BrowseDeleteManager(
                         Timber.i("BrowseDeleteManager: deleted $count entries from ${dirItems.size} directories")
                     }
                     .onFailure { e ->
-                        dirDeleteError = e.message
+                        dirDeleteError = context.getString(R.string.error_reason_unknown)
                         Timber.e(e, "BrowseDeleteManager: failed to delete directories")
                     }
             }
@@ -300,7 +309,7 @@ class BrowseDeleteManager(
                     withContext(Dispatchers.Main) {
                         sendEvent(BrowseEvent.ShowError(
                             context.getString(R.string.error_deletion_failed),
-                            result.error
+                            formatFailureDetails(result)
                         ))
                     }
                 }

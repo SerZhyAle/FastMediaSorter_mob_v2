@@ -48,6 +48,8 @@ class DocumentPrintManager(
     private val activity: PlayerActivity
 ) {
 
+    private val printFallbackManager = PlayerPrintFallbackManager(activity)
+
     /**
      * Entry point: print the currently open file.
      * Silently returns if BuildConfig.SUPPORT_DOCUMENTS is false and the file is not an image.
@@ -70,10 +72,11 @@ class DocumentPrintManager(
                 return@launch
             }
             val jobLabel = activity.getString(R.string.print_job_label, mediaFile.name)
+            val sourceName = mediaFile.name
             when (mediaFile.type) {
-                MediaType.PDF   -> printPdf(file, jobLabel)
-                MediaType.IMAGE -> printImage(file, jobLabel)
-                MediaType.TEXT  -> printText(file, jobLabel)
+                MediaType.PDF   -> printPdf(file, jobLabel, sourceName)
+                MediaType.IMAGE -> printImage(file, jobLabel, sourceName)
+                MediaType.TEXT  -> printText(file, jobLabel, sourceName)
                 else -> Timber.w("DocumentPrintManager: unsupported type for print: ${mediaFile.type}")
             }
         }
@@ -90,7 +93,10 @@ class DocumentPrintManager(
      */
     private fun dispatchPrint(
         adapter: PrintDocumentAdapter,
-        jobLabel: String
+        jobLabel: String,
+        sourceFile: File,
+        sourceName: String,
+        mimeType: String
     ) {
         // Direct Activity.getSystemService guarantees the returned PrintManager holds an
         // Activity context — required by PrintManager.print() internal check on API 26–27.
@@ -98,13 +104,17 @@ class DocumentPrintManager(
         // x86 emulator builds, causing IllegalStateException: "Can print only from an activity".
         val pm = activity.getSystemService(Context.PRINT_SERVICE) as? PrintManager
         if (pm == null) {
-            Timber.w("DocumentPrintManager: PrintManager system service unavailable")
-            showSnackbar(activity.getString(R.string.error_print_unavailable))
+            Timber.e("DocumentPrintManager: PRINT_SERVICE returned null")
+            showPrintFailedSnackbar(sourceFile, sourceName, mimeType)
             return
         }
         activity.runOnUiThread {
             if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
             try {
+                Timber.d(
+                    "DocumentPrintManager: dispatching '$jobLabel' via ${pm.javaClass.name}, " +
+                        "ctx=${activity.javaClass.name}"
+                )
                 pm.print(
                     jobLabel,
                     adapter,
@@ -114,11 +124,11 @@ class DocumentPrintManager(
                 )
             } catch (e: IllegalStateException) {
                 // Happens on devices where PrintManager's internal context is not an Activity
-                Timber.e(e, "DocumentPrintManager: PrintManager.print rejected the call")
-                showSnackbar(activity.getString(R.string.error_print_unavailable))
+                Timber.e(e, "DocumentPrintManager: PrintManager.print rejected the call (${e.javaClass.simpleName}: ${e.message})")
+                showPrintFailedSnackbar(sourceFile, sourceName, mimeType)
             } catch (e: Exception) {
-                Timber.e(e, "DocumentPrintManager: unexpected error dispatching print job")
-                showSnackbar(activity.getString(R.string.error_print_unavailable))
+                Timber.e(e, "DocumentPrintManager: unexpected error dispatching print job (${e.javaClass.simpleName}: ${e.message})")
+                showPrintFailedSnackbar(sourceFile, sourceName, mimeType)
             }
         }
     }
@@ -165,13 +175,19 @@ class DocumentPrintManager(
 
     // ─── PDF ──────────────────────────────────────────────────────────────────
 
-    private fun printPdf(file: File, jobLabel: String) {
-        dispatchPrint(PdfPrintDocumentAdapter(sourceFile = file, jobLabel = jobLabel), jobLabel)
+    private fun printPdf(file: File, jobLabel: String, sourceName: String) {
+        dispatchPrint(
+            PdfPrintDocumentAdapter(sourceFile = file, jobLabel = jobLabel),
+            jobLabel,
+            sourceFile = file,
+            sourceName = sourceName,
+            mimeType = "application/pdf"
+        )
     }
 
     // ─── IMAGE ────────────────────────────────────────────────────────────────
 
-    private suspend fun printImage(file: File, jobLabel: String) {
+    private suspend fun printImage(file: File, jobLabel: String, sourceName: String) {
         val bitmap: Bitmap? = withContext(Dispatchers.IO) {
             try {
                 BitmapFactory.decodeFile(file.absolutePath)
@@ -192,15 +208,15 @@ class DocumentPrintManager(
                     scaleMode = PrintHelper.SCALE_MODE_FIT
                 }.printBitmap(jobLabel, bitmap)
             } catch (e: Exception) {
-                Timber.e(e, "DocumentPrintManager: PrintHelper.printBitmap failed")
-                showSnackbar(activity.getString(R.string.error_print_unavailable))
+                Timber.e(e, "DocumentPrintManager: PrintHelper.printBitmap failed (${e.javaClass.simpleName}: ${e.message})")
+                showPrintFailedSnackbar(file, sourceName, "image/*")
             }
         }
     }
 
     // ─── TEXT ─────────────────────────────────────────────────────────────────
 
-    private suspend fun printText(file: File, jobLabel: String) {
+    private suspend fun printText(file: File, jobLabel: String, sourceName: String) {
         val text: String? = withContext(Dispatchers.IO) {
             try {
                 file.readText()
@@ -219,12 +235,26 @@ class DocumentPrintManager(
             .replace("<", "&lt;")
             .replace(">", "&gt;")
 
-        // WebView must be created and loaded on the main thread.
-        val webView = WebView(activity)
+        // WebView must be created and loaded on the main thread. Creating it can fail when the
+        // system WebView package is disabled or mid-update — surface that as a print error
+        // instead of letting it crash the coroutine.
+        val webView = try {
+            WebView(activity)
+        } catch (e: Exception) {
+            Timber.e(e, "DocumentPrintManager: WebView unavailable for text print (${e.javaClass.simpleName}: ${e.message})")
+            showSnackbar(activity.getString(R.string.error_print_unavailable))
+            return
+        }
         webView.loadData("<html><body><pre>$escaped</pre></body></html>", "text/html", "UTF-8")
         webView.webViewClient = object : android.webkit.WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
-                dispatchPrint(webView.createPrintDocumentAdapter(jobLabel), jobLabel)
+                dispatchPrint(
+                    webView.createPrintDocumentAdapter(jobLabel),
+                    jobLabel,
+                    sourceFile = file,
+                    sourceName = sourceName,
+                    mimeType = "text/plain"
+                )
             }
         }
     }
@@ -233,6 +263,19 @@ class DocumentPrintManager(
 
     private fun showSnackbar(message: String) {
         Snackbar.make(activity.activityBinding.root, message, Snackbar.LENGTH_LONG).show()
+    }
+
+    /**
+     * Shown when the system print dialog could not be opened: offers the file to the system share
+     * chooser as a fallback (S0145) and only falls back to the plain "print unavailable" notice if
+     * even that fails.
+     */
+    private fun showPrintFailedSnackbar(sourceFile: File, sourceName: String, mimeType: String) {
+        if (printFallbackManager.shareForPrint(sourceFile, sourceName, mimeType)) {
+            showSnackbar(activity.getString(R.string.print_fallback_to_share))
+        } else {
+            showSnackbar(activity.getString(R.string.error_print_unavailable))
+        }
     }
 
     // ─── PDF PrintDocumentAdapter ─────────────────────────────────────────────
@@ -287,7 +330,8 @@ class DocumentPrintManager(
                     callback.onWriteFinished(arrayOf(PageRange.ALL_PAGES))
                 } catch (e: IOException) {
                     Timber.e(e, "PdfPrintDocumentAdapter: error writing PDF")
-                    callback.onWriteFailed(e.message)
+                    // Android surfaces this text directly in the print UI, so avoid leaking raw I/O details.
+                    callback.onWriteFailed(null)
                 } finally {
                     try { inputStream?.close() } catch (_: Exception) {}
                     try { outputStream?.close() } catch (_: Exception) {}

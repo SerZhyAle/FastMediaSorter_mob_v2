@@ -59,7 +59,7 @@ If resolved → read strategic spec file, read current `Status:` → **jump to t
 | `Partial` | F5 (fix loop then audit) |
 | `Broken` | F5 (fix loop then audit) |
 | `Verified` | Print final report — already done |
-| `BlockNeedUserTest` | Add to manual items, set status back to `Implemented`, jump to F5 |
+| `BlockNeedUserTest` | Add to manual items; delete this spec's `Timber.d("Sxxxx:` tags from `.kt` (status is leaving `BlockNeedUserTest` — CLAUDE.md "Debug Verification Tags"); set status back to `Implemented`; jump to F5 |
 | `BlockQuestions` | Read §6 Open items; resolve any answerable from codebase; continue from last active stage; add unresolvable to manual list |
 | `BlockByOtherTask` | Read §10; check if blocking spec is `Verified`; if yes → unblock and continue from last stage; if no → add to manual list and continue non-blocked work |
 | `BlockExternal` | Add to manual items; continue non-blocked work from last stage |
@@ -142,7 +142,7 @@ Follow `/spec-dev` process executing all phases from first non-done step.
 4. Still failing → hard-stop → jump to final report as Blocked.
 5. If any `src/vr/` file modified: also run `vr debug` after standard passes.
 
-**MANUAL-REQUIRED stop:** tick as `[manual — deferred to human]`. Continue `--resume`. If the manual gate is on-device verification, set status `BlockNeedUserTest` at end of pipeline.
+**MANUAL-REQUIRED stop:** tick as `[manual — deferred to human]`. Continue `--resume`. If the manual gate is on-device verification, at end of pipeline insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry (CLAUDE.md "Debug Verification Tags"), then set status `BlockNeedUserTest`.
 
 **Hard stop — attempt inline resolution:**
 
@@ -218,7 +218,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 | Read-only zone reference | Stop — hard boundary, no exceptions |
 | MAX_FIX_ITERATIONS exhausted | Final report — Incomplete |
 | Stage F3 unresolvable after 2 inline attempts | Add to deferred list, continue remaining steps |
-| Device/hardware verification required | Defer to manual items, set status `BlockNeedUserTest`, continue pipeline |
+| Device/hardware verification required | Defer to manual items, insert `Timber.d("Sxxxx: …")` debug tags at changed flow entries, set status `BlockNeedUserTest`, continue pipeline |
 | External dependency missing | Add to deferred list, set status `BlockExternal`, final report — Blocked |
 | `Archived` status | Abort — spec is archived, create new one |
 | `$ARGUMENTS` blank | Abort — no input |
@@ -235,6 +235,7 @@ These are the **only** reasons to stop before the final report. Everything else 
 - **Specs are mutable inside `/spec-all`** — patch and continue. Status locks (`Implemented`, `Verified`) do not apply inside this skill.
 - **Build mandatory on code changes** — skip only for docs-only diffs.
 - **All sub-skill constraints in force** (line budgets, Timber, trilingual, naming).
+- **Debug verification tags follow `BlockNeedUserTest`** — insert `Timber.d("Sxxxx: …")` at changed flow entries only when this pipeline sets the status to `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever the pipeline moves it out of that status (e.g. resume → `Implemented`, audit → `Verified`/`Partial`/`Broken`). See CLAUDE.md "Debug Verification Tags".
 - **MANUAL items are not failures** — `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly — always via `.\scripts\add_to_dev_log.ps1`.
 - Read-only zones never touched: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.

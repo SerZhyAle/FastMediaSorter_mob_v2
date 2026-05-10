@@ -2,7 +2,7 @@
 
 > **GLOBAL EXECUTION DIRECTIVES (ANTI-BUREAUCRACY):**
 > 1. **STRICTLY TECHNICAL LANGUAGE:** No fluff, no conversational filler, dry technical prose only.
-> 2. **AUTONOMY OVER BUREAUCRACY:** DO NOT prompt the user for minor or non-structural specification inaccuracies. Silently fix them, make reasonable technical decisions, and proceed. Only block for critical business-logic decisions.
+> 2. **AUTONOMY OVER BUREAUCRACY:** Resolve minor path or specification gaps without asking. Ask the user only when log file resolution still does not produce one existing target after the built-in fallback order is exhausted.
 > 3. **TERSE REPORTING:** NO verbose summaries or time tracking. After executing this skill, output ONLY a single dry, concise statement of what was done and why.
 
 Analyse FastMediaSorter Android logcat files for patterns, errors, warnings, and behaviour flows.
@@ -29,13 +29,14 @@ When this command is invoked with `$ARGUMENTS`:
 
 **Step 1 — Resolve the target log file.**
 
-Parse `$ARGUMENTS` for a file path token (ends with `.log` or is an existing path):
+Use this fallback order and stop at the first existing file:
 
-- If a `.log` path is found → use it as-is (relative to project root)
-- If `$ARGUMENTS` contains `temp/` or `logs/` prefix → use that path directly
-- Default: `logs/current.log`
+1. A `.log` path explicitly present in `$ARGUMENTS`
+2. An existing path in `$ARGUMENTS` under `logs/` or `temp/`
+3. `logs/current.log`
+4. `temp/current.log`
 
-If the resolved file does not exist, check `temp/current.log` as fallback. If neither exists, list available `.log` files:
+If none of the candidates exists, list available `.log` files:
 
 ```powershell
 Get-ChildItem -Path "logs","temp" -Filter "*.log" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10 | Format-Table Name, LastWriteTime, @{N="KB";E={[int]($_.Length/1KB)}}
@@ -51,7 +52,15 @@ $lines = (Get-Content "<log_file>").Count
 Write-Host "Size: $([int]($f.Length/1KB)) KB | Lines: $lines | Modified: $($f.LastWriteTime)"
 ```
 
-Report line count to the user before proceeding. This prevents the critical mistake of reading only the first N lines and missing errors that appear at the end.
+If the resolved file exists, report its line count to the user before further analysis. If the count is `0`, report that the file is empty and stop. This prevents the critical mistake of reading only the first N lines and missing errors that appear at the end.
+
+**Precedence rules:**
+
+1. Resolve the file first.
+2. Collect file size and line count.
+3. Use file size to choose the tool family.
+4. Use line count to choose how much content to read.
+5. For diagnosis, prefer the tail before the head.
 
 **Reading strategy based on line count:**
 
@@ -118,6 +127,12 @@ Then run warnings check:
 .\scripts\utils\search-log.ps1 -LogFile "<file>" -Warnings -Top 20 -AppOnly
 ```
 
+Then scan for spec verification tags:
+
+```powershell
+.\scripts\utils\search-log.ps1 -LogFile "<file>" -Pattern "S\d{4}:" -AppOnly
+```
+
 Report structure:
 
 1. **File info** — path, size, time range, total lines
@@ -125,7 +140,8 @@ Report structure:
 3. **Top errors** — first 30, grouped by tag if > 5 unique tags
 4. **Top warnings** — first 20
 5. **Spam tags** — tags with > 100 occurrences
-6. **Verdict** — one-paragraph health assessment: any crashes? repeated errors? suspicious patterns?
+6. **Spec verification tags** — see the dedicated subsection below; list which `Sxxxx` probes fired (count + first time). Omit this section only if none were found.
+7. **Verdict** — one-paragraph health assessment: any crashes? repeated errors? suspicious patterns?
 
 ---
 
@@ -204,7 +220,7 @@ Present as a chronological event table:
 TIME        TAG                     LVL  MESSAGE
 14:16:07    BrowseViewModel         I    loadDirectory called: /sdcard/DCIM
 14:16:07    MediaFileAdapter        D    onFilesChanged: 42 items
-...
+..
 ```
 
 Annotate state transitions and flag any gaps > 2 seconds between consecutive flow events.
@@ -218,6 +234,9 @@ Annotate state transitions and flag any gaps > 2 seconds between consecutive flo
 ```
 
 Show all lines matching the tag, then print level distribution for that tag specifically.
+
+> **TIMBER note**: In Timber format, the tag is the Timber tree tag (e.g. `App`, `BrowseViewModel`).
+> **JSON note**: In JSON format, the tag is from `header.tag` which may include prefixes like `[CT]`.
 
 ---
 
@@ -258,6 +277,8 @@ To filter by a specific thread (useful when tracing a coroutine or worker):
 
 Report the top 25 noisy tags. For tags with > 500 occurrences, suggest adding them to `-Exclude` in future queries.
 
+> **JSON note**: JSON exports from Android Studio may contain heavy system noise (oculus services, anchor queries etc.) — use `-AppOnly` to focus on the app.
+
 ---
 
 ### Time-range slice mode
@@ -269,6 +290,43 @@ Parse `HH:MM:SS` or `HH:MM` tokens from `$ARGUMENTS`.
 ```
 
 Then run auto-summary on the slice.
+
+---
+
+### Spec verification tags (`Sxxxx:` debug probes)
+
+App log messages whose text begins with a ticket id and a colon — `S0043: …`, `S0127: …` — are **debug verification tags** placed by the spec pipeline (see CLAUDE.md "Debug Verification Tags"). A tag exists in code only while its spec is in status `BlockNeedUserTest`; its presence in the log proves that the spec's changed code path was exercised in this session.
+
+Find them:
+
+```powershell
+.\scripts\utils\search-log.ps1 -LogFile "<file>" -Pattern "S\d{4}:" -AppOnly
+```
+
+What to do with them:
+
+- Group by id. For each `Sxxxx` report: hit count, first/last occurrence time, and the message text (it usually names the exercised flow, e.g. `S0054: TsPacketFormatDetector.detect probeSize=576 -> BD_192`).
+- Resolve each id to confirm it really is awaiting on-device test: `pwsh -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`. Expected status `BlockNeedUserTest`. If the journal says anything else, flag the tag as **stale** (it should have been removed when the spec left `BlockNeedUserTest`) — note it so the next `/spec-check` / `/spec-fix` strips it.
+- In the verdict line, state which `Sxxxx` probes fired this session — that is the signal the user needs before running `/spec-check Sxxxx` (which, on `Verified`, also deletes the tags).
+- If the user is testing a specific spec and its `Sxxxx:` probe is **absent** from the log, say so: the scenario did not reach that code path → on-device verification is incomplete, not failed.
+- Never treat a `Sxxxx:` line as an error or warning regardless of its level — it is an instrumentation probe.
+
+---
+
+## Format Conversion (Optional)
+
+To convert any format to standard logcat text for archival or manual inspection:
+```powershell
+.\scripts\utils\convert-log.ps1 -InputFile "<file>"
+# Writes to: temp/<name>.normalized.log
+# Then analyse normally:
+.\scripts\utils\search-log.ps1 -LogFile "temp/<name>.normalized.log" -Summary
+```
+
+Use `convert-log.ps1` when:
+- You need to grep the raw text of a JSON `.logcat` file
+- You want to combine multiple Timber session exports into one file
+- You want to archive a session in a universally readable format
 
 ---
 
@@ -291,6 +349,7 @@ When reading log content, proactively flag these patterns:
 | `W  ExoPlayer` / `E  ExoPlayer` | Media playback failure |
 | `W  Glide` / `E  Glide` | Image loading failure |
 | `E  SMB` / `E  SFTP` / `E  FTP` | Network protocol failure |
+| message text matching `^S\d{4}: ` (e.g. `S0043: …`) | Spec verification probe — the spec is in `BlockNeedUserTest`; this line proves its code path ran. Not an error. Report the id; cross-ref `select.ps1 -Id Sxxxx`. See "Spec verification tags" mode. |
 
 For FastMediaSorter-specific tags, look for:
 
@@ -301,6 +360,33 @@ For FastMediaSorter-specific tags, look for:
 - `SmbOps`, `SftpOps`, `FtpOps` — protocol-level network ops
 - `CastManager`, `ChromecastSession` — Cast feature
 - `ThumbnailWorker`, `ThumbnailPreload` — thumbnail pipeline
+
+---
+
+## FastMediaSorter-Specific Log Tags
+
+Key tags to watch for in this project:
+
+| Tag | Component | Notes |
+|-----|-----------|-------|
+| `BrowseViewModel` | File browser screen | |
+| `MediaFileAdapter` | RecyclerView adapter for media files | |
+| `PlayerActivity` | Video/audio player | |
+| `SmbManager` / `SmbBrowseManager` | SMB/network file access | |
+| `FtpManager` / `SftpManager` | FTP/SFTP file access | |
+| `GlideAppModule` / `ImageLoad` | Image loading & thumbnail cache | |
+| `SortUseCase` | Sorting logic | |
+| `TransferManager` | File copy/move operations | |
+| `WearDataSync` | Wear OS data layer | |
+| `WorkManager` | Background workers | |
+| `App` | Timber tree tag (TIMBER format) | All app logs in Timber export |
+
+### Format-specific tag notes
+- **LOGCAT/JSON**: tags are full class-level or Android framework tags
+- **TIMBER**: most app logs use the single tag `App` (Timber default tree) — filter by pattern in message, not tag:
+  ```powershell
+  .\scripts\utils\search-log.ps1 -LogFile "<file>" -Tag "App" -Pattern "BrowseViewModel|SMB|Player"
+  ```
 
 ---
 
@@ -376,4 +462,3 @@ Available log locations:
 - `logs/current.log` — most recent session (primary)
 - `temp/current.log` — fallback copy
 - `temp/fastmediasorter_YYYYMMDD_HHmmss.log` — timestamped archives
-

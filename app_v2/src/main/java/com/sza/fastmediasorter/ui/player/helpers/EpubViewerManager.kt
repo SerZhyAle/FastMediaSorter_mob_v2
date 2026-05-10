@@ -1195,7 +1195,7 @@ class EpubViewerManager(
     fun extractTextFromCurrentChapter() {
         val webView = webView ?: run {
             Timber.e("EPUB OCR: WebView is null")
-            callback.showError("WebView not available")
+            callback.showError(binding.root.context.getString(R.string.player_webview_unavailable))
             return
         }
 

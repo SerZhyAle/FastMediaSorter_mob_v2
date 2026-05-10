@@ -7,6 +7,7 @@ import com.dropbox.core.DbxException
 import com.dropbox.core.DbxRequestConfig
 import com.dropbox.core.android.Auth
 import com.dropbox.core.http.OkHttp3Requestor
+import com.sza.fastmediasorter.R
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import com.dropbox.core.oauth.DbxCredential
@@ -414,6 +415,12 @@ class DropboxClient @Inject constructor(
     private fun buildUserFriendlyErrorMessage(error: Throwable): String =
         DropboxClientUtils.buildUserFriendlyErrorMessage(error)
 
+    private fun dropboxReauthRequiredMessage(): String =
+        context.getString(R.string.cloud_auth_required, context.getString(R.string.dropbox))
+
+    private fun downloadFailedMessage(): String =
+        context.getString(R.string.download_failed, context.getString(R.string.error_reason_unknown))
+
     private fun logTlsDiagnostics(error: Throwable, stage: String) =
         DropboxClientUtils.logTlsDiagnostics(error, stage)
     
@@ -447,7 +454,7 @@ class DropboxClient @Inject constructor(
     override suspend fun testConnection(): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 // Test connection by getting account info
                 val account = client.users().currentAccount
@@ -494,7 +501,7 @@ class DropboxClient @Inject constructor(
     ): CloudResult<Pair<List<CloudFile>, String?>> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val path = normalizeDropboxPath(folderId)
                 val result = withRetry("listFiles") {
@@ -510,10 +517,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(cloudFiles to nextToken)
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to list files in folder: $folderId")
-                CloudResult.Error("Failed to list files: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error listing files")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             }
         }
     }
@@ -521,7 +528,7 @@ class DropboxClient @Inject constructor(
     override suspend fun listFolders(parentFolderId: String?): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val path = normalizeDropboxPath(parentFolderId)
                 val result = withRetry("listFolders") {
@@ -537,10 +544,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(folders)
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to list folders in: $parentFolderId")
-                CloudResult.Error("Failed to list folders: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_folders_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error listing folders")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_folders_failed), e)
             }
         }
     }
@@ -548,7 +555,7 @@ class DropboxClient @Inject constructor(
     override suspend fun getFileMetadata(fileId: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val metadata = withRetry("getFileMetadata") {
                     client.files().getMetadata(fileId)
@@ -558,13 +565,13 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(metadataToCloudFile(metadata, parentPath))
             } catch (e: GetMetadataErrorException) {
                 Timber.e(e, "File not found: $fileId")
-                CloudResult.Error("File not found: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_reason_not_found), e)
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to get file metadata: $fileId")
-                CloudResult.Error("Failed to get metadata: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_metadata_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error getting metadata")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_metadata_failed), e)
             }
         }
     }
@@ -576,7 +583,7 @@ class DropboxClient @Inject constructor(
     ): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 // Parse cloud:// path to extract Dropbox-relative path
                 // Explicitly check for "cloud://dropbox" prefix
@@ -622,10 +629,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(true)
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to download file: $fileId")
-                CloudResult.Error("Download failed: ${e.message}", e)
+                CloudResult.Error(downloadFailedMessage(), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error downloading file")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(downloadFailedMessage(), e)
             }
         }
     }
@@ -639,7 +646,7 @@ class DropboxClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val parentPath = normalizeDropboxPath(parentFolderId)
                 val filePath = if (parentPath.isEmpty()) "/$fileName" else "$parentPath/$fileName"
@@ -655,10 +662,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(metadataToCloudFile(metadata, parentPath))
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to upload file: $fileName")
-                CloudResult.Error("Upload failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error uploading file")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
             }
         }
     }
@@ -669,7 +676,7 @@ class DropboxClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val parentPath = normalizeDropboxPath(parentFolderId)
                 val folderPath = if (parentPath.isEmpty()) "/$folderName" else "$parentPath/$folderName"
@@ -682,13 +689,13 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(metadataToCloudFile(metadata, parentPath))
             } catch (e: CreateFolderErrorException) {
                 Timber.e(e, "Failed to create folder: $folderName")
-                CloudResult.Error("Folder creation failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to create folder: $folderName")
-                CloudResult.Error("Failed to create folder: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error creating folder")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
         }
     }
@@ -696,7 +703,7 @@ class DropboxClient @Inject constructor(
     override suspend fun deleteFile(fileId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 // Parse cloud:// path to extract Dropbox-relative path
                 val rawPath = if (fileId.startsWith("cloud://dropbox")) {
@@ -719,10 +726,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(true)
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to delete: $fileId")
-                CloudResult.Error("Deletion failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_delete_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error deleting file")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_delete_failed), e)
             }
         }
     }
@@ -730,7 +737,7 @@ class DropboxClient @Inject constructor(
     override suspend fun renameFile(fileId: String, newName: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 // Parse cloud:// path to extract Dropbox-relative path
                 val rawPath = if (fileId.startsWith("cloud://dropbox")) {
@@ -754,10 +761,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(metadataToCloudFile(metadata, parentPath))
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to rename: $fileId")
-                CloudResult.Error("Rename failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.rename_failed_generic), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error renaming file")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.rename_failed_generic), e)
             }
         }
     }
@@ -765,7 +772,7 @@ class DropboxClient @Inject constructor(
     override suspend fun moveFile(fileId: String, newParentId: String): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val fileName = fileId.substringAfterLast('/')
                 val newPath = if (newParentId.isEmpty()) "/$fileName" else "$newParentId/$fileName"
@@ -776,10 +783,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(metadataToCloudFile(metadata, newParentId))
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to move: $fileId")
-                CloudResult.Error("Move failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_move_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error moving file")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_move_failed), e)
             }
         }
     }
@@ -791,7 +798,7 @@ class DropboxClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val fileName = newName ?: fileId.substringAfterLast('/')
                 val newPath = if (newParentId.isEmpty()) "/$fileName" else "$newParentId/$fileName"
@@ -802,10 +809,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(metadataToCloudFile(metadata, newParentId))
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to copy: $fileId")
-                CloudResult.Error("Copy failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error copying file")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             }
         }
     }
@@ -816,7 +823,7 @@ class DropboxClient @Inject constructor(
     ): CloudResult<List<CloudFile>> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val result = client.files().searchV2(query)
                 
@@ -831,10 +838,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(cloudFiles)
             } catch (e: DbxException) {
                 Timber.e(e, "Search failed: $query")
-                CloudResult.Error("Search failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error during search")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
         }
     }
@@ -850,7 +857,7 @@ class DropboxClient @Inject constructor(
     ): CloudResult<InputStream> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 Timber.d("Dropbox.getFileInputStream: START - fileId='$fileId', position=$position, length=$length")
                 
@@ -882,10 +889,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(inputStream)
             } catch (e: DbxException) {
                 Timber.e(e, "Dropbox.getFileInputStream: DbxException")
-                CloudResult.Error("Failed to get input stream: ${e.message}", e)
+                CloudResult.Error(downloadFailedMessage(), e)
             } catch (e: Exception) {
                 Timber.e(e, "Dropbox.getFileInputStream: Exception")
-                CloudResult.Error("Failed to get input stream: ${e.message}", e)
+                CloudResult.Error(downloadFailedMessage(), e)
             }
         }
     }
@@ -893,7 +900,7 @@ class DropboxClient @Inject constructor(
     override suspend fun getThumbnail(fileId: String, size: Int): CloudResult<InputStream> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val thumbnailSize = when {
                     size <= 64 -> ThumbnailSize.W64H64
@@ -917,10 +924,10 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(ByteArrayInputStream(thumbnailBytes))
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to get thumbnail: $fileId")
-                CloudResult.Error("Thumbnail failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error getting thumbnail")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             }
         }
     }
@@ -939,7 +946,7 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(true)
             } catch (e: Exception) {
                 Timber.e(e, "Error during sign-out")
-                CloudResult.Error("Sign-out failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_sign_out_failed), e)
             }
         }
     }
@@ -956,7 +963,7 @@ class DropboxClient @Inject constructor(
     override suspend fun fileExists(fileName: String, parentId: String): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val client = dbxClient ?: return@withContext CloudResult.Error("Not authenticated")
+                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val parentPath = normalizeDropboxPath(parentId)
                 val filePath = if (parentPath.isEmpty()) "/$fileName" else "$parentPath/$fileName"
@@ -973,10 +980,10 @@ class DropboxClient @Inject constructor(
                 }
             } catch (e: DbxException) {
                 Timber.e(e, "Failed to check file existence: $fileName")
-                CloudResult.Error("Check failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_check_failed), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error checking file existence")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_check_failed), e)
             }
         }
     }

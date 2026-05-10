@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="s0140_progress_analyzing_page">Анализ страницы..</string>
+    <string name="s0140_webview_auth_hint">Войдите в аккаунт, затем нажмите «Сохранить авторизацию».</string>
+    <string name="s0140_webview_auth_sign_in_first">Сначала войдите в аккаунт, затем нажмите «Сохранить авторизацию».</string>
+</resources>

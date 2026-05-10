@@ -484,7 +484,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         val initialMode = if (viewModel.state.value.currentFile?.type == MediaType.AUDIO) audioMode else videoMode
         viewModel.setPlaybackOrderMode(initialMode)
         commandPanelController.updatePlaybackOrderButtonIcon(initialMode)
-        Timber.d("S0104: setupCommandPanelControls restored mode=$initialMode")
     }
 
     private fun setupTouchZones() = touchZoneSetupManager.setupLegacyTouchZoneListeners()
@@ -694,7 +693,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                         }
 
                         withContext(Dispatchers.Main) {
-                            Timber.d("S0107: overlay merged and saved to $targetPath")
                             imageDrawOverlayManager.exitDrawMode(save = false)
                             if (!isReadOnly && isLocalFile) {
                                 // Step 4.5: navigate to newly created file
@@ -819,7 +817,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             _videoPlayerManager?.getPlayer()?.pause()
             audioServiceController?.player?.pause()
             Toast.makeText(this, R.string.playback_order_stopped, Toast.LENGTH_SHORT).show()
-            Timber.d("S0104: StopPlayback — playback stopped at end of list")
             return
         }
         eventHandler.handleEvent(event)
@@ -1156,7 +1153,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             PlaybackOrderMode.REPEAT_ONE   -> R.string.playback_order_repeat_one
         })
         Toast.makeText(this, getString(R.string.playback_order_mode_set, label), Toast.LENGTH_SHORT).show()
-        Timber.d("S0104: onPlaybackOrderClicked newMode=$newMode")
     }
 
     companion object {

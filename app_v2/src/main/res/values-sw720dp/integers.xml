@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Large screens / Android TV (sw ≥ 720dp): wide Welcome feature-block grid. -->
+    <integer name="welcome_feature_grid_columns">4</integer>
+</resources>

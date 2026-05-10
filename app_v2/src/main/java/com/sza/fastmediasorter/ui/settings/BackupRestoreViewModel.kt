@@ -259,7 +259,7 @@ class BackupRestoreViewModel @Inject constructor(
                 FavoritesExportUiState.Success(result)
             } else {
                 FavoritesExportUiState.Error(
-                    result.errorMessage ?: context.getString(R.string.export_fav_failed)
+                    context.getString(R.string.export_fav_failed)
                 )
             }
         }
@@ -281,7 +281,7 @@ class BackupRestoreViewModel @Inject constructor(
                 .onFailure { error ->
                     Timber.e(error, "Import preview failed")
                     _importFavState.value = FavoritesImportUiState.Error(
-                        error.message ?: context.getString(R.string.import_fav_invalid_file)
+                        context.getString(R.string.import_fav_invalid_file)
                     )
                 }
         }
@@ -295,7 +295,7 @@ class BackupRestoreViewModel @Inject constructor(
                 FavoritesImportUiState.Success(result)
             } else {
                 FavoritesImportUiState.Error(
-                    result.errorMessage ?: context.getString(R.string.import_fav_failed)
+                    context.getString(R.string.import_fav_failed)
                 )
             }
         }

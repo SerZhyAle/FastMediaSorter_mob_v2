@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
+import com.google.android.material.appbar.MaterialToolbar
 import com.sza.fastmediasorter.R
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,6 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
  * sub-screen launched from a settings tab cannot be a fragment-replace — it has
  * to be its own host. Mirrors the project's existing pattern of opening
  * dedicated Activities for non-tab settings surfaces.
+ *
+ * S0144: hosts a [MaterialToolbar] (screen title + `+` action item, the latter
+ * supplied by the fragment via `MenuProvider`); content respects system-bar insets.
  */
 @AndroidEntryPoint
 class AuthSessionsActivity : AppCompatActivity() {
@@ -22,11 +26,22 @@ class AuthSessionsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_auth_sessions)
+
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        toolbar.setNavigationOnClickListener { finish() }
+
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 replace(R.id.authSessionsContainer, AuthSessionsListFragment())
             }
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 
     companion object {

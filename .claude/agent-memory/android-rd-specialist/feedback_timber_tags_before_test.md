@@ -1,11 +1,11 @@
 ---
-name: Never remove Timber.d("Sxxxx:") before on-device testing
-description: Debug tags must stay until user confirms the feature works on device — removing early prevents debugging
+name: Never remove Timber.d("Sxxxx:") while spec is still BlockNeedUserTest
+description: Debug tags are bound to BlockNeedUserTest status — removal happens only as a side effect of leaving that status, never speculatively
 type: feedback
 ---
 
-Do NOT remove `Timber.d("Sxxxx:` tags until the user has manually tested the feature on device and confirmed it works.
+Do NOT remove a `Timber.d("Sxxxx:` tag while its spec is still in status `BlockNeedUserTest`. The tag is the operator's logcat probe for that round of on-device testing.
 
-**Why:** The tags are the primary tool for verifying code paths in logcat during testing. Removing them before testing leaves the user unable to diagnose problems if the feature misbehaves.
+**Why:** The tags are the primary tool for verifying code paths in logcat during testing. Removing them before testing leaves the user unable to diagnose problems if the feature misbehaves. (This predates the formal doctrine and motivated it.)
 
-**How to apply:** Phase 05 / cleanup steps that include Timber tag removal must be blocked until the user explicitly confirms on-device test passed. Even if spec phase prerequisites list "manual test completed" — treat it as a hard gate. Set the phase step to `[ ] not done` and add a ⚠️ note. Do not remove tags speculatively based on "I just wrote the code, it must be correct." The build passing is NOT a substitute for device testing.
+**How to apply:** Since CLAUDE.md "Debug Verification Tags", the tag lifecycle is bound to `BlockNeedUserTest` — tags exist iff the spec is `BlockNeedUserTest`. Insert tags only when a spec moves INTO that status; delete them only as a side effect of it moving OUT (`/spec-check`→Verified, `/spec-update` re-open, `/spec-all` resume, `/spec-arc`, manual `update.ps1 -Status`). Never write a phase step or do an ad-hoc edit that strips a tag from a spec that is currently `BlockNeedUserTest`. "Build passes" is not a substitute for the device test that gates the Verified transition. A tag whose spec is NOT currently `BlockNeedUserTest` is stale and may be removed on sight.

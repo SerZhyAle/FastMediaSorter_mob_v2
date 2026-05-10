@@ -62,6 +62,11 @@ class LinkAutoDownloadProgressDialog(
                 bar.isIndeterminate = true
                 bytes.visibility = TextView.GONE
             }
+            LinkAutoDownloadCoordinator.ProgressState.AnalyzingPage -> {
+                title.setText(R.string.s0140_progress_analyzing_page)
+                bar.isIndeterminate = true
+                bytes.visibility = TextView.GONE
+            }
             is LinkAutoDownloadCoordinator.ProgressState.Downloading -> {
                 title.setText(R.string.link_autodownload_progress_downloading)
                 val total = state.total

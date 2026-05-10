@@ -171,7 +171,7 @@ class BrowseArchiveManager(
 
             val createdDirPath = createDirectoryUseCase(resource, parentPath, targetDirName).getOrElse { error ->
                 sendEvent(BrowseEvent.ExtractionFailed(
-                    error.message ?: context.getString(R.string.unarchive_error_create_dir)
+                    context.getString(R.string.unarchive_error_create_dir)
                 ))
                 return@launch
             }
@@ -254,7 +254,10 @@ class BrowseArchiveManager(
                             val message = when (progress.error) {
                                 "zip_bomb" -> context.getString(R.string.unarchive_error_zip_bomb)
                                 "no_space"  -> context.getString(R.string.unarchive_error_no_space)
-                                else        -> context.getString(R.string.unarchive_error_generic, progress.error)
+                                else        -> context.getString(
+                                    R.string.unarchive_error_generic,
+                                    context.getString(R.string.error_reason_unknown)
+                                )
                             }
                             sendEvent(BrowseEvent.ExtractionFailed(message))
                         }

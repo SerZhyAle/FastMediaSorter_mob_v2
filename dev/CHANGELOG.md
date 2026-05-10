@@ -7972,3 +7972,401 @@ Format: | datetime | file | target | description |
 | 2026-05-10 03:55:38 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
 | 2026-05-10 03:55:38 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
 | 2026-05-10 03:56:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextTranslationOverlayManager.kt` | `TextTranslationOverlayManager` | Replace raw empty-text translation message with localized resource-backed copy |
+| 2026-05-10 03:59:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NetworkFileManager.kt` | `NetworkFileManager` | Replace raw read-only edit error with localized resource-backed copy |
+| 2026-05-10 04:03:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubTranslationOverlayHelper.kt` | `EpubTranslationOverlayHelper` | Replace raw EPUB translation webview and empty-chapter messages with localized resource-backed copy |
+| 2026-05-10 04:03:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | Replace raw EPUB webview-unavailable message with localized resource-backed copy |
+| 2026-05-10 04:03:03 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 49` | Add shared reading-view unavailable copy |
+| 2026-05-10 04:03:04 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 49` | Add shared reading-view unavailable copy |
+| 2026-05-10 04:03:04 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 49` | Add shared reading-view unavailable copy |
+| 2026-05-10 04:04:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Replace raw PDF translation page-not-ready message with localized resource-backed copy |
+| 2026-05-10 04:04:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfLinkAndSearchManager.kt` | `PdfLinkAndSearchManager` | Replace raw PDF OCR, link, and Google Lens errors with localized resource-backed copy |
+| 2026-05-10 04:04:51 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 50` | Add shared PDF page-not-ready and link-open failure copy |
+| 2026-05-10 04:04:51 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 50` | Add shared PDF page-not-ready and link-open failure copy |
+| 2026-05-10 04:04:51 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 50` | Add shared PDF page-not-ready and link-open failure copy |
+| 2026-05-10 04:06:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `TextViewerManager` | Replace raw text save guard copy with localized resource-backed message and remove duplicate write failure toast |
+| 2026-05-10 04:09:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager` | Replace hardcoded fast-scroll race-condition toast with localized resource-backed copy |
+| 2026-05-10 04:09:21 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 51` | Add localized image fast-scroll rate-limit copy |
+| 2026-05-10 04:09:21 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 51` | Add localized image fast-scroll rate-limit copy |
+| 2026-05-10 04:09:22 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 51` | Add localized image fast-scroll rate-limit copy |
+| 2026-05-10 04:11:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `TextViewerManager` | Replace raw partial-save upload warning with localized resource-backed copy |
+| 2026-05-10 04:11:24 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 52` | Add localized text partial-save upload warning copy |
+| 2026-05-10 04:11:24 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 52` | Add localized text partial-save upload warning copy |
+| 2026-05-10 04:11:25 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 52` | Add localized text partial-save upload warning copy |
+| 2026-05-10 04:13:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/permissions/PermissionDenialHandler.kt` | `PermissionDenialHandler` | Replace raw permission denial snackbars with localized resource-backed copy |
+| 2026-05-10 04:13:15 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 53` | Add localized permission denial snackbar copy |
+| 2026-05-10 04:13:15 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 53` | Add localized permission denial snackbar copy |
+| 2026-05-10 04:13:15 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 53` | Add localized permission denial snackbar copy |
+| 2026-05-10 04:16:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `GeneralSettingsViewSetupHelper` | Replace raw settings toasts with existing localized resource-backed copy |
+| 2026-05-10 04:18:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/RenameDialog.kt` | `RenameDialog` | Replace raw empty-file-name validation error with localized resource-backed copy |
+| 2026-05-10 04:18:49 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 54` | Add localized rename empty-file-name validation copy |
+| 2026-05-10 04:18:49 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 54` | Add localized rename empty-file-name validation copy |
+| 2026-05-10 04:18:49 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 54` | Add localized rename empty-file-name validation copy |
+| 2026-05-10 04:21:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | Replace concatenated permission-granted toast with localized resource-backed copy |
+| 2026-05-10 04:21:13 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 55` | Add localized add-resource permission-granted continuation copy |
+| 2026-05-10 04:21:14 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 55` | Add localized add-resource permission-granted continuation copy |
+| 2026-05-10 04:21:14 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 55` | Add localized add-resource permission-granted continuation copy |
+| 2026-05-10 04:23:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ArchiveFilesUseCase.kt` | `ArchiveFilesUseCase` | Replace raw fatal archive error messages with localized resource-backed copy |
+| 2026-05-10 04:23:41 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 56` | Add localized archive destination-missing and archive-create-failed copy |
+| 2026-05-10 04:23:41 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 56` | Add localized archive destination-missing and archive-create-failed copy |
+| 2026-05-10 04:23:42 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 56` | Add localized archive destination-missing and archive-create-failed copy |
+| 2026-05-10 04:26:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `fix` | S0141: WebView-auth dialog now sizes its window to MATCH_PARENT in onStart so the WebView is actually visible (was collapsing to wrap_content); add WebChromeClient + main-frame error tracing |
+| 2026-05-10 04:30:46 | `PLAN/S0140_extend-market-url-coverage.md` | `spec` | Add strategic spec S0140 for extend-market-url-coverage (invisible-WebView extractor + JSON-LD/oEmbed sniffers + login-wall heuristic + back-port album batch from S0117 + multi-URL paste + UX-fix auth-flow) |
+| 2026-05-10 13:43:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthCoordinator.kt` | `GoogleDriveAuthCoordinator` | Replace raw Google Drive auth expiry message with localized auth-required copy |
+| 2026-05-10 13:43:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveAuthCoordinator.kt` | `OneDriveAuthCoordinator` | Replace raw OneDrive auth expiry message with localized auth-required copy |
+| 2026-05-10 13:43:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Replace raw Google Drive auth guard and expiry errors with localized auth-required copy |
+| 2026-05-10 13:46:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Replace additional raw Google Drive auth guards with localized auth-required copy |
+| 2026-05-10 13:46:07 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Replace upper OneDrive raw auth guards with localized auth-required copy |
+| 2026-05-10 13:47:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Replace remaining raw Google Drive auth guards with localized auth-required copy |
+| 2026-05-10 13:47:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Replace remaining raw OneDrive auth guards with localized auth-required copy |
+| 2026-05-10 13:48:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Replace raw Google Drive connection test errors with provider-localized resource copy |
+| 2026-05-10 13:48:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Replace raw OneDrive connection test errors with provider-localized resource copy |
+| 2026-05-10 13:50:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Replace raw Google Drive download errors with localized download_failed copy |
+| 2026-05-10 13:50:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Replace raw OneDrive download and input stream errors with localized download_failed copy |
+| 2026-05-10 13:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Localized cloud browse and file-operation failure messages for S0118 |
+| 2026-05-10 13:55:31 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Localized cloud browse and file-operation failure messages for S0118 |
+| 2026-05-10 13:55:31 | `app_v2/src/main/res/values/strings.xml` | `cloud_* strings` | Added shared cloud browse failure strings for S0118 |
+| 2026-05-10 13:55:31 | `app_v2/src/main/res/values-ru/strings.xml` | `cloud_* strings` | Added Russian cloud browse failure strings for S0118 |
+| 2026-05-10 13:55:31 | `app_v2/src/main/res/values-uk/strings.xml` | `cloud_* strings` | Added Ukrainian cloud browse failure strings for S0118 |
+| 2026-05-10 13:58:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Localized cloud upload, search, and thumbnail failure messages for S0118 |
+| 2026-05-10 13:58:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Localized cloud upload, search, and thumbnail failure messages for S0118 |
+| 2026-05-10 13:58:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/DropboxClient.kt` | `DropboxClient` | Localized cloud upload, search, and thumbnail failure messages for S0118 |
+| 2026-05-10 13:58:27 | `app_v2/src/main/res/values/strings.xml` | `cloud_* strings` | Added shared cloud upload, search, and thumbnail failure strings for S0118 |
+| 2026-05-10 13:58:27 | `app_v2/src/main/res/values-ru/strings.xml` | `cloud_* strings` | Added Russian cloud upload, search, and thumbnail failure strings for S0118 |
+| 2026-05-10 13:58:27 | `app_v2/src/main/res/values-uk/strings.xml` | `cloud_* strings` | Added Ukrainian cloud upload, search, and thumbnail failure strings for S0118 |
+| 2026-05-10 14:01:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/DropboxClient.kt` | `DropboxClient` | Localized remaining Dropbox cloud operation failures and auth-required messages for S0118 |
+| 2026-05-10 14:01:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/helpers/GoogleDriveHttpClient.kt` | `GoogleDriveHttpClient` | Localized helper download failure messages for S0118 |
+| 2026-05-10 14:14:45 | `PLAN/S0142_ui-settings-behaviour-group-regroup.md` | `spec` | Add strategic spec S0142 for Behaviour settings group regroup |
+| 2026-05-10 14:17:34 | `PLAN/S0142_ui-settings-behaviour-group-regroup/INDEX.md` | `spec-tech` | Create tactical plan for S0142 |
+| 2026-05-10 14:17:35 | `PLAN/S0142_ui-settings-behaviour-group-regroup/PHASE_01__strings.md` | `spec-tech` | Phase 01: strings |
+| 2026-05-10 14:17:35 | `PLAN/S0142_ui-settings-behaviour-group-regroup/PHASE_02__layout-regroup.md` | `spec-tech` | Phase 02: layout-regroup |
+| 2026-05-10 14:17:35 | `PLAN/S0142_ui-settings-behaviour-group-regroup/PHASE_03__saved-auth-help-handler.md` | `spec-tech` | Phase 03: saved-auth-help-handler |
+| 2026-05-10 14:17:35 | `PLAN/S0142_ui-settings-behaviour-group-regroup/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-10 14:17:36 | `PLAN/S0142_ui-settings-behaviour-group-regroup.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-10 14:17:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveRestClient.kt` | `GoogleDriveRestClient` | Localized cloud check, sign-out, and not-found error paths for S0118 |
+| 2026-05-10 14:17:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/OneDriveRestClient.kt` | `OneDriveRestClient` | Localized cloud check, sign-out, download, and folder-preparation error paths for S0118 |
+| 2026-05-10 14:17:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/DropboxClient.kt` | `DropboxClient` | Localized cloud metadata not-found, check, and sign-out error paths for S0118 |
+| 2026-05-10 14:17:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/helpers/GoogleDriveHttpClient.kt` | `GoogleDriveHttpClient` | Localized helper download failure copy for S0118 |
+| 2026-05-10 14:17:44 | `app_v2/src/main/res/values/strings.xml` | `cloud_* strings` | Added shared cloud check and sign-out failure strings for S0118 |
+| 2026-05-10 14:17:44 | `app_v2/src/main/res/values-ru/strings.xml` | `cloud_* strings` | Added Russian cloud check and sign-out failure strings for S0118 |
+| 2026-05-10 14:17:44 | `app_v2/src/main/res/values-uk/strings.xml` | `cloud_* strings` | Added Ukrainian cloud check and sign-out failure strings for S0118 |
+| 2026-05-10 14:19:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudAuthStateMachine.kt` | `CloudAuthStateMachine` | Localized provider-specific cloud auth cancellation messages for S0118 |
+| 2026-05-10 14:20:04 | `app_v2/src/main/res/values/strings.xml` | `S0142` | Phase 01: add incoming-links/camera-capture subcategory + saved-authorizations tooltip strings (EN) |
+| 2026-05-10 14:20:04 | `app_v2/src/main/res/values-ru/strings.xml` | `S0142` | Phase 01: add subcategory + saved-authorizations tooltip strings (RU) |
+| 2026-05-10 14:20:05 | `app_v2/src/main/res/values-uk/strings.xml` | `S0142` | Phase 01: add subcategory + saved-authorizations tooltip strings (UK) |
+| 2026-05-10 14:24:12 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `S0142` | Phase 02: Behaviour group - divider-delimited Incoming links / Camera capture sub-sections; saved-authorizations nav-row (help icon + chevron) |
+| 2026-05-10 14:24:12 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `S0142` | Phase 02: landscape parity for Behaviour group regroup |
+| 2026-05-10 14:27:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/OneDriveFolderPickerViewModel.kt` | `OneDriveFolderPickerViewModel` | Localized OneDrive root breadcrumb provider name for S0118 |
+| 2026-05-10 14:27:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cloudfolders/DropboxFolderPickerViewModel.kt` | `DropboxFolderPickerViewModel` | Localized Dropbox root breadcrumb provider name for S0118 |
+| 2026-05-10 14:27:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Localized cloud auth dialog provider names for S0118 |
+| 2026-05-10 14:27:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt` | `PlaybackHealthHelper` | Removed raw fallback-player exception detail from user-facing copy for S0118 |
+| 2026-05-10 14:27:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/DeleteDialog.kt` | `DeleteDialog` | Rendered file-operation failures via errorRes and formatArgs for S0118 |
+| 2026-05-10 14:27:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `S0142` | Phase 03: wire iconHelpSavedAuthorizations help tooltip |
+| 2026-05-10 14:30:17 | `docs/FEATURES.md` | `S0142` | Phase 04: document Behaviour group sub-sections (EN) |
+| 2026-05-10 14:30:17 | `docs/FEATURES_RU.md` | `S0142` | Phase 04: document Behaviour group sub-sections (RU) |
+| 2026-05-10 14:30:17 | `docs/FEATURES_UK.md` | `S0142` | Phase 04: document Behaviour group sub-sections (UK) |
+| 2026-05-10 14:31:56 | `PLAN/S0142_ui-settings-behaviour-group-regroup.md` | `S0142` | Implemented; awaiting on-device test (BlockNeedUserTest) |
+| 2026-05-10 14:34:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | Rendered FileOperationResult failures via errorRes and removed raw exception details for S0118 |
+| 2026-05-10 14:36:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt` | `BrowseDeleteManager` | Rendered delete failures via errorRes and removed raw directory delete exception details for S0118 |
+| 2026-05-10 14:38:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/RenameDialog.kt` | `RenameDialog` | Rendered rename failures via errorRes with generic fallback for S0118 |
+| 2026-05-10 14:41:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | Rendered player file-operation failures via errorRes and removed generic exception stacktrace leaks for S0118 |
+| 2026-05-10 14:42:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Stopped leaking batch delete launcher exceptions into player error UI for S0118 |
+| 2026-05-10 14:45:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | Stopped exposing raw exception stack traces in detailed player error dialogs for S0118 |
+| 2026-05-10 14:50:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt` | `BrowseErrorDisplayManager` | Stopped exposing raw throwable stack traces in detailed browse error dialogs for S0118 |
+| 2026-05-10 14:50:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDirectoryOpsManager.kt` | `BrowseDirectoryOpsManager` | Removed raw directory operation error details from browse UI for S0118 |
+| 2026-05-10 14:50:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseNavigationManager.kt` | `BrowseNavigationManager` | Removed raw folder load exception details from browse UI for S0118 |
+| 2026-05-10 14:50:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceStateManager.kt` | `BrowseResourceStateManager` | Removed raw resource-state exception details from browse UI for S0118 |
+| 2026-05-10 14:50:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/undo/BrowseUndoManager.kt` | `BrowseUndoManager` | Removed raw undo stack trace details from browse UI for S0118 |
+| 2026-05-10 14:50:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt` | `BrowseLoadingAuxManager` | Removed raw loading error text and stack traces from browse details for S0118 |
+| 2026-05-10 14:50:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt` | `BrowseSortFilterManager` | Removed raw sort/filter loading stack trace details from browse UI for S0118 |
+| 2026-05-10 14:51:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt` | `FileOperationDestinationDialog` | Removed raw exception stack trace details from file operation dialog errors for S0118 |
+| 2026-05-10 14:51:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ErrorDialog.kt` | `ErrorDialog` | Stopped converting throwables into user-visible stack traces for S0118 |
+| 2026-05-10 14:52:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/ErrorDialogHelper.kt` | `ErrorDialogHelper` | Stopped converting exceptions into detailed stack trace dialogs for S0118 |
+| 2026-05-10 15:03:23 | `scripts/utils/set-android-string.ps1` | `set-android-string.ps1` | Added targeted Android strings.xml updater with dry-run, guard, and create-if-missing support |
+| 2026-05-10 15:03:24 | `.github/copilot-instructions.md` | `AI rules` | Added script ownership rule and string updater guidance for Android string resource edits |
+| 2026-05-10 15:03:25 | `AGENTS.md` | `AI rules` | Added internal script ownership rule and string updater guidance |
+| 2026-05-10 15:03:26 | `CLAUDE.md` | `AI rules` | Added internal script ownership rule for repo scripts |
+| 2026-05-10 15:03:26 | `.github/prompts/spec-dev.prompt.md` | `spec-dev` | Taught spec-dev to fix broken repo scripts and prefer the Android string updater |
+| 2026-05-10 15:03:27 | `.github/prompts/spec-fix.prompt.md` | `spec-fix` | Taught spec-fix to fix helper scripts when needed and clarified string placeholder handling |
+| 2026-05-10 15:03:28 | `.github/prompts/doc-update.prompt.md` | `doc-update` | Taught doc-update to repair insufficient helper scripts before working around them |
+| 2026-05-10 15:37:16 | `scripts/utils/set-android-strings.ps1` | `set-android-strings.ps1` | Added EN-RU-UK batch wrapper for targeted Android string updates |
+| 2026-05-10 15:37:17 | `docs/DEV_OPS.md` | `DEV_OPS` | Documented single-locale and batch Android string updater usage for operators |
+| 2026-05-10 16:01:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `PermissionsManagementFragment` | Fix 'Grant all': walk the user through every denied special permission (MANAGE_MEDIA, battery optimization, all-files access) one screen at a time instead of stopping after the first; track shown permissions to avoid re-prompting a declined one; persist run state across config change/process death; only complete the welcome flow once the whole run finishes |
+| 2026-05-10 16:04:15 | `PLAN/S0143_welcome-screens-overhaul.md` | `spec` | Add strategic spec S0143 for Welcome screens overhaul (ad-hoc) |
+| 2026-05-10 16:05:00 | `PLAN/S0144_fix-link-download-auth-ux.md` | `spec` | Add strategic spec S0144 for link-download auth UX (4 fixes: share->auth prompt, top toolbar, known-resource picker, intent:// WebView fix) |
+| 2026-05-10 16:05:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionRowAdapter.kt` | `PermissionRowAdapter` | Localize permission-row action buttons: replace hardcoded 'Grant'/'Manage'/'Settings' with R.string.perm_action_* (added EN/RU/UK strings) |
+| 2026-05-10 16:09:11 | `PLAN/S0144_fix-link-download-auth-ux/INDEX.md` | `spec-tech` | Create tactical plan for S0144 |
+| 2026-05-10 16:09:11 | `PLAN/S0144_fix-link-download-auth-ux/PHASE_01__known-resources-registry.md` | `spec-tech` | Phase 01: known-resources-registry |
+| 2026-05-10 16:09:11 | `PLAN/S0144_fix-link-download-auth-ux/PHASE_02__auth-list-top-toolbar.md` | `spec-tech` | Phase 02: auth-list-top-toolbar |
+| 2026-05-10 16:09:11 | `PLAN/S0144_fix-link-download-auth-ux/PHASE_03__auth-add-resource-picker.md` | `spec-tech` | Phase 03: auth-add-resource-picker |
+| 2026-05-10 16:09:12 | `PLAN/S0144_fix-link-download-auth-ux/PHASE_04__webview-intent-redirect-fix.md` | `spec-tech` | Phase 04: webview-intent-redirect-fix |
+| 2026-05-10 16:09:12 | `PLAN/S0144_fix-link-download-auth-ux/PHASE_05__share-auth-offer.md` | `spec-tech` | Phase 05: share-auth-offer |
+| 2026-05-10 16:09:12 | `PLAN/S0144_fix-link-download-auth-ux/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-10 16:09:12 | `PLAN/S0144_fix-link-download-auth-ux.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-10 16:09:42 | `PLAN/S0143_welcome-screens-overhaul.md` | `spec` | S0143: resolve owner clarifications (blocks set, skip target/order, nav layout, illustrations scope) |
+| 2026-05-10 16:14:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `app_v2` | S0144 Phase 01: add KnownAuthResources catalog (10 known social resources + host matcher) |
+| 2026-05-10 16:14:53 | `PLAN/S0143_welcome-screens-overhaul/INDEX.md` | `spec-tech` | Create tactical plan for S0143 |
+| 2026-05-10 16:14:54 | `PLAN/S0143_welcome-screens-overhaul/PHASE_01__nav-consolidation.md` | `spec-tech` | S0143 Phase 01: nav consolidation |
+| 2026-05-10 16:14:54 | `PLAN/S0143_welcome-screens-overhaul/PHASE_02__page-template.md` | `spec-tech` | S0143 Phase 02: page template |
+| 2026-05-10 16:14:54 | `PLAN/S0143_welcome-screens-overhaul/PHASE_03__touch-zones-grid.md` | `spec-tech` | S0143 Phase 03: touch-zones grid |
+| 2026-05-10 16:14:55 | `PLAN/S0143_welcome-screens-overhaul/PHASE_04__extras-grid.md` | `spec-tech` | S0143 Phase 04: extras grid |
+| 2026-05-10 16:14:55 | `PLAN/S0143_welcome-screens-overhaul/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | S0143 Phase 05: docs/catalog cleanup |
+| 2026-05-10 16:14:55 | `PLAN/S0143_welcome-screens-overhaul.md` | `spec-tech` | S0143 status -> Tactical |
+| 2026-05-10 16:15:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveManager.kt` | `BrowseArchiveManager` | Removed raw create-directory error text from archive extraction failure |
+| 2026-05-10 16:15:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Replaced raw playback fallback text with friendly generic playback message |
+| 2026-05-10 16:15:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `BackupRestoreViewModel` | Replaced raw favorites import-export error text with friendly settings messages |
+| 2026-05-10 16:16:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `SettingsViewModel` | Stored friendly manual sync failure text instead of raw exception messages |
+| 2026-05-10 16:17:46 | `app_v2/src/main/res/layout/activity_auth_sessions.xml` | `app_v2` | S0144 Phase 02: rebuild auth-sessions activity with CoordinatorLayout + toolbar + insets |
+| 2026-05-10 16:17:46 | `app_v2/src/main/res/layout/fragment_auth_sessions_list.xml` | `app_v2` | S0144 Phase 02: drop bottom add button, add bottom inset padding to list |
+| 2026-05-10 16:17:47 | `app_v2/src/main/res/layout-land/fragment_auth_sessions_list.xml` | `app_v2` | S0144 Phase 02: drop bottom add button (landscape parity) |
+| 2026-05-10 16:17:47 | `app_v2/src/main/res/menu/auth_sessions_menu.xml` | `app_v2` | S0144 Phase 02: new + action menu for auth-sessions toolbar |
+| 2026-05-10 16:17:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsActivity.kt` | `app_v2` | S0144 Phase 02: host MaterialToolbar (title + up nav) |
+| 2026-05-10 16:17:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `app_v2` | S0144 Phase 02: MenuProvider + action toolbar for add, inset padding; remove bottom button |
+| 2026-05-10 16:19:43 | `app_v2/src/main/res/values/strings.xml` | `app_v2` | S0144 Phase 03: add auth_add_picker_title, auth_add_enter_manually (EN) |
+| 2026-05-10 16:19:43 | `app_v2/src/main/res/values-ru/strings.xml` | `app_v2` | S0144 Phase 03: add auth_add_* (RU) |
+| 2026-05-10 16:19:44 | `app_v2/src/main/res/values-uk/strings.xml` | `app_v2` | S0144 Phase 03: add auth_add_* (UK) |
+| 2026-05-10 16:19:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `app_v2` | S0144 Phase 03: two-step add flow (known-resource picker + manual entry) |
+| 2026-05-10 16:20:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `app_v2` | S0144 Phase 04: shouldOverrideUrlLoading gates non-http(s) redirects (intent:// browser_fallback_url) |
+| 2026-05-10 16:23:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/AuthOfferDismissalStore.kt` | `app_v2` | S0144 Phase 05: new AuthOfferDismissalStore (per-host offer dismissals, SharedPreferences) |
+| 2026-05-10 16:23:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `app_v2` | S0144 Phase 05: emit fragment result (host + saved) on dialog dismiss |
+| 2026-05-10 16:23:16 | `app_v2/src/main/res/values/strings.xml` | `app_v2` | S0144 Phase 05: add auth_offer_dialog_* (EN) |
+| 2026-05-10 16:23:16 | `app_v2/src/main/res/values-ru/strings.xml` | `app_v2` | S0144 Phase 05: add auth_offer_dialog_* (RU) |
+| 2026-05-10 16:23:16 | `app_v2/src/main/res/values-uk/strings.xml` | `app_v2` | S0144 Phase 05: add auth_offer_dialog_* (UK) |
+| 2026-05-10 16:23:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `app_v2` | S0144 Phase 05: offer to add authorization for shared social links before download |
+| 2026-05-10 16:25:56 | `docs/FEATURES.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (EN) |
+| 2026-05-10 16:25:56 | `docs/FEATURES_RU.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (RU) |
+| 2026-05-10 16:25:56 | `docs/FEATURES_UK.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (UK) |
+| 2026-05-10 16:28:15 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0144: regen catalog (new KnownAuthResources, AuthOfferDismissalStore) |
+| 2026-05-10 16:28:15 | `dev/CATALOG/app_v2.md` | `catalog` | S0144: regen rendered catalog |
+| 2026-05-10 16:28:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Mapped default main-screen BaseViewModel errors to a friendly resource-backed message |
+| 2026-05-10 16:28:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/PagingLoadStateAdapter.kt` | `PagingLoadStateAdapter` | Replaced raw paging footer error text with a friendly browse message |
+| 2026-05-10 16:28:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorOutcomeRenderer.kt` | `ResourceEditorOutcomeRenderer` | Stopped resource editor connection failures from rendering raw diagnostic text |
+| 2026-05-10 16:30:19 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExtractArchiveUseCase.kt` | `ExtractArchiveUseCase` | Stopped archive extraction failures from emitting raw exception text |
+| 2026-05-10 16:30:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveManager.kt` | `BrowseArchiveManager` | Mapped unknown extraction failures to a friendly generic message |
+| 2026-05-10 16:31:59 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ResourceEditorUseCase.kt` | `ResourceEditorUseCase` | Stopped resource editor connection test failures from storing raw diagnostic text |
+| 2026-05-10 16:32:06 | `PLAN/S0144_fix-link-download-auth-ux/INDEX.md` | `spec-dev` | S0144: all 6 phases done; build OK; -> Implemented / journal BlockNeedUserTest |
+| 2026-05-10 16:32:07 | `PLAN/S0144_fix-link-download-auth-ux.md` | `spec-dev` | S0144: Status -> Implemented (journal BlockNeedUserTest) |
+| 2026-05-10 17:14:44 | `app_v2/src/main/res/layout/activity_welcome.xml` | `S0143` | Welcome: single bottom nav bar (Back \| indicator \| Skip \| Next/Finish), drop standalone top Skip |
+| 2026-05-10 17:16:19 | `app_v2/src/main/res/layout-sw480dp/activity_welcome.xml` | `S0143` | Welcome sw480dp: single bottom nav bar, drop layoutTopNav |
+| 2026-05-10 17:16:19 | `app_v2/src/main/res/layout-sw720dp/activity_welcome.xml` | `S0143` | Welcome sw720dp: single bottom nav bar, drop layoutTopNav |
+| 2026-05-10 17:16:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | Stopped cloud auth error dialogs from showing raw provider details |
+| 2026-05-10 17:17:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0143` | Welcome: simplify window insets for single bottom nav; drop layoutTopNav refs; Skip-to-last-page semantics kept |
+| 2026-05-10 17:25:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | Stopped generic share download failures from surfacing raw exception details |
+| 2026-05-10 17:27:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `S0143` | Welcome: add WelcomePage.detailDescriptionRes for scrollable details block |
+| 2026-05-10 17:27:44 | `app_v2/src/main/res/layout/page_welcome.xml` | `S0143` | Welcome standard page: fixed header + scrollable details (tvDetails) |
+| 2026-05-10 17:27:45 | `app_v2/src/main/res/layout-land/page_welcome.xml` | `S0143` | Welcome standard page (land): two-column header + scrollable details |
+| 2026-05-10 17:28:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt` | `DocumentPrintManager` | Stopped PDF print failures from exposing raw IOException text in the system print UI |
+| 2026-05-10 17:28:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `S0143` | Welcome: bindDetails() helper; WelcomeViewHolder binds tvDetails; Timber S0143 tag in onBindViewHolder |
+| 2026-05-10 17:28:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0143` | Welcome: wire detail copy for Resource Types and Resources & Destinations pages |
+| 2026-05-10 17:30:53 | `app_v2/src/main/res/values/strings.xml` | `S0143` | Welcome: add welcome_description_1..5_details (scrollable detail copy) |
+| 2026-05-10 17:30:53 | `app_v2/src/main/res/values-ru/strings.xml` | `S0143` | Welcome: add welcome_description_1..5_details (RU) |
+| 2026-05-10 17:30:53 | `app_v2/src/main/res/values-uk/strings.xml` | `S0143` | Welcome: add welcome_description_1..5_details (UK) |
+| 2026-05-10 17:31:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0143` | Welcome: wire detail copy for the first Welcome page |
+| 2026-05-10 17:34:39 | `app_v2/src/main/res/values/strings.xml` | `favorites_slideshow_open_first` | Added localized friendly copy for the Favorites slideshow availability toast (EN/RU/UK mirrored) |
+| 2026-05-10 17:34:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt` | `ResourceNavigationCoordinator` | Replaced the hardcoded Favorites slideshow toast with localized friendly copy |
+| 2026-05-10 17:36:18 | `app_v2/src/main/res/layout/page_welcome_touch_zones.xml` | `S0143` | Welcome touch-zones page: inline 3x3 zone grid replaces touch_zones_scheme bitmap; header + scrollable details |
+| 2026-05-10 17:36:19 | `app_v2/src/main/res/layout-land/page_welcome_touch_zones.xml` | `S0143` | Welcome touch-zones page (land): new landscape variant with two-column layout (grid + details) |
+| 2026-05-10 17:36:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt` | `DocumentPrintManager` | Add print-environment diagnostics (device/SDK/flavor/FEATURE_PRINTING) to all print-failure logs, escalate null PRINT_SERVICE log to ERROR, guard text-print WebView creation; temporary WARN trace on print invocation to investigate 'print services unavailable' report |
+| 2026-05-10 17:36:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceNavigationCoordinator.kt` | `ResourceNavigationCoordinator` | Add missing 'import com.sza.fastmediasorter.R' to fix unresolved R reference (build break in working tree) |
+| 2026-05-10 17:37:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `S0143` | Welcome: TouchZonesViewHolder binds inline grid + tvDetails; Timber S0143 tag |
+| 2026-05-10 17:37:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0143` | Welcome: wire detail copy for Touch Zones page |
+| 2026-05-10 17:40:06 | `app_v2/src/main/res/values/integers.xml` | `S0143` | Add welcome_feature_grid_columns (base=2) |
+| 2026-05-10 17:40:07 | `app_v2/src/main/res/values-land/integers.xml` | `S0143` | welcome_feature_grid_columns landscape=4 |
+| 2026-05-10 17:40:07 | `app_v2/src/main/res/values-sw320dp/integers.xml` | `S0143` | welcome_feature_grid_columns sw320=2 |
+| 2026-05-10 17:40:07 | `app_v2/src/main/res/values-sw480dp/integers.xml` | `S0143` | welcome_feature_grid_columns sw480=3 |
+| 2026-05-10 17:40:07 | `app_v2/src/main/res/values-sw600dp/integers.xml` | `S0143` | welcome_feature_grid_columns sw600=4 |
+| 2026-05-10 17:40:08 | `app_v2/src/main/res/values-sw720dp/integers.xml` | `S0143` | New: integers.xml sw720dp with welcome_feature_grid_columns=4 |
+| 2026-05-10 17:41:38 | `app_v2/src/main/res/layout/page_welcome_enhanced.xml` | `S0143` | Welcome enhanced page: header + scrollable body with adaptive gridFeatures + tvDetails; remove hardcoded 3 cards |
+| 2026-05-10 17:41:38 | `app_v2/src/main/res/layout-land/page_welcome_enhanced.xml` | `S0143` | Welcome enhanced page (land): scrollable right column with gridFeatures + tvDetails; fix mojibake in language buttons |
+| 2026-05-10 17:43:10 | `app_v2/src/main/res/values/strings.xml` | `S0143` | Welcome: add feature-tile labels for Powerful Extras grid |
+| 2026-05-10 17:43:10 | `app_v2/src/main/res/values-ru/strings.xml` | `S0143` | Welcome: feature-tile labels (RU) |
+| 2026-05-10 17:43:10 | `app_v2/src/main/res/values-uk/strings.xml` | `S0143` | Welcome: feature-tile labels (UK) |
+| 2026-05-10 17:46:29 | `app_v2/src/main/res/layout/item_welcome_feature_tile.xml` | `S0143` | New: Welcome feature-tile item layout for the Powerful Extras grid |
+| 2026-05-10 17:46:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `S0143` | Welcome: populateFeatureGrid(); EnhancedViewHolder fills adaptive grid + tvDetails; Timber S0143 tag |
+| 2026-05-10 17:46:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0143` | Welcome: buildExtrasFeatureCards() (BuildConfig-gated tiles); wire Powerful Extras page; drop unused TAG |
+| 2026-05-10 17:48:02 | `app_v2/src/main/res/drawable/resource_types.xml` | `S0143` | New: vector resource_types illustration (replaces resource_types.png bitmap) |
+| 2026-05-10 17:48:02 | `app_v2/src/main/res/drawable/resource_types.png` | `S0143` | Removed: resource_types.png bitmap (replaced by vector) |
+| 2026-05-10 17:51:43 | `docs/FEATURES.md` | `S0143` | Add onboarding walkthrough bullet (revamped Welcome flow) |
+| 2026-05-10 17:51:44 | `docs/FEATURES_RU.md` | `S0143` | Onboarding walkthrough bullet (RU) |
+| 2026-05-10 17:51:44 | `docs/FEATURES_UK.md` | `S0143` | Onboarding walkthrough bullet (UK) |
+| 2026-05-10 17:53:56 | `PLAN/S0143_welcome-screens-overhaul.md` | `S0143` | All 5 phases implemented; status -> Implemented (awaiting on-device test) |
+| 2026-05-10 17:59:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity.md` | `spec` | Add strategic spec S0145 — print rejected on Samsung One UI / Android 13+ (context not recognised as Activity), follow-up to S0016 |
+| 2026-05-10 18:01:08 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload.md` | `spec` | Add strategic spec S0146 — player re-opens with stale initial file path after move/delete, redundant directory reload |
+| 2026-05-10 18:02:09 | `app_v2/src/main/res/values/strings.xml` | `google_drive_sign_in_unavailable,google_sign_in_cancelled` | Localized the remaining Google sign-in Add Resource error copy across EN/RU/UK |
+| 2026-05-10 18:02:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | Replaced hardcoded Google sign-in error messages with localized friendly copy |
+| 2026-05-10 18:02:13 | `PLAN/S0139_bugfix-smb-credentials-empty-share-name.md` | `spec` | S0139 BlockNeedUserTest -> Partial: field session 2026-05-10 confirms backfill/self-heal works but write-side prevention unmet (import path still inserts empty shareName); decide A/B before Verified |
+| 2026-05-10 18:03:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Replaced raw batch-rename failure text with localized generic copy |
+| 2026-05-10 18:07:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | Stopped browse toasts from falling back to raw file-operation error text |
+| 2026-05-10 18:09:23 | `scripts/utils/set-android-string.ps1` | `set-android-string.ps1` | Fixed Android apostrophe escaping and avoided the PowerShell  automatic-variable warning |
+| 2026-05-10 18:09:39 | `scripts/utils/set-android-string.ps1` | `set-android-string.ps1` | Renamed the regex match variable to avoid analyzer confusion with PowerShell automatic variables |
+| 2026-05-10 18:10:02 | `scripts/utils/set-android-string.ps1` | `set-android-string.ps1` | Replaced Regex.Matches with Match/NextMatch iteration to silence analyzer noise |
+| 2026-05-10 18:11:12 | `scripts/spec_catalog/validate.ps1` | `tooling` | validate.ps1: Journal->FS missing-file is now WARN (hygiene debt) for Verified/Implemented specs, FAIL only for in-flight ones; both buckets reported separately |
+| 2026-05-10 18:14:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/INDEX.md` | `spec-tech` | Create tactical plan for S0145 (5 phases; Phase 02 blocked on Samsung field-log measurement) |
+| 2026-05-10 18:14:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/PHASE_01__print-environment-probe.md` | `spec-tech` | S0145 Phase 01: print-environment-probe |
+| 2026-05-10 18:14:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/PHASE_02__direct-dispatch-fix.md` | `spec-tech` | S0145 Phase 02: direct-dispatch-fix (blocked on research) |
+| 2026-05-10 18:14:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/PHASE_03__system-print-fallback.md` | `spec-tech` | S0145 Phase 03: system-print-fallback |
+| 2026-05-10 18:14:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/PHASE_04__print-messages.md` | `spec-tech` | S0145 Phase 04: print-messages |
+| 2026-05-10 18:14:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | S0145 Phase 05: docs-catalog-cleanup |
+| 2026-05-10 18:14:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity.md` | `spec-tech` | S0145 Status -> Tactical |
+| 2026-05-10 18:17:16 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-check` | Audit S0118 -> Verified; PASS/WARN/FAIL 15/0/0 |
+| 2026-05-10 18:17:16 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Align S0118 closure narrative and Last Audit with the restored Verified state |
+| 2026-05-10 18:17:16 | `PLAN/S0118_friendly-ui-copy-revision/INDEX.md` | `spec-update` | Align the S0118 Completion Gate with the 2026-05-10 Verified audit |
+| 2026-05-10 18:19:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt` | `feature` | S0145 Phase 01: enrich print-environment diagnostics — context-chain inspector, PrintManager class, Build.VERSION.RELEASE/INCREMENTAL; S0145: prefix on all print-failure WARN/ERROR logs; S0145 entry tag on printCurrentFile |
+| 2026-05-10 18:21:31 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/INDEX.md` | `spec-dev` | S0145 Phase 01 ✅ Done (print-environment-probe); build PASS; strategic Status -> In Progress |
+| 2026-05-10 18:22:48 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload/INDEX.md` | `spec-all` | Create tactical plan for S0146 |
+| 2026-05-10 18:22:49 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload/PHASE_01__cache-scope-and-stale-path.md` | `spec-tech` | Phase 01: cache-scope-and-stale-path |
+| 2026-05-10 18:22:49 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload/PHASE_02__position-fallback.md` | `spec-tech` | Phase 02: position-fallback |
+| 2026-05-10 18:22:49 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-10 18:22:49 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/SettingsIntentLauncher.kt` | `debug-tags` | Add BlockNeedUserTest debug verification tag (S0043/S0047/S0051/S0054 backfill) |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `debug-tags` | Add BlockNeedUserTest debug verification tag (S0043/S0047/S0051/S0054 backfill) |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PauseAwareLoadControl.kt` | `debug-tags` | Add BlockNeedUserTest debug verification tag (S0043/S0047/S0051/S0054 backfill) |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/TsPacketFormatDetector.kt` | `debug-tags` | Add BlockNeedUserTest debug verification tag (S0043/S0047/S0051/S0054 backfill) |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LocalPlaybackHelper.kt` | `debug-tags` | Add BlockNeedUserTest debug verification tag (S0043/S0047/S0051/S0054 backfill) |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt` | `debug-tags` | Add BlockNeedUserTest debug verification tag (S0043/S0047/S0051/S0054 backfill) |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `debug-tags` | Add BlockNeedUserTest debug verification tag (S0043/S0047/S0051/S0054 backfill) |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationCoordinator.kt` | `debug-tags` | Remove stale Timber.d Sxxxx debug tags for Verified specs S0104/S0105/S0110/S0130 |
+| 2026-05-10 18:23:54 | `CLAUDE.md` | `docs` | Rewrite Debug Verification Tags section: tag lifecycle bound to BlockNeedUserTest (insert on entry, remove on exit) |
+| 2026-05-10 18:23:54 | `.claude/agents/android-rd-specialist.md` | `agent-def` | Update spec-ticket rules 6-7: debug tags iff BlockNeedUserTest |
+| 2026-05-10 18:23:54 | `.claude/commands/spec.md` | `skill` | Primitive path: tags inserted because ticket enters BlockNeedUserTest |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-tech.md` | `skill` | Primitive path: tags inserted because ticket enters BlockNeedUserTest |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-dev.md` | `skill` | Insert debug tags only when flipping ticket to BlockNeedUserTest; never at Implemented |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-check.md` | `skill` | Remove all Timber.d Sxxxx tags on verdict status flip out of BlockNeedUserTest; add debug-tag audit invariant |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-update.md` | `skill` | Re-open BlockNeedUserTest: delete tags, flip status to Tactical/Approved/Draft (step 1b) |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-fix.md` | `skill` | Add fix category: delete stale Timber.d Sxxxx tags whose spec is not BlockNeedUserTest |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-all.md` | `skill` | Insert tags when pipeline sets BlockNeedUserTest; delete tags on resume out of BlockNeedUserTest |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-arc.md` | `skill` | Archive removes any leftover Timber.d Sxxxx tags (step 3) |
+| 2026-05-10 18:23:54 | `.claude/commands/spec-test-device.md` | `skill` | Grep captured log for Sxxxx: tags as primary code-path-exercised signal |
+| 2026-05-10 18:26:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `PlayerMediaFilesLoader` | S0146: fix stale initial path scope mismatch + smart position fallback |
+| 2026-05-10 18:26:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrintFallbackManager.kt` | `feature` | S0145 Phase 03: new PlayerPrintFallbackManager — system 'Send to print' chooser fallback when the print dialog cannot be opened (FileProvider + ACTION_SEND) |
+| 2026-05-10 18:26:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt` | `feature` | S0145 Phase 03: wire PlayerPrintFallbackManager into all print-failure branches (dispatchPrint catches + null, printImage catch) via showPrintFailedSnackbar; thread sourceName/mimeType through printPdf/printImage/printText/dispatchPrint |
+| 2026-05-10 18:26:44 | `app_v2/src/main/res/values/strings.xml` | `feature` | S0145 Phase 03: add print_share_chooser_title, print_fallback_to_share (EN) |
+| 2026-05-10 18:26:44 | `app_v2/src/main/res/values-ru/strings.xml` | `feature` | S0145 Phase 03: add print_share_chooser_title, print_fallback_to_share (RU) |
+| 2026-05-10 18:26:44 | `app_v2/src/main/res/values-uk/strings.xml` | `feature` | S0145 Phase 03: add print_share_chooser_title, print_fallback_to_share (UK) |
+| 2026-05-10 18:27:49 | `.claude/commands/log-reader.md` | `skill` | Recognise Sxxxx: debug verification probes in logs: report which spec probes fired, cross-ref status, flag stale |
+| 2026-05-10 18:27:49 | `.github/prompts/log-reader.prompt.md` | `prompt` | Recognise Sxxxx: debug verification probes in logs (mirror of /log-reader skill) |
+| 2026-05-10 18:28:15 | `.github/prompts/log-reader.prompt.md` | `log-reader.prompt` | Resolved prompt diagnostics: deprecated frontmatter, autonomy conflict, and reading strategy ambiguity |
+| 2026-05-10 18:28:58 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/INDEX.md` | `spec-dev` | S0145 Phase 03 ✅ Done (system-print-fallback); build PASS; 2/5 phases done — Phase 02 still ⛔ blocked on Samsung field log |
+| 2026-05-10 18:28:58 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0145 Phase 03: rescan app_v2 (998 files); PlayerPrintFallbackManager added with role + status=new |
+| 2026-05-10 18:29:17 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload.md` | `spec-check` | Audit S0146 -> Verified; PASS/WARN/FAIL 10/0/0 |
+| 2026-05-10 18:29:23 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload.md` | `spec-all` | Pipeline Verified: S0146 |
+| 2026-05-10 18:29:42 | `.github/prompts/ui-clarify.prompt.md` | `ui-clarify.prompt` | Resolved prompt diagnostics: deprecated frontmatter, checklist overload, and ambiguous hard rule |
+| 2026-05-10 18:33:42 | `.github/prompts/spec.prompt.md` | `spec.prompt` | Fix prompt diagnostics for deprecated frontmatter, argument validation, and constraint clarity |
+| 2026-05-10 18:35:18 | `.github/prompts/spec-update.prompt.md` | `spec-update.prompt` | Fix prompt diagnostics for deprecated frontmatter, status rules, and unreadable-target handling |
+| 2026-05-10 18:40:53 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/INDEX.md` | `spec-tech` | Create tactical plan for S0138 |
+| 2026-05-10 18:40:54 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/PHASE_01__suppress-cancellation.md` | `spec-tech` | Phase 01: suppress-cancellation |
+| 2026-05-10 18:40:55 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-10 18:40:56 | `PLAN/S0138_bugfix-glide-cancellation-log-noise.md` | `spec-tech` | Status -> Tactical and add tactical plan link |
+| 2026-05-10 18:41:22 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/INDEX.md` | `spec-dev` | Status -> In progress |
+| 2026-05-10 18:41:23 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/PHASE_01__suppress-cancellation.md` | `spec-dev` | Phase 01 -> In Progress |
+| 2026-05-10 18:42:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `AdapterThumbnailLoader` | Suppress expected Glide throttle cancellation in network thumbnail listeners |
+| 2026-05-10 18:44:05 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/INDEX.md` | `spec-dev` | Mark tactical plan done after implementation |
+| 2026-05-10 18:44:06 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/PHASE_01__suppress-cancellation.md` | `spec-dev` | Phase 01 complete |
+| 2026-05-10 18:44:07 | `PLAN/S0138_bugfix-glide-cancellation-log-noise/PHASE_02__docs-catalog-cleanup.md` | `spec-dev` | Phase 02 complete |
+| 2026-05-10 18:44:09 | `PLAN/S0138_bugfix-glide-cancellation-log-noise.md` | `spec-dev` | Status -> Implemented |
+| 2026-05-10 18:47:51 | `.github/prompts/spec-dev.prompt.md` | `spec-dev.prompt` | Fix prompt diagnostics for deprecated frontmatter, hard-stop clarity, and grouped constraints |
+| 2026-05-10 18:50:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `SettingsViewModel.importSzaResources` | Derive SMB shareName from path during XML credential import |
+| 2026-05-10 18:50:22 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `ImportSettingsUseCase` | Preserve or derive SMB shareName when importing settings credentials |
+| 2026-05-10 19:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/UrlInTextDetector.kt` | `UrlInTextDetector` | S0140: extract and dedupe multiple shared URLs |
+| 2026-05-10 19:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0140: add batch entrypoint for shared URL lists |
+| 2026-05-10 19:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0140: route multi-URL shared text into batch auto-download |
+| 2026-05-10 19:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | S0140: disable empty auth saves and show sign-in hint |
+| 2026-05-10 19:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthViewModel.kt` | `WebViewAuthViewModel` | S0140: ignore empty auth session saves |
+| 2026-05-10 19:10:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `AuthSessionRepositoryImpl` | S0140: prune empty auth sessions and no-op empty saves |
+| 2026-05-10 19:10:23 | `app_v2/src/main/res/layout/dialog_webview_auth.xml` | `dialog_webview_auth` | S0140: add WebView auth sign-in hint row |
+| 2026-05-10 19:10:23 | `app_v2/src/main/res/layout-land/dialog_webview_auth.xml` | `dialog_webview_auth` | S0140: mirror WebView auth sign-in hint in landscape |
+| 2026-05-10 19:10:23 | `app_v2/src/main/res/values/strings_s0140.xml` | `strings_s0140` | S0140: add EN auth UX strings |
+| 2026-05-10 19:10:23 | `app_v2/src/main/res/values-ru/strings_s0140.xml` | `strings_s0140` | S0140: add RU auth UX strings |
+| 2026-05-10 19:10:23 | `app_v2/src/main/res/values-uk/strings_s0140.xml` | `strings_s0140` | S0140: add UK auth UX strings |
+| 2026-05-10 19:11:31 | `scripts/check_strings_localized.ps1` | `check_strings_localized` | Scan all strings*.xml files when auditing locale parity |
+| 2026-05-10 19:14:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/StructuredMediaSniffer.kt` | `StructuredMediaSniffer` | S0140: add JSON-LD and oEmbed structured media harvesting |
+| 2026-05-10 19:14:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlMediaCandidate.kt` | `HtmlMediaCandidate` | S0140: prioritize structured-data candidate sources |
+| 2026-05-10 19:14:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/CandidateSelectionPolicy.kt` | `CandidateSelectionPolicy` | S0140: refresh structured-data selection rule comments |
+| 2026-05-10 19:14:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `HtmlPageExtractionStrategy` | S0140: merge structured-media candidates before static HTML harvest |
+| 2026-05-10 19:14:14 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/StructuredMediaSnifferTest.kt` | `StructuredMediaSnifferTest` | S0140: add pure-JVM tests for JSON-LD and oEmbed harvesting |
+| 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage.md` | `S0140` | Advance strategic spec to In Progress and link tactical plan |
+| 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage/INDEX.md` | `spec-tech` | Create tactical index for S0140 |
+| 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage/PHASE_01__auth-share-polish.md` | `spec-tech` | Capture landed auth/share S0140 phase |
+| 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage/PHASE_02__structured-standards.md` | `spec-tech` | Capture landed structured-standards S0140 phase |
+| 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage/PHASE_03__dynamic-extractor.md` | `spec-tech` | Describe blocked dynamic extractor S0140 phase |
+| 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Track docs and verification state for S0140 |
+| 2026-05-10 19:18:30 | `docs/FEATURES.md` | `FEATURES` | Document landed S0140 URL-download improvements in EN |
+| 2026-05-10 19:18:30 | `docs/FEATURES_RU.md` | `FEATURES` | Document landed S0140 URL-download improvements in RU |
+| 2026-05-10 19:18:30 | `docs/FEATURES_UK.md` | `FEATURES` | Document landed S0140 URL-download improvements in UK |
+| 2026-05-10 19:18:52 | `docs/FEATURES_RU.md` | `FEATURES` | Localize S0140 feature bullet title in RU |
+| 2026-05-10 19:18:52 | `docs/FEATURES_UK.md` | `FEATURES` | Localize S0140 feature bullet title in UK |
+| 2026-05-10 19:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0140: continue strategy chain after NotFound so dynamic fallback can run |
+| 2026-05-10 19:32:33 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinatorTest.kt` | `LinkAutoDownloadCoordinatorTest` | S0140: add fallback regression test for html-to-dynamic strategy order |
+| 2026-05-10 19:33:06 | `.claude/ .github/` | `agents+skills` | Sync Claude (.claude/commands,.claude/agents) and Copilot (.github/prompts,.github/agents) instruction sets: reconcile 15 command/prompt pairs (bodies now identical modulo frontmatter), add 4 missing Copilot prompts (catalog,quick,spec-arc,spec-test-device) and 4 missing Claude commands (ui-clarify,caveman,caveman-commit,caveman-review), mirror agents both ways (3 specialized agents into .claude/agents, android-rd-specialist into .github/agents), fix LOC limit 1000->1500 in Copilot agents, add /catalog //quick //spec-arc //spec-test-device routing rows to copilot-instructions.md |
+| 2026-05-10 19:40:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | S0140: add persisted soft login-wall heuristic toggle |
+| 2026-05-10 19:40:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | S0140: persist login-wall heuristic setting in DataStore |
+| 2026-05-10 19:40:17 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData` | S0140: add backup-safe login-wall heuristic flag |
+| 2026-05-10 19:40:18 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | S0140: map login-wall heuristic flag through backup restore |
+| 2026-05-10 19:40:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `HtmlPageExtractionStrategy` | S0140: detect soft login walls and reuse AuthRequired path |
+| 2026-05-10 19:41:10 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | S0140: add headless WebView fallback for JS-rendered media discovery |
+| 2026-05-10 19:41:11 | `app_v2/src/main/java/com/sza/fastmediasorter/di/LinkDownloadModule.kt` | `LinkDownloadModule` | S0140: bind dynamic URL extraction strategy into link pipeline |
+| 2026-05-10 19:41:12 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `LinkExtractionRegistry` | S0140: order dynamic strategy after html in canonical registry |
+| 2026-05-10 19:41:13 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0140: surface analyzing-page progress and allow html-to-dynamic fallback |
+| 2026-05-10 19:41:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadProgressDialog.kt` | `LinkAutoDownloadProgressDialog` | S0140: show dedicated analyzing-page progress state |
+| 2026-05-10 19:41:15 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistryTest.kt` | `LinkExtractionRegistryTest` | S0140: assert dynamic strategy order after html |
+| 2026-05-10 19:41:16 | `app_v2/src/main/res/values/strings_s0140.xml` | `strings_s0140` | S0140: add EN analyzing-page progress copy |
+| 2026-05-10 19:41:17 | `app_v2/src/main/res/values-ru/strings_s0140.xml` | `strings_s0140` | S0140: add RU analyzing-page progress copy |
+| 2026-05-10 19:41:18 | `app_v2/src/main/res/values-uk/strings_s0140.xml` | `strings_s0140` | S0140: add UK analyzing-page progress copy |
+| 2026-05-10 19:41:28 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinatorTest.kt` | `LinkAutoDownloadCoordinatorTest` | S0140: cover html-to-dynamic fallback when first strategy returns NotFound |
+| 2026-05-10 19:42:21 | `docs/FEATURES.md` | `FEATURES` | S0140: document dynamic WebView extraction and soft login-wall behavior in EN features list |
+| 2026-05-10 19:42:22 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0140: document dynamic WebView extraction and soft login-wall behavior in RU features list |
+| 2026-05-10 19:42:25 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0140: document dynamic WebView extraction and soft login-wall behavior in UK features list |
+| 2026-05-10 19:43:26 | `PLAN/S0140_extend-market-url-coverage/INDEX.md` | `S0140 INDEX` | S0140: sync tactical index with landed Phase 03 runtime work and remaining blockers |
+| 2026-05-10 19:43:27 | `PLAN/S0140_extend-market-url-coverage/PHASE_03__dynamic-extractor.md` | `S0140 PHASE_03` | S0140: mark dynamic extractor runtime steps done while keeping research/build blockers open |
+| 2026-05-10 19:43:29 | `PLAN/S0140_extend-market-url-coverage/PHASE_04__docs-catalog-cleanup.md` | `S0140 PHASE_04` | S0140: note follow-up feature inventory update after runtime slice landed |
+| 2026-05-10 19:44:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | S0141: remove BlockNeedUserTest Timber.d tag — device test passed, status Verified |
+| 2026-05-10 19:44:09 | `PLAN/S0141_bugfix-webview-auth-dialog-zero-size.md` | `spec-all` | Pipeline Verified: S0141 bugfix-webview-auth-dialog-zero-size |
+| 2026-05-10 19:54:08 | `app_v2/src/main/res/values/strings.xml` | `S0145 Phase04` | Reword error_print_unavailable + print_fallback_to_share to friendly CTA copy (EN) |
+| 2026-05-10 19:54:08 | `app_v2/src/main/res/values-ru/strings.xml` | `S0145 Phase04` | Reword error_print_unavailable + print_fallback_to_share (RU) |
+| 2026-05-10 19:54:08 | `app_v2/src/main/res/values-uk/strings.xml` | `S0145 Phase04` | Reword error_print_unavailable + print_fallback_to_share (UK) |
+| 2026-05-10 22:46:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt` | `spec-update S0145` | Removed Timber.d('S0145: printCurrentFile') tag; S0145 re-opened Tactical from BlockNeedUserTest |
+| 2026-05-10 22:49:31 | `PLAN/S0145_bugfix-print-rejected-context-not-activity.md` | `spec-update S0145` | Strategic spec: status Tactical, §6.1/§6.2 resolved from field log 2026-05-10 |
+| 2026-05-10 22:49:31 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/INDEX.md` | `spec-update S0145` | INDEX: Phase 02 unblocked, blockers log updated with field log findings |
+| 2026-05-10 22:49:31 | `PLAN/S0145_bugfix-print-rejected-context-not-activity/PHASE_02__direct-dispatch-fix.md` | `spec-update S0145` | Phase 02 steps re-authored: ContextThemeWrapper ruled out, ActivityPrintContextWrapper approach |
+| 2026-05-10 22:51:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `S0144` | Fix currentCookies(): pass full https:// URL to CookieManager.getCookie() — bare hostname silently returns null on Chromium WebView; save button was always disabled after Instagram login |
+| 2026-05-10 22:53:44 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting.md` | `spec-update S0136` | Strategic spec: §6 items resolved from field logs; D1 (cache key drift) chosen |
+| 2026-05-10 22:53:44 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting/INDEX.md` | `spec-update S0136` | INDEX: Phase 02 unblocked, D1 branch selected, blockers log updated |
+| 2026-05-10 22:53:44 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting/PHASE_02__fix.md` | `spec-update S0136` | Phase 02: D1 fix steps authored (NetworkFileData key diagnosis + stabilisation) |
+| 2026-05-10 22:53:44 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/GlideCacheStats.kt` | `spec-update S0136` | Removed Timber.d('S0136:') tag; S0136 re-opened Tactical |
+| 2026-05-10 22:53:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt` | `spec-update S0136` | Removed Timber.d('S0136:') tag |
+| 2026-05-10 22:53:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `spec-update S0136` | Removed Timber.d('S0136:') tag |
+| 2026-05-10 22:53:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `spec-update S0136` | Removed Timber.d('S0136:') tag |
+| 2026-05-10 22:53:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt` | `spec-update S0136` | Removed Timber.d('S0136:') tag |
+| 2026-05-10 22:53:44 | `app_v2/src/main/java/com/sza/fastmediasorter/di/GlideAppModule.kt` | `spec-update S0136` | Removed Timber.d('S0136:') tag |
+| 2026-05-10 22:55:10 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MigrateS0059UseCase.kt` | `spec-fix stale-tags` | Removed stale S0059: prefix from Timber.i tags (spec Implemented) |
+| 2026-05-10 22:55:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-fix stale-tags` | Removed stale Timber.d('S0107:') tag (spec In Progress) |
+| 2026-05-10 22:55:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerImageLoadingCallbackImpl.kt` | `spec-fix stale-tags` | Removed stale Timber.d('S0107:') tag |
+| 2026-05-10 22:55:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `spec-fix stale-tags` | Removed stale Timber.d('S0107:') tag |
+| 2026-05-10 22:55:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `spec-fix stale-tags` | Removed 2 stale Timber.d('S0107:') tags |
+| 2026-05-10 22:58:23 | `docs/FEATURES.md` | `S0145 Phase05` | Extend Print bullet: Samsung One UI / Android 13+ fallback to share menu |
+| 2026-05-10 22:58:23 | `docs/FEATURES_RU.md` | `S0145 Phase05` | Extend Print bullet (RU): Samsung One UI fallback to share |
+| 2026-05-10 22:58:23 | `docs/FEATURES_UK.md` | `S0145 Phase05` | Extend Print bullet (UK): Samsung One UI fallback to share |
+| 2026-05-10 23:02:52 | `dev/CATALOG/app_v2.jsonl` | `S0145 Phase05` | Rescan app_v2 catalog (1000 files) after Phase 03/05 — PlayerPrintFallbackManager role verified |
+| 2026-05-10 23:02:52 | `dev/CATALOG/app_v2.md` | `S0145 Phase05` | Regenerate app_v2.md catalog markdown |
+| 2026-05-10 23:06:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Fix: idempotent path-based check instead of isNotEmpty() to repair partial provisioning after viewModelScope cancellation on first launch |
+| 2026-05-10 23:06:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Fix: wrap provisioning calls in withContext(NonCancellable) to prevent viewModelScope cancellation from interrupting predefined resource creation during WelcomeActivity launch |
+| 2026-05-10 23:06:00 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCaseTest.kt` | `ProvisionDefaultResourcesUseCaseTest` | Update tests: new idempotent provisioning semantics, add regression tests for partial provisioning repair |
+| 2026-05-10 23:06:09 | `PLAN/S0147_bugfix-sftp-stale-session-inputstream-closed.md` | `spec` | Add strategic spec S0147 for bugfix-sftp-stale-session-inputstream-closed |
+| 2026-05-10 23:09:09 | `PLAN/S0147_bugfix-sftp-stale-session-inputstream-closed/INDEX.md` | `spec-tech` | Create tactical plan for S0147 |
+| 2026-05-10 23:09:09 | `PLAN/S0147_bugfix-sftp-stale-session-inputstream-closed/PHASE_01__stale-session-retry.md` | `spec-tech` | Phase 01: stale-session-retry |
+| 2026-05-10 23:09:09 | `PLAN/S0147_bugfix-sftp-stale-session-inputstream-closed/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup |
+| 2026-05-10 23:09:09 | `PLAN/S0147_bugfix-sftp-stale-session-inputstream-closed.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-10 23:10:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DocumentPrintManager.kt` | `spec-check S0145` | Remove S0145 diagnostic traces: Timber.w entry tag, printEnvDiagnostics(), contextChainDiagnostics(); clean up Timber.e S0145: prefixes; remove Build/PackageManager imports |
+| 2026-05-10 23:10:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerPrintFallbackManager.kt` | `spec-check S0145` | Remove Timber.w S0145 entry trace; clean up Timber.e S0145: prefix in catch |
+| 2026-05-10 23:10:49 | `PLAN/S0145_bugfix-print-rejected-context-not-activity.md` | `spec-check S0145` | Audit S0145 -> Verified; PASS 16/WARN 0/FAIL 0; Last Audit block written; debug tags removed: 0 Timber.d; diagnostic traces removed |
+| 2026-05-10 23:19:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `S0147` | Detect dead JSch transport (inputstream is closed), force session invalidation + single retry |
+| 2026-05-10 23:19:19 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Regen after S0147 SftpConnectionPool change |
+| 2026-05-10 23:20:53 | `PLAN/S0147_bugfix-sftp-stale-session-inputstream-closed.md` | `spec-all` | Pipeline BlockNeedUserTest: S0147 |

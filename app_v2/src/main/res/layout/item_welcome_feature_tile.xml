@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One tile in the Welcome "Powerful Extras" feature grid: tinted icon + ≤2-line label.
+     Inflated by WelcomePagerAdapter.populateFeatureGrid(); the tile's contentDescription is
+     set to the label text at bind time. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    android:focusable="false"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:rippleColor="@android:color/transparent"
+    app:cardBackgroundColor="?attr/colorSurfaceVariant">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:minHeight="72dp"
+        android:padding="@dimen/welcome_feature_card_padding">
+
+        <ImageView
+            android:id="@+id/ivFeatureTileIcon"
+            android:layout_width="@dimen/welcome_feature_card_icon_size"
+            android:layout_height="@dimen/welcome_feature_card_icon_size"
+            android:importantForAccessibility="no"
+            app:tint="?attr/colorPrimary"
+            tools:src="@drawable/ic_ocr" />
+
+        <TextView
+            android:id="@+id/tvFeatureTileLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:textSize="@dimen/welcome_feature_card_text_size"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="OCR &amp; Translate" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

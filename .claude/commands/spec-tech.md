@@ -1,6 +1,6 @@
 # Tactical Specification Writer
 
-Requires `Status: Approved` or later (see auto-promote rule below).
+Break an approved strategic spec into sequenced phases. Requires `Status: Approved` or later (see auto-promote rule below).
 Creates `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files. Language: English, imperative, no rationale prose.
 
 ## Usage
@@ -73,10 +73,10 @@ Score the task against the primitive checklist:
 **If ALL pass → PRIMITIVE path** (skip steps 3–8):
 
 1. Implement the changes directly in the source files identified in step 2.
-2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry.
+2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry — per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line.
 3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
-4. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
-5. Chat output: `<Sxxxx> — Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest.`
+4. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. The step-2 tags stay in code until the ticket leaves this status (removed by `/spec-check` on `Verified`, or by `/spec-update` on re-open).
+5. Chat output: `<Sxxxx> — Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 
 No `INDEX.md`, no `PHASE_NN__*.md` files are written. No `/spec-dev` chain.
 
@@ -310,7 +310,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - One step = one atomic unit: committable in isolation without breaking the build.
 - Every step Verification must be static (Glob/Grep/value equality) — no "works correctly".
 - No step references read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- File >500 lines after edit → backup step required. File >1500ines → refuse; split via Manager pattern first.
+- File >500 lines after edit → backup step required. File >1500 lines → refuse; split via Manager pattern first.
 - Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 - Room schema change: bump `@Database(version)`, add `Migration`, never rename prior migrations. One phase per schema change.
 - Hilt bindings: every new `@Inject`/`@Provides` names the `@Module` file in the step body.

@@ -30,10 +30,10 @@ class ResourceEditorOutcomeRenderer(
         binding.tvConnectionStatus.text = when (result.status) {
             // SUCCESS / PARTIAL: prefer live diagnostic message (subfolder/file count) when available
             ResourceConnectionStatus.SUCCESS -> result.diagnosticMessage ?: context.getString(R.string.connection_success)
-            ResourceConnectionStatus.FAILED -> context.getString(
-                R.string.connection_test_failed_detail,
-                result.diagnosticMessage ?: context.getString(R.string.error_unknown)
-            )
+            // FAILED diagnostics often come from backend exception text, so keep this surface resource-backed.
+            ResourceConnectionStatus.FAILED -> result.errorCode
+                ?.let(::getErrorMessage)
+                ?: context.getString(R.string.error_connection_failed)
             ResourceConnectionStatus.PARTIAL -> result.diagnosticMessage ?: context.getString(R.string.connection_success)
             ResourceConnectionStatus.NOT_SUPPORTED -> context.getString(R.string.connection_test_not_supported)
         }

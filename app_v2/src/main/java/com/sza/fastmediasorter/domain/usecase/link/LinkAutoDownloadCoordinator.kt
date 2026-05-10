@@ -41,6 +41,29 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         return handleUrl(url = url, settings = settings, callbacks = callbacks)
     }
 
+    suspend fun handleBatch(urls: List<String>, callbacks: Callbacks): Result {
+        val settings = settingsRepository.getSettings().first()
+        if (!settings.linkAutoDownloadEnabled) {
+            return Result.Failed.Other(IllegalStateException("auto_download_disabled"))
+        }
+
+        val items = urls
+            .map(String::trim)
+            .filter { it.isNotBlank() }
+            .filter { it.toHttpUrlOrNull() != null }
+            .distinct()
+            .map { SiteBatchItem(url = it) }
+
+        if (items.isEmpty()) return Result.Failed.NoMediaFound
+        if (items.size == 1) return handleUrl(items.first().url, settings, callbacks)
+
+        return runBatch(
+            batch = OpenResult.Batch(items = items),
+            settings = settings,
+            callbacks = callbacks,
+        )
+    }
+
     private suspend fun handleUrl(
         url: String,
         settings: AppSettings,
@@ -61,7 +84,13 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 }
                 when (probe) {
                     is ProbeResult.Applicable -> {
-                        callbacks.onProgress(ProgressState.Downloading(0L, probe.tentativeSizeBytes))
+                        callbacks.onProgress(
+                            if (strategy.id == DYNAMIC_STRATEGY_ID) {
+                                ProgressState.AnalyzingPage
+                            } else {
+                                ProgressState.Downloading(0L, probe.tentativeSizeBytes)
+                            },
+                        )
                         when (val opened = strategy.open(url) { read, total ->
                             callbacks.onProgress(ProgressState.Downloading(read, total))
                         }) {
@@ -71,7 +100,16 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             }
                             is OpenResult.Streaming -> return runStreaming(opened, settings, callbacks)
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
-                            is OpenResult.NotFound -> return Result.Failed.NoMediaFound
+                            is OpenResult.NotFound -> {
+                                // S0140 registers `dynamic` after `html`; a static HTML miss must
+                                // fall through so later strategies still get a chance to resolve.
+                                Timber.v(
+                                    "LinkAutoDownloadCoordinator: %s returned NotFound(%s), trying next strategy",
+                                    strategy.id,
+                                    opened.reason,
+                                )
+                                continue
+                            }
                             is OpenResult.Blocked -> when (opened.reason) {
                                 BlockedReason.MimeNotAllowed,
                                 BlockedReason.NonHttpScheme,
@@ -162,6 +200,15 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 override fun onProgress(state: ProgressState) {
                     when (state) {
                         ProgressState.Probing -> callbacks.onProgress(
+                            ProgressState.BatchDownloading(
+                                itemIndex = itemIndex,
+                                itemCount = batch.items.size,
+                                itemTitle = item.title,
+                                bytesRead = 0L,
+                                total = null,
+                            ),
+                        )
+                        ProgressState.AnalyzingPage -> callbacks.onProgress(
                             ProgressState.BatchDownloading(
                                 itemIndex = itemIndex,
                                 itemCount = batch.items.size,
@@ -347,6 +394,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
     sealed interface ProgressState {
         object Probing : ProgressState
+        data object AnalyzingPage : ProgressState
         data class Downloading(val bytesRead: Long, val total: Long?) : ProgressState
         data class BatchDownloading(
             val itemIndex: Int,
@@ -355,5 +403,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             val bytesRead: Long,
             val total: Long?,
         ) : ProgressState
+    }
+
+    private companion object {
+        const val DYNAMIC_STRATEGY_ID = "dynamic"
     }
 }

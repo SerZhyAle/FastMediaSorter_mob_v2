@@ -168,7 +168,7 @@ internal fun VideoPlayerManager.playWithMediaPlayer(path: String) {
     } catch (e: Exception) {
         Timber.e(e, "VideoPlayerManager: MediaPlayer fallback failed")
         playerCallback.showError(
-            context.getString(R.string.player_health_fallback_failed, e.message ?: e.javaClass.simpleName)
+            context.getString(R.string.player_health_fallback_failed, context.getString(R.string.error_reason_unknown))
         )
         isUsingMediaPlayer = false
     }

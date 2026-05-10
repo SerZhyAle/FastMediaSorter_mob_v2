@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.cloud
 
+import android.content.Context
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -13,6 +14,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class CloudAuthStateMachineTest {
 
+    private val context: Context = mockk(relaxed = true)
     private lateinit var googleDriveClient: GoogleDriveRestClient
     private lateinit var oneDriveClient: OneDriveRestClient
     private lateinit var dropboxClient: DropboxClient
@@ -23,8 +25,9 @@ class CloudAuthStateMachineTest {
         googleDriveClient = mockk()
         oneDriveClient = mockk()
         dropboxClient = mockk()
-        
+
         stateMachine = CloudAuthStateMachine(
+            context,
             googleDriveClient,
             oneDriveClient,
             dropboxClient

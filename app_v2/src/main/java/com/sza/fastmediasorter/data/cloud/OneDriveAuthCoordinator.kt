@@ -11,6 +11,7 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -446,7 +447,10 @@ class OneDriveAuthCoordinator(
                 return OneDriveRestClientUtils.ApiResponse(
                     isSuccess = false,
                     data = null,
-                    errorMessage = "Authentication expired after $TOKEN_MAX_RETRY_ATTEMPTS retry attempts. Token invalid or revoked. Please re-authenticate in Settings → Edit Resource."
+                    errorMessage = context.getString(
+                        R.string.cloud_auth_required,
+                        context.getString(R.string.onedrive)
+                    )
                 )
             }
 

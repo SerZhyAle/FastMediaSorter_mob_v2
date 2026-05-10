@@ -23,6 +23,8 @@ Use `$ARGUMENTS` as the feature/change description, or run `git diff --name-only
 
 Decide per item: *affected* or *not affected*. Apply every affected update. Skip non-affected items silently.
 
+If a repo documentation/helper script required for the update is broken or insufficient, fix the script first instead of working around it.
+
 **3 — Run dev log for every file modified** (mandatory):
 
 ```powershell
@@ -71,11 +73,11 @@ Mirror the B1 change. Identical section numbers and bullet layout.
 
 #### C1. `app_v2/src/main/res/values/strings.xml` (English)
 
-Add `<string name="key">value</string>` in alphabetical or logical grouping order.
+For single-key updates, prefer `pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "<key>" -Value "<text>"`. Use manual XML edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
 
 #### C2. `values-ru/strings.xml` (Russian) · C3. `values-uk/strings.xml` (Ukrainian)
 
-Add same key with translation. All three files are mandatory on every new string.
+Mirror the same key with locale-specific values. For single-key updates, prefer `scripts/utils/set-android-string.ps1` once per locale. All three files are mandatory on every new string.
 
 ---
 

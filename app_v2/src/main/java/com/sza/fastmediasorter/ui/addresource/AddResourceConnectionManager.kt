@@ -147,9 +147,9 @@ internal class AddResourceConnectionManager(
         } catch (e: ApiException) {
             Timber.e(e, "Google Sign-In failed: ${e.statusCode}")
             val errorMessage = when (e.statusCode) {
-                10 -> "Google Drive authentication setup required. Check SHA-1 fingerprint in Google Cloud Console."
-                12 -> "Google Sign-In cancelled"
-                7 -> "Network error. Check your internet connection."
+                10 -> activity.getString(R.string.google_drive_sign_in_unavailable)
+                12 -> activity.getString(R.string.google_sign_in_cancelled)
+                7 -> activity.getString(R.string.no_internet_connection)
                 else -> activity.getString(R.string.google_drive_authentication_failed)
             }
             AppErrorNotifier.show(activity, errorMessage, ErrorSeverity.CRITICAL)
@@ -496,7 +496,8 @@ internal class AddResourceConnectionManager(
         ErrorDialog.show(
             context = activity,
             title = activity.getString(titleRes),
-            message = details?.takeIf { it.isNotBlank() } ?: activity.getString(R.string.error_unknown)
+            // Auth providers often return technical exception text here; keep the dialog human-facing.
+            message = activity.getString(R.string.friendly_copy_error_auth_failed)
         )
     }
 }

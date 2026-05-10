@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="s0140_progress_analyzing_page">Analyzing page..</string>
+    <string name="s0140_webview_auth_hint">Sign in, then tap Save authorization.</string>
+    <string name="s0140_webview_auth_sign_in_first">Sign in first, then tap Save authorization.</string>
+</resources>

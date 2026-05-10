@@ -52,6 +52,7 @@ object SettingsIntentLauncher {
      */
     fun launch(activity: Activity, intent: Intent, requestCode: Int) {
         Timber.i("SettingsIntentLauncher: launch action=${intent.action} requestCode=$requestCode")
+        Timber.d("S0043: SettingsIntentLauncher.launch action=${intent.action} requestCode=$requestCode sdk=${Build.VERSION.SDK_INT}")
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val opts = computeCenteredLaunchBounds(activity)?.let {

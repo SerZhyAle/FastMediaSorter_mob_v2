@@ -55,7 +55,6 @@ object CacheStatusHelper {
     }
 
     fun logGlideDiskCacheStatusOnce(context: Context, tag: String) {
-        Timber.d("S0136: CacheStatusHelper post-first-load dump tag=$tag")
         logGlideDiskCacheStatus(context)
     }
 }

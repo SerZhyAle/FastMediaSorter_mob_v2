@@ -81,8 +81,6 @@ class PlayerNavigationCoordinator(
             return
         }
 
-        Timber.d("S0104: nextFile mode=${currentState.playbackOrderMode} manual=$manual idx=${currentState.currentIndex}")
-
         if (manual) clearPlaybackWatchdogs()
 
         var nextIndex = when (currentState.playbackOrderMode) {

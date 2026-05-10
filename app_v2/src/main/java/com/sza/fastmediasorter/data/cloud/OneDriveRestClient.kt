@@ -12,6 +12,7 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -55,6 +56,12 @@ class OneDriveRestClient @Inject constructor(
 
     override fun isAuthenticated(): Boolean = auth.isAuthenticated()
 
+    private fun oneDriveReauthRequiredMessage(): String =
+        context.getString(R.string.cloud_auth_required, context.getString(R.string.onedrive))
+
+    private fun oneDriveDownloadFailedMessage(): String =
+        context.getString(R.string.download_failed, context.getString(R.string.error_reason_unknown))
+
     companion object {
         private const val GRAPH_API_BASE = "https://graph.microsoft.com/v1.0"
         // Best-effort token revoke endpoint; POST token=<accessToken> form-encoded
@@ -82,7 +89,7 @@ class OneDriveRestClient @Inject constructor(
     
     override suspend fun testConnection(): CloudResult<Boolean> = withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val url = URL("$GRAPH_API_BASE/me/drive")
                 val response = makeAuthenticatedRequest(url, "GET", token)
@@ -103,11 +110,22 @@ class OneDriveRestClient @Inject constructor(
                     }
                     CloudResult.Success(true)
                 } else {
-                    CloudResult.Error("Connection test failed: ${response.errorMessage}")
+                        CloudResult.Error(
+                            context.getString(
+                                R.string.onedrive_connection_test_failed,
+                                response.errorMessage ?: context.getString(R.string.error_reason_unknown)
+                            )
+                        )
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Connection test failed")
-                CloudResult.Error("Connection test failed: ${e.message}", e)
+                    CloudResult.Error(
+                        context.getString(
+                            R.string.onedrive_connection_test_failed,
+                            e.message ?: context.getString(R.string.error_reason_unknown)
+                        ),
+                        e
+                    )
             }
     }
 
@@ -155,7 +173,7 @@ class OneDriveRestClient @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 ensureTokenFresh()
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 val resolvedFolderId = resolveOrEnsureFolder(folderId)
                 
                 val endpoint = resolvedFolderId?.let { "$GRAPH_API_BASE/me/drive/items/$it/children?\$expand=thumbnails" }
@@ -174,18 +192,18 @@ class OneDriveRestClient @Inject constructor(
                     
                     CloudResult.Success(cloudFiles to nextToken)
                 } else {
-                    CloudResult.Error("Failed to list files: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_list_files_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to list files")
-                CloudResult.Error("Failed to list files: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             }
         }
     }
     
     override suspend fun listFolders(parentFolderId: String?): CloudResult<List<CloudFile>> = withContext(Dispatchers.IO) {
         try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val endpoint = parentFolderId?.let { "$GRAPH_API_BASE/me/drive/items/$it/children?\$filter=folder ne null" }
                     ?: "$GRAPH_API_BASE/me/drive/root/children?\$filter=folder ne null"
@@ -201,11 +219,11 @@ class OneDriveRestClient @Inject constructor(
                     
                     CloudResult.Success(folders)
                 } else {
-                    CloudResult.Error("Failed to list folders: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_list_folders_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to list folders")
-                CloudResult.Error("Failed to list folders: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_list_folders_failed), e)
             }
     }
 
@@ -217,7 +235,7 @@ class OneDriveRestClient @Inject constructor(
                     fileId
                 }
                 
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 val url = URL("$GRAPH_API_BASE/me/drive/items/$actualFileId")
                 
                 val response = makeAuthenticatedRequest(url, "GET", token)
@@ -230,11 +248,11 @@ class OneDriveRestClient @Inject constructor(
                     CloudResult.Success(parseItem(json, parentId))
                 } else {
                     Timber.e("OneDrive.getFileMetadata: FAILED - ${response.errorMessage}")
-                    CloudResult.Error("Failed to get metadata: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_metadata_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "OneDrive.getFileMetadata: EXCEPTION for fileId='$fileId'")
-                CloudResult.Error("Failed to get metadata: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_metadata_failed), e)
             }
     }
 
@@ -245,13 +263,13 @@ class OneDriveRestClient @Inject constructor(
     ): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 val metadataUrl = buildItemUrlFromReference(fileId)
                 val metadataResponse = makeAuthenticatedRequest(metadataUrl, "GET", token)
                 
                 if (!metadataResponse.isSuccess || metadataResponse.data == null) {
                     Timber.e("OneDrive.downloadFile: Failed to get metadata - ${metadataResponse.errorMessage}")
-                    return@withContext CloudResult.Error("Failed to get download URL: ${metadataResponse.errorMessage}")
+                    return@withContext CloudResult.Error(oneDriveDownloadFailedMessage())
                 }
                 
                 val json = JSONObject(metadataResponse.data)
@@ -261,7 +279,7 @@ class OneDriveRestClient @Inject constructor(
                 
                 Timber.i("OneDrive.downloadFile: Metadata retrieved - fileName='$fileName', size=$size bytes")
                 
-                if (downloadUrl.isEmpty()) return@withContext CloudResult.Error("Download URL not available")
+                if (downloadUrl.isEmpty()) return@withContext CloudResult.Error(oneDriveDownloadFailedMessage())
                 val connection = URL(downloadUrl).openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 
@@ -285,7 +303,13 @@ class OneDriveRestClient @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "OneDrive.downloadFile: EXCEPTION for fileId='$fileId'")
-                CloudResult.Error("Download failed: ${e.message}", e)
+                CloudResult.Error(
+                    context.getString(
+                        R.string.download_failed,
+                        e.message ?: context.getString(R.string.error_reason_unknown)
+                    ),
+                    e
+                )
             }
         }
     }
@@ -299,7 +323,7 @@ class OneDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val resolvedParentId = resolveOrEnsureFolder(parentFolderId)
                 val endpoint = resolvedParentId?.let { "$GRAPH_API_BASE/me/drive/items/$it:/$fileName:/content" }
@@ -334,14 +358,14 @@ class OneDriveRestClient @Inject constructor(
                         CloudResult.Success(parseItem(json, parentId))
                     } else {
                         val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-                        CloudResult.Error("Upload failed: $error")
+                        CloudResult.Error(context.getString(R.string.cloud_upload_failed))
                     }
                 } finally {
                     connection.disconnect()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to upload file")
-                CloudResult.Error("Upload failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
             }
         }
     }
@@ -352,7 +376,7 @@ class OneDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val resolvedParentId = resolveOrEnsureFolder(parentFolderId)
                 val endpoint = resolvedParentId?.let { "$GRAPH_API_BASE/me/drive/items/$it/children" }
@@ -372,11 +396,11 @@ class OneDriveRestClient @Inject constructor(
                     val parentId = json.optJSONObject("parentReference")?.optString("id", "root") ?: "root"
                     CloudResult.Success(parseItem(json, parentId))
                 } else {
-                    CloudResult.Error("Failed to create folder: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_create_folder_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to create folder")
-                CloudResult.Error("Failed to create folder: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
         }
     }
@@ -391,7 +415,7 @@ class OneDriveRestClient @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to find folder: $folderName")
-                CloudResult.Error("Find folder failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
         }
 
@@ -419,13 +443,13 @@ class OneDriveRestClient @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "ensureFolderExists failed")
-                CloudResult.Error("ensureFolderExists failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
         }
     
     override suspend fun deleteFile(fileId: String): CloudResult<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+            val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
             val url = buildItemUrlFromReference(fileId)
                 val response = makeAuthenticatedRequest(url, "DELETE", token)
                 
@@ -434,17 +458,17 @@ class OneDriveRestClient @Inject constructor(
                     CloudResult.Success(true)
                 } else {
                     Timber.e("OneDrive.deleteFile: FAILED - ${response.errorMessage}")
-                    CloudResult.Error("Failed to delete: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.error_delete_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "OneDrive.deleteFile: EXCEPTION for fileId='$fileId'")
-                CloudResult.Error("Deletion failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_delete_failed), e)
             }
     }
 
     override suspend fun renameFile(fileId: String, newName: String): CloudResult<CloudFile> = withContext(Dispatchers.IO) {
         try {
-            val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+            val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
             val requestBody = JSONObject().put("name", newName).toString()
             val url = buildItemUrlFromReference(fileId)
                 val response = makeAuthenticatedRequest(url, "PATCH", token, requestBody)
@@ -456,17 +480,17 @@ class OneDriveRestClient @Inject constructor(
                     CloudResult.Success(parseItem(json, parentId))
                 } else {
                     Timber.e("OneDrive.renameFile: FAILED - ${response.errorMessage}")
-                    CloudResult.Error("Failed to rename: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.rename_failed_generic))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "OneDrive.renameFile: EXCEPTION for fileId='$fileId'")
-                CloudResult.Error("Rename failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.rename_failed_generic), e)
             }
     }
 
     override suspend fun moveFile(fileId: String, newParentId: String): CloudResult<CloudFile> = withContext(Dispatchers.IO) {
         try {
-            val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+            val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val requestBody = JSONObject()
                     .put("parentReference", JSONObject().put("id", newParentId))
@@ -480,11 +504,11 @@ class OneDriveRestClient @Inject constructor(
                     val json = JSONObject(response.data)
                     CloudResult.Success(parseItem(json, newParentId))
                 } else {
-                    CloudResult.Error("Failed to move: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.error_move_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to move file")
-                CloudResult.Error("Move failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_move_failed), e)
             }
     }
 
@@ -495,7 +519,7 @@ class OneDriveRestClient @Inject constructor(
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val requestBody = JSONObject()
                     .put("parentReference", JSONObject().put("id", newParentId))
@@ -521,18 +545,18 @@ class OneDriveRestClient @Inject constructor(
                         webViewUrl = null
                     ))
                 } else {
-                    CloudResult.Error("Failed to copy: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.error_copy_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to copy file")
-                CloudResult.Error("Copy failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             }
         }
     }
     
     override suspend fun fileExists(fileName: String, parentId: String): CloudResult<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+            val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
 
                 val endpoint = if (parentId == "root" || parentId.isEmpty()) {
                     "$GRAPH_API_BASE/me/drive/root/children"
@@ -551,17 +575,17 @@ class OneDriveRestClient @Inject constructor(
                     val items = json.getJSONArray("value")
                     CloudResult.Success(items.length() > 0)
                 } else {
-                    CloudResult.Error("Failed to check file existence: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_check_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check file existence")
-                CloudResult.Error("Check failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_check_failed), e)
             }
     }
 
     override suspend fun searchFiles(query: String, mimeType: String?): CloudResult<List<CloudFile>> = withContext(Dispatchers.IO) {
         try {
-            val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+            val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val url = URL("$GRAPH_API_BASE/me/drive/root/search(q='$query')")
                 val response = makeAuthenticatedRequest(url, "GET", token)
@@ -572,18 +596,18 @@ class OneDriveRestClient @Inject constructor(
                     val cloudFiles = parseItems(items, "search")
                     CloudResult.Success(cloudFiles)
                 } else {
-                    CloudResult.Error("Search failed: ${response.errorMessage}")
+                    CloudResult.Error(context.getString(R.string.cloud_search_failed))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Search failed")
-                CloudResult.Error("Search failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
     }
 
     override suspend fun getThumbnail(fileId: String, size: Int): CloudResult<InputStream> {
         return withContext(Dispatchers.IO) {
             try {
-                val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
                 
                 val thumbnailSize = when {
                     size <= 96 -> "small"
@@ -603,14 +627,14 @@ class OneDriveRestClient @Inject constructor(
                         CloudResult.Success(bytes.inputStream())
                     } else {
                         val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-                        CloudResult.Error("Thumbnail failed: $error")
+                        CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed))
                     }
                 } finally {
                     connection.disconnect()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get thumbnail")
-                CloudResult.Error("Thumbnail failed: ${e.message}", e)
+                CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             }
         }
     }
@@ -622,7 +646,7 @@ class OneDriveRestClient @Inject constructor(
         length: Long
     ): CloudResult<InputStream> = withContext(Dispatchers.IO) {
         try {
-            val token = auth.accessToken ?: return@withContext CloudResult.Error("Not authenticated")
+            val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
             Timber.d("OneDrive.getFileInputStream: fileId='$fileId', pos=$position, len=$length")
             val url = URL("${buildItemUrlFromReference(fileId)}/content")
             val connection = url.openConnection() as HttpURLConnection
@@ -641,11 +665,17 @@ class OneDriveRestClient @Inject constructor(
                 val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
                 connection.disconnect()
                 Timber.e("OneDrive.getFileInputStream: FAILED HTTP $responseCode: $error")
-                CloudResult.Error("Download failed: $error")
+                CloudResult.Error(oneDriveDownloadFailedMessage())
             }
         } catch (e: Exception) {
             Timber.e(e, "OneDrive.getFileInputStream: Exception")
-            CloudResult.Error("Failed to get input stream: ${e.message}", e)
+            CloudResult.Error(
+                context.getString(
+                    R.string.download_failed,
+                    e.message ?: context.getString(R.string.error_reason_unknown)
+                ),
+                e
+            )
         }
     }
     
@@ -655,7 +685,7 @@ class OneDriveRestClient @Inject constructor(
 
         // Local sign-out on Main thread (delegates to coordinator)
         var signOutError: CloudResult.Error? = null
-        auth.signOutLocal { e -> signOutError = CloudResult.Error("Sign-out failed: ${e.message}", e) }
+        auth.signOutLocal { e -> signOutError = CloudResult.Error(context.getString(R.string.cloud_sign_out_failed), e) }
         if (signOutError != null) return signOutError!!
 
         // Queue access token for best-effort revocation (MSAL clears refresh token locally).

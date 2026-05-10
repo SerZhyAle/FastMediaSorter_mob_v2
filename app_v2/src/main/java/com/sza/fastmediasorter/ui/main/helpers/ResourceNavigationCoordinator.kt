@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -75,7 +76,7 @@ class ResourceNavigationCoordinator(
             return if (!slideshowMode) {
                 NavigationResult.Navigate(NavigationDestination.Favorites)
             } else {
-                NavigationResult.Info("Slideshow for Favorites not yet supported from this screen")
+                NavigationResult.Info(context.getString(R.string.favorites_slideshow_open_first))
             }
         }
         

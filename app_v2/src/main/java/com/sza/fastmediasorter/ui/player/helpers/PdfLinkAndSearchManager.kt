@@ -7,6 +7,7 @@ import android.graphics.RectF
 import android.net.Uri
 import androidx.annotation.RequiresApi
 import android.os.ParcelFileDescriptor
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -156,7 +157,7 @@ class PdfLinkAndSearchManager(
             Timber.d("PDF: opened link → $url")
         } catch (e: Exception) {
             Timber.e(e, "PDF: failed to open URL: $url")
-            onError("Cannot open link: $url")
+            onError(binding.root.context.getString(R.string.player_open_link_failed))
         }
     }
 
@@ -241,7 +242,7 @@ class PdfLinkAndSearchManager(
         onOcrResult: (String) -> Unit
     ) {
         if (currentBitmap == null) {
-            onError("No page rendered for OCR")
+            onError(binding.root.context.getString(R.string.player_page_not_ready))
             return
         }
 
@@ -340,7 +341,7 @@ class PdfLinkAndSearchManager(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to save PDF page for Google Lens")
                 withContext(Dispatchers.Main) {
-                    onError("Failed to prepare image for Google Lens")
+                    onError(binding.root.context.getString(R.string.toast_error_google_lens))
                 }
             }
         }

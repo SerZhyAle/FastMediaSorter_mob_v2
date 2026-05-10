@@ -61,7 +61,6 @@ object ErrorDialogHelper {
         exception: Throwable
     ) {
         val message = exception.message ?: context.getString(R.string.error_reason_unknown)
-        val stackTrace = exception.stackTraceToString()
-        showDetailedError(context, title, message, stackTrace)
+        showDetailedError(context, title, message)
     }
 }

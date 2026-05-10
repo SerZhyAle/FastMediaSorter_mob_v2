@@ -30,7 +30,7 @@ data class DropboxFolderPickerState(
     val folders: List<CloudFolderItem> = emptyList(),
     val selectedFolders: Set<String> = emptySet(),
     val isLoading: Boolean = false,
-    val currentPath: List<PathItem> = listOf(PathItem("", "Dropbox")),
+    val currentPath: List<PathItem> = emptyList(),
     val canGoBack: Boolean = false,
     val addAsDestination: Boolean = false,
     val scanSubdirectories: Boolean = true
@@ -57,7 +57,11 @@ class DropboxFolderPickerViewModel @Inject constructor(
     /** Account email passed from AddResourceActivity — stored as credentialsId in the resource */
     private val accountEmail: String? = savedStateHandle["extra_account_email"]
 
-    private val _state = MutableStateFlow(DropboxFolderPickerState())
+    private val _state = MutableStateFlow(
+        DropboxFolderPickerState(
+            currentPath = listOf(PathItem("", context.getString(R.string.dropbox)))
+        )
+    )
     val state: StateFlow<DropboxFolderPickerState> = _state.asStateFlow()
 
     private val _events = Channel<DropboxFolderPickerEvent>()

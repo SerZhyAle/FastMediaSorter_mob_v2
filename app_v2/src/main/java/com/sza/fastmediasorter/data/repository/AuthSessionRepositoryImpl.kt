@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.net.HttpCookie
 import java.time.Instant
 import javax.inject.Inject
@@ -23,11 +24,19 @@ class AuthSessionRepositoryImpl @Inject constructor(
     private val store: EncryptedCookieStore,
 ) : AuthSessionRepository {
 
-    private val flow: MutableStateFlow<List<AuthSessionDomain>> = MutableStateFlow(snapshot())
+    private val flow: MutableStateFlow<List<AuthSessionDomain>> = MutableStateFlow(emptyList())
+
+    init {
+        flow.value = snapshot()
+    }
 
     override fun observeDomains(): Flow<List<AuthSessionDomain>> = flow.asStateFlow()
 
     override suspend fun saveSession(domain: String, cookies: List<HttpCookie>) {
+        if (domain.isBlank() || cookies.isEmpty()) {
+            Timber.i("S0140: skipped empty auth session save for %s", domain)
+            return
+        }
         withContext(Dispatchers.IO) {
             store.saveFor(domain, cookies)
             flow.value = snapshot()
@@ -47,12 +56,23 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
     private fun snapshot(): List<AuthSessionDomain> {
         val now = Instant.now()
-        return store.listDomains().map { host ->
+        val staleDomains = mutableListOf<String>()
+        val snapshot = store.listDomains().mapNotNull { host ->
+            val cookieCount = store.loadFor(host).size
+            if (cookieCount == 0) {
+                staleDomains += host
+                return@mapNotNull null
+            }
             AuthSessionDomain(
                 host = host,
-                cookieCount = store.loadFor(host).size,
+                cookieCount = cookieCount,
                 savedAt = store.savedAt(host) ?: now,
             )
         }
+        if (staleDomains.isNotEmpty()) {
+            staleDomains.forEach(store::deleteFor)
+            Timber.i("S0140: pruned %d empty auth session(s)", staleDomains.size)
+        }
+        return snapshot
     }
 }

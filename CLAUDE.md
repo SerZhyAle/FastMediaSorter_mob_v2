@@ -36,16 +36,18 @@ Applied by all `/spec*` skills when writing `.md` artefacts. Reader is a senior 
 
 ## Debug Verification Tags (code specs)
 
-Every spec that modifies Kotlin code: `/spec-dev` inserts at the entry point(s) of the changed flow:
+Invariant: a `Timber.d("Sxxxx: ...")` tag exists in `.kt` code **if and only if** spec `Sxxxx` is currently in status `BlockNeedUserTest`. The tag lifecycle is bound to that status — nothing else.
 
 ```kotlin
 Timber.d("Sxxxx: <short description of exercised path>")
 ```
 
-- One tag per changed flow entry — not on every modified line.
-- If the tag appears in logcat during testing → the code path was exercised → spec can move to `Verified`.
-- **On transition to `Verified`:** grep for `Timber.d("Sxxxx:` across all `.kt` files and remove every matching line. Commit the removal together with the status change in the same commit.
-- Tags are never left in Verified or Archived code.
+- **On transition INTO `BlockNeedUserTest`** (by `/spec`, `/spec-tech`, `/spec-dev`, `/spec-all`, or a manual `update.ps1 -Status BlockNeedUserTest`): insert one tag at the entry point of each changed flow — not on every modified line. The skill that moves the ticket into the status owns the insertion.
+- During on-device testing: the tag appearing in logcat proves the code path was exercised → the spec may leave `BlockNeedUserTest` (normally `→ Verified` via `/spec-check`).
+- **On transition OUT of `BlockNeedUserTest`** (to `Verified` via `/spec-check`; back to `Tactical`/`Approved`/`Draft`/`In Progress` via `/spec-update`; to `Implemented` on `/spec-all` resume; to any other `Block*`; to `Archived`; or a manual `update.ps1 -Status …`): grep for `Timber.d("Sxxxx:` across all `.kt` files and delete every matching line. The skill that moves the ticket out of the status owns the removal; commit the removal together with the status change. A manual status change must be paired with the same grep-and-delete.
+- A tag whose `Sxxxx` is **not** currently `BlockNeedUserTest` is stale. Any `/spec-fix`, `/spec-check`, or `/spec-arc` run that notices one removes it.
+- Never remove a tag while its spec is still `BlockNeedUserTest` — the tag is the operator's logcat probe for that round of device testing. Removal is a side effect of the status leaving `BlockNeedUserTest`, never a standalone "cleanup".
+- Tags are never present in `Verified`, `Implemented`, `Partial`, `Broken`, `Block*` other than `BlockNeedUserTest`, or `Archived` code.
 
 ## Mandatory Skills (auto-trigger, do not handle manually)
 
@@ -137,6 +139,7 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 11. UI ambiguity gate: see `/ui-clarify` — implementation blocked until all placement/visibility/fallback decisions are explicit.
 12. Layout orientation: editing any `res/layout/*.xml` → ALWAYS check `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but doesn't, create it or add a blocker. **Never silently leave portrait-only edits in a layout that has a landscape counterpart.**
 13. Spec ticket discipline: never edit `PLAN/spec-catalog.jsonl` directly; never rename a spec file out of its `Sxxxx_` prefix; never re-introduce a `_spec_` segment in PLAN paths; new specs must allocate an id via `scripts/spec_catalog/insert.ps1` **before** the strategic `.md` is written to disk.
+14. Internal script ownership: do not work around broken or insufficient repo scripts when the current task depends on them. If a project script is buggy, outdated, or can be materially improved to complete the task safely, fix the script itself and then use it.
 
 ## Feature Inventory
 

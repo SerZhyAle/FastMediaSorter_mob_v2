@@ -209,6 +209,7 @@ object BackupMapper {
             linkAutoDownloadOpenInPlayer = settings.linkAutoDownloadOpenInPlayer,
             linkDownloadMaxResolution = settings.linkDownloadMaxResolution,
             linkDownloadAudioOnly = settings.linkDownloadAudioOnly,
+            linkDownloadLoginWallHeuristicEnabled = settings.linkDownloadLoginWallHeuristicEnabled,
             vrAutoDetectFormat = settings.vrAutoDetectFormat,
             vrForcedPlatFormat = settings.vrForcedPlatFormat,
             vrForcedSphericalFormat = settings.vrForcedSphericalFormat,
@@ -368,6 +369,8 @@ object BackupMapper {
             // S0116: null in older backups → preserve current setting
             linkDownloadMaxResolution = backup.linkDownloadMaxResolution ?: current.linkDownloadMaxResolution,
             linkDownloadAudioOnly = backup.linkDownloadAudioOnly ?: current.linkDownloadAudioOnly,
+            linkDownloadLoginWallHeuristicEnabled = backup.linkDownloadLoginWallHeuristicEnabled
+                ?: current.linkDownloadLoginWallHeuristicEnabled,
             vrAutoDetectFormat = backup.vrAutoDetectFormat,
             vrForcedPlatFormat = backup.vrForcedPlatFormat.gsonSafe(migratedPlatFormat),
             vrForcedSphericalFormat = backup.vrForcedSphericalFormat.gsonSafe(migratedSphericalFormat),

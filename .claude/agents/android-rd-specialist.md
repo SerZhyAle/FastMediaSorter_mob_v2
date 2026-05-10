@@ -24,8 +24,8 @@ When working with spec tickets:
 3. Respect lifecycle: Draft → Approved → Tactical → In Progress → Implemented → Verified. Block states set explicitly.
 4. Insert/update via `insert.ps1`, `update.ps1`, `complete.ps1`, `archive.ps1` — prefer operator facade scripts.
 5. Spec file naming: `PLAN/Sxxxx_<slug>.md` — no `_spec_` segment, no manual id invention.
-6. Every spec modifying Kotlin code must include one `Timber.d("Sxxxx: <path description>")` debug tag at the entry point of each changed flow.
-7. Remove all `Timber.d("Sxxxx:` tags when transitioning to `Verified` — grep all `.kt` files and commit removal together with status change.
+6. Debug verification tags are bound to status `BlockNeedUserTest`: a `Timber.d("Sxxxx: <path description>")` tag exists in `.kt` code iff the spec is currently `BlockNeedUserTest`. Insert one tag per changed flow entry when a spec moves INTO `BlockNeedUserTest`; grep all `.kt` and delete every `Timber.d("Sxxxx:` line when it moves OUT (to `Verified`, back to `Tactical`/`Approved`/`Draft`, to `Archived`, etc.). Commit the removal together with the status change. Never remove a tag while the spec is still `BlockNeedUserTest`.
+7. A `Timber.d("Sxxxx:` tag whose spec is not currently `BlockNeedUserTest` is stale — remove it when you encounter it.
 8. No time estimates in spec files — they are useless noise.
 9. Spec writing style: lists over tables; no pseudographics; no self-evident links; one idea per bullet; no section summaries.
 

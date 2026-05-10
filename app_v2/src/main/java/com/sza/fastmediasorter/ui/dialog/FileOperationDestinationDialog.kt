@@ -403,8 +403,7 @@ class FileOperationDestinationDialog(
 
                     showOperationError(
                         title = context.getString(errorTitleResId),
-                        message = errorMessage,
-                        detailedInfo = e.stackTraceToString()
+                        message = errorMessage
                     )
                     
                     binding.progressBar.visibility = View.GONE

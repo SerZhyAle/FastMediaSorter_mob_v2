@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.utils.GlideCacheStats
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -52,6 +53,7 @@ class AdapterThumbnailLoader(
     companion object {
         private val s0136PostFirstLoadDone = AtomicBoolean(false)
         const val CACHED_THUMBNAIL_SIZE = 300
+        private const val VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE = "Video player priority - thumbnail loading suspended"
         // PDF thumbnail size limits for network resources when "Large PDF Thumbnails" is ENABLED (bytes)
         private const val SMB_PDF_LARGE_MAX_SIZE = 50 * 1024 * 1024L
         private const val NETWORK_PDF_LARGE_MAX_SIZE = 10 * 1024 * 1024L
@@ -124,11 +126,10 @@ class AdapterThumbnailLoader(
         val generatedPlaceholder = createPlaceholderDrawable(file, context.resources)
         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
 
-        // S0110: during scroll assign correct placeholder immediately — prevents stale extension
+        // During scroll assign correct placeholder immediately — prevents stale extension
         // from previous ViewHolder occupant; Glide will then attempt a synchronous cache-only hit.
         if (isScrolling) {
             showGeneratedPlaceholder(imageView, file)
-            Timber.d("S0110: scroll-mode load for ${file.name} — placeholder assigned, attempting cache-only fetch")
         }
 
         if (getDisableThumbnails()) {
@@ -292,7 +293,9 @@ class AdapterThumbnailLoader(
                 if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
-                            if (e != null) {
+                            if (isVideoPriorityThumbnailSuspension(e)) {
+                                Timber.v("EPUB cover load suspended by video priority: ${file.name}")
+                            } else if (e != null) {
                                 Timber.w("EPUB cover load failed: ${file.name}, ${e.message}")
                                 NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
                             }
@@ -385,7 +388,9 @@ class AdapterThumbnailLoader(
                 if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
-                            if (e != null) {
+                            if (isVideoPriorityThumbnailSuspension(e)) {
+                                Timber.v("PDF thumbnail load suspended by video priority: ${file.name}")
+                            } else if (e != null) {
                                 Timber.w("PDF thumbnail load failed: ${file.name}, ${e.message}")
                                 NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
                             }
@@ -470,7 +475,9 @@ class AdapterThumbnailLoader(
                 if (!isScrolling) {
                     imageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
-                            if (e != null) {
+                            if (isVideoPriorityThumbnailSuspension(e)) {
+                                Timber.v("Network image load suspended by video priority: ${file.name}")
+                            } else if (e != null) {
                                 Timber.w("Network image load failed: ${file.name}, ${e.message}")
                                 NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
                             }
@@ -479,7 +486,6 @@ class AdapterThumbnailLoader(
                         }
                         override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
-                            Timber.d("S0136: net thumb ds=${dataSource.name} path=${file.path} size=${file.size}")
                             if (s0136PostFirstLoadDone.compareAndSet(false, true)) {
                                 com.sza.fastmediasorter.core.util.CacheStatusHelper.logGlideDiskCacheStatusOnce(context, "first-network-thumb")
                             }
@@ -600,7 +606,9 @@ class AdapterThumbnailLoader(
                 if (!isScrolling) {
                     videoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
-                            if (isVideoDecoderException(e)) {
+                            if (isVideoPriorityThumbnailSuspension(e)) {
+                                Timber.v("Video thumbnail load suspended by video priority: ${file.name}")
+                            } else if (isVideoDecoderException(e)) {
                                 NetworkFileDataFetcher.markVideoAsFailed(file.path)
                                 Timber.v("Thumbnail load failed: ${file.name} (decoder error, cached)")
                             } else if (e != null) {
@@ -660,6 +668,32 @@ class AdapterThumbnailLoader(
                 }
             }
         }
+    }
+
+    private fun isVideoPriorityThumbnailSuspension(e: GlideException?): Boolean {
+        if (e == null) return false
+
+        // ConnectionThrottleManager uses this cancellation as back-pressure; treating it as a
+        // failure would poison the persisted failed-thumbnail cache and suppress a later retry.
+        if (e.rootCauses.any { cause ->
+                cause is CancellationException &&
+                    cause.message?.contains(VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE) == true
+            }) {
+            return true
+        }
+
+        var current: Throwable? = e
+        var depth = 0
+        while (current != null && depth < 10) {
+            if (current is CancellationException &&
+                current.message?.contains(VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE) == true
+            ) {
+                return true
+            }
+            current = current.cause
+            depth++
+        }
+        return false
     }
 
     private fun isVideoDecoderException(e: GlideException?): Boolean {

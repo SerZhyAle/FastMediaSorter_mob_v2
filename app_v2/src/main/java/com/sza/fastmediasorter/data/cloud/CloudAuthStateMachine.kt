@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.data.cloud
 
+import android.content.Context
+import com.sza.fastmediasorter.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +25,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class CloudAuthStateMachine @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val googleDriveClient: GoogleDriveRestClient,
     private val oneDriveClient: OneDriveRestClient,
     private val dropboxClient: DropboxClient
@@ -95,7 +99,7 @@ class CloudAuthStateMachine @Inject constructor(
                         when (val ar = googleDriveClient.authenticate()) {
                             is AuthResult.Success  -> CloudResult.Success(ar.accountName)
                             is AuthResult.Error    -> CloudResult.Error(ar.message)
-                            AuthResult.Cancelled   -> CloudResult.Error("Cancelled")
+                            AuthResult.Cancelled   -> CloudResult.Error(authCancelledMessage(CloudProvider.GOOGLE_DRIVE))
                         }
                     }
                 }
@@ -109,7 +113,7 @@ class CloudAuthStateMachine @Inject constructor(
                         when (val ar = oneDriveClient.authenticate()) {
                             is AuthResult.Success  -> CloudResult.Success(ar.accountName)
                             is AuthResult.Error    -> CloudResult.Error(ar.message)
-                            AuthResult.Cancelled   -> CloudResult.Error("Cancelled")
+                            AuthResult.Cancelled   -> CloudResult.Error(authCancelledMessage(CloudProvider.ONEDRIVE))
                         }
                     }
                 }
@@ -126,7 +130,7 @@ class CloudAuthStateMachine @Inject constructor(
                         when (val ar = dropboxClient.authenticate()) {
                             is AuthResult.Success  -> CloudResult.Success(ar.accountName)
                             is AuthResult.Error    -> CloudResult.Error(ar.message)
-                            AuthResult.Cancelled   -> CloudResult.Error("Cancelled")
+                            AuthResult.Cancelled   -> CloudResult.Error(authCancelledMessage(CloudProvider.DROPBOX))
                         }
                     }
                 }
@@ -170,6 +174,12 @@ class CloudAuthStateMachine @Inject constructor(
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
+
+    private fun authCancelledMessage(provider: CloudProvider): String = when (provider) {
+        CloudProvider.GOOGLE_DRIVE -> context.getString(R.string.google_sign_in_cancelled)
+        CloudProvider.ONEDRIVE -> context.getString(R.string.msg_onedrive_auth_cancelled)
+        CloudProvider.DROPBOX -> context.getString(R.string.msg_dropbox_auth_cancelled)
+    }
 
     private fun mutableStateFor(provider: CloudProvider): MutableStateFlow<AuthState> = when (provider) {
         CloudProvider.GOOGLE_DRIVE -> _googleDriveState

@@ -97,10 +97,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 }
             }
             is LinkAutoDownloadCoordinator.Result.Failed.Other ->
-                toast(
-                    R.string.receive_share_cache_failed,
-                    result.cause.message ?: result.cause::class.java.simpleName,
-                )
+                toast(R.string.receive_share_cache_failed)
         }
     }
 
@@ -153,7 +150,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired ->
                 appContext.getString(R.string.s0116_toast_auth_required, failure.host)
             is LinkAutoDownloadCoordinator.Result.Failed.Other ->
-                failure.cause.message ?: failure.cause::class.java.simpleName
+                appContext.getString(R.string.receive_share_cache_failed)
         }
     }
 

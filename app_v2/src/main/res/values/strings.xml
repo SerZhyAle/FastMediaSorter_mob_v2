@@ -73,6 +73,8 @@
     <string name="settings_category_grid_view">Grid View</string>
     <string name="settings_category_player_ui">Player UI</string>
     <string name="settings_category_touch_zones">Touch Zones</string>
+    <string name="settings_subcategory_incoming_links">Incoming links</string>
+    <string name="settings_subcategory_camera_capture">Camera capture</string>
 
     <!-- Copy Dialog -->
     <string name="copying_files">Copying..</string>
@@ -98,6 +100,7 @@
     <string name="renamed_n_files">Renamed %1$d files.</string>
     <string name="rename_failed">Could not rename the files.</string>
     <string name="rename_failed_generic">Could not rename that file.</string>
+    <string name="rename_file_name_empty">File name cannot be empty.</string>
     <string name="file_already_exists">File already exists: %1$s</string>
     <string name="file_already_exists_skip">%1$s (skipped - file already exists)</string>
     <string name="file_already_exists_in_folder">%1$s (skipped - already exists in %2$s)</string>
@@ -206,6 +209,15 @@
     <string name="error_cloud_auth_expired">Cannot access \"%1$s\" - authentication expired or session timed out</string>
     <string name="error_cloud_auth_suggestion">Please re-authenticate your cloud storage account in Settings → Edit Resource</string>
     <string name="error_cloud_connection_failed">Cannot access \"%1$s\" - cloud connection failed</string>
+    <string name="cloud_list_files_failed">Couldn\'t load files from the cloud. Try again.</string>
+    <string name="cloud_list_folders_failed">Couldn\'t load folders from the cloud. Try again.</string>
+    <string name="cloud_metadata_failed">Couldn\'t load file details from the cloud. Try again.</string>
+    <string name="cloud_create_folder_failed">Couldn\'t create the folder in the cloud. Try again.</string>
+    <string name="cloud_upload_failed">Couldn\'t upload the file to the cloud. Try again.</string>
+    <string name="cloud_search_failed">Couldn\'t search the cloud storage. Try again.</string>
+    <string name="cloud_thumbnail_failed">Couldn\'t load the preview from the cloud. Try again.</string>
+    <string name="cloud_check_failed">Couldn\'t check the file in the cloud. Try again.</string>
+    <string name="cloud_sign_out_failed">Couldn\'t sign out of the cloud account. Try again.</string>
 
     <!-- Connection Error Details -->
     <string name="error_details_resource">Resource</string>
@@ -453,6 +465,9 @@ Close the player and try again.</string>
     <string name="epub_searching">Searching…</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
     <string name="translation_error_no_text">No text to translate</string>
+    <string name="player_webview_unavailable">Couldn\'t access the reading view. Try again.</string>
+    <string name="player_page_not_ready">That page isn\'t ready yet. Try again.</string>
+    <string name="player_open_link_failed">Couldn\'t open that link.</string>
     <string name="translation_started">Translation started…</string>
     <string name="translation_error">Translation failed</string>
     <string name="show_pdf_thumbnails">Large PDF Thumbnails (slow)</string>
@@ -802,10 +817,12 @@ Close the player and try again.</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
     <!-- Print -->
     <string name="menu_print">Print</string>
-    <string name="error_print_unavailable">No print service available on this device</string>
+    <string name="error_print_unavailable">Couldn\'t print — no print service found. Share the file or install a print app.</string>
     <string name="print_job_label">Printing: %s</string>
     <string name="error_print_file_too_large">File too large to print (max 30 MB)</string>
     <string name="error_print_download_failed">Could not download file for printing</string>
+    <string name="print_share_chooser_title">Send to print</string>
+    <string name="print_fallback_to_share">Print dialog couldn\'t open — the share menu is now open. Pick a print app.</string>
 
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Cast to…</string>
@@ -863,6 +880,11 @@ Close the player and try again.</string>
     <string name="welcome_description_4">RESOURCES — Folders from any storage type.\n\nQUICK SORT — Up to 30 color-coded destination folders for fast copy/move operations.\n\nConfigure in Settings anytime!</string>
     <string name="welcome_title_5">Powerful Extras</string>
     <string name="welcome_description_5">Go beyond simple media viewing — FastMediaSorter packs professional tools for text, documents, and audio.</string>
+    <string name="welcome_description_1_details">FastMediaSorter brings every kind of media into one place. Open photos, videos, GIFs and music from your device, from a network share, or from cloud storage — and sort them with quick taps instead of long-press menus.\n\nEverything you set up here can be changed later in Settings, so there is no wrong choice on this screen — just tap Next to keep going.</string>
+    <string name="welcome_description_2_details">Local sources are folders on the device and SD cards. Network sources connect over SMB/CIFS, SFTP and FTP. Cloud sources link Google Drive, OneDrive and Dropbox.\n\nMix as many as you like — each source shows up as its own entry on the main screen. Add or remove sources any time from Settings → Resources.</string>
+    <string name="welcome_description_3_details" formatted="false">In full-screen image and video view the screen is split into a 3×3 grid. The corner zones jump between files, the edge zones run copy, move and delete on the current file, and the centre zone opens the command panel.\n\nThe small map above shows what each zone does. You can remap these actions later in Settings.</string>
+    <string name="welcome_description_4_details">A resource is a folder you browse — from any storage type. A quick-sort destination is a folder you send files to with a single tap; you can define up to 30, each with its own colour and label.\n\nTap a colour while viewing a file to copy or move it there instantly. Set both up in Settings → Resources whenever you need.</string>
+    <string name="welcome_description_5_details">Beyond viewing, FastMediaSorter is also a player and a workshop: an audio player for your music libraries, a video library with playback controls, a PDF and EPUB reader, a text viewer and editor, on-image OCR and translation, a slideshow, home-screen widgets, scheduled file operations, favourites, and one-tap colour sorting.\n\nWhich of these are available depends on the app edition you installed — the cards below show what is included in yours.</string>
     <string name="welcome_language_picker_hint">Select app language</string>
     <string name="welcome_permissions_title">Media Files Access</string>
     <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
@@ -878,6 +900,16 @@ Close the player and try again.</string>
     <string name="welcome_feature_ocr">OCR &amp; Translate</string>
     <string name="welcome_feature_audio">Audio Player</string>
     <string name="welcome_feature_ebook">eBooks &amp; PDF</string>
+    <string name="welcome_feature_text_editor">Text Editor</string>
+    <string name="welcome_feature_video_library">Video Library</string>
+    <string name="welcome_feature_slideshow">Slideshow</string>
+    <string name="welcome_feature_gif">GIF Viewer</string>
+    <string name="welcome_feature_network">Network Sources</string>
+    <string name="welcome_feature_cloud_sync">Cloud Sync</string>
+    <string name="welcome_feature_widgets">Home Widgets</string>
+    <string name="welcome_feature_scheduled_ops">Scheduled Tasks</string>
+    <string name="welcome_feature_favorites">Favorites</string>
+    <string name="welcome_feature_quick_sort">Color Sort</string>
 
     <!-- VR-exclusive welcome page (overridden in vr/ source set; kept here for compilation) -->
     <string name="welcome_vr_title">3D &amp; VR Experience</string>
@@ -1613,6 +1645,7 @@ Close the player and try again.</string>
     <string name="slide_interval_error">Minimum interval is 5 minutes</string>
     <string name="log_copied">Log copied to clipboard</string>
     <string name="storage_permissions_granted">Storage permissions already granted</string>
+    <string name="storage_permission_granted_continue">Storage access granted. Continue selecting a folder.</string>
 
     <!-- File Operations -->
     <string name="msg_copy_started">Copying to %1$s..</string>
@@ -1733,6 +1766,7 @@ Close the player and try again.</string>
     <string name="image_edit_apply_adjustments">Apply Adjustments</string>
     <string name="msg_image_edit_completed">Image edit completed</string>
     <string name="error_image_load_failed">Could not load the image.</string>
+    <string name="image_scroll_too_fast">Please slow down a little.</string>
     <string name="error_gif_load_failed">Could not load the GIF.</string>
     <string name="msg_failed_reload_image">Could not reload the image.</string>
 
@@ -1951,6 +1985,7 @@ Close the player and try again.</string>
     <string name="text_file_display_error">Couldn\'t display this text file. Try again.</string>
     <string name="text_file_reopen_failed">Couldn\'t reopen this file with the selected encoding.</string>
     <string name="text_file_save_failed">Couldn\'t save this file. Try again.</string>
+    <string name="text_file_upload_failed_after_local_save">Saved on this device, but couldn\'t upload the file back to the server.</string>
     <string name="reopen_with_encoding">Re-open with Encoding…</string>
     <string name="select_encoding">Select Encoding</string>
     <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
@@ -2639,6 +2674,8 @@ Close the player and try again.</string>
     <string name="perm_continue_to_app">Continue to app</string>
     <string name="perm_btn_grant_all">Grant All</string>
     <string name="perm_btn_open_system_settings">Open App Settings</string>
+    <string name="permission_open_settings_for_feature">To enable %1$s, open App Settings.</string>
+    <string name="permission_open_settings_generic">Permission required. Open App Settings to enable it.</string>
     <string name="settings_manage_permissions">Manage Permissions</string>
     <string name="settings_manage_permissions_desc">View and grant app permissions</string>
     <!-- Permission registry: group headers -->
@@ -2654,6 +2691,10 @@ Close the player and try again.</string>
     <string name="perm_status_denied">Denied</string>
     <string name="perm_status_permanently_denied">Blocked</string>
     <string name="perm_status_not_applicable">Not required</string>
+    <!-- Permission row action buttons -->
+    <string name="perm_action_grant">Grant</string>
+    <string name="perm_action_manage">Manage</string>
+    <string name="perm_action_settings">Settings</string>
     <!-- Permission registry: per-permission title + description -->
     <string name="perm_title_read_external_storage">Local media access</string>
     <string name="perm_desc_read_external_storage">Browse, sort and play photos, videos and audio stored on your device. Required on Android 12 and earlier before granular media permissions were available.</string>
@@ -2766,6 +2807,8 @@ Close the player and try again.</string>
     <string name="archive_progress_message">%1$d of %2$d: %3$s</string>
     <string name="archive_success">Archive created: %1$s (%2$d files)</string>
     <string name="archive_error">Archive error: %1$s</string>
+    <string name="archive_destination_not_found">The destination folder is no longer available.</string>
+    <string name="archive_create_failed">Couldn\'t create the archive. Try again.</string>
     <string name="archive_error_network_not_supported">Archiving is only supported for local files. Network and cloud sources are not supported.</string>
     <string name="unarchive_dialog_title">Extract archive?</string>
     <string name="unarchive_dialog_message">"%1$s" -> folder "%2$s"</string>
@@ -3096,6 +3139,8 @@ Close the player and try again.</string>
     <string name="setting_skip_camera_filename_dialog_summary">Use timestamp filename without prompting after capture</string>
     <string name="tooltip_camera_capture_title">Camera capture</string>
     <string name="tooltip_camera_capture_message">The camera button in Browse lets you take a photo or video without leaving the app. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
+    <string name="tooltip_saved_authorizations_title">Saved authorizations</string>
+    <string name="tooltip_saved_authorizations_message">The in-app web sign-in screen saves the cookies and logins used when auto-downloading files from sites that require you to be signed in. Open this screen to review those saved authorizations and remove the ones you no longer need.</string>
 
     <!-- Controls & Keybindings -->
     <string name="settings_controls_keybindings_title">Controls &amp; Keybindings</string>
@@ -3322,6 +3367,14 @@ Close the player and try again.</string>
     <string name="webview_auth_cancel_button">Cancel</string>
     <string name="webview_auth_url_prompt">Enter URL (https://..)</string>
     <string name="webview_auth_invalid_url">Invalid URL — must start with http:// or https://</string>
+    <!-- S0144: resource picker for "Add authorization" -->
+    <string name="auth_add_picker_title">Choose a resource</string>
+    <string name="auth_add_enter_manually">Enter address manually</string>
+    <!-- S0144: offer to add an authorization when a social-media link is shared -->
+    <string name="auth_offer_dialog_title">Sign in to %1$s?</string>
+    <string name="auth_offer_dialog_message">Saving an authorization lets the app download content from %1$s that needs sign-in.</string>
+    <string name="auth_offer_dialog_add">Add authorization</string>
+    <string name="auth_offer_dialog_skip">Not now</string>
 
     <!-- S0118: Friendly copy baseline keys -->
     <string name="friendly_copy_error_generic">Something went wrong. Try again.</string>
@@ -3398,6 +3451,8 @@ Close the player and try again.</string>
     <string name="addresource_some_resources_unavailable_after_add">%1$s. Some resources are unavailable right now.</string>
     <string name="addresource_local_folders_found">Local folders found. Pick what to add.</string>
     <string name="addresource_folder_added_to_list">Folder added to the list.</string>
+    <string name="favorites_slideshow_open_first">Open Favorites first, then start the slideshow there.</string>
+    <string name="google_drive_sign_in_unavailable">Google Drive sign-in isn\'t available right now. Try again later.</string>
 </resources>
 
 

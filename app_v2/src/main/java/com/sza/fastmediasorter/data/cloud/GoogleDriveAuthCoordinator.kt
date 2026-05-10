@@ -10,6 +10,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.Tasks
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
@@ -297,7 +298,10 @@ class GoogleDriveAuthCoordinator(
                 isSuccess = false,
                 httpCode = 401,
                 data = null,
-                errorMessage = "Authentication expired after $TOKEN_MAX_RETRY_ATTEMPTS retry attempts. Token invalid or revoked. Please re-authenticate in Settings → Edit Resource."
+                errorMessage = context.getString(
+                    R.string.cloud_auth_required,
+                    context.getString(R.string.google_drive)
+                )
             )
         }
 

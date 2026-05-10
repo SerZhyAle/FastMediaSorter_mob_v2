@@ -81,6 +81,24 @@ class BrowseFileOperationsManager(
             dirItems: List<MediaFile> = emptyList()
         )
     }
+
+    // Prefer resource-backed failure copy here so UI reuses localized reasons instead of raw handler text.
+    private fun showFailureError(messageRes: Int, result: FileOperationResult.Failure) {
+        val details = if (result.errorRes != null) {
+            context.getString(result.errorRes, *result.formatArgs.toTypedArray())
+        } else {
+            // Many handlers still emit technical English fallback text here; keep the toast human-facing.
+            null
+        }
+        callbacks.onShowError(context.getString(messageRes), details)
+    }
+
+    private fun showUnexpectedError(messageRes: Int) {
+        callbacks.onShowError(
+            context.getString(messageRes),
+            context.getString(R.string.error_reason_unknown)
+        )
+    }
     
     fun hasPendingMoveOperation(): Boolean = pendingMoveOperation != null
 
@@ -125,7 +143,7 @@ class BrowseFileOperationsManager(
                     when (val result = fileOperationUseCase.execute(operation)) {
                         is FileOperationResult.Success -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
                         is FileOperationResult.PartialSuccess -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
-                        is FileOperationResult.Failure -> callbacks.onShowError(context.getString(R.string.move_failed), result.error)
+                        is FileOperationResult.Failure -> showFailureError(R.string.move_failed, result)
                         is FileOperationResult.PermissionRequired -> Toast.makeText(context, R.string.permission_error_retry, Toast.LENGTH_LONG).show()
                         is FileOperationResult.AuthenticationRequired -> callbacks.onAuthRequest(result.provider)
                     }
@@ -140,7 +158,7 @@ class BrowseFileOperationsManager(
                 callbacks.onOperationCompleted()
             } catch (e: Exception) {
                 Timber.e(e, "executeMoveDirectly: Exception during move")
-                callbacks.onShowError(context.getString(R.string.move_failed), e.message)
+                showUnexpectedError(R.string.move_failed)
             }
         }
     }
@@ -255,7 +273,7 @@ class BrowseFileOperationsManager(
                             FileOperationType.MOVE -> R.string.move_failed
                             else -> R.string.error_operation_failed
                         }
-                        callbacks.onShowError(context.getString(messageRes), result.error)
+                        showFailureError(messageRes, result)
                     }
                     is FileOperationResult.AuthenticationRequired -> {
                         Timber.w("executeOperationToPath: Auth required for ${result.provider}")
@@ -270,7 +288,7 @@ class BrowseFileOperationsManager(
                 Timber.w("executeOperationToPath: cancelled")
             } catch (e: Exception) {
                 Timber.e(e, "executeOperationToPath: exception")
-                callbacks.onShowError(context.getString(R.string.error_operation_failed), e.message)
+                showUnexpectedError(R.string.error_operation_failed)
             }
         }
     }
@@ -594,7 +612,7 @@ class BrowseFileOperationsManager(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to share files")
                 withContext(Dispatchers.Main) {
-                    callbacks.onShowError(context.getString(R.string.error_share_failed), e.message)
+                    showUnexpectedError(R.string.error_share_failed)
                 }
             }
         }
@@ -685,7 +703,7 @@ class BrowseFileOperationsManager(
                 }
                 is FileOperationResult.Failure -> {
                     withContext(Dispatchers.Main) {
-                        callbacks.onShowError(context.getString(R.string.error_share_download_failed), result.error)
+                        showFailureError(R.string.error_share_download_failed, result)
                     }
                     null
                 }

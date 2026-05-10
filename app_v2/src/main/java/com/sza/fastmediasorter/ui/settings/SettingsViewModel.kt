@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +49,7 @@ data class ManualNetworkSyncUiState(
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     val settingsRepository: SettingsRepository,
     val resourceRepository: ResourceRepository,
     val credentialsRepository: NetworkCredentialsRepository,
@@ -459,7 +461,7 @@ class SettingsViewModel @Inject constructor(
                     } else {
                         _manualNetworkSyncState.value = ManualNetworkSyncUiState(
                             inProgress = false,
-                            errorMessage = result.exceptionOrNull()?.message ?: "Unknown sync error"
+                            errorMessage = context.getString(R.string.sync_failed)
                         )
                     }
                 }
@@ -475,7 +477,7 @@ class SettingsViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     _manualNetworkSyncState.value = ManualNetworkSyncUiState(
                         inProgress = false,
-                        errorMessage = e.message
+                        errorMessage = context.getString(R.string.sync_failed)
                     )
                 }
             }
@@ -580,10 +582,25 @@ class SettingsViewModel @Inject constructor(
                                         java.net.URI(path).host ?: ""
                                     } catch (e: Exception) { "" }
                                 }
+
+                                // Legacy XML may omit shareName on the credential node even when the SMB path still contains it.
+                                val smbShareName = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
+                                    com.sza.fastmediasorter.utils.SmbPathUtils.extractShare(path)?.takeIf { it.isNotBlank() }
+                                } else {
+                                    null
+                                }
                                 
                                 // Check existing credentials
                                 val existingCred = existingCredentials.find { 
-                                    it.server == server && it.username == username && it.type == typeStr
+                                    it.server == server &&
+                                        it.username == username &&
+                                        it.type == typeStr &&
+                                        (
+                                            type != com.sza.fastmediasorter.domain.model.ResourceType.SMB ||
+                                                smbShareName == null ||
+                                                it.shareName == smbShareName ||
+                                                it.shareName.isNullOrBlank()
+                                        )
                                 }
                                 
                                 if (existingCred != null) {
@@ -591,10 +608,14 @@ class SettingsViewModel @Inject constructor(
                                     // UPDATE password from XML
                                     if (!password.isNullOrEmpty()) {
                                         val updatedCred = existingCred.copy(
-                                            encryptedPassword = com.sza.fastmediasorter.data.local.db.CryptoHelper.encrypt(password) ?: ""
+                                            encryptedPassword = com.sza.fastmediasorter.data.local.db.CryptoHelper.encrypt(password) ?: "",
+                                            shareName = smbShareName ?: existingCred.shareName
                                         )
                                         credentialsRepository.update(updatedCred)
                                         Timber.d("Updated password for credential $username@$server from XML")
+                                    } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB && existingCred.shareName.isNullOrBlank() && !smbShareName.isNullOrBlank()) {
+                                        credentialsRepository.update(existingCred.copy(shareName = smbShareName))
+                                        Timber.d("Updated shareName for credential $username@$server from XML")
                                     }
                                 } else {
                                     // Create new
@@ -606,7 +627,8 @@ class SettingsViewModel @Inject constructor(
                                         server = server,
                                         port = port,
                                         username = username,
-                                        plaintextPassword = password ?: ""
+                                        plaintextPassword = password ?: "",
+                                        shareName = smbShareName
                                     )
                                     credentialsRepository.insert(newCred)
                                     credId = newCredId

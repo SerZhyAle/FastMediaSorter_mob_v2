@@ -137,7 +137,7 @@ class EpubTranslationOverlayHelper(
 
         val webView = webViewProvider() ?: run {
             Timber.e("EPUB Translation: WebView is null, cannot proceed")
-            callback.showError("WebView not available for translation")
+            callback.showError(binding.root.context.getString(R.string.player_webview_unavailable))
             return
         }
 
@@ -182,7 +182,7 @@ class EpubTranslationOverlayHelper(
 
             if (extractedText.isBlank()) {
                 Timber.e("EPUB Translation: Extracted text is blank after processing")
-                callback.showError("No text found in current chapter")
+                callback.showError(binding.root.context.getString(R.string.translation_error_no_text))
                 return@evaluateJavascript
             }
 

@@ -179,9 +179,7 @@ class BrowseLoadingAuxManager(
         val details = buildString {
             append("${context.getString(R.string.error_details_resource)}: ${resource.name}\n")
             append("${context.getString(R.string.error_details_path)}: ${resource.path}\n")
-            append("${context.getString(R.string.error_details_resource_type)}: ${resource.type}\n\n")
-            append("${context.getString(R.string.error_details_error)}: ${e.message ?: e.javaClass.simpleName}\n\n")
-            append("${context.getString(R.string.error_details_stack_trace)}:\n${e.stackTraceToString()}")
+            append("${context.getString(R.string.error_details_resource_type)}: ${resource.type}")
         }
 
         sendEvent(BrowseEvent.ShowError(

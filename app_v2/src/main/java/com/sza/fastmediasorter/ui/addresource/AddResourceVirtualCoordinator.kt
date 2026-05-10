@@ -185,7 +185,6 @@ internal class AddResourceVirtualCoordinator(
         virtualPath: String,
         settings: AppSettings
     ): MediaResource? {
-        Timber.d("S0130: building user-added virtual resource path=$virtualPath isWritable=${VirtualPathUtils.isAggregateVirtualPath(virtualPath)}")
         val (name, types, profile) = when (virtualPath) {
             LocalMediaScanner.VIRTUAL_PATH_RECENT -> Triple(
                 context.getString(R.string.recent_media),

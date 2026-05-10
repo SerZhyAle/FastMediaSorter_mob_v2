@@ -37,6 +37,8 @@
 - **LINT**: ALWAYS resolve warnings in touched files. Canonical naming only.
 - **COMMENTS — READ FIRST**: Before editing any file, read ALL existing inline comments and KDoc/Javadoc in the affected area. Treat them as requirements — they encode intent, constraints, and non-obvious decisions.
 - **COMMENTS — WRITE ON MODIFY**: When adding or changing logic, add an inline comment explaining WHY (not what) whenever the reason is not immediately obvious. Remove or update stale comments that no longer reflect reality.
+- **SCRIPT OWNERSHIP**: Do NOT work around broken or weak internal repo scripts when the task depends on them. If a project script has bugs, misses the needed behavior, or can be materially improved to solve the task safely, improve the script itself and then use it.
+- **STRING RESOURCE TOOLING**: For single-key updates in `values*/strings.xml`, prefer `pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2|wear -Locale en|ru|uk -Key "<key>" -Value "<text>"`. Use manual XML edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
 - **UI AMBIGUITY GATE**: For ANY user-facing change touching layout, command placement, menus, settings UI, portrait/landscape behavior, overflow rules, visibility conditions, labels/icons/tooltips, empty/error states, or confirmation/fallback UX, DO NOT implement until all ambiguous decisions are resolved. Minimum checklist: exact placement per orientation, direct button vs overflow vs top menu, visibility by media/file type, action priority, hidden vs disabled behavior, empty/error/loading states, overwrite/confirmation/fallback behavior, and accessibility implications.
 - **LAYOUT_ORIENTATION**: MANDATORY. Any edit to `res/layout/*.xml` MUST be followed by a check of the corresponding `res/layout-land/*.xml`. If the landscape variant exists → apply the equivalent change in the same commit/step. If it does not exist but the screen supports landscape → either create the file or add an explicit blocker. **Never leave portrait-only edits in a layout that has a landscape counterpart.** Applies to ALL agents. NO exceptions.
 
@@ -44,6 +46,7 @@
 - Build: `.\dev\build-with-version.ps1`, `.\build-debug.PS1`.
 - Gradle: `assembleStandardRelease`, `testStandardDebugUnitTest`, `lintStandardDebug`.
 - Flavors: `standard` (all), `lite` (no audio/cloud/docs/anim), `photos` (images/anim only), `legacy` (no cloud/docs).
+- Strings: `pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale ru -Key "cloud_check_failed" -Value "..." [-ExpectedOldValue "..."] [-CreateIfMissing]`.
 
 ## 5. WORKFLOW
 - **CRITICAL**: For ANY task larger than a single file fix, you MUST read `dev/AGENT_WORKFLOW.md` BEFORE execution to follow the 5-step engineering process. Network specific notes are in `dev/NETWORK_SPECS.md`.

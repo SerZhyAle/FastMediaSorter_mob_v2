@@ -19,7 +19,7 @@ class WebViewAuthViewModel @Inject constructor(
 ) : ViewModel() {
 
     fun saveSession(domain: String, cookies: List<HttpCookie>) {
-        if (domain.isBlank()) return
+        if (domain.isBlank() || cookies.isEmpty()) return
         viewModelScope.launch {
             repository.saveSession(domain, cookies)
         }

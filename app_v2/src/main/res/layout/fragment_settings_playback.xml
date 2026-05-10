@@ -336,6 +336,11 @@
 
                     </LinearLayout>
 
+                    <!-- S0142: sub-section "Incoming links" — divider + caps header -->
+                    <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_subcategory_incoming_links" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
+
                     <!-- S0003: Link auto-download — master toggle -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
 
@@ -368,11 +373,22 @@
 
                     </LinearLayout>
 
-                    <!-- S0116 §5.1 pillar K: saved authorizations sub-screen entry -->
-                    <LinearLayout android:id="@+id/row_saved_authorizations" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="vertical" android:clickable="true" android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_saved_authorizations_title" android:textSize="@dimen/toggler_title_text_size" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_saved_authorizations_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                    <!-- S0116 §5.1 pillar K: saved authorizations sub-screen entry — S0142: nav-row styling (help icon + chevron) -->
+                    <LinearLayout android:id="@+id/row_saved_authorizations" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+
+                        <ImageButton android:id="@+id/iconHelpSavedAuthorizations" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginEnd="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_saved_authorizations_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_saved_authorizations_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_saved_authorizations_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_chevron_right" android:importantForAccessibility="no" />
+
                     </LinearLayout>
+
+                    <!-- S0142: close "Incoming links" sub-section -->
+                    <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
                     <!-- Toggle: Resume on next launch -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
@@ -398,6 +414,11 @@
 
                     </LinearLayout>
 
+                    <!-- S0142: sub-section "Camera capture" — divider + caps header -->
+                    <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/settings_subcategory_camera_capture" android:textAllCaps="true" android:textColor="?attr/colorPrimary" android:textSize="@dimen/text_size_small" android:textStyle="bold" />
+
                     <!-- Camera Capture: disable (row 1) + skip-filename (row 2) -->
                     <LinearLayout android:id="@+id/layoutCameraCapture" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
 
@@ -416,6 +437,9 @@
                         </LinearLayout>
 
                     </LinearLayout>
+
+                    <!-- S0142: close "Camera capture" sub-section -->
+                    <View android:layout_width="match_parent" android:layout_height="@dimen/settings_divider_height" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
                     <!-- S0050: Show Black Screen button toggle -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">

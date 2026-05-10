@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.CloudResult
@@ -131,7 +132,7 @@ class NetworkFileManager(
         if (resource == null || !resource.isWritable) {
             Timber.w("prepareFileForWrite: Resource is read-only")
             withContext(Dispatchers.Main) {
-                callback.showError("This resource is read-only. Cannot edit files.")
+                callback.showError(context.getString(R.string.error_reason_read_only))
             }
             return null
         }

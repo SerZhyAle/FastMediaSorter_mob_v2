@@ -165,6 +165,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0116 §5.1 pillar J: streaming/quality preference for url-download pipeline.
         private val KEY_LINK_DOWNLOAD_MAX_RESOLUTION = stringPreferencesKey("link_download_max_resolution")
         private val KEY_LINK_DOWNLOAD_AUDIO_ONLY = booleanPreferencesKey("link_download_audio_only")
+        private val KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED = booleanPreferencesKey("link_download_login_wall_heuristic_enabled")
 
         private val KEY_RESUME_ON_NEXT_LAUNCH = booleanPreferencesKey("resume_on_next_launch")
 
@@ -368,6 +369,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     linkDownloadMaxResolution = preferences[KEY_LINK_DOWNLOAD_MAX_RESOLUTION]
                         ?.takeIf { it in setOf("480p", "720p", "1080p", "best") } ?: "1080p",
                     linkDownloadAudioOnly = preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] ?: false,
+                    linkDownloadLoginWallHeuristicEnabled = preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] ?: true,
 
                     // VR settings (spec §5.7 / Phase 8)
                     vrAutoDetectFormat = preferences[KEY_VR_AUTO_DETECT_FORMAT] ?: true,
@@ -551,6 +553,7 @@ class SettingsRepositoryImpl @Inject constructor(
             // S0116 §5.1 pillar J
             preferences[KEY_LINK_DOWNLOAD_MAX_RESOLUTION] = settings.linkDownloadMaxResolution
             preferences[KEY_LINK_DOWNLOAD_AUDIO_ONLY] = settings.linkDownloadAudioOnly
+            preferences[KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED] = settings.linkDownloadLoginWallHeuristicEnabled
 
             // VR settings (spec §5.7 / Phase 8 split). Legacy key is removed on write so
             // existing installs migrate forward after the first successful save.

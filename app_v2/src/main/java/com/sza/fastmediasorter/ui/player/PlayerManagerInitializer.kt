@@ -350,7 +350,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                         )
                     } catch (e: Exception) {
                         timber.log.Timber.e(e, "PlayerActivity: Failed to launch batch delete permission request")
-                        activity.showError(activity.getString(R.string.error_delete_failed), e)
+                        activity.showError(activity.getString(R.string.error_delete_failed))
                     }
                 }
 

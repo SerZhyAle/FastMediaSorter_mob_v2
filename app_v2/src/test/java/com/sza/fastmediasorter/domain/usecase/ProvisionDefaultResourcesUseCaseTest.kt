@@ -39,12 +39,22 @@ class ProvisionDefaultResourcesUseCaseTest {
         useCase = ProvisionDefaultResourcesUseCase(context, resourceRepository, settingsRepository, resolveResourceIconUseCase)
     }
 
-    // ── Skip when DB is non-empty ────────────────────────────
+    // ── Skip when all predefined paths already present ───────
 
     @Test
-    fun `invoke returns false when resources already exist`() = runTest {
+    fun `invoke returns false when all predefined paths already exist`() = runTest {
+        val settings = AppSettings(
+            supportAudio = true, supportVideos = true,
+            supportText = true, supportPdf = true, supportEpub = true
+        )
+        coEvery { settingsRepository.getSettings() } returns flowOf(settings)
         val existing = listOf(
-            MediaResource(name = "Existing", path = "/some/path", type = ResourceType.LOCAL)
+            MediaResource(name = "Recent", path = LocalMediaScanner.VIRTUAL_PATH_RECENT, type = ResourceType.LOCAL),
+            MediaResource(name = "All Music", path = LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO, type = ResourceType.LOCAL),
+            MediaResource(name = "All Videos", path = LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO, type = ResourceType.LOCAL),
+            MediaResource(name = "Camera", path = LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS, type = ResourceType.LOCAL),
+            MediaResource(name = "All Images", path = LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES, type = ResourceType.LOCAL),
+            MediaResource(name = "All Docs", path = LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, type = ResourceType.LOCAL),
         )
         coEvery { resourceRepository.getAllResources() } returns flowOf(existing)
 
@@ -52,6 +62,50 @@ class ProvisionDefaultResourcesUseCaseTest {
 
         assertFalse(result)
         coVerify(exactly = 0) { resourceRepository.addResource(any()) }
+    }
+
+    // ── Partial provisioning repair ───────────────────────────
+    // Regression: viewModelScope cancelled after creating Recent but before the rest.
+    // The next launch must create the 5 missing resources instead of skipping all.
+
+    @Test
+    fun `invoke provisions missing resources when only Recent was created before cancellation`() = runTest {
+        val settings = AppSettings(
+            supportAudio = true, supportVideos = true,
+            supportText = true, supportPdf = true, supportEpub = true
+        )
+        coEvery { settingsRepository.getSettings() } returns flowOf(settings)
+        val existing = listOf(
+            MediaResource(name = "Recent", path = LocalMediaScanner.VIRTUAL_PATH_RECENT, type = ResourceType.LOCAL)
+        )
+        coEvery { resourceRepository.getAllResources() } returns flowOf(existing)
+        coEvery { resourceRepository.addResource(any()) } returns 1L
+
+        val result = useCase()
+
+        assertTrue(result)
+        // Recent already exists; the 5 missing predefined resources must be created
+        coVerify(exactly = 5) { resourceRepository.addResource(any()) }
+    }
+
+    @Test
+    fun `invoke provisions missing resources when only non-virtual resources exist`() = runTest {
+        val settings = AppSettings(
+            supportAudio = true, supportVideos = true,
+            supportText = true, supportPdf = true, supportEpub = true
+        )
+        coEvery { settingsRepository.getSettings() } returns flowOf(settings)
+        val existing = listOf(
+            MediaResource(name = "Downloads", path = "/storage/emulated/0/Download", type = ResourceType.LOCAL)
+        )
+        coEvery { resourceRepository.getAllResources() } returns flowOf(existing)
+        coEvery { resourceRepository.addResource(any()) } returns 1L
+
+        val result = useCase()
+
+        assertTrue(result)
+        // Downloads is not a predefined virtual path — all 6 must be created
+        coVerify(exactly = 6) { resourceRepository.addResource(any()) }
     }
 
     // ── Full provisioning (all features enabled) ─────────────

@@ -9,6 +9,15 @@ Write a strategic specification: product-level *what* and *why*, in Russian, wit
 /spec <roadmap-id> <short-name> --priority N
 ```
 
+If `<roadmap-id>` or `<short-name>` is missing, or if the first argument is neither `ad-hoc` nor a roadmap id like `X.11`, stop and return:
+
+```text
+Usage error: /spec <roadmap-id|ad-hoc> <short-name> [--priority N]
+Example: /spec X.11 background-thumbnail-preload
+```
+
+Do not allocate a ticket id until both arguments are valid.
+
 - `/spec X.11 background-thumbnail-preload`
 - `/spec III.12 standalone-player-playlist`
 - `/spec ad-hoc player-keybinding-remapping`
@@ -60,10 +69,10 @@ After reading context, score the task against the primitive checklist:
    - `## Approach` — bullet list: one bullet per file → what changes.
    - `## Done criteria` — one observable check per changed file.
 3. Implement the changes directly in the source files.
-4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry.
+4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry — per CLAUDE.md "Debug Verification Tags", the ticket is about to enter `BlockNeedUserTest`, so the tags must be present. One tag per flow entry, not per modified line.
 5. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
-6. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
-7. Chat output: `<Sxxxx> — Primitive. Implemented directly. Status: BlockNeedUserTest.`
+6. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`. The step-4 tags stay in code until the ticket leaves this status (removed by `/spec-check` on `Verified`, or by `/spec-update` on re-open).
+7. Chat output: `<Sxxxx> — Primitive. Implemented directly. Status: BlockNeedUserTest. Debug tags: N.`
 
 **If ANY criterion fails → COMPLEX path:** continue with step 3 below.
 
@@ -79,7 +88,7 @@ After reading context, score the task against the primitive checklist:
 | TIER 3 | `3 — Moderate` |
 | TIER 4 | `4 — Strategic` |
 
-For ad-hoc: estimate from scope, note "ad-hoc" alongside.
+For ad-hoc: evaluate the scope by affected modules and user impact, assign the closest tier label, and note "ad-hoc" alongside.
 
 **4 — Allocate ticket id.** Before any file write:
 
@@ -287,9 +296,10 @@ Block states (any active spec may transition into one of these and back via `upd
 
 ## Constraints
 
-- Body: Russian. Frontmatter, code identifiers, file paths: English. `..` not `...`. Always `ё`/`Ё`.
-- §5: no class names, file paths, line budgets, Room versions, Hilt modules — architectural roles only.
+- Language and format: Body in Russian. Frontmatter, code identifiers, and file paths in English. Use `..`, not `...`. Always use `ё`/`Ё`.
+- §5: no class names, file paths, line budgets, Room versions, Hilt modules — architectural roles only. Strategic scope stays at architecture-role level only.
 - §11: observable outcomes only, no internal architecture claims.
-- §6 and §7: mandatory even if trivial — write explicit "нет" rather than skipping.
-- Do not duplicate existing `docs/FEATURES.md` entries.
-- Read-only zones never referenced: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Required sections: §6 and §7 are mandatory even if trivial — write explicit "нет" rather than skipping. Sections §10 and §11 must not be omitted — write "No changes" if not applicable.
+- Output hygiene: do not duplicate existing `docs/FEATURES.md` entries.
+- Repo boundaries: never reference read-only zones `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Conditional notes: if the feature adds new dependency wiring, mention the need in §5.3 only at the architectural-role level and defer concrete Hilt module/file details to `/spec-tech`. If the feature has `BuildConfig`-gated behavior, note the product constraint or flavor gate in §3.2 and defer concrete flag/file details to `/spec-tech`.

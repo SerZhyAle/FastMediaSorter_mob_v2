@@ -47,6 +47,26 @@ class FileOperationsHandler(
      */
     private val appCtx: Context get() = context.applicationContext
 
+    // Detailed player errors can show stack traces, so file-operation copy here must stay user-facing.
+    private fun formatFailureMessage(
+        result: FileOperationResult.Failure,
+        fallbackRes: Int,
+        alreadyExistsRes: Int? = null,
+        vararg alreadyExistsArgs: Any
+    ): String {
+        return when {
+            result.errorRes != null -> appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
+            alreadyExistsRes != null && result.error.contains("already exists", ignoreCase = true) -> {
+                appCtx.getString(alreadyExistsRes, *alreadyExistsArgs)
+            }
+            else -> appCtx.getString(fallbackRes)
+        }
+    }
+
+    private fun reportOperationError(messageRes: Int) {
+        callback.onOperationError(appCtx.getString(messageRes), null)
+    }
+
     @Volatile private var moveInProgress = false
     @Volatile private var deleteInProgress = false
 
@@ -140,17 +160,13 @@ class FileOperationsHandler(
                             }
                         }
                         is FileOperationResult.Failure -> {
-                            val errorText = if (result.errorRes != null) {
-                                appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                            } else if (result.error.contains("already exists", ignoreCase = true)) {
-                                appCtx.getString(com.sza.fastmediasorter.R.string.error_file_exists_copy, currentFile.name, destination.name)
-                            } else {
-                                result.error
-                            }
-
-                            val message = if (result.errorRes != null || errorText != result.error) errorText
-                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed)
-
+                            val message = formatFailureMessage(
+                                result,
+                                com.sza.fastmediasorter.R.string.error_copy_failed,
+                                com.sza.fastmediasorter.R.string.error_file_exists_copy,
+                                currentFile.name,
+                                destination.name
+                            )
                             callback.onOperationError(message, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> {
@@ -165,7 +181,7 @@ class FileOperationsHandler(
                 Timber.e(e, "FileOperationsHandler: Copy operation failed")
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed), e)
+                        reportOperationError(com.sza.fastmediasorter.R.string.error_copy_failed)
                     }
                 }
             }
@@ -234,17 +250,13 @@ class FileOperationsHandler(
                             callback.onMoveSuccess(destination, currentFile.path, true)
                         }
                         is FileOperationResult.Failure -> {
-                            val errorText = if (result.errorRes != null) {
-                                appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                            } else if (result.error.contains("already exists", ignoreCase = true)) {
-                                appCtx.getString(com.sza.fastmediasorter.R.string.error_file_exists_move, currentFile.name, destination.name)
-                            } else {
-                                result.error
-                            }
-
-                            val message = if (result.errorRes != null || errorText != result.error) errorText
-                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed)
-
+                            val message = formatFailureMessage(
+                                result,
+                                com.sza.fastmediasorter.R.string.error_move_failed,
+                                com.sza.fastmediasorter.R.string.error_file_exists_move,
+                                currentFile.name,
+                                destination.name
+                            )
                             callback.onOperationError(message, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> {
@@ -260,10 +272,7 @@ class FileOperationsHandler(
                 moveInProgress = false
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(
-                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed),
-                            e
-                        )
+                        reportOperationError(com.sza.fastmediasorter.R.string.error_move_failed)
                     }
                 }
             }
@@ -302,8 +311,7 @@ class FileOperationsHandler(
                             if (settings.goToNextAfterCopy) callback.onCopyToPathSuccess(destinationPath, true)
                         }
                         is FileOperationResult.Failure -> {
-                            val msg = if (result.errorRes != null) appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed)
+                            val msg = formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_copy_failed)
                             callback.onOperationError(msg, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
@@ -314,7 +322,7 @@ class FileOperationsHandler(
                 Timber.e(e, "FileOperationsHandler: performCopyToPath failed")
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed), e)
+                        reportOperationError(com.sza.fastmediasorter.R.string.error_copy_failed)
                     }
                 }
             }
@@ -357,8 +365,7 @@ class FileOperationsHandler(
                             callback.onMoveToPathSuccess(destinationPath, currentFile.path, true)
                         }
                         is FileOperationResult.Failure -> {
-                            val msg = if (result.errorRes != null) appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed)
+                            val msg = formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_move_failed)
                             callback.onOperationError(msg, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
@@ -370,10 +377,7 @@ class FileOperationsHandler(
                 moveInProgress = false
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(
-                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed),
-                            e
-                        )
+                        reportOperationError(com.sza.fastmediasorter.R.string.error_move_failed)
                     }
                 }
             }
@@ -432,11 +436,7 @@ class FileOperationsHandler(
                     is FileOperationResult.Failure -> {
                         Timber.e("FileOperationsHandler.performDelete: Delete FAILED - ${result.error}")
                         deleteInProgress = false
-                        val message = if (result.errorRes != null) {
-                            context.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                        } else {
-                            context.getString(com.sza.fastmediasorter.R.string.error_delete_failed)
-                        }
+                        val message = formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_delete_failed)
                         callback.onOperationError(message, null)
                     }
                     else -> {
@@ -456,7 +456,7 @@ class FileOperationsHandler(
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Delete operation failed with exception")
                 deleteInProgress = false
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_failed), e)
+                reportOperationError(com.sza.fastmediasorter.R.string.error_delete_failed)
             }
         }
     }
@@ -484,7 +484,7 @@ class FileOperationsHandler(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Share operation failed")
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed), e)
+                reportOperationError(com.sza.fastmediasorter.R.string.error_share_failed)
             }
         }
     }
@@ -567,7 +567,9 @@ class FileOperationsHandler(
                     }
                 }
                 is FileOperationResult.Failure -> {
-                    callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_download_failed))
+                    callback.onOperationError(
+                        formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_share_download_failed)
+                    )
                 }
                 else -> {
                     callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_unexpected))
@@ -658,7 +660,7 @@ class FileOperationsHandler(
                 context.startActivity(Intent.createChooser(shareIntent, context.getString(com.sza.fastmediasorter.R.string.title_share_chooser)))
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Failed to share local file")
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed), e)
+                reportOperationError(com.sza.fastmediasorter.R.string.error_share_failed)
             }
         }
     }

@@ -19,8 +19,14 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Creates the four predefined virtual resources on first app launch.
- * Condition: DB contains zero resources.
+ * Creates predefined virtual resources on first app launch.
+ *
+ * Idempotent: checks each virtual path individually so that a partial provisioning
+ * (e.g. interrupted by viewModelScope cancellation during WelcomeActivity) is
+ * completed on the next call instead of being silently skipped.
+ *
+ * displayOrder follows the canonical slot positions (0–5) so that resources
+ * created in a repair pass land in the same order as a fresh install.
  */
 class ProvisionDefaultResourcesUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -29,48 +35,62 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase
 ) {
     /**
-     * Returns true if provisioning was performed; false if skipped (not first launch).
+     * Returns true if at least one predefined resource was provisioned; false if all already exist.
      */
     suspend operator fun invoke(): Boolean {
-        val existingResources = resourceRepository.getAllResources().first()
-        if (existingResources.isNotEmpty()) return false
-
+        val existingPaths = resourceRepository.getAllResources().first().map { it.path }.toSet()
         val settings = settingsRepository.getSettings().first()
+
+        // Slot counter — increments for every predefined resource slot (created or skipped),
+        // keeping displayOrder stable whether this is a fresh install or a repair pass.
         var displayOrder = 0
+        var provisionedCount = 0
 
         // 1. Recent — show all files by default (S0059: users expect full file history, not media-only)
-        createVirtualResource(
-            name = context.getString(R.string.recent_media),
-            comment = context.getString(R.string.virtual_comment_recent),
-            path = LocalMediaScanner.VIRTUAL_PATH_RECENT,
-            supportedMediaTypes = settings.getGloballyEnabledMediaTypes(),
-            profile = ResourceProfile.NONE,
-            displayOrder = displayOrder++,
-            allFiles = true
-        )
+        if (LocalMediaScanner.VIRTUAL_PATH_RECENT !in existingPaths) {
+            createVirtualResource(
+                name = context.getString(R.string.recent_media),
+                comment = context.getString(R.string.virtual_comment_recent),
+                path = LocalMediaScanner.VIRTUAL_PATH_RECENT,
+                supportedMediaTypes = settings.getGloballyEnabledMediaTypes(),
+                profile = ResourceProfile.NONE,
+                displayOrder = displayOrder,
+                allFiles = true
+            )
+            provisionedCount++
+        }
+        displayOrder++
 
         // 2. All Music
         if (BuildConfig.SUPPORT_AUDIO && settings.supportAudio) {
-            createVirtualResource(
-                name = context.getString(R.string.virtual_all_music),
-                comment = context.getString(R.string.virtual_comment_all_music),
-                path = LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
-                supportedMediaTypes = setOf(MediaType.AUDIO),
-                profile = ResourceProfile.AUDIO_LIBRARY,
-                displayOrder = displayOrder++
-            )
+            if (LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO !in existingPaths) {
+                createVirtualResource(
+                    name = context.getString(R.string.virtual_all_music),
+                    comment = context.getString(R.string.virtual_comment_all_music),
+                    path = LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
+                    supportedMediaTypes = setOf(MediaType.AUDIO),
+                    profile = ResourceProfile.AUDIO_LIBRARY,
+                    displayOrder = displayOrder
+                )
+                provisionedCount++
+            }
+            displayOrder++
         }
 
         // 3. All Videos
         if (settings.supportVideos) {
-            createVirtualResource(
-                name = context.getString(R.string.virtual_all_video),
-                comment = context.getString(R.string.virtual_comment_all_video),
-                path = LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
-                supportedMediaTypes = setOf(MediaType.VIDEO),
-                profile = ResourceProfile.VIDEO_LIBRARY,
-                displayOrder = displayOrder++
-            )
+            if (LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO !in existingPaths) {
+                createVirtualResource(
+                    name = context.getString(R.string.virtual_all_video),
+                    comment = context.getString(R.string.virtual_comment_all_video),
+                    path = LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
+                    supportedMediaTypes = setOf(MediaType.VIDEO),
+                    profile = ResourceProfile.VIDEO_LIBRARY,
+                    displayOrder = displayOrder
+                )
+                provisionedCount++
+            }
+            displayOrder++
         }
 
         // 4. Camera
@@ -81,16 +101,20 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
                 if (settings.supportVideos) add(MediaType.VIDEO)
             }
             if (cameraImageTypes.isNotEmpty()) {
-                createVirtualResource(
-                    name = context.getString(R.string.virtual_camera_photos),
-                    comment = context.getString(R.string.virtual_comment_camera_photos),
-                    path = LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
-                    supportedMediaTypes = cameraImageTypes,
-                    profile = ResourceProfile.PHOTO_STORAGE,
-                    displayMode = DisplayMode.GRID,
-                    sortMode = SortMode.DATE_DESC,
-                    displayOrder = displayOrder++
-                )
+                if (LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS !in existingPaths) {
+                    createVirtualResource(
+                        name = context.getString(R.string.virtual_camera_photos),
+                        comment = context.getString(R.string.virtual_comment_camera_photos),
+                        path = LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
+                        supportedMediaTypes = cameraImageTypes,
+                        profile = ResourceProfile.PHOTO_STORAGE,
+                        displayMode = DisplayMode.GRID,
+                        sortMode = SortMode.DATE_DESC,
+                        displayOrder = displayOrder
+                    )
+                    provisionedCount++
+                }
+                displayOrder++
             }
         }
 
@@ -101,14 +125,18 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
                 if (settings.supportGifs) add(MediaType.GIF)
             }
             if (imageTypes.isNotEmpty()) {
-                createVirtualResource(
-                    name = context.getString(R.string.virtual_all_images),
-                    comment = context.getString(R.string.virtual_comment_all_images),
-                    path = LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
-                    supportedMediaTypes = imageTypes,
-                    profile = ResourceProfile.PHOTO_STORAGE,
-                    displayOrder = displayOrder++
-                )
+                if (LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES !in existingPaths) {
+                    createVirtualResource(
+                        name = context.getString(R.string.virtual_all_images),
+                        comment = context.getString(R.string.virtual_comment_all_images),
+                        path = LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
+                        supportedMediaTypes = imageTypes,
+                        profile = ResourceProfile.PHOTO_STORAGE,
+                        displayOrder = displayOrder
+                    )
+                    provisionedCount++
+                }
+                displayOrder++
             }
         }
 
@@ -120,18 +148,23 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
                 if (settings.supportEpub) add(MediaType.EPUB)
             }
             if (docTypes.isNotEmpty()) {
-                createVirtualResource(
-                    name = context.getString(R.string.virtual_all_docs),
-                    comment = context.getString(R.string.virtual_comment_all_docs),
-                    path = LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
-                    supportedMediaTypes = docTypes,
-                    profile = ResourceProfile.DOCUMENTS,
-                    displayOrder = displayOrder++
-                )
+                if (LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS !in existingPaths) {
+                    createVirtualResource(
+                        name = context.getString(R.string.virtual_all_docs),
+                        comment = context.getString(R.string.virtual_comment_all_docs),
+                        path = LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
+                        supportedMediaTypes = docTypes,
+                        profile = ResourceProfile.DOCUMENTS,
+                        displayOrder = displayOrder
+                    )
+                    provisionedCount++
+                }
+                displayOrder++
             }
         }
 
-        Timber.i("Provisioned %d default virtual resources on first launch", displayOrder)
+        if (provisionedCount == 0) return false
+        Timber.i("Provisioned %d default virtual resources on first launch", provisionedCount)
         return true
     }
 
@@ -146,7 +179,6 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         sortMode: SortMode = SortMode.NAME_ASC,
         allFiles: Boolean = false
     ) {
-        Timber.d("S0130: provisioning virtual resource path=$path isWritable=${VirtualPathUtils.isAggregateVirtualPath(path)}")
         val resource = MediaResource(
             id = 0,
             name = name,

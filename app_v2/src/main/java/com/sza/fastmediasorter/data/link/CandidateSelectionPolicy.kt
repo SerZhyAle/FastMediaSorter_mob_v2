@@ -12,7 +12,7 @@ package com.sza.fastmediasorter.data.link
  *    below ≥ 1 MiB direct files and above plain inline anchors. Returns the first
  *    HLS or DASH manifest candidate by input order.
  * 5. Else return the first candidate by input order.
- * 6. Empty filtered list → null.
+ * 6. Empty filtered list -> null.
  */
 object CandidateSelectionPolicy {
 

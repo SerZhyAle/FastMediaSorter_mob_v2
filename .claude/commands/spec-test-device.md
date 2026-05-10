@@ -155,6 +155,14 @@ Run the project's log analyser against the captured file:
 .\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Exceptions
 ```
 
+First grep for the spec's own debug verification tags — the primary "code path exercised" signal (the spec is in `BlockNeedUserTest`, so per CLAUDE.md "Debug Verification Tags" it carries `Timber.d("<Sxxxx>: …")` lines):
+
+```powershell
+.\scripts\utils\search-log.ps1 -LogFile "temp/<Sxxxx>_run_<TS>.log" -Pattern "<Sxxxx>:" -AppOnly
+```
+
+For every `<Sxxxx>:` line found in the log, mark the corresponding criterion / changed flow as **exercised on-device** in the scenario's `## Log findings`. A flow whose tag never appeared = not exercised by the scenario (note it as a coverage gap, not necessarily a FAIL).
+
 Additionally grep for tags belonging to spec classes. Resolve class names from the catalog:
 
 ```powershell

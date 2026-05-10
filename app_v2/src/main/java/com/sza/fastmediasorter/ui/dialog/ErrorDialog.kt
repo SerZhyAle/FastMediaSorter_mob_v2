@@ -124,7 +124,7 @@ object ErrorDialog {
     }
 
     /**
-     * Convenience overload: shows dialog from a [Throwable], using its message + full stack trace.
+     * Convenience overload: shows dialog from a [Throwable] without exposing raw stack traces.
      */
     fun show(
         context: Context,
@@ -132,8 +132,7 @@ object ErrorDialog {
         throwable: Throwable
     ) {
         val message = throwable.message ?: context.getString(R.string.error_reason_unknown)
-        val details = throwable.stackTraceToString()
-        show(context, title, message, details)
+        show(context, title, message)
     }
 
     private fun copyToClipboard(context: Context, text: String) {

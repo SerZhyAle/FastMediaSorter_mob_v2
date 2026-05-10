@@ -30,7 +30,7 @@ data class OneDriveFolderPickerState(
     val folders: List<CloudFolderItem> = emptyList(),
     val selectedFolders: Set<String> = emptySet(),
     val isLoading: Boolean = false,
-    val currentPath: List<PathItem> = listOf(PathItem("root", "OneDrive")),
+    val currentPath: List<PathItem> = emptyList(),
     val canGoBack: Boolean = false,
     val addAsDestination: Boolean = false,
     val scanSubdirectories: Boolean = true
@@ -57,7 +57,11 @@ class OneDriveFolderPickerViewModel @Inject constructor(
     /** Account email passed from AddResourceActivity — stored as credentialsId in the resource */
     private val accountEmail: String? = savedStateHandle["extra_account_email"]
 
-    private val _state = MutableStateFlow(OneDriveFolderPickerState())
+    private val _state = MutableStateFlow(
+        OneDriveFolderPickerState(
+            currentPath = listOf(PathItem("root", context.getString(R.string.onedrive)))
+        )
+    )
     val state: StateFlow<OneDriveFolderPickerState> = _state.asStateFlow()
 
     private val _events = Channel<OneDriveFolderPickerEvent>()

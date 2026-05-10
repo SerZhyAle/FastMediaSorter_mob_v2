@@ -489,7 +489,7 @@ class StandaloneViewManager(
                 PlaybackException.ERROR_CODE_REMOTE_ERROR                -> activity.getString(R.string.error_network_playback)
                 PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW          -> activity.getString(R.string.error_behind_live_window)
                 PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED  -> activity.getString(R.string.error_invalid_format)
-                else -> error.message ?: activity.getString(R.string.error_playback_failed)
+                else -> activity.getString(R.string.error_playback_failed)
             }
             showToastError(msg)
             Timber.e(error, "StandaloneViewManager: playback error — $msg")

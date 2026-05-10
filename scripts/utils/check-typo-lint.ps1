@@ -139,8 +139,8 @@ try {
 
                 $fileWarnings = @()
 
-                if ($lineCount -gt 1000) {
-                    $fileWarnings += "File exceeds 1500ines ($lineCount)"
+                if ($lineCount -gt 1500) {
+                    $fileWarnings += "File exceeds 1500 lines ($lineCount)"
                 }
 
                 $lineNumber = 0
@@ -172,6 +172,60 @@ try {
             Write-Report "Activity checks warnings total: $activityWarnings"
         }
     }
+
+    if (-not $SkipActivityChecks) {
+        Write-Section "GLOBAL CODE QUALITY CHECKS"
+        
+        $excludePaths = @("build", "temp", "V1", "v2_6", "spec_v2", "dev", ".git", ".gradle", ".idea")
+        $allCodeFiles = Get-ChildItem -Path "." -Recurse -Include "*.kt", "*.java" | Where-Object {
+            $path = $_.FullName.Replace($projectRoot, "")
+            $isExcluded = $false
+            foreach ($ex in $excludePaths) {
+                if ($path -match "\\$ex\\") {
+                    $isExcluded = $true
+                    break
+                }
+            }
+            -not $isExcluded
+        }
+
+        Write-Host "Scanning $($allCodeFiles.Count) code files for forbidden patterns..." -ForegroundColor Yellow
+        Write-Report "Global code scan: $($allCodeFiles.Count) files"
+
+        $globalWarnings = 0
+        foreach ($file in $allCodeFiles) {
+            $relativePath = $file.FullName.Replace($projectRoot + "\\", "")
+            $lines = Get-Content -Path $file.FullName
+            
+            $fileWarnings = @()
+            $lineNumber = 0
+            foreach ($line in $lines) {
+                $lineNumber++
+                # Check for Log.d/v/i/e/w
+                if ($line -match "\bLog\.(d|v|i|e|w)\(") {
+                    $fileWarnings += "Line ${lineNumber}: forbidden $($matches[0]) (use Timber)"
+                }
+                # Check for println()
+                if ($line -match "\bprintln\(") {
+                    $fileWarnings += "Line ${lineNumber}: forbidden println()"
+                }
+            }
+
+            if ($fileWarnings.Count -gt 0) {
+                $globalWarnings += $fileWarnings.Count
+                Write-Host "WARN: $relativePath" -ForegroundColor DarkYellow
+                Write-Report "WARN: $relativePath"
+                foreach ($warning in $fileWarnings) {
+                    Write-Host "  - $warning" -ForegroundColor DarkYellow
+                    Write-Report "  - $warning"
+                }
+            }
+        }
+        
+        $activityWarnings += $globalWarnings
+        Write-Host "Global code warnings: $globalWarnings" -ForegroundColor Yellow
+        Write-Report "Global code warnings total: $globalWarnings"
+    }
 }
 finally {
     Pop-Location
@@ -181,7 +235,7 @@ Write-Section "SUMMARY"
 Write-Host "Report: $reportPath" -ForegroundColor DarkGray
 Write-Host "Typo exit code: $typoExitCode" -ForegroundColor Gray
 Write-Host "Lint exit code: $lintExitCode" -ForegroundColor Gray
-Write-Host "Activity warnings: $activityWarnings" -ForegroundColor Gray
+Write-Host "Code quality warnings (Total): $activityWarnings" -ForegroundColor Gray
 
 $exitCode = 0
 
@@ -194,7 +248,7 @@ if ($lintExitCode -ne 0) {
 }
 
 if ($FailOnActivityWarnings -and $activityWarnings -gt 0) {
-    Write-Host "Failing due to Activity warnings (-FailOnActivityWarnings)." -ForegroundColor Red
+    Write-Host "Failing due to Code quality warnings (-FailOnActivityWarnings)." -ForegroundColor Red
     $exitCode = 2
 }
 

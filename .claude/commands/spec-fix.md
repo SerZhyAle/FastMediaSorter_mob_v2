@@ -26,10 +26,11 @@ A fix is auto-applicable iff purely mechanical — no logic, design, or naming d
 | Category | Auto fix |
 | --- | --- |
 | Missing dev log entry | Run `.\scripts\add_to_dev_log.ps1` using the step's intent as description. |
-| Trilingual string gap | Add key with `<!-- TODO translate: <EN text> -->` placeholder. Never invent translation. |
+| Trilingual string gap | Add key with `<!-- TODO translate: <EN text> -->` placeholder. If this is stored as an XML comment rather than a `<string>` body, manual XML edit is allowed because `set-android-string.ps1` only writes string values. Never invent translation. |
 | Stale catalog entry | Run `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2\|wear>`. Note manual `role`/`status` still need `set.ps1`. |
 | `Log.d()` on executable line (1–3 hits) | Replace with `Timber.d(`, add `import timber.log.Timber` if missing. |
 | Missing `import timber.log.Timber` | Add import in canonical position. |
+| Stale `Timber.d("S\d{4}:` debug tag | Delete the line if the tag's spec is not currently `BlockNeedUserTest` (resolve via `select.ps1 -Id <Sxxxx> -Format json`). Applies to the audited spec's own tags and to any such tag found in a `.kt` file already being edited for another fix. Never delete a tag whose spec is `BlockNeedUserTest`. See CLAUDE.md "Debug Verification Tags". |
 | INDEX counter drift | Recompute counter from phase statuses, overwrite. |
 | INDEX row status drift | Update row to match phase file header. |
 | FEATURES bullet missing in RU/UK | Mirror EN bullet as `<!-- TODO translate: <EN> -->` placeholder. |
@@ -57,8 +58,9 @@ Deterministic order:
 2. Trilingual string mirrors.
 3. FEATURES trilingual bullets.
 4. `Log.d` → `Timber.d` rewrites + imports.
-5. INDEX counter / status drift corrections.
-6. Dev log entries — last, after all file edits.
+5. Stale `Timber.d("S\d{4}:` debug-tag deletions (spec not `BlockNeedUserTest`).
+6. INDEX counter / status drift corrections.
+7. Dev log entries — last, after all file edits.
 
 Before each fix: re-verify the precondition (block may be stale). If already fixed → mark `[PRE-RESOLVED]`, no action.
 
@@ -85,6 +87,8 @@ After at least one fix was applied — immediately invoke `/spec-check <Sxxxx>` 
 
 - Never modify application code beyond the category table.
 - Never invent translations — only `<!-- TODO translate: <EN text> -->` placeholders.
+- If a repo helper script used by the auto-fix is broken or insufficient, fix the script first instead of working around it.
+- Prefer `scripts/utils/set-android-string.ps1` when an auto-fix updates or inserts Android `<string>` keys; manual XML edits are only for structural resource changes.
 - Re-verify every precondition before patching — the audit block may be hours old.
 - Dev log entries run last, batch-applied.
 - Never touch `Status:` on specs — only `/spec-check` moves those.

@@ -1033,7 +1033,7 @@ class TextViewerManager(
         val fileToSave = currentFile
 
         if (fileToSave == null) {
-            callback.showError("No file loaded")
+            callback.showError(context.getString(R.string.text_file_not_found))
             return
         }
 
@@ -1045,7 +1045,6 @@ class TextViewerManager(
                 if (localFile == null) {
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        callback.showError("Cannot write to this file")
                     }
                     return@launch
                 }
@@ -1061,7 +1060,7 @@ class TextViewerManager(
                         withContext(Dispatchers.Main) {
                             binding.progressBar.isVisible = false
                             callback.showError(
-                                "File saved locally but failed to upload to server"
+                                context.getString(R.string.text_file_upload_failed_after_local_save)
                             )
                         }
                         return@launch

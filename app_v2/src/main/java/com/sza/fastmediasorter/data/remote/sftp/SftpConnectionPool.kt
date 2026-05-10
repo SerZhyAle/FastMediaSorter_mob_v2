@@ -72,6 +72,7 @@ class SftpConnectionPool {
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
         val key = ConnectionKey(info.host, info.port, info.username)
+        Timber.d("S0147: withConnection host=${info.host}")
         try {
             connectionSemaphore.acquire()
             try {
@@ -87,6 +88,16 @@ class SftpConnectionPool {
                     }
                     if (!pooled.session.isConnected) {
                         Timber.w("SFTP [FILE_OPS] session lost, retrying: ${e.message}")
+                        invalidateSession(key)
+                        val newPooled = getOrCreateSession(key, info)
+                        newPooled.lastUsed = System.currentTimeMillis()
+                        val newPc = getOrCreateFileOpsChannel(newPooled, info)
+                        return@withContext newPc.mutex.withLock { block(newPc.channel) }
+                    }
+                    // S0147: silent TCP drop — isConnected flags stay true but transport is dead
+                    if (isDeadTransportException(e)) {
+                        Timber.w("SFTP [FILE_OPS] dead transport detected (${e.message}), reconnecting")
+                        removeChannel(pooled, pc.channel)
                         invalidateSession(key)
                         val newPooled = getOrCreateSession(key, info)
                         newPooled.lastUsed = System.currentTimeMillis()
@@ -327,6 +338,7 @@ class SftpConnectionPool {
     }
 
     private fun evictPlaybackChannel(channel: ChannelSftp) {
+        Timber.d("S0047: evictPlaybackChannel — removing broken ExoPlayer channel from pool")
         pooledSessions.values.forEach { pooled ->
             val target = pooled.pooledChannels.firstOrNull { it.channel == channel } ?: return@forEach
             try { channel.disconnect() } catch (e: Exception) {
@@ -479,6 +491,18 @@ class SftpConnectionPool {
         }
     }
 
+    /**
+     * Returns true iff [e] is a dead-transport IOException — i.e. the JSch session's underlying
+     * TCP socket is silently broken while JSch's isConnected flags still report true (S0147).
+     * SFTP-protocol errors ([com.jcraft.jsch.SftpException]) are not IOExceptions, so they never
+     * match here.
+     */
+    private fun isDeadTransportException(e: Exception): Boolean {
+        if (e !is IOException) return false
+        val msg = e.message?.lowercase() ?: return false
+        return DEAD_TRANSPORT_MESSAGES.any { msg.contains(it) }
+    }
+
     companion object {
         private const val CONNECTION_TIMEOUT = 10_000
         private const val SOCKET_TIMEOUT = 30_000
@@ -487,5 +511,21 @@ class SftpConnectionPool {
         private const val MAX_PLAYBACK_CHANNELS = 1      // reserved for ExoPlayer streaming
         private const val MAX_FILE_OPS_CHANNELS = 4      // for suspend file operations
         private const val IDLE_TIMEOUT_MS = 25_000L
+
+        /**
+         * Lowercase substrings of IOException messages that indicate a dead JSch transport
+         * (silent TCP drop, half-open connection) rather than an SFTP-protocol error.
+         * S0147: extend this list when new signals are confirmed in field logs or JSch source.
+         *
+         * Sources:
+         *  - "inputstream is closed"  → Channel.getInputStream() when io.in == null (field-confirmed)
+         *  - "channel is not opened"  → Channel.checkConnected() when _isConnected = false after drop
+         *  - "broken pipe"            → java.net.SocketException from OS when writing to dead socket
+         */
+        internal val DEAD_TRANSPORT_MESSAGES = listOf(
+            "inputstream is closed",
+            "channel is not opened",
+            "broken pipe"
+        )
     }
 }

@@ -2,6 +2,7 @@
 <resources>
     <!-- Grid column counts for landscape orientation -->
     <integer name="grid_column_count">3</integer>
+    <integer name="welcome_feature_grid_columns">4</integer>
     <integer name="grid_column_count_landscape">6</integer>
     <integer name="grid_column_count_list">3</integer>
     <integer name="resource_grid_column_count">4</integer>

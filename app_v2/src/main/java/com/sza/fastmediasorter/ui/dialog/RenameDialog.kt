@@ -38,6 +38,21 @@ class RenameDialog(
     private lateinit var binding: DialogRenameBinding
     private var renameFilesAdapter: RenameFilesAdapter? = null
 
+    // Keep rename errors resource-driven so UI does not depend on raw handler wording.
+    private fun FileOperationResult.Failure.toRenameFailureMessage(newName: String): String {
+        val localizedMessage = errorRes?.let { context.getString(it, *formatArgs.toTypedArray()) }
+        return when {
+            errorRes == R.string.file_already_exists -> localizedMessage.orEmpty()
+            error.contains("already exists", ignoreCase = true) -> context.getString(R.string.file_already_exists, newName)
+            localizedMessage != null -> localizedMessage
+            else -> context.getString(R.string.rename_failed_generic)
+        }
+    }
+
+    private fun FileOperationResult.Failure.isAlreadyExistsFailure(): Boolean {
+        return errorRes == R.string.file_already_exists || error.contains("already exists", ignoreCase = true)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DialogRenameBinding.inflate(layoutInflater)
@@ -110,7 +125,7 @@ class RenameDialog(
         val newName = binding.etFileName.text.toString().trim()
         
         if (newName.isEmpty()) {
-            binding.tilFileName.error = "File name cannot be empty"
+            binding.tilFileName.error = context.getString(R.string.rename_file_name_empty)
             return
         }
         
@@ -156,11 +171,9 @@ class RenameDialog(
                         dismiss()
                     }
                     is FileOperationResult.Failure -> {
-                        if (result.error.contains("already exists")) {
-                            binding.tilFileName.error = context.getString(
-                                R.string.file_already_exists,
-                                newName
-                            )
+                        val message = result.toRenameFailureMessage(newName)
+                        if (result.isAlreadyExistsFailure()) {
+                            binding.tilFileName.error = message
                         } else {
                             Timber.w(
                                 "RenameDialog: rename failed for %s: %s",
@@ -169,7 +182,7 @@ class RenameDialog(
                             )
                             Toast.makeText(
                                 context,
-                                R.string.rename_failed_generic,
+                                message,
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -234,12 +247,13 @@ class RenameDialog(
                         }
 
                         is FileOperationResult.Failure -> {
+                            val message = result.toRenameFailureMessage(newName)
                             Timber.w(
                                 "RenameDialog: batch rename failed for %s: %s",
                                 file.path,
                                 result.error
                             )
-                            errors.add("${file.name}: ${context.getString(R.string.rename_failed_generic)}")
+                            errors.add("${file.name}: $message")
                         }
 
                         else -> {

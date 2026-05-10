@@ -465,9 +465,9 @@ class BrowseDialogHelper(
         onRemoveResource: () -> Unit = {}
     ) {
         val providerName = when (provider) {
-            com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE -> "Google Drive"
-            com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX -> "Dropbox"
-            com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE -> "OneDrive"
+            com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE -> activity.getString(R.string.google_drive)
+            com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX -> activity.getString(R.string.dropbox)
+            com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE -> activity.getString(R.string.onedrive)
         }
         
         AlertDialog.Builder(activity)
@@ -633,10 +633,10 @@ class BrowseDialogHelper(
                         renamedCount++
                         renamedPairs[file.absolutePath] = newFile.absolutePath
                     } else {
-                        errors.add("Failed to rename ${file.name}")
+                        errors.add("${file.name}: ${activity.getString(R.string.rename_failed_generic)}")
                     }
                 } catch (e: Exception) {
-                    errors.add("${file.name}: ${e.message}")
+                    errors.add("${file.name}: ${activity.getString(R.string.rename_failed_generic)}")
                 }
             }
             

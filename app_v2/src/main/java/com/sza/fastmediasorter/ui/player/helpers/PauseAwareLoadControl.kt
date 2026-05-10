@@ -8,6 +8,7 @@ import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.source.MediaSource.MediaPeriodId
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.ExoTrackSelection
+import timber.log.Timber
 
 /**
  * Wraps [DefaultLoadControl] and returns false from [shouldContinueLoading] while the player
@@ -78,5 +79,6 @@ internal class PauseAwareLoadControl(
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
         isPlayWhenReady = playWhenReady
+        Timber.d("S0051: PauseAwareLoadControl playWhenReady=$playWhenReady — network buffering ${if (playWhenReady) "resumes" else "stops"}")
     }
 }

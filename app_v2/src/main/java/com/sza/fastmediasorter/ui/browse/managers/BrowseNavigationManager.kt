@@ -427,9 +427,7 @@ class BrowseNavigationManager(
         } catch (e: Exception) {
             Timber.e(e, "BrowseNavigationManager.loadDirectoryContents: error loading '$path'")
             sendEvent(BrowseEvent.ShowError(
-                message = context.getString(R.string.error_folder_load_failed),
-                details = e.message,
-                exception = e
+                message = context.getString(R.string.error_folder_load_failed)
             ))
         } finally {
             setLoading(false)

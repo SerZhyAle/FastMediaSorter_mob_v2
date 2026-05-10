@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: "agent"
 description: "Use when: the task changes user-facing UI/UX, layouts, command bars, menus, settings screens, button placement, portrait/landscape behavior, overflow rules, visibility conditions, empty/error states, confirmation UX, or other interaction details. Triggers on: UI ambiguity, placement, command panel, button visibility, overflow, portrait, landscape, settings UI, tooltip, label, icon, empty state, fallback UX."
 ---
 
@@ -32,53 +32,40 @@ The agent must NOT implement while any important item below is unresolved.
 
 ## Required Checklist
 
-For the requested change, inspect the spec/request and the current code, then produce a decision table covering:
+For the requested change, inspect the spec/request and the current code, then produce one decision table in these four passes:
 
-1. Exact placement in each orientation.
-   - portrait
-   - landscape
+1. Placement and presentation.
+   - exact placement in portrait
+   - exact placement in landscape
    - tablet / wide-screen if relevant
+   - direct button in command bar, overflow menu item, top app bar / toolbar item, or settings row / dialog / bottom sheet
 
-2. Presentation mode.
-   - direct button in command bar
-   - overflow menu item
-   - top app bar / toolbar item
-   - settings row / dialog / bottom sheet
-
-3. Visibility rules.
+2. Visibility and priority.
    - which media or file types show it
    - feature flags / flavors
    - permissions / read-only / destination availability
    - hidden vs disabled behavior
-
-4. Priority and degradation.
    - what happens when there is not enough space
    - which actions outrank it
    - whether it may spill to overflow
 
-5. Interaction details.
+3. Interaction and wording.
    - label
    - icon
    - tooltip / help text
    - click behavior
    - long-click behavior if applicable
+   - if wording changes, apply the message-type formula from `docs/COMMUNICATION_POLICY.md` §2, the next-step rule from §3, and the tone checklist from §6
 
-6. State and failure UX.
+4. State, failure UX, and accessibility.
    - empty state
    - loading state
    - error state
    - confirmation dialog
    - overwrite / fallback / retry behavior
-
-7. Accessibility.
    - touch target
    - contentDescription / TalkBack
    - discoverability when hidden in overflow
-
-8. Copy and tone rules when wording changes.
-   - message-type formula from `docs/COMMUNICATION_POLICY.md` §2
-   - whether one contextual next step is allowed or required under §3
-   - whether the wording passes the §6 tone checklist
 
 ---
 
@@ -142,4 +129,4 @@ Status: READY
 
 ## Hard Rule
 
-If the request/spec says something like "acceptable", "preferably", "MVP", or "it can be either", do NOT treat that as implementation freedom when it affects discoverability or behavior in a mode that has different UI constraints. Convert it into an explicit decision first.
+If the request/spec uses non-committal wording about two or more UI options, treat that item as unresolved unless one option is explicitly approved or the user explicitly delegates the choice to the agent. Do NOT infer implementation freedom when the choice changes discoverability, placement, or behavior under a different orientation or screen constraint.

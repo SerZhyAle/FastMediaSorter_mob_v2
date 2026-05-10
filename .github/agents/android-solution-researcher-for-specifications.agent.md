@@ -62,7 +62,7 @@ For any Android platform API the feature touches, verify:
 ### Step 4 — Risk identification
 
 Based purely on the code read, flag:
-- Files approaching the 1000-line limit that will be touched.
+- Files approaching the 1500-line limit that will be touched.
 - Classes with no unit test coverage that will be modified.
 - Any circular dependencies or architecture violations already present.
 - Threading: confirm Coroutine dispatcher used; flag any main-thread disk/network I/O.

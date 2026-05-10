@@ -421,7 +421,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         when (requestCode) {
             com.sza.fastmediasorter.core.util.PermissionHelper.REQUEST_CODE_ALL_FILES_ACCESS -> {
                 if (com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)) {
-                    Toast.makeText(this, getString(R.string.grant_permission) + " - " + getString(android.R.string.ok), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.storage_permission_granted_continue), Toast.LENGTH_SHORT).show()
                     folderPickerLauncher.launch(null)
                 } else {
                     Toast.makeText(this, getString(R.string.folder_selection_limitations), Toast.LENGTH_LONG).show()

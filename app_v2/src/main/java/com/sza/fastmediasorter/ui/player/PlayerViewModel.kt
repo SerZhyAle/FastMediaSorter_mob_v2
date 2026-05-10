@@ -497,7 +497,6 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun cyclePlaybackOrderMode(): PlaybackOrderMode {
-        Timber.d("S0104: cyclePlaybackOrderMode → ${state.value.playbackOrderMode.next()}")
         val next = state.value.playbackOrderMode.next()
         setPlaybackOrderMode(next)
         return next

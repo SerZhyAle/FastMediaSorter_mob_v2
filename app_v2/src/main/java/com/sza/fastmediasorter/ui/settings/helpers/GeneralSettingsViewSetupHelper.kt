@@ -215,7 +215,7 @@ class GeneralSettingsViewSetupHelper(
                     if (viewModel.settings.value.cacheSizeMb != sizeMb) cacheHelper.showCacheSizeRestartDialog(sizeMb)
                 } else {
                     binding.actvCacheSizeLimit.setText(fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb), false)
-                    Toast.makeText(fragment.requireContext(), "Cache size must be between 512 and 16384 MB", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_cache_size_range_error), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -434,7 +434,7 @@ class GeneralSettingsViewSetupHelper(
 
         binding.btnLocalFilesPermission.setOnClickListener { permissionsHelper.handleLocalFilesPermissionAction() }
         binding.btnNetworkPermission.setOnClickListener {
-            Toast.makeText(fragment.requireContext(), "Network permissions are already granted automatically", Toast.LENGTH_SHORT).show()
+            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_network_permissions_already_granted), Toast.LENGTH_SHORT).show()
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             binding.btnManageMediaPermission.visibility = View.VISIBLE

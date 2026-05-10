@@ -64,7 +64,6 @@ class ImageDrawOverlayManager(
     fun enterDrawMode() {
         if (isDrawModeActive) return
         isDrawModeActive = true
-        Timber.d("S0107: enterDrawMode")
         editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.DRAW)
 
         // Inflate canvas and add to image container
@@ -87,7 +86,6 @@ class ImageDrawOverlayManager(
 
     fun exitDrawMode(save: Boolean) {
         if (!isDrawModeActive && save) return
-        Timber.d("S0107: exitDrawMode save=$save")
 
         if (save) {
             val overlay = drawCanvasView?.getBitmap() ?: run {

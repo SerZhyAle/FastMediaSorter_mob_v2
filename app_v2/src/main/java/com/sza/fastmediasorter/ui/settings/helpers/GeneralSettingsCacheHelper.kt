@@ -107,7 +107,6 @@ class GeneralSettingsCacheHelper(
                 binding.btnClearCache.text = fragment.getString(R.string.cache_size_calculating)
                 fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     try {
-                        Timber.d("S0136: GeneralSettingsCacheHelper user-triggered clearCache")
                         try { com.bumptech.glide.Glide.get(fragment.requireContext()).clearDiskCache() }
                         catch (e: Exception) { Timber.e(e, "Glide clearDiskCache failed") }
 

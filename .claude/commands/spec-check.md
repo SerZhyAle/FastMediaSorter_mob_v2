@@ -62,6 +62,7 @@ Verification mechanics:
 | Flavor gating | `Grep` for `BuildConfig.<FLAG>` if §3.2 names a flag |
 | Step status consistency | Parse `[x] done` in phase file; cross-check Verification predicates |
 | Phase status consistency | INDEX row status == phase `Status:` header |
+| Debug-tag invariant | If current journal status is `BlockNeedUserTest`: `Grep` for `Timber.d("<Sxxxx>:` across `.kt` — PASS iff ≥1 hit, FAIL if none (spec lost its device-test probe). For any other status: PASS iff zero hits — surviving tags are stale (WARN, list them; the verdict flip in step 6 will delete them). |
 
 **4 — Score.**
 
@@ -75,7 +76,9 @@ Verification mechanics:
 
 Full/strategic mode: flip strategic spec `Status:` to score (`Verified` / `Partial` / `Broken`). Always touch the journal status via `update.ps1`.
 
-Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers. Do not touch strategic `Status:`.
+Whenever the verdict flips the journal/strategic status (full or strategic mode), enforce the debug-tag invariant: the spec is no longer `BlockNeedUserTest`, so it must carry zero `Timber.d("<Sxxxx>:` tags. `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line (idempotent no-op if none). Run a dev log line per `.kt` file that lost a tag. See CLAUDE.md "Debug Verification Tags". This is the only `.kt` mutation `/spec-check` performs.
+
+Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers. Do not touch strategic `Status:`. Do not touch debug tags.
 
 **7 — Run dev log.**
 
@@ -88,7 +91,7 @@ Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers.
 
 If outcome is `Partial` or `Broken` — immediately invoke `/spec-fix <Sxxxx>` to apply all mechanical fixes. If outcome is `Verified` — no further action needed.
 
-**Chat output:** `<Sxxxx>: <score>. PASS/WARN/FAIL: N/N/N. Top issues: [list]. → Running /spec-fix…` (or `→ All checks passed.` on Verified)
+**Chat output:** `<Sxxxx>: <score>. PASS/WARN/FAIL: N/N/N. Debug tags removed: N. Top issues: [list]. → Running /spec-fix…` (or `→ All checks passed. Debug tags removed: N.` on Verified)
 
 ---
 
@@ -124,6 +127,7 @@ The block replaces the previous `## Last Audit` block in full. The rest of the s
 ## Constraints
 
 - Never mutate spec content beyond `Status:`, `**Priority:**` (only when explicitly recomputed), and the `## Last Audit` block.
+- **Debug-tag removal exception:** when the verdict flips the journal/strategic status, delete every `Timber.d("<Sxxxx>:` line from `.kt` (CLAUDE.md "Debug Verification Tags"). This is the only `.kt` mutation this skill performs. Never delete tags in tactical-only / `--quick`-without-status-flip runs. Never delete a tag while the journal status is staying at `BlockNeedUserTest`.
 - **Never write `PLAN/Sxxxx_<slug>__audit_*.md` or any other file in `PLAN/` to record audit findings.** All findings live inline in the spec.
 - Strategic audit is qualitative (keyword overlap for goal coverage). Tactical audit is strict (static predicates).
 - A grep miss is FAIL. Hit-count mismatch (expected 1, found 3) is WARN with all hits listed.
@@ -142,5 +146,6 @@ The block replaces the previous `## Last Audit` block in full. The rest of the s
   - Verdict `Verified` → `pwsh -File scripts/spec_catalog/close.ps1 -Id <Sxxxx> -Status Verified`. (`close.ps1` also stamps `closed_at` on the record.)
   - Verdict `Partial`  → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Partial`.
   - Verdict `Broken`   → `pwsh -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
-- **Read-only mode (`--quick`):** still emits the status transition above; the difference is in scope of checks, not in journal effect.
+- **Debug tags.** Every verdict that flips the journal status away from `BlockNeedUserTest` (Verified / Partial / Broken — and trivially also from `Implemented`, where there are none) requires the grep-and-delete of `Timber.d("<Sxxxx>:` lines from `.kt` (Process step 6). This holds in `--quick` mode too.
+- **Read-only mode (`--quick`):** still emits the status transition and the debug-tag removal above; the difference is in scope of audit checks, not in journal effect.
 - **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` — only `/spec-fix` followed by `/spec-check` can change the verdict. Never create audit files in `PLAN/`.

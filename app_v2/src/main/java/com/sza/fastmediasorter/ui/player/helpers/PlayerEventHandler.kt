@@ -64,7 +64,6 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 activity._videoPlayerManager?.getPlayer()?.pause()
                 activity.audioServiceController?.player?.pause()
                 Toast.makeText(activity, R.string.playback_order_stopped, Toast.LENGTH_SHORT).show()
-                Timber.d("S0104: StopPlayback — playback stopped at end of list")
             }
         }
     }
@@ -102,20 +101,12 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     Timber.w("showError: Activity finished during settings load, skipping dialog")
                     return@launch
                 }
-                if (throwable != null) {
-                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = activity,
-                        title = activity.getString(R.string.error),
-                        message = message,
-                        details = throwable.stackTraceToString()
-                    )
-                } else {
-                    activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = activity,
-                        title = activity.getString(R.string.error),
-                        message = message
-                    )
-                }
+                // S0118: keep the richer dialog surface, but do not expose raw stack traces to users.
+                activeDialog = com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                    context = activity,
+                    title = activity.getString(R.string.error),
+                    message = message
+                )
             } else {
                 AppErrorNotifier.show(
                     activity = activity,

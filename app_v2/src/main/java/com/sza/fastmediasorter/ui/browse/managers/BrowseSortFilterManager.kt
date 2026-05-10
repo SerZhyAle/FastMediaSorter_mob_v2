@@ -245,17 +245,7 @@ class BrowseSortFilterManager(
                 .catch { e ->
                     Timber.e(e, "BrowseSortFilterManager.applyFilter: loading failure")
                     sendEvent(BrowseEvent.ShowError(
-                        message = getFriendlyErrorMessage(e),
-                        details = buildString {
-                            append(context.getString(R.string.error_details_error))
-                            append(": ")
-                            append(e.message ?: e.javaClass.simpleName)
-                            append("\n\n")
-                            append(context.getString(R.string.error_details_stack_trace))
-                            append(":\n")
-                            append(e.stackTraceToString())
-                        },
-                        exception = e
+                        message = getFriendlyErrorMessage(e)
                     ))
                 }
                 .collect { files ->

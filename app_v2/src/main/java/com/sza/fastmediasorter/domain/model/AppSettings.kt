@@ -171,6 +171,7 @@ data class AppSettings(
     // `linkDownloadAudioOnly` requests audio-only rendition when the manifest exposes one.
     val linkDownloadMaxResolution: String = "1080p",
     val linkDownloadAudioOnly: Boolean = false,
+    val linkDownloadLoginWallHeuristicEnabled: Boolean = true,
 
     // VR settings (spec §5.7/§8 — visible only when SUPPORT_VR_PLAYER == true)
     val vrAutoDetectFormat: Boolean = true,          // Detect SBS/OU/Mono plus panoramic layouts via metadata & heuristics

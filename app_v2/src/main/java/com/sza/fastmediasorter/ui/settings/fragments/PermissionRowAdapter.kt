@@ -89,9 +89,9 @@ class PermissionRowAdapter(
                 ctx.getString(R.string.perm_current_status, statusLabel)
             itemView.findViewById<Button>(R.id.btn_perm_action)?.apply {
                 text = when (status) {
-                    PermissionStatus.GRANTED -> "Manage"
-                    PermissionStatus.DENIED -> "Grant"
-                    PermissionStatus.PERMANENTLY_DENIED -> "Settings"
+                    PermissionStatus.GRANTED -> ctx.getString(R.string.perm_action_manage)
+                    PermissionStatus.DENIED -> ctx.getString(R.string.perm_action_grant)
+                    PermissionStatus.PERMANENTLY_DENIED -> ctx.getString(R.string.perm_action_settings)
                     PermissionStatus.NOT_APPLICABLE -> ""
                 }
                 // GRANT button is orange to signal an action is needed;

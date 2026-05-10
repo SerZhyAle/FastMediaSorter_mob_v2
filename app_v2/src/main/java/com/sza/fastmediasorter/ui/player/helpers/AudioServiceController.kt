@@ -253,7 +253,6 @@ class AudioServiceController(
                 player.shuffleModeEnabled = false
             }
         }
-        Timber.d("S0104: AudioServiceController.applyPlaybackOrderMode mode=$mode")
     }
 
     /**

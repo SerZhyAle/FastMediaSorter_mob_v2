@@ -32,6 +32,10 @@ The script:
 - Moves `PLAN/Sxxxx_<slug>/` → `temp/done/Sxxxx_<slug>/` (if tactical folder exists).
 - Sets journal `status = Archived`, `priority = 0`.
 
+**3 — Remove leftover debug tags.**
+
+`Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line — an archived spec must carry no debug tags (CLAUDE.md "Debug Verification Tags"). Idempotent no-op if none (the normal case — they should have been removed when the spec left `BlockNeedUserTest`). Run a dev log line per `.kt` file that lost a tag.
+
 **4 — Run dev log.**
 
 ```powershell
@@ -57,4 +61,5 @@ To restore to active: move files back to `PLAN/`, then `update.ps1 -Id Sxxxx -St
 ## Spec Catalog hooks
 
 - **Status transition:** performed by `archive.ps1` (sets `Archived`, `priority = 0`).
+- **Debug tags:** archiving moves the spec out of any active status — delete every `Timber.d("<Sxxxx>:` line from `.kt` as part of the archive (Process step 3). Normally a no-op.
 - **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never hard-delete a record.

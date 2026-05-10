@@ -61,13 +61,7 @@ class BrowseErrorDisplayManager(
             Timber.d("showError: showDetailedErrors=${settings.showDetailedErrors}, message=$message")
 
             if (settings.showDetailedErrors) {
-                if (exception != null) {
-                    ErrorDialog.show(
-                        context = activity,
-                        title = activity.getString(R.string.error),
-                        throwable = exception
-                    )
-                } else if (details != null) {
+                if (details != null) {
                     ErrorDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),
@@ -75,6 +69,7 @@ class BrowseErrorDisplayManager(
                         details = details
                     )
                 } else {
+                    // S0118: keep the richer dialog surface, but do not expose raw stack traces.
                     ErrorDialog.show(
                         context = activity,
                         title = activity.getString(R.string.error),

@@ -764,7 +764,7 @@ class PdfViewerManager(
      */
     private fun translateCurrentPage() {
         if (currentPageBitmap == null) {
-            callback.showError("No page rendered for translation")
+            callback.showError(binding.root.context.getString(R.string.player_page_not_ready))
             return
         }
 

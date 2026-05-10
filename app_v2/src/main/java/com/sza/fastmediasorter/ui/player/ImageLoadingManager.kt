@@ -1047,7 +1047,7 @@ class ImageLoadingManager(
                 if (isRaceConditionError) {
                     Timber.w("ImageLoadingManager: Race condition error during fast scrolling")
                     if (!callback.isDestroyed()) {
-                        callback.showToast("Slow down! 🐢")
+                        callback.showToast(binding.root.context.getString(R.string.image_scroll_too_fast))
                     }
                 } else {
                     Timber.e(e, "ImageLoadingManager: Failed to load image")

@@ -4,26 +4,32 @@ import android.util.Patterns
 import timber.log.Timber
 
 /**
- * S0003: extracts the first http(s) URL from a Share-sheet text payload.
- * Soft mode per strategic §6.8 — picks the first match, ignores extra tokens.
+ * S0003 / S0140: extracts one or more http(s) URLs from a Share-sheet text payload.
+ * Soft mode keeps the input order, strips trailing punctuation, and de-duplicates
+ * repeated links so a copied album/series block can reuse the batch coordinator.
  */
 object UrlInTextDetector {
 
     private val TRAILING_PUNCT = setOf('.', ',', ';', '!', '?', ')', ']', '}', '"', '\'', '»', '”')
 
-    fun firstHttpUrl(input: String?): String? {
-        if (input.isNullOrBlank()) return null
+    fun firstHttpUrl(input: String?): String? = httpUrls(input).firstOrNull()
+
+    fun httpUrls(input: String?): List<String> {
+        if (input.isNullOrBlank()) return emptyList()
         val matcher = Patterns.WEB_URL.matcher(input)
+        val urls = linkedSetOf<String>()
         while (matcher.find()) {
             val raw = matcher.group() ?: continue
             val candidate = stripTrailingPunctuation(raw)
             val lower = candidate.lowercase()
             if (lower.startsWith("http://") || lower.startsWith("https://")) {
-                Timber.v("UrlInTextDetector: matched url=%s", candidate)
-                return candidate
+                urls += candidate
             }
         }
-        return null
+        if (urls.isNotEmpty()) {
+            Timber.v("UrlInTextDetector: matched %d url(s)", urls.size)
+        }
+        return urls.toList()
     }
 
     private fun stripTrailingPunctuation(value: String): String {

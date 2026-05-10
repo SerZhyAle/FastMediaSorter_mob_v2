@@ -5,6 +5,15 @@
     android:orientation="vertical"
     android:padding="@dimen/margin_small">
 
+    <TextView
+        android:id="@+id/textWebviewAuthHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:text="@string/s0140_webview_auth_hint"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/text_size_small" />
+
     <WebView
         android:id="@+id/webViewAuth"
         android:layout_width="match_parent"

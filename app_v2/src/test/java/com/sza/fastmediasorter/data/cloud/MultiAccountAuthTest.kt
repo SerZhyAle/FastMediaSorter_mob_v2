@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.cloud
 
+import android.content.Context
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,6 +22,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class MultiAccountAuthTest {
 
+    private val context: Context = mockk(relaxed = true)
     private lateinit var mockGoogleDriveClient: GoogleDriveRestClient
     private lateinit var mockOneDriveClient: OneDriveRestClient
     private lateinit var mockDropboxClient: DropboxClient
@@ -33,6 +35,7 @@ class MultiAccountAuthTest {
         mockDropboxClient = mockk(relaxed = true)
 
         stateMachine = CloudAuthStateMachine(
+            context = context,
             googleDriveClient = mockGoogleDriveClient,
             oneDriveClient = mockOneDriveClient,
             dropboxClient = mockDropboxClient

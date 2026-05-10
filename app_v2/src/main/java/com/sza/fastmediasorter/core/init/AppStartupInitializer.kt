@@ -323,7 +323,6 @@ class AppStartupInitializer(
                     broken.forEach { resource ->
                         resourceRepository.updateResource(resource.copy(isWritable = true))
                     }
-                    Timber.d("S0130: Fixed isWritable for ${broken.size} aggregate virtual resources")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to fix aggregate virtual resources isWritable flag")

@@ -313,7 +313,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         username = data["username"] ?: "",
                                         encryptedPassword = "", // Password NOT imported - user must re-enter
                                         domain = data["domain"] ?: "",
-                                        shareName = data["shareName"]
+                                        shareName = data["shareName"]?.takeIf { it.isNotBlank() }
                                     )
                                     credentials.add(credential)
                                 }
@@ -350,22 +350,45 @@ class ImportSettingsUseCase @Inject constructor(
             // Actually, for simplicity and safety, we just insert. 
             // In a real append scenario, checking existence would be better, but credential ID usually unique.
             if (credentials.isNotEmpty()) {
+                // Legacy exports may omit shareName on the credential node while the linked SMB resource still has it in path.
+                val importedSmbShareNames = resources
+                    .asSequence()
+                    .filter { it.type == ResourceType.SMB && !it.credentialsId.isNullOrBlank() }
+                    .mapNotNull { resource ->
+                        val credentialId = resource.credentialsId ?: return@mapNotNull null
+                        val shareName = com.sza.fastmediasorter.utils.SmbPathUtils.extractShare(resource.path)
+                            ?.takeIf { it.isNotBlank() }
+                        shareName?.let { credentialId to it }
+                    }
+                    .toMap()
+
                 val existingCredentials = credentialsRepository.getAllCredentials().first()
                 val existingCredMap = existingCredentials.associateBy { it.credentialId }
                 
                 credentials.forEach { credential ->
-                    val existing = existingCredMap[credential.credentialId]
+                    val normalizedCredential = if (credential.type.equals("SMB", ignoreCase = true)) {
+                        credential.copy(
+                            shareName = credential.shareName?.takeIf { it.isNotBlank() }
+                                ?: importedSmbShareNames[credential.credentialId]
+                        )
+                    } else {
+                        credential
+                    }
+
+                    val existing = existingCredMap[normalizedCredential.credentialId]
                     if (existing != null) {
                         // Preserve existing password: import XML never contains passwords,
                         // so overwriting with empty encryptedPassword would destroy working credentials.
                         // Merge: take metadata from import, keep password (and ID) from DB.
-                        val merged = credential.copy(
+                        val merged = normalizedCredential.copy(
                             id = existing.id,
-                            encryptedPassword = existing.encryptedPassword
+                            encryptedPassword = existing.encryptedPassword,
+                            shareName = normalizedCredential.shareName?.takeIf { it.isNotBlank() }
+                                ?: existing.shareName
                         )
                         credentialsRepository.update(merged)
                     } else {
-                        credentialsRepository.insert(credential)
+                        credentialsRepository.insert(normalizedCredential)
                     }
                 }
                 Timber.d("Imported ${credentials.size} network credentials")

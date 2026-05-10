@@ -54,9 +54,7 @@ class BrowseDirectoryOpsManager(
                 }.onFailure { error ->
                     Timber.e(error, "BrowseDirectoryOpsManager.createFolder: FAILED")
                     sendEvent(BrowseEvent.ShowError(
-                        message = context.getString(R.string.error_folder_create_failed),
-                        details = error.message,
-                        exception = error
+                        message = context.getString(R.string.error_folder_create_failed)
                     ))
                 }
             }
@@ -79,9 +77,7 @@ class BrowseDirectoryOpsManager(
                 }.onFailure { error ->
                     Timber.e(error, "BrowseDirectoryOpsManager.renameDirectory: FAILED")
                     sendEvent(BrowseEvent.ShowError(
-                        message = context.getString(R.string.error_folder_rename_failed),
-                        details = error.message,
-                        exception = error
+                        message = context.getString(R.string.error_folder_rename_failed)
                     ))
                 }
             }

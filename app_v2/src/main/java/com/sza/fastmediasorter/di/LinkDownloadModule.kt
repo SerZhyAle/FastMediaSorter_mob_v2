@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.di
 
 import com.sza.fastmediasorter.data.link.DirectFileExtractionStrategy
 import com.sza.fastmediasorter.data.link.HtmlPageExtractionStrategy
+import com.sza.fastmediasorter.data.link.InvisibleWebViewExtractionStrategy
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadCookieJar
 import com.sza.fastmediasorter.data.repository.AuthSessionRepositoryImpl
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
@@ -61,7 +62,8 @@ object LinkDownloadModule {
 
 /**
  * Multibindings module for [UrlExtractionStrategy] implementations.
- * Phase 03 binds `direct`; Phase 04 will append `html`.
+ * S0140 appends `dynamic` after `html` so JS-rendered pages get one more generic
+ * fallback before the coordinator gives up on the shared URL.
  *
  * S0116 §5.1 pillar K: also binds [AuthSessionRepository] to its impl so the
  * UI layer can observe / mutate saved sessions without touching the encrypted
@@ -78,6 +80,10 @@ abstract class LinkDownloadStrategiesModule {
     @Binds
     @IntoSet
     abstract fun bindHtml(impl: HtmlPageExtractionStrategy): UrlExtractionStrategy
+
+    @Binds
+    @IntoSet
+    abstract fun bindDynamic(impl: InvisibleWebViewExtractionStrategy): UrlExtractionStrategy
 
     @Binds
     abstract fun bindAuthSessionRepository(impl: AuthSessionRepositoryImpl): AuthSessionRepository

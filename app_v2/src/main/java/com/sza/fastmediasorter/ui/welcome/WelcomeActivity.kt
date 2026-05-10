@@ -72,6 +72,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         setupViewPager()
         setupButtons()
         updateUI()
+        Timber.d("S0143: WelcomeActivity navigation consolidated")
     }
 
     override fun observeData() {
@@ -111,34 +112,23 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
         val cutout = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout())
 
-        val marginSmall = resources.getDimensionPixelSize(R.dimen.margin_small)
-        val endInset = maxOf(statusBar.right, cutout.right, navBar.right)
+        // In landscape the status bar / nav bar / cutout may sit on a side edge — pad both sides.
+        val sideInset = maxOf(
+            statusBar.left, statusBar.right,
+            navBar.left, navBar.right,
+            cutout.left, cutout.right
+        )
+        val barPadding = resources.getDimensionPixelSize(R.dimen.welcome_top_nav_padding)
 
-        val topNav = binding.layoutTopNav
-        if (topNav != null) {
-            // sw480dp / sw720dp: btnSkip lives inside layoutTopNav — push the whole bar below
-            // the status bar by adjusting container padding so all buttons stay aligned.
-            topNav.setPadding(
-                topNav.paddingLeft,
-                statusBar.top + marginSmall,
-                endInset + marginSmall,
-                topNav.paddingBottom
-            )
-        } else {
-            // Default layout: btnSkip is a standalone element constrained to top/end of root.
-            (binding.btnSkip.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
-                it.topMargin = statusBar.top + marginSmall
-                it.marginEnd = endInset + marginSmall
-                binding.btnSkip.layoutParams = it
-            }
-        }
+        // Page area clears the status bar / display cutout.
+        binding.viewPager.setPadding(sideInset, statusBar.top, sideInset, 0)
 
-        // Bottom nav above navigation bar
-        binding.layoutBottomNav?.setPadding(
-            binding.layoutBottomNav?.paddingLeft ?: 0,
-            binding.layoutBottomNav?.paddingTop ?: 0,
-            binding.layoutBottomNav?.paddingRight ?: 0,
-            navBar.bottom
+        // The single bottom navigation bar clears the navigation bar and side cutouts.
+        binding.layoutBottomNav.setPadding(
+            barPadding + sideInset,
+            barPadding,
+            barPadding + sideInset,
+            barPadding + navBar.bottom
         )
     }
 
@@ -149,6 +139,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 iconRes = R.drawable.welcome_hero_media,
                 titleRes = R.string.welcome_title_1,
                 descriptionRes = R.string.welcome_description_1,
+                detailDescriptionRes = R.string.welcome_description_1_details,
                 featureCards = listOf(
                     FeatureCard(R.drawable.ic_image, R.string.welcome_feature_photos),
                     FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud),
@@ -161,31 +152,31 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             WelcomePage(
                 iconRes = R.drawable.resource_types,
                 titleRes = R.string.welcome_title_2,
-                descriptionRes = R.string.welcome_description_2
+                descriptionRes = R.string.welcome_description_2,
+                detailDescriptionRes = R.string.welcome_description_2_details
             ),
             // Page 3: Touch Zones
             WelcomePage(
                 iconRes = R.mipmap.ic_launcher,
                 titleRes = R.string.welcome_title_3,
                 descriptionRes = R.string.welcome_description_3,
+                detailDescriptionRes = R.string.welcome_description_3_details,
                 showTouchZonesScheme = true
             ),
             // Page 4: Resources & Destinations
             WelcomePage(
                 iconRes = R.drawable.destinations,
                 titleRes = R.string.welcome_title_4,
-                descriptionRes = R.string.welcome_description_4
+                descriptionRes = R.string.welcome_description_4,
+                detailDescriptionRes = R.string.welcome_description_4_details
             ),
-            // Page 5: Additional Features (Enhanced with feature cards)
+            // Page 5: Powerful Extras — adaptive grid of additional capabilities (each tile BuildConfig-gated)
             WelcomePage(
                 iconRes = R.drawable.welcome_hero_features,
                 titleRes = R.string.welcome_title_5,
                 descriptionRes = R.string.welcome_description_5,
-                featureCards = listOf(
-                    FeatureCard(R.drawable.ic_ocr, R.string.welcome_feature_ocr),
-                    FeatureCard(R.drawable.ic_audio, R.string.welcome_feature_audio),
-                    FeatureCard(R.drawable.ic_book, R.string.welcome_feature_ebook)
-                )
+                detailDescriptionRes = R.string.welcome_description_5_details,
+                featureCards = buildExtrasFeatureCards()
             ),
         )
 
@@ -401,12 +392,29 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         // Activity automatically with no further action needed here.
     }
 
+    /** Tiles for the "Powerful Extras" page; each entry is included only when its feature flag is on. */
+    private fun buildExtrasFeatureCards(): List<FeatureCard> = buildList {
+        if (BuildConfig.ENABLE_TRANSLATION) add(FeatureCard(R.drawable.ic_ocr, R.string.welcome_feature_ocr))
+        if (BuildConfig.SUPPORT_DOCUMENTS) {
+            add(FeatureCard(R.drawable.ic_book, R.string.welcome_feature_ebook))
+            add(FeatureCard(R.drawable.ic_edit_20, R.string.welcome_feature_text_editor))
+        }
+        if (BuildConfig.SUPPORT_AUDIO) add(FeatureCard(R.drawable.ic_audio, R.string.welcome_feature_audio))
+        if (BuildConfig.SUPPORT_VIDEO) add(FeatureCard(R.drawable.ic_video, R.string.welcome_feature_video_library))
+        if (BuildConfig.SUPPORT_IMAGES) add(FeatureCard(R.drawable.ic_slideshow, R.string.welcome_feature_slideshow))
+        if (BuildConfig.ENABLE_ANIMATIONS) add(FeatureCard(R.drawable.ic_gif, R.string.welcome_feature_gif))
+        add(FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network))
+        if (BuildConfig.SUPPORT_CLOUD) add(FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud_sync))
+        add(FeatureCard(R.drawable.ic_widget_resource_launch, R.string.welcome_feature_widgets))
+        add(FeatureCard(R.drawable.ic_schedule, R.string.welcome_feature_scheduled_ops))
+        add(FeatureCard(R.drawable.ic_favorite, R.string.welcome_feature_favorites))
+        add(FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_quick_sort))
+    }
+
     private fun finishWelcome() {
         binding.fragmentContainerWelcome.visibility = View.VISIBLE
         binding.viewPager.visibility = View.GONE
-        binding.layoutBottomNav?.visibility = View.GONE
-        binding.layoutTopNav?.visibility = View.GONE
-        binding.layoutIndicator?.visibility = View.GONE
+        binding.layoutBottomNav.visibility = View.GONE
         binding.btnSkip.visibility = View.GONE
         supportFragmentManager
             .beginTransaction()
@@ -487,7 +495,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
     }
 
     companion object {
-        private const val TAG = "WelcomePerms"
         private const val KEY_CURRENT_PAGE = "key_current_page"
     }
 }

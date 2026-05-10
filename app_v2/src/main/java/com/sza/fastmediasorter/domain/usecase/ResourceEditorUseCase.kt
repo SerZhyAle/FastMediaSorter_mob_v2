@@ -277,8 +277,7 @@ class ResourceEditorUseCase @Inject constructor(
     else
         ResourceConnectionTestResult(
             status = ResourceConnectionStatus.FAILED,
-            errorCode = ResourceErrorCode.UNREACHABLE,
-            diagnosticMessage = result.exceptionOrNull()?.message
+            errorCode = ResourceErrorCode.UNREACHABLE
         )
 
     /**

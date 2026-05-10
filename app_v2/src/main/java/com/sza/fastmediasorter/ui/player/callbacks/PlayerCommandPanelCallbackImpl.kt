@@ -291,7 +291,6 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onDrawOverlayClicked() {
-        Timber.d("S0107: menu_draw_overlay selected")
         activity.imageDrawOverlayManager.enterDrawMode()
     }
 }

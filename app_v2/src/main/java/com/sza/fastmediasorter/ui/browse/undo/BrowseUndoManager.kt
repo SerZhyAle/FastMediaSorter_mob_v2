@@ -95,8 +95,8 @@ class BrowseUndoManager(
             Timber.e(e, "Undo operation failed")
             callbacks.showError(
                 message = context.getString(R.string.undo_failed),
-                details = e.stackTraceToString(),
-                exception = e
+                details = null,
+                exception = null
             )
             return false
         }

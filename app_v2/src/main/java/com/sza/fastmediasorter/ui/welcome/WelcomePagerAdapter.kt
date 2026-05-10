@@ -4,6 +4,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.GridLayout
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -85,6 +88,7 @@ class WelcomePagerAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        Timber.d("S0143: welcome page details bound at $position")
         when (holder) {
             is TouchZonesViewHolder -> holder.bind(pages[position])
             is PermissionsViewHolder -> holder.bind(pages[position])
@@ -104,6 +108,7 @@ class WelcomePagerAdapter(
             binding.ivIcon.setImageResource(page.iconRes)
             binding.tvTitle.text = binding.root.context.getString(page.titleRes)
             binding.tvDescription.text = binding.root.context.getString(page.descriptionRes)
+            bindDetails(binding.tvDetails, page)
 
             // Apply staggered entrance animations
             animateEntrance(binding.ivIcon, 0L)
@@ -117,12 +122,12 @@ class WelcomePagerAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
+            Timber.d("S0143: touch-zones grid page bound")
             binding.tvTitle.text = binding.root.context.getString(page.titleRes)
-            binding.tvDescription.text = binding.root.context.getString(page.descriptionRes)
+            bindDetails(binding.tvDetails, page)
 
             animateEntrance(binding.tvTitle, 0L)
-            animateEntrance(binding.ivTouchZonesScheme, 150L)
-            animateEntrance(binding.tvDescription, 300L)
+            animateEntrance(binding.gridTouchZones, 150L)
         }
     }
 
@@ -183,26 +188,13 @@ class WelcomePagerAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
+            Timber.d("S0143: extras grid page bound")
             val context = binding.root.context
             binding.ivIcon.setImageResource(page.iconRes)
             binding.tvTitle.text = context.getString(page.titleRes)
             binding.tvDescription.text = context.getString(page.descriptionRes)
-
-            // Bind feature cards
-            if (page.featureCards.size >= 3) {
-                val card1 = page.featureCards[0]
-                val card2 = page.featureCards[1]
-                val card3 = page.featureCards[2]
-
-                binding.ivFeature1.setImageResource(card1.iconRes)
-                binding.tvFeature1.text = context.getString(card1.labelRes)
-
-                binding.ivFeature2.setImageResource(card2.iconRes)
-                binding.tvFeature2.text = context.getString(card2.labelRes)
-
-                binding.ivFeature3.setImageResource(card3.iconRes)
-                binding.tvFeature3.text = context.getString(card3.labelRes)
-            }
+            bindDetails(binding.tvDetails, page)
+            populateFeatureGrid(binding.gridFeatures, page.featureCards)
 
             // Language picker wiring
             if (page.showLanguagePicker) {
@@ -234,7 +226,7 @@ class WelcomePagerAdapter(
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 250L)
-            animateEntrance(binding.layoutFeatureCards, 400L)
+            animateEntrance(binding.gridFeatures, 400L)
         }
     }
 }
@@ -248,10 +240,60 @@ private fun animateEntrance(view: View, delayMs: Long) {
     view.startAnimation(anim)
 }
 
+/**
+ * Bind the optional scrollable "details" block: shows the multi-paragraph copy when
+ * [WelcomePage.detailDescriptionRes] is non-zero, otherwise collapses the view.
+ */
+private fun bindDetails(view: TextView, page: WelcomePage) {
+    if (page.detailDescriptionRes != 0) {
+        view.text = view.context.getString(page.detailDescriptionRes)
+        view.visibility = View.VISIBLE
+        animateEntrance(view, 400L)
+    } else {
+        view.visibility = View.GONE
+    }
+}
+
+/**
+ * Fill [grid] with one tile per [cards] entry (tinted icon + ≤2-line label). The column count
+ * comes from @integer/welcome_feature_grid_columns (adapts per screen-width / orientation); cells
+ * share the row width evenly via column weight. Collapses the grid when [cards] is empty.
+ */
+private fun populateFeatureGrid(grid: GridLayout, cards: List<FeatureCard>) {
+    grid.removeAllViews()
+    if (cards.isEmpty()) {
+        grid.visibility = View.GONE
+        return
+    }
+    grid.visibility = View.VISIBLE
+    val context = grid.context
+    val columns = context.resources.getInteger(R.integer.welcome_feature_grid_columns).coerceAtLeast(1)
+    grid.columnCount = columns
+    val margin = context.resources.getDimensionPixelSize(R.dimen.welcome_feature_card_margin)
+    val inflater = LayoutInflater.from(context)
+    cards.forEachIndexed { index, card ->
+        val tile = inflater.inflate(R.layout.item_welcome_feature_tile, grid, false)
+        tile.findViewById<ImageView>(R.id.ivFeatureTileIcon).setImageResource(card.iconRes)
+        val label = context.getString(card.labelRes)
+        tile.findViewById<TextView>(R.id.tvFeatureTileLabel).text = label
+        tile.contentDescription = label
+        val params = GridLayout.LayoutParams(
+            GridLayout.spec(index / columns),
+            GridLayout.spec(index % columns, 1, GridLayout.FILL, 1f)
+        )
+        params.width = 0
+        params.setMargins(margin, margin, margin, margin)
+        tile.layoutParams = params
+        grid.addView(tile)
+    }
+}
+
 data class WelcomePage(
     val iconRes: Int,
     val titleRes: Int,
     val descriptionRes: Int,
+    /** Optional string resource for the scrollable "details" block below the header; 0 = no details. */
+    val detailDescriptionRes: Int = 0,
     val showTouchZonesScheme: Boolean = false,
     val isPermissionsPage: Boolean = false,
     val isDefaultPlayerPage: Boolean = false,

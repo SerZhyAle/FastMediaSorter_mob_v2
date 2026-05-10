@@ -114,11 +114,11 @@ class ExtractArchiveUseCase @Inject constructor(
         } catch (e: ExtractionAbort) {
             emit(ExtractProgress.Failure(e.reason))
         } catch (e: IOException) {
-            val normalized = if (isNoSpaceError(e)) "no_space" else (e.message ?: "extract_error")
+            val normalized = if (isNoSpaceError(e)) "no_space" else "extract_error"
             emit(ExtractProgress.Failure(normalized))
         } catch (e: Exception) {
             Timber.e(e, "ExtractArchiveUseCase failed")
-            emit(ExtractProgress.Failure(e.message ?: "extract_error"))
+            emit(ExtractProgress.Failure("extract_error"))
         }
     }.flowOn(Dispatchers.IO)
 

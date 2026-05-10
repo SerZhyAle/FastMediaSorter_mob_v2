@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.sza.fastmediasorter.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -64,7 +65,7 @@ class ArchiveFilesUseCase @Inject constructor(
         destinationDir: String
     ): Flow<ArchiveProgress> = flow {
         if (filePaths.isEmpty()) {
-            emit(ArchiveProgress.Error("No files selected for archiving"))
+            emit(ArchiveProgress.Error(context.getString(R.string.no_files_selected)))
             return@flow
         }
 
@@ -76,7 +77,7 @@ class ArchiveFilesUseCase @Inject constructor(
 
         val destDir = File(destinationDir)
         if (!destDir.exists() || !destDir.isDirectory) {
-            emit(ArchiveProgress.Error("Destination directory does not exist: $destinationDir"))
+            emit(ArchiveProgress.Error(context.getString(R.string.archive_destination_not_found)))
             return@flow
         }
 
@@ -146,13 +147,13 @@ class ArchiveFilesUseCase @Inject constructor(
             Timber.e(e, "ArchiveFilesUseCase: I/O failure")
             silentClose(zipOutputStream)
             deletePartialArchive(outputFile)
-            emit(ArchiveProgress.Error(e.message ?: "I/O error creating archive", e))
+            emit(ArchiveProgress.Error(context.getString(R.string.archive_create_failed), e))
 
         } catch (e: Exception) {
             Timber.e(e, "ArchiveFilesUseCase: unexpected failure")
             silentClose(zipOutputStream)
             deletePartialArchive(outputFile)
-            emit(ArchiveProgress.Error(e.message ?: "Unexpected error", e))
+            emit(ArchiveProgress.Error(context.getString(R.string.error_reason_unknown), e))
         }
     }.flowOn(Dispatchers.IO)
 

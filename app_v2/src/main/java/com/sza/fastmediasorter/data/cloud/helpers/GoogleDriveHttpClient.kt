@@ -1,7 +1,10 @@
 package com.sza.fastmediasorter.data.cloud.helpers
 
+import android.content.Context
 import androidx.annotation.Keep
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudResult
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -18,7 +21,12 @@ import javax.inject.Singleton
  * Note: 401 retry logic handled at GoogleDriveRestClient level via silentSignIn().
  */
 @Singleton
-class GoogleDriveHttpClient @Inject constructor() {
+class GoogleDriveHttpClient @Inject constructor(
+    @param:ApplicationContext private val context: Context
+) {
+
+    private fun downloadFailedMessage(): String =
+        context.getString(R.string.download_failed, context.getString(R.string.error_reason_unknown))
 
     /**
      * Make authenticated HTTP request to Drive API.
@@ -129,11 +137,11 @@ class GoogleDriveHttpClient @Inject constructor() {
                         ?: "HTTP $responseCode"
                     connection.disconnect()
                     Timber.e("Failed with HTTP $responseCode - $error")
-                    return@withContext StreamResult.Error("Download failed: $error", responseCode)
+                    return@withContext StreamResult.Error(downloadFailedMessage(), responseCode)
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get input stream for fileId='$fileId'")
-                StreamResult.Error("Failed to get input stream: ${e.message}", null)
+                StreamResult.Error(downloadFailedMessage(), null)
             }
         }
     }
@@ -167,11 +175,11 @@ class GoogleDriveHttpClient @Inject constructor() {
                 } else {
                     val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
                     connection.disconnect()
-                    CloudResult.Error("Download failed: $error")
+                    CloudResult.Error(downloadFailedMessage())
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to download file as stream")
-                CloudResult.Error("Download failed: ${e.message}", e)
+                CloudResult.Error(downloadFailedMessage(), e)
             }
         }
     }

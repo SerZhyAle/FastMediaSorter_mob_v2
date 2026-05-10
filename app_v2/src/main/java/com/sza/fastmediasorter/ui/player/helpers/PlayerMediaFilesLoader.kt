@@ -59,6 +59,11 @@ class PlayerMediaFilesLoader(
 
     private var loadingJob: Job? = null
 
+    // Tracks whether the launch-time initialFilePath was found to be absent from the
+    // filesystem. Once set, excludes the path from cache-scope checks and prevents
+    // repeated "cache scope mismatch" cycles within the same ViewModel session.
+    private var initialFilePathIsStale = false
+
     fun loadSettings() {
         scope.launch {
             try {
@@ -130,6 +135,8 @@ class PlayerMediaFilesLoader(
             try {
                 // Save current file path to restore position after reload
                 val currentFilePath = stateFlow.value.currentFile?.path
+                // Captured before reload for use as nearest-by-order fallback when the target file is gone.
+                val currentIndexBeforeReload = stateFlow.value.currentIndex
 
                 val resource = if (resourceId == -100L) {
                     MediaResource(
@@ -218,8 +225,17 @@ class PlayerMediaFilesLoader(
                 }
                 // Normalize paths before comparison (MediaStore may return different path formats for same file).
                 val normalizedInitialPath = initialFilePath?.let { normalizePath(it) }
-                val cacheMatchesInitialFile = normalizedInitialPath == null ||
-                    (cachedFiles != null && cachedFiles.any { normalizePath(it.path) == normalizedInitialPath })
+                // Declared early so the scope check and the position-restore section share one instance.
+                val normalizedCurrentPath = currentFilePath?.let { normalizePath(it) }
+                // Scope check accepts the cache when the current (actively-playing) file is present —
+                // avoids a full re-read just because the original launch file was sorted away.
+                val cacheMatchesCurrentFile = normalizedCurrentPath != null &&
+                    cachedFiles != null && cachedFiles.any { normalizePath(it.path) == normalizedCurrentPath }
+                // Exclude stale initial path from scope check (already confirmed absent in prior reload).
+                val effectiveInitialPath = if (initialFilePathIsStale) null else normalizedInitialPath
+                val cacheMatchesInitialFile = cacheMatchesCurrentFile ||
+                    effectiveInitialPath == null ||
+                    (cachedFiles != null && cachedFiles.any { normalizePath(it.path) == effectiveInitialPath })
 
                 val allFiles = if (cachedFiles != null && cachedFiles.isNotEmpty() && !cacheHasOnlyDirectories && cacheMatchesInitialFile) {
                     cachedFiles
@@ -229,7 +245,7 @@ class PlayerMediaFilesLoader(
                     if (cachedFiles == null) {
                         Timber.d("PlayerMediaFilesLoader: cache empty (cold start), loading from $initialFileDir")
                     } else if (!cacheMatchesInitialFile) {
-                        Timber.w("PlayerMediaFilesLoader: cache scope mismatch — cached ${cachedFiles.size} files do not contain initialFilePath=$initialFilePath, reloading from $initialFileDir")
+                        Timber.w("PlayerMediaFilesLoader: cache scope mismatch — cached ${cachedFiles.size} files contain neither current ($currentFilePath) nor initial ($initialFilePath), reloading from $initialFileDir")
                     } else if (cacheHasOnlyDirectories) {
                         Timber.w("Cache contains only directories (${cachedFiles.size} items), loading actual files from current path")
                     } else {
@@ -280,6 +296,12 @@ class PlayerMediaFilesLoader(
                     allFiles.any { file -> !file.isDirectory && normalizePath(file.path) == normalizedTarget }
                 } ?: false
 
+                // If the initial path is absent from the full source list, mark it stale so
+                // subsequent reloadFiles() calls skip the scope check for this path.
+                if (normalizedInitialPath != null && !initialFileExistsInUnfiltered) {
+                    initialFilePathIsStale = true
+                }
+
                 val filesWithFavorites = try {
                     if (files.isEmpty()) {
                         files
@@ -300,7 +322,6 @@ class PlayerMediaFilesLoader(
                     // 1. Current file path (reloading during playback — preserve position)
                     // 2. Initial file path (from BrowseActivity — pagination mode)
                     // 3. Initial index (default fallback)
-                    val normalizedCurrentPath = currentFilePath?.let { normalizePath(it) }
                     val safeIndex = if (normalizedCurrentPath != null) {
                         val foundIndex = filesWithFavorites.indexOfFirst { normalizePath(it.path) == normalizedCurrentPath }
                         if (foundIndex >= 0) {
@@ -310,7 +331,8 @@ class PlayerMediaFilesLoader(
                             Timber.w("Current file not found: $currentFilePath, trying initialFilePath")
                             if (normalizedInitialPath != null) {
                                 val initialFoundIndex = filesWithFavorites.indexOfFirst { normalizePath(it.path) == normalizedInitialPath }
-                                if (initialFoundIndex >= 0) initialFoundIndex else 0
+                                // Neither current nor initial found — land at nearest-by-order position.
+                                if (initialFoundIndex >= 0) initialFoundIndex else currentIndexBeforeReload.coerceIn(0, filesWithFavorites.size - 1)
                             } else {
                                 initialIndex.coerceIn(0, filesWithFavorites.size - 1)
                             }
@@ -320,7 +342,7 @@ class PlayerMediaFilesLoader(
                         if (foundIndex >= 0) {
                             foundIndex
                         } else {
-                            Timber.w("File not found by path: $initialFilePath, using index 0")
+                            Timber.w("File not found by path: $initialFilePath, falling back to index $currentIndexBeforeReload")
                             if (resource.rememberFileList && !initialFileExistsInUnfiltered) {
                                 val missingName = initialFilePath.substringAfterLast('/').ifBlank { initialFilePath }
                                 // Auto-clean stale file reference (no blocking dialog)
@@ -330,7 +352,7 @@ class PlayerMediaFilesLoader(
                             } else if (resource.rememberFileList && initialFileExistsInUnfiltered) {
                                 Timber.w("Initial file exists in source list but was filtered out by supportedMediaTypes, skipping missing file dialog")
                             }
-                            0
+                            currentIndexBeforeReload.coerceIn(0, filesWithFavorites.size - 1)
                         }
                     } else {
                         initialIndex.coerceIn(0, files.size - 1)

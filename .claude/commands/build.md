@@ -84,7 +84,7 @@ Source of truth for flavor config: `app_v2/build.gradle.kts`.
 .\scripts\builders\build-photos-debug.ps1
 .\scripts\builders\build-legacy-debug.ps1
 .\scripts\builders\build-standard-release.ps1
-# ...etc
+# ..etc
 ```
 
 ---
@@ -235,4 +235,3 @@ This appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` 
 - File size limit: 1500 lines max. Files >500 lines need a timestamped backup in `temp/` before modification.
 - Never use `Log.d()` — use `Timber` only.
 - Activity/Fragment logic must be delegated to `helpers/*Manager.kt` classes.
-

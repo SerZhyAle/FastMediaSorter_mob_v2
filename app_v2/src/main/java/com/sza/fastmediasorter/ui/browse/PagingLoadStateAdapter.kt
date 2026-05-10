@@ -6,6 +6,7 @@ import androidx.core.view.isVisible
 import androidx.paging.LoadState
 import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemPagingLoadStateBinding
 
 /**
@@ -41,7 +42,7 @@ class PagingLoadStateAdapter(
                 tvErrorMessage.isVisible = loadState is LoadState.Error
 
                 if (loadState is LoadState.Error) {
-                    tvErrorMessage.text = loadState.error.localizedMessage ?: "Error loading files"
+                    tvErrorMessage.text = binding.root.context.getString(R.string.reload_files_failed)
                 }
 
                 btnRetry.setOnClickListener {
