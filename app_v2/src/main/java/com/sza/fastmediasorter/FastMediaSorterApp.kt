@@ -89,6 +89,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var renameVirtualResourcesUseCase: com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
 
     @Inject
+    lateinit var backfillSmbCredentialShareNameUseCase: com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
+
+    @Inject
     lateinit var inputBindingRepository: com.sza.fastmediasorter.data.input.InputBindingRepository
 
     @Inject
@@ -160,7 +163,23 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             tempFileManager.cleanupOldTempFiles(24 * 60 * 60 * 1000L) // 24 hours max age
             Timber.d("App startup: cleaned up old orphaned temp files")
         }
-        
+
+        // S0139: one-shot backfill of empty SMB credential shareName from resource path.
+        // Idempotent — flag-gated; runs only once per install/upgrade.
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching { backfillSmbCredentialShareNameUseCase() }
+                .onFailure { Timber.e(it, "S0139: backfill launch failed") }
+        }
+
+        // S0133: reconcile system component state (share-sheet aliases, primary-player aliases) with DataStore.
+        // Idempotent — safe on every process start; restores registration after reinstall / clear-data.
+        applicationScope.launch {
+            runCatching {
+                com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
+                    .apply(applicationContext, settingsRepository)
+            }.onFailure { Timber.e(it, "S0133: bootstrap failed") }
+        }
+
         // Start network state monitoring for automatic connection recovery
         networkStateMonitor.start()
         

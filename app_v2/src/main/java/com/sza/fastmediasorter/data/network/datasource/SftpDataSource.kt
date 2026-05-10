@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
+import java.io.InterruptedIOException
 
 /**
  * ExoPlayer DataSource for SFTP streaming via connection pool.
@@ -178,6 +179,13 @@ class SftpDataSource(
         val wasAlreadyBroken = channelBroken
         try {
             inputStream?.close()
+        } catch (e: InterruptedIOException) {
+            // ExoPlayer's Loader interrupts its worker thread on cancel/seek; JSch's
+            // PipedInputStream.read() inside _sendCLOSE then throws this. Channel state
+            // is undefined after a half-finished CLOSE — return it to the pool as broken.
+            channelBroken = true
+            Thread.currentThread().interrupt()
+            Timber.d("SftpDataSource: InputStream close interrupted by ExoPlayer cancel")
         } catch (e: Exception) {
             channelBroken = true
             // Pipe closed / similar are expected cascades when the channel already broke in read()

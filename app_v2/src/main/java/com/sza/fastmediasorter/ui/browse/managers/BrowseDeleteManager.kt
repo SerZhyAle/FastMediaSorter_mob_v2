@@ -64,7 +64,7 @@ class BrowseDeleteManager(
         scope.launch(ioDispatcher) {
             val selectedPaths = stateFlow.value.selectedFiles.toList()
             if (selectedPaths.isEmpty()) {
-                sendEvent(BrowseEvent.ShowMessage("No files selected"))
+                sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.no_files_selected)))
                 return@launch
             }
 
@@ -135,7 +135,13 @@ class BrowseDeleteManager(
                         Timber.e("BrowseDeleteManager: failure — ${result.error}")
                         setIgnoringFileChanges(false)
                         setLoading(false)
-                        sendEvent(BrowseEvent.ShowError(message = "Failed to delete files", details = result.error))
+                        // Keep the headline human and move filesystem detail to the secondary details surface.
+                        sendEvent(
+                            BrowseEvent.ShowError(
+                                message = context.getString(R.string.all_delete_operations_failed),
+                                details = result.error
+                            )
+                        )
                         return@launch
                     }
                     is FileOperationResult.AuthenticationRequired -> {
@@ -179,7 +185,17 @@ class BrowseDeleteManager(
             }
 
             if (dirDeleteError != null) {
-                sendEvent(BrowseEvent.ShowError(message = "Some folders could not be deleted", details = dirDeleteError))
+                val headlineRes = if (totalFileCount > 0) {
+                    R.string.error_partial_success
+                } else {
+                    R.string.error_delete
+                }
+                sendEvent(
+                    BrowseEvent.ShowError(
+                        message = context.getString(headlineRes),
+                        details = dirDeleteError
+                    )
+                )
             } else {
                 val msg = context.getString(R.string.deleted_n_files, totalFileCount.coerceAtLeast(
                     if (dirItems.isNotEmpty() && filesToDelete.isEmpty()) dirItems.size else totalFileCount
@@ -207,8 +223,7 @@ class BrowseDeleteManager(
         if (alreadyRemoved > 0) {
             Timber.w("BrowseDeleteManager: state inconsistency — $alreadyRemoved files were removed before permission granted")
             sendEvent(BrowseEvent.ShowMessage(
-                "Warning: Some files may have been uploaded but not deleted from source. " +
-                "Please check source and destination folders. Affected: $alreadyRemoved file(s)"
+                context.getString(R.string.warning_files_may_remain_in_source, alreadyRemoved)
             ))
         }
 

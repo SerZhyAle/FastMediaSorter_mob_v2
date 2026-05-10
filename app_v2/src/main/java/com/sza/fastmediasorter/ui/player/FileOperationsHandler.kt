@@ -148,8 +148,8 @@ class FileOperationsHandler(
                                 result.error
                             }
 
-                            val message = if (result.errorRes != null) errorText
-                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, errorText)
+                            val message = if (result.errorRes != null || errorText != result.error) errorText
+                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed)
 
                             callback.onOperationError(message, null)
                         }
@@ -157,7 +157,7 @@ class FileOperationsHandler(
                             callback.onAuthenticationRequired(result.provider, result.message)
                         }
                         is FileOperationResult.PermissionRequired -> {
-                            callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
+                            callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_operation_failed))
                         }
                     }
                 }
@@ -165,7 +165,7 @@ class FileOperationsHandler(
                 Timber.e(e, "FileOperationsHandler: Copy operation failed")
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, e.message), e)
+                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed), e)
                     }
                 }
             }
@@ -242,8 +242,8 @@ class FileOperationsHandler(
                                 result.error
                             }
 
-                            val message = if (result.errorRes != null) errorText
-                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, errorText)
+                            val message = if (result.errorRes != null || errorText != result.error) errorText
+                                         else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed)
 
                             callback.onOperationError(message, null)
                         }
@@ -261,7 +261,7 @@ class FileOperationsHandler(
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
                         callback.onOperationError(
-                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message ?: e.javaClass.simpleName),
+                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed),
                             e
                         )
                     }
@@ -303,18 +303,18 @@ class FileOperationsHandler(
                         }
                         is FileOperationResult.Failure -> {
                             val msg = if (result.errorRes != null) appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, result.error)
+                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed)
                             callback.onOperationError(msg, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
-                        is FileOperationResult.PermissionRequired -> callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
+                        is FileOperationResult.PermissionRequired -> callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_operation_failed))
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: performCopyToPath failed")
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
-                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed, e.message), e)
+                        callback.onOperationError(appCtx.getString(com.sza.fastmediasorter.R.string.error_copy_failed), e)
                     }
                 }
             }
@@ -358,7 +358,7 @@ class FileOperationsHandler(
                         }
                         is FileOperationResult.Failure -> {
                             val msg = if (result.errorRes != null) appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
-                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, result.error)
+                                      else appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed)
                             callback.onOperationError(msg, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
@@ -371,7 +371,7 @@ class FileOperationsHandler(
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
                         callback.onOperationError(
-                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed, e.message ?: e.javaClass.simpleName),
+                            appCtx.getString(com.sza.fastmediasorter.R.string.error_move_failed),
                             e
                         )
                     }
@@ -387,7 +387,7 @@ class FileOperationsHandler(
         val currentFile = callback.getCurrentFile()
         if (currentFile == null) {
             Timber.e("FileOperationsHandler.performDelete: Current file is null!")
-            callback.onOperationError("No file selected for deletion")
+            callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
             return
         }
         if (deleteInProgress) return
@@ -435,7 +435,7 @@ class FileOperationsHandler(
                         val message = if (result.errorRes != null) {
                             context.getString(result.errorRes, *result.formatArgs.toTypedArray())
                         } else {
-                            context.getString(com.sza.fastmediasorter.R.string.error_delete_failed, result.error)
+                            context.getString(com.sza.fastmediasorter.R.string.error_delete_failed)
                         }
                         callback.onOperationError(message, null)
                     }
@@ -456,7 +456,7 @@ class FileOperationsHandler(
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Delete operation failed with exception")
                 deleteInProgress = false
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_failed, e.message), e)
+                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_failed), e)
             }
         }
     }
@@ -484,7 +484,7 @@ class FileOperationsHandler(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Share operation failed")
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed, e.message), e)
+                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed), e)
             }
         }
     }
@@ -567,7 +567,7 @@ class FileOperationsHandler(
                     }
                 }
                 is FileOperationResult.Failure -> {
-                    callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_download_failed, result.error), null)
+                    callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_download_failed))
                 }
                 else -> {
                     callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_unexpected))
@@ -658,7 +658,7 @@ class FileOperationsHandler(
                 context.startActivity(Intent.createChooser(shareIntent, context.getString(com.sza.fastmediasorter.R.string.title_share_chooser)))
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Failed to share local file")
-                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed, e.message), e)
+                callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed), e)
             }
         }
     }

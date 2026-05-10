@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260509150
-        versionName = "2.60.5091.507"
+        versionCode = 260510034
+        versionName = "2.60.5100.348"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -77,6 +77,7 @@ android {
 
         // Build Time (Current)
         buildConfigField("String", "BUILD_TIME", "\"Unknown\"")
+        buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "false")
     }
     
     // Product Flavors: Different app versions for different use cases
@@ -130,6 +131,33 @@ android {
             // 16 KB compatible — safe for Google Play.
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+        }
+
+        // ===== NO-LEGAL (Sideload-only full build with isolated GPL extractor support) =====
+        create("noLegal") {
+            dimension = "version"
+            applicationIdSuffix = ".nolegal"
+            versionNameSuffix = "-NoLegal"
+            disableNativeBuild()
+            // S0117: keep the full standard capability surface while isolating
+            // site-specific/GPL code behind a dedicated sideload-only flavor.
+            buildConfigField("boolean", "SUPPORT_VIDEO", "true")
+            buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "SUPPORT_IMAGES", "true")
+            buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
+            buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
+            buildConfigField("boolean", "ENABLE_EPUB", "true")
+            buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
+            buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
+            buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
+            buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
         }
 
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -337,6 +365,7 @@ android {
             java.directories.add("src/streamingEnabled/java")
         }
         getByName("standard") { java.directories.add("src/streamingEnabled/java") }
+        getByName("noLegal") { java.directories.add("src/streamingEnabled/java") }
         getByName("legacy") { java.directories.add("src/streamingEnabled/java") }
         getByName("vr") { java.directories.add("src/streamingEnabled/java") }
         getByName("lite") { java.directories.add("src/streamingDisabled/java") }
@@ -664,6 +693,8 @@ dependencies {
     // lite/photos stay without these modules to preserve their APK size budget.
     "standardImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
     "standardImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    "noLegalImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
+    "noLegalImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     "legacyImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
     "legacyImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
@@ -747,6 +778,8 @@ dependencies {
         exclude(group = "net.sf.kxml", module = "kxml2")
     }
     implementation("org.jsoup:jsoup:1.17.2")
+    // S0117: GPL extractor is linked only into the sideload-only noLegal flavor.
+    "noLegalImplementation"("com.github.TeamNewPipe:NewPipeExtractor:v0.24.0")
 
     // Markdown Rendering (for .md text files)
     implementation("io.noties.markwon:core:4.6.2")
@@ -780,6 +813,7 @@ dependencies {
     // AAR built: app_v2/libs/fms-ffmpeg-dts.aar (libffmpegJNI.so arm64-v8a + classes.jar)
     // Rebuilt with NDK r25c + -Wl,-z,max-page-size=16384. readelf LOAD Align=0x4000 (16 KB). ✓ Play-safe.
     "standardImplementation"(files("libs/fms-ffmpeg-dts.aar"))
+    "noLegalImplementation"(files("libs/fms-ffmpeg-dts.aar"))
     "legacyImplementation"(files("libs/fms-ffmpeg-dts.aar"))
     "vrImplementation"(files("libs/fms-ffmpeg-dts.aar"))
     "vrUnlicensedImplementation"(files("libs/fms-ffmpeg-dts.aar"))

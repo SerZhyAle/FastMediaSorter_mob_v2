@@ -72,6 +72,22 @@ class PermissionsManagementFragment : Fragment() {
         updateGrantAllVisibility()
     }
 
+    // Special permissions (MANAGE_EXTERNAL_STORAGE, MANAGE_MEDIA, etc.) require dedicated system
+    // settings screens and cannot be requested via requestMultiplePermissions(). We launch them for
+    // result so that returning from the settings screen (via Back or grant) is handled cleanly.
+    // On API 34+ the predictive back system can deliver a spurious back event to the underlying
+    // Activity when a child Activity launched with plain startActivity() finishes — using
+    // ActivityResultLauncher prevents that and gives us a reliable return callback.
+    private val specialSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+        refreshAdapter()
+        updateGrantAllVisibility()
+        // In welcome mode, proceed to settings as soon as the user returns from the system
+        // permission screen — whether they granted or pressed Back.
+        if (fromWelcome) {
+            (activity as? WelcomeCompleteListener)?.onWelcomeComplete()
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_permissions_management, container, false)
 
@@ -199,11 +215,11 @@ class PermissionsManagementFragment : Fragment() {
         }
         Timber.d("launchSpecialGrantSettings: ${entry.manifestName} → ${target.action}")
         try {
-            startActivity(target)
+            specialSettingsLauncher.launch(target)
         } catch (e: ActivityNotFoundException) {
             // Some ROMs / emulators do not provide an activity for this intent action.
             Timber.e(e, "launchSpecialGrantSettings: no activity for ${target.action}, falling back to app settings")
-            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            specialSettingsLauncher.launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                 data = Uri.fromParts("package", pkg, null)
             })
         }

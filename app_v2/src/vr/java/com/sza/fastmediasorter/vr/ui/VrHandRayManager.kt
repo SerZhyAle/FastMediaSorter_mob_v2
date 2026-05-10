@@ -56,6 +56,9 @@ class VrHandRayManager(
         val decor = ensureRoot() ?: return
         // Off-plane: hide cursor and skip dispatch to avoid phantom hover at edges.
         if (ndcX < -1f || ndcX > 1f || ndcY < -1f || ndcY > 1f) {
+            if (cursorView?.visibility == View.VISIBLE) {
+                Timber.d("VR_AUDIT/1: hand-ray cursor HIDDEN (off-plane) hand=%d ndc=(%.3f,%.3f)", hand, ndcX, ndcY)
+            }
             cursorView?.visibility = View.GONE
             currentX = Float.NaN
             currentY = Float.NaN
@@ -72,6 +75,9 @@ class VrHandRayManager(
         currentY = py
 
         val cursor = ensureCursor()
+        if (cursor.visibility != View.VISIBLE) {
+            Timber.d("VR_AUDIT/1: hand-ray cursor VISIBLE hand=%d ndc=(%.3f,%.3f) px=(%.1f,%.1f) source=hand-tracking", hand, ndcX, ndcY, px, py)
+        }
         cursor.visibility = View.VISIBLE
         // Use the intrinsic CURSOR_PX constant instead of measured width/height —
         // on the first few frames the view has not been laid out yet, so width is 0

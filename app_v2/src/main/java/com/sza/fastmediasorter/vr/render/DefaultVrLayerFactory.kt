@@ -7,7 +7,7 @@ import javax.inject.Inject
 class DefaultVrLayerFactory @Inject constructor() : VrLayerFactory {
 
     override fun describe(stereo: StereoMode, renderingMode: VrRenderingMode): VrLayerDescriptor {
-        return when {
+        val descriptor = when {
             stereo == StereoMode.MONO && renderingMode == VrRenderingMode.CINEMA -> quadCinemaDescriptor()
             // OU/SBS are inherently stereoscopic — route to projection regardless of renderingMode.
             // S0078: SBS_FULL/SBS_HALF fell through to QUAD_CINEMA when renderingMode == CINEMA (same bug as OU before its fix).
@@ -26,6 +26,15 @@ class DefaultVrLayerFactory @Inject constructor() : VrLayerFactory {
                 quadCinemaDescriptor()
             }
         }
+        Timber.d(
+            "VR_AUDIT/8: DefaultVrLayerFactory.describe stereo=%s renderMode=%s -> layerKind=%s leftEyeUv=(u=%.3f v=%.3f w=%.3f h=%.3f) rightEyeUv=(u=%.3f v=%.3f w=%.3f h=%.3f)",
+            stereo, renderingMode, descriptor.type,
+            descriptor.leftEyeUv.uOffset, descriptor.leftEyeUv.vOffset,
+            descriptor.leftEyeUv.uScale, descriptor.leftEyeUv.vScale,
+            descriptor.rightEyeUv.uOffset, descriptor.rightEyeUv.vOffset,
+            descriptor.rightEyeUv.uScale, descriptor.rightEyeUv.vScale,
+        )
+        return descriptor
     }
 
     private fun projectionDescriptor(stereo: StereoMode): VrLayerDescriptor = VrLayerDescriptor(

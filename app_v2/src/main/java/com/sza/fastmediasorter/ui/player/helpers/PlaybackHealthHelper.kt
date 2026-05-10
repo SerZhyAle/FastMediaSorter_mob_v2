@@ -129,7 +129,6 @@ internal fun VideoPlayerManager.playWithMediaPlayer(path: String) {
                 playerCallback.onPlaybackEnded()
             }
             setOnErrorListener { _, what, extra ->
-                Timber.d("S0118: PlaybackHealthHelper — building localized MediaPlayer error message")
                 Timber.e("MediaPlayer error: what=$what, extra=$extra, file=$path")
 
                 // MediaPlayer error codes (what):

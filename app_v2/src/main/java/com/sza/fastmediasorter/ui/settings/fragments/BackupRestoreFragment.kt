@@ -313,8 +313,7 @@ class BackupRestoreFragment : Fragment() {
             signInLauncher.launch(intent)
         } catch (e: Exception) {
             Timber.e(e, "Failed to launch Google sign-in")
-            val reason = e.message ?: getString(R.string.settings_unknown_error)
-            showSnackbar(getString(R.string.backup_failed, reason))
+            showSnackbar(getString(R.string.backup_failed))
         }
     }
 

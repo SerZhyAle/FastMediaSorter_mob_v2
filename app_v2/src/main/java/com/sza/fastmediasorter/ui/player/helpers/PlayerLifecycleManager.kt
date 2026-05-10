@@ -117,11 +117,7 @@ class PlayerLifecycleManager(
      * Update button visibility for managers that depend on settings.
      */
     private fun updateButtonVisibility() {
-        try {
-            activity.pdfViewerManager.updateButtonVisibility()
-        } catch (e: UninitializedPropertyAccessException) {
-            // pdfViewerManager not yet initialized
-        }
+        if (activity._pdfViewerManager != null) activity.pdfViewerManager.updateButtonVisibility()
         try {
             activity.imageLoadingManager.updateButtonVisibility()
         } catch (e: UninitializedPropertyAccessException) {
@@ -231,18 +227,11 @@ class PlayerLifecycleManager(
         }
         
         // Release EpubViewerManager
-        try {
-            activity.epubViewerManager.release()
-        } catch (e: UninitializedPropertyAccessException) {
-            // Not initialized, skip
-        }
-        
+        if (activity._epubViewerManager != null) activity.epubViewerManager.release()
+
         // Release PdfViewerManager - closes PdfRenderer, cancels render jobs, clears caches (ML-001 fix)
-        try {
-            activity.pdfViewerManager.close()
-        } catch (e: UninitializedPropertyAccessException) {
-            // Not initialized, skip
-        }
+        if (activity._pdfViewerManager != null) activity.pdfViewerManager.close()
+        Timber.d("S0131: releaseResources — lazy-viewer null guards applied")
         
         // Release PlayerSettingsManager - cancel pending coroutine operations (ML-005)
         try {

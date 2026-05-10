@@ -141,7 +141,7 @@ class FileOperationDestinationDialog(
                 }
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Error loading destinations")
-                Toast.makeText(context, context.getString(R.string.toast_error_loading_destinations, e.message), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_error_loading_destinations), Toast.LENGTH_SHORT).show()
                 dismiss()
             }
         }
@@ -388,20 +388,17 @@ class FileOperationDestinationDialog(
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
                     val errorTitleResId = when (operationType) {
-                        FileOperationType.COPY -> R.string.error_copy
-                        FileOperationType.MOVE -> R.string.error_move
-                        else -> R.string.error_copy
+                        FileOperationType.COPY -> R.string.error_operation_title_copy
+                        FileOperationType.MOVE -> R.string.error_operation_title_move
+                        else -> R.string.error_operation_failed
                     }
                     val failMsgResId = when (operationType) {
                         FileOperationType.COPY -> R.string.copy_failed
                         FileOperationType.MOVE -> R.string.move_failed
                         else -> R.string.copy_failed
                     }
-                    
-                    val errorMessage = context.getString(
-                        failMsgResId,
-                        e.message ?: context.getString(R.string.error_unknown)
-                    )
+
+                    val errorMessage = context.getString(failMsgResId)
                     Timber.e("performOperation: Showing error dialog: $errorMessage")
 
                     showOperationError(
@@ -467,24 +464,23 @@ class FileOperationDestinationDialog(
                         result.processedCount,
                         result.processedCount + result.failedCount
                     ))
-                    append("\n\nErrors:\n")
+                    append("\n\n")
+                    append(context.getString(R.string.failed_files))
+                    append(":\n")
                     result.errors.take(5).forEach { error ->
-                        append("\n$error\n")
+                        append("\n")
+                        append(error)
+                        append("\n")
                     }
                     if (result.errors.size > 5) {
-                        append("\n... and ${result.errors.size - 5} more errors")
+                        append("\n")
+                        append(context.getString(R.string.and_more_errors, result.errors.size - 5))
                     }
                 }
-                
-                val partialTitle = when (operationType) {
-                    FileOperationType.COPY -> "Partial Copy Success"
-                    FileOperationType.MOVE -> "Partial Move Success"
-                    else -> "Partial Success"
-                }
-                
+
                 com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
                     context,
-                    partialTitle,
+                    context.getString(R.string.error_partial_success),
                     message
                 )
                 
@@ -499,23 +495,32 @@ class FileOperationDestinationDialog(
                     result.error.contains("expired_access_token", ignoreCase = true)) {
                     showCloudAuthenticationError(result.error, destinationResource)
                 } else {
+                    val failTitleResId = when (operationType) {
+                        FileOperationType.COPY -> R.string.error_operation_title_copy
+                        FileOperationType.MOVE -> R.string.error_operation_title_move
+                        else -> R.string.error_operation_failed
+                    }
                     val failMsgResId = when (operationType) {
                         FileOperationType.COPY -> R.string.copy_failed
                         FileOperationType.MOVE -> R.string.move_failed
                         else -> R.string.copy_failed
                     }
-                    
-                    val failTitle = when (operationType) {
-                        FileOperationType.COPY -> "Copy Failed"
-                        FileOperationType.MOVE -> "Move Failed"
-                        else -> "Operation Failed"
-                    }
 
-                    val message = context.getString(failMsgResId, result.error)
+                    val message = if (result.errorRes != null) {
+                        context.getString(result.errorRes, *result.formatArgs.toTypedArray())
+                    } else {
+                        context.getString(failMsgResId)
+                    }
+                    // Keep the main copy calm; raw transfer details belong only in the optional details surface.
+                    val detailedInfo = when {
+                        result.formatArgs.isNotEmpty() -> result.formatArgs.joinToString("\n")
+                        result.error.isNotBlank() && result.error != message -> result.error
+                        else -> null
+                    }
                     showOperationError(
-                        title = failTitle,
+                        title = context.getString(failTitleResId),
                         message = message,
-                        detailedInfo = "Check logcat for detailed information (tag: FileOperation)"
+                        detailedInfo = detailedInfo
                     )
                 }
                 

@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.FragmentOpenSourceLicensesBinding
 import timber.log.Timber
 
@@ -47,6 +48,20 @@ class OpenSourceLicensesFragment : Fragment() {
         }
         binding.btnEpub4jLicense.setOnClickListener {
             openUrl("https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html")
+        }
+
+        binding.cardNewpipeLicense.visibility = if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+            binding.btnNewpipeSource.setOnClickListener {
+                openUrl("https://github.com/TeamNewPipe/NewPipeExtractor")
+            }
+            binding.btnNewpipeLicense.setOnClickListener {
+                openUrl("https://www.gnu.org/licenses/gpl-3.0.html")
+            }
         }
     }
 

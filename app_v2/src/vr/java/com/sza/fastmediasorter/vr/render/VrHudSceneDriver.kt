@@ -57,6 +57,7 @@ class VrHudSceneDriver(
         val now = System.currentTimeMillis()
         val active = anySlotActive(state, now)
         if (active != lastVisibleSubmitted) {
+            Timber.d("VR_AUDIT/3: HUD submit transition active=%b reason=auto-redraw", active)
             renderer.setVisible(active, reason = "auto-redraw")
             lastVisibleSubmitted = active
         }
@@ -105,6 +106,7 @@ class VrHudSceneDriver(
     }
 
     override fun showPauseIndicator(paused: Boolean) {
+        Timber.d("VR_AUDIT/3: indicator=pause visible=true paused=%b durationMs=%d", paused, DUR_PAUSE_MS)
         runOnMain {
             persistedIsPaused = paused  // track for reportActivity()
             val until = System.currentTimeMillis() + DUR_PAUSE_MS
@@ -123,6 +125,7 @@ class VrHudSceneDriver(
     }
 
     override fun showVolumeIndicator(percent: Int) {
+        Timber.d("VR_AUDIT/3: indicator=volume visible=true percent=%d durationMs=%d", percent, DUR_VOLUME_MS)
         runOnMain {
             val clamped = percent.coerceIn(0, 100)
             val until = System.currentTimeMillis() + DUR_VOLUME_MS
@@ -138,6 +141,7 @@ class VrHudSceneDriver(
     }
 
     override fun showSeekIndicator(deltaSeconds: Int, positionMs: Long, totalMs: Long) {
+        Timber.d("VR_AUDIT/3: indicator=seek visible=true deltaSec=%d posMs=%d totalMs=%d durationMs=%d", deltaSeconds, positionMs, totalMs, DUR_SEEK_MS)
         runOnMain {
             val until = System.currentTimeMillis() + DUR_SEEK_MS
             state = state.copy(
@@ -157,6 +161,7 @@ class VrHudSceneDriver(
     }
 
     override fun showFileIndicator(name: String, index: Int, total: Int) {
+        Timber.d("VR_AUDIT/3: indicator=filename visible=true name=%s idx=%d/%d durationMs=%d", name, index, total, DUR_FILE_MS)
         runOnMain {
             val until = System.currentTimeMillis() + DUR_FILE_MS
             state = state.copy(
@@ -174,6 +179,7 @@ class VrHudSceneDriver(
     }
 
     override fun showZoomIndicator(factor: Float) {
+        Timber.d("VR_AUDIT/3: indicator=zoom visible=true factor=%.2f durationMs=%d", factor, DUR_ZOOM_MS)
         runOnMain {
             val until = System.currentTimeMillis() + DUR_ZOOM_MS
             state = state.copy(zoomFactor = factor, visibleUntilMs = maxOf(state.visibleUntilMs, until))
@@ -188,6 +194,7 @@ class VrHudSceneDriver(
     }
 
     override fun showRecenterFlash() {
+        Timber.d("VR_AUDIT/3: indicator=recenter visible=true durationMs=%d", DUR_RECENTER_MS)
         runOnMain {
             val until = System.currentTimeMillis() + DUR_RECENTER_MS
             state = state.copy(
@@ -238,6 +245,7 @@ class VrHudSceneDriver(
     }
 
     override fun showRepeatMode(mode: RepeatMode?) {
+        Timber.d("VR_AUDIT/3: indicator=repeat visible=%b mode=%s", mode != null, mode)
         runOnMain {
             state = state.copy(repeatMode = mode)
             // Repeat mode is "permanent" — refresh visibility but no auto-hide.
@@ -323,6 +331,7 @@ class VrHudSceneDriver(
     }
 
     override fun showStereoModeLabel(label: String?) {
+        Timber.d("VR_AUDIT/3: indicator=mode visible=%b label=%s", label != null, label)
         runOnMain {
             state = state.copy(stereoModeLabel = label)
             requestRedraw()

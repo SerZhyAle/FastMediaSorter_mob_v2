@@ -762,7 +762,7 @@ class VideoPlayerManager(
             } catch (e: Exception) {
                 Timber.e(e, "VideoPlayerManager: Failed to play video")
                 playerCallback.onBuffering(false)
-                playerCallback.showError("Failed to play video: ${e.message}")
+                playerCallback.showError(context.getString(R.string.error_playback_failed))
             }
         }
     }

@@ -41,6 +41,7 @@ class VrPlayerCommandRouter(
     }
 
     fun dispatchPanelZoneClick(zoneId: Int) {
+        Timber.d("VR_AUDIT/2: panel hit-test click zoneId=%d", zoneId)
         val cmd = when (zoneId) {
             VrInteractivePanelComposer.ZONE_PREV        -> PlaybackCommand.PreviousFile
             VrInteractivePanelComposer.ZONE_NEXT        -> PlaybackCommand.NextFile
@@ -143,12 +144,16 @@ class VrPlayerCommandRouter(
             }
             PlaybackCommand.NextFile -> {
                 Timber.i("VrPlayerActivity: immersive prev/next dir=NEXT xrSession=alive")
+                Timber.d("VR_AUDIT/4: immersive prev/next dir=NEXT file=%s sessionRestart=false",
+                    activity.viewModelInternal.state.value.currentFile?.path ?: "<null>")
                 viewModel.nextFile()
                 showFileFeedback()
                 maybeTriggerHaptic(source, XrHand.RIGHT, HAPTIC_SHORT_NS, HAPTIC_AMPL)
             }
             PlaybackCommand.PreviousFile -> {
                 Timber.i("VrPlayerActivity: immersive prev/next dir=PREV xrSession=alive")
+                Timber.d("VR_AUDIT/4: immersive prev/next dir=PREV file=%s sessionRestart=false",
+                    activity.viewModelInternal.state.value.currentFile?.path ?: "<null>")
                 viewModel.previousFile()
                 showFileFeedback()
                 maybeTriggerHaptic(source, XrHand.RIGHT, HAPTIC_SHORT_NS, HAPTIC_AMPL)

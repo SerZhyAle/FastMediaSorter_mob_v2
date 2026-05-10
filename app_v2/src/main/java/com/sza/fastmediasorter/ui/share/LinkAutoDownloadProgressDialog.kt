@@ -80,6 +80,28 @@ class LinkAutoDownloadProgressDialog(
                 }
                 bytes.visibility = TextView.VISIBLE
             }
+            is LinkAutoDownloadCoordinator.ProgressState.BatchDownloading -> {
+                title.text = activity.getString(
+                    R.string.s0117_progress_batch_item,
+                    state.itemIndex,
+                    state.itemCount,
+                )
+                val total = state.total
+                if (total != null && total > 0) {
+                    if (bar.isIndeterminate) bar.isIndeterminate = false
+                    val pct = ((state.bytesRead * 100L) / total).toInt().coerceIn(0, 100)
+                    bar.setProgressCompat(pct, true)
+                    bytes.text = activity.getString(
+                        R.string.link_autodownload_progress_bytes,
+                        Formatter.formatShortFileSize(activity, state.bytesRead),
+                        Formatter.formatShortFileSize(activity, total),
+                    )
+                } else {
+                    bar.isIndeterminate = true
+                    bytes.text = Formatter.formatShortFileSize(activity, state.bytesRead)
+                }
+                bytes.visibility = TextView.VISIBLE
+            }
         }
     }
 

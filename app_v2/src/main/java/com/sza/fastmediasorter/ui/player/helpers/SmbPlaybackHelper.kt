@@ -5,6 +5,7 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.SmbDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
@@ -27,14 +28,14 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
 ) {
     if (credentialsId == null) {
         Timber.e("VideoPlayerManager: No credentials for SMB")
-        playerCallback.showError("No credentials found")
+        playerCallback.showError(context.getString(R.string.player_credentials_missing))
         return
     }
 
     val credentials = credentialsRepository.getByCredentialId(credentialsId)
     if (credentials == null) {
         Timber.e("VideoPlayerManager: Credentials not found in DB")
-        playerCallback.showError("Credentials not found")
+        playerCallback.showError(context.getString(R.string.player_credentials_missing))
         return
     }
 
@@ -50,7 +51,7 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
 
     if (targetShare.isEmpty()) {
         Timber.e("VideoPlayerManager: Could not determine share name for SMB playback")
-        playerCallback.showError("Invalid SMB path: missing share name")
+        playerCallback.showError(context.getString(R.string.error_invalid_path))
         return
     }
 

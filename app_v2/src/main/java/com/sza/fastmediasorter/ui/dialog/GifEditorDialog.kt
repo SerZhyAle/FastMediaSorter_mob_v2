@@ -198,7 +198,7 @@ class GifEditorDialog(
                         Timber.e(error, "Failed to extract frames")
                         Toast.makeText(
                             context,
-                            context.getString(R.string.msg_gif_extract_failed, error.message),
+                            context.getString(R.string.msg_gif_extract_failed),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -266,7 +266,7 @@ class GifEditorDialog(
                         Timber.e(error, "Failed to change speed")
                         Toast.makeText(
                             context,
-                            context.getString(R.string.msg_gif_speed_failed, error.message),
+                            context.getString(R.string.msg_gif_speed_failed),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -315,7 +315,7 @@ class GifEditorDialog(
                         Timber.e(error, "Failed to save first frame")
                         Toast.makeText(
                             context,
-                            context.getString(R.string.msg_gif_first_frame_failed, error.message),
+                            context.getString(R.string.msg_gif_first_frame_failed),
                             Toast.LENGTH_LONG
                         ).show()
                     }

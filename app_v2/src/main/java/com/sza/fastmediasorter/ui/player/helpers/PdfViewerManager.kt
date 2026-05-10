@@ -351,7 +351,7 @@ class PdfViewerManager(
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             binding.progressBar.isVisible = false
-                            callback.showError("Failed to load PDF: ${e.message}")
+                            callback.showError(binding.root.context.getString(R.string.pdf_load_failed))
                         }
                         throw e
                     }
@@ -361,7 +361,7 @@ class PdfViewerManager(
                 if (!file.exists()) {
                     loadingToastJob.cancel()
                     binding.progressBar.isVisible = false
-                    callback.showError("PDF file not found")
+                    callback.showError(binding.root.context.getString(R.string.pdf_file_not_found))
                     return@launch
                 }
                 
@@ -423,7 +423,7 @@ class PdfViewerManager(
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             binding.progressBar.isVisible = false
-                            callback.showError("Cannot read PDF: ${e.message}")
+                            callback.showError(binding.root.context.getString(R.string.pdf_read_failed))
                         }
                     }
                 }
@@ -431,7 +431,7 @@ class PdfViewerManager(
                 Timber.e(e, "Error loading PDF")
                 loadingToastJob.cancel()
                 binding.progressBar.isVisible = false
-                callback.showError("Error: ${e.message}")
+                callback.showError(binding.root.context.getString(R.string.pdf_display_error))
             }
         }
     }
@@ -1192,7 +1192,7 @@ class PdfViewerManager(
                 Timber.e(e, "Error rendering PDF page")
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
-                    callback.showError("Error rendering page: ${e.message}")
+                    callback.showError(binding.root.context.getString(R.string.pdf_page_render_failed))
                 }
             }
         }

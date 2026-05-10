@@ -44,6 +44,7 @@ class VrInteractivePanelDriver(
                 return@runOnMain
             }
             Timber.d("VrInteractivePanelDriver: show")
+            Timber.d("VR_AUDIT/2: panel SHOW request visible=true autoHideMs=%d", AUTO_HIDE_DELAY_MS)
             state = state.copy(panelVisible = true)
             renderer.setVisible(true)
             scheduleAutoHide()
@@ -55,6 +56,7 @@ class VrInteractivePanelDriver(
         runOnMain {
             if (!state.panelVisible) return@runOnMain
             Timber.d("VrInteractivePanelDriver: hide")
+            Timber.d("VR_AUDIT/2: panel HIDE (auto-hide-timer or explicit) durationMs=%d", AUTO_HIDE_DELAY_MS)
             handler.removeCallbacks(autoHideRunnable)
             state = state.copy(panelVisible = false)
             renderer.setVisible(false)

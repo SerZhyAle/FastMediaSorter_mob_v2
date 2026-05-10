@@ -348,7 +348,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false,
                     dynamicBackgroundExtension = preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] ?: false,
                     isPrimaryMediaPlayer = preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] ?: false,
-                    acceptSharedFiles = preferences[KEY_ACCEPT_SHARED_FILES] ?: false,
+                    acceptSharedFiles = preferences[KEY_ACCEPT_SHARED_FILES] ?: true, // S0133: default ON when key absent
                     enableThumbnailPreload = preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] ?: false,
                     thumbnailPreloadWifiOnly = preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] ?: true,
                     // FR-8: Folder picker persistence (stores content:// URI)

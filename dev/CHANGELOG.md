@@ -7537,3 +7537,438 @@ Format: | datetime | file | target | description |
 | 2026-05-09 15:09:50 | `dev/ACTIVITY_CATALOG/wear.jsonl` | `spec-check` | Rescan wear after noFlavors fix |
 | 2026-05-09 15:09:50 | `dev/ACTIVITY_CATALOG/wear.md` | `spec-check` | Re-render wear after noFlavors fix |
 | 2026-05-09 15:44:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Fix: Back press from permission screen (fromWelcome mode) now calls completeWelcomeFlow() instead of finishing root activity; Back on slides minimises with moveTaskToBack(true) |
+| 2026-05-09 16:19:47 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0129` | Fix btnOverflowMenu contentDescription null in landscape layout |
+| 2026-05-09 16:20:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0129` | Remove S0129 debug Timber tag on Verified transition |
+| 2026-05-09 16:20:39 | `PLAN/S0129_bugfix-landscape-overflow-commands.md` | `spec-check` | Audit S0129 → Verified; PASS 12/WARN 0/FAIL 0 |
+| 2026-05-09 16:30:20 | `PLAN/S0130_virtual-resource-file-operations.md` | `spec` | Add strategic spec S0130 for virtual-resource-file-operations |
+| 2026-05-09 16:36:54 | `PLAN/S0130_virtual-resource-file-operations/INDEX.md` | `spec-tech` | Create tactical plan for S0130 |
+| 2026-05-09 16:36:54 | `PLAN/S0130_virtual-resource-file-operations/PHASE_01__util-and-provisioning.md` | `spec-tech` | Phase 01: util-and-provisioning |
+| 2026-05-09 16:36:54 | `PLAN/S0130_virtual-resource-file-operations/PHASE_02__startup-migration.md` | `spec-tech` | Phase 02: startup-migration |
+| 2026-05-09 16:36:54 | `PLAN/S0130_virtual-resource-file-operations/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-09 16:36:54 | `PLAN/S0130_virtual-resource-file-operations.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-09 16:37:38 | `app_v2/src/main/java/com/sza/fastmediasorter/util/VirtualPathUtils.kt` | `S0130` | Step 01.1: add camera_photos to isAggregateVirtualPath |
+| 2026-05-09 16:38:09 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0130` | Step 01.2: set isWritable from isAggregateVirtualPath in provisioning |
+| 2026-05-09 16:38:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt` | `S0130` | Step 01.3: set isWritable from isAggregateVirtualPath in user-add virtual resource flow |
+| 2026-05-09 16:39:26 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0130` | Step 01.4: add S0130 Timber debug tag to createVirtualResource |
+| 2026-05-09 16:39:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt` | `S0130` | Step 01.4: add S0130 Timber debug tag to buildVirtualResource |
+| 2026-05-09 16:42:15 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `S0130` | Step 02.1: add fixVirtualAggregateWritableFlag startup fixer |
+| 2026-05-09 16:42:37 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `S0130` | Step 02.2: call fixVirtualAggregateWritableFlag from initialize |
+| 2026-05-09 16:45:31 | `dev/CATALOG/app_v2.jsonl` | `S0130` | Step 03.1: catalog regen after VirtualPathUtils and AppStartupInitializer changes |
+| 2026-05-09 16:46:03 | `app_v2/src/main/java/com/sza/fastmediasorter/util/VirtualPathUtils.kt` | `S0130` | Phase 03 final dev log: VirtualPathUtils (isAggregateVirtualPath + camera_photos) |
+| 2026-05-09 16:46:03 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `S0130` | Phase 03 final dev log: isWritable from isAggregateVirtualPath |
+| 2026-05-09 16:46:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt` | `S0130` | Phase 03 final dev log: isWritable from isAggregateVirtualPath |
+| 2026-05-09 16:46:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/AppStartupInitializer.kt` | `S0130` | Phase 03 final dev log: fixVirtualAggregateWritableFlag |
+| 2026-05-09 16:49:42 | `PLAN/S0130_virtual-resource-file-operations.md` | `spec-check` | Audit S0130 -> Partial; PASS/WARN/FAIL 17/1/0 |
+| 2026-05-09 16:50:45 | `PLAN/S0130_virtual-resource-file-operations.md` | `spec-fix` | Annotate Last Audit (S0130): WARN Step 01.4 -> [FIXED] |
+| 2026-05-09 16:50:45 | `PLAN/S0130_virtual-resource-file-operations/PHASE_01__util-and-provisioning.md` | `spec-fix` | Fix Step 01.4 predicate: exactly twice -> at least twice |
+| 2026-05-09 16:52:07 | `PLAN/S0130_virtual-resource-file-operations.md` | `spec-check` | Audit S0130 -> Verified; PASS/WARN/FAIL 18/0/0 |
+| 2026-05-09 16:57:46 | `dev/TASK_2026-05-09_S0117_nolegal_implementation.md` | `task-definition` | Document S0117 implementation entry conditions and proposed defaults |
+| 2026-05-09 16:57:47 | `dev/TASK_2026-05-09_S0117_nolegal_implementation.md` | `task-definition` | Document S0117 implementation entry conditions and proposed defaults |
+| 2026-05-09 17:20:58 | `app_v2/build.gradle.kts` | `build.gradle.kts` | Add noLegal flavor, source set wiring, and isolated NewPipe dependency scope for S0117 |
+| 2026-05-09 17:23:14 | `PLAN/S0117_url-media-downloader-nolegal-flavor.md` | `spec-tech` | Advance S0117 strategic spec to Tactical and close implementation defaults |
+| 2026-05-09 17:23:14 | `PLAN/S0117_url-media-downloader-nolegal-flavor/INDEX.md` | `spec-tech` | Create tactical plan for S0117 |
+| 2026-05-09 17:23:14 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_01__flavor-foundation.md` | `spec-tech` | Capture completed foundation phase for S0117 |
+| 2026-05-09 17:23:14 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_02__site-resolver.md` | `spec-tech` | Create S0117 phase 02 site resolver plan |
+| 2026-05-09 17:23:14 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_03__batch-coordinator.md` | `spec-tech` | Create S0117 phase 03 batch coordinator plan |
+| 2026-05-09 17:23:14 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_04__license-ui.md` | `spec-tech` | Create S0117 phase 04 license UI plan |
+| 2026-05-09 17:23:14 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Create S0117 phase 05 docs and catalog cleanup plan |
+| 2026-05-09 17:34:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager.resolveDestinationPath` | S0106: fix ENOENT crash when saving crop from virtual resource — fallback to Downloads for virtual:// paths |
+| 2026-05-09 17:36:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/UrlExtractionStrategy.kt` | `UrlExtractionStrategy` | Add S0117 batch contract for site-resolved child URLs |
+| 2026-05-09 17:36:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `LinkExtractionRegistry` | Prioritize S0117 site resolver ahead of generic strategies |
+| 2026-05-09 17:36:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | Add S0117 sequential batch execution and summary results |
+| 2026-05-09 17:36:42 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/NewPipeOkHttpDownloader.kt` | `NewPipeOkHttpDownloader` | Bridge NewPipe extractor requests onto the app OkHttp stack |
+| 2026-05-09 17:36:42 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/NewPipeSiteExtractionStrategy.kt` | `NewPipeSiteExtractionStrategy` | Add S0117 noLegal NewPipe-backed site resolver for streams and batches |
+| 2026-05-09 17:36:42 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `NoLegalLinkDownloadModule` | Bind S0117 site resolver only in the noLegal flavor |
+| 2026-05-09 17:36:42 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistryTest.kt` | `LinkExtractionRegistryTest` | Cover S0117 site-first strategy ordering |
+| 2026-05-09 17:36:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadProgressDialog.kt` | `LinkAutoDownloadProgressDialog` | Show S0117 batch item progress state |
+| 2026-05-09 17:36:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | Project S0117 batch summary into toast and dialog UX |
+| 2026-05-09 17:36:42 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenterTest.kt` | `LinkAutoDownloadResultPresenterTest` | Add S0117 batch presenter coverage |
+| 2026-05-09 17:36:42 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Add S0117 batch and license UI strings |
+| 2026-05-09 17:36:42 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml` | Add Russian S0117 batch and license UI strings |
+| 2026-05-09 17:36:42 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Add Ukrainian S0117 batch and license UI strings |
+| 2026-05-09 17:36:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OpenSourceLicensesFragment.kt` | `OpenSourceLicensesFragment` | Gate S0117 GPL notice card to the noLegal flavor |
+| 2026-05-09 17:36:42 | `app_v2/src/main/res/layout/fragment_open_source_licenses.xml` | `fragment_open_source_licenses.xml` | Add S0117 noLegal GPL notice card |
+| 2026-05-09 17:39:58 | `PLAN/S0117_url-media-downloader-nolegal-flavor.md` | `spec-dev` | Mark S0117 strategic spec Implemented after code landing |
+| 2026-05-09 17:39:58 | `PLAN/S0117_url-media-downloader-nolegal-flavor/INDEX.md` | `spec-dev` | Close S0117 tactical index after phases 02-05 completion |
+| 2026-05-09 17:39:58 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_02__site-resolver.md` | `spec-dev` | Mark S0117 phase 02 complete |
+| 2026-05-09 17:39:58 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_03__batch-coordinator.md` | `spec-dev` | Mark S0117 phase 03 complete |
+| 2026-05-09 17:39:58 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_04__license-ui.md` | `spec-dev` | Mark S0117 phase 04 complete |
+| 2026-05-09 17:39:58 | `PLAN/S0117_url-media-downloader-nolegal-flavor/PHASE_05__docs-catalog-cleanup.md` | `spec-dev` | Mark S0117 phase 05 complete |
+| 2026-05-09 17:39:58 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Regenerate app_v2 catalog after S0117 Kotlin changes |
+| 2026-05-09 17:39:58 | `dev/CATALOG/app_v2.md` | `catalog` | Render app_v2 catalog after S0117 Kotlin changes |
+| 2026-05-09 17:40:41 | `PLAN/S0106_player-image-crop.md` | `spec-fix` | Annotate Last Audit (S0106): FOLLOW-UP LOC warn; catalog sync; virtual-path bug fix noted |
+| 2026-05-09 17:40:41 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0106 spec-fix: catalog scan+render after ImageCropManager.resolveDestinationPath fix |
+| 2026-05-09 17:43:43 | `PLAN/S0106_player-image-crop.md` | `spec-check` | Audit S0106 → Partial; PASS/WARN/FAIL 49/1/0; PlayerActivity.kt 1223 LOC over budget |
+| 2026-05-09 17:49:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `S0106 CROP in-place` | After Crop (overwrite) success: reload image in player via reloadCurrentImage() instead of Toast only |
+| 2026-05-09 18:20:00 | `PLAN/S0131_bugfix-pdf-null-bitmap.md` | `spec` | Add strategic spec S0131 for bugfix-pdf-null-bitmap |
+| 2026-05-09 18:23:53 | `PLAN/S0131_bugfix-pdf-null-bitmap/INDEX.md` | `spec-tech` | Create tactical plan for S0131 |
+| 2026-05-09 18:23:53 | `PLAN/S0131_bugfix-pdf-null-bitmap/PHASE_01__teardown-guard.md` | `spec-tech` | Phase 01: teardown-guard |
+| 2026-05-09 18:23:53 | `PLAN/S0131_bugfix-pdf-null-bitmap/PHASE_02__adaptive-heap-threshold.md` | `spec-tech` | Phase 02: adaptive-heap-threshold |
+| 2026-05-09 18:23:53 | `PLAN/S0131_bugfix-pdf-null-bitmap/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-09 18:23:53 | `PLAN/S0131_bugfix-pdf-null-bitmap.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-09 18:25:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `bugfix` | S0131 step 1.2: replace lazy-viewer try/catch guards with backing-field null checks in teardown |
+| 2026-05-09 18:29:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt` | `bugfix` | S0131 step 2.1: replace fixed 20MB native heap threshold with adaptive relative+absolute AND-logic check |
+| 2026-05-09 18:31:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `bugfix` | S0131: guard lazy viewer-manager accesses in teardown with backing-field null checks |
+| 2026-05-09 18:31:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt` | `bugfix` | S0131: replace fixed 20MB native heap threshold with adaptive relative+absolute check |
+| 2026-05-09 18:31:56 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0131: regenerate catalog after PlayerLifecycleManager + ImagePreloadHelper edits |
+| 2026-05-09 18:32:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PermissionsManagementFragment.kt` | `PermissionsManagementFragment` | Fix: use ActivityResultLauncher for special-permission settings screens instead of startActivity() to prevent spurious back event on API 34+ predictive back; in fromWelcome mode auto-proceed via onWelcomeComplete() when user returns from system settings |
+| 2026-05-09 18:35:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImagePreloadHelper.kt` | `ImagePreloadHelper` | Aligned adaptive native heap preload threshold with the larger relative/absolute floor for S0131 |
+| 2026-05-09 18:51:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager.decodeRegion` | Fix crash: re-clamp crop rect to actual BitmapRegionDecoder dims before decode; detect degenerate rects (EXIF-rotation collapse) and throw user-friendly error instead of IllegalArgumentException from native layer |
+| 2026-05-09 19:05:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt` | `BrowseLoadingAuxManager` | Removed temporary S0118 verification Timber tag |
+| 2026-05-09 19:05:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseSortFilterManager.kt` | `BrowseSortFilterManager` | Removed temporary S0118 verification Timber tag |
+| 2026-05-09 19:05:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackHealthHelper.kt` | `PlaybackHealthHelper` | Removed temporary S0118 verification Timber tag |
+| 2026-05-09 19:09:41 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Restore S0118 strategic spec to Verified after follow-up static audit |
+| 2026-05-09 19:09:42 | `PLAN/S0118_friendly-ui-copy-revision/INDEX.md` | `spec-update` | Reclose S0118 completion gate after follow-up static audit |
+| 2026-05-09 19:09:43 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_07__docs-catalog-cleanup.md` | `spec-update` | Record restoring verified pass for S0118 final audit step |
+| 2026-05-09 19:10:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0106` | Fix crop coordinate mismatch on network files: ensureLocalSource now precedes mapScreenRectToOriginal in performCrop and performCropToFile; srcFile.path passed to both mapScreenRectToOriginal and readExifDegrees so BitmapFactory reads real image dimensions instead of falling back to view dimensions |
+| 2026-05-09 19:18:20 | `PLAN/S0132_vr-quest3-epic-pending-verification.md` | `spec-catalog` | VR Quest 3 revision: created epic ticket S0132 consolidating 14 unverified VR tickets (S0006/S0008/S0009/S0012/S0014/S0019/S0026/S0030/S0032/S0038/S0041/S0065/S0078/S0080); archived all 14 source tickets to temp/done/ |
+| 2026-05-09 19:21:56 | `.github/prompts/spec.prompt.md` | `spec.prompt.md` | Add communication policy gate for user-visible string specs |
+| 2026-05-09 19:21:57 | `.github/prompts/spec-tech.prompt.md` | `spec-tech.prompt.md` | Add communication policy gate for tactical steps with user-visible strings |
+| 2026-05-09 19:21:58 | `.github/prompts/spec-dev.prompt.md` | `spec-dev.prompt.md` | Enforce communication policy checks during tactical execution |
+| 2026-05-09 19:21:58 | `.github/prompts/doc-update.prompt.md` | `doc-update.prompt.md` | Add UI communication policy tone-check step for user-visible strings |
+| 2026-05-09 19:21:59 | `.github/prompts/ui-clarify.prompt.md` | `ui-clarify.prompt.md` | Require communication policy as wording source for UI clarification |
+| 2026-05-09 19:22:00 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Reopen S0118 to BlockNeedUserTest after finding missing Copilot prompt-layer sync |
+| 2026-05-09 19:22:02 | `PLAN/S0118_friendly-ui-copy-revision/INDEX.md` | `spec-update` | Reopen S0118 completion gate and align Phase 07 prompt-layer follow-up |
+| 2026-05-09 19:22:03 | `PLAN/S0118_friendly-ui-copy-revision/PHASE_07__docs-catalog-cleanup.md` | `spec-update` | Add Step 07.5 for Copilot prompt-layer communication-policy sync |
+| 2026-05-09 19:36:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0106` | Fix: resolveDestinationPath corrupted SMB URIs via File() and copyToDestination missed canonical smb:/ form (single slash) — caused ENOENT when saving cropped/compressed copies to network shares |
+| 2026-05-09 19:55:58 | `PLAN/S0133_accept-shared-files-default-on.md` | `spec` | Add strategic spec S0133 for ad-hoc accept-shared-files-default-on |
+| 2026-05-09 19:59:27 | `PLAN/S0133_accept-shared-files-default-on/INDEX.md` | `spec-tech` | Create tactical plan for S0133 |
+| 2026-05-09 19:59:27 | `PLAN/S0133_accept-shared-files-default-on/PHASE_01__default-flip.md` | `spec-tech` | Phase 01: default-flip |
+| 2026-05-09 19:59:27 | `PLAN/S0133_accept-shared-files-default-on/PHASE_02__app-bootstrap-sync.md` | `spec-tech` | Phase 02: app-bootstrap-sync |
+| 2026-05-09 19:59:27 | `PLAN/S0133_accept-shared-files-default-on/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-09 19:59:28 | `PLAN/S0133_accept-shared-files-default-on.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-09 20:09:33 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Resume S0118 as In Progress and continue 30-string batch rewrites without BlockNeedUserTest gate |
+| 2026-05-09 20:09:34 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 01` | Rewrite first 30 copy/move/rename/delete user-visible strings to communication-policy tone |
+| 2026-05-09 20:09:35 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 01` | Rewrite first 30 copy/move/rename/delete user-visible strings to communication-policy tone |
+| 2026-05-09 20:09:36 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 01` | Rewrite first 30 copy/move/rename/delete user-visible strings to communication-policy tone |
+| 2026-05-09 20:09:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/BaseFileOperationHandler.kt` | `BaseFileOperationHandler` | Stop delete all-failed result from exposing raw technical details as the primary user message |
+| 2026-05-09 20:19:26 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 02` | Rewrite late player and file-operation formatter strings to communication-policy tone |
+| 2026-05-09 20:19:27 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 02` | Rewrite late player and file-operation formatter strings to communication-policy tone |
+| 2026-05-09 20:19:28 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 02` | Rewrite late player and file-operation formatter strings to communication-policy tone |
+| 2026-05-09 20:19:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt` | `FileOperationDestinationDialog` | Replace hardcoded partial/failure copy and route raw transfer details to optional detailed surface |
+| 2026-05-09 20:19:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | Stop player file-operation flows from exposing raw transport errors as the primary message |
+| 2026-05-09 20:20:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt` | `BrowseDeleteManager` | Replace hardcoded browse delete error headlines with localized S0118 copy and keep delete details secondary |
+| 2026-05-09 20:21:17 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0133` | Default-ON for acceptSharedFiles (was false) |
+| 2026-05-09 20:22:19 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0133` | DataStore read fallback for acceptSharedFiles -> true (default ON) |
+| 2026-05-09 20:22:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOpenManager.kt` | `BrowseFileOpenManager` | Replace hardcoded browse file-not-found copy with localized S0118 headline and secondary path details |
+| 2026-05-09 20:24:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/DefaultPlayerStateBootstrapper.kt` | `S0133` | Idempotent system-component-state bootstrap on every process start |
+| 2026-05-09 20:25:15 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 03` | Add localized folder-operation fallback strings for browse create/rename errors |
+| 2026-05-09 20:25:16 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 03` | Add localized folder-operation fallback strings for browse create/rename errors |
+| 2026-05-09 20:25:17 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 03` | Add localized folder-operation fallback strings for browse create/rename errors |
+| 2026-05-09 20:25:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDirectoryOpsManager.kt` | `BrowseDirectoryOpsManager` | Replace hardcoded browse folder create/rename fallback errors with localized S0118 copy |
+| 2026-05-09 20:25:22 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `S0133` | Wire DefaultPlayerStateBootstrapper into onCreate |
+| 2026-05-09 20:29:17 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 04` | Add browse error strings for localized friendly primary copy and technical secondary details |
+| 2026-05-09 20:29:18 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 04` | Add browse error strings for localized friendly primary copy and technical secondary details |
+| 2026-05-09 20:29:19 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 04` | Add browse error strings for localized friendly primary copy and technical secondary details |
+| 2026-05-09 20:29:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDirectoryOpsManager.kt` | `BrowseDirectoryOpsManager` | Move folder create/rename raw exception text into secondary browse error details |
+| 2026-05-09 20:29:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseNavigationManager.kt` | `BrowseNavigationManager` | Replace hardcoded browse folder-empty and load-folder messages with localized resource-backed copy |
+| 2026-05-09 20:29:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceLoadManager.kt` | `BrowseResourceLoadManager` | Localize browse resource-load errors and move metadata to secondary details |
+| 2026-05-09 20:29:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceStateManager.kt` | `BrowseResourceStateManager` | Replace hardcoded favorite/destination browse errors with friendly localized primary copy |
+| 2026-05-09 20:29:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Pass application context to browse managers for localized S0118 error strings |
+| 2026-05-09 20:32:42 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 05` | Add restored-filter and video-player throttle browse copy for localized user-facing messages |
+| 2026-05-09 20:32:43 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 05` | Add restored-filter and video-player throttle browse copy for localized user-facing messages |
+| 2026-05-09 20:32:44 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 05` | Add restored-filter and video-player throttle browse copy for localized user-facing messages |
+| 2026-05-09 20:32:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt` | `BrowseDeleteManager` | Replace hardcoded no-files-selected toast with localized resource string |
+| 2026-05-09 20:32:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleSetupManager.kt` | `BrowseLifecycleSetupManager` | Replace restored-filter hardcoded browse toast with localized message |
+| 2026-05-09 20:32:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLoadingAuxManager.kt` | `BrowseLoadingAuxManager` | Replace hardcoded video-player throttle browse message with localized resource-backed copy |
+| 2026-05-09 20:32:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Pass application context to BrowseLifecycleSetupManager for localized S0118 copy |
+| 2026-05-09 20:36:33 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 05b` | Replace contraction-based EN copy in strings.xml to fix AAPT2 resource compilation |
+| 2026-05-09 20:36:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOpenManager.kt` | `BrowseFileOpenManager` | Pass application context into file-open manager for localized browse file-not-found errors |
+| 2026-05-09 20:36:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Pass application context to BrowseFileOpenManager after S0118 resource-backed error update |
+| 2026-05-09 22:37:25 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 06` | Add localized delete-consistency warning and short restored-filter labels for browse flows |
+| 2026-05-09 22:37:29 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 06` | Add localized delete-consistency warning and short restored-filter labels for browse flows |
+| 2026-05-09 22:37:30 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 06` | Add localized delete-consistency warning and short restored-filter labels for browse flows |
+| 2026-05-09 22:37:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt` | `BrowseDeleteManager` | Replace hardcoded delete consistency warning with localized browse message |
+| 2026-05-09 22:37:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseLifecycleSetupManager.kt` | `BrowseLifecycleSetupManager` | Replace English restored-filter summary labels with short localized strings |
+| 2026-05-09 22:42:23 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 07` | Convert share failure copy to friendly primary text for browse and player flows |
+| 2026-05-09 22:42:24 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 07` | Convert share failure copy to friendly primary text for browse and player flows |
+| 2026-05-09 22:42:25 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 07` | Convert share failure copy to friendly primary text for browse and player flows |
+| 2026-05-09 22:42:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | Move raw copy/move/share failure text into secondary details |
+| 2026-05-09 22:42:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | Use friendly share failure messages instead of exception text in primary copy |
+| 2026-05-09 22:42:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCloudAuthManager.kt` | `BrowseCloudAuthManager` | Remove raw provider error details from browse auth toasts and use cancellation-specific Google copy |
+| 2026-05-09 22:44:51 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 08` | Add friendly image and GIF load failure copy for player error surface |
+| 2026-05-09 22:44:52 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 08` | Add friendly image and GIF load failure copy for player error surface |
+| 2026-05-09 22:44:53 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 08` | Add friendly image and GIF load failure copy for player error surface |
+| 2026-05-09 22:44:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager` | Replace raw image and GIF load exception text with resource-backed friendly errors |
+| 2026-05-09 22:47:39 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 09` | Convert image reload failure copy to friendly primary text |
+| 2026-05-09 22:47:39 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 09` | Convert image reload failure copy to friendly primary text |
+| 2026-05-09 22:47:40 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 09` | Convert image reload failure copy to friendly primary text |
+| 2026-05-09 22:47:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | Move image reload exception text into secondary error details |
+| 2026-05-09 22:49:33 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 10` | Convert OCR failure copy to friendly primary text |
+| 2026-05-09 22:49:34 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 10` | Convert OCR failure copy to friendly primary text |
+| 2026-05-09 22:49:34 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 10` | Convert OCR failure copy to friendly primary text |
+| 2026-05-09 22:49:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageOcrManager.kt` | `ImageOcrManager` | Stop formatting OCR exception text into the user-facing error message |
+| 2026-05-09 22:51:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubTranslationOverlayHelper.kt` | `EpubTranslationOverlayHelper` | Replace hardcoded EPUB translation failure messages with localized generic copy |
+| 2026-05-09 22:53:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerImageTranslationManager.kt` | `PlayerImageTranslationManager` | Replace raw image translation failure text with localized generic copy |
+| 2026-05-09 22:55:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `TranslationManager` | Replace raw OCR and translation exception text with localized generic error copy |
+| 2026-05-09 23:06:17 | `app_v2/src/main/java/com/sza/fastmediasorter/core/debug/MemoryEnduranceTracker.kt` | `MemoryEnduranceTracker` | Fix NoSuchMethodError on API <28 by switching Handler.postDelayed(Runnable, Object, long) to HandlerCompat.postDelayed |
+| 2026-05-09 23:19:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/BeamAnimationDialog.kt` | `BeamAnimationDialog` | Guard VibrationEffect.createOneShot (API 26+) with SDK_INT check; fall back to deprecated vibrate(long) for legacy@23 |
+| 2026-05-09 23:19:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt` | `SftpFileOperationHandler` | Guard requestBatchDeletePermission call with SDK_INT >= R to avoid VerifyError on API < 30 |
+| 2026-05-09 23:19:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/FtpFileOperationHandler.kt` | `FtpFileOperationHandler` | Guard requestBatchDeletePermission call with SDK_INT >= R to avoid VerifyError on API < 30 |
+| 2026-05-09 23:19:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbFileOperationHandler.kt` | `SmbFileOperationHandler` | Guard requestBatchDeletePermission call with SDK_INT >= R to avoid VerifyError on API < 30 |
+| 2026-05-09 23:19:50 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt` | `CloudFileOperationHandler` | Guard requestBatchDeletePermission call with SDK_INT >= R to avoid VerifyError on API < 30 |
+| 2026-05-09 23:40:49 | `PLAN/S0134_widget-picker-and-home-polish.md` | `spec` | Add strategic spec S0134 for widget picker and home screen visual polish (pillars A+B+C) |
+| 2026-05-09 23:46:19 | `PLAN/S0134_widget-picker-and-home-polish/INDEX.md` | `spec-tech` | Create tactical plan for S0134 |
+| 2026-05-09 23:46:19 | `PLAN/S0134_widget-picker-and-home-polish/PHASE_01__strings-and-icons.md` | `spec-tech` | Phase 01: strings-and-icons |
+| 2026-05-09 23:46:19 | `PLAN/S0134_widget-picker-and-home-polish/PHASE_02__picker-metadata.md` | `spec-tech` | Phase 02: picker-metadata |
+| 2026-05-09 23:46:19 | `PLAN/S0134_widget-picker-and-home-polish/PHASE_03__adaptive-background.md` | `spec-tech` | Phase 03: adaptive-background |
+| 2026-05-09 23:46:20 | `PLAN/S0134_widget-picker-and-home-polish/PHASE_04__favorites-empty-state.md` | `spec-tech` | Phase 04: favorites-empty-state |
+| 2026-05-09 23:46:20 | `PLAN/S0134_widget-picker-and-home-polish/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-09 23:46:20 | `PLAN/S0134_widget-picker-and-home-polish.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-09 23:53:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `SftpDataSource.close` | Demote ExoPlayer cancel-induced InterruptedIOException on InputStream close to debug; mark channel broken and restore interrupt flag. |
+| 2026-05-10 00:14:39 | `PLAN/S0135_play-store-listing-optimization.md` | `spec` | Add strategic spec S0135 for Google Play store listing optimization (ASO + designer brief + In-App Review) |
+| 2026-05-10 00:16:12 | `app_v2/src/main/res/values/strings.xml` | `feature` | S0134 step 01.1: add widget_favorites_label and widget_resource_launch_label (EN) |
+| 2026-05-10 00:17:14 | `app_v2/src/main/res/values-ru/strings.xml` | `feature` | S0134 step 01.2: add widget_favorites_label and widget_resource_launch_label (RU) |
+| 2026-05-10 00:17:14 | `app_v2/src/main/res/values-uk/strings.xml` | `feature` | S0134 step 01.2: add widget_favorites_label and widget_resource_launch_label (UK) |
+| 2026-05-10 00:17:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt` | `PlayerDeleteUndoCoordinator` | Replace hardcoded player delete and undo messages with localized friendly copy |
+| 2026-05-10 00:17:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Inject ApplicationContext for localized player delete and undo coordinator messages |
+| 2026-05-10 00:17:26 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 11` | Localize player delete and undo flow messages |
+| 2026-05-10 00:17:27 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 11` | Localize player delete and undo flow messages |
+| 2026-05-10 00:17:28 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 11` | Localize player delete and undo flow messages |
+| 2026-05-10 00:18:06 | `app_v2/src/main/res/drawable/ic_widget_favorites.xml` | `feature` | S0134 step 01.3: add ic_widget_favorites vector chip |
+| 2026-05-10 00:18:06 | `app_v2/src/main/res/drawable/ic_widget_resource_launch.xml` | `feature` | S0134 step 01.3: add ic_widget_resource_launch vector chip |
+| 2026-05-10 00:18:07 | `app_v2/src/main/res/drawable/ic_widget_camera_photos.xml` | `feature` | S0134 step 01.3: add ic_widget_camera_photos vector chip |
+| 2026-05-10 00:18:07 | `app_v2/src/main/res/drawable/ic_widget_random_music.xml` | `feature` | S0134 step 01.3: add ic_widget_random_music vector chip |
+| 2026-05-10 00:18:07 | `app_v2/src/main/res/drawable/ic_widget_continue_reading.xml` | `feature` | S0134 step 01.3: add ic_widget_continue_reading vector chip |
+| 2026-05-10 00:19:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Use friendly delete launcher failure copy and preserve throwable details |
+| 2026-05-10 00:21:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDialogAndUiStateManager.kt` | `PlayerDialogAndUiStateManager` | Use friendly PDF export failure copy instead of raw exception text |
+| 2026-05-10 00:26:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `PlayerMediaFilesLoader` | Use friendly localized copy when initial player file loading fails |
+| 2026-05-10 00:26:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Pass ApplicationContext into PlayerMediaFilesLoader for localized failure copy |
+| 2026-05-10 00:26:29 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 12` | Add friendly player file-list loading failure copy |
+| 2026-05-10 00:26:29 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 12` | Add friendly player file-list loading failure copy |
+| 2026-05-10 00:26:30 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 12` | Add friendly player file-list loading failure copy |
+| 2026-05-10 00:27:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `PlayerShareManager` | Use friendly external player failure copy instead of raw exception text |
+| 2026-05-10 00:27:38 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 13` | Rewrite external player open failure copy |
+| 2026-05-10 00:27:39 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 13` | Rewrite external player open failure copy |
+| 2026-05-10 00:27:39 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 13` | Rewrite external player open failure copy |
+| 2026-05-10 00:28:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerControlsSetupManager.kt` | `PlayerControlsSetupManager` | Use friendly translation error copy for lyrics translation failures |
+| 2026-05-10 00:29:26 | `app_v2/src/main/AndroidManifest.xml` | `feature` | S0134 step 02.1: register CameraPhotos+RandomMusic widget receivers and add label/icon to all 5 |
+| 2026-05-10 00:30:14 | `app_v2/src/main/res/xml/widget_favorites_info.xml` | `feature` | S0134 step 02.2: drop previewLayout, keep previewImage only |
+| 2026-05-10 00:30:15 | `app_v2/src/main/res/xml/widget_resource_launch_info.xml` | `feature` | S0134 step 02.2: drop previewLayout, keep previewImage only |
+| 2026-05-10 00:30:15 | `app_v2/src/main/res/xml/widget_camera_photos_info.xml` | `feature` | S0134 step 02.2: drop previewLayout, keep previewImage only |
+| 2026-05-10 00:30:15 | `app_v2/src/main/res/xml/widget_random_music_info.xml` | `feature` | S0134 step 02.2: drop previewLayout, keep previewImage only |
+| 2026-05-10 00:30:16 | `app_v2/src/main/res/xml/widget_continue_reading_info.xml` | `feature` | S0134 step 02.2: drop previewLayout, keep previewImage only |
+| 2026-05-10 00:30:53 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/FavoritesWidgetProvider.kt` | `feature` | S0134 step 02.3: add Timber tag at updateAppWidget entry |
+| 2026-05-10 00:33:16 | `app_v2/src/main/res/drawable/widget_background.xml` | `feature` | S0134 step 03.1: widget background #E6121212 + 1dp stroke + 24dp corners (API 26..30 fallback) |
+| 2026-05-10 00:33:16 | `app_v2/src/main/res/drawable/widget_item_background.xml` | `feature` | S0134 step 03.1: item background contrast #4DFFFFFF + 12dp corners |
+| 2026-05-10 00:33:39 | `vr/audit-instrumentation` | `diagnostics` | Added VR_AUDIT/N (N=1..14) Timber tags across VR stack for on-device verification of S0132 sub-tasks. Free-form pass, no spec ticket. |
+| 2026-05-10 00:33:51 | `app_v2/src/main/res/drawable-v31/widget_background.xml` | `feature` | S0134 step 03.2: Material You widget background for API 31+ |
+| 2026-05-10 00:33:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Use friendly draw overlay save failure copy instead of raw exception text |
+| 2026-05-10 00:34:00 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 14` | Add draw overlay save failure copy |
+| 2026-05-10 00:34:01 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 14` | Add draw overlay save failure copy |
+| 2026-05-10 00:34:03 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 14` | Add draw overlay save failure copy |
+| 2026-05-10 00:34:27 | `app_v2/src/main/res/values-v31/themes.xml` | `feature` | S0134 step 03.3: declare Widget.FastMediaSorter theme based on Theme.DeviceDefault.DayNight |
+| 2026-05-10 00:35:06 | `app_v2/src/main/res/xml/widget_favorites_info.xml` | `feature` | S0134 step 03.4: link Widget.FastMediaSorter theme |
+| 2026-05-10 00:35:06 | `app_v2/src/main/res/xml/widget_resource_launch_info.xml` | `feature` | S0134 step 03.4: link Widget.FastMediaSorter theme |
+| 2026-05-10 00:35:07 | `app_v2/src/main/res/xml/widget_camera_photos_info.xml` | `feature` | S0134 step 03.4: link Widget.FastMediaSorter theme |
+| 2026-05-10 00:35:07 | `app_v2/src/main/res/xml/widget_random_music_info.xml` | `feature` | S0134 step 03.4: link Widget.FastMediaSorter theme |
+| 2026-05-10 00:35:07 | `app_v2/src/main/res/xml/widget_continue_reading_info.xml` | `feature` | S0134 step 03.4: link Widget.FastMediaSorter theme |
+| 2026-05-10 00:35:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Use friendly playback failure copy instead of raw video exception text |
+| 2026-05-10 00:38:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | Replace raw and hardcoded EPUB viewer errors with localized friendly copy |
+| 2026-05-10 00:38:02 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 15` | Add friendly EPUB viewer failure and empty-state copy |
+| 2026-05-10 00:38:02 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 15` | Add friendly EPUB viewer failure and empty-state copy |
+| 2026-05-10 00:38:02 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 15` | Add friendly EPUB viewer failure and empty-state copy |
+| 2026-05-10 00:40:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Replace raw and hardcoded PDF viewer errors with localized friendly copy |
+| 2026-05-10 00:40:34 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 16` | Add friendly PDF viewer failure copy |
+| 2026-05-10 00:40:35 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 16` | Add friendly PDF viewer failure copy |
+| 2026-05-10 00:40:37 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 16` | Add friendly PDF viewer failure copy |
+| 2026-05-10 00:42:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `TextViewerManager` | Replace raw and hardcoded text viewer errors with localized friendly copy |
+| 2026-05-10 00:42:37 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 17` | Add friendly text viewer failure copy |
+| 2026-05-10 00:42:39 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 17` | Add friendly text viewer failure copy |
+| 2026-05-10 00:42:40 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 17` | Add friendly text viewer failure copy |
+| 2026-05-10 00:44:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/GoogleLensTranslationHelper.kt` | `GoogleLensTranslationHelper` | Use localized translation error copy instead of raw exception text |
+| 2026-05-10 00:45:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager` | Use localized crop failure copy instead of raw exception text |
+| 2026-05-10 00:45:37 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 18` | Add localized crop failure copy |
+| 2026-05-10 00:45:39 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 18` | Add localized crop failure copy |
+| 2026-05-10 00:45:40 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 18` | Add localized crop failure copy |
+| 2026-05-10 00:46:22 | `app_v2/src/main/res/layout/widget_favorites.xml` | `feature` | S0134 step 04.1: add empty-state block (gone by default, shown via setEmptyView) |
+| 2026-05-10 00:47:12 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/FavoritesWidgetProvider.kt` | `feature` | S0134 step 04.2: wire setEmptyView and onboarding intent |
+| 2026-05-10 00:47:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt` | `StandaloneFileOperationsHandler` | Remove unused exception args from standalone delete failure copy |
+| 2026-05-10 00:49:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `feature` | S0134 step 04.3: handle open_favorites_onboarding extra and surface TooltipDialog |
+| 2026-05-10 00:49:40 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/FavoritesWidgetService.kt` | `feature` | S0134 step 04.4: add S0134 Timber tag in onDataSetChanged |
+| 2026-05-10 00:50:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | Use friendly receive-share failure copy instead of raw exception text |
+| 2026-05-10 00:50:10 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 19` | Rewrite receive-share failure copy and add locale coverage |
+| 2026-05-10 00:50:11 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 19` | Rewrite receive-share failure copy and add locale coverage |
+| 2026-05-10 00:50:12 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 19` | Rewrite receive-share failure copy and add locale coverage |
+| 2026-05-10 00:52:08 | `app_v2/src/main/res/layout/widget_preview_favorites.xml` | `feature` | S0134 step 05.1: delete orphaned widget preview layout (previewLayout removed in Phase 02) |
+| 2026-05-10 00:52:08 | `app_v2/src/main/res/layout/widget_preview_resource_launch.xml` | `feature` | S0134 step 05.1: delete orphaned widget preview layout |
+| 2026-05-10 00:52:08 | `app_v2/src/main/res/layout/widget_preview_camera_photos.xml` | `feature` | S0134 step 05.1: delete orphaned widget preview layout |
+| 2026-05-10 00:52:09 | `app_v2/src/main/res/layout/widget_preview_random_music.xml` | `feature` | S0134 step 05.1: delete orphaned widget preview layout |
+| 2026-05-10 00:52:09 | `app_v2/src/main/res/layout/widget_preview_continue_reading.xml` | `feature` | S0134 step 05.1: delete orphaned widget preview layout |
+| 2026-05-10 00:53:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt` | `AddResourceNetworkScanCoordinator` | Replace raw network and share scan errors with friendly localized copy |
+| 2026-05-10 00:53:09 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 20` | Rewrite add-resource share scan failure copy |
+| 2026-05-10 00:53:10 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 20` | Rewrite add-resource share scan failure copy |
+| 2026-05-10 00:53:12 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 20` | Rewrite add-resource share scan failure copy |
+| 2026-05-10 00:53:34 | `docs/FEATURES.md` | `docs` | S0134 step 05.2: add Material You + Favorites empty-state bullet to §18 |
+| 2026-05-10 00:53:34 | `docs/FEATURES_RU.md` | `docs` | S0134 step 05.2: mirror EN bullet (Адаптивная отделка виджетов) |
+| 2026-05-10 00:53:34 | `docs/FEATURES_UK.md` | `docs` | S0134 step 05.2: mirror EN bullet (Адаптивна обробка віджетів) |
+| 2026-05-10 00:54:36 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0134 step 05.3: regenerate scan after widget changes |
+| 2026-05-10 00:54:37 | `dev/CATALOG/app_v2.md` | `catalog` | S0134 step 05.3: regenerate render |
+| 2026-05-10 00:56:33 | `PLAN/S0134_widget-picker-and-home-polish.md` | `spec-dev` | Status -> Implemented + journal BlockNeedUserTest (awaiting Pixel/Nova/Niagara hands-on) |
+| 2026-05-10 01:34:33 | `app_v2/src/main/res/values-ru/strings.xml,app_v2/src/main/res/values-uk/strings.xml` | `i18n` | Add missing background_audio_exit_always_stop/_continue translations (RU/UK); align radio-button labels to imperfective (Всегда останавливать/Завжди зупиняти) |
+| 2026-05-10 02:30:35 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting.md, PLAN/S0137_feature-cast-network-cloud-streaming.md, PLAN/S0138_bugfix-glide-cancellation-log-noise.md, PLAN/S0139_bugfix-smb-credentials-empty-share-name.md, PLAN/S0056_smb-scan-slowness-investigation.md, PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec-catalog` | Specs from log review (logs/fastmediasorter_20260510_012252.log): created S0136/S0137/S0138/S0139, updated S0056 (BlockNeedUserTest -> Approved with new 178-files/18.8s evidence opposing D1), updated S0061 Last Audit with field confirmation of stale-connection invalidation |
+| 2026-05-10 02:31:01 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0133` | Default-ON for acceptSharedFiles (domain model) |
+| 2026-05-10 02:31:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0133` | DataStore read fallback for acceptSharedFiles flipped to true (default-ON) |
+| 2026-05-10 02:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/DefaultPlayerStateBootstrapper.kt` | `S0133` | New: idempotent system-component-state bootstrap on every process start |
+| 2026-05-10 02:31:16 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `S0133` | Wire DefaultPlayerStateBootstrapper into onCreate via applicationScope.launch |
+| 2026-05-10 02:31:22 | `docs/FEATURES.md` | `S0133` | Document default-ON behavior for accept shared files (EN) |
+| 2026-05-10 02:31:25 | `docs/FEATURES_RU.md` | `S0133` | Document default-ON behavior for accept shared files (RU) |
+| 2026-05-10 02:31:28 | `docs/FEATURES_UK.md` | `S0133` | Document default-ON behavior for accept shared files (UK) |
+| 2026-05-10 02:31:32 | `dev/CATALOG/app_v2.jsonl` | `S0133` | Regenerate catalog: add DefaultPlayerStateBootstrapper (role+status) |
+| 2026-05-10 02:33:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt` | `AddResourceSftpKeyCoordinator` | Replace hardcoded SFTP key flow copy with localized addresource resources |
+| 2026-05-10 02:33:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt` | `AddResourceSftpFtpCoordinator` | Replace hardcoded SFTP and FTP flow copy with localized addresource resources |
+| 2026-05-10 02:33:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | Pass application context into add-resource protocol coordinators for localized copy |
+| 2026-05-10 02:33:30 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 21` | Add reusable localized add-resource protocol copy |
+| 2026-05-10 02:33:31 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 21` | Add reusable localized add-resource protocol copy |
+| 2026-05-10 02:33:32 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 21` | Add reusable localized add-resource protocol copy |
+| 2026-05-10 02:36:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | Replace remaining add-resource VM user copy with localized resources |
+| 2026-05-10 02:36:37 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 22` | Add localized add-resource VM copy |
+| 2026-05-10 02:36:39 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 22` | Add localized add-resource VM copy |
+| 2026-05-10 02:36:40 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 22` | Add localized add-resource VM copy |
+| 2026-05-10 02:39:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt` | `AddResourceSmbCoordinator` | Replace remaining SMB add-resource copy with localized resources |
+| 2026-05-10 02:39:11 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 23` | Add localized SMB add-resource copy |
+| 2026-05-10 02:39:13 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 23` | Add localized SMB add-resource copy |
+| 2026-05-10 02:39:14 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 23` | Add localized SMB add-resource copy |
+| 2026-05-10 02:39:29 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/DefaultPlayerStateBootstrapper.kt` | `S0133` | Verified on device — remove S0133 debug Timber.d tag and unused import (per CLAUDE.md transition-to-Verified rule) |
+| 2026-05-10 02:39:55 | `PLAN/S0133_accept-shared-files-default-on.md` | `spec-check` | Audit S0133 -> Verified; PASS/WARN/FAIL 13/0/0; on-device confirmed by user 2026-05-10 |
+| 2026-05-10 02:40:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceVirtualCoordinator.kt` | `AddResourceVirtualCoordinator` | Replace remaining virtual add-resource copy with localized resources |
+| 2026-05-10 02:40:49 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 24` | Add localized virtual add-resource copy |
+| 2026-05-10 02:40:50 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 24` | Add localized virtual add-resource copy |
+| 2026-05-10 02:40:51 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 24` | Add localized virtual add-resource copy |
+| 2026-05-10 02:43:04 | `PLAN/spec_quick_sort_limit_mismatch.md` | `spec_quick_sort_limit_mismatch` | Record Quick Sort limit mismatch between addresource code and docs |
+| 2026-05-10 02:43:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFinalizer.kt` | `AddResourceFinalizer` | Replace hardcoded Quick Sort overflow text with localized neutral copy |
+| 2026-05-10 02:43:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | Stop exposing disputed Quick Sort numeric limit in addresource copy |
+| 2026-05-10 02:43:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSmbCoordinator.kt` | `AddResourceSmbCoordinator` | Stop exposing disputed Quick Sort numeric limit in SMB addresource copy |
+| 2026-05-10 02:43:08 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 25` | Neutralize Quick Sort limit copy and add overflow message |
+| 2026-05-10 02:43:09 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 25` | Neutralize Quick Sort limit copy and add overflow message |
+| 2026-05-10 02:43:10 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 25` | Neutralize Quick Sort limit copy and add overflow message |
+| 2026-05-10 02:44:10 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting/INDEX.md` | `spec-tech` | Create tactical plan for S0136 (instrumentation - fix - cleanup, 3 phases) |
+| 2026-05-10 02:44:10 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting/PHASE_01__instrumentation.md` | `spec-tech` | Phase 01: instrumentation (R1..R6 as Timber.d tags, 6 steps) |
+| 2026-05-10 02:44:11 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting/PHASE_02__fix.md` | `spec-tech` | Phase 02: fix (gated on device test; placeholder for spec-update) |
+| 2026-05-10 02:44:11 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: cleanup (remove S0136 tags, regen catalog) |
+| 2026-05-10 02:44:11 | `PLAN/S0136_bugfix-glide-disk-cache-not-persisting.md` | `spec-tech` | Status Draft - Approved - Tactical; tactical plan link added |
+| 2026-05-10 02:44:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | Remove raw exception text from OneDrive authentication failure copy |
+| 2026-05-10 02:45:45 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/GlideCacheStats.kt` | `GlideCacheStats.logStats` | S0136: add Timber.d summary tag (total/disk/memory/repo/network/local) for grep-able regression detection |
+| 2026-05-10 02:46:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `AdapterThumbnailLoader.loadImage (network branch)` | S0136: tag onResourceReady with ds + path + size for cache-key drift analysis |
+| 2026-05-10 02:46:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | Replace raw init-settings error with friendly localized copy |
+| 2026-05-10 02:46:52 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 26` | Rewrite playback settings init error copy |
+| 2026-05-10 02:46:53 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 26` | Rewrite playback settings init error copy |
+| 2026-05-10 02:46:54 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 26` | Rewrite playback settings init error copy |
+| 2026-05-10 02:47:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager.reloadCurrentImage` | S0136: tag the implicit clearDiskCache wipe (post image edit) with file path for D2 verification |
+| 2026-05-10 02:48:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCacheHelper.kt` | `GeneralSettingsCacheHelper.clearCache` | S0136: tag user-initiated clearCache to distinguish from automatic clears in logs |
+| 2026-05-10 02:48:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/DeleteDialog.kt` | `DeleteDialog` | Remove raw exception text from delete dialog failure toasts |
+| 2026-05-10 02:48:56 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 27` | Rewrite delete dialog failure copy |
+| 2026-05-10 02:48:57 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 27` | Rewrite delete dialog failure copy |
+| 2026-05-10 02:48:58 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 27` | Rewrite delete dialog failure copy |
+| 2026-05-10 02:49:00 | `app_v2/src/main/java/com/sza/fastmediasorter/di/GlideAppModule.kt` | `GlideAppModule.applyOptions` | S0136: log image_cache dir state at applyOptions for R5 cache persistence diagnostic |
+| 2026-05-10 02:50:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt` | `CacheStatusHelper.logGlideDiskCacheStatusOnce` | S0136: add helper for one-shot post-first-load cache-dir dump |
+| 2026-05-10 02:50:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `AdapterThumbnailLoader.companion` | S0136: add s0136PostFirstLoadDone AtomicBoolean + first-load trigger of CacheStatusHelper.logGlideDiskCacheStatusOnce |
+| 2026-05-10 02:52:37 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0136 Phase 01: regen after instrumentation (CacheStatusHelper.logGlideDiskCacheStatusOnce added) |
+| 2026-05-10 02:52:37 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0136 Phase 01: regen after instrumentation |
+| 2026-05-10 03:05:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileOperationDestinationDialog.kt` | `FileOperationDestinationDialog` | Remove raw exception text from destination loading toast |
+| 2026-05-10 03:05:58 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 28` | Rewrite destination loading failure copy |
+| 2026-05-10 03:05:59 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 28` | Rewrite destination loading failure copy |
+| 2026-05-10 03:06:00 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 28` | Rewrite destination loading failure copy |
+| 2026-05-10 03:08:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsImportExportHelper.kt` | `GeneralSettingsImportExportHelper` | Remove raw import/export failure text from settings helper |
+| 2026-05-10 03:08:27 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 29` | Rewrite settings import/export failure copy |
+| 2026-05-10 03:08:28 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 29` | Rewrite settings import/export failure copy |
+| 2026-05-10 03:08:29 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 29` | Rewrite settings import/export failure copy |
+| 2026-05-10 03:08:46 | `PLAN/S0137_feature-cast-network-cloud-streaming/INDEX.md` | `spec-tech` | Create tactical plan for S0137 |
+| 2026-05-10 03:08:50 | `PLAN/S0137_feature-cast-network-cloud-streaming/PHASE_01__wire-network-file-manager.md` | `spec-tech` | S0137 Phase 01: wire NetworkFileManager into CastMediaManager |
+| 2026-05-10 03:08:54 | `PLAN/S0137_feature-cast-network-cloud-streaming/PHASE_02__delegate-remote-download.md` | `spec-tech` | S0137 Phase 02: delegate remote download |
+| 2026-05-10 03:08:58 | `PLAN/S0137_feature-cast-network-cloud-streaming/PHASE_03__size-gates-audio-image.md` | `spec-tech` | S0137 Phase 03: size gates for audio and image |
+| 2026-05-10 03:09:01 | `PLAN/S0137_feature-cast-network-cloud-streaming/PHASE_04__progress-feedback.md` | `spec-tech` | S0137 Phase 04: progress feedback (blocked on /ui-clarify) |
+| 2026-05-10 03:09:05 | `PLAN/S0137_feature-cast-network-cloud-streaming/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | S0137 Phase 05: docs/catalog cleanup |
+| 2026-05-10 03:09:08 | `PLAN/S0137_feature-cast-network-cloud-streaming.md` | `spec-tech` | S0137 Status -> Tactical (link to tactical plan) |
+| 2026-05-10 03:10:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ResourcePickerDialog.kt` | `ResourcePickerDialog` | Replace raw resource loading failure toast with localized copy |
+| 2026-05-10 03:10:44 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 30` | Add resource picker loading failure copy |
+| 2026-05-10 03:10:45 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 30` | Add resource picker loading failure copy |
+| 2026-05-10 03:10:46 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 30` | Add resource picker loading failure copy |
+| 2026-05-10 03:12:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ImageEditDialog.kt` | `ImageEditDialog` | Remove raw image edit failure text from dialog toasts |
+| 2026-05-10 03:12:41 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 31` | Rewrite image edit failure copy |
+| 2026-05-10 03:12:42 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 31` | Rewrite image edit failure copy |
+| 2026-05-10 03:12:43 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 31` | Rewrite image edit failure copy |
+| 2026-05-10 03:14:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/GifEditorDialog.kt` | `GifEditorDialog` | Remove raw GIF editor failure text from dialog toasts |
+| 2026-05-10 03:14:48 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 32` | Rewrite GIF editor failure copy |
+| 2026-05-10 03:14:49 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 32` | Rewrite GIF editor failure copy |
+| 2026-05-10 03:14:51 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 32` | Rewrite GIF editor failure copy |
+| 2026-05-10 03:20:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `BackupRestoreViewModel` | Remove raw backup, restore, and auth failure text from backup restore state |
+| 2026-05-10 03:20:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsBackupHelper.kt` | `GeneralSettingsBackupHelper` | Remove raw Google sign-in failure text from backup entry helper |
+| 2026-05-10 03:20:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/BackupRestoreFragment.kt` | `BackupRestoreFragment` | Remove raw Google sign-in failure text from backup restore fragment |
+| 2026-05-10 03:20:05 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 33` | Rewrite backup restore auth failure copy |
+| 2026-05-10 03:20:06 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 33` | Rewrite backup restore auth failure copy |
+| 2026-05-10 03:20:08 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 33` | Rewrite backup restore auth failure copy |
+| 2026-05-10 03:21:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `S0137` | Phase 01.1: add networkFileManager constructor parameter |
+| 2026-05-10 03:22:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0137` | Phase 01.2: pass networkFileManager into CastMediaManager |
+| 2026-05-10 03:22:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsCredentialHelper.kt` | `GeneralSettingsCredentialHelper` | Remove raw credential import failure text from settings helper |
+| 2026-05-10 03:22:24 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 34` | Rewrite settings credential import failure copy |
+| 2026-05-10 03:22:26 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 34` | Rewrite settings credential import failure copy |
+| 2026-05-10 03:22:28 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 34` | Rewrite settings credential import failure copy |
+| 2026-05-10 03:23:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `S0137` | Phase 02.1: delegate downloadToTemp to NetworkFileManager.prepareFileForRead |
+| 2026-05-10 03:23:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `S0137` | Phase 02.2: remove openRemoteInputStream stub and unused InputStream/FileOutputStream imports |
+| 2026-05-10 03:24:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `S0137` | Phase 02.3: retire deleteTempFile and CAST_TEMP_FILE_NAME |
+| 2026-05-10 03:25:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsResetHelper.kt` | `GeneralSettingsResetHelper` | Remove raw reset failure text from settings helper |
+| 2026-05-10 03:25:26 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 35` | Rewrite settings reset failure copy |
+| 2026-05-10 03:25:27 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 35` | Rewrite settings reset failure copy |
+| 2026-05-10 03:25:28 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 35` | Rewrite settings reset failure copy |
+| 2026-05-10 03:26:10 | `dev/CATALOG/app_v2.jsonl` | `S0137` | Catalog regen after Phase 01+02 (CastMediaManager refactor) |
+| 2026-05-10 03:27:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `GeneralSettingsObserversHelper` | Remove raw sync failure text from settings helper |
+| 2026-05-10 03:27:26 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 36` | Rewrite sync failure copy |
+| 2026-05-10 03:27:27 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 36` | Rewrite sync failure copy |
+| 2026-05-10 03:27:29 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 36` | Rewrite sync failure copy |
+| 2026-05-10 03:29:37 | `PLAN/S0139_bugfix-smb-credentials-empty-share-name.md` | `spec-all` | Approved strategic spec: S0139 |
+| 2026-05-10 03:30:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `GeneralSettingsLogHelper` | Localize log dialog copy and remove raw log-read failure text |
+| 2026-05-10 03:30:20 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 37` | Add localized settings log dialog copy |
+| 2026-05-10 03:30:21 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 37` | Add localized settings log dialog copy |
+| 2026-05-10 03:30:23 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 37` | Add localized settings log dialog copy |
+| 2026-05-10 03:32:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/WearSyncViewModel.kt` | `WearSyncViewModel` | Replace raw wear sync failure text with localized errors and add the required R import |
+| 2026-05-10 03:32:43 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 38` | Add wear sync failure copy |
+| 2026-05-10 03:32:44 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 38` | Add wear sync failure copy |
+| 2026-05-10 03:32:45 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 38` | Add wear sync failure copy |
+| 2026-05-10 03:34:03 | `PLAN/S0139_bugfix-smb-credentials-empty-share-name/INDEX.md` | `spec-all` | Tactical plan: S0139 (F1 backfill + F2 guard) |
+| 2026-05-10 03:35:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesViewModel.kt` | `DuplicatesViewModel` | Replace raw duplicate scan and delete failure text with localized errors and add the required R import |
+| 2026-05-10 03:35:59 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 39` | Add duplicate scan failure copy |
+| 2026-05-10 03:36:01 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 39` | Add duplicate scan failure copy |
+| 2026-05-10 03:36:02 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 39` | Add duplicate scan failure copy |
+| 2026-05-10 03:38:48 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackfillSmbCredentialShareNameUseCase.kt` | `spec-all` | S0139 F1: one-shot backfill use-case for empty SMB shareName |
+| 2026-05-10 03:38:52 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `spec-all` | S0139 F1: wire BackfillSmbCredentialShareNameUseCase on startup |
+| 2026-05-10 03:38:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/NetworkCredentialsRepositoryImpl.kt` | `spec-all` | S0139 F2: warn-on-empty-shareName guard in insert/update |
+| 2026-05-10 03:39:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/undo/BrowseUndoManager.kt` | `BrowseUndoManager` | Replace raw undo messages with localized resource-backed copy |
+| 2026-05-10 03:39:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Pass application context into BrowseUndoManager for localized undo copy |
+| 2026-05-10 03:39:10 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 40` | Rewrite browse undo failure and status copy |
+| 2026-05-10 03:39:11 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 40` | Rewrite browse undo failure and status copy |
+| 2026-05-10 03:39:13 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 40` | Rewrite browse undo failure and status copy |
+| 2026-05-10 03:39:57 | `PLAN/S0139_bugfix-smb-credentials-empty-share-name.md` | `spec-all` | S0139 Implemented; pending device test (BlockNeedUserTest) |
+| 2026-05-10 03:41:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Replace raw main screen prompts and shortcut failures with localized resource-backed copy |
+| 2026-05-10 03:41:30 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 41` | Add localized main screen prompt and open-resource failure copy |
+| 2026-05-10 03:41:31 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 41` | Add localized main screen prompt and open-resource failure copy |
+| 2026-05-10 03:41:32 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 41` | Add localized main screen prompt and open-resource failure copy |
+| 2026-05-10 03:43:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioBackgroundPhotosManager.kt` | `AudioBackgroundPhotosManager` | Replace raw background-photo error messages with localized resource-backed copy |
+| 2026-05-10 03:43:13 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 42` | Add localized background-photo error copy |
+| 2026-05-10 03:43:14 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 42` | Add localized background-photo error copy |
+| 2026-05-10 03:43:15 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 42` | Add localized background-photo error copy |
+| 2026-05-10 03:44:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Replace raw move and favorite-status player messages with localized resource-backed copy |
+| 2026-05-10 03:44:47 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 43` | Add localized player move confirmation copy |
+| 2026-05-10 03:44:49 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 43` | Add localized player move confirmation copy |
+| 2026-05-10 03:44:50 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 43` | Add localized player move confirmation copy |
+| 2026-05-10 03:46:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `PlayerMediaFilesLoader` | Replace raw player media loading errors with localized resource-backed copy |
+| 2026-05-10 03:48:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageOcrManager.kt` | `ImageOcrManager` | Replace raw OCR guard messages with localized resource-backed copy |
+| 2026-05-10 03:48:27 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 45` | Add localized OCR guard copy |
+| 2026-05-10 03:48:28 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 45` | Add localized OCR guard copy |
+| 2026-05-10 03:48:28 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 45` | Add localized OCR guard copy |
+| 2026-05-10 03:50:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerImageTranslationManager.kt` | `PlayerImageTranslationManager` | Replace raw image translation guard and failure messages with localized resource-backed copy |
+| 2026-05-10 03:54:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `SmbPlaybackHelper` | Replace raw SMB playback credential and path errors with localized resource-backed copy |
+| 2026-05-10 03:54:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `SftpPlaybackHelper` | Replace raw SFTP playback credential errors with localized resource-backed copy |
+| 2026-05-10 03:54:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `FtpPlaybackHelper` | Replace raw FTP playback credential errors with localized resource-backed copy |
+| 2026-05-10 03:54:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt` | `CloudPlaybackHelper` | Replace raw cloud playback path errors with localized resource-backed copy |
+| 2026-05-10 03:54:53 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
+| 2026-05-10 03:54:54 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
+| 2026-05-10 03:54:54 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
+| 2026-05-10 03:55:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SmbPlaybackHelper.kt` | `SmbPlaybackHelper` | Replace raw SMB playback credential and path errors with localized resource-backed copy |
+| 2026-05-10 03:55:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SftpPlaybackHelper.kt` | `SftpPlaybackHelper` | Replace raw SFTP playback credential errors with localized resource-backed copy |
+| 2026-05-10 03:55:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/FtpPlaybackHelper.kt` | `FtpPlaybackHelper` | Replace raw FTP playback credential errors with localized resource-backed copy |
+| 2026-05-10 03:55:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CloudPlaybackHelper.kt` | `CloudPlaybackHelper` | Replace raw cloud playback path errors with localized resource-backed copy |
+| 2026-05-10 03:55:37 | `app_v2/src/main/res/values/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
+| 2026-05-10 03:55:38 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
+| 2026-05-10 03:55:38 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 47` | Add shared playback credential-missing copy |
+| 2026-05-10 03:56:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextTranslationOverlayManager.kt` | `TextTranslationOverlayManager` | Replace raw empty-text translation message with localized resource-backed copy |

@@ -8,6 +8,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.main.MainActivity
+import timber.log.Timber
 
 /**
  * Widget provider for Favorites quick access
@@ -39,6 +40,7 @@ class FavoritesWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
+            Timber.d("S0134: FavoritesWidget update — empty state wired")
             val views = RemoteViews(context.packageName, R.layout.widget_favorites)
 
             // Intent to launch MainActivity with Favorites filter
@@ -46,23 +48,39 @@ class FavoritesWidgetProvider : AppWidgetProvider() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 putExtra("open_favorites", true)
             }
-            
+
             val pendingIntent = PendingIntent.getActivity(
                 context,
                 appWidgetId,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            
+
             views.setOnClickPendingIntent(R.id.widget_favorites_container, pendingIntent)
-            
+
+            // S0134: dedicated onboarding intent for the empty-state surface — opens MainActivity
+            // in the Favorites tab with the in-app tooltip flow triggered.
+            val onboardingIntent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("open_favorites", true)
+                putExtra("open_favorites_onboarding", true)
+            }
+            val onboardingPendingIntent = PendingIntent.getActivity(
+                context,
+                appWidgetId xor 0x4ABE,
+                onboardingIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_favorites_empty, onboardingPendingIntent)
+
             // Set service intent for list view
             val serviceIntent = Intent(context, FavoritesWidgetService::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
             @Suppress("DEPRECATION")
             views.setRemoteAdapter(R.id.widget_favorites_list, serviceIntent)
-            
+            views.setEmptyView(R.id.widget_favorites_list, R.id.widget_favorites_empty)
+
             // Template for item clicks - launching PlayerActivity directly
             val clickIntent = Intent(context, com.sza.fastmediasorter.ui.player.PlayerActivity::class.java).apply {
                 // Base flags, extras will be filled in by the service

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -34,6 +36,7 @@ import timber.log.Timber
  * active load coroutine without tearing down the coordinator itself.
  */
 class PlayerMediaFilesLoader(
+    private val context: Context,
     private val scope: CoroutineScope,
     private val resourceId: Long,
     private val initialFilePath: String?,
@@ -144,7 +147,7 @@ class PlayerMediaFilesLoader(
                 }
 
                 if (resource == null) {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError("Resource not found"))
+                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.resource_not_found)))
                     sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
                     setLoading(false)
                     return@launch
@@ -185,7 +188,11 @@ class PlayerMediaFilesLoader(
                 // due to connection staleness checks. The connection pool already handles timeouts.
 
                 if (!skipAvailabilityCheck && resource.fileCount == 0 && !resource.isWritable) {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
+                    sendEvent(
+                        PlayerViewModel.PlayerEvent.ShowError(
+                            context.getString(R.string.error_resource_unavailable, resource.name)
+                        )
+                    )
                     sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
                     setLoading(false)
                     return@launch
@@ -286,7 +293,7 @@ class PlayerMediaFilesLoader(
                 }
 
                 if (filesWithFavorites.isEmpty()) {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError("No media files found"))
+                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.no_media_files_found)))
                     sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
                 } else {
                     // Priority order for determining index:
@@ -371,7 +378,11 @@ class PlayerMediaFilesLoader(
                 }
                 setLoading(false)
             } catch (e: Exception) {
-                sendEvent(PlayerViewModel.PlayerEvent.ShowError(e.message ?: "Failed to load media files"))
+                sendEvent(
+                    PlayerViewModel.PlayerEvent.ShowError(
+                        context.getString(R.string.player_media_files_load_failed)
+                    )
+                )
                 sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
                 setLoading(false)
             }

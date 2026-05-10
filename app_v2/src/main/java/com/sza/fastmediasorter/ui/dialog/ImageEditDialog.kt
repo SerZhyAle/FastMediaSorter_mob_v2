@@ -134,7 +134,7 @@ class ImageEditDialog(
                     },
                     onFailure = { error ->
                         Timber.e(error, "Failed to apply filter")
-                        Toast.makeText(context, context.getString(R.string.toast_filter_failed, error.message), Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.toast_filter_failed), Toast.LENGTH_LONG).show()
                     }
                 )
             }
@@ -180,7 +180,7 @@ class ImageEditDialog(
                     },
                     onFailure = { error ->
                         Timber.e(error, "Failed to apply adjustments")
-                        Toast.makeText(context, context.getString(R.string.toast_adjustments_failed, error.message), Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.toast_adjustments_failed), Toast.LENGTH_LONG).show()
                     }
                 )
             }
@@ -217,7 +217,7 @@ class ImageEditDialog(
                     },
                     onFailure = { error ->
                         Timber.e(error, "Failed to rotate image")
-                        Toast.makeText(context, context.getString(R.string.toast_rotate_failed, error.message), Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.toast_rotate_failed), Toast.LENGTH_LONG).show()
                     }
                 )
             }
@@ -255,7 +255,7 @@ class ImageEditDialog(
                     },
                     onFailure = { error ->
                         Timber.e(error, "Failed to flip image")
-                        Toast.makeText(context, context.getString(R.string.toast_flip_failed, error.message), Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.toast_flip_failed), Toast.LENGTH_LONG).show()
                     }
                 )
             }

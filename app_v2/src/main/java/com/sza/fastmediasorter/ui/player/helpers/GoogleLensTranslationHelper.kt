@@ -143,7 +143,7 @@ class GoogleLensTranslationHelper(
             Timber.e(e, "Google Lens translation failed")
             withContext(Dispatchers.Main) {
                 translationOverlayView.visibility = View.GONE
-                onError(e.message ?: "Translation failed")
+                onError(translationOverlayView.context.getString(com.sza.fastmediasorter.R.string.translation_error))
             }
         }
         // NOTE: Do NOT recycle ocrBitmap here.

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.share
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
@@ -60,6 +61,13 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                     toast(R.string.s0116_toast_saved_to_downloads, result.fileName)
                 }
             }
+            is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
+                if (result.summary.failureCount == 0) {
+                    toast(R.string.s0117_toast_batch_saved, result.summary.successCount)
+                } else {
+                    showBatchSummary(hostActivity, result.summary)
+                }
+            }
             LinkAutoDownloadCoordinator.Result.Failed.NoNetwork ->
                 toast(R.string.link_autodownload_error_no_network)
             LinkAutoDownloadCoordinator.Result.Failed.Timeout ->
@@ -96,6 +104,59 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         }
     }
 
+    private fun showBatchSummary(
+        hostActivity: AppCompatActivity,
+        summary: LinkAutoDownloadCoordinator.Result.BatchSummary,
+    ) {
+        val lines = mutableListOf(
+            appContext.getString(
+                R.string.s0117_batch_dialog_summary,
+                summary.successCount,
+                summary.totalItems,
+            ),
+        )
+        summary.failures.take(MAX_DIALOG_FAILURES).forEach { failure ->
+            lines += appContext.getString(
+                R.string.s0117_batch_dialog_failure_line,
+                failure.title,
+                renderFailureReason(failure.failure),
+            )
+        }
+        val remaining = summary.failureCount - MAX_DIALOG_FAILURES
+        if (remaining > 0) {
+            lines += appContext.getString(R.string.s0117_batch_dialog_more_failures, remaining)
+        }
+
+        AlertDialog.Builder(hostActivity)
+            .setTitle(R.string.s0117_batch_dialog_title)
+            .setMessage(lines.joinToString("\n"))
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
+    private fun renderFailureReason(failure: LinkAutoDownloadCoordinator.Result.Failed): String {
+        return when (failure) {
+            LinkAutoDownloadCoordinator.Result.Failed.NoNetwork ->
+                appContext.getString(R.string.link_autodownload_error_no_network)
+            LinkAutoDownloadCoordinator.Result.Failed.Timeout ->
+                appContext.getString(R.string.link_autodownload_error_timeout)
+            LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound ->
+                appContext.getString(R.string.link_autodownload_error_no_media)
+            LinkAutoDownloadCoordinator.Result.Failed.MimeBlocked ->
+                appContext.getString(R.string.link_autodownload_error_mime_blocked)
+            LinkAutoDownloadCoordinator.Result.Failed.DrmBlocked ->
+                appContext.getString(R.string.s0116_toast_drm_blocked)
+            LinkAutoDownloadCoordinator.Result.Failed.StreamingDisabled ->
+                appContext.getString(R.string.s0116_toast_streaming_disabled)
+            is LinkAutoDownloadCoordinator.Result.Failed.MuxFailed ->
+                appContext.getString(R.string.s0116_toast_mux_failed, failure.codec)
+            is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired ->
+                appContext.getString(R.string.s0116_toast_auth_required, failure.host)
+            is LinkAutoDownloadCoordinator.Result.Failed.Other ->
+                failure.cause.message ?: failure.cause::class.java.simpleName
+        }
+    }
+
     private fun launchPlayer(host: AppCompatActivity, uri: android.net.Uri) {
         try {
             val intent = Intent(host, StandalonePlayerActivity::class.java)
@@ -111,5 +172,9 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         val text = if (args.isEmpty()) appContext.getString(stringRes)
         else appContext.getString(stringRes, *args)
         Toast.makeText(appContext, text, Toast.LENGTH_LONG).show()
+    }
+
+    private companion object {
+        const val MAX_DIALOG_FAILURES = 5
     }
 }

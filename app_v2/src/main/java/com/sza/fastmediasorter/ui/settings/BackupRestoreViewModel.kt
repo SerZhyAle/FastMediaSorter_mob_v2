@@ -173,7 +173,7 @@ class BackupRestoreViewModel @Inject constructor(
                 }
                 is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
                     _uiState.value = BackupRestoreUiState.Error(
-                        context.getString(R.string.auth_failed, authResult.message)
+                        context.getString(R.string.auth_failed)
                     )
                     pendingAction = null
                 }
@@ -194,6 +194,18 @@ class BackupRestoreViewModel @Inject constructor(
         _uiState.value = BackupRestoreUiState.Idle
     }
 
+    private fun getRestoreFailureMessage(errorMessage: String?): String {
+        // Keep the missing-backup guidance specific without surfacing raw backend text.
+        return if (
+            errorMessage?.contains("no backup", ignoreCase = true) == true ||
+            errorMessage?.contains("not found", ignoreCase = true) == true
+        ) {
+            context.getString(R.string.restore_no_backup)
+        } else {
+            context.getString(R.string.restore_failed)
+        }
+    }
+
     private suspend fun performBackup() {
         _uiState.value = BackupRestoreUiState.BackingUp
         val result = backupUseCase()
@@ -206,7 +218,7 @@ class BackupRestoreViewModel @Inject constructor(
         }.onFailure { error ->
             Timber.e(error, "Backup failed")
             _uiState.value = BackupRestoreUiState.Error(
-                context.getString(R.string.backup_failed, error.message ?: "")
+                context.getString(R.string.backup_failed)
             )
         }
     }
@@ -219,7 +231,7 @@ class BackupRestoreViewModel @Inject constructor(
         }.onFailure { error ->
             Timber.e(error, "Failed to fetch backup info")
             _uiState.value = BackupRestoreUiState.Error(
-                error.message ?: context.getString(R.string.restore_no_backup)
+                getRestoreFailureMessage(error.message)
             )
         }
     }
@@ -232,7 +244,7 @@ class BackupRestoreViewModel @Inject constructor(
         }.onFailure { error ->
             Timber.e(error, "Restore failed")
             _uiState.value = BackupRestoreUiState.Error(
-                context.getString(R.string.restore_failed, error.message ?: "")
+                context.getString(R.string.restore_failed)
             )
         }
     }

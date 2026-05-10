@@ -165,7 +165,7 @@
         </activity>
 
         <!-- Favorites Widget -->
-        <receiver android:name=".widget.FavoritesWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.FavoritesWidgetProvider" android:exported="true" android:label="@string/widget_favorites_label" android:icon="@drawable/ic_widget_favorites">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -200,7 +200,7 @@
         </service>
 
         <!-- Resource Launch Widget -->
-        <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true" android:label="@string/widget_resource_launch_label" android:icon="@drawable/ic_widget_resource_launch">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -208,11 +208,27 @@
         </receiver>
 
         <!-- Continue Reading Widget -->
-        <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true" android:label="@string/widget_continue_reading_label" android:icon="@drawable/ic_widget_continue_reading">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_continue_reading_info" />
+        </receiver>
+
+        <!-- Camera Photos Widget (S0134) -->
+        <receiver android:name=".widget.CameraPhotosWidgetProvider" android:exported="true" android:label="@string/widget_camera_photos_label" android:icon="@drawable/ic_widget_camera_photos">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_photos_info" />
+        </receiver>
+
+        <!-- Random Music Widget (S0134) — removed in photos flavor (no audio support) -->
+        <receiver android:name=".widget.RandomMusicWidgetProvider" android:exported="true" android:label="@string/widget_random_music_label" android:icon="@drawable/ic_widget_random_music">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_random_music_info" />
         </receiver>
 
         <!-- Scheduled file operations: foreground service type for WorkManager (Android 14+) -->

@@ -84,7 +84,7 @@ class ResourcePickerDialog(
                 Timber.e(e, "Error loading resources")
                 Toast.makeText(
                     context,
-                    "Error loading resources: ${e.message}",
+                    context.getString(R.string.toast_error_loading_resources),
                     Toast.LENGTH_SHORT
                 ).show()
                 dismiss()

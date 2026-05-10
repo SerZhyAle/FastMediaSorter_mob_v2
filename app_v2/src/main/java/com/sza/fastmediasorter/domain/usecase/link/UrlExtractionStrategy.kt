@@ -43,10 +43,25 @@ sealed interface OpenResult {
         val tentativeFileName: String,
     ) : OpenResult
 
+    /**
+     * S0117: site-specific extractors may expand one URL into a bounded list of
+     * child URLs. The coordinator executes them sequentially so each child still
+     * reuses the existing direct/html/streaming pipeline and writer logic.
+     */
+    data class Batch(
+        val items: List<SiteBatchItem>,
+        val label: String? = null,
+    ) : OpenResult
+
     data class NotFound(val reason: String) : OpenResult
     data class Blocked(val reason: BlockedReason) : OpenResult
     data class Error(val cause: Throwable) : OpenResult
 }
+
+data class SiteBatchItem(
+    val url: String,
+    val title: String? = null,
+)
 
 enum class BlockedReason {
     MimeNotAllowed,

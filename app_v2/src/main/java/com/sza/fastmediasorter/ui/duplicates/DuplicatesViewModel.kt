@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.DuplicateDetectionResult
 import com.sza.fastmediasorter.domain.model.DuplicateGroup
 import com.sza.fastmediasorter.domain.model.DuplicateScanProgress
@@ -181,7 +182,7 @@ class DuplicatesViewModel @Inject constructor(
             } catch (e: Exception) {
                 if (e !is kotlinx.coroutines.CancellationException) {
                     Timber.e(e, "DuplicatesViewModel: scan failed")
-                    _state.update { it.copy(scanState = ScanState.Error(e.message ?: "Scan failed")) }
+                    _state.update { it.copy(scanState = ScanState.Error(context.getString(R.string.duplicate_scan_failed))) }
                 }
             }
         }
@@ -239,7 +240,7 @@ class DuplicatesViewModel @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "DuplicatesViewModel: deleteSelectedFiles failed")
                 _state.update { it.copy(scanState = ScanState.Idle) }
-                _events.emit(DuplicatesEvent.ShowError(e.message ?: "Delete failed"))
+                _events.emit(DuplicatesEvent.ShowError(context.getString(R.string.delete_failed)))
             }
         }
     }
@@ -268,7 +269,7 @@ class DuplicatesViewModel @Inject constructor(
                 _events.emit(DuplicatesEvent.FileDeleted(file.path))
             } catch (e: Exception) {
                 Timber.e(e, "DuplicatesViewModel: deleteFile failed for ${file.path}")
-                _events.emit(DuplicatesEvent.ShowError(e.message ?: "Delete failed"))
+                _events.emit(DuplicatesEvent.ShowError(context.getString(R.string.delete_failed)))
             }
         }
     }

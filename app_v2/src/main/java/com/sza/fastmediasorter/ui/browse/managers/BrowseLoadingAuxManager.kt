@@ -125,11 +125,12 @@ class BrowseLoadingAuxManager(
         ) {
             Timber.d("BrowseLoadingAuxManager: folder loading blocked by video player throttle")
             sendEvent(BrowseEvent.ShowError(
-                message = "Cannot load folder while video is playing\n\n" +
-                    "The video player has priority access to network resources.\n\n" +
-                    "Please close the video player and try again.",
-                details = "Resource: ${resource.name}\nPath: ${resource.path}\n\n" +
-                    "This is a safety feature to prevent network congestion and ensure smooth video playback.",
+                message = context.getString(R.string.error_folder_loading_blocked_by_video_player),
+                details = buildString {
+                    append("${context.getString(R.string.error_details_resource)}: ${resource.name}\n")
+                    append("${context.getString(R.string.error_details_path)}: ${resource.path}\n\n")
+                    append(context.getString(R.string.error_folder_loading_blocked_by_video_player_details))
+                },
                 exception = e
             ))
             setLoading(false)
@@ -175,7 +176,6 @@ class BrowseLoadingAuxManager(
             }
         }
 
-        Timber.d("S0118: BrowseLoadingAuxManager — building localized error details")
         val details = buildString {
             append("${context.getString(R.string.error_details_resource)}: ${resource.name}\n")
             append("${context.getString(R.string.error_details_path)}: ${resource.path}\n")

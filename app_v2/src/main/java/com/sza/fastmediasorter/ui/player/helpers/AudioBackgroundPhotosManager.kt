@@ -134,7 +134,7 @@ class AudioBackgroundPhotosManager @Inject constructor(
                 if (resourceIdLong == null) {
                     Timber.e("AudioBackgroundPhotos: Invalid resource ID: $resourceId")
                     withContext(Dispatchers.Main) {
-                        onErrorListener?.invoke("Invalid resource ID")
+                        onErrorListener?.invoke(context.getString(com.sza.fastmediasorter.R.string.resource_not_found))
                     }
                     return@launch
                 }
@@ -144,7 +144,7 @@ class AudioBackgroundPhotosManager @Inject constructor(
                 if (resource == null) {
                     Timber.e("AudioBackgroundPhotos: Resource not found: $resourceIdLong")
                     withContext(Dispatchers.Main) {
-                        onErrorListener?.invoke("Resource not found")
+                        onErrorListener?.invoke(context.getString(com.sza.fastmediasorter.R.string.resource_not_found))
                     }
                     return@launch
                 }
@@ -230,14 +230,18 @@ class AudioBackgroundPhotosManager @Inject constructor(
                 if (photosList.isEmpty()) {
                     Timber.w("AudioBackgroundPhotos: No static images found in resource")
                     withContext(Dispatchers.Main) {
-                        onErrorListener?.invoke("No photos found in selected resource")
+                        onErrorListener?.invoke(
+                            context.getString(com.sza.fastmediasorter.R.string.audio_background_photos_no_photos_found)
+                        )
                     }
                 }
                 
             } catch (e: Exception) {
                 Timber.e(e, "AudioBackgroundPhotos: Error loading photos playlist")
                 withContext(Dispatchers.Main) {
-                    onErrorListener?.invoke("Error loading photos: ${e.message}")
+                    onErrorListener?.invoke(
+                        context.getString(com.sza.fastmediasorter.R.string.audio_background_photos_load_failed)
+                    )
                 }
             }
         }

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.addresource
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -22,6 +24,7 @@ import timber.log.Timber
  * auto-disable threshold, error messaging). This helper keeps it in one place.
  */
 internal class AddResourceFinalizer(
+    private val context: Context,
     private val bridge: AddResourceBridge,
     private val resourceRepository: ResourceRepository,
     private val mediaScannerFactory: MediaScannerFactory
@@ -179,7 +182,7 @@ internal class AddResourceFinalizer(
         val allResources = resourceRepository.getAllResources().first()
         val destinations = allResources.filter { it.isDestination }
         if (destinations.size >= 10) {
-            bridge.emit(AddResourceEvent.ShowError("Maximum 30 destinations allowed"))
+            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_quick_sort_limit_reached)))
             bridge.markLoading(false)
             return null
         }

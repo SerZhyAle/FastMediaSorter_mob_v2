@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.undo
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -16,6 +18,7 @@ import java.io.File
  * Supported operations: Copy, Move, Delete (with trash), Rename
  */
 class BrowseUndoManager(
+    private val context: Context,
     private val callbacks: UndoCallbacks
 ) {
     
@@ -70,7 +73,7 @@ class BrowseUndoManager(
     suspend fun undoLastOperation(): Boolean {
         val operation = _undoState.value.lastOperation
         if (operation == null) {
-            callbacks.showMessage("No operation to undo")
+            callbacks.showMessage(context.getString(R.string.no_operation_to_undo))
             return false
         }
         
@@ -91,7 +94,7 @@ class BrowseUndoManager(
         } catch (e: Exception) {
             Timber.e(e, "Undo operation failed")
             callbacks.showError(
-                message = "Undo failed: ${e.message}",
+                message = context.getString(R.string.undo_failed),
                 details = e.stackTraceToString(),
                 exception = e
             )
@@ -110,7 +113,7 @@ class BrowseUndoManager(
                 Timber.d("undoCopy: deleted $path")
             }
         }
-        callbacks.showMessage("Undo: copy operation cancelled")
+        callbacks.showMessage(context.getString(R.string.toast_copy_cancelled))
         // No reload needed - files were copied to destination, not this folder
     }
     
@@ -132,7 +135,7 @@ class BrowseUndoManager(
             }
         }
         
-        callbacks.showMessage("Undo: restored ${restoredFiles.size} file(s)")
+        callbacks.showMessage(context.getString(R.string.files_restored, restoredFiles.size))
         
         if (restoredFiles.isNotEmpty()) {
             callbacks.addFilesToList(restoredFiles)
@@ -146,7 +149,7 @@ class BrowseUndoManager(
     private suspend fun undoDeleteOperation(operation: UndoOperation) {
         val paths = operation.copiedFiles
         if (paths.isNullOrEmpty()) {
-            callbacks.showMessage("Undo: no files to restore")
+            callbacks.showMessage(context.getString(R.string.no_files_to_restore))
             return
         }
         
@@ -166,7 +169,7 @@ class BrowseUndoManager(
         val originalPaths = if (idx < paths.size) paths.drop(idx) else emptyList()
         
         if (trashDirs.isEmpty()) {
-            callbacks.showMessage("Undo: trash folder not found")
+            callbacks.showMessage(context.getString(R.string.invalid_undo_operation_data))
             return
         }
         
@@ -193,7 +196,7 @@ class BrowseUndoManager(
             }
         }
         
-        callbacks.showMessage("Undo: restored ${restoredFiles.size} file(s)")
+        callbacks.showMessage(context.getString(R.string.files_restored, restoredFiles.size))
         
         if (restoredFiles.isNotEmpty()) {
             callbacks.addFilesToList(restoredFiles)
@@ -214,7 +217,7 @@ class BrowseUndoManager(
             }
         }
         
-        callbacks.showMessage("Undo: rename operation cancelled")
+        callbacks.showMessage(context.getString(R.string.undo_rename_cancelled))
         callbacks.reloadFileList()
     }
     

@@ -9,5 +9,5 @@
     android:description="@string/widget_random_music_description"
     android:resizeMode="none"
     android:widgetCategory="home_screen"
-    android:previewImage="@drawable/widget_preview_random_music"
-    android:previewLayout="@layout/widget_preview_random_music" />
+    android:theme="@style/Widget.FastMediaSorter"
+    android:previewImage="@drawable/widget_preview_random_music" />

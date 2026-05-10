@@ -76,9 +76,9 @@ class GeneralSettingsLogHelper(
             if (!fragment.isAdded || fragment.view == null) return@launch
             com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
                 fragment.requireContext(),
-                if (fullLog) "Application Log" else "Current Session Log",
+                if (fullLog) fragment.getString(R.string.settings_application_log_title) else fragment.getString(R.string.show_current_session_log),
                 logText,
-                "Close"
+                fragment.getString(R.string.close)
             )
         }
     }
@@ -127,9 +127,13 @@ class GeneralSettingsLogHelper(
                 lineCount++
             }
             bufferedReader.close()
-            if (log.isEmpty()) "No log entries found" else "Last $lineCount lines of log:\n\n$log"
+            if (log.isEmpty()) {
+                fragment.getString(R.string.settings_log_empty)
+            } else {
+                fragment.getString(R.string.settings_log_last_lines, lineCount, log.toString())
+            }
         } catch (e: Exception) {
-            "Error reading log: ${e.message}"
+            fragment.getString(R.string.settings_log_read_failed)
         }
     }
 
@@ -147,9 +151,13 @@ class GeneralSettingsLogHelper(
                 }
             }
             bufferedReader.close()
-            if (log.isEmpty()) "No log entries found for current session" else "Current session log ($lineCount lines):\n\n$log"
+            if (log.isEmpty()) {
+                fragment.getString(R.string.settings_log_empty_session)
+            } else {
+                fragment.getString(R.string.settings_log_current_session_body, lineCount, log.toString())
+            }
         } catch (e: Exception) {
-            "Error reading log: ${e.message}"
+            fragment.getString(R.string.settings_log_read_failed)
         }
     }
 }

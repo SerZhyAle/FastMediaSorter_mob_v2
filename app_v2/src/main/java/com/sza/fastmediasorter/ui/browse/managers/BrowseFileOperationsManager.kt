@@ -125,7 +125,7 @@ class BrowseFileOperationsManager(
                     when (val result = fileOperationUseCase.execute(operation)) {
                         is FileOperationResult.Success -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
                         is FileOperationResult.PartialSuccess -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
-                        is FileOperationResult.Failure -> Toast.makeText(context, result.error, Toast.LENGTH_LONG).show()
+                        is FileOperationResult.Failure -> callbacks.onShowError(context.getString(R.string.move_failed), result.error)
                         is FileOperationResult.PermissionRequired -> Toast.makeText(context, R.string.permission_error_retry, Toast.LENGTH_LONG).show()
                         is FileOperationResult.AuthenticationRequired -> callbacks.onAuthRequest(result.provider)
                     }
@@ -140,7 +140,7 @@ class BrowseFileOperationsManager(
                 callbacks.onOperationCompleted()
             } catch (e: Exception) {
                 Timber.e(e, "executeMoveDirectly: Exception during move")
-                Toast.makeText(context, context.getString(R.string.move_failed, e.message), Toast.LENGTH_LONG).show()
+                callbacks.onShowError(context.getString(R.string.move_failed), e.message)
             }
         }
     }
@@ -250,7 +250,12 @@ class BrowseFileOperationsManager(
                     }
                     is FileOperationResult.Failure -> {
                         Timber.e("executeOperationToPath: FAILURE - ${result.error}")
-                        Toast.makeText(context, result.error, Toast.LENGTH_LONG).show()
+                        val messageRes = when (operationType) {
+                            FileOperationType.COPY -> R.string.copy_failed
+                            FileOperationType.MOVE -> R.string.move_failed
+                            else -> R.string.error_operation_failed
+                        }
+                        callbacks.onShowError(context.getString(messageRes), result.error)
                     }
                     is FileOperationResult.AuthenticationRequired -> {
                         Timber.w("executeOperationToPath: Auth required for ${result.provider}")
@@ -265,7 +270,7 @@ class BrowseFileOperationsManager(
                 Timber.w("executeOperationToPath: cancelled")
             } catch (e: Exception) {
                 Timber.e(e, "executeOperationToPath: exception")
-                Toast.makeText(context, context.getString(R.string.operation_failed, e.message), Toast.LENGTH_LONG).show()
+                callbacks.onShowError(context.getString(R.string.error_operation_failed), e.message)
             }
         }
     }
@@ -589,7 +594,7 @@ class BrowseFileOperationsManager(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to share files")
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.toast_failed_to_share, e.message), Toast.LENGTH_LONG).show()
+                    callbacks.onShowError(context.getString(R.string.error_share_failed), e.message)
                 }
             }
         }
@@ -680,11 +685,7 @@ class BrowseFileOperationsManager(
                 }
                 is FileOperationResult.Failure -> {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.error_share_download_failed, result.error),
-                            Toast.LENGTH_LONG
-                        ).show()
+                        callbacks.onShowError(context.getString(R.string.error_share_download_failed), result.error)
                     }
                     null
                 }

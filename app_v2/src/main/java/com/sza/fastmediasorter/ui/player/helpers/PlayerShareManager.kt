@@ -69,7 +69,7 @@ class PlayerShareManager(
             Timber.e(e, "Failed to open file in external player")
             Toast.makeText(
                 activity,
-                activity.getString(R.string.error_opening_external_player, e.message),
+                activity.getString(R.string.error_opening_external_player),
                 Toast.LENGTH_LONG
             ).show()
         }

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -28,6 +30,7 @@ import timber.log.Timber
  * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
  */
 class BrowseFileOpenManager(
+    private val context: Context,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
     private val cachedFileListRepository: CachedFileListRepository,
@@ -61,7 +64,8 @@ class BrowseFileOpenManager(
             if (foundIndex == -1) {
                 Timber.w("BrowseFileOpenManager.openFile: cache miss for ${file.path}, attempting fallback")
                 if (!tryResolveMissingFile(file, approximatePosition)) {
-                    sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", null))
+                    // Keep the primary copy short; the missing file path only belongs in the optional details surface.
+                    sendEvent(BrowseEvent.ShowError(context.getString(R.string.error_file_not_found), file.path))
                 }
                 return
             }
@@ -109,7 +113,7 @@ class BrowseFileOpenManager(
                 val smbScanner = scanner as? com.sza.fastmediasorter.data.network.SmbMediaScanner
                 if (smbScanner == null) {
                     Timber.e("BrowseFileOpenManager.resolveMissingSmbFile: no SMB scanner for '${resource.name}'")
-                    sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", file.path))
+                    sendEvent(BrowseEvent.ShowError(context.getString(R.string.error_file_not_found), file.path))
                     return@launch
                 }
 
@@ -123,7 +127,7 @@ class BrowseFileOpenManager(
                     mergeResolvedFileAndOpen(refreshed, approximatePosition)
                 } else {
                     Timber.e("BrowseFileOpenManager.resolveMissingSmbFile: remote file missing ${file.path}")
-                    sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", file.path))
+                    sendEvent(BrowseEvent.ShowError(context.getString(R.string.error_file_not_found), file.path))
                 }
             } finally {
                 setLoading(false)

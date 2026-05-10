@@ -50,7 +50,7 @@ internal class AddResourceVirtualCoordinator(
                         isScanning = false
                     )
                 }
-                bridge.emit(AddResourceEvent.ShowMessage("Found ${resources.size} folders"))
+                bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_local_folders_found)))
             }.onFailure { e ->
                 Timber.e(e, "Error scanning local folders")
                 bridge.reportError(e)
@@ -171,7 +171,7 @@ internal class AddResourceVirtualCoordinator(
                     )
                 }
 
-                bridge.emit(AddResourceEvent.ShowMessage("Folder added to list"))
+                bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_folder_added_to_list)))
             } catch (e: Exception) {
                 Timber.e(e, "Error adding manual folder")
                 bridge.reportError(e)
@@ -185,6 +185,7 @@ internal class AddResourceVirtualCoordinator(
         virtualPath: String,
         settings: AppSettings
     ): MediaResource? {
+        Timber.d("S0130: building user-added virtual resource path=$virtualPath isWritable=${VirtualPathUtils.isAggregateVirtualPath(virtualPath)}")
         val (name, types, profile) = when (virtualPath) {
             LocalMediaScanner.VIRTUAL_PATH_RECENT -> Triple(
                 context.getString(R.string.recent_media),
@@ -268,7 +269,7 @@ internal class AddResourceVirtualCoordinator(
             fileCount = 0,
             isDestination = false,
             destinationOrder = null,
-            isWritable = false,
+            isWritable = VirtualPathUtils.isAggregateVirtualPath(virtualPath),
             scanSubdirectories = false,
             supportedMediaTypes = types,
             sortMode = defaultSortMode,

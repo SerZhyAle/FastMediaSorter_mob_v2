@@ -35,6 +35,7 @@ class PanelStereoSingleEyeNotifier {
     fun notifyIfFirstThisSession(context: Context) {
         if (toasted.compareAndSet(false, true)) {
             Timber.d("PanelStereoSingleEyeNotifier: first crop application this session — showing toast")
+            Timber.d("VR_AUDIT/11: panel single-eye crop applied (first-this-session toast shown)")
             val appContext = context.applicationContext
             mainHandler.post {
                 Toast.makeText(

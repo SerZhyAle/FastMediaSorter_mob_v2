@@ -228,6 +228,8 @@ class VrPlayerActivity : PlayerActivity() {
         // even when the buffer is flooded by system (XR runtime) log spam.
         Log.e("VR_BOOT", "VrPlayerActivity.onCreate intent=${intent?.toUri(0)} savedState=$savedInstanceState")
         Timber.i("VrPlayerActivity: onCreate ENTRY  intent=%s", intent?.toUri(0))
+        val xrColdStartNanos = System.nanoTime()
+        Timber.d("VR_AUDIT/14: cold-start phase=onCreate-begin tNanos=%d", xrColdStartNanos)
         val xrAvailable = isXrRuntimeAvailable()
         Timber.i("VrPlayerActivity: isXrRuntimeAvailable=%b", xrAvailable)
         if (!xrAvailable) {
@@ -240,6 +242,7 @@ class VrPlayerActivity : PlayerActivity() {
 
         super.onCreate(savedInstanceState)
         Timber.i("VrPlayerActivity: super.onCreate done")
+        Timber.d("VR_AUDIT/14: cold-start phase=super.onCreate-done deltaMs=%d", (System.nanoTime() - xrColdStartNanos) / 1_000_000)
 
         forceImmersiveThisLaunch = intent.getBooleanExtra(EXTRA_FORCE_IMMERSIVE, false)
         Timber.i("VrPlayerActivity: forceImmersiveThisLaunch=%b", forceImmersiveThisLaunch)
@@ -249,6 +252,13 @@ class VrPlayerActivity : PlayerActivity() {
             intent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE)
                 ?.let { name -> runCatching { StereoMode.valueOf(name) }.getOrNull() }
         Timber.i("VrPlayerActivity: initial detected stereo hint=%s", initialDetectedStereoModeHint)
+        Timber.d(
+            "VR_AUDIT/5: VrPlayerActivity.onCreate EXTRA_DETECTED_STEREO_MODE=%s hintParsed=%s forceImmersive=%b forcePanel=%b",
+            intent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE),
+            initialDetectedStereoModeHint,
+            forceImmersiveThisLaunch,
+            forcePanelThisLaunch,
+        )
 
         vrToggleButtonManager = VrToggleButtonManager(
             button = safeViews.btn3dVrCmd,
@@ -388,6 +398,7 @@ class VrPlayerActivity : PlayerActivity() {
         }
 
         Timber.d("VrPlayerActivity: VR components initialised, XR session will start in onResume")
+        Timber.d("VR_AUDIT/14: cold-start phase=onCreate-end deltaMs=%d", (System.nanoTime() - xrColdStartNanos) / 1_000_000)
     }
 
     override fun onResume() {
@@ -415,6 +426,8 @@ class VrPlayerActivity : PlayerActivity() {
 
     override fun onDestroy() {
         Timber.i("VrPlayerActivity: onDestroy")
+        Timber.d("VR_AUDIT/7: VrPlayerActivity.onDestroy isFinishing=%b isTaskRoot=%b — finishAndRemoveTask path completion check",
+            isFinishing, isTaskRoot)
         if (::vrSessionLifecycleManager.isInitialized) vrSessionLifecycleManager.cancelRouteJob()
         playbackPrefs.unregisterOnSharedPreferenceChangeListener(renderingModeListener)
         vrRenderPipelineManagerInternal?.detachVrPlayerListener()
@@ -459,6 +472,8 @@ class VrPlayerActivity : PlayerActivity() {
         super.onNewIntent(intent)
         Timber.d("VrPlayerActivity: onNewIntent raw uri=%s", intent.toUri(0))
         Timber.i("VrPlayerActivity: onNewIntent — new video requested, recreating activity. intent=%s", intent.toUri(0))
+        val brought = (intent.flags and Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0
+        Timber.d("VR_AUDIT/7: onNewIntent flags=0x%x FLAG_ACTIVITY_BROUGHT_TO_FRONT=%b", intent.flags, brought)
         vrSessionLifecycleManager.forceStopVrPlayback("new-intent-recreate")
         setIntent(intent)
         recreate()

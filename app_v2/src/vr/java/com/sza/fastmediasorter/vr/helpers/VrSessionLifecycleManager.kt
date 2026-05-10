@@ -195,6 +195,8 @@ internal class VrSessionLifecycleManager(
         playbackRouteJob = null
         Timber.i("VrPlayerActivity: launching standard PlayerActivity fallback file=%s type=%s reason=%s",
             currentFile.path, currentFile.type, reason)
+        Timber.d("VR_AUDIT/5: STANDARD_PANEL_FALLBACK from VR file=%s reason=%s — flicker source",
+            currentFile.path, reason)
         forceStopVrPlayback("standard-player-fallback:$reason")
         activity.startActivity(Intent(activity.intent).apply {
             setClass(activity, PlayerActivity::class.java)
@@ -231,6 +233,8 @@ internal class VrSessionLifecycleManager(
         xrInitStartedAtMs = SystemClock.uptimeMillis()
         Timber.i("VrPlayerActivity: starting XR init (reason=%s route=%s)", reason, routeDecision.route)
         Timber.i("VR_PERF: [main] xr_init_requested  t=%d", xrInitStartedAtMs)
+        Timber.d("VR_AUDIT/14: cold-start phase=startXrInitialization reason=%s route=%s tUptimeMs=%d",
+            reason, routeDecision.route, xrInitStartedAtMs)
         activity.lifecycleScope.launch(Dispatchers.IO) {
             Timber.d("VrPlayerActivity: [IO] xrSessionManager.initialize starting")
             val ok = xrSessionManagerProvider()?.initialize(activity) ?: false

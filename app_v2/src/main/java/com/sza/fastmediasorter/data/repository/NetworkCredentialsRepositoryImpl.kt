@@ -164,6 +164,7 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun insert(credentials: NetworkCredentialsEntity): Long {
+        warnIfEmptyShareName(credentials, op = "insert")
         shareCredentialCache.clear()
         return dao.insert(credentials)
     }
@@ -215,6 +216,7 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun update(credentials: NetworkCredentialsEntity) {
+        warnIfEmptyShareName(credentials, op = "update")
         shareCredentialCache.clear()
         dao.update(credentials)
     }
@@ -267,6 +269,22 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     }
 
     // -----------------------------------------------------------------------------
+
+    /**
+     * S0139: defense-in-depth check. SMB credentials must carry a non-empty `shareName`;
+     * otherwise the runtime self-heal in [com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl.testSmbConnection]
+     * fires a `W` log on every connection test. Non-throwing — some import paths legitimately
+     * receive credentials without share metadata, so we attribute the source via Timber rather
+     * than blocking the write.
+     */
+    private fun warnIfEmptyShareName(entity: NetworkCredentialsEntity, op: String) {
+        if (entity.type.equals("SMB", ignoreCase = true) && entity.shareName.isNullOrEmpty()) {
+            Timber.w(
+                "S0139: SMB credential persisted with empty shareName " +
+                    "(op=$op, server='${entity.server}', credentialId='${entity.credentialId}')"
+            )
+        }
+    }
 
     private suspend fun applyDefaultCredentialsIfNeeded(entity: NetworkCredentialsEntity?): NetworkCredentialsEntity? {
         if (entity == null) return null

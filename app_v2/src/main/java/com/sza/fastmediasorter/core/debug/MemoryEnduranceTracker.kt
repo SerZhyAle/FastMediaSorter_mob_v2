@@ -4,6 +4,7 @@ import android.os.Debug
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import androidx.core.os.HandlerCompat
 import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 
@@ -96,7 +97,7 @@ object MemoryEnduranceTracker {
                 " | verdict=$verdict"
         )
         handler.removeCallbacksAndMessages(COOLDOWN_TAG)
-        handler.postDelayed({ cooldownCheckpoint() }, COOLDOWN_TAG, COOLDOWN_DELAY_MS)
+        HandlerCompat.postDelayed(handler, { cooldownCheckpoint() }, COOLDOWN_TAG, COOLDOWN_DELAY_MS)
     }
 
     /** Record the memory state 30 s after endScenario. Called automatically by endScenario. */

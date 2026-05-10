@@ -165,7 +165,7 @@ class TextTranslationOverlayManager(
 
     private fun translateCurrentText(text: String) {
         if (text.isBlank()) {
-            callback.showError("No text to translate")
+            callback.showError(context.getString(R.string.translation_error_no_text))
             return
         }
 

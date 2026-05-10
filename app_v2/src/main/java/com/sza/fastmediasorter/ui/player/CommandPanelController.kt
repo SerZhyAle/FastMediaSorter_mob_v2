@@ -441,7 +441,6 @@ class CommandPanelController(
             ).filter { !it.barCapable }
             latestOverflowCommands = landscapeOverflowCmds
             safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
-            Timber.d("S0129: landscape overflow - ${landscapeOverflowCmds.size} items for ${currentFile.type}")
         } else {
             // Command panel hidden
             safeViews.btnOverflowMenu.isVisible = false

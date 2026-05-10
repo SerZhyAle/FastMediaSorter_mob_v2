@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
@@ -36,6 +38,7 @@ internal data class DirectoryCacheEntry(
  * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
  */
 class BrowseNavigationManager(
+    private val context: Context,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val stateFlow: StateFlow<BrowseState>,
@@ -419,11 +422,15 @@ class BrowseNavigationManager(
             }
 
             if (filteredContents.isEmpty()) {
-                sendEvent(BrowseEvent.ShowMessage("Folder is empty"))
+                sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.empty_folder)))
             }
         } catch (e: Exception) {
             Timber.e(e, "BrowseNavigationManager.loadDirectoryContents: error loading '$path'")
-            sendEvent(BrowseEvent.ShowError("Failed to load folder: ${e.message}"))
+            sendEvent(BrowseEvent.ShowError(
+                message = context.getString(R.string.error_folder_load_failed),
+                details = e.message,
+                exception = e
+            ))
         } finally {
             setLoading(false)
         }

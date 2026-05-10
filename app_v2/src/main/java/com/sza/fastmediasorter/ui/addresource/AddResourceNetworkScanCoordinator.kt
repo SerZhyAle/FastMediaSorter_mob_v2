@@ -47,7 +47,7 @@ internal class AddResourceNetworkScanCoordinator(
                 Timber.d("Network scan cancelled by user")
             } catch (e: Exception) {
                 Timber.e(e, "Error scanning network")
-                bridge.emit(AddResourceEvent.ShowError("Network scan failed: ${e.message}"))
+                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_scan_failed_short)))
             } finally {
                 bridge.mutate { it.copy(isScanning = false) }
             }
@@ -102,7 +102,7 @@ internal class AddResourceNetworkScanCoordinator(
                             bridge.emit(AddResourceEvent.ShowSharePicker(server, emptyList(), manualShares))
                         } else {
                             bridge.emit(AddResourceEvent.ShowError(
-                                context.getString(R.string.msg_share_scan_failed, e.message ?: "")
+                                context.getString(R.string.msg_share_scan_failed)
                             ))
                         }
                     }
@@ -110,7 +110,7 @@ internal class AddResourceNetworkScanCoordinator(
                 Timber.e(e, "Error during share scan")
                 bridge.mutate { it.copy(isScanningShares = false) }
                 bridge.emit(AddResourceEvent.ShowError(
-                    context.getString(R.string.msg_share_scan_failed, e.message ?: "")
+                    context.getString(R.string.msg_share_scan_failed)
                 ))
             }
         }

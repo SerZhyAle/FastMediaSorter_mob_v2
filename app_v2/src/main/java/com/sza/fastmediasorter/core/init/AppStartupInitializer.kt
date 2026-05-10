@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -48,6 +49,7 @@ class AppStartupInitializer(
         if (BuildConfig.DEBUG) logPermissionsStatus()
         fixCloudResourcesWritableFlag()
         fixLocalResourcesWritableFlag()
+        fixVirtualAggregateWritableFlag()
         renameVirtualResourceNames()
         cleanupPlaybackPositions()
         migrateThumbnailCache()
@@ -301,6 +303,30 @@ class AppStartupInitializer(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to fix local resources isWritable flag")
+            }
+        }
+    }
+
+    /**
+     * Fix aggregate virtual resources: set isWritable = true for existing records
+     * that were provisioned with the old default (false).
+     * Migration fix for S0130.
+     */
+    private fun fixVirtualAggregateWritableFlag() {
+        applicationScope.launch {
+            try {
+                val resources = resourceRepository.getAllResources().first()
+                val broken = resources.filter {
+                    VirtualPathUtils.isAggregateVirtualPath(it.path) && !it.isWritable
+                }
+                if (broken.isNotEmpty()) {
+                    broken.forEach { resource ->
+                        resourceRepository.updateResource(resource.copy(isWritable = true))
+                    }
+                    Timber.d("S0130: Fixed isWritable for ${broken.size} aggregate virtual resources")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to fix aggregate virtual resources isWritable flag")
             }
         }
     }

@@ -125,7 +125,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 Timber.e(e, "ReceiveShareActivity: failed to process share intent")
                 Toast.makeText(
                     this@ReceiveShareActivity,
-                    getString(R.string.receive_share_cache_failed, e.message),
+                    getString(R.string.receive_share_cache_failed),
                     Toast.LENGTH_LONG
                 ).show()
                 finish()
@@ -298,7 +298,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         this@ReceiveShareActivity,
-                        getString(R.string.receive_share_copy_to_folder_failed, e.message),
+                        getString(R.string.receive_share_copy_to_folder_failed),
                         Toast.LENGTH_LONG
                     ).show()
                     cleanupAndFinish()

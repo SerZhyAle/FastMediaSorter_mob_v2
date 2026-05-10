@@ -171,14 +171,17 @@ class ImageCropManager(
         val outTemp = File(context.cacheDir, "crop_out_$timestamp.$ext")
         var srcTemp: File? = null
         try {
-            val mappedRect = mapScreenRectToOriginal(screenRect, viewWidth, viewHeight, currentFile.path)
+            // ensureLocalSource must precede mapScreenRectToOriginal: BitmapFactory cannot decode
+            // network URIs (SMB/SFTP/cloud), so origWidth/origHeight would fall back to viewWidth/
+            // viewHeight and produce screen-space coords instead of image-pixel coords.
             val srcFile = ensureLocalSource(currentFile, currentResource, timestamp, ext)
                 .also { srcTemp = if (it.path != currentFile.path.removePrefix("file://")) it else null }
+            val mappedRect = mapScreenRectToOriginal(screenRect, viewWidth, viewHeight, srcFile.path)
 
             val bitmap = withContext(Dispatchers.IO) {
                 // BitmapRegionDecoder returns raw (unrotated) pixels — rotate to match display orientation.
                 val raw = decodeRegion(srcFile.path, mappedRect)
-                rotateBitmapIfNeeded(raw, readExifDegrees(currentFile.path))
+                rotateBitmapIfNeeded(raw, readExifDegrees(srcFile.path))
             }
 
             withContext(Dispatchers.IO) {
@@ -192,7 +195,7 @@ class ImageCropManager(
             }
         } catch (e: Exception) {
             Timber.e(e, "S0106: performCrop failed")
-            withContext(Dispatchers.Main) { callback.onError(e.message ?: "Crop failed") }
+            withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.crop_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
                 runCatching { outTemp.delete() }
@@ -218,14 +221,17 @@ class ImageCropManager(
         val outTemp = File(context.cacheDir, "crop_out_$timestamp.$ext")
         var srcTemp: File? = null
         try {
-            val mappedRect = mapScreenRectToOriginal(screenRect, viewWidth, viewHeight, currentFile.path)
+            // ensureLocalSource must precede mapScreenRectToOriginal: BitmapFactory cannot decode
+            // network URIs (SMB/SFTP/cloud), so origWidth/origHeight would fall back to viewWidth/
+            // viewHeight and produce screen-space coords instead of image-pixel coords.
             val srcFile = ensureLocalSource(currentFile, currentResource, timestamp, ext)
                 .also { srcTemp = if (it.path != currentFile.path.removePrefix("file://")) it else null }
+            val mappedRect = mapScreenRectToOriginal(screenRect, viewWidth, viewHeight, srcFile.path)
 
             val bitmap = withContext(Dispatchers.IO) {
                 // BitmapRegionDecoder returns raw (unrotated) pixels — rotate to match display orientation.
                 val raw = decodeRegion(srcFile.path, mappedRect)
-                rotateBitmapIfNeeded(raw, readExifDegrees(currentFile.path))
+                rotateBitmapIfNeeded(raw, readExifDegrees(srcFile.path))
             }
 
             val targetPath = withContext(Dispatchers.IO) {
@@ -239,7 +245,7 @@ class ImageCropManager(
             withContext(Dispatchers.Main) { callback.onSuccess(targetPath, CropMode.CROP_TO_FILE) }
         } catch (e: Exception) {
             Timber.e(e, "S0106: performCropToFile failed")
-            withContext(Dispatchers.Main) { callback.onError(e.message ?: "Crop to file failed") }
+            withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.crop_to_file_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
                 runCatching { outTemp.delete() }
@@ -289,7 +295,7 @@ class ImageCropManager(
             withContext(Dispatchers.Main) { callback.onSuccess(targetPath, CropMode.COMPRESS_COPY) }
         } catch (e: Exception) {
             Timber.e(e, "S0106: performCompressedCopy failed")
-            withContext(Dispatchers.Main) { callback.onError(e.message ?: "Compressed copy failed") }
+            withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.compress_copy_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
                 runCatching { outTemp.delete() }
@@ -396,7 +402,24 @@ class ImageCropManager(
             @Suppress("DEPRECATION")
             val decoder = BitmapRegionDecoder.newInstance(s, false)
                 ?: throw IllegalStateException("BitmapRegionDecoder failed for $localPath")
-            val bm = decoder.decodeRegion(rect, BitmapFactory.Options())
+            val iw = decoder.width
+            val ih = decoder.height
+            // Re-clamp to actual decoder dimensions.
+            // mapScreenRectToOriginal may have used wrong bounds (network-file fallback to view
+            // dims, or EXIF-rotation producing negative coords that all clamp to the same edge).
+            val safeLeft = rect.left.coerceIn(0, iw)
+            val safeTop = rect.top.coerceIn(0, ih)
+            val safeRight = rect.right.coerceIn(0, iw)
+            val safeBottom = rect.bottom.coerceIn(0, ih)
+            Timber.d("S0106: decodeRegion input=$rect actual=${iw}x${ih} safe=[$safeLeft,$safeTop,$safeRight,$safeBottom]")
+            if (safeLeft >= safeRight || safeTop >= safeBottom) {
+                decoder.recycle()
+                // Log technical details before throwing — performCrop catches and logs the exception.
+                Timber.w("S0106: crop rect collapsed to empty region after clamping: input=$rect image=${iw}x${ih}")
+                throw IllegalArgumentException(context.getString(R.string.crop_error_outside_image))
+            }
+            val safeRect = Rect(safeLeft, safeTop, safeRight, safeBottom)
+            val bm = decoder.decodeRegion(safeRect, BitmapFactory.Options())
             decoder.recycle()
             bm ?: throw IllegalStateException("decodeRegion returned null")
         }
@@ -448,7 +471,9 @@ class ImageCropManager(
         // FileOperation.Copy treats `destination` as a directory and appends source.name,
         // so passing a full file path would cause Kotlin's copyTo to create a directory
         // at that path (EISDIR). For local destinations, write directly and notify MediaScanner.
-        val isNetworkPath = destPath.contains("://")
+        // Network detection follows FileOperationUseCase.isNetworkPath canonical forms —
+        // `contains("://")` alone misses our canonical `smb:/host:port/share/..` (single slash).
+        val isNetworkPath = isNetworkUri(destPath)
         if (!isNetworkPath) {
             val destFile = File(destPath)
             destFile.parentFile?.mkdirs()
@@ -480,13 +505,34 @@ class ImageCropManager(
     }
 
     private fun resolveDestinationPath(saveTo: MediaResource?, fileName: String): String {
-        if (saveTo == null || saveTo.isReadOnly) {
+        // Virtual paths (virtual://...) have no real filesystem location — fall back to Downloads.
+        if (saveTo == null || saveTo.isReadOnly || saveTo.path.startsWith("virtual://")) {
             val downloads = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOWNLOADS
             )
             return File(downloads, fileName).absolutePath
         }
+        // Network URIs (smb:/, sftp://, etc.) must not pass through File() — its constructor
+        // collapses `scheme://` to `scheme:/`, then absolutePath prepends `/`, producing
+        // `/smb:/host/..` which downstream isNetworkPath checks fail to recognise canonically.
+        if (isNetworkUri(saveTo.path)) {
+            return "${saveTo.path.trimEnd('/')}/$fileName"
+        }
         return File(saveTo.path, fileName).absolutePath
+    }
+
+    /**
+     * Mirrors [com.sza.fastmediasorter.domain.usecase.FileOperationUseCase] isNetworkPath
+     * shapes: `<proto>://`, `/<proto>://`, `/<proto>:/`, `<proto>:/`. Keep in sync.
+     */
+    private fun isNetworkUri(path: String): Boolean {
+        val protocols = listOf("smb", "sftp", "ftp", "cloud")
+        return protocols.any { proto ->
+            path.startsWith("$proto://") ||
+                path.startsWith("/$proto://") ||
+                path.startsWith("/$proto:/") ||
+                path.startsWith("$proto:/")
+        }
     }
 
     private fun computeSampleSize(longSide: Int, maxSide: Int): Int {

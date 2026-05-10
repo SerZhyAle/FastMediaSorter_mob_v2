@@ -109,6 +109,12 @@ class VideoPosterExtractor {
         } else {
             Timber.w("VideoPlayerManager: getFrameAtTime returned null path=$path reason=$reason fallback=$fallbackName")
         }
+        val fileLen = runCatching { File(path).length() }.getOrDefault(-1L)
+        val nativeFreeMb = android.os.Debug.getNativeHeapFreeSize() / (1024L * 1024L)
+        Timber.d(
+            "VR_AUDIT/10: getFrameAtTime null path=%s reason=%s fallback=%s preventive=%b fileBytes=%d nativeFreeMb=%d",
+            path, reason, fallbackName, isPreventiveSkip, fileLen, nativeFreeMb,
+        )
     }
 
     private fun buildPlaceholder(context: Context): Bitmap {

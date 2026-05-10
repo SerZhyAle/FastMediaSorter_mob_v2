@@ -30,6 +30,8 @@ class PlayerFpsMeter {
     private var frameCount: Int = 0
     private var windowStartElapsedMs: Long = 0L
 
+    private var firstSampleLogged: Boolean = false
+
     private val frameCallback = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
             if (!running) return
@@ -37,7 +39,12 @@ class PlayerFpsMeter {
             val nowMs = SystemClock.elapsedRealtime()
             val elapsedMs = nowMs - windowStartElapsedMs
             if (elapsedMs >= WINDOW_MS) {
-                _fps.value = (frameCount * 1000f / elapsedMs).toInt()
+                val sample = (frameCount * 1000f / elapsedMs).toInt()
+                _fps.value = sample
+                if (!firstSampleLogged) {
+                    firstSampleLogged = true
+                    Timber.d("VR_AUDIT/13: PlayerFpsMeter first sample fps=%d windowMs=%d", sample, WINDOW_MS)
+                }
                 frameCount = 0
                 windowStartElapsedMs = nowMs
             }
@@ -48,7 +55,9 @@ class PlayerFpsMeter {
     fun start() {
         if (running) return
         running = true
+        Timber.d("VR_AUDIT/13: PlayerFpsMeter toggle=ON")
         frameCount = 0
+        firstSampleLogged = false
         windowStartElapsedMs = SystemClock.elapsedRealtime()
         Choreographer.getInstance().postFrameCallback(frameCallback)
         Timber.v("PlayerFpsMeter: started")
@@ -57,6 +66,7 @@ class PlayerFpsMeter {
     fun stop() {
         if (!running) return
         running = false
+        Timber.d("VR_AUDIT/13: PlayerFpsMeter toggle=OFF")
         Choreographer.getInstance().removeFrameCallback(frameCallback)
         _fps.value = 0
         Timber.v("PlayerFpsMeter: stopped")

@@ -69,6 +69,7 @@ class VrInteractivePanelRenderer(
         } else if (!firstSubmitLogged) {
             firstSubmitLogged = true
             Timber.i("VrInteractivePanelRenderer: first panel bitmap upload succeeded (%dx%d)", width, height)
+            Timber.d("VR_AUDIT/2: panel FIRST submit OK size=%dx%d", width, height)
         }
         return uploaded
     }

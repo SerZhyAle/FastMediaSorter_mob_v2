@@ -53,7 +53,11 @@ class BrowseDirectoryOpsManager(
                     sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.msg_folder_created, name)))
                 }.onFailure { error ->
                     Timber.e(error, "BrowseDirectoryOpsManager.createFolder: FAILED")
-                    sendEvent(BrowseEvent.ShowError(error.message ?: "Failed to create folder"))
+                    sendEvent(BrowseEvent.ShowError(
+                        message = context.getString(R.string.error_folder_create_failed),
+                        details = error.message,
+                        exception = error
+                    ))
                 }
             }
         }
@@ -74,7 +78,11 @@ class BrowseDirectoryOpsManager(
                     sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.msg_folder_renamed)))
                 }.onFailure { error ->
                     Timber.e(error, "BrowseDirectoryOpsManager.renameDirectory: FAILED")
-                    sendEvent(BrowseEvent.ShowError(error.message ?: "Failed to rename folder"))
+                    sendEvent(BrowseEvent.ShowError(
+                        message = context.getString(R.string.error_folder_rename_failed),
+                        details = error.message,
+                        exception = error
+                    ))
                 }
             }
         }

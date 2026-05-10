@@ -135,7 +135,8 @@ data class AppSettings(
     val isPrimaryMediaPlayer: Boolean = false,
 
     // Phase 6: Accept shared media files (enables ACTION_SEND aliases in Share sheet)
-    val acceptSharedFiles: Boolean = false,
+    // S0133: default ON — fresh installs register in OS share-sheet on first app launch (via bootstrap).
+    val acceptSharedFiles: Boolean = true,
 
     // X.11: Background thumbnail pre-generation
     val enableThumbnailPreload: Boolean = false,       // Background thumbnail pre-generation (opt-in, consumes network bandwidth)

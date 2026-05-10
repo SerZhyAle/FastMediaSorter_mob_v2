@@ -670,7 +670,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                         result.onFailure { e ->
                             Timber.e(e, "S0107: overlay merge failed")
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@PlayerActivity, e.message ?: getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@PlayerActivity, R.string.draw_overlay_save_failed, Toast.LENGTH_SHORT).show()
                             }
                             return@launch
                         }
@@ -792,6 +792,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
      */
     internal fun launchImmersiveOnCurrentFile(reason: String) {
         Timber.i("PlayerActivity: launchImmersiveOnCurrentFile reason=%s", reason)
+        Timber.d("VR_AUDIT/4: apply-and-3d clicked reason=%s currentStereoBefore=%s currentFile=%s",
+            reason,
+            viewModel.stereoMode.value,
+            currentFilePath ?: "<null>")
         handle3dVrToggleClicked()
     }
 
@@ -1059,7 +1063,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     override val stereoMode: StateFlow<StereoMode> get() = viewModel.stereoMode
     override val detectedStereoMode: StateFlow<StereoMode> get() = viewModel.detectedStereoMode
 
-    override fun setStereoMode(mode: StereoMode) = viewModel.setStereoMode(mode)
+    override fun setStereoMode(mode: StereoMode) {
+        Timber.d("VR_AUDIT/11: PlayerActivity.setStereoMode mode=%s (panel 3D-dialog selection)", mode)
+        viewModel.setStereoMode(mode)
+    }
     override fun rememberStereoModeIfEnabled(mode: StereoMode) = viewModel.rememberStereoModeIfEnabled(mode)
 
     override val videoPlayerHandle: VideoPlayerHandle get() = playerActivityVideoHandle

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
@@ -92,7 +93,7 @@ class WearSyncViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     Timber.e(e, "Wear sync failed")
-                    _uiState.value = WearSyncUiState.Error(e.message ?: "Sync failed")
+                    _uiState.value = WearSyncUiState.Error(context.getString(R.string.wear_sync_failed))
                 }
         }
     }
@@ -111,7 +112,7 @@ class WearSyncViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     Timber.e(e, "Failed to push watch settings")
-                    _uiState.value = WearSyncUiState.Error(e.message ?: "Settings push failed")
+                    _uiState.value = WearSyncUiState.Error(context.getString(R.string.wear_push_settings_failed))
                 }
         }
     }

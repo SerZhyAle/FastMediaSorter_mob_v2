@@ -134,6 +134,10 @@ object VrTaskTransition {
             filePath,
             playerIntent.flags,
         )
+        Timber.d("VR_AUDIT/4: exitImmersiveToFlatPlayer target=%s file=%s flags=0x%x reuseSingleTop=true",
+            targetClass, filePath, playerIntent.flags)
+        Timber.d("VR_AUDIT/7: exitImmersiveToFlatPlayer flags=0x%x finishAndRemoveTask=true target=%s",
+            playerIntent.flags, targetClass)
         source.startActivity(playerIntent)
         source.finishAndRemoveTask()
     }

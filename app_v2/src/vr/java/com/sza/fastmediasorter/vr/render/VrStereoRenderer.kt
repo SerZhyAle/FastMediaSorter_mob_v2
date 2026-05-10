@@ -424,6 +424,10 @@ class VrStereoRenderer {
                 fisheyeUOffset, targetWidthPx, targetHeightPx, fisheyeProgram,
                 Math.PI / 2.0, Math.PI, currentStereoMode
             )
+            Timber.d(
+                "VR_AUDIT/6: fisheye shader uniforms uFisheyeUOffset=%.2f shaderHalfFovRad=%.6f shaderFullFovRad=%.6f target=%dx%d stereo=%s",
+                fisheyeUOffset, Math.PI / 2.0, Math.PI, targetWidthPx, targetHeightPx, currentStereoMode,
+            )
         }
         GLES20.glUniform1f(fUFisheyeUOffsetLoc, fisheyeUOffset)
 

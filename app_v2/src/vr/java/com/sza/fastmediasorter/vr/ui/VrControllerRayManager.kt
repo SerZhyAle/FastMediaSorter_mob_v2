@@ -93,6 +93,7 @@ class VrControllerRayManager(private val activity: Activity) {
                 lastDownX = x
                 lastDownY = y
                 isDown = true
+                Timber.d("VR_AUDIT/1: controller-ray trigger DOWN hand=%d px=(%.1f,%.1f) source=controller", hand, x, y)
                 dispatchTouch(MotionEvent.ACTION_DOWN, x, y)
             } else {
                 if (isDown) {

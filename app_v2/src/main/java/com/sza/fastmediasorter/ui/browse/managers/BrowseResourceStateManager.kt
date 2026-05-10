@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.usecase.AddResourceAsDestinationUseCase
@@ -31,6 +33,7 @@ import timber.log.Timber
  * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
  */
 class BrowseResourceStateManager(
+    private val context: Context,
     private val favoritesUseCase: FavoritesUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val getResourcesUseCase: GetResourcesUseCase,
@@ -79,7 +82,11 @@ class BrowseResourceStateManager(
                         }
                     )
                 }
-                sendEvent(BrowseEvent.ShowError("Failed to update favorite status"))
+                sendEvent(BrowseEvent.ShowError(
+                    message = context.getString(R.string.error_favorite_status_update_failed),
+                    details = e.message,
+                    exception = e
+                ))
             }
         }
     }
@@ -162,7 +169,11 @@ class BrowseResourceStateManager(
             result.onSuccess {
                 sendEvent(BrowseEvent.ResourceAddedAsDestination(resource.id))
             }.onFailure { e ->
-                sendEvent(BrowseEvent.ShowError(e.message ?: "Failed to add as destination"))
+                sendEvent(BrowseEvent.ShowError(
+                    message = context.getString(R.string.error_add_destination_failed),
+                    details = e.message,
+                    exception = e
+                ))
             }
         }
     }

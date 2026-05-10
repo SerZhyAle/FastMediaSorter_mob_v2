@@ -58,6 +58,32 @@ Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars
 - `app_v2/build.gradle.kts`
 - All source files for the affected area. Every file path referenced in a step must exist or be explicitly marked "New".
 
+**2.5 — Evaluate complexity (PRIMITIVE check).**
+
+Score the task against the primitive checklist:
+
+- [ ] ≤ 3 existing files need changes — no new files required
+- [ ] No new classes, interfaces, or abstract types introduced
+- [ ] No Room schema change (`@Database` version bump or new `@Entity`)
+- [ ] No new Hilt `@Module` or `@Provides` required
+- [ ] No new UI screens, fragments, or navigation destinations
+- [ ] Implementation is mechanically deterministic — no design decisions deferred
+- [ ] Estimated line delta < 100 lines total
+
+**If ALL pass → PRIMITIVE path** (skip steps 3–8):
+
+1. Implement the changes directly in the source files identified in step 2.
+2. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry.
+3. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
+4. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
+5. Chat output: `<Sxxxx> — Primitive. No phase files created. Implemented directly. Status: BlockNeedUserTest.`
+
+No `INDEX.md`, no `PHASE_NN__*.md` files are written. No `/spec-dev` chain.
+
+**If ANY criterion fails → COMPLEX path:** continue with step 3 below.
+
+---
+
 **3 — Design phase graph.**
 
 Partition into sequential phases, each:
@@ -97,7 +123,7 @@ Target 3–8 phases. >10 → split the feature into multiple specs.
 .\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-tech" "Status → Tactical"
 ```
 
-**8 — Auto-chain to `/spec-dev`.**
+**8 — Auto-chain to `/spec-dev`.** *(COMPLEX path only — skip if PRIMITIVE path was taken in step 2.5.)*
 
 If there are no unchecked Pre-Implementation Blockers in INDEX — immediately invoke `/spec-dev <Sxxxx>` to start implementation. If any blocker is unchecked — list them and stop: implementation cannot proceed until they are resolved.
 

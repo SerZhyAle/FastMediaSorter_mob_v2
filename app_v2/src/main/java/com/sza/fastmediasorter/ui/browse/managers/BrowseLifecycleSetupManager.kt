@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -26,6 +28,7 @@ import timber.log.Timber
  * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
  */
 class BrowseLifecycleSetupManager(
+    private val context: Context,
     private val browseStateDataStore: BrowseStateDataStore,
     private val settingsRepository: SettingsRepository,
     private val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
@@ -117,19 +120,20 @@ class BrowseLifecycleSetupManager(
                     withContext(Dispatchers.Main) {
                         updateState { it.copy(filter = savedFilter) }
                         applyFilter()
+                        // Keep the restored-filter toast scannable by using short localized labels.
                         val filterDesc = buildString {
-                            if (!savedFilter.nameContains.isNullOrBlank()) append("Name")
+                            if (!savedFilter.nameContains.isNullOrBlank()) append(context.getString(R.string.filter_label_name_short))
                             if (savedFilter.minSizeMb != null) {
                                 if (isNotEmpty()) append(", ")
-                                append("Size")
+                                append(context.getString(R.string.filter_label_size_short))
                             }
                             if (savedFilter.minDate != null) {
                                 if (isNotEmpty()) append(", ")
-                                append("Date")
+                                append(context.getString(R.string.filter_label_date_short))
                             }
                         }
                         if (filterDesc.isNotEmpty()) {
-                            sendEvent(BrowseEvent.ShowMessage("Restored last filter: $filterDesc"))
+                            sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.msg_last_filter_restored, filterDesc)))
                         }
                     }
                 }

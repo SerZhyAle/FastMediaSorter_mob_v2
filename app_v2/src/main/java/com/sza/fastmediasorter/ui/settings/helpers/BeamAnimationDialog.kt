@@ -96,7 +96,13 @@ private fun BeamDialogContent(
                 @Suppress("DEPRECATION")
                 context.getSystemService<Vibrator>()
             }
-            vibrator?.vibrate(VibrationEffect.createOneShot(120L, VibrationEffect.DEFAULT_AMPLITUDE))
+            // VibrationEffect.createOneShot is API 26+; fall back to deprecated overload on older devices (legacy@23).
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                vibrator?.vibrate(VibrationEffect.createOneShot(120L, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator?.vibrate(120L)
+            }
             delay(2000)
             onDismiss()
         }

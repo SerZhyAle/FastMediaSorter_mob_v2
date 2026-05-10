@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_favorites_container"
     android:layout_width="match_parent"
@@ -27,6 +28,46 @@
         android:dividerHeight="@dimen/margin_tiny"
         tools:listitem="@layout/widget_favorites_item"
         tools:itemCount="3" />
+
+    <!-- S0134: Empty state shown via setEmptyView when favorites list is empty. -->
+    <LinearLayout
+        android:id="@+id/widget_favorites_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="@dimen/padding_normal"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_widget_favorites"
+            android:contentDescription="@string/favorites"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:text="@string/favorites_empty_title"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:text="@string/favorites_empty_hint"
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            android:alpha="0.7"
+            android:gravity="center" />
+
+    </LinearLayout>
 
 </LinearLayout>
 

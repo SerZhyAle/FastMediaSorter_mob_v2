@@ -5,6 +5,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.SftpDataSourceFactory
@@ -26,14 +27,14 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
 ) {
     if (credentialsId == null) {
         Timber.e("VideoPlayerManager: No credentials for SFTP")
-        playerCallback.showError("No credentials found")
+        playerCallback.showError(context.getString(R.string.player_credentials_missing))
         return
     }
 
     val credentials = credentialsRepository.getByCredentialId(credentialsId)
     if (credentials == null) {
         Timber.e("VideoPlayerManager: Credentials not found in DB")
-        playerCallback.showError("Credentials not found")
+        playerCallback.showError(context.getString(R.string.player_credentials_missing))
         return
     }
 

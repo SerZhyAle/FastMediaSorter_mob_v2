@@ -288,8 +288,10 @@ class CloudFileOperationHandler @Inject constructor(
                 }
             }
             
-            // After all uploads complete, check if any files need permission for batch delete
-            if (pendingDeletePaths.isNotEmpty()) {
+            // After all uploads complete, check if any files need permission for batch delete.
+            // requestBatchDeletePermission uses MediaStore.createDeleteRequest (API 30+); skip on older devices.
+            if (pendingDeletePaths.isNotEmpty() &&
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
                 Timber.i("Cloud executeMove: All ${pendingDeletePaths.size} files uploaded, requesting batch delete permission")
                 requestBatchDeletePermission(pendingDeletePaths)
             }

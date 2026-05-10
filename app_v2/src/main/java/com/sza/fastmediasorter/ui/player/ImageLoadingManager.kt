@@ -1052,7 +1052,7 @@ class ImageLoadingManager(
                 } else {
                     Timber.e(e, "ImageLoadingManager: Failed to load image")
                     if (!callback.isDestroyed()) {
-                        callback.showError("Failed to load image: ${e?.message}", e)
+                        callback.showError(binding.root.context.getString(R.string.error_image_load_failed), e)
                     }
                 }
                 return false
@@ -1145,7 +1145,7 @@ class ImageLoadingManager(
                         Timber.d("ImageLoadingManager: Suppressed non-critical network GIF error")
                         return false
                     }
-                    callback.showError("Failed to load GIF: ${e?.message}", e)
+                    callback.showError(binding.root.context.getString(R.string.error_gif_load_failed), e)
                 }
                 return false
             }

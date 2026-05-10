@@ -10,5 +10,5 @@
     android:description="@string/widget_resource_launch_description"
     android:resizeMode="none"
     android:widgetCategory="home_screen"
-    android:previewImage="@drawable/widget_preview_resource_launch"
-    android:previewLayout="@layout/widget_preview_resource_launch" />
+    android:theme="@style/Widget.FastMediaSorter"
+    android:previewImage="@drawable/widget_preview_resource_launch" />

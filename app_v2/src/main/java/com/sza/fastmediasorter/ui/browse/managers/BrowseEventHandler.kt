@@ -94,8 +94,20 @@ class BrowseEventHandler(
                         // activity result can be delivered back. Standard-player intents (above
                         // if-branch) still go through playerActivityLauncher to preserve the
                         // EXTRA_MODIFIED_FILES result contract used by the browse list.
+                        Timber.d(
+                            "VR_AUDIT/5: BrowseEventHandler startActivity target=VR component=%s extras_detected=%s file=%s",
+                            playerIntent.component?.className,
+                            playerIntent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE),
+                            event.filePath,
+                        )
                         VrTaskTransition.enterImmersive(activity, playerIntent)
                     } else {
+                        Timber.d(
+                            "VR_AUDIT/5: BrowseEventHandler startActivity target=PANEL component=%s extras_detected=%s file=%s",
+                            playerIntent.component?.className,
+                            playerIntent.getStringExtra(PlayerActivity.EXTRA_DETECTED_STEREO_MODE),
+                            event.filePath,
+                        )
                         playerActivityLauncher.launch(playerIntent)
                         @Suppress("DEPRECATION")
                         activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)

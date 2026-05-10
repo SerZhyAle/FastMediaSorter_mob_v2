@@ -74,6 +74,8 @@ object GlideCacheStats {
             return
         }
 
+        Timber.d("S0136: GlideCacheStats summary total=$total disk=$disk memory=$memory repo=$repo network=$network local=$local")
+
         val diskPercent = (disk * 100.0 / total)
         val memoryPercent = (memory * 100.0 / total)
         val networkPercent = (network * 100.0 / total)

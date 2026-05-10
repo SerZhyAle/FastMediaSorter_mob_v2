@@ -113,7 +113,7 @@ class DeleteDialog(
                 // Operation cancelled by user
                 Toast.makeText(context, R.string.toast_delete_cancelled, Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                Toast.makeText(context, context.getString(R.string.toast_delete_error, e.message), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.toast_delete_error), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -154,7 +154,7 @@ class DeleteDialog(
                     timber.log.Timber.e(e, "DeleteDialog: Failed to launch batch delete permission request")
                     Toast.makeText(
                         context,
-                        context.getString(R.string.delete_failed, e.message),
+                        context.getString(R.string.delete_failed),
                         Toast.LENGTH_LONG
                     ).show()
                 }

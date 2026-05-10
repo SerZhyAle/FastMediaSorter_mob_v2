@@ -51,7 +51,10 @@ internal class AddResourceSmbCoordinator(
                 bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
             }.onFailure { e ->
                 Timber.e(e, "SMB connection test failed")
-                bridge.emit(AddResourceEvent.ShowTestResult("Connection failed:\n\n${e.message}", isSuccess = false))
+                bridge.emit(AddResourceEvent.ShowTestResult(
+                    context.getString(R.string.addresource_connection_failed),
+                    isSuccess = false
+                ))
             }
             bridge.markLoading(false)
         }
@@ -112,17 +115,16 @@ internal class AddResourceSmbCoordinator(
                 // remind users that custom-named shares need to be added manually.
                 val message = when {
                     shares.size in 1..2 ->
-                        "Found ${shares.size} share(s). Note: SMBJ library can only detect shares with common names. " +
-                        "If you have more shares with custom names, please add them manually using 'Add This Resource' button."
+                        context.getString(R.string.addresource_smb_scan_found_limited)
                     shares.size >= 3 ->
-                        "Found ${shares.size} shares. If you have more shares with custom names, add them manually."
+                        context.getString(R.string.addresource_smb_scan_found_more)
                     else ->
-                        "No shares found. Your shares may have custom names. Please use 'Add This Resource' button."
+                        context.getString(R.string.addresource_smb_scan_none_found)
                 }
                 bridge.emit(AddResourceEvent.ShowMessage(message))
             }.onFailure { e ->
                 Timber.e(e, "Failed to scan SMB shares")
-                bridge.emit(AddResourceEvent.ShowError("Scan failed: ${e.message}"))
+                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_scan_failed_short)))
                 bridge.mutate { it.copy(isScanning = false) }
             }
 
@@ -146,7 +148,7 @@ internal class AddResourceSmbCoordinator(
                 .filter { it.path in current.selectedPaths && it.type == ResourceType.SMB }
 
             if (selectedResources.isEmpty()) {
-                bridge.emit(AddResourceEvent.ShowMessage("No SMB resources selected"))
+                bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_none_selected)))
                 bridge.markLoading(false)
                 return@launch
             }
@@ -173,18 +175,26 @@ internal class AddResourceSmbCoordinator(
                         credentialsId = credentialsId
                     )
 
-                    val message = when {
-                        addResult.destinationsFull && unavailableCount > 0 ->
-                            "Added ${addResult.addedCount} SMB resources. " +
-                            "Destinations are full (max 10). ${addResult.skippedDestinations} resources added without destination flag. " +
-                            "$unavailableCount resource(s) are currently unavailable."
-                        addResult.destinationsFull ->
-                            "Added ${addResult.addedCount} SMB resources. " +
-                            "Destinations are full (max 10). ${addResult.skippedDestinations} resources added without destination flag."
-                        unavailableCount > 0 ->
-                            "Added ${addResult.addedCount} SMB resources. " +
-                            "$unavailableCount resource(s) are currently unavailable."
-                        else -> "Added ${addResult.addedCount} SMB resources"
+                    val addedMessage = context.resources.getQuantityString(
+                        R.plurals.added_n_resources,
+                        addResult.addedCount,
+                        addResult.addedCount
+                    )
+
+                    val baseMessage = if (addResult.destinationsFull) {
+                        context.getString(
+                            R.string.addresource_quick_sort_full_message,
+                            addedMessage,
+                            addResult.skippedDestinations
+                        )
+                    } else {
+                        addedMessage
+                    }
+
+                    val message = if (unavailableCount > 0) {
+                        context.getString(R.string.addresource_some_resources_unavailable_after_add, baseMessage)
+                    } else {
+                        baseMessage
                     }
 
                     if (unavailableCount > 0) {
@@ -195,11 +205,11 @@ internal class AddResourceSmbCoordinator(
                     bridge.emit(AddResourceEvent.ResourcesAdded)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SMB resources")
-                    bridge.emit(AddResourceEvent.ShowError("Failed to add resources: ${e.message}"))
+                    bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
                 }
             }.onFailure { e ->
                 Timber.e(e, "Failed to save SMB credentials")
-                bridge.emit(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_save_credentials_failed)))
             }
 
             bridge.markLoading(false)
@@ -303,11 +313,11 @@ internal class AddResourceSmbCoordinator(
                     bridge.emit(AddResourceEvent.ResourcesAdded)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SMB resource")
-                    bridge.emit(AddResourceEvent.ShowError("Failed to add resource: ${e.message}"))
+                    bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
                 }
             }.onFailure { e ->
                 Timber.e(e, "Failed to save SMB credentials")
-                bridge.emit(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_save_credentials_failed)))
             }
 
             bridge.markLoading(false)

@@ -39,6 +39,11 @@ class ImagePreloadHelper(
         fun getCurrentResource(): com.sza.fastmediasorter.domain.model.MediaResource?
     }
 
+    companion object {
+        private const val MIN_NATIVE_HEAP_FREE_MB = 15L
+        private const val MIN_NATIVE_HEAP_FREE_PCT = 15
+    }
+
     private val preloadJobs: MutableMap<String, Job> = mutableMapOf()
 
     val prefetchQueue: PriorityPrefetchQueue = PriorityPrefetchQueue(
@@ -64,9 +69,17 @@ class ImagePreloadHelper(
     }
 
     fun preloadNextImageIfNeeded() {
+        Timber.d("S0131: preloadNextImageIfNeeded — adaptive heap check")
         val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
-        if (nativeHeapFree < 20) {
-            Timber.w("ImagePreloadHelper: Preload skipped — native heap low (${nativeHeapFree}MB free)")
+        val nativeHeapTotal = android.os.Debug.getNativeHeapSize() / (1024 * 1024)
+        val freePercent = if (nativeHeapTotal > 0) (nativeHeapFree * 100 / nativeHeapTotal).toInt() else 0
+        // Require the larger floor so preload stays off on both small-heap and large-pool devices.
+        val relativeFloorMb = ((nativeHeapTotal * MIN_NATIVE_HEAP_FREE_PCT) + 99L) / 100L
+        val minimumRequiredMb = relativeFloorMb.coerceAtLeast(MIN_NATIVE_HEAP_FREE_MB)
+        if (nativeHeapFree < minimumRequiredMb) {
+            Timber.d(
+                "ImagePreloadHelper: Preload skipped — native heap low (${nativeHeapFree}MB free, needs ${minimumRequiredMb}MB, ${freePercent}% of ${nativeHeapTotal}MB)"
+            )
             return
         }
         val adjacentFiles = callback.getAdjacentFiles()

@@ -243,7 +243,6 @@ class BrowseSortFilterManager(
 
             getMediaFilesUseCase(resource, stateFlow.value.sortMode, sizeFilter)
                 .catch { e ->
-                    Timber.d("S0118: BrowseSortFilterManager.applyFilter — building localized error details")
                     Timber.e(e, "BrowseSortFilterManager.applyFilter: loading failure")
                     sendEvent(BrowseEvent.ShowError(
                         message = getFriendlyErrorMessage(e),

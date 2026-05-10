@@ -58,7 +58,7 @@ class PlayerImageTranslationManager(
 
         if (currentFile?.type != MediaType.IMAGE && currentFile?.type != MediaType.GIF) {
             binding.btnTranslateImageCmd.visibility = View.GONE
-            activity.showError("Translation is only available for images")
+            activity.showError(activity.getString(R.string.ocr_images_only))
             return
         }
 
@@ -89,7 +89,7 @@ class PlayerImageTranslationManager(
         }
 
         if (bitmap == null) {
-            activity.showError("Could not extract image from file")
+            activity.showError(activity.getString(R.string.ocr_extract_image_failed))
             return
         }
 
@@ -157,7 +157,8 @@ class PlayerImageTranslationManager(
                         onError = { message ->
                             safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
-                            activity.showError("Translation failed: $message")
+                            Timber.w("PlayerImageTranslationManager: Lens translation failed: $message")
+                            activity.showError(activity.getString(R.string.translation_error))
                         }
                     )
                 } else {
@@ -189,7 +190,7 @@ class PlayerImageTranslationManager(
                 if (e is CancellationException) throw e
                 withContext(Dispatchers.Main) {
                     stopTranslation()
-                    activity.showError("Translation failed: ${e.message}")
+                    activity.showError(activity.getString(R.string.translation_error))
                 }
             }
         }

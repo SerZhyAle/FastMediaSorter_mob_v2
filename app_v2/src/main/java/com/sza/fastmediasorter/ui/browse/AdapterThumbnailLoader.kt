@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.utils.GlideCacheStats
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Handles all thumbnail loading for [MediaFileAdapter] ViewHolders.
@@ -49,6 +50,7 @@ class AdapterThumbnailLoader(
 ) {
 
     companion object {
+        private val s0136PostFirstLoadDone = AtomicBoolean(false)
         const val CACHED_THUMBNAIL_SIZE = 300
         // PDF thumbnail size limits for network resources when "Large PDF Thumbnails" is ENABLED (bytes)
         private const val SMB_PDF_LARGE_MAX_SIZE = 50 * 1024 * 1024L
@@ -477,6 +479,10 @@ class AdapterThumbnailLoader(
                         }
                         override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
+                            Timber.d("S0136: net thumb ds=${dataSource.name} path=${file.path} size=${file.size}")
+                            if (s0136PostFirstLoadDone.compareAndSet(false, true)) {
+                                com.sza.fastmediasorter.core.util.CacheStatusHelper.logGlideDiskCacheStatusOnce(context, "first-network-thumb")
+                            }
                             Timber.v("CACHE_HIT_DEBUG: Network image loaded from ${dataSource.name} for ${file.name}")
                             resetThumbnailStyle(imageView)
                             return false

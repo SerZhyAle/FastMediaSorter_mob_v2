@@ -61,8 +61,7 @@ class GeneralSettingsResetHelper(
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to reset SMB connections")
                         withContext(Dispatchers.Main) {
-                            val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
-                            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_smb_failed, reason), Toast.LENGTH_LONG).show()
+                            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_smb_failed), Toast.LENGTH_LONG).show()
                             binding.btnResetSmbConnections.isEnabled = true
                             binding.btnResetSmbConnections.text = fragment.getString(R.string.reset_smb_connections)
                         }
@@ -80,10 +79,9 @@ class GeneralSettingsResetHelper(
                 Toast.makeText(fragment.requireContext(), R.string.reset_general_section_success, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to reset general section")
-                val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
                 Toast.makeText(
                     fragment.requireContext(),
-                    fragment.getString(R.string.reset_general_section_failed, reason),
+                    fragment.getString(R.string.reset_general_section_failed),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -97,8 +95,7 @@ class GeneralSettingsResetHelper(
                 Toast.makeText(fragment.requireContext(), R.string.reset_settings_success, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to reset settings")
-                val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
-                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_settings_failed, reason), Toast.LENGTH_LONG).show()
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_settings_failed), Toast.LENGTH_LONG).show()
             }
         }
     }

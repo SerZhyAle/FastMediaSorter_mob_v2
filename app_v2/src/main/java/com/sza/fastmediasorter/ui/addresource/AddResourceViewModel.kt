@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
@@ -97,7 +98,7 @@ class AddResourceViewModel @Inject constructor(
 
     private val bridge: AddResourceBridge = VmBridge()
 
-    private val finalizer = AddResourceFinalizer(bridge, resourceRepository, mediaScannerFactory)
+    private val finalizer = AddResourceFinalizer(context, bridge, resourceRepository, mediaScannerFactory)
 
     private val virtualCoordinator = AddResourceVirtualCoordinator(
         context, scanLocalFoldersUseCase, addResourceUseCase, mediaScannerFactory,
@@ -115,12 +116,12 @@ class AddResourceViewModel @Inject constructor(
     )
 
     private val sftpFtpCoordinator = AddResourceSftpFtpCoordinator(
-        addResourceUseCase, smbOperationsUseCase, resourceRepository,
+        context, addResourceUseCase, smbOperationsUseCase, resourceRepository,
         settingsRepository, finalizer, bridge
     )
 
     private val sftpKeyCoordinator = AddResourceSftpKeyCoordinator(
-        addResourceUseCase, smbOperationsUseCase, settingsRepository, finalizer, bridge
+        context, addResourceUseCase, smbOperationsUseCase, settingsRepository, finalizer, bridge
     )
 
     // ==================== Media type / settings helpers ====================
@@ -157,7 +158,7 @@ class AddResourceViewModel @Inject constructor(
                 val resource = resourceRepository.getResourceById(resourceId)
                 if (resource == null) {
                     Timber.e("Resource not found for copy: $resourceId")
-                    sendEvent(AddResourceEvent.ShowError("Resource not found"))
+                    sendEvent(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_not_found)))
                     return@launch
                 }
 
@@ -209,7 +210,7 @@ class AddResourceViewModel @Inject constructor(
                 ))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load resource for copy: $resourceId")
-                sendEvent(AddResourceEvent.ShowError("Failed to load resource: ${e.message}"))
+                sendEvent(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_load_failed)))
             }
         }
     }
@@ -229,7 +230,7 @@ class AddResourceViewModel @Inject constructor(
                 sendEvent(AddResourceEvent.ShowAccountPicker(providerName, emails))
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load cloud accounts for $providerName")
-                sendEvent(AddResourceEvent.ShowError("Failed to load accounts"))
+                sendEvent(AddResourceEvent.ShowError(context.getString(R.string.addresource_accounts_load_failed)))
             }
         }
     }
@@ -358,7 +359,7 @@ class AddResourceViewModel @Inject constructor(
                 .map { it.copy(id = 0) }
 
             if (selectedResources.isEmpty()) {
-                sendEvent(AddResourceEvent.ShowMessage("No resources selected"))
+                sendEvent(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_none_selected)))
                 setLoading(false)
                 return@launch
             }
@@ -380,12 +381,15 @@ class AddResourceViewModel @Inject constructor(
 
                 val count = addResult.addedCount
                 val addedMsg = context.resources.getQuantityString(
-                    com.sza.fastmediasorter.R.plurals.added_n_resources, count, count
+                    R.plurals.added_n_resources, count, count
                 )
 
                 val message = if (addResult.destinationsFull) {
-                    "$addedMsg. Destinations are full (max 10). " +
-                    "${addResult.skippedDestinations} resources added without destination flag."
+                    context.getString(
+                        R.string.addresource_quick_sort_full_message,
+                        addedMsg,
+                        addResult.skippedDestinations
+                    )
                 } else {
                     addedMsg
                 }
@@ -405,7 +409,7 @@ class AddResourceViewModel @Inject constructor(
             setLoading(true)
             addResourceUseCase(resource).onSuccess { id ->
                 Timber.d("Added resource with id: $id")
-                sendEvent(AddResourceEvent.ShowMessage("Resource added"))
+                sendEvent(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
                 sendEvent(AddResourceEvent.ResourcesAdded)
             }.onFailure { e ->
                 Timber.e(e, "Error adding resource")

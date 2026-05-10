@@ -9,5 +9,5 @@
     android:description="@string/widget_continue_reading_description"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:previewImage="@drawable/widget_preview_continue_reading"
-    android:previewLayout="@layout/widget_preview_continue_reading" />
+    android:theme="@style/Widget.FastMediaSorter"
+    android:previewImage="@drawable/widget_preview_continue_reading" />

@@ -137,11 +137,15 @@ class PlayerCropDelegate(
 
         override fun onSuccess(savedPath: String, mode: ImageCropManager.CropMode) {
             hideCropOverlay()
-            val fileName = savedPath.substringAfterLast('/')
             if (mode == ImageCropManager.CropMode.CROP) {
-                Toast.makeText(activity, activity.getString(R.string.crop_file_created, fileName), Toast.LENGTH_LONG).show()
+                // Original file was overwritten in-place — clear Glide cache and redisplay.
+                // jumpToIndex with the same index aborts, so use reloadCurrentImage() directly.
+                if (activity.isMediaLoaderManagerInitialized) {
+                    activity.mediaLoaderManager.reloadCurrentImage()
+                }
                 return
             }
+            val fileName = savedPath.substringAfterLast('/')
             val currentParent = activity.viewModel.state.value.currentFile?.path?.substringBeforeLast('/') ?: ""
             val savedParent = savedPath.substringBeforeLast('/')
             if (currentParent.isNotEmpty() && currentParent == savedParent) {

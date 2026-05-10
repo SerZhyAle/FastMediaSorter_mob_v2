@@ -38,6 +38,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         if (!settings.linkAutoDownloadEnabled) {
             return Result.Failed.Other(IllegalStateException("auto_download_disabled"))
         }
+        return handleUrl(url = url, settings = settings, callbacks = callbacks)
+    }
+
+    private suspend fun handleUrl(
+        url: String,
+        settings: AppSettings,
+        callbacks: Callbacks,
+    ): Result {
         callbacks.onProgress(ProgressState.Probing)
 
         var openedStream: OpenResult.Stream? = null
@@ -62,6 +70,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 break
                             }
                             is OpenResult.Streaming -> return runStreaming(opened, settings, callbacks)
+                            is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
                             is OpenResult.NotFound -> return Result.Failed.NoMediaFound
                             is OpenResult.Blocked -> when (opened.reason) {
                                 BlockedReason.MimeNotAllowed,
@@ -86,39 +95,120 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             }
 
             val stream = openedStream ?: return Result.Failed.NoMediaFound
-
-            val writeResult = writer.writeFromStream(
-                stream = stream.body,
-                mime = stream.mime,
-                suggestedFileName = stream.fileName,
-                resourceId = settings.linkAutoDownloadResourceId,
-                onBytesCopied = { bytes ->
-                    callbacks.onProgress(ProgressState.Downloading(bytes, stream.contentLength))
-                },
-            )
-
-            val openInPlayer = settings.linkAutoDownloadOpenInPlayer
-            return when (writeResult) {
-                is LinkDownloadWriter.WriteResult.Saved -> Result.Saved(
-                    resourceLabel = writeResult.resourceLabel,
-                    fileName = writeResult.fileName,
-                    mime = stream.mime,
-                    openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
-                )
-                is LinkDownloadWriter.WriteResult.FellBackToDownloads -> Result.FellBackToDownloads(
-                    fileName = writeResult.fileName,
-                    reason = when (writeResult.reason) {
-                        LinkDownloadWriter.FallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
-                        LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
-                        LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
-                    },
-                    openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
-                )
-                is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
-            }
+            return writeStreamResult(stream = stream, settings = settings, callbacks = callbacks)
         } finally {
             openedStream?.close?.invoke()
         }
+    }
+
+    private suspend fun writeStreamResult(
+        stream: OpenResult.Stream,
+        settings: AppSettings,
+        callbacks: Callbacks,
+    ): Result {
+        val writeResult = writer.writeFromStream(
+            stream = stream.body,
+            mime = stream.mime,
+            suggestedFileName = stream.fileName,
+            resourceId = settings.linkAutoDownloadResourceId,
+            onBytesCopied = { bytes ->
+                callbacks.onProgress(ProgressState.Downloading(bytes, stream.contentLength))
+            },
+        )
+
+        val openInPlayer = settings.linkAutoDownloadOpenInPlayer
+        return when (writeResult) {
+            is LinkDownloadWriter.WriteResult.Saved -> Result.Saved(
+                resourceLabel = writeResult.resourceLabel,
+                fileName = writeResult.fileName,
+                mime = stream.mime,
+                openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+            )
+            is LinkDownloadWriter.WriteResult.FellBackToDownloads -> Result.FellBackToDownloads(
+                fileName = writeResult.fileName,
+                reason = when (writeResult.reason) {
+                    LinkDownloadWriter.FallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
+                    LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
+                    LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
+                },
+                openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+            )
+            is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
+        }
+    }
+
+    private suspend fun runBatch(
+        batch: OpenResult.Batch,
+        settings: AppSettings,
+        callbacks: Callbacks,
+    ): Result {
+        if (batch.items.isEmpty()) return Result.Failed.NoMediaFound
+
+        val failures = mutableListOf<Result.BatchFailure>()
+        var successCount = 0
+        batch.items.forEachIndexed { index, item ->
+            val itemIndex = index + 1
+            callbacks.onProgress(
+                ProgressState.BatchDownloading(
+                    itemIndex = itemIndex,
+                    itemCount = batch.items.size,
+                    itemTitle = item.title,
+                    bytesRead = 0L,
+                    total = null,
+                ),
+            )
+
+            val itemCallbacks = object : Callbacks {
+                override fun onProgress(state: ProgressState) {
+                    when (state) {
+                        ProgressState.Probing -> callbacks.onProgress(
+                            ProgressState.BatchDownloading(
+                                itemIndex = itemIndex,
+                                itemCount = batch.items.size,
+                                itemTitle = item.title,
+                                bytesRead = 0L,
+                                total = null,
+                            ),
+                        )
+                        is ProgressState.Downloading -> callbacks.onProgress(
+                            ProgressState.BatchDownloading(
+                                itemIndex = itemIndex,
+                                itemCount = batch.items.size,
+                                itemTitle = item.title,
+                                bytesRead = state.bytesRead,
+                                total = state.total,
+                            ),
+                        )
+                        is ProgressState.BatchDownloading -> callbacks.onProgress(state)
+                    }
+                }
+            }
+
+            when (val itemResult = handleUrl(item.url, settings, itemCallbacks)) {
+                is Result.Saved,
+                is Result.FellBackToDownloads,
+                -> successCount += 1
+
+                is Result.BatchCompleted -> failures += Result.BatchFailure(
+                    title = item.title ?: item.url,
+                    failure = Result.Failed.Other(IllegalStateException("nested_batch_not_supported")),
+                )
+
+                is Result.Failed -> failures += Result.BatchFailure(
+                    title = item.title ?: item.url,
+                    failure = itemResult,
+                )
+            }
+        }
+
+        return Result.BatchCompleted(
+            summary = Result.BatchSummary(
+                label = batch.label,
+                totalItems = batch.items.size,
+                successCount = successCount,
+                failures = failures,
+            ),
+        )
     }
 
     private fun mapIoError(cause: Throwable): Result.Failed {
@@ -215,6 +305,25 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             val openInPlayerUri: Uri?,
         ) : Result
 
+        data class BatchCompleted(
+            val summary: BatchSummary,
+        ) : Result
+
+        data class BatchSummary(
+            val label: String?,
+            val totalItems: Int,
+            val successCount: Int,
+            val failures: List<BatchFailure>,
+        ) {
+            val failureCount: Int
+                get() = failures.size
+        }
+
+        data class BatchFailure(
+            val title: String,
+            val failure: Failed,
+        )
+
         sealed interface Failed : Result {
             object NoNetwork : Failed
             object Timeout : Failed
@@ -239,5 +348,12 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     sealed interface ProgressState {
         object Probing : ProgressState
         data class Downloading(val bytesRead: Long, val total: Long?) : ProgressState
+        data class BatchDownloading(
+            val itemIndex: Int,
+            val itemCount: Int,
+            val itemTitle: String?,
+            val bytesRead: Long,
+            val total: Long?,
+        ) : ProgressState
     }
 }

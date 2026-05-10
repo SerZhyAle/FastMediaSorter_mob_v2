@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -145,6 +146,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         sortMode: SortMode = SortMode.NAME_ASC,
         allFiles: Boolean = false
     ) {
+        Timber.d("S0130: provisioning virtual resource path=$path isWritable=${VirtualPathUtils.isAggregateVirtualPath(path)}")
         val resource = MediaResource(
             id = 0,
             name = name,
@@ -155,7 +157,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             fileCount = 0,
             isDestination = false,
             destinationOrder = null,
-            isWritable = false,
+            isWritable = VirtualPathUtils.isAggregateVirtualPath(path),
             scanSubdirectories = false,
             supportedMediaTypes = supportedMediaTypes,
             sortMode = sortMode,

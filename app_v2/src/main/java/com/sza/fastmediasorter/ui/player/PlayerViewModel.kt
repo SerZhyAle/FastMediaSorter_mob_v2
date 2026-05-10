@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -40,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PrefetchPolicyManager
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgress
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgressTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,6 +66,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    @param:ApplicationContext private val appContext: Context,
     private val getResourcesUseCase: GetResourcesUseCase,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     val fileOperationUseCase: FileOperationUseCase,
@@ -179,6 +183,7 @@ class PlayerViewModel @Inject constructor(
     val detectedStereoMode: StateFlow<StereoMode> = stereoCoordinator.detectedStereoMode
 
     private val deleteUndoCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerDeleteUndoCoordinator(
+        context = appContext,
         fileOperationUseCase = fileOperationUseCase,
         settingsRepository = settingsRepository,
         getMediaFilesUseCase = getMediaFilesUseCase,
@@ -275,6 +280,7 @@ class PlayerViewModel @Inject constructor(
     // Settings collection + media-file loading pipeline extracted in Wave 4.1
     // (spec_decompose-giant-files.md). VM keeps only thin wrappers below.
     private val mediaFilesLoader = com.sza.fastmediasorter.ui.player.helpers.PlayerMediaFilesLoader(
+        context = appContext,
         scope = viewModelScope,
         resourceId = resourceId,
         initialFilePath = initialFilePath,
@@ -614,7 +620,7 @@ class PlayerViewModel @Inject constructor(
             MediaFilesCacheManager.removeFile(resource.id, path)
             
             if (updatedFiles.isEmpty()) {
-                sendEvent(PlayerEvent.ShowMessage("File moved."))
+                sendEvent(PlayerEvent.ShowMessage(appContext.getString(R.string.player_file_moved)))
                 sendEvent(PlayerEvent.FinishActivity)
             } else {
                 // Check if we moved the last file
@@ -623,14 +629,14 @@ class PlayerViewModel @Inject constructor(
                     val newIndex = 0
                     updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
                     saveResumeState()
-                    sendEvent(PlayerEvent.ShowMessage("File moved."))
+                    sendEvent(PlayerEvent.ShowMessage(appContext.getString(R.string.player_file_moved)))
                     Timber.d("File moved (was last), looping to first file. New list size: ${updatedFiles.size}")
                 } else {
                     // Navigate to next file (which is now at the same index)
                     val newIndex = index
                     updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
                     saveResumeState()
-                    sendEvent(PlayerEvent.ShowMessage("File moved."))
+                    sendEvent(PlayerEvent.ShowMessage(appContext.getString(R.string.player_file_moved)))
                 }
             }
         }
@@ -779,7 +785,7 @@ class PlayerViewModel @Inject constructor(
                 }
                 updateState { it.copy(files = revertedFiles) }
                 forceStateUpdate() // Also force update on error to revert icon
-                sendEvent(PlayerEvent.ShowError("Failed to update favorite status"))
+                sendEvent(PlayerEvent.ShowError(appContext.getString(R.string.error_favorite_status_update_failed)))
             }
         }
     }

@@ -238,7 +238,7 @@ internal class AddResourceConnectionManager(
                 Timber.e(e, "Failed to check OneDrive authentication")
                 AppErrorNotifier.show(
                     activity,
-                    activity.getString(R.string.onedrive_authentication_failed) + ": ${e.message}",
+                    activity.getString(R.string.onedrive_authentication_failed),
                     ErrorSeverity.CRITICAL
                 )
             }

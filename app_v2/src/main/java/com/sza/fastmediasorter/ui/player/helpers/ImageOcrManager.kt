@@ -61,7 +61,7 @@ class ImageOcrManager(
         }
         
         if (currentFile?.type != MediaType.IMAGE && currentFile?.type != MediaType.GIF) {
-            callback.showError("OCR is only available for images")
+            callback.showError(callback.getString(R.string.ocr_images_only))
             return
         }
         
@@ -69,7 +69,7 @@ class ImageOcrManager(
         val bitmap = extractBitmapFromImageView()
         
         if (bitmap == null) {
-            callback.showError("Could not extract image from file")
+            callback.showError(callback.getString(R.string.ocr_extract_image_failed))
             return
         }
         
@@ -91,7 +91,7 @@ class ImageOcrManager(
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    callback.showError(callback.getString(R.string.ocr_error, e.message ?: "Unknown error"))
+                    callback.showError(callback.getString(R.string.ocr_error))
                 }
             }
         }

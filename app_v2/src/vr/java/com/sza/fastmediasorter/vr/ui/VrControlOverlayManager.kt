@@ -43,6 +43,7 @@ class VrControlOverlayManager(
     private var currentSpeed = 1.0f
 
     fun show() {
+        Timber.d("VR_AUDIT/2: VrControlOverlay show requested driver=%s", if (panelDriver != null) "GL-panel" else "view-overlay")
         if (panelDriver != null) {
             panelDriver.show()
             return

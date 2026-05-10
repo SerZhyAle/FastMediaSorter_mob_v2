@@ -41,6 +41,8 @@
     <string name="search_hint">Search…</string>
     <string name="translate">Translate</string>
     <string name="no_files_selected">No files selected</string>
+    <string name="msg_last_filter_restored">Restored last filter: %1$s</string>
+    <string name="warning_files_may_remain_in_source">Some files may still be in the source folder. Please check both source and destination. Affected: %1$d.</string>
     <string name="no_supported_files_in_resource">No supported file types in resource</string>
     <string name="process_started">Process started…</string>
     <string name="long_operation_started">Operation in progress, please wait…</string>
@@ -73,50 +75,50 @@
     <string name="settings_category_touch_zones">Touch Zones</string>
 
     <!-- Copy Dialog -->
-    <string name="copying_files">Copying Files</string>
-    <string name="copying_n_files_from_folder">Copying %1$d files from %2$s</string>
-    <string name="copied_n_files">Copied %1$d files</string>
-    <string name="copied_n_of_m_files">Copied %1$d of %2$d files</string>
-    <string name="copy_failed">Copy failed: %1$s</string>
+    <string name="copying_files">Copying..</string>
+    <string name="copying_n_files_from_folder">Copying %1$d files from %2$s..</string>
+    <string name="copied_n_files">Copied %1$d files.</string>
+    <string name="copied_n_of_m_files">Copied %1$d of %2$d files.</string>
+    <string name="copy_failed">Could not copy the files.</string>
     <string name="no_destinations_available">No destination resources configured</string>
 
     <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
     <string name="archiving_n_files_from_folder">Archiving %1$d files from %2$s</string>
 
     <!-- Move Dialog -->
-    <string name="moving_files">Moving Files</string>
-    <string name="moving_n_files_from_folder">Moving %1$d files from %2$s</string>
-    <string name="moved_n_files">Moved %1$d files</string>
-    <string name="moved_n_of_m_files">Moved %1$d of %2$d files</string>
-    <string name="move_failed">Move failed: %1$s</string>
+    <string name="moving_files">Moving..</string>
+    <string name="moving_n_files_from_folder">Moving %1$d files from %2$s..</string>
+    <string name="moved_n_files">Moved %1$d files.</string>
+    <string name="moved_n_of_m_files">Moved %1$d of %2$d files.</string>
+    <string name="move_failed">Could not move the files.</string>
 
     <!-- Rename Dialog -->
-    <string name="renaming_files">Renaming Files</string>
-    <string name="renaming_n_files_from_folder">Renaming %1$d files from %2$s</string>
-    <string name="renamed_n_files">Renamed %1$d files</string>
-    <string name="rename_failed">Rename failed: %1$s</string>
-    <string name="rename_failed_generic">Rename failed</string>
+    <string name="renaming_files">Renaming..</string>
+    <string name="renaming_n_files_from_folder">Renaming %1$d files from %2$s..</string>
+    <string name="renamed_n_files">Renamed %1$d files.</string>
+    <string name="rename_failed">Could not rename the files.</string>
+    <string name="rename_failed_generic">Could not rename that file.</string>
     <string name="file_already_exists">File already exists: %1$s</string>
     <string name="file_already_exists_skip">%1$s (skipped - file already exists)</string>
     <string name="file_already_exists_in_folder">%1$s (skipped - already exists in %2$s)</string>
-    <string name="error_copy">Copy Error</string>
-    <string name="error_move">Move Error</string>
-    <string name="error_delete">Delete Error</string>
-    <string name="error_all_operations_failed">All operations failed</string>
-    <string name="all_copy_operations_failed">All copy operations failed: %1$s</string>
-    <string name="all_move_operations_failed">All move operations failed: %1$s</string>
-    <string name="all_delete_operations_failed">All delete operations failed: %1$s</string>
+    <string name="error_copy">Could not copy the files</string>
+    <string name="error_move">Could not move the files</string>
+    <string name="error_delete">Could not delete the files</string>
+    <string name="error_all_operations_failed">Nothing completed.</string>
+    <string name="all_copy_operations_failed">Could not copy the selected files.</string>
+    <string name="all_move_operations_failed">Could not move the selected files.</string>
+    <string name="all_delete_operations_failed">Could not delete the selected files.</string>
     <string name="cloud_auth_required">%1$s requires re-authentication. Please sign in again.</string>
 
     <!-- Delete Dialog -->
-    <string name="delete_confirmation">Delete Confirmation</string>
-    <string name="delete_file_confirmation">Are you sure you want to delete file %1$s from %2$s?</string>
-    <string name="delete_files_confirmation">Are you sure you want to delete %1$d files from %2$s?</string>
-    <string name="deleted_n_files">Deleted %1$d files</string>
-    <string name="deleted_n_of_m_files">Deleted %1$d of %2$d files</string>
-    <string name="delete_failed">Delete failed: %1$s</string>
+    <string name="delete_confirmation">Delete files?</string>
+    <string name="delete_file_confirmation">Delete %1$s from %2$s?</string>
+    <string name="delete_files_confirmation">Delete %1$d files from %2$s?</string>
+    <string name="deleted_n_files">Deleted %1$d files.</string>
+    <string name="deleted_n_of_m_files">Deleted %1$d of %2$d files.</string>
+    <string name="delete_failed">Could not delete the files.</string>
     <string name="deleting_files">Deleting Files</string>
-    <string name="deleting_n_files">Deleting %1$d files, please wait…</string>
+    <string name="deleting_n_files">Deleting %1$d files..</string>
     <string name="export_logs">Export Debug Logs</string>
     <string name="export_logs_subject">FastMediaSorter Debug Logs</string>
     <string name="title_export_logs_chooser">Export Logs via…</string>
@@ -133,7 +135,7 @@
     <string name="copied_n_file_s">Copied %1$d file(s)</string>
     <string name="moved_n_file_s">Moved %1$d file(s)</string>
     <string name="deleted_n_file_s">Deleted %1$d file(s)</string>
-    <string name="file_renamed_successfully">File renamed successfully</string>
+    <string name="file_renamed_successfully">Renamed.</string>
 
     <!-- GIF Editing -->
     <string name="gif_editing_only_for_gif_files">GIF editing only for GIF files</string>
@@ -215,6 +217,9 @@
     <string name="error_details_timeout">Timeout</string>
 
     <!-- Filter Dialog -->
+    <string name="filter_label_name_short">Name</string>
+    <string name="filter_label_size_short">Size</string>
+    <string name="filter_label_date_short">Date</string>
     <string name="filter_by_name">Filter by name (case-insensitive)</string>
     <string name="filter_by_date">Filter by creation date</string>
     <string name="filter_by_type">Filter by media type</string>
@@ -257,7 +262,7 @@
     <string name="tooltip_backup_info_title">Backup Information</string>
     <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="backup_success">Backed up %1$d resources, %2$d favorites and all settings to %3$s</string>
-    <string name="backup_failed">Backup failed: %s</string>
+    <string name="backup_failed">Couldn\'t back up your settings and resources. Try again.</string>
     <string name="backup_in_progress">Backing up settings and resources…</string>
     <string name="restore_in_progress">Restoring settings and resources…</string>
     <string name="restore_confirm_title">Restore from Backup?</string>
@@ -265,12 +270,12 @@
     <string name="restore_success">Restored all settings. Added %1$d resources (%2$d existed). Added %3$d favorites (%4$d existed).</string>
     <string name="restore_needs_auth">Some resources use network or cloud accounts. You\'ll need to re-authenticate them.</string>
     <string name="restore_no_backup">No backup found for this account.</string>
-    <string name="restore_failed">Restore failed: %s</string>
+    <string name="restore_failed">Couldn\'t restore your settings and resources. Try again.</string>
     <string name="last_backup_date">Last backup: %s</string>
     <string name="backup_account">Account: %s</string>
     <string name="google_sign_in_failed">Google sign-in failed: %1$d</string>
     <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
-    <string name="auth_failed">Authentication failed: %1$s</string>
+    <string name="auth_failed">Authentication failed. Try again.</string>
     <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
     <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for FastMediaSorter in system settings for reliable background audio.</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>
@@ -281,9 +286,9 @@
     <string name="import_browse">Browse for file…</string>
     <string name="export_import_file_info">Using file: Downloads/FastMediaSorter_export.xml</string>
     <string name="export_success">Settings exported to Downloads/FastMediaSorter_export.xml</string>
-    <string name="export_failed">Failed to export settings: %s</string>
+    <string name="export_failed">Couldn\'t export your settings. Try again.</string>
     <string name="import_success">Settings imported successfully</string>
-    <string name="import_failed">Failed to import settings: %s</string>
+    <string name="import_failed">Couldn\'t import your settings. Try again.</string>
     <string name="import_failed_title">Import Failed</string>
     <string name="import_file_not_found">File not found. Please place FastMediaSorter_export.xml in Downloads folder</string>
     <string name="restart_required_title">Restart Required</string>
@@ -376,7 +381,21 @@
     <string name="audio_background_photos_source_label">Background photos source:</string>
     <string name="select_photos_source">Select Photos Source</string>
     <string name="no_photos_source_selected">No resource selected</string>
+    <string name="audio_background_photos_no_photos_found">Couldn\'t find any photos in the selected source.</string>
+    <string name="audio_background_photos_load_failed">Couldn\'t load the background photos. Try again.</string>
     <string name="resource_not_found">Resource not found</string>
+    <string name="error_resource_unavailable">Resource "%1$s" is unavailable. Check the connection or resource settings.</string>
+    <string name="error_folder_load_failed">Could not open the folder.</string>
+    <string name="error_favorite_status_update_failed">Could not update favorite status.</string>
+    <string name="player_file_moved">File moved.</string>
+    <string name="error_add_destination_failed">Could not add this folder to Quick Sort.</string>
+    <string name="error_cloud_provider_not_configured">Cloud service is not set up for this folder.</string>
+    <string name="error_folder_loading_blocked_by_video_player">Cannot load this folder while a video is playing.
+
+The video player is using the network connection right now.
+
+Close the player and try again.</string>
+    <string name="error_folder_loading_blocked_by_video_player_details">Video playback keeps priority to avoid network congestion and playback stutter.</string>
     <string name="tooltip_photos_during_audio_title">Photos During Audio</string>
     <string name="tooltip_photos_during_audio_message">When enabled, random photos from the selected resource will be displayed during audio playback. Each song displays one random photo. Only static images are used (videos are ignored).</string>
 
@@ -412,6 +431,12 @@
     <string name="epub_font_size">Font size: %1$d</string>
     <string name="epub_controls_hidden">Controls hidden. Swipe up to show.</string>
     <string name="epub_exit_fullscreen">Exited fullscreen mode</string>
+    <string name="epub_load_failed">Couldn\'t open this EPUB. Try again.</string>
+    <string name="epub_file_not_found">This EPUB file is no longer available.</string>
+    <string name="epub_no_readable_content">This EPUB has no readable chapters.</string>
+    <string name="epub_parse_failed">This EPUB couldn\'t be read. The file may be damaged or unsupported.</string>
+    <string name="epub_display_error">Couldn\'t display this EPUB. Try again.</string>
+    <string name="epub_chapter_load_failed">Couldn\'t load this chapter. Try again.</string>
     <string name="epub_reader_settings">Reader Settings</string>
     <string name="epub_reader_theme">Theme</string>
     <string name="epub_reader_font">Font</string>
@@ -676,6 +701,8 @@
     <string name="widget_continue_reading_label">Continue Reading</string>
     <string name="widget_random_music_label">Random Music</string>
     <string name="widget_random_music_description">Play a random music track</string>
+    <string name="widget_favorites_label">Favorites</string>
+    <string name="widget_resource_launch_label">Resource Launch</string>
 
     <!-- Network delete dialog -->
     <string name="delete_n_files_from_network_title">Delete %d files from network?</string>
@@ -950,6 +977,16 @@
     <string name="debug_settings_title">Debug</string>
     <string name="show_log">Show Log</string>
     <string name="show_current_session_log">Current Session Log</string>
+    <string name="settings_application_log_title">Application Log</string>
+    <string name="settings_log_empty">No log entries found.</string>
+    <string name="settings_log_last_lines">Last %1$d log lines:
+
+%2$s</string>
+    <string name="settings_log_empty_session">No log entries found for the current session.</string>
+    <string name="settings_log_current_session_body">Current session log (%1$d lines):
+
+%2$s</string>
+    <string name="settings_log_read_failed">Couldn\'t read the log. Try again.</string>
     <string name="cache_size_limit">Cache Size Limit</string>
     <string name="cache_size_limit_mb">%d MB</string>
     <string name="clear_cache">Clear Cache</string>
@@ -1033,6 +1070,10 @@
     <string name="tooltip_slideshow_music_message">When enabled, music files from the selected resource will play in random order during image/GIF slideshows. Choose a resource that contains your music collection.</string>
     <string name="clear_selection">Clear Selection</string>
     <string name="no_resources_available">No resources available</string>
+    <string name="main_select_resource_first">Select a resource first.</string>
+    <string name="main_select_resource_to_copy">Select a resource to copy first.</string>
+    <string name="main_open_resource_failed">Couldn\'t open that resource. Try again.</string>
+    <string name="toast_error_loading_resources">Couldn\'t load the resources. Try again.</string>
 
     <!-- Video frame snapshot (Save Frame) -->
     <string name="menu_save_frame">Save Frame</string>
@@ -1054,6 +1095,10 @@
     <string name="dialog_crop_filename_hint">File name</string>
     <string name="crop_save_to_downloads_note">Read-only source — file will be saved to Downloads</string>
     <string name="crop_file_created">File %s created</string>
+    <string name="crop_error_outside_image">Crop selection is outside the image area. Please adjust and try again.</string>
+    <string name="crop_failed">Couldn\'t crop the image. Try again.</string>
+    <string name="crop_to_file_failed">Couldn\'t save the cropped copy. Try again.</string>
+    <string name="compress_copy_failed">Couldn\'t create the compressed copy. Try again.</string>
 
     <!-- S0107: Draw overlay commands -->
     <string name="menu_draw_overlay">Draw</string>
@@ -1063,6 +1108,7 @@
     <string name="draw_overlay_save_button">Save as new file</string>
     <string name="draw_overlay_filename_hint">File name</string>
     <string name="draw_overlay_saved_to_downloads">Saved to Downloads: %s</string>
+    <string name="draw_overlay_save_failed">Couldn\'t save the drawing. Try again.</string>
 
     <!-- Link auto-download (S0003) -->
     <string name="link_autodownload_section_title">Behaviour</string>
@@ -1489,7 +1535,7 @@
     <string name="sync_status_completed">Synced %d resources</string>
     <string name="sync_status_failed">Sync failed</string>
     <string name="sync_completed_successfully">Synced %d resources successfully</string>
-    <string name="sync_failed">Sync failed: %s</string>
+    <string name="sync_failed">Couldn\'t finish the sync. Try again.</string>
     <string name="background_sync_enabled">Background sync enabled</string>
     <string name="background_sync_disabled">Background sync disabled</string>
     <string name="last_sync_time">Last sync: %s</string>
@@ -1569,20 +1615,20 @@
     <string name="storage_permissions_granted">Storage permissions already granted</string>
 
     <!-- File Operations -->
-    <string name="msg_copy_started">Copying to %1$s…</string>
-    <string name="msg_move_started">Moving to %1$s…</string>
-    <string name="msg_copy_success">File copied to %1$s</string>
-    <string name="msg_copy_success_count">Copied %1$d files to %2$s</string>
-    <string name="error_copy_failed">Copy failed: %1$s</string>
-    <string name="error_file_exists_copy">File "%1$s" already exists in "%2$s".\n\nEnable "Overwrite on copy" in Settings → Copy &amp; Move</string>
-    <string name="msg_move_success">File moved to %1$s</string>
-    <string name="msg_move_success_count">Moved %1$d files to %2$s</string>
-    <string name="error_move_failed">Move failed: %1$s</string>
-    <string name="error_file_exists_move">File "%1$s" already exists in "%2$s".\n\nEnable "Overwrite on move" in Settings → Copy &amp; Move</string>
-    <string name="msg_delete_success">File deleted</string>
-    <string name="error_delete_failed">Delete failed: %1$s</string>
-    <string name="error_delete_unexpected">Unexpected delete result</string>
-    <string name="error_delete_permission_required">Permission required to delete this file. Please grant access when prompted.</string>
+    <string name="msg_copy_started">Copying to %1$s..</string>
+    <string name="msg_move_started">Moving to %1$s..</string>
+    <string name="msg_copy_success">Copied to %1$s.</string>
+    <string name="msg_copy_success_count">Copied %1$d files to %2$s.</string>
+    <string name="error_copy_failed">Could not copy the file.</string>
+    <string name="error_file_exists_copy">File "%1$s" is already in "%2$s".\n\nTurn on "Overwrite on copy" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
+    <string name="msg_move_success">Moved to %1$s.</string>
+    <string name="msg_move_success_count">Moved %1$d files to %2$s.</string>
+    <string name="error_move_failed">Could not move the file.</string>
+    <string name="error_file_exists_move">File "%1$s" is already in "%2$s".\n\nTurn on "Overwrite on move" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
+    <string name="msg_delete_success">Deleted.</string>
+    <string name="error_delete_failed">Could not delete the file.</string>
+    <string name="error_delete_unexpected">Could not finish deleting the file.</string>
+    <string name="error_delete_permission_required">Android needs your permission to delete this file. Confirm the next prompt.</string>
 
     <!-- MANAGE_MEDIA Permission -->
     <string name="manage_media_title">Enable Quick File Operations</string>
@@ -1637,9 +1683,9 @@
     <string name="battery_optimization_dialog_btn_allow">Disable Optimization</string>
     <string name="battery_optimization_dialog_btn_skip">Skip</string>
     <string name="msg_download_share">Downloading file for sharing…</string>
-    <string name="error_share_download_failed">Failed to download for sharing: %1$s</string>
+    <string name="error_share_download_failed">Could not prepare the file for sharing.</string>
     <string name="error_share_unexpected">Unexpected download result</string>
-    <string name="error_share_failed">Share failed: %1$s</string>
+    <string name="error_share_failed">Could not share the file.</string>
     <string name="title_share_chooser">Share file</string>
 
     <!-- Add Resource & Network Discovery -->
@@ -1649,7 +1695,7 @@
     <string name="msg_host_selected">Selected %1$s (%2$s)</string>
     <string name="msg_scan_again">Scan Again</string>
     <string name="msg_no_shares_found">No shares found. Enter the share name manually.</string>
-    <string name="msg_share_scan_failed">Share scan failed: %1$s</string>
+    <string name="msg_share_scan_failed">Couldn\'t scan the shares. Try again.</string>
     <string name="msg_select_share">Shares on %1$s</string>
     <!-- S0064: manual share name entry dialog -->
     <string name="smb_enter_share_manually">+ Enter share name manually..</string>
@@ -1686,7 +1732,9 @@
     <string name="image_edit_saturation">Saturation</string>
     <string name="image_edit_apply_adjustments">Apply Adjustments</string>
     <string name="msg_image_edit_completed">Image edit completed</string>
-    <string name="msg_failed_reload_image">Failed to reload image: %1$s</string>
+    <string name="error_image_load_failed">Could not load the image.</string>
+    <string name="error_gif_load_failed">Could not load the GIF.</string>
+    <string name="msg_failed_reload_image">Could not reload the image.</string>
 
     <!-- GIF Editor -->
     <string name="gif_edit_title">GIF Editor</string>
@@ -1706,12 +1754,12 @@
     <string name="msg_gif_extracting">Extracting frames…</string>
     <string name="msg_gif_extract_started">Extracting %1$d frames…</string>
     <string name="msg_gif_extract_success">%1$d frames saved to Downloads</string>
-    <string name="msg_gif_extract_failed">Failed to extract frames: %1$s</string>
+    <string name="msg_gif_extract_failed">Couldn\'t extract the frames. Try again.</string>
     <string name="msg_gif_extract_api_unavailable">Frame extraction for this format requires Android 9+ (API 28+)</string>
     <string name="msg_gif_speed_success">Speed changed to %1$.1fx</string>
-    <string name="msg_gif_speed_failed">Failed to change speed: %1$s</string>
+    <string name="msg_gif_speed_failed">Couldn\'t change the GIF speed. Try again.</string>
     <string name="msg_gif_first_frame_success">First frame saved to Downloads</string>
-    <string name="msg_gif_first_frame_failed">Failed to save first frame: %1$s</string>
+    <string name="msg_gif_first_frame_failed">Couldn\'t save the first frame. Try again.</string>
     <string name="msg_preparing_file">Preparing file…</string>
     <string name="msg_gif_prepare_failed">Failed to prepare GIF file</string>
     <string name="msg_gif_downloading">Downloading file…</string>
@@ -1778,7 +1826,7 @@
     <string name="no_app_to_open">No app available to open this file</string>
     <string name="error_opening_file_simple">Failed to open file</string>
     <string name="error_sharing_file">Failed to share file</string>
-    <string name="error_opening_external_player">Failed to open external player: %1$s</string>
+    <string name="error_opening_external_player">Couldn\'t open the external player. Try again or choose another app.</string>
     <string name="unsupported_format_network_hint">To play this file with external player, copy it to a local resource first.</string>
     <string name="unsupported_format_use_external_player">Format not supported. Try opening with external player.</string>
     <string name="unsupported_format_copy_to_local">Format not supported. Copy file to local resource to use external player.</string>
@@ -1791,18 +1839,18 @@
     <string name="drag_handle_description">Drag to reorder</string>
 
     <!-- File Operation Error Formatter -->
-    <string name="error_operation_title_copy">Copy Failed</string>
-    <string name="error_operation_title_move">Move Failed</string>
-    <string name="error_operation_title_delete">Delete Failed</string>
-    <string name="error_operation_failed">Operation Failed</string>
+    <string name="error_operation_title_copy">Could not copy</string>
+    <string name="error_operation_title_move">Could not move</string>
+    <string name="error_operation_title_delete">Could not delete</string>
+    <string name="error_operation_failed">Could not finish that action</string>
     <string name="source_path">Source</string>
     <string name="destination_path">Destination</string>
     <string name="technical_details">Technical Details</string>
-    <string name="error_partial_success">Operation completed with errors</string>
-    <string name="success_count">Successful: %d</string>
-    <string name="failed_count">Failed: %d</string>
-    <string name="failed_files">Failed files</string>
-    <string name="and_more_errors">and %d more errors</string>
+    <string name="error_partial_success">Some files need attention</string>
+    <string name="success_count">Done: %d</string>
+    <string name="failed_count">With issues: %d</string>
+    <string name="failed_files">Files to check</string>
+    <string name="and_more_errors">and %d more issues</string>
     <string name="and_more_files">and %d more files</string>
 
     <!-- User-friendly error reasons -->
@@ -1833,9 +1881,11 @@
     <string name="ocr_button_description">Extract Text</string>
     <string name="ocr_processing">Recognizing text…</string>
     <string name="ocr_no_text_found">No text found in image</string>
+    <string name="ocr_images_only">OCR is only available for images.</string>
+    <string name="ocr_extract_image_failed">Couldn\'t prepare this image for OCR. Try again.</string>
     <string name="translation_no_text_found">No text found to translate</string>
     <string name="translation_downloading_wait">Waiting for translation result…</string>
-    <string name="ocr_error">Text recognition error: %1$s</string>
+    <string name="ocr_error">Could not recognize the text.</string>
     <string name="ocr_result_title">Recognized Text</string>
     <string name="text_copied">Text copied to clipboard</string>
 
@@ -1853,23 +1903,23 @@
     <string name="toast_text_saved">Text saved</string>
     <string name="toast_failed_to_load_destinations">Failed to load destinations</string>
     <string name="toast_resources_refreshed">Resources refreshed</string>
-    <string name="toast_error_loading_destinations">Error loading destinations: %1$s</string>
+    <string name="toast_error_loading_destinations">Couldn\'t load the destinations. Try again.</string>
     <string name="toast_move_cancelled">Move operation cancelled</string>
     <string name="toast_copy_cancelled">Copy operation cancelled</string>
     <string name="toast_delete_cancelled">Delete operation cancelled</string>
     <string name="toast_unexpected_result">Unexpected result</string>
     <string name="toast_rename_error">Rename error: %1$s</string>
-    <string name="toast_delete_error">Delete error: %1$s</string>
+    <string name="toast_delete_error">Couldn\'t finish deleting the files. Try again.</string>
     <string name="error_deletion_failed">Deletion failed</string>
     <string name="toast_multiple_rename_not_implemented">Multiple file rename not yet implemented</string>
     <string name="toast_filter_applied">Filter applied successfully</string>
-    <string name="toast_filter_failed">Failed to apply filter: %1$s</string>
+    <string name="toast_filter_failed">Couldn\'t apply that filter. Try again.</string>
     <string name="toast_adjustments_applied">Adjustments applied successfully</string>
-    <string name="toast_adjustments_failed">Failed to apply adjustments: %1$s</string>
+    <string name="toast_adjustments_failed">Couldn\'t apply those adjustments. Try again.</string>
     <string name="toast_image_rotated">Image rotated successfully</string>
-    <string name="toast_rotate_failed">Failed to rotate: %1$s</string>
+    <string name="toast_rotate_failed">Couldn\'t rotate the image. Try again.</string>
     <string name="toast_image_flipped">Image flipped successfully</string>
-    <string name="toast_flip_failed">Failed to flip: %1$s</string>
+    <string name="toast_flip_failed">Couldn\'t flip the image. Try again.</string>
     <string name="toast_filter_active">Filter active…</string>
 
     <!-- Progress messages for image editing -->
@@ -1896,6 +1946,11 @@
     <string name="text_page_indicator">Page %1$d / %2$d</string>
     <string name="text_page_indicator_estimated">Page %1$d / ~%2$d</string>
     <string name="text_file_too_large">File is too large (%1$s). Maximum supported size is %2$s.</string>
+    <string name="text_file_load_failed">Couldn\'t open this text file. Try again.</string>
+    <string name="text_file_not_found">This text file is no longer available.</string>
+    <string name="text_file_display_error">Couldn\'t display this text file. Try again.</string>
+    <string name="text_file_reopen_failed">Couldn\'t reopen this file with the selected encoding.</string>
+    <string name="text_file_save_failed">Couldn\'t save this file. Try again.</string>
     <string name="reopen_with_encoding">Re-open with Encoding…</string>
     <string name="select_encoding">Select Encoding</string>
     <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
@@ -1965,7 +2020,13 @@
     <string name="original_path_not_exists">Original path does not exist: %1$s</string>
     <string name="failed_to_restore_files">Failed to restore files</string>
     <string name="file_restored">File restored: %1$s</string>
+    <string name="reload_files_failed">Could not refresh the file list.</string>
+    <string name="no_operation_to_undo">Nothing to undo.</string>
+    <string name="undo_delete_only">Only delete actions can be undone.</string>
+    <string name="invalid_undo_operation_data">This undo action is no longer available.</string>
+    <string name="undo_failed">Couldn\'t undo that action. Try again.</string>
     <string name="files_restored">%1$d files restored</string>
+    <string name="undo_rename_cancelled">Rename cancelled.</string>
     <string name="restore_last_deleted">Restore Last Deleted</string>
     <string name="confirm_restore">Restore %1$s?</string>
     <string name="confirm_restore_multiple">Restore %1$d deleted files?</string>
@@ -2008,9 +2069,9 @@
     <string name="receive_share_preparing">Preparing shared content..</string>
     <string name="receive_share_source_name">Shared</string>
     <string name="receive_share_no_content">No content received to import</string>
-    <string name="receive_share_cache_failed">Failed to prepare shared file: %1$s</string>
+    <string name="receive_share_cache_failed">Couldn\'t prepare the shared file. Try again.</string>
     <string name="receive_share_copied_to_folder">Saved to selected folder</string>
-    <string name="receive_share_copy_to_folder_failed">Failed to save: %1$s</string>
+    <string name="receive_share_copy_to_folder_failed">Couldn\'t save the shared file to that folder. Try again.</string>
 
     <!-- Auto-generated from layout files -->
     <string name="activity_browse_rvMediaFiles_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
@@ -2288,7 +2349,7 @@
     <string name="reset_general_section_title">Reset General section</string>
     <string name="reset_general_section_message">Reset only General settings to default values?</string>
     <string name="reset_general_section_success">General section reset completed</string>
-    <string name="reset_general_section_failed">Failed to reset General section: %1$s</string>
+    <string name="reset_general_section_failed">Couldn\'t reset the General section. Try again.</string>
     <string name="reset_media_section_title">Reset Media section</string>
     <string name="reset_media_section_message">Reset only Media settings to default values?</string>
     <string name="reset_media_section_success">Media section reset completed</string>
@@ -2367,6 +2428,7 @@
 
     <string name="error_field_required">This field is required</string>
     <string name="error_invalid_path">Invalid path</string>
+    <string name="player_credentials_missing">Saved credentials are missing. Update them and try again.</string>
     <string name="error_invalid_host">Invalid host address</string>
     <string name="error_invalid_port">Invalid port number</string>
     <string name="error_invalid_username">Invalid username</string>
@@ -2662,6 +2724,7 @@
     <string name="camera_capture_error_session_expired">Capture session expired — please try again</string>
     <string name="duplicate_detection_title">Duplicates</string>
     <string name="duplicate_scan_start">Start Scan</string>
+    <string name="duplicate_scan_failed">Couldn\'t finish the duplicate scan. Try again.</string>
     <string name="duplicate_none_found">No duplicates found.</string>
     <string name="scanning_for_duplicates">Scanning for duplicates…</string>
     <string name="duplicates_found_format">Found %1$d duplicate groups (%2$s total)</string>
@@ -2679,6 +2742,8 @@
     <string name="action_create_folder">Create Folder</string>
     <string name="msg_folder_created">Folder "%1$s" created</string>
     <string name="msg_folder_renamed">Folder renamed</string>
+    <string name="error_folder_create_failed">Could not create the folder.</string>
+    <string name="error_folder_rename_failed">Could not rename the folder.</string>
     <string name="delete_folder_confirm">Delete folder \"%1$s\" and all its contents? This cannot be undone.</string>
     <string name="delete_n_folders_confirm">Delete %1$d folders and all their contents? This cannot be undone.</string>
     <string name="error_cross_protocol_dir_not_supported">Folder copy/move between different storage types is not supported.</string>
@@ -2757,7 +2822,7 @@
     <string name="permission_error_retry">Permission error — please try again</string>
     <string name="operation_failed">Operation failed: %1$s</string>
     <string name="error_with_message">Error: %1$s</string>
-    <string name="error_init_settings">Error initializing settings: %1$s</string>
+    <string name="error_init_settings">Couldn\'t open these settings. Try again.</string>
 
     <!-- TTS -->
     <string name="tts_not_available">Text-to-Speech not available</string>
@@ -2765,6 +2830,11 @@
     <!-- Viewer errors -->
     <string name="translation_failed">Translation failed</string>
     <string name="pdf_empty">Empty PDF</string>
+    <string name="pdf_load_failed">Couldn\'t open this PDF. Try again.</string>
+    <string name="pdf_file_not_found">This PDF file is no longer available.</string>
+    <string name="pdf_read_failed">This PDF couldn\'t be read. The file may be damaged or unsupported.</string>
+    <string name="pdf_display_error">Couldn\'t display this PDF. Try again.</string>
+    <string name="pdf_page_render_failed">Couldn\'t render this page. Try again.</string>
 
     <!-- Main scan progress -->
     <string name="files_scanned_count">%1$d files scanned</string>
@@ -2777,6 +2847,7 @@
     <string name="wear_sync_ready">Ready to sync</string>
     <string name="wear_sync_sending">Sending to watch…</string>
     <string name="wear_sync_success">Sent %d source(s) to watch</string>
+    <string name="wear_sync_failed">Couldn\'t sync with the watch. Try again.</string>
     <string name="wear_settings_section_title">Watch Settings</string>
     <string name="wear_settings_audio">Audio</string>
     <string name="wear_settings_video">Video</string>
@@ -2785,6 +2856,7 @@
     <string name="wear_settings_album_art">Album Art</string>
     <string name="wear_settings_slideshow_interval">Slideshow interval (seconds)</string>
     <string name="wear_push_settings">Push Watch Settings</string>
+    <string name="wear_push_settings_failed">Couldn\'t send the watch settings. Try again.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
     <string name="wear_import_pending_title">Watch sources received</string>
@@ -3225,6 +3297,17 @@
     <string name="s0116_toast_streaming_disabled">Streams not available in this build</string>
     <string name="s0116_toast_auth_required">Sign-in required for %1$s — open Settings</string>
 
+    <!-- S0117: batch progress and summary UX for noLegal site extraction -->
+    <string name="s0117_progress_batch_item">Downloading item %1$d of %2$d..</string>
+    <string name="s0117_toast_batch_saved">Saved %1$d items</string>
+    <string name="s0117_batch_dialog_title">Batch download summary</string>
+    <string name="s0117_batch_dialog_summary">Saved %1$d of %2$d items.</string>
+    <string name="s0117_batch_dialog_failure_line">%1$s: %2$s</string>
+    <string name="s0117_batch_dialog_more_failures">+ %1$d more failures</string>
+    <string name="s0117_license_lib_title">NewPipe Extractor - site extraction engine</string>
+    <string name="s0117_license_lib_project">Project: TeamNewPipe</string>
+    <string name="s0117_license_lib_license">License: GPL-3.0-or-later</string>
+
     <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
     <string name="setting_saved_authorizations_title">Saved authorizations</string>
     <string name="setting_saved_authorizations_summary">Manage logins captured via the in-app web sign-in screen.</string>
@@ -3278,14 +3361,15 @@
     <string name="settings_network_permissions_already_granted">Network access is already on — nothing to do here.</string>
     <string name="settings_credentials_picker_failed">Couldn\'t open the file picker. Try again.</string>
     <string name="settings_credentials_file_empty">That file looks empty or unreadable.</string>
-    <string name="settings_credentials_import_failed">Couldn\'t import: %1$s</string>
+    <string name="settings_credentials_import_failed">Couldn\'t import that file. Try again.</string>
     <string name="settings_credentials_import_success">Import done: %1$d credentials, %2$d resources.</string>
     <string name="settings_credentials_import_success_with_settings">Import done: %1$d credentials, %2$d resources, settings updated.</string>
-    <string name="settings_reset_smb_failed">Couldn\'t reset SMB connections: %1$s</string>
-    <string name="settings_reset_settings_failed">Couldn\'t reset settings: %1$s</string>
+    <string name="settings_reset_smb_failed">Couldn\'t reset the SMB connections. Try again.</string>
+    <string name="settings_reset_settings_failed">Couldn\'t reset the settings. Try again.</string>
     <string name="settings_unknown_error">Something didn\'t quite work out. Try again.</string>
     <string name="settings_no_browser_for_docs">Couldn\'t find a browser to open the docs.</string>
     <string name="settings_no_browser_for_privacy">Couldn\'t find a browser to open the Privacy Policy.</string>
+    <string name="player_media_files_load_failed">Couldn\'t load the file list. Try again.</string>
 
     <!-- S0118 Phase 05: feature surface sweep -->
     <string name="duplicates_deleted_short">Selected files are gone.</string>
@@ -3294,6 +3378,26 @@
     <string name="addresource_signed_out">Signed out.</string>
     <string name="addresource_permission_needed">We need that permission to scan your folders.</string>
     <string name="addresource_scan_failed_short">Scan didn\'t complete. Try again.</string>
+    <string name="addresource_host_required">Enter a host name.</string>
+    <string name="addresource_private_key_required">Add an SSH private key.</string>
+    <string name="addresource_connection_failed">Couldn\'t connect. Check the details and try again.</string>
+    <string name="addresource_protocol_invalid">This connection type isn\'t supported here.</string>
+    <string name="addresource_resource_added">Resource added.</string>
+    <string name="addresource_resource_unavailable_after_add">The resource was added, but it isn\'t available right now. Check the path and try again.</string>
+    <string name="addresource_add_failed">Couldn\'t add the resource. Try again.</string>
+    <string name="addresource_save_credentials_failed">Couldn\'t save the credentials. Try again.</string>
+    <string name="addresource_resource_not_found">Couldn\'t find that resource.</string>
+    <string name="addresource_resource_load_failed">Couldn\'t load that resource. Try again.</string>
+    <string name="addresource_accounts_load_failed">Couldn\'t load the saved accounts. Try again.</string>
+    <string name="addresource_none_selected">Select at least one resource.</string>
+    <string name="addresource_quick_sort_full_message">%1$s. Quick Sort is full. %2$d resources were added without the Quick Sort flag.</string>
+    <string name="addresource_quick_sort_limit_reached">Quick Sort is full. Remove one item before adding another.</string>
+    <string name="addresource_smb_scan_found_limited">SMB scan found only a few shares. If you use custom share names, add them manually.</string>
+    <string name="addresource_smb_scan_found_more">SMB scan finished. If you have more shares with custom names, add them manually.</string>
+    <string name="addresource_smb_scan_none_found">No shares found. If yours use custom names, add them manually.</string>
+    <string name="addresource_some_resources_unavailable_after_add">%1$s. Some resources are unavailable right now.</string>
+    <string name="addresource_local_folders_found">Local folders found. Pick what to add.</string>
+    <string name="addresource_folder_added_to_list">Folder added to the list.</string>
 </resources>
 
 

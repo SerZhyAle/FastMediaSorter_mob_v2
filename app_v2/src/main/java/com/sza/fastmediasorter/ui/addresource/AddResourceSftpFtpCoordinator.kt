@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.addresource
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -21,6 +23,7 @@ import timber.log.Timber
  * hard-to-follow branching inside a single method.
  */
 internal class AddResourceSftpFtpCoordinator(
+    private val context: Context,
     private val addResourceUseCase: AddResourceUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val resourceRepository: ResourceRepository,
@@ -37,7 +40,7 @@ internal class AddResourceSftpFtpCoordinator(
         password: String
     ) {
         if (host.isBlank()) {
-            bridge.emit(AddResourceEvent.ShowError("Host is required"))
+            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
             return
         }
 
@@ -53,7 +56,10 @@ internal class AddResourceSftpFtpCoordinator(
                         bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
                     }.onFailure { e ->
                         Timber.e(e, "SFTP test connection failed")
-                        bridge.emit(AddResourceEvent.ShowTestResult("Connection failed: ${e.message}", isSuccess = false))
+                        bridge.emit(AddResourceEvent.ShowTestResult(
+                            context.getString(R.string.addresource_connection_failed),
+                            isSuccess = false
+                        ))
                     }
                 }
                 ResourceType.FTP -> {
@@ -64,10 +70,13 @@ internal class AddResourceSftpFtpCoordinator(
                         bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
                     }.onFailure { e ->
                         Timber.e(e, "FTP test connection failed")
-                        bridge.emit(AddResourceEvent.ShowTestResult("Connection failed: ${e.message}", isSuccess = false))
+                        bridge.emit(AddResourceEvent.ShowTestResult(
+                            context.getString(R.string.addresource_connection_failed),
+                            isSuccess = false
+                        ))
                     }
                 }
-                else -> bridge.emit(AddResourceEvent.ShowError("Invalid protocol type"))
+                else -> bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_protocol_invalid)))
             }
 
             bridge.markLoading(false)
@@ -81,7 +90,7 @@ internal class AddResourceSftpFtpCoordinator(
         password: String
     ) {
         if (host.isBlank()) {
-            bridge.emit(AddResourceEvent.ShowError("Host is required"))
+            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
             return
         }
 
@@ -94,7 +103,10 @@ internal class AddResourceSftpFtpCoordinator(
                 bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
             }.onFailure { e ->
                 Timber.e(e, "SFTP test connection failed")
-                bridge.emit(AddResourceEvent.ShowTestResult("Connection failed: ${e.message}", isSuccess = false))
+                bridge.emit(AddResourceEvent.ShowTestResult(
+                    context.getString(R.string.addresource_connection_failed),
+                    isSuccess = false
+                ))
             }
             bridge.markLoading(false)
         }
@@ -121,7 +133,7 @@ internal class AddResourceSftpFtpCoordinator(
         profile: ResourceProfile = ResourceProfile.NONE
     ) {
         if (host.isBlank()) {
-            bridge.emit(AddResourceEvent.ShowError("Host is required"))
+            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
             return
         }
 
@@ -195,21 +207,18 @@ internal class AddResourceSftpFtpCoordinator(
                     )
 
                     if (scanSuccessful) {
-                        bridge.emit(AddResourceEvent.ShowMessage("$protocolName resource added successfully"))
+                        bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
                     } else {
-                        bridge.emit(AddResourceEvent.ShowError(
-                            "$protocolName resource '$resourceName' added but is currently unavailable. " +
-                            "Check that the remote path exists and is accessible."
-                        ))
+                        bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_unavailable_after_add)))
                     }
                     bridge.emit(AddResourceEvent.ResourcesAdded)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add $protocolName resource")
-                    bridge.emit(AddResourceEvent.ShowError("Failed to add resource: ${e.message}"))
+                    bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
                 }
             }.onFailure { e ->
                 Timber.e(e, "Failed to save $protocolName credentials")
-                bridge.emit(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_save_credentials_failed)))
             }
 
             bridge.markLoading(false)
@@ -224,7 +233,7 @@ internal class AddResourceSftpFtpCoordinator(
         remotePath: String
     ) {
         if (host.isBlank()) {
-            bridge.emit(AddResourceEvent.ShowError("Host is required"))
+            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
             return
         }
 
@@ -263,21 +272,18 @@ internal class AddResourceSftpFtpCoordinator(
                     )
 
                     if (scanSuccessful) {
-                        bridge.emit(AddResourceEvent.ShowMessage("SFTP resource added successfully"))
+                        bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
                     } else {
-                        bridge.emit(AddResourceEvent.ShowError(
-                            "SFTP resource '$resourceName' added but is currently unavailable. " +
-                            "Check that the remote path exists and is accessible."
-                        ))
+                        bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_unavailable_after_add)))
                     }
                     bridge.emit(AddResourceEvent.ResourcesAdded)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SFTP resource")
-                    bridge.emit(AddResourceEvent.ShowError("Failed to add resource: ${e.message}"))
+                    bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
                 }
             }.onFailure { e ->
                 Timber.e(e, "Failed to save SFTP credentials")
-                bridge.emit(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_save_credentials_failed)))
             }
 
             bridge.markLoading(false)

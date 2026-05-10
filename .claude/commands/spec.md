@@ -39,6 +39,36 @@ Output file: `PLAN/Sxxxx_<short-name>.md` (the `Sxxxx` ticket id is allocated by
 - `docs/FEATURES.md`
 - Relevant `dev/CATALOG/` files for affected area.
 
+**2.5 — Evaluate complexity (PRIMITIVE check).**
+
+After reading context, score the task against the primitive checklist:
+
+- [ ] ≤ 3 existing files need changes — no new files required
+- [ ] No new classes, interfaces, or abstract types introduced
+- [ ] No Room schema change (`@Database` version bump or new `@Entity`)
+- [ ] No new Hilt `@Module` or `@Provides` required
+- [ ] No new UI screens, fragments, or navigation destinations
+- [ ] Implementation is mechanically deterministic — no design decisions deferred
+- [ ] Estimated line delta < 100 lines total
+
+**If ALL pass → PRIMITIVE path** (skip steps 3–7):
+
+1. Allocate ticket id via `insert.ps1 -Status "In Progress"` (same as step 4).
+2. Write a minimal spec at `PLAN/<Sxxxx>_<short-name>.md`:
+   - Frontmatter only: `Ticket`, `Status: In Progress`, `Priority`, `Date`, `Tier`.
+   - `## Problem` — 1–3 sentences.
+   - `## Approach` — bullet list: one bullet per file → what changes.
+   - `## Done criteria` — one observable check per changed file.
+3. Implement the changes directly in the source files.
+4. Insert `Timber.d("Sxxxx: <entry-point description>")` at each changed flow entry.
+5. Run post-change mandatory steps: `add_to_dev_log.ps1`, `scan.ps1` + `render.ps1`, strings audit if applicable.
+6. Advance ticket to `BlockNeedUserTest` via `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest`.
+7. Chat output: `<Sxxxx> — Primitive. Implemented directly. Status: BlockNeedUserTest.`
+
+**If ANY criterion fails → COMPLEX path:** continue with step 3 below.
+
+---
+
 **3 — Determine Tier.**
 
 | Roadmap tier | Header label |
@@ -92,7 +122,7 @@ Then record the dev log:
 .\scripts\add_to_dev_log.ps1 "PLAN/<Sxxxx>_<short-name>.md" "spec" "Add strategic spec <Sxxxx> for <id>"
 ```
 
-**7 — Auto-chain to `/spec-tech`.**
+**7 — Auto-chain to `/spec-tech`.** *(COMPLEX path only — skip if PRIMITIVE path was taken in step 2.5.)*
 
 Without waiting for the user, immediately invoke `/spec-tech <Sxxxx>` to break the approved spec into phases. The only exception: if any §6 Research item is marked `Status: Open` with a note that human research is required before implementation — list those items and ask whether to proceed. Otherwise proceed automatically.
 

@@ -54,6 +54,11 @@ internal class VrRouteDecisionHelper {
         userForcedImmersive: Boolean = false,
         userForcedPanel: Boolean = false,
     ): VrRouteDecision {
+        Timber.d(
+            "VR_AUDIT/5: VrRouteDecisionHelper.decide entry effective=%s autoImmersive=%b disable3dVr=%b forcedImmersive=%b forcedPanel=%b file=%s type=%s",
+            effectiveStereoMode, settings.vrAutoImmersive, settings.disable3dVr,
+            userForcedImmersive, userForcedPanel, currentFile.path, currentFile.type,
+        )
         if (settings.disable3dVr) {
             return VrRouteDecision(
                 route = VrLaunchRoute.STANDARD_PANEL_FALLBACK,

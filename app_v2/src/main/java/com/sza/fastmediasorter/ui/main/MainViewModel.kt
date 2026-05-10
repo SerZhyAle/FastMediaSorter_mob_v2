@@ -242,7 +242,11 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             val resource = resourceOverride ?: state.value.selectedResource
             if (resource == null || resource.id == 0L) {
-                sendEvent(MainEvent.ShowMessage("Please select a resource first"))
+                sendEvent(
+                    MainEvent.ShowMessage(
+                        context.getString(com.sza.fastmediasorter.R.string.main_select_resource_first)
+                    )
+                )
                 return@launch
             }
             
@@ -296,7 +300,7 @@ class MainViewModel @Inject constructor(
                 }
                 
                 if (resourceToOpen == null || resourceToOpen.id == 0L) {
-                    sendEvent(MainEvent.ShowMessage("No resources available"))
+                    sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.no_resources_available)))
                     return@launch
                 }
                 
@@ -561,11 +565,11 @@ class MainViewModel @Inject constructor(
                 if (resource != null) {
                     sendEvent(MainEvent.NavigateToBrowse(resourceId, skipAvailabilityCheck = true))
                 } else {
-                    sendEvent(MainEvent.ShowMessage("Resource not found"))
+                    sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.resource_not_found)))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error opening resource via shortcut")
-                sendEvent(MainEvent.ShowMessage("Error: ${e.message}"))
+                sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.main_open_resource_failed)))
             }
         }
     }
@@ -579,7 +583,11 @@ class MainViewModel @Inject constructor(
     fun copySelectedResource(resourceOverride: MediaResource? = null) {
         val selected = resourceOverride ?: state.value.selectedResource
         if (selected == null) {
-            sendEvent(MainEvent.ShowMessage("Please select a resource to copy"))
+            sendEvent(
+                MainEvent.ShowMessage(
+                    context.getString(com.sza.fastmediasorter.R.string.main_select_resource_to_copy)
+                )
+            )
             return
         }
         

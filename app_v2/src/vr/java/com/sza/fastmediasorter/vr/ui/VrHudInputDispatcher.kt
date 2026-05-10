@@ -67,6 +67,7 @@ class VrHudInputDispatcher(
         val registry = registryProvider() ?: return
         val callback = registry.callbackOf(latched) ?: return
         Timber.d("VrHudInputDispatcher: click source=%s element=%d", source, latched)
+        Timber.d("VR_AUDIT/2: HUD button click source=%s element=%d", source, latched)
         onClickAudioCue.invoke()
         mainHandler.post { callback.invoke() }
     }

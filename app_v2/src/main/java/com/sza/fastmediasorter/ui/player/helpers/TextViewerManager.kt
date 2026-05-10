@@ -569,7 +569,7 @@ class TextViewerManager(
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        callback.showError("Failed to load text file: ${e.message}")
+                        callback.showError(context.getString(R.string.text_file_load_failed))
                     }
                     return@launch
                 }
@@ -577,7 +577,7 @@ class TextViewerManager(
                 if (!file.exists()) {
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        callback.showError("Text file not found")
+                        callback.showError(context.getString(R.string.text_file_not_found))
                     }
                     return@launch
                 }
@@ -657,7 +657,7 @@ class TextViewerManager(
                 Timber.e(e, "Error loading text file")
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
-                    callback.showError("Error: ${e.message}")
+                    callback.showError(context.getString(R.string.text_file_display_error))
                 }
             }
         }
@@ -746,7 +746,7 @@ class TextViewerManager(
             textFilePager = pager
         } catch (e: Exception) {
             Timber.e(e, "TextViewerManager: Failed to reopen with charset=$charset")
-            callback.showError("Error reopening file: ${e.message}")
+            callback.showError(context.getString(R.string.text_file_reopen_failed))
             return
         }
 
@@ -1089,7 +1089,7 @@ class TextViewerManager(
                 Timber.e(e, "Error saving text file")
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
-                    callback.showError("Error saving file: ${e.message}")
+                    callback.showError(context.getString(R.string.text_file_save_failed))
                 }
             }
         }

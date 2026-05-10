@@ -69,6 +69,11 @@ Mirror the B1 change. Identical section numbers and bullet layout.
 
 ### C - String Resources
 
+#### C0. `docs/COMMUNICATION_POLICY.md` - tone check (user-visible strings)
+
+**When:** Any new or updated user-visible string (toast, dialog, error, empty state, progress, CTA, confirmation).
+**How:** Verify the string satisfies §2 (message-type formula) and §6 (tone checklist) of the policy before committing. If it fails any checklist item, rewrite first.
+
 #### C1. `app_v2/src/main/res/values/strings.xml` (English)
 
 Add `<string name="key">value</string>` in alphabetical or logical grouping order.

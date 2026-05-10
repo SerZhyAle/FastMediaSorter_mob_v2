@@ -699,6 +699,7 @@ class PlayerMediaLoaderManager(
                     try {
                         // Clear all disk cache since we can't target specific key easily
                         // This ensures the edited file is reloaded fresh from network
+                        Timber.d("S0136: PlayerMediaLoaderManager about to clearDiskCache after image edit, currentFile=${currentFile.path}")
                         Glide.get(activity).clearDiskCache()
                         Timber.d("PlayerMediaLoaderManager: Cleared Glide disk cache after image edit")
                     } catch (e: Exception) {
@@ -722,7 +723,7 @@ class PlayerMediaLoaderManager(
                 
             } catch (e: Exception) {
                 Timber.e(e, "PlayerMediaLoaderManager: Error reloading image after edit")
-                activity.showError(activity.getString(R.string.msg_failed_reload_image, e.message))
+                activity.showError(activity.getString(R.string.msg_failed_reload_image), e)
             }
         }
     }

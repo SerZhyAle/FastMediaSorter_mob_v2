@@ -350,7 +350,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                         )
                     } catch (e: Exception) {
                         timber.log.Timber.e(e, "PlayerActivity: Failed to launch batch delete permission request")
-                        activity.showError(activity.getString(R.string.error_delete_failed, e.message))
+                        activity.showError(activity.getString(R.string.error_delete_failed), e)
                     }
                 }
 
@@ -691,6 +691,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.castMediaManager = CastMediaManager(
             context = activity,
             lifecycleScope = activity.lifecycleScope,
+            networkFileManager = activity.networkFileManager,
             onCastStateChanged = { isCasting, deviceName ->
                 activity.viewModel.updateCastState(isCasting, deviceName)
                 if (isCasting) {

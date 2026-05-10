@@ -166,8 +166,7 @@ class GeneralSettingsCredentialHelper(
 
             } catch (e: Exception) {
                 Timber.e(e, "Failed to import test credentials")
-                val reason = e.message ?: fragment.getString(R.string.settings_unknown_error)
-                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_credentials_import_failed, reason), Toast.LENGTH_LONG).show()
+                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_credentials_import_failed), Toast.LENGTH_LONG).show()
             }
         }
     }

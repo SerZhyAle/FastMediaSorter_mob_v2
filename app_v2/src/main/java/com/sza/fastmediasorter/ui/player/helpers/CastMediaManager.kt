@@ -29,8 +29,6 @@ import kotlinx.coroutines.withContext
 import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
 
 /**
  * Manages Chromecast media output from the player.
@@ -47,13 +45,17 @@ import java.io.InputStream
 class CastMediaManager(
     private val context: Context,
     private val lifecycleScope: CoroutineScope,
+    private val networkFileManager: NetworkFileManager,
     private val onCastStateChanged: (isCasting: Boolean, deviceName: String?) -> Unit
 ) {
 
     companion object {
         private const val MAX_VIDEO_CAST_BYTES = 50L * 1024 * 1024   // 50 MB
-        private const val CAST_TEMP_FILE_NAME = "cast_current"
         private const val DIALOG_TAG = "CastChooserDialog"
+    }
+
+    init {
+        Timber.d("S0137: CastMediaManager constructor — networkFileManager wired")
     }
 
     // ── State ────────────────────────────────────────────────────────────────
@@ -158,7 +160,6 @@ class CastMediaManager(
             Timber.w("CastMediaManager: error removing listener — ${e.message}")
         }
         proxyServer.stop()
-        deleteTempFile()
         _isCasting = false
         currentSession = null
         Timber.d("CastMediaManager: released")
@@ -315,52 +316,26 @@ class CastMediaManager(
     /**
      * Downloads [file] content to a temporary local file and returns it.
      * Returns null on failure.
+     *
+     * Delegates to [NetworkFileManager.prepareFileForRead], which routes through
+     * UnifiedFileCache and shares cached files with the player — re-casting the
+     * same file in a session is therefore instant.
      */
     private suspend fun downloadToTemp(file: MediaFile): File? = withContext(Dispatchers.IO) {
-        val ext = file.name.substringAfterLast('.', "tmp")
-        val tempFile = File(context.cacheDir, "$CAST_TEMP_FILE_NAME.$ext")
         try {
-            openRemoteInputStream(file)?.use { input ->
-                FileOutputStream(tempFile).use { output ->
-                    input.copyTo(output)
-                }
-            } ?: return@withContext null
-            tempFile
+            Timber.d("S0137: CastMediaManager.downloadToTemp — delegating to NetworkFileManager for ${file.name}")
+            networkFileManager.prepareFileForRead(file)
         } catch (e: Exception) {
             Timber.e(e, "CastMediaManager: download failed for ${file.name}")
             null
         }
     }
 
-    /**
-     * Opens an InputStream for the given file's remote source.
-     * Delegates to SMB/SFTP/FTP/Cloud client based on resource type.
-     */
-    private fun openRemoteInputStream(file: MediaFile): InputStream? {
-        // Remote file access is handled differently per source type.
-        // For now we rely on the file.path being accessible via java.io.File for LOCAL,
-        // and return null for network/cloud sources (caller shows cast_error_file toast).
-        // Full network/cloud streaming requires injecting SmbClient/SftpClient/etc — deferred
-        // to a follow-on implementation once the basic local+cache path is validated.
-        Timber.w("CastMediaManager: openRemoteInputStream — network/cloud download not yet wired")
-        return null
-    }
-
     private fun handleSessionEnd() {
         _isCasting = false
         currentSession = null
         proxyServer.stop()
-        deleteTempFile()
         onCastStateChanged(false, null)
-    }
-
-    private fun deleteTempFile() {
-        try {
-            context.cacheDir.listFiles { f -> f.name.startsWith(CAST_TEMP_FILE_NAME) }
-                ?.forEach { it.delete() }
-        } catch (e: Exception) {
-            Timber.w("CastMediaManager: failed to delete temp file — ${e.message}")
-        }
     }
 
     fun isWifiConnected(): Boolean {

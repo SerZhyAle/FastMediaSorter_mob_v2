@@ -298,6 +298,7 @@ class EpubViewerManager(
         binding.btnExitEpubFullscreen.isVisible = false // Hidden initially, shown in fullscreen
 
         closeEpubBook()
+        val context = binding.root.context
 
         // Show loading toast for network files
         val isNetworkFile = mediaFile.path.startsWith("smb://") ||
@@ -309,8 +310,8 @@ class EpubViewerManager(
             kotlinx.coroutines.delay(if (isNetworkFile) 0 else 2000)
             if (binding.progressBar.isVisible) {
                 android.widget.Toast.makeText(
-                    binding.root.context,
-                    binding.root.context.getString(com.sza.fastmediasorter.R.string.please_wait),
+                    context,
+                    context.getString(R.string.please_wait),
                     android.widget.Toast.LENGTH_LONG
                 ).show()
             }
@@ -328,7 +329,7 @@ class EpubViewerManager(
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             binding.progressBar.isVisible = false
-                            callback.showError("Failed to load EPUB: ${e.message}")
+                            callback.showError(context.getString(R.string.epub_load_failed))
                         }
                         throw e
                     }
@@ -337,7 +338,7 @@ class EpubViewerManager(
                 if (!file.exists()) {
                     loadingToastJob.cancel()
                     binding.progressBar.isVisible = false
-                    callback.showError("EPUB file not found")
+                    callback.showError(context.getString(R.string.epub_file_not_found))
                     return@launch
                 }
 
@@ -383,7 +384,7 @@ class EpubViewerManager(
                                 binding.btnEpubPrevChapter.isVisible = !isSingleChapter
                                 binding.btnEpubNextChapter.isVisible = !isSingleChapter
                             } else {
-                                callback.showError("EPUB has no readable content")
+                                callback.showError(context.getString(R.string.epub_no_readable_content))
                             }
                         }
                     } catch (e: Exception) {
@@ -391,7 +392,7 @@ class EpubViewerManager(
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             binding.progressBar.isVisible = false
-                            callback.showError("Failed to parse EPUB: ${e.message}")
+                            callback.showError(context.getString(R.string.epub_parse_failed))
                         }
                     }
                 }
@@ -399,7 +400,7 @@ class EpubViewerManager(
                 Timber.e(e, "EPUB display error")
                 loadingToastJob.cancel()
                 binding.progressBar.isVisible = false
-                callback.showError("EPUB display error: ${e.message}")
+                callback.showError(context.getString(R.string.epub_display_error))
             }
         }
     }
@@ -475,7 +476,7 @@ class EpubViewerManager(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to show chapter $chapterIndex")
                 withContext(Dispatchers.Main) {
-                    callback.showError("Failed to load chapter: ${e.message}")
+                    callback.showError(binding.root.context.getString(R.string.epub_chapter_load_failed))
                 }
             }
         }

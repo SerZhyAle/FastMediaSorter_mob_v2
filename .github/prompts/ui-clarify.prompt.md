@@ -24,6 +24,8 @@ Examples:
 
 Before design or implementation, identify every meaningful UI ambiguity that could change behavior, placement, discoverability, or user expectations.
 
+If the task touches user-visible wording, labels, help text, errors, empty states, confirmations, or CTAs, treat `docs/COMMUNICATION_POLICY.md` as a mandatory source for tone and message-structure decisions.
+
 The agent must NOT implement while any important item below is unresolved.
 
 ---
@@ -73,6 +75,11 @@ For the requested change, inspect the spec/request and the current code, then pr
    - contentDescription / TalkBack
    - discoverability when hidden in overflow
 
+8. Copy and tone rules when wording changes.
+   - message-type formula from `docs/COMMUNICATION_POLICY.md` §2
+   - whether one contextual next step is allowed or required under §3
+   - whether the wording passes the §6 tone checklist
+
 ---
 
 ## Process
@@ -83,6 +90,7 @@ When this prompt is invoked:
 - Read the user request / spec.
 - Read the relevant layouts, controllers, planners, adapters, and strings.
 - Read `docs/ARCHITECTURE.md` if the task affects canonical UI patterns.
+- Read `docs/COMMUNICATION_POLICY.md` if the task affects any user-visible copy.
 
 **Step 2 — Build the ambiguity list.**
 - Separate explicit decisions from implicit assumptions.

@@ -131,11 +131,14 @@ class OpenXrSessionManager(
 
             val tNative = SystemClock.uptimeMillis()
             Timber.i("OpenXrSessionManager: calling nativeInitialize...")
+            Timber.d("VR_AUDIT/14: cold-start phase=nativeInitialize-begin tUptimeMs=%d", tNative)
             val ok = try {
                 val result = OpenXrNative.nativeInitialize(activity, callback)
                 drainNativeLog()
                 Timber.i("OpenXrSessionManager: nativeInitialize returned %b", result)
                 Timber.i("VR_PERF: [xr-thread] native_init=%dms  cumulative=%dms", SystemClock.uptimeMillis() - tNative, SystemClock.uptimeMillis() - tInit)
+                Timber.d("VR_AUDIT/14: cold-start phase=nativeInitialize-end result=%b nativeMs=%d eglToInitMs=%d",
+                    result, SystemClock.uptimeMillis() - tNative, SystemClock.uptimeMillis() - tInit)
                 result
             } catch (t: Throwable) {
                 drainNativeLog()
@@ -192,10 +195,13 @@ class OpenXrSessionManager(
             // This must run after nativeInitialize so the EGL context + XR session exist.
             val tReady = SystemClock.uptimeMillis()
             Timber.i("OpenXrSessionManager: invoking onSessionReady callback")
+            Timber.d("VR_AUDIT/14: cold-start phase=onSessionReady-begin sinceInitMs=%d", SystemClock.uptimeMillis() - tInit)
             try {
                 onSessionReady?.invoke()
                 Timber.i("OpenXrSessionManager: onSessionReady completed OK")
                 Timber.i("VR_PERF: [xr-thread] session_ready_cb=%dms  cumulative=%dms", SystemClock.uptimeMillis() - tReady, SystemClock.uptimeMillis() - tInit)
+                Timber.d("VR_AUDIT/14: cold-start phase=onSessionReady-end cbMs=%d sinceInitMs=%d",
+                    SystemClock.uptimeMillis() - tReady, SystemClock.uptimeMillis() - tInit)
             } catch (t: Throwable) {
                 Timber.e(t, "OpenXrSessionManager: onSessionReady THREW — continuing without pipeline")
             }
@@ -329,6 +335,14 @@ class OpenXrSessionManager(
     /** Allocate (or re-allocate) the HUD swapchain. No-op when session is not running. */
     fun createHudSwapchain(width: Int, height: Int): Boolean {
         if (!running.get()) return false
+        val eyeW = OpenXrNative.nativeGetEyeWidth(0)
+        val eyeH = OpenXrNative.nativeGetEyeHeight(0)
+        Timber.d(
+            "VR_AUDIT/9: HUD swapchain create requested size=%dx%d eyeBuf=%dx%d ratioW=%.3f ratioH=%.3f",
+            width, height, eyeW, eyeH,
+            if (eyeW > 0) width.toFloat() / eyeW else -1f,
+            if (eyeH > 0) height.toFloat() / eyeH else -1f,
+        )
         return OpenXrNative.nativeCreateHudSwapchain(width, height)
     }
 

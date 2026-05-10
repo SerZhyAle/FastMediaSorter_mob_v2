@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -45,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
  */
 class BrowseResourceLoadManager(
+    private val context: Context,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val cachedFileListRepository: CachedFileListRepository,
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
@@ -119,7 +122,7 @@ class BrowseResourceLoadManager(
             val resource = getResourcesUseCase.getById(resourceId)
             if (resource == null) {
                 Timber.e("BrowseResourceLoadManager.loadResource: resource not found for id=$resourceId")
-                sendEvent(BrowseEvent.ShowError("Resource not found"))
+                sendEvent(BrowseEvent.ShowError(context.getString(R.string.resource_not_found)))
                 setLoading(false)
                 return@launch
             }
@@ -143,7 +146,7 @@ class BrowseResourceLoadManager(
             if (!skipAvailabilityCheck && !isNetworkResource && resource.fileCount == 0 && !resource.isWritable) {
                 Timber.w("BrowseResourceLoadManager.loadResource: unavailable resource")
                 sendEvent(BrowseEvent.ShowError(
-                    message = "Resource '${resource.name}' is unavailable. Check network connection or resource settings.",
+                    message = context.getString(R.string.error_resource_unavailable, resource.name),
                     details = "Resource ID: ${resource.id}\nType: ${resource.type}\nPath: ${resource.path}"
                 ))
                 setLoading(false)
@@ -376,7 +379,7 @@ class BrowseResourceLoadManager(
             CloudProvider.DROPBOX      -> checkDropboxAuth(resource, provider)
             CloudProvider.ONEDRIVE     -> checkOneDriveAuth(resource, provider)
             null -> {
-                sendEvent(BrowseEvent.ShowError("Cloud provider not configured"))
+                sendEvent(BrowseEvent.ShowError(context.getString(R.string.error_cloud_provider_not_configured)))
                 false
             }
         }

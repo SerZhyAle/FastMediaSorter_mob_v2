@@ -19,6 +19,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowToast
 
@@ -128,6 +129,52 @@ class LinkAutoDownloadResultPresenterTest {
         assertEquals("https://example.com/video", retryUrl)
         // Toast must NOT fire when toggle is on (dialog/retry path takes over).
         assertNull("no toast when openInPlayer=true", ShadowToast.getTextOfLatestToast())
+    }
+
+    @Test
+    fun `BatchCompleted without failures shows saved-count toast`() = runTest {
+        val result = LinkAutoDownloadCoordinator.Result.BatchCompleted(
+            summary = LinkAutoDownloadCoordinator.Result.BatchSummary(
+                label = "Batch",
+                totalItems = 3,
+                successCount = 3,
+                failures = emptyList(),
+            ),
+        )
+
+        presenter(openInPlayer = true).present(result, activity)
+
+        assertEquals(
+            appContext.getString(R.string.s0117_toast_batch_saved, 3),
+            ShadowToast.getTextOfLatestToast(),
+        )
+        assertNull("batch success should not auto-open player", shadowOf(activity).peekNextStartedActivity())
+    }
+
+    @Test
+    fun `BatchCompleted with failures shows summary dialog`() = runTest {
+        val result = LinkAutoDownloadCoordinator.Result.BatchCompleted(
+            summary = LinkAutoDownloadCoordinator.Result.BatchSummary(
+                label = "Batch",
+                totalItems = 2,
+                successCount = 1,
+                failures = listOf(
+                    LinkAutoDownloadCoordinator.Result.BatchFailure(
+                        title = "Broken item",
+                        failure = LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound,
+                    ),
+                ),
+            ),
+        )
+
+        presenter(openInPlayer = false).present(result, activity)
+
+        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        assertNotNull("summary dialog expected for partial batch failure", dialog)
+        assertEquals(
+            appContext.getString(R.string.s0117_batch_dialog_title),
+            shadowOf(dialog).title,
+        )
     }
 
     @Test

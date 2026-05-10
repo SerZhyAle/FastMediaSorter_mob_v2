@@ -5,4 +5,10 @@
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="android:windowSplashScreenAnimationDuration">0</item>
     </style>
+
+    <!-- S0134: Material You widget theme — adapts to launcher dynamic colors on Android 12+. -->
+    <style name="Widget.FastMediaSorter" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:colorBackground">@android:color/system_neutral1_900</item>
+        <item name="android:textColorPrimary">@android:color/system_neutral1_50</item>
+    </style>
 </resources>

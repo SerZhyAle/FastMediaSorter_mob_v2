@@ -81,7 +81,7 @@ class BrowseCloudAuthManager(
                     com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.google_drive_authentication_failed),
+                            context.getString(R.string.google_sign_in_cancelled),
                             Toast.LENGTH_SHORT
                         ).show()
                         callbacks.onAuthenticationFailure()
@@ -112,7 +112,7 @@ class BrowseCloudAuthManager(
                 Timber.e(e, "Failed to start Dropbox authentication")
                 Toast.makeText(
                     context,
-                    context.getString(R.string.dropbox_authentication_failed) + ": ${e.message}",
+                    context.getString(R.string.dropbox_authentication_failed),
                     Toast.LENGTH_SHORT
                 ).show()
                 callbacks.onAuthenticationFailure()
@@ -137,7 +137,7 @@ class BrowseCloudAuthManager(
                            Timber.e("OneDrive sign-in failed: ${result.message}")
                            Toast.makeText(
                                context, 
-                               context.getString(R.string.onedrive_authentication_failed) + ": ${result.message}",
+                               context.getString(R.string.onedrive_authentication_failed),
                                Toast.LENGTH_SHORT
                            ).show()
                            callbacks.onAuthenticationFailure()
@@ -170,7 +170,7 @@ class BrowseCloudAuthManager(
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.dropbox_authentication_failed) + ": ${result.message}",
+                            context.getString(R.string.dropbox_authentication_failed),
                             Toast.LENGTH_SHORT
                         ).show()
                         callbacks.onAuthenticationFailure()

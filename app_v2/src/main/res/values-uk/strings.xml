@@ -41,6 +41,8 @@
     <string name="search_hint">Пошук…</string>
     <string name="translate">Перекласти</string>
     <string name="no_files_selected">Файли не вибрані</string>
+    <string name="msg_last_filter_restored">Відновлено останній фільтр: %1$s</string>
+    <string name="warning_files_may_remain_in_source">Деякі файли могли залишитися у вихідній теці. Перевірте джерело й теку призначення. Заторкнуто: %1$d.</string>
     <string name="no_supported_files_in_resource">Допустимих типів файлів у ресурсі немає</string>
     <string name="process_started">Процес розпочато…</string>
     <string name="long_operation_started">Операція виконується, будь ласка зачекайте…</string>
@@ -58,50 +60,50 @@
     <string name="settings_tab_destinations">Операції</string>
 
     <!-- Copy Dialog -->
-    <string name="copying_files">Копіювання файлів</string>
-    <string name="copying_n_files_from_folder">Копіювання %1$d файлів з %2$s</string>
-    <string name="copied_n_files">Скопійовано %1$d файлів</string>
-    <string name="copied_n_of_m_files">Скопійовано %1$d з %2$d файлів</string>
-    <string name="copy_failed">Помилка копіювання: %1$s</string>
+    <string name="copying_files">Копіюємо..</string>
+    <string name="copying_n_files_from_folder">Копіюємо %1$d файлів з %2$s..</string>
+    <string name="copied_n_files">Скопіювали %1$d файлів.</string>
+    <string name="copied_n_of_m_files">Скопіювали %1$d з %2$d файлів.</string>
+    <string name="copy_failed">Не вдалося скопіювати файли.</string>
     <string name="no_destinations_available">Ресурси-отримувачі не налаштовано</string>
 
     <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
     <string name="archiving_n_files_from_folder">Архівування %1$d файлів з %2$s</string>
 
     <!-- Move Dialog -->
-    <string name="moving_files">Переміщення файлів</string>
-    <string name="moving_n_files_from_folder">Переміщення %1$d файлів з %2$s</string>
-    <string name="moved_n_files">Переміщено %1$d файлів</string>
-    <string name="moved_n_of_m_files">Переміщено %1$d з %2$d файлів</string>
-    <string name="move_failed">Помилка переміщення: %1$s</string>
+    <string name="moving_files">Переміщуємо..</string>
+    <string name="moving_n_files_from_folder">Переміщуємо %1$d файлів з %2$s..</string>
+    <string name="moved_n_files">Перемістили %1$d файлів.</string>
+    <string name="moved_n_of_m_files">Перемістили %1$d з %2$d файлів.</string>
+    <string name="move_failed">Не вдалося перемістити файли.</string>
 
     <!-- Rename Dialog -->
-    <string name="renaming_files">Перейменування файлів</string>
-    <string name="renaming_n_files_from_folder">Перейменування %1$d файлів з %2$s</string>
-    <string name="renamed_n_files">Перейменовано %1$d файлів</string>
-    <string name="rename_failed">Помилка перейменування: %1$s</string>
-    <string name="rename_failed_generic">Помилка перейменування</string>
+    <string name="renaming_files">Перейменовуємо..</string>
+    <string name="renaming_n_files_from_folder">Перейменовуємо %1$d файлів з %2$s..</string>
+    <string name="renamed_n_files">Перейменували %1$d файлів.</string>
+    <string name="rename_failed">Не вдалося перейменувати файли.</string>
+    <string name="rename_failed_generic">Не вдалося перейменувати файл.</string>
     <string name="file_already_exists">Файл вже існує: %1$s</string>
     <string name="file_already_exists_skip">%1$s (пропущено - файл вже існує)</string>
     <string name="file_already_exists_in_folder">%1$s (пропущено - вже є в %2$s)</string>
-    <string name="error_copy">Помилка копіювання</string>
-    <string name="error_move">Помилка переміщення</string>
-    <string name="error_delete">Помилка видалення</string>
-    <string name="error_all_operations_failed">Всі операції не вдалися</string>
-    <string name="all_copy_operations_failed">Не вдалося скопіювати жодного файлу: %1$s</string>
-    <string name="all_move_operations_failed">Не вдалося перемістити жодного файлу: %1$s</string>
-    <string name="all_delete_operations_failed">Не вдалося видалити жодного файлу: %1$s</string>
+    <string name="error_copy">Не вдалося скопіювати файли</string>
+    <string name="error_move">Не вдалося перемістити файли</string>
+    <string name="error_delete">Не вдалося видалити файли</string>
+    <string name="error_all_operations_failed">Нічого не вийшло.</string>
+    <string name="all_copy_operations_failed">Не вдалося скопіювати вибрані файли.</string>
+    <string name="all_move_operations_failed">Не вдалося перемістити вибрані файли.</string>
+    <string name="all_delete_operations_failed">Не вдалося видалити вибрані файли.</string>
     <string name="cloud_auth_required">%1$s потребує повторної авторизації. Будь ласка, увійдіть знову.</string>
 
     <!-- Delete Dialog -->
-    <string name="delete_confirmation">Підтвердження видалення</string>
-    <string name="delete_file_confirmation">Ви впевнені, що хочете видалити файл %1$s з %2$s?</string>
-    <string name="delete_files_confirmation">Ви впевнені, що хочете видалити %1$d файлів з %2$s?</string>
-    <string name="deleted_n_files">Видалено %1$d файлів</string>
-    <string name="deleted_n_of_m_files">Видалено %1$d з %2$d файлів</string>
-    <string name="delete_failed">Помилка видалення: %1$s</string>
+    <string name="delete_confirmation">Видалити файли?</string>
+    <string name="delete_file_confirmation">Видалити файл %1$s з %2$s?</string>
+    <string name="delete_files_confirmation">Видалити %1$d файлів з %2$s?</string>
+    <string name="deleted_n_files">Видалили %1$d файлів.</string>
+    <string name="deleted_n_of_m_files">Видалили %1$d з %2$d файлів.</string>
+    <string name="delete_failed">Не вдалося видалити файли.</string>
     <string name="deleting_files">Видалення файлів</string>
-    <string name="deleting_n_files">Видалення %1$d файлів, будь ласка зачекайте…</string>
+    <string name="deleting_n_files">Видаляємо %1$d файлів..</string>
     <string name="export_logs_subject">Діагностичні логи FastMediaSorter</string>
     <string name="title_export_logs_chooser">Експорт логів через…</string>
     <string name="export_logs_no_files">Немає файлів логів для експорту</string>
@@ -117,7 +119,7 @@
     <string name="copied_n_file_s">Скопійовано %1$d файл(ів)</string>
     <string name="moved_n_file_s">Переміщено %1$d файл(ів)</string>
     <string name="deleted_n_file_s">Видалено %1$d файл(ів)</string>
-    <string name="file_renamed_successfully">Файл успішно перейменовано</string>
+    <string name="file_renamed_successfully">Перейменували.</string>
 
     <!-- GIF Editing -->
     <string name="gif_editing_only_for_gif_files">Редагування GIF лише для GIF-файлів</string>
@@ -323,6 +325,9 @@
     <string name="error_details_timeout">Таймаут</string>
 
     <!-- Filter Dialog -->
+    <string name="filter_label_name_short">Назва</string>
+    <string name="filter_label_size_short">Розмір</string>
+    <string name="filter_label_date_short">Дата</string>
     <string name="filter_by_name">Фільтр за іменем (без урахування регістру)</string>
     <string name="filter_by_date">Фільтр за датою створення</string>
     <string name="filter_by_type">Фільтр за типом медіафайлів</string>
@@ -340,7 +345,7 @@
     <string name="max_size_mb">Макс. розмір</string>
     <string name="filter_active">Фільтр активний: %1$s</string>
     <string name="google_sign_in_failed">Вхід не вдався: %1$d</string>
-    <string name="auth_failed">Помилка аутентифікації: %1$s</string>
+    <string name="auth_failed">Авторизація не вдалася. Спробуйте ще раз.</string>
 
     <string name="battery_optimization_hint_title">Попередження про оптимізацію батареї</string>
     <string name="battery_optimization_hint_message">Оптимізація батареї може запобігти відтворенню аудіо у фоні. Вимкніть оптимізацію батареї для FastMediaSorter у системних налаштуваннях для надійного фонового аудіо.</string>
@@ -360,9 +365,9 @@
     <string name="import_settings">Завантажити налаштування з файлу</string>
     <string name="export_import_file_info">Використовується файл: Downloads/FastMediaSorter_export.xml</string>
     <string name="export_success">Налаштування експортовано до Downloads/FastMediaSorter_export.xml</string>
-    <string name="export_failed">Помилка експорту налаштувань: %s</string>
+    <string name="export_failed">Не вдалося експортувати налаштування. Спробуйте ще раз.</string>
     <string name="import_success">Налаштування успішно імпортовано</string>
-    <string name="import_failed">Помилка імпорту налаштувань: %s</string>
+    <string name="import_failed">Не вдалося імпортувати налаштування. Спробуйте ще раз.</string>
     <string name="import_file_not_found">Файл не знайдено. Помістіть файл FastMediaSorter_export.xml у каталог Downloads</string>
     <string name="restart_required_title">Потрібен перезапуск</string>
     <string name="restart_required_message">Налаштування імпортовано. Перезапустіть додаток для застосування змін.</string>
@@ -459,6 +464,7 @@
     <string name="connection_test_not_supported">Перевірка підключення не підтримується для цього типу ресурсу</string>
     <string name="error_field_required">Це поле обов’язкове</string>
     <string name="error_invalid_path">Некоректний шлях</string>
+    <string name="player_credentials_missing">Збережені облікові дані не знайдено. Оновіть їх і спробуйте ще раз.</string>
     <string name="error_invalid_port">Некоректний номер порту</string>
     <string name="error_invalid_username">Некоректне ім’я користувача</string>
     <string name="error_connection_failed">Перевірка підключення не вдалася</string>
@@ -523,6 +529,12 @@
     <string name="epub_font_size">Розмір шрифту: %1$d</string>
     <string name="epub_controls_hidden">Панель схована. Свайп вгору для відображення.</string>
     <string name="epub_exit_fullscreen">Вихід з повноекранного режиму</string>
+    <string name="epub_load_failed">Не вдалося відкрити цей EPUB. Спробуйте ще раз.</string>
+    <string name="epub_file_not_found">Цей EPUB-файл більше недоступний.</string>
+    <string name="epub_no_readable_content">У цьому EPUB немає читабельних розділів.</string>
+    <string name="epub_parse_failed">Не вдалося прочитати цей EPUB. Файл може бути пошкоджений або не підтримуватися.</string>
+    <string name="epub_display_error">Не вдалося показати цей EPUB. Спробуйте ще раз.</string>
+    <string name="epub_chapter_load_failed">Не вдалося завантажити цей розділ. Спробуйте ще раз.</string>
     <string name="epub_reader_settings">Налаштування читання</string>
     <string name="epub_reader_theme">Тема</string>
     <string name="epub_reader_font">Шрифт</string>
@@ -838,6 +850,16 @@
     <string name="debug_settings_title">Відладка</string>
     <string name="show_log">Показати лог</string>
     <string name="show_current_session_log">Лог поточної сесії</string>
+    <string name="settings_application_log_title">Лог застосунку</string>
+    <string name="settings_log_empty">Записів у лозі не знайдено.</string>
+    <string name="settings_log_last_lines">Останні %1$d рядків логу:
+
+%2$s</string>
+    <string name="settings_log_empty_session">Для поточної сесії записів у лозі не знайдено.</string>
+    <string name="settings_log_current_session_body">Лог поточної сесії (%1$d рядків):
+
+%2$s</string>
+    <string name="settings_log_read_failed">Не вдалося прочитати лог. Спробуйте ще раз.</string>
     <string name="clear_cache">Очистити кеш</string>
     <string name="reset_smb_connections">Скинути SMB</string>
     <string name="reset_smb_connections_title">Скидання SMB з\'єднань</string>
@@ -910,11 +932,29 @@
     <string name="music_resource_label">Ресурс фонової музики</string>
     <string name="select_music_source">Вибрати джерело музики</string>
     <string name="no_music_source_selected">Джерело музики не вибрано</string>
+    <string name="audio_background_photos_no_photos_found">Не вдалося знайти фотографії в обраному ресурсі.</string>
+    <string name="audio_background_photos_load_failed">Не вдалося завантажити фонові фотографії. Спробуйте ще раз.</string>
     <string name="resource_not_found">Ресурс не знайдено</string>
+    <string name="error_resource_unavailable">Ресурс "%1$s" недоступний. Перевірте підключення або налаштування ресурсу.</string>
+    <string name="error_folder_load_failed">Не вдалося відкрити теку.</string>
+    <string name="error_favorite_status_update_failed">Не вдалося оновити статус вибраного.</string>
+    <string name="player_file_moved">Файл переміщено.</string>
+    <string name="error_add_destination_failed">Не вдалося додати цю теку до швидкого сортування.</string>
+    <string name="error_cloud_provider_not_configured">Для цієї теки не налаштовано хмарний сервіс.</string>
+    <string name="error_folder_loading_blocked_by_video_player">Не можна відкрити теку, поки відтворюється відео.
+
+Зараз відеоплеєр використовує мережу з пріоритетом.
+
+Закрийте плеєр і спробуйте ще раз.</string>
+    <string name="error_folder_loading_blocked_by_video_player_details">Пріоритет мережі для відеоплеєра допомагає уникнути перевантаження та ривків відтворення.</string>
     <string name="tooltip_slideshow_music_title">Фонова музика слайдшоу</string>
     <string name="tooltip_slideshow_music_message">При увімкненні музичні файли з обраного ресурсу будуть відтворюватися у випадковому порядку під час слайдшоу зображень/GIF. Виберіть ресурс з вашою музичною колекцією.</string>
     <string name="clear_selection">Очистити вибір</string>
     <string name="no_resources_available">Немає доступних ресурсів</string>
+    <string name="main_select_resource_first">Спочатку виберіть ресурс.</string>
+    <string name="main_select_resource_to_copy">Спочатку виберіть ресурс для копіювання.</string>
+    <string name="main_open_resource_failed">Не вдалося відкрити цей ресурс. Спробуйте ще раз.</string>
+    <string name="toast_error_loading_resources">Не вдалося завантажити список ресурсів. Спробуйте ще раз.</string>
 
     <!-- Збереження кадру відео (Save Frame) -->
     <string name="menu_save_frame">Зберегти кадр</string>
@@ -1243,7 +1283,7 @@
     <string name="sync_status_completed">Синхронізовано %d ресурсів</string>
     <string name="sync_status_failed">Помилка синхронізації</string>
     <string name="sync_completed_successfully">Успішно синхронізовано %d ресурсів</string>
-    <string name="sync_failed">Помилка синхронізації: %s</string>
+    <string name="sync_failed">Не вдалося завершити синхронізацію. Спробуйте ще раз.</string>
     <string name="background_sync_enabled">Фонову синхронізацію увімкнено</string>
     <string name="background_sync_disabled">Фонову синхронізацію вимкнено</string>
     <string name="last_sync_time">Остання синхронізація: %s</string>
@@ -1311,20 +1351,20 @@
     <string name="storage_permissions_granted">Дозволи вже надано</string>
 
     <!-- File Operations -->
-    <string name="msg_copy_started">Копіювання до %1$s…</string>
-    <string name="msg_move_started">Переміщення до %1$s…</string>
-    <string name="msg_copy_success">Файл скопійовано в %1$s</string>
-    <string name="msg_copy_success_count">Скопійовано %1$d файлів в %2$s</string>
-    <string name="error_copy_failed">Помилка копіювання: %1$s</string>
-    <string name="error_file_exists_copy">Файл "%1$s" вже існує в "%2$s".\n\nУвімкніть "Перезапис при копіюванні" в Налаштування → Копіювання та переміщення</string>
-    <string name="msg_move_success">Файл переміщено до %1$s</string>
-    <string name="msg_move_success_count">Переміщено %1$d файлів до %2$s</string>
-    <string name="error_move_failed">Помилка переміщення: %1$s</string>
-    <string name="error_file_exists_move">Файл "%1$s" вже існує в "%2$s".\n\nУвімкніть "Перезапис при переміщенні" в Налаштування → Копіювання та переміщення</string>
-    <string name="msg_delete_success">Файл видалено</string>
-    <string name="error_delete_failed">Помилка видалення: %1$s</string>
-    <string name="error_delete_unexpected">Несподівана помилка видалення</string>
-    <string name="error_delete_permission_required">Потрібен дозвіл для видалення файлу. Підтвердіть доступ.</string>
+    <string name="msg_copy_started">Копіюємо до %1$s..</string>
+    <string name="msg_move_started">Переміщуємо до %1$s..</string>
+    <string name="msg_copy_success">Скопіювали до %1$s.</string>
+    <string name="msg_copy_success_count">Скопіювали %1$d файлів до %2$s.</string>
+    <string name="error_copy_failed">Не вдалося скопіювати файл.</string>
+    <string name="error_file_exists_copy">Файл "%1$s" вже є в "%2$s".\n\nЯкщо хочете замінити його, увімкніть "Перезапис при копіюванні" в Налаштування -&gt; Копіювання та переміщення.</string>
+    <string name="msg_move_success">Перемістили до %1$s.</string>
+    <string name="msg_move_success_count">Перемістили %1$d файлів до %2$s.</string>
+    <string name="error_move_failed">Не вдалося перемістити файл.</string>
+    <string name="error_file_exists_move">Файл "%1$s" вже є в "%2$s".\n\nЯкщо хочете замінити його, увімкніть "Перезапис при переміщенні" в Налаштування -&gt; Копіювання та переміщення.</string>
+    <string name="msg_delete_success">Видалили.</string>
+    <string name="error_delete_failed">Не вдалося видалити файл.</string>
+    <string name="error_delete_unexpected">Не вдалося завершити видалення файлу.</string>
+    <string name="error_delete_permission_required">Android просить дозвіл на видалення цього файлу. Підтвердьте наступний запит.</string>
 
     <!-- MANAGE_MEDIA Permission -->
     <string name="manage_media_title">Увімкнути швидкі операції</string>
@@ -1346,9 +1386,9 @@
     <string name="battery_optimization_dialog_btn_allow">Вимкнути оптимізацію</string>
     <string name="battery_optimization_dialog_btn_skip">Пропустити</string>
     <string name="msg_download_share">Завантаження файлу для відправки…</string>
-    <string name="error_share_download_failed">Помилка завантаження для відправки: %1$s</string>
+    <string name="error_share_download_failed">Не вдалося підготувати файл до надсилання.</string>
     <string name="error_share_unexpected">Несподівана помилка завантаження</string>
-    <string name="error_share_failed">Помилка відправки: %1$s</string>
+    <string name="error_share_failed">Не вдалося надіслати файл.</string>
     <string name="title_share_chooser">Надіслати файл</string>
 
     <!-- Add Resource & Network Discovery -->
@@ -1358,7 +1398,7 @@
     <string name="msg_host_selected">Вибрано %1$s (%2$s)</string>
     <string name="msg_scan_again">Сканувати знову</string>
     <string name="msg_no_shares_found">Спільних папок не знайдено. Введіть ім\'я вручну.</string>
-    <string name="msg_share_scan_failed">Помилка сканування: %1$s</string>
+    <string name="msg_share_scan_failed">Не вдалося просканувати спільні папки. Спробуйте ще раз.</string>
     <string name="msg_select_share">Папки на %1$s</string>
     <!-- S0064: діалог ручного введення імені шари -->
     <string name="smb_enter_share_manually">+ Ввести ім\'я папки вручну..</string>
@@ -1395,7 +1435,9 @@
     <string name="image_edit_saturation">Насиченість</string>
     <string name="image_edit_apply_adjustments">Застосувати налаштування</string>
     <string name="msg_image_edit_completed">Редагування зображення завершено</string>
-    <string name="msg_failed_reload_image">Не вдалося перезавантажити зображення: %1$s</string>
+    <string name="error_image_load_failed">Не вдалося завантажити зображення.</string>
+    <string name="error_gif_load_failed">Не вдалося завантажити GIF.</string>
+    <string name="msg_failed_reload_image">Не вдалося перезавантажити зображення.</string>
 
     <!-- GIF Editor -->
     <string name="gif_edit_title">Редактор GIF</string>
@@ -1415,11 +1457,11 @@
     <string name="msg_gif_extracting">Вилучення кадрів…</string>
     <string name="msg_gif_extract_started">Витягування %1$d кадрів…</string>
     <string name="msg_gif_extract_success">%1$d кадрів збережено в Завантаження</string>
-    <string name="msg_gif_extract_failed">Не вдалося витягти кадри: %1$s</string>
+    <string name="msg_gif_extract_failed">Не вдалося витягти кадри. Спробуйте ще раз.</string>
     <string name="msg_gif_speed_success">Швидкість змінено на %1$.1fx</string>
-    <string name="msg_gif_speed_failed">Не вдалося змінити швидкість: %1$s</string>
+    <string name="msg_gif_speed_failed">Не вдалося змінити швидкість GIF. Спробуйте ще раз.</string>
     <string name="msg_gif_first_frame_success">Перший кадр збережено в Завантаження</string>
-    <string name="msg_gif_first_frame_failed">Не вдалося зберегти перший кадр: %1$s</string>
+    <string name="msg_gif_first_frame_failed">Не вдалося зберегти перший кадр. Спробуйте ще раз.</string>
     <string name="msg_preparing_file">Підготовка файлу…</string>
     <string name="msg_no_file_to_edit">Нічого редагувати</string>
     <string name="msg_no_file_to_delete">Нічого видаляти</string>
@@ -1479,7 +1521,7 @@
     <string name="no_app_to_open">Немає застосунку для відкриття цього файлу</string>
     <string name="error_opening_file_simple">Не вдалося відкрити файл</string>
     <string name="error_sharing_file">Не вдалося надіслати файл</string>
-    <string name="error_opening_external_player">Не вдалося відкрити зовнішній програвач: %1$s</string>
+    <string name="error_opening_external_player">Не вдалося відкрити зовнішній програвач. Спробуйте ще раз або виберіть інший застосунок.</string>
     <string name="unsupported_format_network_hint">Для відтворення цього файлу у зовнішньому програвачі спочатку скопіюйте його на локальний ресурс.</string>
     <string name="unsupported_format_use_external_player">Формат не підтримується. Спробуйте відкрити у зовнішньому програвачі.</string>
     <string name="unsupported_format_copy_to_local">Формат не підтримується. Скопіюйте файл на локальний ресурс, щоб використовувати зовнішній програвач.</string>
@@ -1509,8 +1551,10 @@
     <string name="ocr_button_description">Витягти текст</string>
     <string name="ocr_processing">Розпізнавання тексту…</string>
     <string name="ocr_no_text_found">Текст на зображенні не знайдено</string>
+    <string name="ocr_images_only">Розпізнавання тексту доступне лише для зображень.</string>
+    <string name="ocr_extract_image_failed">Не вдалося підготувати це зображення для розпізнавання. Спробуйте ще раз.</string>
     <string name="translation_no_text_found">Немає тексту для перекладу</string>
-    <string name="ocr_error">Помилка розпізнавання тексту: %1$s</string>
+    <string name="ocr_error">Не вдалося розпізнати текст.</string>
 
     <!-- Media Settings Categories -->
     <string name="media_category_images">Зображення</string>
@@ -1526,23 +1570,23 @@
     <string name="toast_text_saved">Текст збережено</string>
     <string name="toast_failed_to_load_destinations">Не вдалося завантажити теки</string>
     <string name="toast_resources_refreshed">Ресурси оновлено</string>
-    <string name="toast_error_loading_destinations">Помилка завантаження тек: %1$s</string>
+    <string name="toast_error_loading_destinations">Не вдалося завантажити теки призначення. Спробуйте ще раз.</string>
     <string name="toast_move_cancelled">Переміщення скасовано</string>
     <string name="toast_copy_cancelled">Копіювання скасовано</string>
     <string name="toast_delete_cancelled">Видалення скасовано</string>
     <string name="toast_unexpected_result">Неочікуваний результат</string>
     <string name="toast_rename_error">Помилка перейменування: %1$s</string>
-    <string name="toast_delete_error">Помилка видалення: %1$s</string>
+    <string name="toast_delete_error">Не вдалося завершити видалення файлів. Спробуйте ще раз.</string>
     <string name="error_deletion_failed">Видалення не виконано</string>
     <string name="toast_multiple_rename_not_implemented">Масове перейменування ще не реалізовано</string>
     <string name="toast_filter_applied">Фільтр застосовано</string>
-    <string name="toast_filter_failed">Не вдалося застосувати фільтр: %1$s</string>
+    <string name="toast_filter_failed">Не вдалося застосувати цей фільтр. Спробуйте ще раз.</string>
     <string name="toast_adjustments_applied">Налаштування застосовано</string>
-    <string name="toast_adjustments_failed">Не вдалося застосувати налаштування: %1$s</string>
+    <string name="toast_adjustments_failed">Не вдалося застосувати ці налаштування. Спробуйте ще раз.</string>
     <string name="toast_image_rotated">Зображення повернуто</string>
-    <string name="toast_rotate_failed">Не вдалося повернути: %1$s</string>
+    <string name="toast_rotate_failed">Не вдалося повернути зображення. Спробуйте ще раз.</string>
     <string name="toast_image_flipped">Зображення відображено</string>
-    <string name="toast_flip_failed">Не вдалося відобразити: %1$s</string>
+    <string name="toast_flip_failed">Не вдалося віддзеркалити зображення. Спробуйте ще раз.</string>
     <string name="toast_filter_active">Фільтр активний…</string>
 
     <!-- Повідомлення прогресу для редагування зображень -->
@@ -1628,7 +1672,13 @@
     <string name="original_path_not_exists">Вихідний шлях не існує: %1$s</string>
     <string name="failed_to_restore_files">Не вдалося відновити файли</string>
     <string name="file_restored">Файл відновлено: %1$s</string>
+    <string name="reload_files_failed">Не вдалося оновити список файлів.</string>
+    <string name="no_operation_to_undo">Немає що скасувати.</string>
+    <string name="undo_delete_only">Скасувати можна лише видалення.</string>
+    <string name="invalid_undo_operation_data">Ця дія скасування більше недоступна.</string>
+    <string name="undo_failed">Не вдалося скасувати цю дію. Спробуйте ще раз.</string>
     <string name="files_restored">Відновлено файлів: %1$d</string>
+    <string name="undo_rename_cancelled">Перейменування скасовано.</string>
     <string name="restore_last_deleted">Відновити останнє видалене</string>
     <string name="confirm_restore">Відновити %1$s?</string>
     <string name="confirm_restore_multiple">Відновити %1$d видалених файлів?</string>
@@ -1896,7 +1946,7 @@
     <string name="reset_general_section_title">Скидання розділу Загальні</string>
     <string name="reset_general_section_message">Скинути лише налаштування розділу Загальні до значень за замовчуванням?</string>
     <string name="reset_general_section_success">Розділ Загальні скинуто</string>
-    <string name="reset_general_section_failed">Не вдалося скинути розділ Загальні: %1$s</string>
+    <string name="reset_general_section_failed">Не вдалося скинути розділ Загальні. Спробуйте ще раз.</string>
     <string name="reset_media_section_title">Скидання розділу Медіа</string>
     <string name="reset_media_section_message">Скинути лише налаштування розділу Медіа до значень за замовчуванням?</string>
     <string name="reset_media_section_success">Розділ Медіа скинуто</string>
@@ -1942,7 +1992,7 @@
 
 
     <!-- Injected missing keys 2026-03-08 -->
-    <string name="and_more_files">and %d more files</string>
+    <string name="and_more_files">і ще %d файлів</string>
     <string name="audio_a">Audio (A)</string>
     <string name="audio_title_label">Title: %1$s</string>
     <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
@@ -2031,11 +2081,12 @@
     <string name="error_invalid_cloud_provider">Невірний хмарний провайдер</string>
     <string name="error_invalid_host">Невірна адреса хоста</string>
     <string name="error_no_media_types">Необхідно вибрати хоча б один тип медіафайлів</string>
-    <string name="error_operation_failed">Операція не виконана</string>
-    <string name="error_operation_title_copy">Помилка копіювання</string>
-    <string name="error_operation_title_delete">Помилка видалення</string>
-    <string name="error_operation_title_move">Помилка переміщення</string>
-    <string name="error_partial_success">Операцію виконано з помилками</string>
+    <string name="error_operation_failed">Не вдалося завершити дію</string>
+    <string name="error_init_settings">Не вдалося відкрити ці налаштування. Спробуйте ще раз.</string>
+    <string name="error_operation_title_copy">Не вдалося скопіювати</string>
+    <string name="error_operation_title_delete">Не вдалося видалити</string>
+    <string name="error_operation_title_move">Не вдалося перемістити</string>
+    <string name="error_partial_success">Частина файлів потребує уваги</string>
     <string name="error_reason_already_exists">Файл з таким іменем вже існує в папці призначення.</string>
     <string name="error_reason_authentication">Помилка автентифікації. Перевірте логін та пароль у налаштуваннях ресурсу.</string>
     <string name="error_reason_disk_space">Недостатньо місця на диску призначення.</string>
@@ -2047,7 +2098,7 @@
     <string name="error_reason_timeout">Час операції вичерпано. Сервер може бути повільним або недоступним.</string>
     <string name="exit_fullscreen">Вийти з повноекранного режиму</string>
     <string name="export_logs">Експорт журналів налагодження</string>
-    <string name="failed_count">Не виконано: %d</string>
+    <string name="failed_count">З проблемами: %d</string>
     <string name="failed_files">Файли з помилками</string>
     <string name="file_info">Інформація про файл</string>
     <string name="files_scanned_default">Проскановано файлів: 0</string>
@@ -2168,10 +2219,15 @@
     <string name="playback_control_hue_value">HUE: %1$+d°</string>
     <string name="playback_control_brightness_value">Яскравість: %1$+d%%</string>
     <string name="playback_control_speed_value">Швидкість: %1$.2fx</string>
-    <string name="success_count">Успішно: %d</string>
+    <string name="success_count">Готово: %d</string>
     <string name="table_of_contents">Зміст</string>
     <string name="technical_details">Технічні подробиці</string>
     <string name="text_file_too_large">Файл занадто великий (%1$s). Максимальний підтримуваний розмір: %2$s.</string>
+    <string name="text_file_load_failed">Не вдалося відкрити цей текстовий файл. Спробуйте ще раз.</string>
+    <string name="text_file_not_found">Цей текстовий файл більше недоступний.</string>
+    <string name="text_file_display_error">Не вдалося показати цей текстовий файл. Спробуйте ще раз.</string>
+    <string name="text_file_reopen_failed">Не вдалося знову відкрити цей файл з вибраним кодуванням.</string>
+    <string name="text_file_save_failed">Не вдалося зберегти цей файл. Спробуйте ще раз.</string>
     <string name="text_page_indicator">Сторінка %1$d / %2$d</string>
     <string name="text_page_indicator_estimated">Сторінка %1$d / ~%2$d</string>
     <string name="text_size_limit">Максимальний розмір текстового файлу (внутрішній переглядач)</string>
@@ -2185,6 +2241,12 @@
     <string name="translate_image">Перекласти зображення</string>
     <string name="translate_page">Перекласти сторінку</string>
     <string name="translation_error">Помилка перекладу</string>
+    <string name="pdf_empty">Порожній PDF</string>
+    <string name="pdf_load_failed">Не вдалося відкрити цей PDF. Спробуйте ще раз.</string>
+    <string name="pdf_file_not_found">Цей PDF-файл більше недоступний.</string>
+    <string name="pdf_read_failed">Не вдалося прочитати цей PDF. Файл може бути пошкоджений або не підтримуватися.</string>
+    <string name="pdf_display_error">Не вдалося показати цей PDF. Спробуйте ще раз.</string>
+    <string name="pdf_page_render_failed">Не вдалося відмалювати цю сторінку. Спробуйте ще раз.</string>
     <string name="translation_started">Переклад запущено…</string>
     <string name="tts_reading">Читаю вголос…</string>
     <string name="vinyl_indicator_description">Індикатор відтворення аудіо</string>
@@ -2214,7 +2276,7 @@
     <string name="backup_to_google_drive">Копіювати в Google Drive</string>
     <string name="restore_from_google_drive">Відновити з Google Drive</string>
     <string name="backup_success">Збережено %1$d ресурсів, %2$d обраних і всі налаштування в %3$s</string>
-    <string name="backup_failed">Помилка резервного копіювання: %s</string>
+    <string name="backup_failed">Не вдалося створити резервну копію налаштувань і ресурсів. Спробуйте ще раз.</string>
     <string name="backup_in_progress">Створення резервної копії налаштувань і ресурсів…</string>
     <string name="restore_in_progress">Відновлення налаштувань і ресурсів…</string>
     <string name="restore_confirm_title">Відновити з резервної копії?</string>
@@ -2222,7 +2284,7 @@
     <string name="restore_success">Усі налаштування відновлено. Додано %1$d ресурсів (%2$d вже існували). Додано %3$d обраних (%4$d вже існували).</string>
     <string name="restore_needs_auth">Деякі ресурси використовують мережеві або хмарні акаунти. Потрібна повторна авторизація.</string>
     <string name="restore_no_backup">Резервна копія для цього акаунту не знайдена.</string>
-    <string name="restore_failed">Помилка відновлення: %s</string>
+    <string name="restore_failed">Не вдалося відновити налаштування й ресурси. Спробуйте ще раз.</string>
     <string name="last_backup_date">Останнє копіювання: %s</string>
     <string name="backup_account">Акаунт: %s</string>
     <string name="no_internet_connection">Немає підключення до інтернету. Спробуйте пізніше.</string>
@@ -2321,6 +2383,8 @@
     <string name="widget_random_music_label">Випадкова музика</string>
     <string name="widget_random_music_description">Відтворити випадковий трек</string>
     <string name="widget_random_music_resource_not_found">Ресурс «Випадкова музика» не знайдено</string>
+    <string name="widget_favorites_label">Обране</string>
+    <string name="widget_resource_launch_label">Тека</string>
 
     <!-- Favorites backup/import -->
     <string name="backup_export_favorites">Експорт обраного</string>
@@ -2575,6 +2639,7 @@
     <string name="camera_capture_error_session_expired">Сеанс зйомки застарів — спробуйте ще раз</string>
     <string name="duplicate_detection_title">Дублікати</string>
     <string name="duplicate_scan_start">Почати сканування</string>
+    <string name="duplicate_scan_failed">Не вдалося завершити пошук дублікатів. Спробуйте ще раз.</string>
     <string name="scanning_for_duplicates">Пошук дублікатів…</string>
     <string name="duplicate_none_found">Дублікати не знайдено.</string>
     <string name="duplicates_found_format">Знайдено %1$d груп дублікатів (загалом %2$s)</string>
@@ -2601,6 +2666,8 @@
     <string name="error_folder_already_exists">Папка вже існує</string>
     <string name="msg_folder_created">Папка "%1$s" створена</string>
     <string name="msg_folder_renamed">Папку перейменовано</string>
+        <string name="error_folder_create_failed">Не вдалося створити папку.</string>
+        <string name="error_folder_rename_failed">Не вдалося перейменувати папку.</string>
     <string name="delete_folder_confirm">Видалити папку «%1$s» та весь її вміст? Скасувати не можна.</string>
     <string name="delete_n_folders_confirm">Видалити %1$d папок та весь їхній вміст? Скасувати не можна.</string>
     <string name="error_cross_protocol_dir_not_supported">Копіювання/переміщення папок між різними типами сховищ не підтримується.</string>
@@ -2653,6 +2720,7 @@
     <string name="wear_sync_ready">Готово до синхронізації</string>
     <string name="wear_sync_sending">Надсилання на годинник…</string>
     <string name="wear_sync_success">Надіслано %d джерел на годинник</string>
+    <string name="wear_sync_failed">Не вдалося синхронізувати дані з годинником. Спробуйте ще раз.</string>
     <string name="wear_settings_section_title">Налаштування годинника</string>
     <string name="wear_settings_audio">Аудіо</string>
     <string name="wear_settings_video">Відео</string>
@@ -2661,6 +2729,7 @@
     <string name="wear_settings_album_art">Обкладинки альбомів</string>
     <string name="wear_settings_slideshow_interval">Інтервал слайдшоу (с)</string>
     <string name="wear_push_settings">Надіслати налаштування годиннику</string>
+    <string name="wear_push_settings_failed">Не вдалося надіслати налаштування на годинник. Спробуйте ще раз.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
     <string name="wear_import_pending_title">Отримано джерела годинника</string>
@@ -3102,6 +3171,10 @@
     <string name="dialog_crop_filename_hint">Ім\'я файлу</string>
     <string name="crop_save_to_downloads_note">Джерело лише для читання — файл буде збережено у Завантаження</string>
     <string name="crop_file_created">Файл %s створено</string>
+    <string name="crop_error_outside_image">Область обрізки виходить за межі зображення. Змініть виділення і повторіть.</string>
+    <string name="crop_failed">Не вдалося обрізати зображення. Спробуйте ще раз.</string>
+    <string name="crop_to_file_failed">Не вдалося зберегти обрізану копію. Спробуйте ще раз.</string>
+    <string name="compress_copy_failed">Не вдалося створити стиснуту копію. Спробуйте ще раз.</string>
 
     <!-- S0107: Draw overlay commands -->
     <string name="menu_draw_overlay">Малювати</string>
@@ -3111,6 +3184,7 @@
     <string name="draw_overlay_save_button">Зберегти як новий файл</string>
     <string name="draw_overlay_filename_hint">Ім\'я файлу</string>
     <string name="draw_overlay_saved_to_downloads">Збережено у Завантаження: %s</string>
+    <string name="draw_overlay_save_failed">Не вдалося зберегти малюнок. Спробуйте ще раз.</string>
 
     <!-- S0116 §5.1 pillar M: post-download UX toasts -->
     <string name="s0116_toast_saved_to_resource">Збережено: %1$s</string>
@@ -3120,6 +3194,17 @@
     <string name="s0116_toast_mux_failed">Не вдалося зібрати MP4 (codec: %1$s)</string>
     <string name="s0116_toast_streaming_disabled">Стріми недоступні у цій збірці</string>
     <string name="s0116_toast_auth_required">Потрібен вхід для %1$s — відкрийте налаштування</string>
+
+    <!-- S0117: batch progress and summary UX for noLegal site extraction -->
+    <string name="s0117_progress_batch_item">Завантажується елемент %1$d з %2$d..</string>
+    <string name="s0117_toast_batch_saved">Збережено %1$d елементів</string>
+    <string name="s0117_batch_dialog_title">Підсумок пакетного завантаження</string>
+    <string name="s0117_batch_dialog_summary">Збережено %1$d з %2$d елементів.</string>
+    <string name="s0117_batch_dialog_failure_line">%1$s: %2$s</string>
+    <string name="s0117_batch_dialog_more_failures">+ ще %1$d помилок</string>
+    <string name="s0117_license_lib_title">NewPipe Extractor - рушій site extraction</string>
+    <string name="s0117_license_lib_project">Проєкт: TeamNewPipe</string>
+    <string name="s0117_license_lib_license">Ліцензія: GPL-3.0-or-later</string>
 
     <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
     <string name="setting_saved_authorizations_title">Збережені авторизації</string>
@@ -3176,14 +3261,15 @@
     <string name="settings_network_permissions_already_granted">Мережеві дозволи вже увімкнені — тут немає що робити.</string>
     <string name="settings_credentials_picker_failed">Не вдалося відкрити вибір файлів. Спробуйте ще раз.</string>
     <string name="settings_credentials_file_empty">Здається, файл порожній або його не вдалося прочитати.</string>
-    <string name="settings_credentials_import_failed">Імпорт не вдався: %1$s</string>
+    <string name="settings_credentials_import_failed">Не вдалося імпортувати цей файл. Спробуйте ще раз.</string>
     <string name="settings_credentials_import_success">Імпорт готовий: %1$d облікових даних, %2$d ресурсів.</string>
     <string name="settings_credentials_import_success_with_settings">Імпорт готовий: %1$d облікових даних, %2$d ресурсів, налаштування оновлено.</string>
-    <string name="settings_reset_smb_failed">Не вдалося скинути SMB-підключення: %1$s</string>
-    <string name="settings_reset_settings_failed">Не вдалося скинути налаштування: %1$s</string>
+    <string name="settings_reset_smb_failed">Не вдалося скинути SMB-підключення. Спробуйте ще раз.</string>
+    <string name="settings_reset_settings_failed">Не вдалося скинути налаштування. Спробуйте ще раз.</string>
     <string name="settings_unknown_error">Щось пішло не за планом. Спробуйте ще раз.</string>
     <string name="settings_no_browser_for_docs">Не знайшовся браузер, щоб відкрити документацію.</string>
     <string name="settings_no_browser_for_privacy">Не знайшовся браузер, щоб відкрити Політику конфіденційності.</string>
+    <string name="player_media_files_load_failed">Не вдалося завантажити список файлів. Спробуйте ще раз.</string>
 
     <!-- S0118 Phase 05: feature surface sweep -->
     <string name="duplicates_deleted_short">Вибрані файли видалено.</string>
@@ -3192,4 +3278,30 @@
     <string name="addresource_signed_out">Вийшли з акаунта.</string>
     <string name="addresource_permission_needed">Нам потрібен цей дозвіл, щоб просканувати папки.</string>
     <string name="addresource_scan_failed_short">Сканування не завершилося. Спробуйте ще раз.</string>
+    <string name="addresource_host_required">Укажіть ім\'я хоста.</string>
+    <string name="addresource_private_key_required">Додайте приватний ключ SSH.</string>
+    <string name="addresource_connection_failed">Не вдалося підключитися. Перевірте дані й спробуйте ще раз.</string>
+    <string name="addresource_protocol_invalid">Цей тип підключення тут не підтримується.</string>
+    <string name="addresource_resource_added">Ресурс додано.</string>
+    <string name="addresource_resource_unavailable_after_add">Ресурс додано, але зараз він недоступний. Перевірте шлях і спробуйте ще раз.</string>
+    <string name="addresource_add_failed">Не вдалося додати ресурс. Спробуйте ще раз.</string>
+    <string name="addresource_save_credentials_failed">Не вдалося зберегти облікові дані. Спробуйте ще раз.</string>
+    <string name="addresource_resource_not_found">Не вдалося знайти цей ресурс.</string>
+    <string name="addresource_resource_load_failed">Не вдалося завантажити цей ресурс. Спробуйте ще раз.</string>
+    <string name="addresource_accounts_load_failed">Не вдалося завантажити збережені акаунти. Спробуйте ще раз.</string>
+    <string name="addresource_none_selected">Виберіть хоча б один ресурс.</string>
+    <string name="addresource_quick_sort_full_message">%1$s. Швидке сортування заповнене. %2$d ресурсів додано без прапорця швидкого сортування.</string>
+    <string name="addresource_quick_sort_limit_reached">Швидке сортування заповнене. Приберіть один елемент, перш ніж додавати новий.</string>
+    <string name="addresource_smb_scan_found_limited">SMB-сканування знайшло лише кілька спільних тек. Якщо у вас є спільні теки з нестандартними назвами, додайте їх вручну.</string>
+    <string name="addresource_smb_scan_found_more">SMB-сканування завершено. Якщо у вас є ще спільні теки з нестандартними назвами, додайте їх вручну.</string>
+    <string name="addresource_smb_scan_none_found">Спільних тек не знайдено. Якщо у вас нестандартні назви, додайте їх вручну.</string>
+    <string name="addresource_some_resources_unavailable_after_add">%1$s. Деякі ресурси зараз недоступні.</string>
+    <string name="addresource_local_folders_found">Локальні теки знайдено. Виберіть, що додати.</string>
+    <string name="addresource_folder_added_to_list">Теку додано до списку.</string>
+    <string name="receive_share_preparing">Підготовлюю спільний контент..</string>
+    <string name="receive_share_source_name">Спільне</string>
+    <string name="receive_share_no_content">Не отримано контенту для імпорту</string>
+    <string name="receive_share_cache_failed">Не вдалося підготувати спільний файл. Спробуйте ще раз.</string>
+    <string name="receive_share_copied_to_folder">Збережено у вибрану теку</string>
+    <string name="receive_share_copy_to_folder_failed">Не вдалося зберегти спільний файл у цю теку. Спробуйте ще раз.</string>
 </resources>

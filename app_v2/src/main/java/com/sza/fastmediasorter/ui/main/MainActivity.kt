@@ -236,7 +236,31 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // The resource/index are stored in AudioPlaybackService companion by PlayerMediaLoaderManager.
             binding.root.post { openAudioPlayerFromNotification() }
         }
-        
+
+        // S0134: Favorites widget tap routes via extras (not actions).
+        // Onboarding extra (empty-state tap) opens Favorites tab + shows tooltip;
+        // plain favorites extra (list-tap on widget container) opens Favorites tab silently.
+        val onboardingExtraKey = "open_favorites_onboarding"
+        val openFavoritesOnboarding = intent?.getBooleanExtra(onboardingExtraKey, false) == true
+        val openFavoritesPlain = intent?.getBooleanExtra("open_favorites", false) == true
+        if (openFavoritesOnboarding) {
+            Timber.d("S0134: MainActivity onboarding extra processed")
+            binding.root.post {
+                viewModel.openFavorites()
+                com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                    this,
+                    R.string.tooltip_favorites_title,
+                    R.string.tooltip_favorites_message
+                )
+            }
+            intent?.removeExtra(onboardingExtraKey)
+            intent?.removeExtra("open_favorites")
+        } else if (openFavoritesPlain) {
+            binding.root.post { viewModel.openFavorites() }
+            intent?.removeExtra("open_favorites")
+        }
+
+
         // Initialize keyboard navigation handler
         keyboardNavigationHandler = KeyboardNavigationHandler(
             context = this,

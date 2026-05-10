@@ -4,6 +4,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.cloud.datasource.CloudDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
@@ -24,7 +25,7 @@ internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenRea
     val fileId = path.substringAfterLast("/")
     if (fileId.isEmpty() || fileId == path) {
         Timber.e("VideoPlayerManager: Invalid cloud path, no fileId")
-        playerCallback.showError("Invalid cloud file path")
+        playerCallback.showError(context.getString(R.string.error_invalid_path))
         return
     }
 

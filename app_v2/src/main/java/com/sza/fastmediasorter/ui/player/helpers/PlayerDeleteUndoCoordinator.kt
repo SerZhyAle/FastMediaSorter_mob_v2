@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -33,6 +35,7 @@ import java.io.IOException
  * bundle for cross-concern actions (`saveResumeState` / `reloadFiles`) that still live on the VM.
  */
 class PlayerDeleteUndoCoordinator(
+    private val context: Context,
     private val fileOperationUseCase: FileOperationUseCase,
     private val settingsRepository: SettingsRepository,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
@@ -54,12 +57,12 @@ class PlayerDeleteUndoCoordinator(
         val resource = stateFlow.value.resource
 
         if (currentFile == null) {
-            sendEvent(PlayerViewModel.PlayerEvent.ShowError("No file to delete"))
+            sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.msg_no_file_to_delete)))
             return false
         }
 
         if (resource == null) {
-            sendEvent(PlayerViewModel.PlayerEvent.ShowError("Resource not loaded"))
+            sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.toast_resource_not_loaded)))
             return false
         }
 
@@ -129,7 +132,7 @@ class PlayerDeleteUndoCoordinator(
                         }
                     }
                     is FileOperationResult.Failure -> {
-                        sendEvent(PlayerViewModel.PlayerEvent.ShowError(result.error))
+                        sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.error_delete_failed)))
                         Timber.e("Delete failed: ${result.error}")
                     }
                     is FileOperationResult.AuthenticationRequired -> {
@@ -143,7 +146,7 @@ class PlayerDeleteUndoCoordinator(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error deleting file: ${currentFile.path}")
-                sendEvent(PlayerViewModel.PlayerEvent.ShowError("Error deleting file: ${e.message}"))
+                sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.error_delete_failed)))
             }
         }
 
@@ -168,7 +171,7 @@ class PlayerDeleteUndoCoordinator(
                 Timber.d("Files reloaded after rename, total: ${files.size}")
             } catch (e: Exception) {
                 Timber.e(e, "Failed to reload files after rename")
-                sendEvent(PlayerViewModel.PlayerEvent.ShowError("Failed to reload files: ${e.message}"))
+                sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.reload_files_failed)))
             }
         }
     }
@@ -186,11 +189,11 @@ class PlayerDeleteUndoCoordinator(
     fun undoLastOperation() {
         val operation = stateFlow.value.lastOperation
         if (operation == null) {
-            sendEvent(PlayerViewModel.PlayerEvent.ShowMessage("No operation to undo"))
+            sendEvent(PlayerViewModel.PlayerEvent.ShowMessage(context.getString(R.string.no_operation_to_undo)))
             return
         }
         if (operation.type != FileOperationType.DELETE) {
-            sendEvent(PlayerViewModel.PlayerEvent.ShowMessage("Can only undo delete operations"))
+            sendEvent(PlayerViewModel.PlayerEvent.ShowMessage(context.getString(R.string.undo_delete_only)))
             return
         }
 
@@ -199,11 +202,11 @@ class PlayerDeleteUndoCoordinator(
                 // copiedFiles structure: [0] = trashDirPath, [1..n] = originalFilePaths
                 val paths = operation.copiedFiles
                 if (paths == null) {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError("No files to restore"))
+                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.no_files_to_restore)))
                     return@launch
                 }
                 if (paths.size < 2) {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError("Invalid undo operation data"))
+                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.invalid_undo_operation_data)))
                     return@launch
                 }
 
@@ -223,14 +226,14 @@ class PlayerDeleteUndoCoordinator(
 
                 if (restoreSuccess) {
                     updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowMessage("File restored successfully"))
+                    sendEvent(PlayerViewModel.PlayerEvent.ShowMessage(context.getString(R.string.file_restored, File(originalPath).name)))
                     parentCallbacks.reloadFiles()
                 } else {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError("Failed to restore file"))
+                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.failed_to_restore_files)))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Undo operation failed")
-                sendEvent(PlayerViewModel.PlayerEvent.ShowError("Undo failed: ${e.message}"))
+                sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.undo_failed)))
             }
         }
     }

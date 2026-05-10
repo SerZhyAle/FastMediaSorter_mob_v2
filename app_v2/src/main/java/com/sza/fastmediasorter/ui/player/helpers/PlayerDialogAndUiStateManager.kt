@@ -194,7 +194,10 @@ class PlayerDialogAndUiStateManager(
                     }.onFailure { e ->
                         Toast.makeText(
                             activity,
-                            activity.getString(R.string.pdf_export_failed, e.message),
+                            activity.getString(
+                                R.string.pdf_export_failed,
+                                activity.getString(R.string.friendly_copy_error_generic)
+                            ),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -205,7 +208,10 @@ class PlayerDialogAndUiStateManager(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         activity,
-                        "Export failed: ${e.message}",
+                        activity.getString(
+                            R.string.pdf_export_failed,
+                            activity.getString(R.string.friendly_copy_error_generic)
+                        ),
                         Toast.LENGTH_LONG
                     ).show()
                 }

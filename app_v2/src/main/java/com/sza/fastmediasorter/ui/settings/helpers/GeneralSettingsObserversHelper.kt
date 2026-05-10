@@ -107,7 +107,7 @@ class GeneralSettingsObserversHelper(
                     viewModel.clearManualNetworkSyncTerminalState()
                 }
                 state.errorMessage != null -> {
-                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.sync_failed, state.errorMessage), Toast.LENGTH_LONG).show()
+                    Toast.makeText(fragment.requireContext(), fragment.getString(R.string.sync_failed), Toast.LENGTH_LONG).show()
                     viewModel.clearManualNetworkSyncTerminalState()
                 }
             }

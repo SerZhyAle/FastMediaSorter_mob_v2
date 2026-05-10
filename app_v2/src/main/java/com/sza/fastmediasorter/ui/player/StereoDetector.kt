@@ -183,12 +183,21 @@ class StereoDetector @javax.inject.Inject constructor() {
      */
     fun detectForVideo(path: String?, format: Format): StereoMode {
         val mp4Result = path?.let { detectFromMp4Path(it) } ?: StereoMode.UNKNOWN
-        if (mp4Result != StereoMode.UNKNOWN) return mp4Result
+        if (mp4Result != StereoMode.UNKNOWN) {
+            Timber.d("VR_AUDIT/12: detectForVideo result=%s source=mp4-spatial filename=%s", mp4Result, path)
+            return mp4Result
+        }
 
         val filenameResult = path?.let { detectFromFilename(it) } ?: StereoMode.UNKNOWN
-        if (filenameResult != StereoMode.UNKNOWN) return filenameResult
+        if (filenameResult != StereoMode.UNKNOWN) {
+            Timber.d("VR_AUDIT/12: detectForVideo result=%s source=filename filename=%s", filenameResult, path)
+            return filenameResult
+        }
 
-        return detectFromFormat(format)
+        val formatResult = detectFromFormat(format)
+        Timber.d("VR_AUDIT/12: detectForVideo result=%s source=format-meta filename=%s size=%dx%d",
+            formatResult, path, format.width, format.height)
+        return formatResult
     }
 
     /**
@@ -200,7 +209,10 @@ class StereoDetector @javax.inject.Inject constructor() {
      */
     fun detectForImage(path: String, width: Int? = null, height: Int? = null): StereoMode {
         val filenameResult = detectFromFilename(path)
-        if (filenameResult != StereoMode.UNKNOWN) return filenameResult
+        if (filenameResult != StereoMode.UNKNOWN) {
+            Timber.d("VR_AUDIT/12: detectForImage result=%s source=filename filename=%s", filenameResult, path)
+            return filenameResult
+        }
 
         val dimensionResult = if (width != null && height != null) {
             detectFromDimensions(width, height)
@@ -210,13 +222,17 @@ class StereoDetector @javax.inject.Inject constructor() {
 
         val photoSphere = photoSphereReader.read(path)
         if (photoSphere?.isEquirectangular == true) {
-            return when {
+            val r = when {
                 photoSphere.is180Projection() -> StereoMode.EQUIRECT_180_MONO
                 dimensionResult.isSpherical() -> dimensionResult
                 else -> StereoMode.EQUIRECT_360_MONO
             }
+            Timber.d("VR_AUDIT/12: detectForImage result=%s source=photo-sphere-xmp filename=%s", r, path)
+            return r
         }
 
+        Timber.d("VR_AUDIT/12: detectForImage result=%s source=dimensions filename=%s w=%s h=%s",
+            dimensionResult, path, width, height)
         return dimensionResult
     }
 

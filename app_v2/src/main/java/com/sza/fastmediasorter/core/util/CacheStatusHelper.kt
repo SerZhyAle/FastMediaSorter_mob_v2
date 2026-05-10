@@ -53,4 +53,9 @@ object CacheStatusHelper {
             Timber.e(e, "Failed to check Glide disk cache status")
         }
     }
+
+    fun logGlideDiskCacheStatusOnce(context: Context, tag: String) {
+        Timber.d("S0136: CacheStatusHelper post-first-load dump tag=$tag")
+        logGlideDiskCacheStatus(context)
+    }
 }

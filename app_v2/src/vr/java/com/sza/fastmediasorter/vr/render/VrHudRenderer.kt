@@ -48,6 +48,7 @@ class VrHudRenderer(
         swapchainReady = sessionManager.createHudSwapchain(width, height)
         if (!swapchainReady) {
             Timber.w("VrHudRenderer: createHudSwapchain($width x $height) returned false")
+            Timber.d("VR_AUDIT/3: HUD createHudSwapchain returned false (race or session-not-running) size=%dx%d", width, height)
         }
         return swapchainReady
     }

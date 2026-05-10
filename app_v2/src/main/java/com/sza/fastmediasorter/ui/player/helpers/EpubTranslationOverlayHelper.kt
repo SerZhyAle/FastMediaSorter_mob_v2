@@ -212,13 +212,13 @@ class EpubTranslationOverlayHelper(
                             Timber.i("EPUB Translation: SUCCESS - Chapter translated and displayed")
                         } else {
                             Timber.e("EPUB Translation: Translation returned null or blank")
-                            callback.showError("Translation failed")
+                            callback.showError(binding.root.context.getString(R.string.translation_error))
                         }
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "EPUB Translation: EXCEPTION during translation process")
                     withContext(Dispatchers.Main) {
-                        callback.showError("Translation error: ${e.message}")
+                        callback.showError(binding.root.context.getString(R.string.translation_error))
                     }
                 }
             }

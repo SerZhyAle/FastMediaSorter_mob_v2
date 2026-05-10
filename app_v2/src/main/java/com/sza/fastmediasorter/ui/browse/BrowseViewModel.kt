@@ -111,6 +111,7 @@ class BrowseViewModel @Inject constructor(
     
     // Undo management
     private val undoManager = com.sza.fastmediasorter.ui.browse.undo.BrowseUndoManager(
+        context = context,
         callbacks = object : com.sza.fastmediasorter.ui.browse.undo.BrowseUndoManager.UndoCallbacks {
             override suspend fun addFilesToList(files: List<MediaFile>) {
                 addFiles(files)
@@ -159,6 +160,7 @@ class BrowseViewModel @Inject constructor(
     
     // Subfolder navigation management (delegated to BrowseNavigationManager)
     private val navigationManager = com.sza.fastmediasorter.ui.browse.managers.BrowseNavigationManager(
+        context = context,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -329,6 +331,7 @@ class BrowseViewModel @Inject constructor(
 
     // --- File Open (delegated to BrowseFileOpenManager) ---
     private val fileOpenManager = com.sza.fastmediasorter.ui.browse.managers.BrowseFileOpenManager(
+        context = context,
         updateResourceUseCase = updateResourceUseCase,
         mediaScannerFactory = mediaScannerFactory,
         cachedFileListRepository = cachedFileListRepository,
@@ -345,6 +348,7 @@ class BrowseViewModel @Inject constructor(
 
     // --- Resource / Media-file loading pipeline (delegated to BrowseResourceLoadManager) ---
     private val resourceLoadManager = com.sza.fastmediasorter.ui.browse.managers.BrowseResourceLoadManager(
+        context = context,
         updateResourceUseCase = updateResourceUseCase,
         cachedFileListRepository = cachedFileListRepository,
         googleDriveClient = googleDriveClient,
@@ -409,6 +413,7 @@ class BrowseViewModel @Inject constructor(
 
     // --- Resource state persistence (delegated to BrowseResourceStateManager) ---
     private val resourceStateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseResourceStateManager(
+        context = context,
         favoritesUseCase = favoritesUseCase,
         updateResourceUseCase = updateResourceUseCase,
         getResourcesUseCase = getResourcesUseCase,
@@ -444,6 +449,7 @@ class BrowseViewModel @Inject constructor(
 
     // --- Lifecycle setup (delegated to BrowseLifecycleSetupManager) ---
     private val lifecycleSetupManager = com.sza.fastmediasorter.ui.browse.managers.BrowseLifecycleSetupManager(
+        context = context,
         browseStateDataStore = browseStateDataStore,
         settingsRepository = settingsRepository,
         unifiedCache = unifiedCache,

@@ -16,6 +16,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.sza.fastmediasorter.R
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -468,7 +469,7 @@ class TranslationManager(
             return extractedText
         } catch (e: Exception) {
             Timber.e(e, "OCR extraction error")
-            callback.showError("OCR error: ${e.message}")
+            callback.showError(context.getString(R.string.ocr_error))
             return null
         }
     }
@@ -539,7 +540,7 @@ class TranslationManager(
             }
         } catch (e: Exception) {
             Timber.e(e, "Translation error")
-            callback.showError("Translation failed: ${e.message}")
+            callback.showError(context.getString(R.string.translation_error))
             return null
         }
     }
@@ -761,7 +762,7 @@ class TranslationManager(
             cleanedText
         } catch (e: Exception) {
             Timber.e(e, "OCR error")
-            callback.showError("Text recognition failed: ${e.message}")
+            callback.showError(context.getString(R.string.ocr_error))
             null
         }
     }
@@ -938,7 +939,7 @@ class TranslationManager(
             translatedBlocks.ifEmpty { null }
         } catch (e: Exception) {
             Timber.e(e, "Error in recognizeAndTranslateBlocks")
-            callback.showError("Translation failed: ${e.message}")
+            callback.showError(context.getString(R.string.translation_error))
             null
         }
     }

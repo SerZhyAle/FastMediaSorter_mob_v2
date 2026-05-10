@@ -186,6 +186,9 @@ class VrRenderPipelineManager(
                     localInputManager.hudRegistryProvider = { vrHudSceneDriver?.registry }
                     localInputManager.hudVisibleProvider = { vrHudSceneDriver?.isLayerVisible == true }
                     localInputManager.hudHoverSink = { _, hudElementId ->
+                        if (currentHudHoverId != hudElementId) {
+                            Timber.d("VR_AUDIT/1: HUD hit-test transition prev=%d -> next=%d", currentHudHoverId, hudElementId)
+                        }
                         currentHudHoverId = hudElementId
                         val driverRef = vrHudSceneDriver
                         if (driverRef != null && driverRef.hoverState.setCurrent(hudElementId)) {
@@ -314,13 +317,18 @@ class VrRenderPipelineManager(
         if (showFps || vrFpsLastValid > 0) {
             vrFpsFrameCount++
             if (now - vrFpsLastUpdateTime >= 500) {
+                val previousValid = vrFpsLastValid
                 if (showFps && vrFpsFrameCount >= 5 && (now - vrFpsLastUpdateTime) <= 1500) {
                     vrFpsLastValid = (vrFpsFrameCount * 1000f / (now - vrFpsLastUpdateTime)).toInt()
                 }
                 if (showFps && vrFpsLastValid > 0) {
+                    if (previousValid == 0) {
+                        Timber.d("VR_AUDIT/13: VR HUD FPS first sample fps=%d", vrFpsLastValid)
+                    }
                     vrHudManager?.updateFps(vrFpsLastValid)
                 } else if (!showFps && vrFpsLastValid > 0) {
                     Timber.d("VR_FPS: cleared HUD label after vrShowFps→false")
+                    Timber.d("VR_AUDIT/13: VR HUD FPS toggle=OFF (cleared)")
                     vrHudManager?.clearFps()
                     vrFpsLastValid = 0
                 }
@@ -355,6 +363,8 @@ class VrRenderPipelineManager(
         if (vrFirstFrameLoggedMs == 0L && activity.xrInitStartedAtMsInternal > 0L) {
             vrFirstFrameLoggedMs = SystemClock.uptimeMillis()
             Timber.i("VR_PERF: [gl-thread] first_frame_ready  abs_from_init=%dms",
+                vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
+            Timber.d("VR_AUDIT/14: cold-start phase=first-frame-submission absFromInitMs=%d",
                 vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
         }
 
@@ -437,6 +447,15 @@ class VrRenderPipelineManager(
                 reason,
                 width,
                 height,
+            )
+            val format = activity.currentPlaybackPlayerInternal()?.videoFormat
+            Timber.d(
+                "VR_AUDIT/6: ExoPlayer track size=%dx%d codec=%s bitrate=%d ar=%.4f reason=%s",
+                width, height,
+                format?.sampleMimeType ?: format?.codecs ?: "<unknown>",
+                format?.bitrate ?: -1,
+                aspectRatio,
+                reason,
             )
             return
         }

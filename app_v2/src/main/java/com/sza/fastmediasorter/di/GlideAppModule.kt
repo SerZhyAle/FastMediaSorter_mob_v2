@@ -70,6 +70,7 @@ class GlideAppModule : AppGlideModule() {
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs()
             }
+            Timber.d("S0136: GlideAppModule cacheDir setup exists=${cacheDir.exists()} fileCount=${cacheDir.listFiles()?.size ?: 0} path=${cacheDir.absolutePath}")
         } catch (e: Exception) {
             Timber.w(e, "GlideAppModule: Failed to create cache directory")
         }

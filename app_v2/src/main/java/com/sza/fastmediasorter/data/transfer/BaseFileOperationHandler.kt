@@ -390,8 +390,11 @@ abstract class BaseFileOperationHandler(
             successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> {
-                val errorMessage = errors.joinToString("; ")
-                FileOperationResult.Failure(error = "All delete operations failed: $errorMessage", errorRes = R.string.all_delete_operations_failed, formatArgs = listOf(errorMessage))
+                FileOperationResult.Failure(
+                    error = context.getString(R.string.all_delete_operations_failed),
+                    errorRes = R.string.all_delete_operations_failed,
+                    formatArgs = emptyList()
+                )
             }
         }
     }

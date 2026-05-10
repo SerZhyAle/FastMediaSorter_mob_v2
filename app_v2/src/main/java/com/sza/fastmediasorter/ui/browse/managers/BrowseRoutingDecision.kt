@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import timber.log.Timber
 
 /**
  * S0026: pure routing decision for BrowseEventHandler.
@@ -22,6 +23,21 @@ internal object BrowseRoutingDecision {
         effectiveStereoMode: StereoMode,
         settings: AppSettings,
     ): Route {
+        val route = computeRoute(file, effectiveStereoMode, settings)
+        val reason = computeReason(file, effectiveStereoMode, settings)
+        Timber.d(
+            "VR_AUDIT/5: BrowseRoutingDecision detected=%s requested=%s effective=%s autoImmersiveSetting=%b disable3dVr=%b route=%s reason=%s file=%s",
+            effectiveStereoMode, effectiveStereoMode, effectiveStereoMode,
+            settings.vrAutoImmersive, settings.disable3dVr, route, reason, file.path,
+        )
+        return route
+    }
+
+    private fun computeRoute(
+        file: MediaFile,
+        effectiveStereoMode: StereoMode,
+        settings: AppSettings,
+    ): Route {
         if (file.type != MediaType.VIDEO) return Route.STANDARD_PLAYER
         if (settings.disable3dVr) return Route.STANDARD_PLAYER
 
@@ -36,5 +52,17 @@ internal object BrowseRoutingDecision {
         if (!settings.vrAutoImmersive) return Route.STANDARD_PLAYER
 
         return Route.VR_PLAYER
+    }
+
+    private fun computeReason(
+        file: MediaFile,
+        effectiveStereoMode: StereoMode,
+        settings: AppSettings,
+    ): String = when {
+        file.type != MediaType.VIDEO -> "non-video"
+        settings.disable3dVr -> "disable-3d-vr"
+        !(effectiveStereoMode.isStereoscopic() || effectiveStereoMode.isSpherical()) -> "plain-2d"
+        !settings.vrAutoImmersive -> "auto-immersive-disabled"
+        else -> "immersive"
     }
 }

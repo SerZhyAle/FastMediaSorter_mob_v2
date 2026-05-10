@@ -126,7 +126,7 @@ class StandaloneFileOperationsHandler(
                 Timber.e(e, "StandalonePlayer: delete failed for $fileName")
                 Toast.makeText(
                     activity,
-                    activity.getString(R.string.delete_failed, e.message ?: fileName),
+                    activity.getString(R.string.delete_failed),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -153,7 +153,7 @@ class StandaloneFileOperationsHandler(
                 Timber.e(e, "StandalonePlayer: retry delete failed for $fileName")
                 Toast.makeText(
                     activity,
-                    activity.getString(R.string.delete_failed, e.message ?: fileName),
+                    activity.getString(R.string.delete_failed),
                     Toast.LENGTH_LONG
                 ).show()
             }
