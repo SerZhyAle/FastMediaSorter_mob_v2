@@ -101,13 +101,12 @@ class ReceiveShareActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         accountSelectionManager = AccountSelectionManager(authSessionRepository)
 
-        // S0161: re-auth flow initiated from a background download result notification.
-        // The URL was passed via a PendingIntent from LinkDownloadWorker when the worker
-        // received a SocialPreviewOnly result and could not show dialogs itself.
+        // S0161: re-auth flow initiated from the worker's "Sign in" notification action.
+        // The user tapped "Sign in" after a download failed with SocialPreviewOnly.
         // Must be checked BEFORE the action guard below, which would reject this Intent.
         val reAuthUrl = intent?.getStringExtra(EXTRA_REAUTH_URL)
         if (reAuthUrl != null) {
-            maybeOfferAuthThenDownload(reAuthUrl)
+            handleReAuthFromNotification(reAuthUrl)
             return
         }
 
@@ -137,7 +136,11 @@ class ReceiveShareActivity : AppCompatActivity() {
                     if (urls.isNotEmpty() && settings.linkAutoDownloadEnabled) {
                         loadingDialog.dismiss()
                         if (urls.size == 1) {
-                            maybeOfferAuthThenDownload(urls.first())
+                            // S0161: skip auth dialogs — silently use best saved account, enqueue
+                            // background download, return user to source app immediately.
+                            // Auth dialog is shown ONLY after worker reports download failure
+                            // (SocialPreviewOnly) via EXTRA_REAUTH_URL notification action.
+                            enqueueLinkDownloadSilent(urls.first())
                         } else {
                             processLinkAutoDownloadBatch(urls)
                         }
@@ -248,9 +251,51 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     /**
-     * S0161: enqueue [url] as a background [LinkDownloadWorker] job and immediately
-     * finish the Activity so the user can return to the source app (Instagram, browser…).
+     * S0161: silently pick the best saved account for [url]'s host (last-used first;
+     * null if none) and enqueue a background [LinkDownloadWorker] job without showing
+     * any dialog. The Activity finishes immediately — user stays in the source app.
      *
+     * Auth is only shown after the worker signals SocialPreviewOnly via [EXTRA_REAUTH_URL].
+     */
+    private fun enqueueLinkDownloadSilent(url: String) {
+        val host = Uri.parse(url).host.orEmpty()
+        lifecycleScope.launch {
+            val accountId = if (host.isNotBlank()) {
+                runCatching {
+                    authSessionRepository.listAccountsForHost(host)
+                        .filter { !it.isDismissed }
+                        .maxByOrNull { it.lastUsedAt ?: java.time.Instant.MIN }
+                        ?.accountId
+                }.getOrNull()
+            } else null
+            processLinkAutoDownload(url, accountId)
+        }
+    }
+
+    /**
+     * S0161: entry point when the user taps "Sign in" on a worker result notification.
+     *
+     * If the host is already dismissed (“don’t ask” was previously chosen), skip the
+     * auth dialog and re-enqueue the download as-is. Otherwise show the 3-button auth
+     * offer immediately — bypassing the account-picker / silent-account path so the
+     * user always gets the chance to add or refresh credentials.
+     */
+    private fun handleReAuthFromNotification(url: String) {
+        val host = Uri.parse(url).host.orEmpty()
+        lifecycleScope.launch {
+            val dismissed = host.isNotBlank() && authSessionRepository.isDismissedForHost(host)
+            if (dismissed) {
+                // User previously said “don’t ask” — respect that, just re-enqueue.
+                processLinkAutoDownload(url, accountId = null)
+            } else {
+                val resource = if (host.isNotBlank()) KnownAuthResources.matchHost(host) else null
+                offerAuthThenDownload(url, host, resource)
+            }
+        }
+    }
+    /**
+     * S0161: enqueue [url] as a background [LinkDownloadWorker] job and immediately
+     * finish the Activity so the user can return to the source app (Instagram, browser…).     *
      * Auth dialogs (WebView, account picker) always complete *before* this is called —
      * the worker only performs the HTTP download, not any interactive auth.
      *

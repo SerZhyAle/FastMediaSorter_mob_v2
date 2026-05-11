@@ -6,14 +6,12 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
 import dagger.assisted.Assisted
@@ -39,6 +37,7 @@ class LinkDownloadWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted workerParams: WorkerParameters,
     private val coordinator: LinkAutoDownloadCoordinator,
+    private val authSessionRepository: AuthSessionRepository,
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
@@ -63,14 +62,12 @@ class LinkDownloadWorker @AssistedInject constructor(
             return Result.failure()
         }
 
-        try {
-            setForeground(buildForegroundInfo())
-        } catch (e: Exception) {
-            // setForeground can throw on some OEMs when the app is in the background at
-            // the exact moment the worker starts; treat as non-fatal (download still runs).
-            Timber.w(e, "LinkDownloadWorker: setForeground failed (non-fatal)")
-        }
-
+        // setForeground() is intentionally NOT called here.
+        // The work request uses setExpedited(), which is the correct mechanism for
+        // short-lived tasks (<30 sec). Calling setForeground() from an expedited worker
+        // on Android 12+ causes a SecurityException (WakeLock conflict with WorkManager's
+        // internal expedited foreground service). Result notifications are posted directly
+        // via NotificationManager so no ForegroundInfo is needed at all.
         Timber.i(
             "LinkDownloadWorker: start url=%s batch=%d accountId=%s",
             url ?: "(batch)",
@@ -85,7 +82,11 @@ class LinkDownloadWorker @AssistedInject constructor(
         }
 
         Timber.i("LinkDownloadWorker: done result=%s", result::class.java.simpleName)
-        postResultNotification(result, originalUrl = url ?: urls?.firstOrNull() ?: "")
+        // Resolve dismiss status here (suspend context) so postResultNotification stays non-suspend.
+        val isDismissedHost = (result as? LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly)
+            ?.let { runCatching { authSessionRepository.isDismissedForHost(it.host) }.getOrDefault(false) }
+            ?: false
+        postResultNotification(result, originalUrl = url ?: urls?.firstOrNull() ?: "", isDismissedHost = isDismissedHost)
         return Result.success()
     }
 
@@ -94,29 +95,12 @@ class LinkDownloadWorker @AssistedInject constructor(
         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) = Unit
     }
 
-    // ── Foreground notification (progress) ───────────────────────────────────
-
-    private fun buildForegroundInfo(): ForegroundInfo {
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        ensureChannel(nm)
-        val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_cloud_download)
-            .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification)
-        }
-    }
-
     // ── Result notification ───────────────────────────────────────────────────
 
     private fun postResultNotification(
         result: LinkAutoDownloadCoordinator.Result,
         originalUrl: String,
+        isDismissedHost: Boolean = false,
     ) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         ensureChannel(nm)
@@ -146,14 +130,21 @@ class LinkDownloadWorker @AssistedInject constructor(
                     )
             }
             is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly -> {
-                // Cannot show dialogs from a background worker — offer a notification action
-                // that re-opens ReceiveShareActivity so the user can sign in and retry.
-                builder
-                    .setContentTitle(context.getString(R.string.link_download_notif_title_sign_in_needed))
-                    .setContentText(
-                        context.getString(R.string.link_download_notif_text_sign_in_needed, result.host),
-                    )
-                    .addAction(buildSignInAction(result.originalUrl))
+                // Worker cannot show dialogs. Check dismissed status:
+                // - if user previously said "don't ask" for this host — post a quiet failure notification.
+                // - otherwise — post a heads-up sign-in notification so user can tap and re-auth.
+                if (isDismissedHost) {
+                    builder
+                        .setContentTitle(context.getString(R.string.link_download_notif_title_done))
+                        .setContentText(context.getString(R.string.link_download_notif_text_failed))
+                } else {
+                    builder
+                        .setContentTitle(context.getString(R.string.link_download_notif_title_sign_in_needed))
+                        .setContentText(
+                            context.getString(R.string.link_download_notif_text_sign_in_needed, result.host),
+                        )
+                        .addAction(buildSignInAction(result.originalUrl))
+                }
             }
             is LinkAutoDownloadCoordinator.Result.Failed -> {
                 builder
@@ -201,7 +192,8 @@ class LinkDownloadWorker @AssistedInject constructor(
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
             context.getString(R.string.link_download_notif_channel_name),
-            NotificationManager.IMPORTANCE_DEFAULT,
+            // HIGH = heads-up notification (pops up visibly without needing to open the shade)
+            NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             description = context.getString(R.string.link_download_notif_channel_description)
         }

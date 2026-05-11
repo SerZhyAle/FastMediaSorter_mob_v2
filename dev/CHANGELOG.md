@@ -8699,3 +8699,66 @@ Format: | datetime | file | target | description |
 | 2026-05-11 17:47:43 | `PLAN/S0161_link-download-background-queue.md` | `spec-catalog` | S0161: create strategic spec, register in catalog |
 | 2026-05-11 17:48:42 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0161: LinkDownloadWorker added to catalog (role=worker, status=new) |
 | 2026-05-11 17:48:51 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0161: LinkDownloadWorker added (role=worker, status=new) |
+| 2026-05-11 18:01:01 | `PLAN/S0007_vr-hand-tracking.md` | `spec-arc` | Archive S0007 (vr-hand-tracking) → temp/done/ |
+| 2026-05-11 18:01:08 | `PLAN/S0015_bugfix-scheduled-ops-worker-freeze.md` | `spec-arc` | Archive S0015 (bugfix-scheduled-ops-worker-freeze) → temp/done/ |
+| 2026-05-11 18:01:12 | `PLAN/S0016_bugfix-document-print-manager-context.md` | `spec-arc` | Archive S0016 (bugfix-document-print-manager-context) → temp/done/ |
+| 2026-05-11 18:01:16 | `PLAN/S0017_bugfix-smb-scanner-metadata-exception.md` | `spec-arc` | Archive S0017 (bugfix-smb-scanner-metadata-exception) → temp/done/ |
+| 2026-05-11 18:01:20 | `PLAN/S0018_bugfix-vr-auto-immersive-route-broken.md` | `spec-arc` | Archive S0018 (bugfix-vr-auto-immersive-route-broken) → temp/done/ |
+| 2026-05-11 18:01:31 | `PLAN/S0028_*.md` | `spec-arc` | Archive S0028 → temp/done/ |
+| 2026-05-11 18:01:31 | `PLAN/S0033_*.md` | `spec-arc` | Archive S0033 → temp/done/ |
+| 2026-05-11 18:01:31 | `PLAN/S0034_*.md` | `spec-arc` | Archive S0034 → temp/done/ |
+| 2026-05-11 18:01:31 | `PLAN/S0036_*.md` | `spec-arc` | Archive S0036 → temp/done/ |
+| 2026-05-11 18:01:31 | `PLAN/S0039_*.md` | `spec-arc` | Archive S0039 → temp/done/ |
+| 2026-05-11 18:01:36 | `PLAN/S0040_*.md` | `spec-arc` | Archive S0040 → temp/done/ |
+| 2026-05-11 18:01:36 | `PLAN/S0057_*.md` | `spec-arc` | Archive S0057 → temp/done/ |
+| 2026-05-11 18:01:36 | `PLAN/S0058_*.md` | `spec-arc` | Archive S0058 → temp/done/ |
+| 2026-05-11 18:01:36 | `PLAN/S0068_*.md` | `spec-arc` | Archive S0068 → temp/done/ |
+| 2026-05-11 18:01:36 | `PLAN/S0069_*.md` | `spec-arc` | Archive S0069 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0096_*.md` | `spec-arc` | Archive S0096 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0105_*.md` | `spec-arc` | Archive S0105 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0111_*.md` | `spec-arc` | Archive S0111 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0112_*.md` | `spec-arc` | Archive S0112 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0114_*.md` | `spec-arc` | Archive S0114 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0115_*.md` | `spec-arc` | Archive S0115 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0116_*.md` | `spec-arc` | Archive S0116 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0118_*.md` | `spec-arc` | Archive S0118 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0120_*.md` | `spec-arc` | Archive S0120 → temp/done/ |
+| 2026-05-11 18:01:47 | `PLAN/S0130_*.md` | `spec-arc` | Archive S0130 → temp/done/ |
+| 2026-05-11 18:02:02 | `PLAN/S0150_*.md` | `spec-arc` | Archive S0150 → temp/done/ |
+| 2026-05-11 18:02:02 | `PLAN/S0152_*.md` | `spec-arc` | Archive S0152 → temp/done/ |
+| 2026-05-11 18:02:02 | `PLAN/S0157_*.md` | `spec-arc` | Archive S0157 → temp/done/ |
+| 2026-05-11 18:02:15 | `PLAN/S0135_*.md` | `spec-arc` | Archive S0135 → temp/done/ |
+| 2026-05-11 18:02:15 | `PLAN/S0156_*.md` | `spec-arc` | Archive S0156 → temp/done/ |
+| 2026-05-11 18:02:15 | `PLAN/S0158_*.md` | `spec-arc` | Archive S0158 → temp/done/ |
+| 2026-05-11 18:02:15 | `PLAN/S0159_*.md` | `spec-arc` | Archive S0159 → temp/done/ |
+| 2026-05-11 18:02:15 | `PLAN/S0160_*.md` | `spec-arc` | Archive S0160 → temp/done/ |
+| 2026-05-11 18:02:58 | `PLAN/S0029_*.md` | `spec-arc` | Archive S0029 → temp/done/ |
+| 2026-05-11 18:02:58 | `PLAN/S0064_*.md` | `spec-arc` | Archive S0064 → temp/done/ |
+| 2026-05-11 18:02:58 | `PLAN/S0085_*.md` | `spec-arc` | Archive S0085 → temp/done/ |
+| 2026-05-11 18:02:58 | `PLAN/S0136_*.md` | `spec-arc` | Archive S0136 → temp/done/ |
+| 2026-05-11 18:02:58 | `PLAN/S0138_*.md` | `spec-arc` | Archive S0138 → temp/done/ |
+| 2026-05-11 18:02:58 | `PLAN/S0153_*.md` | `spec-arc` | Archive S0153 → temp/done/ |
+| 2026-05-11 18:03:17 | `PLAN/S0020_*.md` | `spec-arc` | Archive S0020 → temp/done/ |
+| 2026-05-11 18:03:17 | `PLAN/S0021_*.md` | `spec-arc` | Archive S0021 → temp/done/ |
+| 2026-05-11 18:03:17 | `PLAN/S0023_*.md` | `spec-arc` | Archive S0023 → temp/done/ |
+| 2026-05-11 18:03:17 | `PLAN/S0024_*.md` | `spec-arc` | Archive S0024 → temp/done/ |
+| 2026-05-11 18:03:17 | `PLAN/S0027_*.md` | `spec-arc` | Archive S0027 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0076_*.md` | `spec-arc` | Archive S0076 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0077_*.md` | `spec-arc` | Archive S0077 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0081_*.md` | `spec-arc` | Archive S0081 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0088_*.md` | `spec-arc` | Archive S0088 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0093_*.md` | `spec-arc` | Archive S0093 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0131_*.md` | `spec-arc` | Archive S0131 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0137_*.md` | `spec-arc` | Archive S0137 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0139_*.md` | `spec-arc` | Archive S0139 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0141_*.md` | `spec-arc` | Archive S0141 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0143_*.md` | `spec-arc` | Archive S0143 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0144_*.md` | `spec-arc` | Archive S0144 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0145_*.md` | `spec-arc` | Archive S0145 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0146_*.md` | `spec-arc` | Archive S0146 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0147_*.md` | `spec-arc` | Archive S0147 → temp/done/ |
+| 2026-05-11 18:03:18 | `PLAN/S0148_*.md` | `spec-arc` | Archive S0148 → temp/done/ |
+| 2026-05-11 18:27:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0161 fix: silent account lookup on URL share (no auth dialog before download); EXTRA_REAUTH_URL now calls handleReAuthFromNotification (always shows WebView auth dialog on tap) |
+| 2026-05-11 18:27:27 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | S0161 fix: inject AuthSessionRepository, IMPORTANCE_HIGH notifications (heads-up), check isDismissedForHost before sign-in notification |
+| 2026-05-11 18:28:06 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | S0161 fix: inject AuthSessionRepository, IMPORTANCE_HIGH notifications (heads-up), check isDismissedForHost before sign-in notification |
+| 2026-05-11 18:30:27 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | S0161 fix: remove setForeground/buildForegroundInfo — conflicts with setExpedited on Android 12+ (WakeLock SecurityException); expedited work is sufficient for short link downloads |
