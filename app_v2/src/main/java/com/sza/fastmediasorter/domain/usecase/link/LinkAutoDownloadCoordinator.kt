@@ -4,6 +4,7 @@ import android.net.Uri
 import com.sza.fastmediasorter.data.link.LinkDownloadWriter
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.link.MediaQualityPreference
+import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.streaming.PipelineOutcome
 import com.sza.fastmediasorter.domain.usecase.link.streaming.StreamingPipeline
@@ -31,6 +32,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val registry: LinkExtractionRegistry,
     private val writer: LinkDownloadWriter,
     private val streamingPipeline: StreamingPipeline,
+    private val authSessionRepository: AuthSessionRepository,
 ) {
 
     suspend fun handle(url: String, callbacks: Callbacks): Result {
@@ -72,6 +74,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         callbacks.onProgress(ProgressState.Probing)
 
         var openedStream: OpenResult.Stream? = null
+        var socialPreviewHost: String? = null
         try {
             for (strategy in registry.ordered()) {
                 callbacks.onProgress(ProgressState.Probing)
@@ -100,6 +103,15 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             }
                             is OpenResult.Streaming -> return runStreaming(opened, settings, callbacks)
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
+                            is OpenResult.SocialPreviewOnly -> {
+                                if (socialPreviewHost == null) socialPreviewHost = opened.host
+                                Timber.v(
+                                    "LinkAutoDownloadCoordinator: %s social-preview-only host=%s, trying next",
+                                    strategy.id,
+                                    opened.host,
+                                )
+                                continue
+                            }
                             is OpenResult.NotFound -> {
                                 // S0140 registers `dynamic` after `html`; a static HTML miss must
                                 // fall through so later strategies still get a chance to resolve.
@@ -132,7 +144,22 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 }
             }
 
-            val stream = openedStream ?: return Result.Failed.NoMediaFound
+            val stream = openedStream
+            if (stream == null) {
+                val previewHost = socialPreviewHost
+                if (previewHost != null) {
+                    val hadSession = runCatching {
+                        authSessionRepository.hasSession(previewHost)
+                    }.getOrDefault(false)
+                    Timber.d("S0151: coordinator returning SocialPreviewOnly host=$previewHost hadSession=$hadSession")
+                    return Result.Failed.SocialPreviewOnly(
+                        host = previewHost,
+                        originalUrl = url,
+                        hadExistingSession = hadSession,
+                    )
+                }
+                return Result.Failed.NoMediaFound
+            }
             return writeStreamResult(stream = stream, settings = settings, callbacks = callbacks)
         } finally {
             openedStream?.close?.invoke()
@@ -382,6 +409,16 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             data class MuxFailed(val codec: String) : Failed
             // S0116 §5.1 pillar L: source returned 401/403 — UI offers WebView sign-in flow.
             data class AuthRequired(val host: String, val originalUrl: String) : Failed
+            /**
+             * S0151: all extraction strategies returned only an OG/image preview for a known
+             * video-first social host. The UI should offer sign-in (or re-sign-in if a session
+             * existed) and retry the download.
+             */
+            data class SocialPreviewOnly(
+                val host: String,
+                val originalUrl: String,
+                val hadExistingSession: Boolean,
+            ) : Failed
             data class Other(val cause: Throwable) : Failed
         }
     }

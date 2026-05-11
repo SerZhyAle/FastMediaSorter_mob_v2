@@ -3242,6 +3242,14 @@
     <string name="s0116_toast_streaming_disabled">Стріми недоступні у цій збірці</string>
     <string name="s0116_toast_auth_required">Потрібен вхід для %1$s — відкрийте налаштування</string>
 
+    <!-- S0151: Instagram/Threads social preview-only UX strings -->
+    <string name="s0151_toast_content_unavailable">Не вдалося отримати контент за цим посиланням</string>
+    <string name="s0151_dialog_auth_title">Увійти в %1$s?</string>
+    <string name="s0151_dialog_reauth_title">Оновити вхід у %1$s?</string>
+    <string name="s0151_dialog_message">Справжній контент за цим посиланням потребує входу — прев\'ю-картинку пропущено.</string>
+    <string name="s0151_dialog_reauth_message">Збережений вхід у %1$s міг застаріти. Увійдіть знову, щоб застосунок міг отримати реальний контент.</string>
+    <string name="s0151_dialog_reauth_positive">Увійти знову</string>
+
     <!-- S0117: batch progress and summary UX for noLegal site extraction -->
     <string name="s0117_progress_batch_item">Завантажується елемент %1$d з %2$d..</string>
     <string name="s0117_toast_batch_saved">Збережено %1$d елементів</string>

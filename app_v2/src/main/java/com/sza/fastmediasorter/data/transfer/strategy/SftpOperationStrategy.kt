@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -232,6 +233,9 @@ class SftpOperationStrategy @Inject constructor(
             } else {
                  Result.failure(Exception("List files failed: ${listResult.exceptionOrNull()?.message}"))
             }
+        } catch (e: CancellationException) {
+            // Navigation away from the screen cancels the listing scope — expected, not a failure.
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "SftpOperationStrategy: listFiles failed - $path")
             Result.failure(e)

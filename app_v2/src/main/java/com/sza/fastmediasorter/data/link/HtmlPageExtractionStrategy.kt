@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.link
 
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
@@ -145,6 +146,23 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 manifest = manifest,
                 tentativeFileName = deriveStreamingFileName(chosen.url),
             )
+        }
+
+        // S0151: for known video-first social hosts, OG-image-only results are not real content.
+        val host = httpUrl.host
+        if (KnownAuthResources.isVideoFirstHost(host)) {
+            val hasRealContent = filtered.any { c ->
+                c.source != HtmlMediaCandidate.Source.OG_IMAGE &&
+                    c.source != HtmlMediaCandidate.Source.IMG_TAG &&
+                    c.source != HtmlMediaCandidate.Source.IMG_SRCSET
+            }
+            if (!hasRealContent) {
+                LinkDownloadTrace.verbose(
+                    "html-strategy social-preview-only host=${LinkDownloadTrace.truncateUrl(httpUrl.toString())}",
+                )
+                Timber.d("S0151: html-strategy social-preview-only host=$host")
+                return OpenResult.SocialPreviewOnly(host = host)
+            }
         }
 
         return direct.open(chosen.url, onProgress)

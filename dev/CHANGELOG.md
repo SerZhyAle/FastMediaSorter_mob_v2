@@ -8384,3 +8384,50 @@ Format: | datetime | file | target | description |
 | 2026-05-11 00:39:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `PlayerLifecycleManager` | Fix bug: batch delete callback attributed deletion to current (next) file instead of original moved file; add pendingBatchDeleteFilePath field and storePendingBatchDeleteFilePath() |
 | 2026-05-11 00:39:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Store sourceFilePath before launching batch delete dialog to avoid race with optimistic navigation |
 | 2026-05-11 00:39:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.batchDeletePermissionLauncher` | Remove currentFile?.path from handleBatchDeleteResult call — path is now stored in lifecycleManager before dialog launch |
+| 2026-05-11 01:41:07 | `PLAN/S0148_bugfix-smb-playback-watchdog-cascade.md` | `spec` | Add strategic spec S0148 for SMB playback watchdog fail-fast cascade (field log 2026-05-11) |
+| 2026-05-11 01:42:06 | `PLAN/S0149_enh-sftp-permission-denied-message.md` | `spec` | Add strategic spec S0149 for SFTP permission-denied error messaging |
+| 2026-05-11 01:42:50 | `PLAN/S0150_bugfix-sftp-listfiles-cancellation-logged-as-error.md` | `spec` | Add strategic spec S0150 for SFTP listFiles cancellation logged as error |
+| 2026-05-11 01:44:28 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec` | Add strategic spec S0151 for Instagram/Threads link extraction + auth offer + threads.com host |
+| 2026-05-11 01:45:11 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec` | Cross-ref S0148 (playback watchdog fail-fast cascade) in S0061 relations |
+| 2026-05-11 01:45:11 | `PLAN/S0052_bugfix-sftp-datasource-log-spam.md` | `spec` | Cross-ref S0150 (listFiles cancellation logged as error) in S0052 relations |
+| 2026-05-11 01:45:11 | `PLAN/S0144_fix-link-download-auth-ux.md` | `spec` | Cross-ref S0151 (Instagram/Threads extraction + re-auth offer) in S0144 relations |
+| 2026-05-11 01:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `spec-tech` | S0150: treat listing-scope cancellation as non-error (no E-level log) |
+| 2026-05-11 01:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt` | `spec-tech` | S0150: rethrow CancellationException in listFiles instead of logging as error |
+| 2026-05-11 01:51:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbPlaybackConnectionTracker.kt` | `S0148` | Attempt-scoped SMB playback watchdog lockout: blocks retry of same stalled file, escalates to server-wide only after repeated stalls |
+| 2026-05-11 01:51:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `S0148` | Pass media-item URI to playback watchdog tracker for attempt-scoped fail-fast |
+| 2026-05-11 01:51:54 | `PLAN/S0148_bugfix-smb-playback-watchdog-cascade.md` | `spec-tech` | S0148 implemented directly (primitive); resolve §6 items; Status → BlockNeedUserTest |
+| 2026-05-11 01:52:21 | `PLAN/S0150_bugfix-sftp-listfiles-cancellation-logged-as-error.md` | `spec-tech` | S0150: primitive — implemented directly; Status -> BlockNeedUserTest |
+| 2026-05-11 01:52:44 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Rescan after S0148 (SmbPlaybackConnectionTracker, SmbDataSource) |
+| 2026-05-11 01:56:14 | `PLAN/S0149_enh-sftp-permission-denied-message/INDEX.md` | `spec-tech` | Create tactical plan for S0149 |
+| 2026-05-11 01:56:15 | `PLAN/S0149_enh-sftp-permission-denied-message/PHASE_01__status-classifier.md` | `spec-tech` | Phase 01: status-classifier |
+| 2026-05-11 01:56:16 | `PLAN/S0149_enh-sftp-permission-denied-message/PHASE_02__message-contract.md` | `spec-tech` | Phase 02: message-contract |
+| 2026-05-11 01:56:17 | `PLAN/S0149_enh-sftp-permission-denied-message/PHASE_03__result-surfaces.md` | `spec-tech` | Phase 03: result-surfaces |
+| 2026-05-11 01:56:18 | `PLAN/S0149_enh-sftp-permission-denied-message/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-11 01:56:19 | `PLAN/S0149_enh-sftp-permission-denied-message.md` | `spec-tech` | Status → Tactical |
+| 2026-05-11 02:00:26 | `docs/FEATURES.md` | `FEATURES` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
+| 2026-05-11 02:00:26 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
+| 2026-05-11 02:00:27 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
+| 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `spec-tech` | Create tactical plan for S0151 |
+| 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_01__threads-domain.md` | `spec-tech` | Phase 01: threads-domain |
+| 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_02__preview-only-signal.md` | `spec-tech` | Phase 02: preview-only-signal |
+| 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_03__social-auth-ux.md` | `spec-tech` | Phase 03: social-auth-ux |
+| 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-tech` | Status Approved -> Tactical |
+| 2026-05-11 02:19:31 | `docs/FEATURES.md` | `Documentation` | Re-condensed feature lists (EN, RU, UK) by ~30% per user request |
+| 2026-05-11 02:54:00 | `PLAN/S0152_bugfix-moveinprogress-not-reset-after-batchdelete.md` | `S0152` | New spec: moveInProgress not reset after PermissionRequired branch in FileOperationsHandler — blocks all subsequent move operations |
+| 2026-05-11 02:54:01 | `PLAN/S0153_bugfix-standalone-delete-illegal-argument-exception.md` | `S0153` | New spec: StandalonePlayer delete crashes with IllegalArgumentException when content URI is not a specific MediaStore item URI |
+| 2026-05-11 02:54:01 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt,app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt,app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt,app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `S0147,S0148,S0150` | Remove BlockNeedUserTest Timber.d probe tags — S0147/S0148/S0150 all verified via on-device testing |
+| 2026-05-11 02:58:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt` | `S0153` | Fix delete crash: narrow createDeleteRequest to MediaStore-specific URIs only; non-MediaStore content:// URIs fall through to contentResolver.delete() |
+| 2026-05-11 03:00:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `S0152` | Reset moveInProgress on Failure/AuthenticationRequired/PermissionRequired branches in performMove and performMoveToPath |
+| 2026-05-11 03:06:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `S0151 phase-01` | Add threads.com entry and isVideoFirstHost() |
+| 2026-05-11 03:06:49 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/UrlExtractionStrategy.kt` | `S0151` | Add OpenResult.SocialPreviewOnly |
+| 2026-05-11 03:06:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `S0151` | Signal SocialPreviewOnly for video-first social hosts |
+| 2026-05-11 03:06:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `S0151` | Signal SocialPreviewOnly for video-first social hosts |
+| 2026-05-11 03:06:49 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `S0151` | Handle SocialPreviewOnly fall-through, add Result.Failed.SocialPreviewOnly |
+| 2026-05-11 03:06:49 | `app_v2/src/main/res/values/strings.xml` | `S0151` | Add s0151_* strings (EN) |
+| 2026-05-11 03:06:49 | `app_v2/src/main/res/values-ru/strings.xml` | `S0151` | Add s0151_* strings (RU) |
+| 2026-05-11 03:06:49 | `app_v2/src/main/res/values-uk/strings.xml` | `S0151` | Add s0151_* strings (UK) |
+| 2026-05-11 03:06:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `S0151` | Handle SocialPreviewOnly UX: auth/reauth dialog with retry |
+| 2026-05-11 03:08:11 | `docs/FEATURES.md` | `S0151` | Document Instagram/Threads real-media extraction (EN) |
+| 2026-05-11 03:08:11 | `docs/FEATURES_RU.md` | `S0151` | Document Instagram/Threads real-media extraction (RU) |
+| 2026-05-11 03:08:11 | `docs/FEATURES_UK.md` | `S0151` | Document Instagram/Threads real-media extraction (UK) |

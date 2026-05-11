@@ -198,6 +198,7 @@ class FileOperationsHandler(
         val currentFile = callback.getCurrentFile() ?: return
         if (moveInProgress) return
         moveInProgress = true
+        Timber.d("S0152: performMove entry — moveInProgress set, PermissionRequired/Failure/AuthRequired branches now reset it")
         callback.onBeforeMove(currentFile.path)
 
         // Same scope reasoning as performCopy: outlive Activity destruction.
@@ -253,6 +254,7 @@ class FileOperationsHandler(
                             callback.onMoveSuccess(destination, currentFile.path, true)
                         }
                         is FileOperationResult.Failure -> {
+                            moveInProgress = false
                             val message = formatFailureMessage(
                                 result,
                                 com.sza.fastmediasorter.R.string.error_move_failed,
@@ -263,9 +265,11 @@ class FileOperationsHandler(
                             callback.onOperationError(message, null)
                         }
                         is FileOperationResult.AuthenticationRequired -> {
+                            moveInProgress = false
                             callback.onAuthenticationRequired(result.provider, result.message)
                         }
                         is FileOperationResult.PermissionRequired -> {
+                            moveInProgress = false
                             callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
                         }
                     }
@@ -336,6 +340,7 @@ class FileOperationsHandler(
         val currentFile = callback.getCurrentFile() ?: return
         if (moveInProgress) return
         moveInProgress = true
+        Timber.d("S0152: performMoveToPath entry — moveInProgress set, PermissionRequired/Failure/AuthRequired branches now reset it")
         callback.onBeforeMove(currentFile.path)
 
         appScope.launch {
@@ -368,11 +373,18 @@ class FileOperationsHandler(
                             callback.onMoveToPathSuccess(destinationPath, currentFile.path, true)
                         }
                         is FileOperationResult.Failure -> {
+                            moveInProgress = false
                             val msg = formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_move_failed)
                             callback.onOperationError(msg, null)
                         }
-                        is FileOperationResult.AuthenticationRequired -> callback.onAuthenticationRequired(result.provider, result.message)
-                        is FileOperationResult.PermissionRequired -> callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
+                        is FileOperationResult.AuthenticationRequired -> {
+                            moveInProgress = false
+                            callback.onAuthenticationRequired(result.provider, result.message)
+                        }
+                        is FileOperationResult.PermissionRequired -> {
+                            moveInProgress = false
+                            callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
+                        }
                     }
                 }
             } catch (e: Exception) {

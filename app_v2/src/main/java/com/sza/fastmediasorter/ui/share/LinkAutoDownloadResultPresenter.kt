@@ -5,14 +5,19 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.data.link.auth.AuthOfferDismissalStore
+import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,6 +34,7 @@ import javax.inject.Singleton
 class LinkAutoDownloadResultPresenter @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val settings: SettingsRepository,
+    private val authOfferDismissalStore: AuthOfferDismissalStore,
 ) {
 
     /**
@@ -82,6 +88,8 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 toast(R.string.s0116_toast_streaming_disabled)
             is LinkAutoDownloadCoordinator.Result.Failed.MuxFailed ->
                 toast(R.string.s0116_toast_mux_failed, result.codec)
+            is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly ->
+                presentSocialPreviewOnly(result, hostActivity, onAuthRetryRequested)
             is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired -> {
                 if (openInPlayer) {
                     // S0116 §5.1 pillar L: launch the WebView dialog so the user can sign in.
@@ -99,6 +107,57 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             is LinkAutoDownloadCoordinator.Result.Failed.Other ->
                 toast(R.string.receive_share_cache_failed)
         }
+    }
+
+    private fun presentSocialPreviewOnly(
+        result: LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly,
+        hostActivity: AppCompatActivity,
+        onAuthRetryRequested: suspend (originalUrl: String) -> Unit,
+    ) {
+        Timber.d("S0151: presenter SocialPreviewOnly host=${result.host} hadExistingSession=${result.hadExistingSession}")
+        if (authOfferDismissalStore.isDismissed(result.host)) {
+            toast(R.string.s0151_toast_content_unavailable)
+            return
+        }
+        val loginUrl = KnownAuthResources.matchHost(result.host)?.loginUrl ?: result.originalUrl
+        val titleRes = if (result.hadExistingSession)
+            R.string.s0151_dialog_reauth_title else R.string.s0151_dialog_auth_title
+        val positiveLabel = appContext.getString(
+            if (result.hadExistingSession) R.string.s0151_dialog_reauth_positive
+            else R.string.auth_offer_dialog_add,
+        )
+        val builder = MaterialAlertDialogBuilder(hostActivity)
+            .setTitle(appContext.getString(titleRes, result.host))
+            .setCancelable(false)
+            .setPositiveButton(positiveLabel) { _, _ ->
+                hostActivity.supportFragmentManager.setFragmentResultListener(
+                    WebViewAuthDialogFragment.RESULT_KEY,
+                    hostActivity,
+                ) { _, _ ->
+                    hostActivity.supportFragmentManager
+                        .clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
+                    hostActivity.lifecycleScope.launch {
+                        runCatching { onAuthRetryRequested(result.originalUrl) }
+                    }
+                }
+                runCatching {
+                    WebViewAuthDialogFragment.newInstance(loginUrl)
+                        .show(hostActivity.supportFragmentManager, "s0151_webview_reauth")
+                }.onFailure {
+                    Timber.w(it, "S0151: reauth WebView launch failed")
+                    toast(R.string.s0151_toast_content_unavailable)
+                }
+            }
+            .setNegativeButton(R.string.auth_offer_dialog_skip) { _, _ ->
+                authOfferDismissalStore.markDismissed(result.host)
+                toast(R.string.s0151_toast_content_unavailable)
+            }
+        if (result.hadExistingSession) {
+            builder.setMessage(appContext.getString(R.string.s0151_dialog_reauth_message, result.host))
+        } else {
+            builder.setMessage(appContext.getString(R.string.s0151_dialog_message))
+        }
+        builder.show()
     }
 
     private fun showBatchSummary(
@@ -147,6 +206,8 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 appContext.getString(R.string.s0116_toast_streaming_disabled)
             is LinkAutoDownloadCoordinator.Result.Failed.MuxFailed ->
                 appContext.getString(R.string.s0116_toast_mux_failed, failure.codec)
+            is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly ->
+                appContext.getString(R.string.s0151_toast_content_unavailable)
             is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired ->
                 appContext.getString(R.string.s0116_toast_auth_required, failure.host)
             is LinkAutoDownloadCoordinator.Result.Failed.Other ->

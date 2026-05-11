@@ -119,10 +119,12 @@ class SmbDataSource(
         }
         val key = connectionKey()
         val tracker = smbClient.playbackConnectionTracker
-        // Fail-fast: if a watchdog fired on the previous attempt for this server/share,
-        // skip the 12 s hang and surface the error immediately. ExoPlayer will then
-        // propagate onPlayerError instead of spinning through another full timeout.
-        if (tracker.isRecentWatchdog(key)) {
+        // S0148: fail-fast is attempt-scoped — a recent watchdog blocks only a retry of the
+        // *same* file (same media-item URI), or any file once the server-escalation threshold
+        // is hit. Advancing to a different file on the same server gets an honest attempt.
+        val requestUri = dataSpec.uri.toString()
+        val failFast = tracker.isRecentWatchdog(key, requestUri)
+        if (failFast) {
             Timber.e("[SMB-PLAY] fail-fast: recent watchdog for ${connectionInfo.server} — aborting retry")
             throw IOException("SMB playback fail-fast: watchdog timeout on previous attempt")
         }
@@ -137,7 +139,7 @@ class SmbDataSource(
         return try {
             future.get(OPEN_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         } catch (te: TimeoutException) {
-            tracker.recordWatchdog(key)
+            tracker.recordWatchdog(key, requestUri)
             Timber.e(
                 "[SMB-PLAY] open watchdog after ${OPEN_WATCHDOG_TIMEOUT_MS}ms — " +
                 "state=${tracker.getStateName(key)}, server=${connectionInfo.server}"
@@ -307,7 +309,7 @@ class SmbDataSource(
             future.get(READ_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         } catch (te: TimeoutException) {
             val key = connectionKey()
-            smbClient.playbackConnectionTracker.recordWatchdog(key)
+            smbClient.playbackConnectionTracker.recordWatchdog(key, uri?.toString().orEmpty())
             Timber.e(
                 "[SMB-PLAY] read watchdog after ${READ_WATCHDOG_TIMEOUT_MS}ms at position=$currentPosition " +
                 "— state=${smbClient.playbackConnectionTracker.getStateName(key)}, server=${connectionInfo.server}"

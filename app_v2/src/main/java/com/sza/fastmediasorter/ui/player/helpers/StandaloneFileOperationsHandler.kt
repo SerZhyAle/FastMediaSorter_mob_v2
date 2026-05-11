@@ -82,8 +82,12 @@ class StandaloneFileOperationsHandler(
                         else toastDeleteFailed(fileName)
                     }
 
-                    uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
-                        // API 30+: system dialog auto-deletes after user grants
+                    uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                            && isMediaStoreSpecificUri(uri) -> {
+                        // API 30+: system dialog auto-deletes after user grants.
+                        // Only valid for MediaStore-vended URIs with a numeric ID — other
+                        // content:// authorities (file-provider, external share) fall through
+                        // to the contentResolver.delete() branch below.
                         val pendingIntent = MediaStore.createDeleteRequest(activity.contentResolver, listOf(uri))
                         pendingDeleteFileName = fileName
                         batchDeleteLauncher.launch(
@@ -184,6 +188,18 @@ class StandaloneFileOperationsHandler(
         }
         pendingDeleteFileName = null
         pendingDeleteUri = null
+    }
+
+    /**
+     * Returns true only for MediaStore item URIs that [MediaStore.createDeleteRequest] accepts:
+     * authority must be "media" and the last path segment must be a numeric item ID.
+     * File-provider, external-share, and other content:// URIs return false and are handled
+     * by the [android.content.ContentResolver.delete] branch instead.
+     */
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.R)
+    private fun isMediaStoreSpecificUri(uri: Uri): Boolean {
+        if (uri.authority != "media") return false
+        return uri.lastPathSegment?.toLongOrNull() != null
     }
 
     // ── Share ─────────────────────────────────────────────────────────────

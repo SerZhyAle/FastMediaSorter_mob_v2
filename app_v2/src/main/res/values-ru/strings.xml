@@ -3281,6 +3281,14 @@
     <string name="s0116_toast_streaming_disabled">Стримы недоступны в этой сборке</string>
     <string name="s0116_toast_auth_required">Требуется вход для %1$s — откройте настройки</string>
 
+    <!-- S0151: Instagram/Threads social preview-only UX strings -->
+    <string name="s0151_toast_content_unavailable">Не удалось получить контент по этой ссылке</string>
+    <string name="s0151_dialog_auth_title">Войти в %1$s?</string>
+    <string name="s0151_dialog_reauth_title">Обновить вход в %1$s?</string>
+    <string name="s0151_dialog_message">Настоящий контент по этой ссылке требует входа — превью-картинка пропущена.</string>
+    <string name="s0151_dialog_reauth_message">Сохранённый вход в %1$s мог устареть. Войдите заново, чтобы приложение смогло получить реальный контент.</string>
+    <string name="s0151_dialog_reauth_positive">Войти заново</string>
+
     <!-- S0117: batch progress and summary UX for noLegal site extraction -->
     <string name="s0117_progress_batch_item">Скачивается элемент %1$d из %2$d..</string>
     <string name="s0117_toast_batch_saved">Сохранено %1$d элементов</string>

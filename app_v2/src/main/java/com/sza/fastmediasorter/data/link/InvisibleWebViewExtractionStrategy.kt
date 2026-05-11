@@ -9,6 +9,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.domain.usecase.link.BlockedReason
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
@@ -96,7 +97,20 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
             return OpenResult.NotFound("dynamic_no_media")
         }
 
-        val preferred = merged.filterNot(::isImageCandidate).ifEmpty { merged }
+        val nonImageCandidates = merged.filterNot(::isImageCandidate)
+        // S0151: if the dynamic render produced only image candidates on a known video-first
+        // social host, signal SocialPreviewOnly — do not fall back to downloading the preview.
+        if (nonImageCandidates.isEmpty()) {
+            val host = httpUrl.host
+            if (KnownAuthResources.isVideoFirstHost(host)) {
+                LinkDownloadTrace.verbose(
+                    "dynamic-strategy social-preview-only host=${LinkDownloadTrace.truncateUrl(url)}",
+                )
+                Timber.d("S0151: dynamic-strategy social-preview-only host=$host")
+                return OpenResult.SocialPreviewOnly(host = host)
+            }
+        }
+        val preferred = nonImageCandidates.ifEmpty { merged }
         if (shouldReturnBatch(preferred)) {
             return OpenResult.Batch(
                 items = preferred

@@ -17,6 +17,8 @@ data class KnownAuthResource(
 
 object KnownAuthResources {
 
+    private val VIDEO_FIRST_HOSTS = setOf("instagram.com", "threads.net", "threads.com")
+
     val all: List<KnownAuthResource> = listOf(
         KnownAuthResource("Instagram", "instagram.com", "https://www.instagram.com/accounts/login/"),
         KnownAuthResource("Pinterest", "pinterest.com", "https://www.pinterest.com/login/"),
@@ -24,11 +26,23 @@ object KnownAuthResources {
         KnownAuthResource("X (Twitter)", "x.com", "https://x.com/login"),
         KnownAuthResource("DeviantArt", "deviantart.com", "https://www.deviantart.com/users/login"),
         KnownAuthResource("Threads", "threads.net", "https://www.threads.net/login"),
+        KnownAuthResource("Threads", "threads.com", "https://www.threads.com/login"),
         KnownAuthResource("Reddit", "reddit.com", "https://www.reddit.com/login/"),
         KnownAuthResource("Tumblr", "tumblr.com", "https://www.tumblr.com/login"),
         KnownAuthResource("Flickr", "flickr.com", "https://identity.flickr.com/login"),
         KnownAuthResource("ArtStation", "artstation.com", "https://www.artstation.com/users/sign_in"),
     )
+
+    /**
+     * S0151: hosts for which an OG-image-only extraction result is treated as
+     * "no real content found" (strategic §6.3 resolved: Instagram and Threads only
+     * on this iteration). Sub-hosts match their registrable parent.
+     */
+    fun isVideoFirstHost(host: String?): Boolean {
+        val normalized = host?.trim()?.lowercase()?.removePrefix("www.") ?: return false
+        return normalized in VIDEO_FIRST_HOSTS ||
+            VIDEO_FIRST_HOSTS.any { normalized.endsWith(".$it") }
+    }
 
     /**
      * Resolve a request host to a known resource. Case-insensitive; a leading `www.`

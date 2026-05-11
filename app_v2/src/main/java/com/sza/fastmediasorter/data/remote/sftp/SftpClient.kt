@@ -8,6 +8,7 @@ import com.jcraft.jsch.SftpATTRS
 import com.jcraft.jsch.SftpException
 import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -141,12 +142,15 @@ class SftpClient @Inject constructor(
             }
             
             Result.success(allFiles)
+        } catch (e: CancellationException) {
+            // Navigation away from the screen cancels the listing scope — expected, not a failure.
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "SFTP list files failed")
             Result.failure(e)
         }
     }
-    
+
     // List files in single directory level (non-recursive)
     private fun listFilesSingleLevel(
         channel: ChannelSftp,

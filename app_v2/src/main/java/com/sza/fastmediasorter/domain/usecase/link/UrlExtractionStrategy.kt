@@ -53,6 +53,14 @@ sealed interface OpenResult {
         val label: String? = null,
     ) : OpenResult
 
+    /**
+     * S0151: a known video-first social host returned only an OG/image preview — no real
+     * media content (video, audio, or streaming manifest) was found. The coordinator
+     * falls through to the next strategy; if all strategies return this, it surfaces
+     * [LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly] to the UI.
+     */
+    data class SocialPreviewOnly(val host: String) : OpenResult
+
     data class NotFound(val reason: String) : OpenResult
     data class Blocked(val reason: BlockedReason) : OpenResult
     data class Error(val cause: Throwable) : OpenResult

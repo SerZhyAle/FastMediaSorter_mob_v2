@@ -72,7 +72,6 @@ class SftpConnectionPool {
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
         val key = ConnectionKey(info.host, info.port, info.username)
-        Timber.d("S0147: withConnection host=${info.host}")
         try {
             connectionSemaphore.acquire()
             try {
