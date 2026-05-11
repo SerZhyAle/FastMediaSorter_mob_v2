@@ -13,36 +13,33 @@ data class KnownAuthResource(
     val displayName: String,
     val host: String,
     val loginUrl: String,
+    /**
+     * S0151 §6.3: when true, an extraction result consisting solely of OG/image
+     * previews for this host is treated as "no real content" → the coordinator
+     * surfaces [com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly].
+     * Keep false for image-first sites where the preview image is the desired result.
+     */
+    val previewOnlyMeansLogin: Boolean = false,
 )
 
 object KnownAuthResources {
 
-    private val VIDEO_FIRST_HOSTS = setOf("instagram.com", "threads.net", "threads.com")
-
     val all: List<KnownAuthResource> = listOf(
-        KnownAuthResource("Instagram", "instagram.com", "https://www.instagram.com/accounts/login/"),
+        KnownAuthResource("Instagram", "instagram.com", "https://www.instagram.com/accounts/login/", previewOnlyMeansLogin = true),
         KnownAuthResource("Pinterest", "pinterest.com", "https://www.pinterest.com/login/"),
-        KnownAuthResource("TikTok", "tiktok.com", "https://www.tiktok.com/login"),
-        KnownAuthResource("X (Twitter)", "x.com", "https://x.com/login"),
+        KnownAuthResource("TikTok", "tiktok.com", "https://www.tiktok.com/login", previewOnlyMeansLogin = true),
+        KnownAuthResource("X (Twitter)", "x.com", "https://x.com/login", previewOnlyMeansLogin = true),
         KnownAuthResource("DeviantArt", "deviantart.com", "https://www.deviantart.com/users/login"),
-        KnownAuthResource("Threads", "threads.net", "https://www.threads.net/login"),
-        KnownAuthResource("Threads", "threads.com", "https://www.threads.com/login"),
+        KnownAuthResource("Threads", "threads.net", "https://www.threads.net/login", previewOnlyMeansLogin = true),
+        KnownAuthResource("Threads", "threads.com", "https://www.threads.com/login", previewOnlyMeansLogin = true),
         KnownAuthResource("Reddit", "reddit.com", "https://www.reddit.com/login/"),
         KnownAuthResource("Tumblr", "tumblr.com", "https://www.tumblr.com/login"),
         KnownAuthResource("Flickr", "flickr.com", "https://identity.flickr.com/login"),
         KnownAuthResource("ArtStation", "artstation.com", "https://www.artstation.com/users/sign_in"),
     )
 
-    /**
-     * S0151: hosts for which an OG-image-only extraction result is treated as
-     * "no real content found" (strategic §6.3 resolved: Instagram and Threads only
-     * on this iteration). Sub-hosts match their registrable parent.
-     */
-    fun isVideoFirstHost(host: String?): Boolean {
-        val normalized = host?.trim()?.lowercase()?.removePrefix("www.") ?: return false
-        return normalized in VIDEO_FIRST_HOSTS ||
-            VIDEO_FIRST_HOSTS.any { normalized.endsWith(".$it") }
-    }
+    /** S0151 §6.3: true iff [host] is a known auth resource flagged [KnownAuthResource.previewOnlyMeansLogin]. */
+    fun isPreviewSensitiveHost(host: String?): Boolean = matchHost(host)?.previewOnlyMeansLogin == true
 
     /**
      * Resolve a request host to a known resource. Case-insensitive; a leading `www.`

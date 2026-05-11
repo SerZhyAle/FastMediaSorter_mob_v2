@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
-import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -42,8 +41,6 @@ import com.sza.fastmediasorter.ui.player.helpers.playCloudVideo
 import com.sza.fastmediasorter.ui.player.helpers.playFtpVideo
 import com.sza.fastmediasorter.ui.player.helpers.playLocalVideoInternal
 import com.sza.fastmediasorter.ui.player.helpers.playWithMediaPlayer
-import com.sza.fastmediasorter.ui.player.helpers.releaseMediaPlayer
-import com.sza.fastmediasorter.ui.player.helpers.saveCurrentPosition
 import com.sza.fastmediasorter.ui.player.helpers.playSmbVideo
 import com.sza.fastmediasorter.ui.player.helpers.playSftpVideo
 import com.sza.fastmediasorter.ui.player.helpers.startPlaybackHealthCheck
@@ -63,6 +60,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.LazyThreadSafetyMode
 import timber.log.Timber
 /**
  * Orchestrator for video/audio playback using ExoPlayer (with MediaPlayer fallback).
@@ -195,11 +193,27 @@ class VideoPlayerManager(
         getPlayerView = { currentPlayerView }
     )
 
+    private val playbackControlsHelper by lazy(LazyThreadSafetyMode.NONE) {
+        VideoPlaybackControlsHelper(
+            manager = this,
+            context = context,
+            playbackControlPrefs = playbackControlPrefs,
+            trackSelectionManager = trackSelectionManager
+        )
+    }
+
+    private val lifecycleHelper by lazy(LazyThreadSafetyMode.NONE) {
+        VideoPlayerLifecycleHelper(
+            manager = this,
+            lifecycle = lifecycle
+        )
+    }
+
     // Retry logic for EOF exceptions (used only inside playerListener — stays private)
     private var playbackRetryCount = 0
     private var lastPlaybackPosition = 0L
     internal val retryHandler = Handler(Looper.getMainLooper())
-    private var retryRunnable: Runnable? = null
+    internal var retryRunnable: Runnable? = null
 
     // Playback position saving
     internal var currentFilePath: String? = null
@@ -213,8 +227,6 @@ class VideoPlayerManager(
 
     // Guards the one-shot audio-unsupported toast; reset per file load in playVideo().
     @Volatile private var audioUnsupportedShownForPath: String? = null
-
-    private var wasPlayingBeforePause = false
 
     // Playback health monitoring (detect "white noise" / stuck playback)
     internal var playbackHealthCheckRunnable: Runnable? = null
@@ -254,7 +266,7 @@ class VideoPlayerManager(
     // renderer (VrStereoRenderer) owns per-eye crop; suppress panel single-eye crop here
     // to avoid double-cropping. Toggled by VrPlayerActivity.setVrRenderingActive().
     @Volatile
-    private var vrImmersiveActive: Boolean = false
+    internal var vrImmersiveActive: Boolean = false
 
     /**
      * Set by VrPlayerActivity when the OpenXR immersive render loop becomes active or inactive.
@@ -591,79 +603,23 @@ class VideoPlayerManager(
     // Public API — Stereo / color adjustments
     // ═══════════════════════════════════════════════════════════════════════
 
-    /**
-     * Apply stereo crop effect matching [mode].
-     * AUTO and UNKNOWN are resolved to MONO (flat display, no crop).
-     *
-     * On VR headsets (SUPPORT_VR_PLAYER=true), the ExoPlayer Crop effect is intentionally
-     * skipped — VrStereoRenderer handles per-eye UV-crop directly from the full SBS/OU frame.
-     * Applying the phone-screen Crop here would pre-clip the frame before VrStereoRenderer
-     * samples it, resulting in a half-width image in each eye.
-     */
-    fun applyStereoEffect(mode: StereoMode) {
-        val resolved = when (mode) {
-            StereoMode.AUTO, StereoMode.UNKNOWN -> {
-                Timber.w(
-                    "VideoPlayerManager: applyStereoEffect sentinel input=%s — defensive fallback to MONO " +
-                        "(upstream coordinator should have suppressed; see PlayerStereoModeCoordinator)",
-                    mode,
-                )
-                StereoMode.MONO
-            }
-            else -> mode
-        }
-        Timber.d("VideoPlayerManager: applyStereoEffect requested=$mode resolved=$resolved")
-        // Immersive renderer owns per-eye crop; suppress panel single-eye crop when immersive is active.
-        // Otherwise gated by the user setting (default ON for non-VR, OFF for VR).
-        val effectiveMode = if (panelStereoSingleEyeEnabled && !vrImmersiveActive) resolved else StereoMode.MONO
-        stereoVideoProcessor.setStereoMode(effectiveMode)
-        applyConfiguredVideoEffects()
-        // Show one-shot toast when crop becomes active for the first time this session.
-        if (effectiveMode != StereoMode.MONO) {
-            panelStereoSingleEyeNotifier.notifyIfFirstThisSession(context)
-        }
-    }
+    /** Apply stereo crop effect matching [mode], with VR paths deferring per-eye crop to VrStereoRenderer. */
+    fun applyStereoEffect(mode: StereoMode) = playbackControlsHelper.applyStereoEffect(mode)
 
-    fun setHueAdjustmentDegrees(hueDegrees: Float) {
-        videoColorProcessor.setHueAdjustmentDegrees(hueDegrees)
-        Timber.d(
-            "VideoPlayerManager: setHueAdjustmentDegrees requested=$hueDegrees " +
-                "stored=${videoColorProcessor.getHueAdjustmentDegrees()} pipelineActive=$effectsPipelineActive"
-        )
-        playbackControlPrefs.edit()
-            .putFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, videoColorProcessor.getHueAdjustmentDegrees())
-            .apply()
-        applyConfiguredVideoEffects()
-    }
+    fun setHueAdjustmentDegrees(hueDegrees: Float) = playbackControlsHelper.setHueAdjustmentDegrees(hueDegrees)
 
-    fun getHueAdjustmentDegrees(): Float = videoColorProcessor.getHueAdjustmentDegrees()
+    fun getHueAdjustmentDegrees(): Float = playbackControlsHelper.getHueAdjustmentDegrees()
 
-    fun setBrightnessAdjustment(brightnessAdjustment: Float) {
-        videoColorProcessor.setBrightnessAdjustment(brightnessAdjustment)
-        Timber.d(
-            "VideoPlayerManager: setBrightnessAdjustment requested=$brightnessAdjustment " +
-                "stored=${videoColorProcessor.getBrightnessAdjustment()} pipelineActive=$effectsPipelineActive"
-        )
-        playbackControlPrefs.edit()
-            .putInt(
-                PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
-                brightnessAdjustmentToProgress(videoColorProcessor.getBrightnessAdjustment())
-            )
-            .apply()
-        applyConfiguredVideoEffects()
-    }
+    fun setBrightnessAdjustment(brightnessAdjustment: Float) =
+        playbackControlsHelper.setBrightnessAdjustment(brightnessAdjustment)
 
-    fun getBrightnessAdjustment(): Float = videoColorProcessor.getBrightnessAdjustment()
+    fun getBrightnessAdjustment(): Float = playbackControlsHelper.getBrightnessAdjustment()
 
-    fun setBrightnessProgress(progress: Int) {
-        setBrightnessAdjustment(brightnessProgressToAdjustment(progress))
-    }
+    fun setBrightnessProgress(progress: Int) = playbackControlsHelper.setBrightnessProgress(progress)
 
-    fun getBrightnessProgress(): Int =
-        brightnessAdjustmentToProgress(videoColorProcessor.getBrightnessAdjustment())
+    fun getBrightnessProgress(): Int = playbackControlsHelper.getBrightnessProgress()
 
-    fun getBrightnessPercentOffset(): Int =
-        ((getBrightnessProgress() - DEFAULT_BRIGHTNESS_PROGRESS) * 100f / DEFAULT_BRIGHTNESS_PROGRESS).toInt()
+    fun getBrightnessPercentOffset(): Int = playbackControlsHelper.getBrightnessPercentOffset()
 
     // ═══════════════════════════════════════════════════════════════════════
     // Public API — Playback dispatch
@@ -774,41 +730,17 @@ class VideoPlayerManager(
 
     fun getPlayer(): ExoPlayer? = exoPlayer
 
-    fun setRepeatMode(repeatMode: Int) {
-        exoPlayer?.repeatMode = repeatMode
-    }
+    fun setRepeatMode(repeatMode: Int) = playbackControlsHelper.setRepeatMode(repeatMode)
 
-    fun pause() {
-        saveCurrentPosition()
-        if (isUsingMediaPlayer) {
-            if (mediaPlayer?.isPlaying == true) mediaPlayer?.pause()
-        } else {
-            exoPlayer?.pause()
-        }
-    }
+    fun pause() = playbackControlsHelper.pause()
 
-    fun play() {
-        if (isUsingMediaPlayer) mediaPlayer?.start() else exoPlayer?.play()
-    }
+    fun play() = playbackControlsHelper.play()
 
-    fun setPlaybackSpeed(speed: Float) {
-        Timber.d("VideoPlayerManager: setPlaybackSpeed ${speed}x")
-        exoPlayer?.setPlaybackSpeed(speed)
-        // Persist so applyPlayerSettings() restores speed after onPlaybackReady() for each item
-        playbackControlPrefs.edit().putFloat(PlaybackControlPreferences.KEY_SPEED, speed).apply()
-    }
+    fun setPlaybackSpeed(speed: Float) = playbackControlsHelper.setPlaybackSpeed(speed)
 
     /** Apply [PlayerSettingsDialog.PlayerSettings] to the active ExoPlayer instance. */
-    fun applyPlayerSettings(settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) {
-        val player = exoPlayer ?: return
-        // Prefer speed persisted by Control dialog; fall back to settings.playbackSpeed on first launch
-        val savedSpeed = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_SPEED, -1f)
-        val speedToApply = if (savedSpeed > 0f) savedSpeed else settings.playbackSpeed
-        exoPlayer?.setPlaybackSpeed(speedToApply)
-        Timber.d("VideoPlayerManager: Set playback speed to ${speedToApply}x (saved=$savedSpeed, settings=${settings.playbackSpeed})")
-        setRepeatMode(if (settings.repeatVideo) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF)
-        trackSelectionManager.applyTrackSelection(player, settings, appLanguage)
-    }
+    fun applyPlayerSettings(settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) =
+        playbackControlsHelper.applyPlayerSettings(settings, appLanguage)
 
     // ═══════════════════════════════════════════════════════════════════════
     // Public API — Track selection (delegated to VideoTrackSelectionManager)
@@ -823,42 +755,27 @@ class VideoPlayerManager(
     )
 
     fun applySubtitleStyle(fontSize: TranslationFontSize, fontFamily: TranslationFontFamily) =
-        trackSelectionManager.applySubtitleStyle(fontSize, fontFamily)
+        playbackControlsHelper.applySubtitleStyle(fontSize, fontFamily)
 
-    fun getAvailableAudioTracks(): List<TrackInfo> =
-        trackSelectionManager.getAvailableAudioTracks()
-            .map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+    fun getAvailableAudioTracks(): List<TrackInfo> = playbackControlsHelper.getAvailableAudioTracks()
 
-    fun getAvailableSubtitleTracks(): List<TrackInfo> =
-        trackSelectionManager.getAvailableSubtitleTracks()
-            .map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
+    fun getAvailableSubtitleTracks(): List<TrackInfo> = playbackControlsHelper.getAvailableSubtitleTracks()
 
     fun selectAudioTrack(groupIndex: Int, trackIndex: Int) =
-        trackSelectionManager.selectAudioTrack(groupIndex, trackIndex)
+        playbackControlsHelper.selectAudioTrack(groupIndex, trackIndex)
 
     fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) =
-        trackSelectionManager.selectSubtitleTrack(groupIndex, trackIndex)
+        playbackControlsHelper.selectSubtitleTrack(groupIndex, trackIndex)
 
-    fun hasMultipleAudioTracks(): Boolean = trackSelectionManager.hasMultipleAudioTracks()
+    fun hasMultipleAudioTracks(): Boolean = playbackControlsHelper.hasMultipleAudioTracks()
 
-    fun hasSubtitleTracks(): Boolean = trackSelectionManager.hasSubtitleTracks()
+    fun hasSubtitleTracks(): Boolean = playbackControlsHelper.hasSubtitleTracks()
 
     // ═══════════════════════════════════════════════════════════════════════
     // Audio format info
     // ═══════════════════════════════════════════════════════════════════════
 
-    fun getAudioFormat(): AudioFormat? {
-        val player = exoPlayer ?: return null
-        val audioTrack = player.currentTracks.groups
-            .firstOrNull { it.type == C.TRACK_TYPE_AUDIO }
-            ?.getTrackFormat(0) ?: return null
-        return AudioFormat(
-            codec = audioTrack.sampleMimeType ?: "Unknown",
-            sampleRate = audioTrack.sampleRate,
-            channelCount = audioTrack.channelCount,
-            bitrate = audioTrack.bitrate
-        )
-    }
+    fun getAudioFormat(): AudioFormat? = playbackControlsHelper.getAudioFormat()
 
     // ═══════════════════════════════════════════════════════════════════════
     // Internal helpers
@@ -872,100 +789,15 @@ class VideoPlayerManager(
     }
 
     /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
-    fun releasePlayer() {
-        if (exoPlayer == null && activeResourceKey == null) return
-        MemoryEnduranceTracker.endScenario() // S0120: emit SUMMARY + schedule cooldown for VID-playback
-
-        pendingEffectsRunnable?.let { effectsHandler.removeCallbacks(it) }
-        pendingEffectsRunnable = null
-
-        Timber.d("VideoPlayerManager: releasePlayer() — exoPlayer=${if (exoPlayer != null) "NOT_NULL" else "NULL"}, resourceKey=$activeResourceKey")
-
-        exoPlayer?.let { player ->
-            player.removeListener(playerListener)
-            player.release()
-            exoPlayer = null
-            Timber.d("VideoPlayerManager: ExoPlayer released")
-        }
-
-        releaseMediaPlayer()
-        cancelPlaybackHealthCheck()
-
-        activeResourceKey?.let { key ->
-            ConnectionThrottleManager.deactivateVideoPlayerMode(key)
-            activeResourceKey = null
-        }
-
-        retryRunnable?.let { retryHandler.removeCallbacks(it) }
-        retryRunnable = null
-    }
+    fun releasePlayer() = lifecycleHelper.releasePlayer()
 
     // ═══════════════════════════════════════════════════════════════════════
     // Lifecycle
     // ═══════════════════════════════════════════════════════════════════════
 
-    override fun onPause(owner: LifecycleOwner) {
-        wasPlayingBeforePause = exoPlayer?.isPlaying == true ||
-            (isUsingMediaPlayer && mediaPlayer?.isPlaying == true)
-        pause()
-        stopPositionSaving()
-    }
+    override fun onPause(owner: LifecycleOwner) = lifecycleHelper.onPause()
 
-    override fun onResume(owner: LifecycleOwner) {
-        if (wasPlayingBeforePause && (exoPlayer != null || (isUsingMediaPlayer && mediaPlayer != null))) {
-            play()
-            startPositionSaving()
-            Timber.d("VideoPlayerManager: Resumed playback after lifecycle pause")
-        }
-        wasPlayingBeforePause = false
-    }
+    override fun onResume(owner: LifecycleOwner) = lifecycleHelper.onResume()
 
-    override fun onDestroy(owner: LifecycleOwner) {
-        saveCurrentPosition()
-        stopPositionSaving()
-
-        val playerToRelease = exoPlayer
-        exoPlayer = null
-        val mediaPlayerToRelease = mediaPlayer
-        mediaPlayer = null
-        isUsingMediaPlayer = false
-
-        try { playerToRelease?.removeListener(playerListener) } catch (e: Exception) {
-            Timber.w(e, "VideoPlayerManager: Failed to remove listener")
-        }
-        try { currentPlayerView?.player = null } catch (e: Exception) {
-            Timber.w(e, "VideoPlayerManager: Failed to detach PlayerView")
-        }
-
-        cancelPlaybackHealthCheck()
-
-        activeResourceKey?.let { key ->
-            ConnectionThrottleManager.deactivateVideoPlayerMode(key)
-            activeResourceKey = null
-        }
-
-        retryRunnable?.let { retryHandler.removeCallbacks(it) }
-        retryRunnable = null
-
-        // Release ExoPlayer on the main thread to avoid IllegalStateException
-        try { playerToRelease?.release() } catch (e: Exception) {
-            Timber.e(e, "VideoPlayerManager: Error releasing ExoPlayer")
-        }
-
-        // Release MediaPlayer on a background thread (no UI interaction needed)
-        Thread {
-            try {
-                mediaPlayerToRelease?.apply {
-                    try { if (isPlaying) stop() } catch (_: Exception) { }
-                    release()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "VideoPlayerManager: Error releasing MediaPlayer")
-            }
-        }.start()
-
-        videoColorProcessor.release()
-        managerScope.cancel()
-        lifecycle.removeObserver(this)
-    }
+    override fun onDestroy(owner: LifecycleOwner) = lifecycleHelper.onDestroy()
 }

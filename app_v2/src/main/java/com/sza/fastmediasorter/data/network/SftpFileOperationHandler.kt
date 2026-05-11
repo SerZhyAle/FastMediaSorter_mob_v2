@@ -269,6 +269,9 @@ class SftpFileOperationHandler @Inject constructor(
                                  cause?.message?.contains("permission denied", ignoreCase = true) == true ||
                                  cause?.message?.contains("access denied", ignoreCase = true) == true ->
                                      context.getString(R.string.error_sftp_copy_access_denied)
+                                 // FTP socket NPE = connection dropped during active transfer
+                                 cause is NullPointerException && sourcePath.startsWith("ftp:", ignoreCase = true) ->
+                                     context.getString(R.string.error_ftp_connection_dropped, host)
                                  sourcePath.startsWith("sftp:", ignoreCase = true) ->
                                      context.getString(R.string.error_sftp_copy_failed_server, host)
                                  else -> cause?.message ?: "Bridge copy source download failed"

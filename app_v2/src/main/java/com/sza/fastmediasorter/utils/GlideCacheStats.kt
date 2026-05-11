@@ -74,6 +74,10 @@ object GlideCacheStats {
             return
         }
 
+        // Permanent regression-detection signal — grep target for cache health analysis.
+        // Intentionally structured for easy parsing: fields are stable and space-separated.
+        Timber.d("GlideCacheStats: summary total=$total disk=$disk memory=$memory repo=$repo network=$network local=$local")
+
         val diskPercent = (disk * 100.0 / total)
         val memoryPercent = (memory * 100.0 / total)
         val networkPercent = (network * 100.0 / total)

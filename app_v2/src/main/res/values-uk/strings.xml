@@ -30,6 +30,7 @@
     <string name="edit">Редагувати</string>
     <string name="control">Керування</string>
     <string name="undo">Скасувати</string>
+    <string name="action_retry">Повторити</string>
     <string name="cancel">Відміна</string>
     <string name="sign_in">Увійти</string>
     <string name="ok">OK</string>
@@ -93,8 +94,8 @@
     <string name="error_move">Не вдалося перемістити файли</string>
     <string name="error_delete">Не вдалося видалити файли</string>
     <string name="error_all_operations_failed">Нічого не вийшло.</string>
-    <string name="all_copy_operations_failed">Не вдалося скопіювати вибрані файли.</string>
-    <string name="all_move_operations_failed">Не вдалося перемістити вибрані файли.</string>
+    <string name="all_copy_operations_failed">Не вдалося скопіювати вибрані файли.\n\n%1$s</string>
+    <string name="all_move_operations_failed">Не вдалося перемістити вибрані файли.\n\n%1$s</string>
     <string name="all_delete_operations_failed">Не вдалося видалити вибрані файли.</string>
     <string name="cloud_auth_required">%1$s потребує повторної авторизації. Будь ласка, увійдіть знову.</string>
 
@@ -313,6 +314,7 @@
     <string name="error_network_unsupported">Операція не підтримується цим сервером.</string>
     <string name="error_network_generic">Помилка мережі. Будь ласка, спробуйте ще раз.</string>
     <string name="error_sftp_copy_failed_server">Не вдалося скопіювати файл з %1$s. Перевірте з\'єднання та спробуйте ще раз.</string>
+    <string name="error_ftp_connection_dropped">З\'єднання з FTP-сервером %1$s перервалося. Спробуйте ще раз.</string>
     <string name="error_sftp_copy_access_denied">Немає доступу до файлу на SFTP-сервері. Перевірте права доступу.</string>
     <string name="error_sftp_connection_limit">Сервер %1$s обмежує кількість з\'єднань. Зупиніть відтворення та спробуйте ще раз.</string>
     <string name="error_smb_mobile_network">SMB-ресурс недоступний через мобільний інтернет. SMB працює лише у локальній Wi&#8209;Fi мережі. Підключіться до тієї ж мережі, що й пристрій (%1$s).</string>
@@ -1393,11 +1395,23 @@
     <string name="msg_move_success">Перемістили до %1$s.</string>
     <string name="msg_move_success_count">Перемістили %1$d файлів до %2$s.</string>
     <string name="error_move_failed">Не вдалося перемістити файл.</string>
+    <string name="error_queued_operation_move">Не вдалося перемістити "%1$s". Спробуйте ще раз.</string>
+    <string name="error_queued_operation_delete">Не вдалося видалити "%1$s". Спробуйте ще раз.</string>
+    <string name="error_queued_operation_rename">Не вдалося перейменувати "%1$s". Спробуйте ще раз.</string>
     <string name="error_file_exists_move">Файл "%1$s" вже є в "%2$s".\n\nЯкщо хочете замінити його, увімкніть "Перезапис при переміщенні" в Налаштування -&gt; Копіювання та переміщення.</string>
     <string name="msg_delete_success">Видалили.</string>
     <string name="error_delete_failed">Не вдалося видалити файл.</string>
     <string name="error_delete_unexpected">Не вдалося завершити видалення файлу.</string>
     <string name="error_delete_permission_required">Android просить дозвіл на видалення цього файлу. Підтвердьте наступний запит.</string>
+    <string name="dialog_player_exit_pending_queue_title">Фонові операції ще тривають</string>
+    <plurals name="dialog_player_exit_pending_queue_message">
+        <item quantity="one">%1$d файлова операція ще завершується. Залиштеся тут, щоб дочекатися завершення, або вийдіть зараз.</item>
+        <item quantity="few">%1$d файлові операції ще завершуються. Залиштеся тут, щоб дочекатися завершення, або вийдіть зараз.</item>
+        <item quantity="many">%1$d файлових операцій ще завершуються. Залиштеся тут, щоб дочекатися завершення, або вийдіть зараз.</item>
+        <item quantity="other">%1$d файлових операцій ще завершуються. Залиштеся тут, щоб дочекатися завершення, або вийдіть зараз.</item>
+    </plurals>
+    <string name="dialog_player_exit_pending_queue_leave">Усе одно вийти</string>
+    <string name="dialog_player_exit_pending_queue_stay">Залишитися</string>
 
     <!-- MANAGE_MEDIA Permission -->
     <string name="manage_media_title">Увімкнути швидкі операції</string>
@@ -2709,8 +2723,8 @@
     <string name="error_folder_already_exists">Папка вже існує</string>
     <string name="msg_folder_created">Папка "%1$s" створена</string>
     <string name="msg_folder_renamed">Папку перейменовано</string>
-        <string name="error_folder_create_failed">Не вдалося створити папку.</string>
-        <string name="error_folder_rename_failed">Не вдалося перейменувати папку.</string>
+    <string name="error_folder_create_failed">Не вдалося створити папку.</string>
+    <string name="error_folder_rename_failed">Не вдалося перейменувати папку.</string>
     <string name="delete_folder_confirm">Видалити папку «%1$s» та весь її вміст? Скасувати не можна.</string>
     <string name="delete_n_folders_confirm">Видалити %1$d папок та весь їхній вміст? Скасувати не можна.</string>
     <string name="error_cross_protocol_dir_not_supported">Копіювання/переміщення папок між різними типами сховищ не підтримується.</string>
@@ -3247,7 +3261,7 @@
     <string name="s0151_dialog_auth_title">Увійти в %1$s?</string>
     <string name="s0151_dialog_reauth_title">Оновити вхід у %1$s?</string>
     <string name="s0151_dialog_message">Справжній контент за цим посиланням потребує входу — прев\'ю-картинку пропущено.</string>
-    <string name="s0151_dialog_reauth_message">Збережений вхід у %1$s міг застаріти. Увійдіть знову, щоб застосунок міг отримати реальний контент.</string>
+    <string name="s0151_dialog_reauth_message">Застосували збережений вхід у %1$s, але сторінка повернула лише прев\'ю. Можливо, сесія застаріла, або цей пост потребує іншого облікового запису. Увійти знову?</string>
     <string name="s0151_dialog_reauth_positive">Увійти знову</string>
 
     <!-- S0117: batch progress and summary UX for noLegal site extraction -->
@@ -3370,4 +3384,16 @@
     <string name="favorites_slideshow_open_first">Спочатку відкрийте Обране, а потім запустіть там слайд-шоу.</string>
     <string name="google_drive_sign_in_unavailable">Зараз не вдається ввійти в Google Диск. Спробуйте ще раз пізніше.</string>
     <string name="google_sign_in_cancelled">Вхід через Google скасовано</string>
+
+    <!-- S0161: link download background queue -->
+    <string name="link_download_notif_channel_name">Завантаження за посиланням</string>
+    <string name="link_download_notif_channel_description">Прогрес та результати завантажень за посиланням</string>
+    <string name="link_download_notif_title_downloading">Завантаження..</string>
+    <string name="link_download_notif_title_done">Завантаження завершено</string>
+    <string name="link_download_notif_text_saved">Збережено: %1$s</string>
+    <string name="link_download_notif_text_failed">Помилка завантаження</string>
+    <string name="link_download_notif_text_batch_done">Завантажено %1$d з %2$d</string>
+    <string name="link_download_notif_title_sign_in_needed">Потрібен вхід</string>
+    <string name="link_download_notif_text_sign_in_needed">Для завантаження цього матеріалу %1$s вимагає входу</string>
+    <string name="link_download_notif_action_sign_in">Увійти</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.Intent
@@ -329,7 +330,15 @@ class BrowseManagerInitializer(
                 }
                 override fun onShowMessage(message: String) { Toast.makeText(activity, message, Toast.LENGTH_SHORT).show() }
                 override fun onShowError(message: String, details: String?) {
-                    Toast.makeText(activity, if (details != null) "$message\n$details" else message, Toast.LENGTH_LONG).show()
+                    if (details != null) {
+                        AlertDialog.Builder(activity)
+                            .setTitle(message)
+                            .setMessage(details)
+                            .setPositiveButton(R.string.ok, null)
+                            .show()
+                    } else {
+                        Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+                    }
                 }
                 override fun onFolderPickerRequested(
                     operationType: FileOperationType, sourceFiles: List<File>, sourceCredentialsId: String?,

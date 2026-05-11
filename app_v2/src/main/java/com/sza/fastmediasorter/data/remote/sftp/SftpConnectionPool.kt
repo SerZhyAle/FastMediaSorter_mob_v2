@@ -337,7 +337,6 @@ class SftpConnectionPool {
     }
 
     private fun evictPlaybackChannel(channel: ChannelSftp) {
-        Timber.d("S0047: evictPlaybackChannel — removing broken ExoPlayer channel from pool")
         pooledSessions.values.forEach { pooled ->
             val target = pooled.pooledChannels.firstOrNull { it.channel == channel } ?: return@forEach
             try { channel.disconnect() } catch (e: Exception) {

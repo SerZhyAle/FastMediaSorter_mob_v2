@@ -8431,3 +8431,271 @@ Format: | datetime | file | target | description |
 | 2026-05-11 03:08:11 | `docs/FEATURES.md` | `S0151` | Document Instagram/Threads real-media extraction (EN) |
 | 2026-05-11 03:08:11 | `docs/FEATURES_RU.md` | `S0151` | Document Instagram/Threads real-media extraction (RU) |
 | 2026-05-11 03:08:11 | `docs/FEATURES_UK.md` | `S0151` | Document Instagram/Threads real-media extraction (UK) |
+| 2026-05-11 03:44:33 | `PLAN/S0154_player-file-operation-queue.md` | `spec` | Add strategic spec S0154 for ad-hoc player file-operation queue |
+| 2026-05-11 03:46:46 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-update` | Refinement (claude-opus-4-7, focus: completeness, consistency) — field log 20260511_032209: recent-session anti-nag nuance, research item 6.4, criteria 11.7-11.8 |
+| 2026-05-11 03:53:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | S0152: remove Timber debug tags, spec verified |
+| 2026-05-11 03:53:24 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-check` | Audit S0151 -> Partial; PASS/WARN/FAIL 5/5/0; removed 4 stale S0151 debug tags |
+| 2026-05-11 03:53:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `spec-check` | Remove stale Timber.d S0151 debug tag (status no longer BlockNeedUserTest) |
+| 2026-05-11 03:53:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-check` | Remove stale Timber.d S0151 debug tag |
+| 2026-05-11 03:53:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `spec-check` | Remove stale Timber.d S0151 debug tag |
+| 2026-05-11 03:53:25 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `spec-check` | Remove stale Timber.d S0151 debug tag |
+| 2026-05-11 03:54:44 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-fix` | Annotate Last Audit (S0151): 1 pre-resolved (stale debug tags), 4 follow-ups (tactical sync, reel extraction, recent-session anti-nag, post-refusal message) |
+| 2026-05-11 03:54:45 | `PLAN/S0154_player-file-operation-queue/INDEX.md` | `spec-tech` | Create tactical plan for S0154 |
+| 2026-05-11 03:54:45 | `PLAN/S0154_player-file-operation-queue/PHASE_01__fileop-snapshot-model.md` | `spec-tech` | S0154 Phase 01: fileop-snapshot-model |
+| 2026-05-11 03:54:45 | `PLAN/S0154_player-file-operation-queue/PHASE_02__fileop-queue-and-consumer.md` | `spec-tech` | S0154 Phase 02: fileop-queue-and-consumer |
+| 2026-05-11 03:54:45 | `PLAN/S0154_player-file-operation-queue/PHASE_03__player-handler-enqueue.md` | `spec-tech` | S0154 Phase 03: player-handler-enqueue |
+| 2026-05-11 03:54:45 | `PLAN/S0154_player-file-operation-queue/PHASE_04__rename-enqueue.md` | `spec-tech` | S0154 Phase 04: rename-enqueue |
+| 2026-05-11 03:54:46 | `PLAN/S0154_player-file-operation-queue/PHASE_05__permission-and-empty-list.md` | `spec-tech` | S0154 Phase 05: permission-and-empty-list |
+| 2026-05-11 03:54:46 | `PLAN/S0154_player-file-operation-queue/PHASE_06__error-projection-and-progress.md` | `spec-tech` | S0154 Phase 06: error-projection-and-progress |
+| 2026-05-11 03:54:46 | `PLAN/S0154_player-file-operation-queue/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | S0154 Phase 07: docs-catalog-cleanup |
+| 2026-05-11 03:54:46 | `PLAN/S0154_player-file-operation-queue.md` | `spec-tech` | S0154 Status -> Tactical |
+| 2026-05-11 04:01:29 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `spec-update` | Tactical refinement (force-locked): mirror strategic 6.4 into Pre-Implementation Blockers; Phase 03 step count 3->4 |
+| 2026-05-11 04:01:29 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_03__social-auth-ux.md` | `spec-update` | Add Step 03.4 (skip re-login offer for recently-used session); update Objective/Prerequisites/Handoff |
+| 2026-05-11 04:01:29 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-update` | Record force-locked override reason in Revision History; mark proposal P-1 Accepted |
+| 2026-05-11 04:06:47 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add %1s placeholder to all_copy/move_operations_failed; add error_ftp_connection_dropped string |
+| 2026-05-11 04:06:47 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add %1s placeholder to all_copy/move_operations_failed; add error_ftp_connection_dropped string |
+| 2026-05-11 04:06:47 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add %1s placeholder to all_copy/move_operations_failed; add error_ftp_connection_dropped string |
+| 2026-05-11 04:06:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt` | `SftpFileOperationHandler` | Classify FTP socket NPE as connection-dropped instead of leaking raw Java exception text |
+| 2026-05-11 04:06:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | showFailureError: use formatArgs directly as detail to avoid redundant localized wrapper prefix |
+| 2026-05-11 04:06:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | onShowError: replace multiline Toast with AlertDialog when details are present |
+| 2026-05-11 04:15:35 | `PLAN/S0155_link-auth-multi-account.md` | `spec` | Add strategic spec S0155 for link-download multi-account (per-host multiple accounts, account picker, per-account re-auth, settings management) |
+| 2026-05-11 04:19:52 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-update` | Strategic refinement (force-locked): resolve research items 6.1 diag / 6.2 (v) / 6.3 (b) / 6.4 (no freshness); rewrite 3.1.5, 5.1 pillar C, 7 risks, 11.7-11.11; link S0155 |
+| 2026-05-11 04:19:52 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `spec-update` | Reshape Pre-Implementation Blockers: split 6.1 arch/diag, resolve 6.2/6.3/6.4 inline |
+| 2026-05-11 04:19:52 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_03__social-auth-ux.md` | `spec-update` | Rewrite Step 03.4: drop isSessionRecentlyApplied; revise reauth dialog wording to be explanatory |
+| 2026-05-11 04:19:53 | `PLAN/S0155_link-auth-multi-account.md` | `spec` | Approve S0155 (link-download multi-account) |
+| 2026-05-11 04:25:24 | `app_v2/src/main/java/com/sza/fastmediasorter/util/AppErrorNotifier.kt` | `AppErrorNotifier` | Fix Snackbar background on Material3/Android 12+: use backgroundTintList instead of setBackgroundColor |
+| 2026-05-11 04:32:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | Extracted share and cache download flow into BrowseShareOperationsHelper to bring the manager under 700 LOC |
+| 2026-05-11 04:32:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShareOperationsHelper.kt` | `BrowseShareOperationsHelper` | Added helper for browse share intent preparation and network-to-cache copy flow with progress UI |
+| 2026-05-11 04:32:06 | `PLAN/S0002_decompose-giant-files.md` | `S0002` | Recorded Wave 45 and refreshed current line-count / priority tables after BrowseFileOperationsManager extraction |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/INDEX.md` | `spec-tech` | Create tactical plan for S0155 |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/PHASE_01__store-multi-account.md` | `spec-tech` | Phase 01: store-multi-account |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/PHASE_02__session-context.md` | `spec-tech` | Phase 02: session-context |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/PHASE_03__account-naming.md` | `spec-tech` | Phase 03: account-naming |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/PHASE_04__share-flow-integration.md` | `spec-tech` | Phase 04: share-flow-integration |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/PHASE_05__named-reauth.md` | `spec-tech` | Phase 05: named-reauth |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/PHASE_06__settings-accounts-ui.md` | `spec-tech` | Phase 06: settings-accounts-ui |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account/PHASE_07__docs-catalog-cleanup.md` | `spec-tech` | Phase 07: docs-catalog-cleanup |
+| 2026-05-11 04:39:33 | `PLAN/S0155_link-auth-multi-account.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-11 09:45:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStore.kt` | `S0155 Phase 01` | Add multi-account (host, accountId) storage with legacy migration |
+| 2026-05-11 09:45:49 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/AuthSessionRepository.kt` | `S0155 Phase 01` | Add AuthAccountDomain and multi-account repository interface |
+| 2026-05-11 09:45:49 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `S0155 Phase 01` | Implement multi-account repository methods |
+| 2026-05-11 09:47:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadSessionContext.kt` | `S0155 Phase 02` | New singleton: holds pre-loaded cookies for the active download account |
+| 2026-05-11 09:47:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadCookieJar.kt` | `S0155 Phase 02` | Use session context cookies when active; fall back to deprecated store.loadFor |
+| 2026-05-11 09:47:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `S0155 Phase 02` | Inject LinkDownloadSessionContext; use context cookies in injectSavedCookies |
+| 2026-05-11 09:47:13 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_02__preview-only-signal.md` | `spec-update` | Pre-dev alignment: Step 02.2 -> isPreviewSensitiveHost (6.3 b); add Step 02.6 S0151-diag log; step count 5->6 |
+| 2026-05-11 09:47:13 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `spec-update` | Pre-dev alignment: Phase 02 step count, 6.2(b) gating note, change log |
+| 2026-05-11 09:47:14 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-update` | Revision History: record third tactical pass (pre-dev alignment) |
+| 2026-05-11 09:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/AccountNameHintExtractor.kt` | `S0155 Phase 03` | New utility: best-effort account name hint from WebView cookies |
+| 2026-05-11 09:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthViewModel.kt` | `S0155 Phase 03` | Add multi-account saveSession(host, accountId, displayName, cookies) overload |
+| 2026-05-11 09:48:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `S0155 Phase 03` | Post-login Name this account dialog; generate UUID accountId |
+| 2026-05-11 09:48:43 | `app_v2/src/main/res/values/strings_s0155.xml` | `S0155 Phase 03` | EN strings for S0155 account naming, picker, re-auth, settings |
+| 2026-05-11 09:48:43 | `app_v2/src/main/res/values-ru/strings_s0155.xml` | `S0155 Phase 03` | RU strings for S0155 |
+| 2026-05-11 09:48:43 | `app_v2/src/main/res/values-uk/strings_s0155.xml` | `S0155 Phase 03` | UK strings for S0155 |
+| 2026-05-11 09:54:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Extracted playback controls and lifecycle handling into dedicated helpers to bring the manager under 700 LOC |
+| 2026-05-11 09:54:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlaybackControlsHelper.kt` | `VideoPlaybackControlsHelper` | Added helper for stereo/color adjustments, playback controls, track selection, and audio format access |
+| 2026-05-11 09:54:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerLifecycleHelper.kt` | `VideoPlayerLifecycleHelper` | Added helper for pause-resume lifecycle handoff and release-destroy cleanup |
+| 2026-05-11 09:54:10 | `PLAN/S0002_decompose-giant-files.md` | `S0002` | Recorded Wave 46 and advanced the decomposition loop to PlayerMediaLoaderManager |
+| 2026-05-11 09:56:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `spec-all S0155 phase-04` | Step 04.3: integrate AccountSelectionManager; fix KnownAuthResource type; add accountId param to processLinkAutoDownload |
+| 2026-05-11 09:56:43 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-all S0155 phase-04` | Step 04.4: inject LinkDownloadSessionContext+EncryptedCookieStore; add accountId to handle(); add applySessionContext(); SocialPreviewOnly extended with accountId/accountDisplayName; hasAnySession |
+| 2026-05-11 09:56:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `spec-all S0155 phase-04` | Step 04.2: new AccountSelectionManager — 0/1/>=2 account selection before download |
+| 2026-05-11 09:58:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `spec-all S0155 phase-05` | Step 05.1: named reauth dialog using s0155_reauth_* strings; per-account dismissal check/mark |
+| 2026-05-11 09:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-all S0155 phase-05` | Step 05.2: markLastUsed called after successful single-account download |
+| 2026-05-11 10:02:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListViewModel.kt` | `S0155 Phase 06` | Expose accountGroups flow; add deleteAccount, updateDisplayName, addAccount VM methods |
+| 2026-05-11 10:02:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthAccountGroupAdapter.kt` | `S0155 Phase 06` | New adapter: per-host account group list with delete/rename/relogin/add-account |
+| 2026-05-11 10:02:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `S0155 Phase 06` | Switch to AuthAccountGroupAdapter; wire delete/rename/relogin/add-account flows |
+| 2026-05-11 10:02:18 | `app_v2/src/main/res/layout/item_auth_host_group.xml` | `S0155 Phase 06` | New layout: host group header row |
+| 2026-05-11 10:02:19 | `app_v2/src/main/res/layout/item_auth_account.xml` | `S0155 Phase 06` | New layout: per-account row with relogin/rename/delete buttons |
+| 2026-05-11 10:02:19 | `app_v2/src/main/res/layout/item_auth_session.xml` | `S0155 Phase 06` | Soft-deprecated: replaced by item_auth_host_group.xml + item_auth_account.xml |
+| 2026-05-11 10:05:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlaybackControlsHelper.kt` | `VideoPlaybackControlsHelper` | Qualified VideoPlayerManager brightness extension calls after helper extraction to restore compile-safe delegation |
+| 2026-05-11 10:05:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerLifecycleHelper.kt` | `VideoPlayerLifecycleHelper` | Restored releaseMediaPlayer and coroutine cancel imports after lifecycle helper extraction |
+| 2026-05-11 10:05:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `AccountSelectionManager` | Fixed nullable lastUsedIndex fallback so debug-build validation can complete |
+| 2026-05-11 10:06:09 | `docs/FEATURES.md` | `S0155 Phase 07` | Add multi-account authorization feature description |
+| 2026-05-11 10:06:09 | `docs/FEATURES_RU.md` | `S0155 Phase 07` | RU: multi-account authorization feature |
+| 2026-05-11 10:06:09 | `docs/FEATURES_UK.md` | `S0155 Phase 07` | UK: multi-account authorization feature |
+| 2026-05-11 10:06:09 | `dev/CATALOG/app_v2.jsonl` | `S0155 Phase 07` | Catalog regen: new classes from S0155; AuthSessionAdapter removed |
+| 2026-05-11 10:06:10 | `PLAN/S0155_link-auth-multi-account/INDEX.md` | `S0155 Phase 07` | Tactical plan complete — all 7 phases done |
+| 2026-05-11 10:09:02 | `PLAN/S0155_link-auth-multi-account.md` | `spec-all S0155` | Pipeline BlockNeedUserTest: all 7 phases implemented, build PASS, awaiting on-device verification |
+| 2026-05-11 11:48:25 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_02__preview-only-signal.md` | `spec-update` | Step 02.2 -> per-entry previewOnlyMeansLogin flag (6.3, owner choice): true for Instagram/Threads/TikTok/X, false for image-first registry hosts |
+| 2026-05-11 11:48:25 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `spec-update` | 6.3 inline resolution: per-entry previewOnlyMeansLogin flag |
+| 2026-05-11 11:56:47 | `docs/RECEIVING_LINKS_RU.md` | `docs` | Add RECEIVING_LINKS_RU.md: full architecture reference for the link-receiving and download pipeline (S0003/S0116/S0144/S0151/S0155) |
+| 2026-05-11 12:01:02 | `docs/RECEIVING_LINKS_RU.md` | `RECEIVING_LINKS_RU.md` | Added S0140 batch download logic and fixed UX result table discrepancies |
+| 2026-05-11 12:13:55 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `spec` | Add strategic spec S0156 for full noLegal capability audit and open questions |
+| 2026-05-11 12:57:48 | `PLAN/S0157_link-auth-offer-and-dismissal-ux.md` | `spec` | Add strategic spec S0157 for link-auth-offer-and-dismissal-ux |
+| 2026-05-11 14:06:01 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/INDEX.md` | `spec-tech` | Create tactical plan for S0157 |
+| 2026-05-11 14:06:02 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/PHASE_01__store-type-field-migration.md` | `spec-tech` | Phase 01: store-type-field-migration |
+| 2026-05-11 14:06:02 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/PHASE_02__repository-dismissed-api.md` | `spec-tech` | Phase 02: repository-dismissed-api |
+| 2026-05-11 14:06:02 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/PHASE_03__universal-offer-dismiss-rewire.md` | `spec-tech` | Phase 03: universal-offer-dismiss-rewire |
+| 2026-05-11 14:06:14 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/PHASE_04__mandatory-naming-default.md` | `spec-tech` | Phase 04: mandatory-naming-default |
+| 2026-05-11 14:06:14 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/PHASE_05__dismissed-records-in-settings.md` | `spec-tech` | Phase 05: dismissed-records-in-settings |
+| 2026-05-11 14:06:15 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-11 14:06:15 | `PLAN/S0157_link-auth-offer-and-dismissal-ux.md` | `spec-tech` | S0157 status to Tactical |
+| 2026-05-11 14:11:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStore.kt` | `S0157-phase01` | Add type field, saveAsDismissed, hasDismissedRecord, active-only listAccounts, S0157 one-time wipe migration |
+| 2026-05-11 14:15:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/AuthSessionRepository.kt` | `S0157-phase02` | Add isDismissed to AuthAccountDomain; markDismissed/isDismissedForHost/observeAccountsAll interface methods |
+| 2026-05-11 14:15:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `S0157-phase02` | Implement dismissed API; fix refreshFlows to preserve dismissed records; add accountFlowAll |
+| 2026-05-11 14:23:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `S0157 Phase 03 Step 03.5` | Rewrite presentSocialPreviewOnly: 3-button dialog, isDismissedForHost, markDismissed, remove AuthOfferDismissalStore refs |
+| 2026-05-11 14:23:28 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/AuthOfferDismissalStore.kt` | `S0157 Phase 03 Step 03.6` | Delete AuthOfferDismissalStore; dismissal now stored in EncryptedCookieStore via AuthSessionRepository |
+| 2026-05-11 14:27:44 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `spec-update` | Integrate owner answers into S0156 and resolve §6 policy decisions |
+| 2026-05-11 14:27:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `S0157-phase04` | Mandatory account name pre-fill: use default when hint absent |
+| 2026-05-11 14:35:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListViewModel.kt` | `S0157-phase05` | Use observeAccountsAll() to include dismissed records in settings list |
+| 2026-05-11 14:35:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthAccountGroupAdapter.kt` | `S0157-phase05` | Render dismissed rows: s0157_dismissed_label, hide relogin/rename, always show lastUsedAt |
+| 2026-05-11 14:35:30 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `spec-update` | Add seed research directions for images, video, music, documents, archives, network, and internet content |
+| 2026-05-11 14:38:26 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156_Spec` | Добавлены дополнительные векторы для аудита noLegal-возможностей (P2P, AI, Headless, Root, Vaults, NAS). |
+| 2026-05-11 14:44:43 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156` | Extended noLegal research surface with 10 new seed search areas: Podcasts/RSS, IPTV/live-streams, Camera RAW/HDR, Comics/e-book formats, on-device DLNA media server, synchronized lyrics, acoustic fingerprinting/perceptual deduplication, spatial audio DSP, self-hosted media backend integration, deep automation/Tasker hooks |
+| 2026-05-11 14:45:32 | `docs/FEATURES.md` | `S0157-phase06` | Add 3-button auth offer and dismissed-record settings bullets |
+| 2026-05-11 14:45:32 | `docs/FEATURES_RU.md` | `S0157-phase06` | RU mirror — auth offer UX update |
+| 2026-05-11 14:45:32 | `docs/FEATURES_UK.md` | `S0157-phase06` | UK mirror — auth offer UX update |
+| 2026-05-11 14:45:50 | `docs/RECEIVING_LINKS_RU.md` | `S0157-phase06` | Update auth offer and dismissal model documentation |
+| 2026-05-11 14:46:00 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156_Spec` | Добавлен чеклист-план для аудита в документ. |
+| 2026-05-11 14:48:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `S0157-BlockNeedUserTest` | Insert S0157 debug tag at offerAuthThenDownload entry |
+| 2026-05-11 14:48:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `S0157-BlockNeedUserTest` | Insert S0157 debug tag at presentSocialPreviewOnly entry |
+| 2026-05-11 14:48:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `S0157-BlockNeedUserTest` | Insert S0157 debug tag at mandatory account name dialog entry |
+| 2026-05-11 14:48:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `S0157-BlockNeedUserTest` | Insert S0157 debug tag at settings auth list entry |
+| 2026-05-11 14:54:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `spec-check` | Remove S0157 debug tag (Verified transition) |
+| 2026-05-11 14:54:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `spec-check` | Remove S0157 debug tag (Verified transition) |
+| 2026-05-11 14:54:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `spec-check` | Remove S0157 debug tag (Verified transition) |
+| 2026-05-11 14:54:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `spec-check` | Remove S0157 debug tag (Verified transition) |
+| 2026-05-11 14:54:20 | `PLAN/S0157_link-auth-offer-and-dismissal-ux.md` | `spec-check` | Audit S0157 → Verified; PASS 22/WARN 0/FAIL 0 |
+| 2026-05-11 14:56:53 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156` | Added Pillar F: rules for per-direction research output documents — mandatory sections, three recommendation tiers (easy/hard/aspirational), iterative accumulation model, follow-up spec birth rules |
+| 2026-05-11 15:28:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/fileops/PlayerFileOperation.kt` | `PlayerFileOperation` | Added queued player file operation snapshot model and shared network-aware mapper for S0154 |
+| 2026-05-11 15:30:52 | `PLAN/S0158_player-large-buttons.md` | `spec` | Add strategic spec S0158 for ad-hoc player-large-buttons |
+| 2026-05-11 15:31:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/fileops/PlayerFileOperationEvent.kt` | `PlayerFileOperationEvent` | Added queue event model for queued player file operations in S0154 |
+| 2026-05-11 15:31:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/fileops/PlayerFileOperationQueue.kt` | `PlayerFileOperationQueue` | Added sequential queued player file operation consumer with permission pause-resume for S0154 |
+| 2026-05-11 15:36:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Added session-scoped player file operation queue ownership and shutdown for S0154 |
+| 2026-05-11 15:36:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Wired queued player file operations and placeholder queue event handling for S0154 |
+| 2026-05-11 15:36:45 | `PLAN/S0159_file-ops-overflow-menu.md` | `spec` | Add strategic spec S0159 for file-ops-overflow-menu |
+| 2026-05-11 15:36:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | Replaced move-delete in-progress guards with snapshot enqueue flow for S0154 |
+| 2026-05-11 15:41:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/AuthSessionRepository.kt` | `AuthSessionRepository` | Added account-scoped dismissal API for reactive S0157 reauth flow |
+| 2026-05-11 15:41:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStore.kt` | `EncryptedCookieStore` | Stored account-scoped dismissed markers without overwriting active auth sessions |
+| 2026-05-11 15:41:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `AuthSessionRepositoryImpl` | Applied S0157 dismissal granularity and activity-first auth settings ordering |
+| 2026-05-11 15:41:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | Made reactive SocialPreviewOnly dismissal account-scoped when accountId is known |
+| 2026-05-11 15:41:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListViewModel.kt` | `AuthSessionsListViewModel` | Preserved repository-driven auth group ordering for S0157 settings UX |
+| 2026-05-11 15:41:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthAccountLabels.kt` | `AuthAccountLabels` | Added shared visible-label helper to hide dismissed storage ids in settings UI |
+| 2026-05-11 15:41:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthAccountGroupAdapter.kt` | `AuthAccountGroupAdapter` | Rendered named dismissed rows without leaking raw dismissal ids |
+| 2026-05-11 15:41:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `AuthSessionsListFragment` | Aligned delete confirmation labels with row-visible auth labels |
+| 2026-05-11 15:41:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | Used S0157 default account name consistently during WebView auth save |
+| 2026-05-11 15:42:00 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenterTest.kt` | `LinkAutoDownloadResultPresenterTest` | Covered account-scoped reactive dismissal behavior for S0157 |
+| 2026-05-11 15:42:01 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListViewModelTest.kt` | `AuthSessionsListViewModelTest` | Covered settings ordering and dismissed label fallback for S0157 |
+| 2026-05-11 15:42:24 | `PLAN/S0160_resource-ops-overflow-toggle.md` | `spec` | Add strategic spec S0160 for resource-ops-overflow-toggle |
+| 2026-05-11 15:47:30 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenterTest.kt` | `LinkAutoDownloadResultPresenterTest` | Removed stale SocialPreviewOnly previewUrl constructor argument from S0157 presenter test |
+| 2026-05-11 15:51:26 | `PLAN/S0159_file-ops-overflow-menu.md` | `spec` | S0159: resolve all 3 open questions, update §2/§5/§6/§9/§11 |
+| 2026-05-11 15:56:45 | `PLAN/S0160_resource-ops-overflow-toggle.md` | `spec` | S0160: resolve §6 Q1+Q2, add move_up/move_down to overflow menu |
+| 2026-05-11 16:06:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/fileops/PlayerFileOperation.kt` | `PlayerFileOperation` | S0154 add immutable queued player operation snapshot model |
+| 2026-05-11 16:06:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/fileops/PlayerFileOperationEvent.kt` | `PlayerFileOperationEvent` | S0154 add queued player operation event model |
+| 2026-05-11 16:06:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/fileops/PlayerFileOperationQueue.kt` | `PlayerFileOperationQueue` | S0154 add sequential queued player file operation executor |
+| 2026-05-11 16:06:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | S0154 enqueue move delete actions instead of dropping them behind in-progress flags |
+| 2026-05-11 16:06:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | S0154 wire queued player file operation events to optimistic player UX |
+| 2026-05-11 16:06:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | S0154 own player queue lifecycle and resume queued permission requests |
+| 2026-05-11 16:06:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `PlayerDialogHelper` | S0154 collect rename requests for queue-backed player rename flow |
+| 2026-05-11 16:06:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/RenameDialog.kt` | `RenameDialog` | S0154 add name-only callback for player queue-backed rename |
+| 2026-05-11 16:07:30 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | S0154 add queued player operation retry and exit-warning strings |
+| 2026-05-11 16:07:31 | `app_v2/src/main/res/values-ru/strings.xml` | `values-ru/strings.xml` | S0154 add queued player operation retry and exit-warning strings |
+| 2026-05-11 16:07:31 | `app_v2/src/main/res/values-uk/strings.xml` | `values-uk/strings.xml` | S0154 add queued player operation retry and exit-warning strings |
+| 2026-05-11 16:07:31 | `docs/FEATURES.md` | `FEATURES` | S0154 document queued player file actions |
+| 2026-05-11 16:07:31 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0154 document queued player file actions |
+| 2026-05-11 16:07:32 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0154 document queued player file actions |
+| 2026-05-11 16:07:32 | `dev/CATALOG/app_v2.jsonl` | `CATALOG` | S0154 regenerate app_v2 catalog after new player fileops classes |
+| 2026-05-11 16:07:32 | `dev/CATALOG/app_v2.md` | `CATALOG` | S0154 regenerate rendered app_v2 catalog after new player fileops classes |
+| 2026-05-11 16:19:15 | `FileOperationsHandler.kt (root)` | `temp/FileOperationsHandler_stale_*.kt` | S0154 audit: moved stale pre-queue FileOperationsHandler from root to temp (ROOT_CLEANLINESS violation) |
+| 2026-05-11 16:19:19 | `app_v2/src/main/res/values*/strings.xml` | `PlayerLifecycleManager.kt` | S0154 fix: convert dialog_player_exit_pending_queue_message to plurals (EN one/other, RU one/few/many/other, UK one/few/many/other); update getQuantityString call |
+| 2026-05-11 16:21:53 | `dev/CATALOG/app_v2.jsonl` | `AuthSessionRepositoryImpl` | Catalog sync: refresh functions list after S0157 phase-02 (markDismissed, observeAccountsAll etc. now indexed) |
+| 2026-05-11 16:22:01 | `PLAN/S0157_link-auth-offer-and-dismissal-ux.md` | `spec-check` | Re-audit S0157 -> Verified; PASS 22/WARN 0/FAIL 0; catalog WARN fixed (functions re-indexed) |
+| 2026-05-11 17:01:14 | `PLAN/S0025_smb-fast-fail.md` | `spec-arc` | Archive S0025 (smb-fast-fail) -> temp/done/ |
+| 2026-05-11 17:02:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | S0155 bug fix: add RESULT_ACCOUNT_ID to result-bundle; pass accountId from harvestAndDismiss so caller gets non-null accountId after first auth |
+| 2026-05-11 17:02:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0155 bug fix: read RESULT_ACCOUNT_ID from WebViewAuthDialogFragment result-bundle instead of hardcoded null; removes accountId=null on first auth |
+| 2026-05-11 17:02:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | S0155: remove stale Timber.d debug tag (status moved from BlockNeedUserTest to Partial) |
+| 2026-05-11 17:02:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `AuthSessionsListFragment` | S0155: remove stale Timber.d debug tag (status moved from BlockNeedUserTest to Partial) |
+| 2026-05-11 17:02:56 | `PLAN/S0155_link-auth-multi-account.md` | `S0155` | Add Last Audit: accountId=null bug confirmed+fixed; single-account auto-select passes; status BlockNeedUserTest->Partial |
+| 2026-05-11 17:02:56 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `S0151` | Update Last Audit: Instagram reel UnrecognizedInputFormatException (HLS manifest); Threads partial success; §6.1 architecture resolved |
+| 2026-05-11 17:03:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0155 bug fix: read RESULT_ACCOUNT_ID from WebViewAuthDialogFragment result-bundle instead of hardcoded null |
+| 2026-05-11 17:03:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | S0155: remove stale debug tag |
+| 2026-05-11 17:03:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `AuthSessionsListFragment` | S0155: remove stale debug tag |
+| 2026-05-11 17:03:02 | `PLAN/S0155_link-auth-multi-account.md` | `S0155` | Add Last Audit; status BlockNeedUserTest->Partial |
+| 2026-05-11 17:03:02 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `S0151` | Update Last Audit: Instagram reel unplayable (HLS manifest); §6.1 architecture resolved |
+| 2026-05-11 17:04:08 | `docs/FEATURES.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 Network Sources |
+| 2026-05-11 17:04:08 | `docs/FEATURES_RU.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 (RU) |
+| 2026-05-11 17:04:09 | `docs/FEATURES_UK.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 (UK) |
+| 2026-05-11 17:04:32 | `PLAN/S0035_android17-local-network-permission.md` | `spec-check` | Audit S0035 -> Verified; PASS 26 / WARN 0 / FAIL 0 / MANUAL 8 |
+| 2026-05-11 17:04:47 | `PLAN/S0035_android17-local-network-permission.md` | `spec-arc` | Archive S0035 (android17-local-network-permission) -> temp/done/ |
+| 2026-05-11 17:05:35 | `PLAN/S0022_bugfix-camera-capture-crash__audit_2026-04-30_2.md` | `spec-arc-sidecar` | Archive S0022 sidecar audit/fix file -> temp/done/ |
+| 2026-05-11 17:05:36 | `PLAN/S0022_bugfix-camera-capture-crash__audit_2026-04-30.md` | `spec-arc-sidecar` | Archive S0022 sidecar audit/fix file -> temp/done/ |
+| 2026-05-11 17:05:36 | `PLAN/S0022_bugfix-camera-capture-crash__fix_2026-04-30.md` | `spec-arc-sidecar` | Archive S0022 sidecar audit/fix file -> temp/done/ |
+| 2026-05-11 17:06:16 | `PLAN/S0037_resource-icon-ux-polish.md` | `spec-arc` | Archive S0037 (resource-icon-ux-polish) -> temp/done/ |
+| 2026-05-11 17:06:37 | `PLAN/S0044_settings-layout-compactness.md` | `spec-arc` | Archive S0044 (settings-layout-compactness) -> temp/done/ |
+| 2026-05-11 17:06:57 | `PLAN/S0045_per-resource-sort-type-memory.md` | `spec-arc` | Archive S0045 (per-resource-sort-type-memory) -> temp/done/ |
+| 2026-05-11 17:07:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `S0047 debug-tag cleanup` | Remove stale S0047 BlockNeedUserTest Timber probe before archiving spec |
+| 2026-05-11 17:07:46 | `PLAN/S0047_bugfix-sftp-pool-broken-channel.md` | `spec-arc` | Archive S0047 (bugfix-sftp-pool-broken-channel) -> temp/done/ |
+| 2026-05-11 17:08:45 | `PLAN/S0048_info-dialog-extended-metadata.md` | `spec-arc` | Archive S0048 (info-dialog-extended-metadata) -> temp/done/ |
+| 2026-05-11 17:09:01 | `PLAN/S0049_bugfix-icon-pick-save-disabled.md` | `spec-arc` | Archive S0049 (bugfix-icon-pick-save-disabled) -> temp/done/ |
+| 2026-05-11 17:09:14 | `PLAN/S0050_player-black-screen-mode.md` | `spec-arc` | Archive S0050 (player-black-screen-mode) -> temp/done/ |
+| 2026-05-11 17:09:46 | `PLAN/S0051_bugfix-network-datasource-pause-cancel.md` | `spec-arc` | Archive S0051 (bugfix-network-datasource-pause-cancel) -> temp/done/ |
+| 2026-05-11 17:10:01 | `PLAN/S0052_bugfix-sftp-datasource-log-spam.md` | `spec-arc` | Archive S0052 (bugfix-sftp-datasource-log-spam) -> temp/done/ |
+| 2026-05-11 17:10:15 | `PLAN/S0053_bugfix-m2ts-bdmv-network-playback.md` | `spec-arc` | Archive S0053 (bugfix-m2ts-bdmv-network-playback) -> temp/done/ |
+| 2026-05-11 17:11:50 | `PLAN/S0056_smb-scan-slowness-investigation.md` | `spec-arc` | Cancel and archive S0056 (smb-scan-slowness-investigation) -> temp/done/ |
+| 2026-05-11 17:12:15 | `PLAN/S0055_diagnostic-noise-cleanup.md` | `spec-arc` | Stop and archive S0055 (diagnostic-noise-cleanup) -> temp/done/ [was Implemented, skipped verification] |
+| 2026-05-11 17:14:05 | `PLAN/S0060_bugfix-smb-thumbnail-share-race.md` | `spec-arc` | Stop and archive S0060 (bugfix-smb-thumbnail-share-race) -> temp/done/ [was Implemented, skipped verification] |
+| 2026-05-11 17:14:20 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec-arc` | Stop and archive S0061 (bugfix-smb-stale-connection-invalidation) -> temp/done/ [was Implemented, skipped verification] |
+| 2026-05-11 17:14:35 | `PLAN/S0062_bugfix-speedtest-parse-end-of-string.md` | `spec-arc` | Archive S0062 (bugfix-speedtest-parse-end-of-string) -> temp/done/ |
+| 2026-05-11 17:14:48 | `PLAN/S0063_bugfix-thumbnail-avi-smb-mediametadataretriever.md` | `spec-arc` | Archive S0063 (bugfix-thumbnail-avi-smb-mediametadataretriever) -> temp/done/ |
+| 2026-05-11 17:15:13 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol.md` | `spec-arc` | Archive S0066 (enh-network-transient-failure-classification-multi-protocol) -> temp/done/ |
+| 2026-05-11 17:15:37 | `PLAN/S0067_enh-network-stale-connection-invalidation-multi-protocol.md` | `spec-arc` | Archive S0067 (enh-network-stale-connection-invalidation-multi-protocol) -> temp/done/ |
+| 2026-05-11 17:16:07 | `PLAN/S0070_device-storage-info-settings.md` | `spec-arc` | Archive S0070 (device-storage-info-settings) -> temp/done/ |
+| 2026-05-11 17:16:26 | `PLAN/S0071_use-trash-setting.md` | `spec-arc` | Stop and archive S0071 (use-trash-setting) -> temp/done/ [was Implemented, skipped verification] |
+| 2026-05-11 17:16:41 | `PLAN/S0072_downloads-auto-destination.md` | `spec-arc` | Archive S0072 (downloads-auto-destination) -> temp/done/ |
+| 2026-05-11 17:17:01 | `PLAN/S0073_player-copy-move-custom-path-button.md` | `spec-arc` | Archive S0073 (player-copy-move-custom-path-button) -> temp/done/ |
+| 2026-05-11 17:17:16 | `PLAN/S0074_copy-move-dialog-progress.md` | `spec-arc` | Archive S0074 (copy-move-dialog-progress) -> temp/done/ |
+| 2026-05-11 17:17:43 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `spec-arc` | Archive S0079 (bugfix-file-op-progress-dialog-landscape-npe) -> temp/done/ |
+| 2026-05-11 17:18:06 | `PLAN/S0083_bugfix-write-perm-api29.md` | `spec-arc` | Archive S0083 (bugfix-write-perm-api29) -> temp/done/ |
+| 2026-05-11 17:18:24 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore.md` | `spec-arc` | Archive S0084 (bugfix-cache-subfolder-mismatch-restore) -> temp/done/ |
+| 2026-05-11 17:19:03 | `PLAN/S0086_bugfix-log-export-create-document-guard.md` | `spec-arc` | Archive S0086 (bugfix-log-export-create-document-guard) -> temp/done/ [was Implemented, skipped verification] |
+| 2026-05-11 17:19:16 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `spec-arc` | Archive S0087 (bugfix-cover-art-glide-404-log-spam) -> temp/done/ |
+| 2026-05-11 17:19:46 | `PLAN/S0089_bugfix-save-frame-feedback.md` | `spec-arc` | Archive S0089 (bugfix-save-frame-feedback) -> temp/done/ |
+| 2026-05-11 17:20:02 | `PLAN/S0090_bugfix-settings-default-credentials-input.md` | `spec-arc` | Archive S0090 (bugfix-settings-default-credentials-input) -> temp/done/ |
+| 2026-05-11 17:20:20 | `PLAN/S0091_bugfix-file-op-progress-startup-race.md` | `spec-arc` | Archive S0091 (bugfix-file-op-progress-startup-race) -> temp/done/ |
+| 2026-05-11 17:20:34 | `PLAN/S0092_bugfix-sftp-range-read-retry-overflow.md` | `spec-arc` | Archive S0092 (bugfix-sftp-range-read-retry-overflow) -> temp/done/ |
+| 2026-05-11 17:20:54 | `PLAN/S0094_player-move-currently-playing.md` | `spec-arc` | Archive S0094 (player-move-currently-playing) -> temp/done/ |
+| 2026-05-11 17:21:08 | `PLAN/S0095_integration-test-review.md` | `spec-arc` | Archive S0095 (integration-test-review) -> temp/done/ |
+| 2026-05-11 17:21:36 | `PLAN/S0097_gms-update-once-settings-link.md` | `spec-arc` | Archive S0097 (gms-update-once-settings-link) -> temp/done/ |
+| 2026-05-11 17:21:48 | `PLAN/S0098_bugfix-smb-precheck-false-fail.md` | `spec-arc` | Archive S0098 (bugfix-smb-precheck-false-fail) -> temp/done/ |
+| 2026-05-11 17:22:18 | `PLAN/S0100_mic-recording-in-browse.md` | `spec-arc` | Archive S0100 (mic-recording-in-browse) -> temp/done/ |
+| 2026-05-11 17:23:55 | `PLAN/S0059_predefined-recent-downloads-all-files.md` | `spec-check` | Audit S0059 -> Verified; PASS/WARN/FAIL 11/0/0 |
+| 2026-05-11 17:24:14 | `PLAN/S0059_predefined-recent-downloads-all-files.md` | `spec-arc` | Archive S0059 (predefined-recent-downloads-all-files) -> temp/done/ |
+| 2026-05-11 17:29:36 | `PLAN/S0101_unified-permission-onboarding.md` | `spec-arc` | Archive S0101 (unified-permission-onboarding) -> temp/done/ |
+| 2026-05-11 17:29:49 | `PLAN/S0102_spec-catalog-ergonomics.md` | `spec-arc` | Archive S0102 (spec-catalog-ergonomics) -> temp/done/ |
+| 2026-05-11 17:30:05 | `PLAN/S0103_player-top-bar-polish.md` | `spec-arc` | Archive S0103 (player-top-bar-polish) -> temp/done/ |
+| 2026-05-11 17:30:16 | `PLAN/S0104_playback-order-mode.md` | `spec-arc` | Archive S0104 (playback-order-mode) -> temp/done/ |
+| 2026-05-11 17:30:52 | `PLAN/S0108_welcome-language-picker.md` | `spec-arc` | Archive S0108 (welcome-language-picker) -> temp/done/ |
+| 2026-05-11 17:31:05 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-arc` | Archive S0109 (bugfix-chromeos-textinput) -> temp/done/ |
+| 2026-05-11 17:31:22 | `PLAN/S0110_bugfix-thumbnails-during-scroll.md` | `spec-arc` | Archive S0110 (bugfix-thumbnails-during-scroll) -> temp/done/ |
+| 2026-05-11 17:31:47 | `PLAN/S0113_sftp-pool-stability.md` | `spec-arc` | Archive S0113 (sftp-pool-stability) -> temp/done/ |
+| 2026-05-11 17:32:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `KnownAuthResources` | S0151 Phase02: add previewOnlyMeansLogin flag; TikTok/X.com added; rename isVideoFirstHost->isPreviewSensitiveHost |
+| 2026-05-11 17:32:34 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `HtmlPageExtractionStrategy` | S0151: update isVideoFirstHost->isPreviewSensitiveHost; add BlockNeedUserTest debug tag |
+| 2026-05-11 17:32:34 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | S0151: update isVideoFirstHost->isPreviewSensitiveHost; add BlockNeedUserTest debug tag |
+| 2026-05-11 17:32:34 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0151: add S0151-diag permanent log, KnownAuthResources import, outcomeKindOf helper; add BlockNeedUserTest debug tag |
+| 2026-05-11 17:32:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | S0151: add BlockNeedUserTest debug tag in presentSocialPreviewOnly |
+| 2026-05-11 17:32:34 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | S0151 Step03.4: update s0151_dialog_reauth_message EN to explanatory text with 'different account' context |
+| 2026-05-11 17:32:34 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | S0151 Step03.4: update s0151_dialog_reauth_message RU |
+| 2026-05-11 17:32:34 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | S0151 Step03.4: update s0151_dialog_reauth_message UK |
+| 2026-05-11 17:32:34 | `docs/FEATURES.md` | `FEATURES.md` | S0151 Phase04: add Instagram/Threads download bullet |
+| 2026-05-11 17:32:34 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0151 Phase04: add Instagram/Threads download bullet RU |
+| 2026-05-11 17:32:34 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0151 Phase04: add Instagram/Threads download bullet UK |
+| 2026-05-11 17:32:38 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Reopen S0117 (url-media-downloader-nolegal-flavor) -> In Progress |
+| 2026-05-11 17:33:29 | `PLAN/S0127_image-player-draw-crop-immersive.md` | `spec-arc` | Archive S0127 (image-player-draw-crop-immersive) -> temp/done/ |
+| 2026-05-11 17:33:38 | `PLAN/S0128_activity-catalog.md` | `spec-arc` | Archive S0128 (activity-catalog) -> temp/done/ |
+| 2026-05-11 17:33:52 | `PLAN/S0129_bugfix-landscape-overflow-commands.md` | `spec-arc` | Archive S0129 (bugfix-landscape-overflow-commands) -> temp/done/ |
+| 2026-05-11 17:41:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/AdapterThumbnailLoader.kt` | `AdapterThumbnailLoader` | S0136 Phase02+03: removed s0136PostFirstLoadDone AtomicBoolean and logGlideDiskCacheStatusOnce call (Phase 01 diagnostic residue) |
+| 2026-05-11 17:41:09 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt` | `CacheStatusHelper` | S0136 Phase03: removed logGlideDiskCacheStatusOnce helper (Phase 01 diagnostic residue) |
+| 2026-05-11 17:41:12 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/GlideCacheStats.kt` | `GlideCacheStats` | S0136 Phase03: added permanent 'GlideCacheStats: summary' Timber.d regression-detection line to logStats() |
+| 2026-05-11 17:44:29 | `app_v2/src/main/res/layout/activity_auth_sessions.xml` | `MaterialToolbar` | Add titleTextColor and navigationIconTint (?attr/colorOnPrimary) — was missing, causing pale-gray title on blue background |
+| 2026-05-11 17:44:29 | `app_v2/src/main/res/values-night/themes.xml` | `colorOnPrimary` | Fix colorOnPrimary from black to white — blue_500 is same in both themes, white text provides proper contrast on #1976D2 |
+| 2026-05-11 17:44:33 | `app_v2/src/main/res/values-night/themes.xml` | `colorOnPrimary` | Fix colorOnPrimary from black to white — blue_500 is same in both themes, white text provides proper contrast on #1976D2 |
+| 2026-05-11 17:47:42 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | S0161 Phase01: new HiltWorker — background link download queue with foreground notification, result notification, SocialPreviewOnly sign-in action |
+| 2026-05-11 17:47:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0161 Phase02: replace blocking download with WorkManager enqueue; add EXTRA_REAUTH_URL handling in onCreate; remove resultPresenter + linkDownloadJob |
+| 2026-05-11 17:47:42 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | S0161 Phase03: add link_download_notif_* strings EN (10 keys) |
+| 2026-05-11 17:47:42 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | S0161 Phase03: add link_download_notif_* strings RU (10 keys) |
+| 2026-05-11 17:47:42 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | S0161 Phase03: add link_download_notif_* strings UK (10 keys) |
+| 2026-05-11 17:47:42 | `docs/FEATURES.md` | `FEATURES.md` | S0161 Phase04: add background link download queue bullet EN |
+| 2026-05-11 17:47:42 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0161 Phase04: add background link download queue bullet RU |
+| 2026-05-11 17:47:42 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0161 Phase04: add background link download queue bullet UK |
+| 2026-05-11 17:47:43 | `PLAN/S0161_link-download-background-queue.md` | `spec-catalog` | S0161: create strategic spec, register in catalog |
+| 2026-05-11 17:48:42 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0161: LinkDownloadWorker added to catalog (role=worker, status=new) |
+| 2026-05-11 17:48:51 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0161: LinkDownloadWorker added (role=worker, status=new) |

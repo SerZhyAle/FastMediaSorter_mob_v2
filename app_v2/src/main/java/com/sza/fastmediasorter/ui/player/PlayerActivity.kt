@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -95,6 +96,14 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     private var playerFpsCollectorStarted: Boolean = false
 
     internal lateinit var fileOperationsHandler: FileOperationsHandler
+    internal lateinit var playerFileOperationQueue: com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
+    internal val isPlayerFileOperationQueueInitialized: Boolean
+        get() = try {
+            playerFileOperationQueue
+            true
+        } catch (_: UninitializedPropertyAccessException) {
+            false
+        }
     internal lateinit var playerFolderPickerHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerFolderPickerHandler
     internal lateinit var destinationButtonsManager: DestinationButtonsManager
     internal lateinit var navigationManager: PlayerNavigationManager
@@ -197,11 +206,19 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal val batchDeletePermissionLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        // Do NOT pass currentFile here — the player may have already advanced to the next
-        // file via optimistic navigation before the dialog was shown. The correct source
-        // path was stored in lifecycleManager.storePendingBatchDeleteFilePath() at the
-        // moment the dialog was launched.
-        lifecycleManager.handleBatchDeleteResult(result.resultCode)
+        val queuedOperation = lifecycleManager.consumePendingBatchDeleteOperation()
+        if (queuedOperation != null && isPlayerFileOperationQueueInitialized) {
+            playerFileOperationQueue.resumeAfterPermission(
+                granted = result.resultCode == Activity.RESULT_OK,
+                op = queuedOperation,
+            )
+        } else {
+            // Do NOT pass currentFile here — the player may have already advanced to the next
+            // file via optimistic navigation before the dialog was shown. The correct source
+            // path was stored in lifecycleManager.storePendingBatchDeleteFilePath() at the
+            // moment the dialog was launched.
+            lifecycleManager.handleBatchDeleteResult(result.resultCode)
+        }
     }
 
     internal val folderPickerLauncher = registerForActivityResult(
@@ -1016,6 +1033,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     override fun onDestroy() {
         if (::eventHandler.isInitialized) eventHandler.onDestroy()
+        if (isPlayerFileOperationQueueInitialized) playerFileOperationQueue.shutdown()
         lifecycleManager.onDestroy()
         super.onDestroy()
     }

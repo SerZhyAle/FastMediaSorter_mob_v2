@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.app.PendingIntent
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -11,10 +10,12 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.FileOperation
-import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
+import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
+import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +40,7 @@ class FileOperationsHandler(
     private val appScope: CoroutineScope,
     private val settingsRepository: SettingsRepository,
     private val fileOperationUseCase: FileOperationUseCase,
+    private val playerFileOperationQueue: PlayerFileOperationQueue,
     private val callback: FileOperationCallback
 ) {
     /**
@@ -67,12 +69,6 @@ class FileOperationsHandler(
         callback.onOperationError(appCtx.getString(messageRes), null)
     }
 
-    @Volatile private var moveInProgress = false
-    @Volatile private var deleteInProgress = false
-
-    fun resetMoveInProgress() { moveInProgress = false }
-    fun resetDeleteInProgress() { deleteInProgress = false }
-
     /**
      * True if `context` is an Activity that is finishing or destroyed.
      * Used to skip UI callbacks (Toasts, dialogs, navigation) on dead Activities
@@ -86,16 +82,9 @@ class FileOperationsHandler(
         fun onBeforeMove(movedFilePath: String)
         fun onBeforeDelete(deletedFilePath: String)
         fun onCopySuccess(destination: MediaResource, goToNext: Boolean)
-        fun onMoveSuccess(destination: MediaResource, movedFilePath: String, goToNext: Boolean)
         fun onCopyToPathSuccess(destinationPath: String, goToNext: Boolean)
-        fun onMoveToPathSuccess(destinationPath: String, movedFilePath: String, goToNext: Boolean)
-        fun onDeleteSuccess(deletedFilePath: String)
         fun onOperationError(message: String, throwable: Throwable? = null)
         fun onAuthenticationRequired(provider: String, message: String)
-        // sourceFilePath: the file that was being moved/deleted when the permission dialog was
-        // requested. Must be captured before any optimistic navigation so that the caller can
-        // correctly attribute the deletion to the right file after the dialog returns.
-        fun onBatchDeletePermissionRequired(pendingIntent: PendingIntent, sourceFilePath: String)
         fun getCurrentFile(): MediaFile?
         fun getCurrentResource(): MediaResource?
     }
@@ -196,94 +185,13 @@ class FileOperationsHandler(
      */
     fun performMove(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
-        if (moveInProgress) return
-        moveInProgress = true
-        Timber.d("S0152: performMove entry — moveInProgress set, PermissionRequired/Failure/AuthRequired branches now reset it")
+        val operation = PlayerFileOperation.moveToResource(
+            currentFile = currentFile,
+            currentResource = callback.getCurrentResource(),
+            destination = destination,
+        )
         callback.onBeforeMove(currentFile.path)
-
-        // Same scope reasoning as performCopy: outlive Activity destruction.
-        appScope.launch {
-            val destinationReachabilityError = checkSmbDestinationReachability(destination)
-            if (destinationReachabilityError != null) {
-                if (!isActivityGone()) {
-                    withContext(Dispatchers.Main) {
-                        callback.onOperationError(destinationReachabilityError, null)
-                    }
-                }
-                return@launch
-            }
-
-            withContext(Dispatchers.Main) {
-                if (!isActivityGone()) {
-                    Toast.makeText(
-                        appCtx,
-                        appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_started, destination.name),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-
-            val settings = settingsRepository.getSettings().first()
-
-            try {
-                val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
-                val destFile = createNetworkAwareFile(destination.path, null)
-
-                val operation = FileOperation.Move(
-                    sources = listOf(sourceFile),
-                    destination = destFile,
-                    overwrite = settings.overwriteOnMove,
-                    sourceCredentialsId = callback.getCurrentResource()?.credentialsId
-                )
-
-                val result = fileOperationUseCase.execute(operation)
-
-                withContext(Dispatchers.Main) {
-                    if (isActivityGone()) {
-                        Timber.i("FileOperationsHandler: move completed after Activity destroyed — skipping UI callbacks (result=${result::class.simpleName})")
-                        return@withContext
-                    }
-                    when (result) {
-                        is FileOperationResult.Success -> {
-                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success, destination.name), Toast.LENGTH_SHORT).show()
-                            callback.onMoveSuccess(destination, currentFile.path, true)
-                        }
-                        is FileOperationResult.PartialSuccess -> {
-                            val successCount = result.processedCount
-                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success_count, successCount, destination.name), Toast.LENGTH_SHORT).show()
-                            callback.onMoveSuccess(destination, currentFile.path, true)
-                        }
-                        is FileOperationResult.Failure -> {
-                            moveInProgress = false
-                            val message = formatFailureMessage(
-                                result,
-                                com.sza.fastmediasorter.R.string.error_move_failed,
-                                com.sza.fastmediasorter.R.string.error_file_exists_move,
-                                currentFile.name,
-                                destination.name
-                            )
-                            callback.onOperationError(message, null)
-                        }
-                        is FileOperationResult.AuthenticationRequired -> {
-                            moveInProgress = false
-                            callback.onAuthenticationRequired(result.provider, result.message)
-                        }
-                        is FileOperationResult.PermissionRequired -> {
-                            moveInProgress = false
-                            callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "FileOperationsHandler: Move operation failed")
-                moveInProgress = false
-                if (!isActivityGone()) {
-                    withContext(Dispatchers.Main) {
-                        reportOperationError(com.sza.fastmediasorter.R.string.error_move_failed)
-                    }
-                }
-            }
-        }
+        playerFileOperationQueue.enqueue(operation)
     }
 
     fun performCopyToPath(destinationPath: String) {
@@ -338,65 +246,13 @@ class FileOperationsHandler(
 
     fun performMoveToPath(destinationPath: String) {
         val currentFile = callback.getCurrentFile() ?: return
-        if (moveInProgress) return
-        moveInProgress = true
-        Timber.d("S0152: performMoveToPath entry — moveInProgress set, PermissionRequired/Failure/AuthRequired branches now reset it")
+        val operation = PlayerFileOperation.moveToPath(
+            currentFile = currentFile,
+            currentResource = callback.getCurrentResource(),
+            destinationPath = destinationPath,
+        )
         callback.onBeforeMove(currentFile.path)
-
-        appScope.launch {
-            val settings = settingsRepository.getSettings().first()
-            withContext(Dispatchers.Main) {
-                if (!isActivityGone()) {
-                    val folderName = java.io.File(destinationPath).name
-                    Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_started, folderName), Toast.LENGTH_LONG).show()
-                }
-            }
-            try {
-                val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
-                val operation = FileOperation.Move(
-                    sources = listOf(sourceFile),
-                    destination = java.io.File(destinationPath),
-                    overwrite = settings.overwriteOnMove,
-                    sourceCredentialsId = callback.getCurrentResource()?.credentialsId
-                )
-                val result = fileOperationUseCase.execute(operation)
-                withContext(Dispatchers.Main) {
-                    if (isActivityGone()) return@withContext
-                    val folderName = java.io.File(destinationPath).name
-                    when (result) {
-                        is FileOperationResult.Success -> {
-                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success, folderName), Toast.LENGTH_SHORT).show()
-                            callback.onMoveToPathSuccess(destinationPath, currentFile.path, true)
-                        }
-                        is FileOperationResult.PartialSuccess -> {
-                            Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_move_success_count, result.processedCount, folderName), Toast.LENGTH_SHORT).show()
-                            callback.onMoveToPathSuccess(destinationPath, currentFile.path, true)
-                        }
-                        is FileOperationResult.Failure -> {
-                            moveInProgress = false
-                            val msg = formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_move_failed)
-                            callback.onOperationError(msg, null)
-                        }
-                        is FileOperationResult.AuthenticationRequired -> {
-                            moveInProgress = false
-                            callback.onAuthenticationRequired(result.provider, result.message)
-                        }
-                        is FileOperationResult.PermissionRequired -> {
-                            moveInProgress = false
-                            callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "FileOperationsHandler: performMoveToPath failed")
-                moveInProgress = false
-                if (!isActivityGone()) {
-                    withContext(Dispatchers.Main) {
-                        reportOperationError(com.sza.fastmediasorter.R.string.error_move_failed)
-                    }
-                }
-            }
-        }
+        playerFileOperationQueue.enqueue(operation)
     }
 
     /**
@@ -409,71 +265,13 @@ class FileOperationsHandler(
             callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
             return
         }
-        if (deleteInProgress) return
-        deleteInProgress = true
+        val operation = PlayerFileOperation.delete(
+            currentFile = currentFile,
+            currentResource = callback.getCurrentResource(),
+        )
         callback.onBeforeDelete(currentFile.path)
-
-        Timber.d("FileOperationsHandler.performDelete: Starting delete for ${currentFile.path}")
-
-        lifecycleScope.launch {
-            try {
-                val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
-                
-                Timber.d("FileOperationsHandler.performDelete: Source file created: ${sourceFile.path}")
-                
-                // Determine if soft-delete is possible (writable local paths only).
-                // Android/media and non-local schemes must go through direct delete flow.
-                val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(currentFile.path)
-                
-                Timber.d("FileOperationsHandler.performDelete: canUseSoftDelete=$canUseSoftDelete")
-                
-                val operation = FileOperation.Delete(
-                    files = listOf(sourceFile),
-                    softDelete = canUseSoftDelete
-                )
-                
-                Timber.d("FileOperationsHandler.performDelete: Executing delete operation...")
-                val result = fileOperationUseCase.execute(operation)
-                Timber.d("FileOperationsHandler.performDelete: Result type: ${result::class.simpleName}")
-                
-                when (result) {
-                    is FileOperationResult.Success -> {
-                        Timber.i("FileOperationsHandler.performDelete: Delete SUCCESS")
-                        Toast.makeText(context, context.getString(com.sza.fastmediasorter.R.string.msg_delete_success), Toast.LENGTH_SHORT).show()
-                        callback.onDeleteSuccess(currentFile.path)
-                    }
-                    is FileOperationResult.PermissionRequired -> {
-                        // Android 11+ batch delete - launch permission dialog
-                        Timber.i("FileOperationsHandler.performDelete: Batch delete permission required, launching intent")
-                        deleteInProgress = false
-                        callback.onBatchDeletePermissionRequired(result.pendingIntent, currentFile.path)
-                    }
-                    is FileOperationResult.Failure -> {
-                        Timber.e("FileOperationsHandler.performDelete: Delete FAILED - ${result.error}")
-                        deleteInProgress = false
-                        val message = formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_delete_failed)
-                        callback.onOperationError(message, null)
-                    }
-                    else -> {
-                        Timber.e("FileOperationsHandler.performDelete: Unexpected result type: ${result::class.simpleName}")
-                        deleteInProgress = false
-                        callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_delete_unexpected))
-                    }
-                }
-            } catch (securityException: android.app.RecoverableSecurityException) {
-                // Android 10+ requires user permission to delete from shared storage
-                Timber.w("FileOperationsHandler: RecoverableSecurityException caught, requesting user permission")
-                deleteInProgress = false
-                callback.onOperationError(
-                    context.getString(com.sza.fastmediasorter.R.string.error_delete_permission_required),
-                    securityException
-                )
-            } catch (e: Exception) {
-                Timber.e(e, "FileOperationsHandler: Delete operation failed with exception")
-                deleteInProgress = false
-                reportOperationError(com.sza.fastmediasorter.R.string.error_delete_failed)
-            }
-        }
+        Timber.d("FileOperationsHandler.performDelete: Enqueuing delete for ${currentFile.path}")
+        playerFileOperationQueue.enqueue(operation)
     }
 
     /**
@@ -716,21 +514,4 @@ class FileOperationsHandler(
         }
     }
 
-    /**
-     * Create File object that preserves network paths (smb://, sftp://, ftp://, cloud://).
-     */
-    private fun createNetworkAwareFile(path: String, name: String?): File {
-        return if (path.startsWith("smb://") || 
-                   path.startsWith("sftp://") || 
-                   path.startsWith("ftp://") ||
-                   path.startsWith("cloud://")) {
-            object : File(path) {
-                override fun getAbsolutePath(): String = path
-                override fun getPath(): String = path
-                override fun getName(): String = name ?: super.getName()
-            }
-        } else {
-            File(path)
-        }
-    }
 }

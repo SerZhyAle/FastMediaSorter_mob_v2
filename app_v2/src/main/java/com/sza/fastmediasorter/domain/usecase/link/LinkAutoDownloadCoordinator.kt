@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.domain.usecase.link
 
 import android.net.Uri
 import com.sza.fastmediasorter.data.link.LinkDownloadWriter
+import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
+import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
+import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.link.MediaQualityPreference
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
@@ -33,14 +36,49 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val writer: LinkDownloadWriter,
     private val streamingPipeline: StreamingPipeline,
     private val authSessionRepository: AuthSessionRepository,
+    private val sessionContext: LinkDownloadSessionContext,
+    private val cookieStore: EncryptedCookieStore,
 ) {
 
-    suspend fun handle(url: String, callbacks: Callbacks): Result {
+    /**
+     * S0155: load cookies for [accountId] (or the best available account when null)
+     * into [sessionContext] so the OkHttp cookie jar and the WebView extractor both
+     * inject the correct session for this download run.
+     */
+    private fun applySessionContext(host: String, accountId: String?) {
+        val cookies = when {
+            accountId != null -> cookieStore.loadForAccount(host, accountId)
+            else -> @Suppress("DEPRECATION") cookieStore.loadFor(host)
+        }
+        if (cookies.isNotEmpty()) {
+            sessionContext.set(host, cookies)
+            Timber.d(
+                "LinkAutoDownloadCoordinator: session context applied host=%s accountId=%s cookies=%d",
+                host, accountId ?: "auto", cookies.size,
+            )
+        }
+    }
+
+    suspend fun handle(url: String, callbacks: Callbacks, accountId: String? = null): Result {
         val settings = settingsRepository.getSettings().first()
         if (!settings.linkAutoDownloadEnabled) {
             return Result.Failed.Other(IllegalStateException("auto_download_disabled"))
         }
-        return handleUrl(url = url, settings = settings, callbacks = callbacks)
+        // S0155: set per-account cookies into context before the pipeline, clear after.
+        val host = url.toHttpUrlOrNull()?.host ?: ""
+        if (host.isNotBlank()) applySessionContext(host, accountId)
+        val result = try {
+            handleUrl(url = url, settings = settings, callbacks = callbacks, accountId = accountId)
+        } finally {
+            sessionContext.clear()
+        }
+        // S0155: stamp last-used time when a specific account produced a successful download.
+        if (accountId != null && host.isNotBlank() &&
+            (result is Result.Saved || result is Result.FellBackToDownloads)
+        ) {
+            runCatching { authSessionRepository.markLastUsed(host, accountId) }
+        }
+        return result
     }
 
     suspend fun handleBatch(urls: List<String>, callbacks: Callbacks): Result {
@@ -70,6 +108,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         url: String,
         settings: AppSettings,
         callbacks: Callbacks,
+        accountId: String? = null,
     ): Result {
         callbacks.onProgress(ProgressState.Probing)
 
@@ -94,9 +133,22 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 ProgressState.Downloading(0L, probe.tentativeSizeBytes)
                             },
                         )
-                        when (val opened = strategy.open(url) { read, total ->
+                        val opened = strategy.open(url) { read, total ->
                             callbacks.onProgress(ProgressState.Downloading(read, total))
-                        }) {
+                        }
+                        // S0151-diag: permanent structured log for known auth hosts — used for
+                        // on-device resolution of §6.1 architecture question. Not a debug tag.
+                        val urlHost = url.toHttpUrlOrNull()?.host ?: ""
+                        if (KnownAuthResources.isPreviewSensitiveHost(urlHost)) {
+                            Timber.d(
+                                "S0151-diag: host=%s strategy=%s sessionApplied=%s outcome=%s",
+                                urlHost,
+                                strategy.id,
+                                accountId != null,
+                                outcomeKindOf(opened),
+                            )
+                        }
+                        when (opened) {
                             is OpenResult.Stream -> {
                                 openedStream = opened
                                 break
@@ -149,13 +201,26 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 val previewHost = socialPreviewHost
                 if (previewHost != null) {
                     val hadSession = runCatching {
-                        authSessionRepository.hasSession(previewHost)
+                        authSessionRepository.hasAnySession(previewHost)
                     }.getOrDefault(false)
-                    Timber.d("S0151: coordinator returning SocialPreviewOnly host=$previewHost hadSession=$hadSession")
+                    // S0155: propagate the selected account so the presenter can offer
+                    // named re-auth ("Sign in again as <displayName>?") rather than a
+                    // generic "add authorization" prompt.
+                    val accountDisplayName = accountId?.let { id ->
+                        runCatching {
+                            authSessionRepository.listAccountsForHost(previewHost)
+                                .firstOrNull { it.accountId == id }?.displayName
+                        }.getOrNull()
+                    }
+                    Timber.d(
+                        "S0151: coordinator returning SocialPreviewOnly host=$previewHost hadSession=$hadSession",
+                    )
                     return Result.Failed.SocialPreviewOnly(
                         host = previewHost,
                         originalUrl = url,
                         hadExistingSession = hadSession,
+                        accountId = accountId,
+                        accountDisplayName = accountDisplayName,
                     )
                 }
                 return Result.Failed.NoMediaFound
@@ -413,11 +478,17 @@ class LinkAutoDownloadCoordinator @Inject constructor(
              * S0151: all extraction strategies returned only an OG/image preview for a known
              * video-first social host. The UI should offer sign-in (or re-sign-in if a session
              * existed) and retry the download.
+             *
+             * S0155: [accountId] and [accountDisplayName] are set when a specific account was
+             * chosen before the download. The presenter uses these to offer named re-auth
+             * ("Sign in again as <displayName>?") instead of the generic "add authorization" prompt.
              */
             data class SocialPreviewOnly(
                 val host: String,
                 val originalUrl: String,
                 val hadExistingSession: Boolean,
+                val accountId: String? = null,
+                val accountDisplayName: String? = null,
             ) : Failed
             data class Other(val cause: Throwable) : Failed
         }
@@ -444,5 +515,19 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
     private companion object {
         const val DYNAMIC_STRATEGY_ID = "dynamic"
+
+        /** S0151-diag helper: compact outcome label for the structured log. */
+        fun outcomeKindOf(opened: OpenResult): String = when (opened) {
+            is OpenResult.Stream -> "stream"
+            is OpenResult.Batch -> "batch(${opened.items.size})"
+            is OpenResult.SocialPreviewOnly -> "social-preview-only"
+            is OpenResult.NotFound -> "not-found"
+            is OpenResult.Blocked -> when (opened.reason) {
+                BlockedReason.NonHttpScheme, BlockedReason.RedirectToNonHttp -> "non-http"
+                else -> "blocked(${opened.reason})"
+            }
+            is OpenResult.Streaming -> "streaming"
+            is OpenResult.Error -> "error"
+        }
     }
 }

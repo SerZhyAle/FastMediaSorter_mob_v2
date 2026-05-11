@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.playback.PlaybackCompletionDetector
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
@@ -51,6 +52,7 @@ class PlayerLifecycleManager(
     // Must be set before navigating away (optimistic advance) so that when the dialog
     // result arrives the correct file is attributed, not the one currently on screen.
     private var pendingBatchDeleteFilePath: String? = null
+    private var pendingBatchDeleteOperation: PlayerFileOperation? = null
     
     // Resource tracking for cleanup
     private var activeResourceKey: String? = null
@@ -291,6 +293,16 @@ class PlayerLifecycleManager(
         pendingBatchDeleteFilePath = path
         Timber.d("PlayerLifecycleManager: Stored pending batch delete path: $path")
     }
+
+    fun storePendingBatchDeleteOperation(operation: PlayerFileOperation?) {
+        pendingBatchDeleteOperation = operation
+    }
+
+    fun consumePendingBatchDeleteOperation(): PlayerFileOperation? {
+        val operation = pendingBatchDeleteOperation
+        pendingBatchDeleteOperation = null
+        return operation
+    }
     
     /**
      * Set the active resource key for connection throttling cleanup.
@@ -382,6 +394,22 @@ class PlayerLifecycleManager(
                         else -> return  // Other overlays - exit normally
                     }
                 }
+
+                if (activity.isPlayerFileOperationQueueInitialized) {
+                    val pendingCount = activity.playerFileOperationQueue.snapshotPending().size
+                    if (pendingCount > 0) {
+                        MaterialAlertDialogBuilder(activity)
+                            .setTitle(R.string.dialog_player_exit_pending_queue_title)
+                            .setMessage(activity.resources.getQuantityString(R.plurals.dialog_player_exit_pending_queue_message, pendingCount, pendingCount))
+                            .setPositiveButton(R.string.dialog_player_exit_pending_queue_leave) { _, _ ->
+                                activity.exitPlayerWithAudioCheck()
+                            }
+                            .setNegativeButton(R.string.dialog_player_exit_pending_queue_stay, null)
+                            .show()
+                        return
+                    }
+                }
+
                 activity.exitPlayerWithAudioCheck()
             }
         })

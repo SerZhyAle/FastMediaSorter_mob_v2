@@ -1,16 +1,10 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
-import android.app.Activity
 import android.content.Context
-import android.net.Uri
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
-import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -25,12 +19,9 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
-import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -51,13 +42,22 @@ class BrowseFileOperationsManager(
     private val coroutineScope: CoroutineScope,
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
-    private val smbClient: SmbClient,
-    private val sftpClient: SftpClient,
-    private val ftpClient: FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
+    smbClient: SmbClient,
+    sftpClient: SftpClient,
+    ftpClient: FtpClient,
+    credentialsRepository: NetworkCredentialsRepository,
     private val callbacks: FileOperationCallbacks,
     private val dirOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler? = null
 ) {
+    private val shareOperationsHelper = BrowseShareOperationsHelper(
+        context = context,
+        coroutineScope = coroutineScope,
+        fileOperationUseCase = fileOperationUseCase,
+        callbacks = callbacks,
+        showFailureError = ::showFailureError,
+        showUnexpectedError = ::showUnexpectedError
+    )
+
     
     private var pendingMoveOperation: PendingMoveOperation? = null
     
@@ -82,14 +82,14 @@ class BrowseFileOperationsManager(
         )
     }
 
-    // Prefer resource-backed failure copy here so UI reuses localized reasons instead of raw handler text.
+    // Use formatArgs (the per-file reason text) directly as dialog details; fall back to errorRes-formatted
+    // string only when no formatArgs are available. This avoids the redundant localized wrapper prefix.
     private fun showFailureError(messageRes: Int, result: FileOperationResult.Failure) {
-        val details = if (result.errorRes != null) {
-            context.getString(result.errorRes, *result.formatArgs.toTypedArray())
-        } else {
-            // Many handlers still emit technical English fallback text here; keep the toast human-facing.
-            null
-        }
+        val details = result.formatArgs
+            .firstOrNull()
+            ?.toString()
+            ?.takeIf { it.isNotBlank() }
+            ?: result.errorRes?.let { context.getString(it, *result.formatArgs.toTypedArray()) }
         callbacks.onShowError(context.getString(messageRes), details)
     }
 
@@ -543,328 +543,7 @@ class BrowseFileOperationsManager(
     fun shareSelectedFiles(
         selectedFiles: List<MediaFile>,
         resource: MediaResource
-    ) {
-        if (selectedFiles.isEmpty()) {
-            Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        coroutineScope.launch {
-            try {
-                Toast.makeText(context, R.string.please_wait, Toast.LENGTH_SHORT).show()
-                
-                val uris = mutableListOf<Uri>()
-                
-                for (mediaFile in selectedFiles) {
-                    val fileToShare: File? = when (resource.type) {
-                        ResourceType.LOCAL -> File(mediaFile.path)
-                        ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
-                            downloadNetworkFileToCacheWithProgress(mediaFile, resource)
-                        }
-                    }
-                    
-                    if (fileToShare != null && fileToShare.exists()) {
-                        val uri = FileProvider.getUriForFile(
-                            context,
-                            "${context.packageName}.fileprovider",
-                            fileToShare
-                        )
-                        uris.add(uri)
-                    }
-                }
-                
-                if (uris.isEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, R.string.error, Toast.LENGTH_SHORT).show()
-                    }
-                    return@launch
-                }
-                
-                val shareIntent = android.content.Intent().apply {
-                    action = if (uris.size == 1) {
-                        android.content.Intent.ACTION_SEND
-                    } else {
-                        android.content.Intent.ACTION_SEND_MULTIPLE
-                    }
-                    
-                    if (uris.size == 1) {
-                        putExtra(android.content.Intent.EXTRA_STREAM, uris[0])
-                    } else {
-                        putParcelableArrayListExtra(
-                            android.content.Intent.EXTRA_STREAM,
-                            ArrayList(uris)
-                        )
-                    }
-                    
-                    type = "*/*"
-                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                
-                withContext(Dispatchers.Main) {
-                    context.startActivity(
-                        android.content.Intent.createChooser(shareIntent, context.getString(R.string.share))
-                    )
-                }
-            } catch (_: CancellationException) {
-                Timber.i("Share operation cancelled by user")
-                return@launch
-                
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to share files")
-                withContext(Dispatchers.Main) {
-                    showUnexpectedError(R.string.error_share_failed)
-                }
-            }
-        }
-    }
-
-    private suspend fun downloadNetworkFileToCacheWithProgress(
-        mediaFile: MediaFile,
-        resource: MediaResource
-    ): File? {
-        withContext(Dispatchers.Main) {
-            Toast.makeText(context, R.string.msg_download_share, Toast.LENGTH_SHORT).show()
-        }
-
-        val cacheRoot = callbacks.getExternalCacheDir() ?: callbacks.getCacheDir() ?: return null
-        val shareTempDir = File(cacheRoot, "share_temp")
-        withContext(Dispatchers.IO) {
-            if (!shareTempDir.exists()) {
-                shareTempDir.mkdirs()
-            }
-            cleanupOldShareTempFiles(shareTempDir)
-        }
-
-        val tempFile = File(shareTempDir, mediaFile.name)
-        withContext(Dispatchers.IO) {
-            if (tempFile.exists()) {
-                tempFile.delete()
-            }
-        }
-
-        val sourceFile = createNetworkAwareFile(mediaFile.path, mediaFile.name, mediaFile.size)
-        val operation = FileOperation.Copy(
-            sources = listOf(sourceFile),
-            destination = shareTempDir,
-            overwrite = true,
-            sourceCredentialsId = resource.credentialsId
-        )
-
-        val totalBytes = mediaFile.size.coerceAtLeast(0L)
-        val copyDeferred = coroutineScope.async(Dispatchers.IO) {
-            fileOperationUseCase.execute(operation)
-        }
-
-        val progressDialog = if (context is Activity && !context.isFinishing && !context.isDestroyed) {
-            FileCopyProgressDialog(
-                context = context,
-                fileName = mediaFile.name,
-                onCancelRequested = {
-                    copyDeferred.cancel(CancellationException("User cancelled network share copy"))
-                }
-            )
-        } else {
-            null
-        }
-
-        val monitorJob = coroutineScope.launch(Dispatchers.Main) {
-            var lastTime = System.currentTimeMillis()
-            var lastBytes = 0L
-
-            progressDialog?.show()
-            progressDialog?.showIndeterminate()
-
-            while (copyDeferred.isActive) {
-                val copiedBytes = tempFile.length().coerceAtLeast(0L)
-                val now = System.currentTimeMillis()
-                val elapsedMs = (now - lastTime).coerceAtLeast(1L)
-                val bytesDelta = (copiedBytes - lastBytes).coerceAtLeast(0L)
-                val speedBytesPerSec = (bytesDelta * 1000L) / elapsedMs
-
-                progressDialog?.updateProgress(copiedBytes, totalBytes, speedBytesPerSec)
-
-                lastTime = now
-                lastBytes = copiedBytes
-                delay(200)
-            }
-        }
-
-        return try {
-            when (val result = copyDeferred.await()) {
-                is FileOperationResult.Success -> {
-                    if (tempFile.exists()) {
-                        tempFile
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, R.string.error, Toast.LENGTH_SHORT).show()
-                        }
-                        null
-                    }
-                }
-                is FileOperationResult.Failure -> {
-                    withContext(Dispatchers.Main) {
-                        showFailureError(R.string.error_share_download_failed, result)
-                    }
-                    null
-                }
-                is FileOperationResult.AuthenticationRequired -> {
-                    callbacks.onAuthRequest(result.provider)
-                    null
-                }
-                else -> {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, R.string.error_share_unexpected, Toast.LENGTH_SHORT).show()
-                    }
-                    null
-                }
-            }
-        } catch (_: CancellationException) {
-            withContext(Dispatchers.IO) {
-                if (tempFile.exists()) {
-                    tempFile.delete()
-                }
-            }
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, R.string.toast_copy_cancelled, Toast.LENGTH_SHORT).show()
-            }
-            throw CancellationException("Share copy cancelled after cleanup")
-        } finally {
-            monitorJob.cancel()
-            withContext(Dispatchers.Main) {
-                progressDialog?.dismiss()
-            }
-        }
-    }
-
-    private fun cleanupOldShareTempFiles(cacheDir: File) {
-        val now = System.currentTimeMillis()
-        cacheDir.listFiles()?.forEach { file ->
-            if (!file.isFile) return@forEach
-            val age = now - file.lastModified()
-            if (age > 60 * 60 * 1000L) {
-                file.delete()
-            }
-        }
-    }
-
-    private fun createNetworkAwareFile(path: String, name: String?, size: Long): File {
-        return if (path.startsWith("smb://") ||
-            path.startsWith("sftp://") ||
-            path.startsWith("ftp://") ||
-            path.startsWith("cloud://")
-        ) {
-            object : File(path) {
-                override fun getAbsolutePath(): String = path
-                override fun getPath(): String = path
-                override fun getName(): String = name ?: super.getName()
-                override fun length(): Long = size
-            }
-        } else {
-            File(path)
-        }
-    }
-    
-    private suspend fun downloadNetworkFileToCache(mediaFile: MediaFile, resource: MediaResource): File? {
-        return withContext(Dispatchers.IO) {
-            val cacheDir = callbacks.getExternalCacheDir() ?: callbacks.getCacheDir() ?: return@withContext null
-            val fileName = mediaFile.name
-            val tempFile = File(cacheDir, "share_$fileName")
-            
-            val downloadSuccess = when (resource.type) {
-                ResourceType.SMB -> downloadSmbFile(mediaFile.path, resource, tempFile)
-                ResourceType.SFTP -> downloadSftpFile(mediaFile.path, resource, tempFile)
-                ResourceType.FTP -> downloadFtpFile(mediaFile.path, resource, tempFile)
-                else -> false
-            }
-            
-            if (downloadSuccess && tempFile.exists()) tempFile else null
-        }
-    }
-    
-    private suspend fun downloadSmbFile(path: String, resource: MediaResource, tempFile: File): Boolean {
-        return try {
-            if (resource.credentialsId == null) return false
-            
-            val credentials = credentialsRepository.getByCredentialId(resource.credentialsId) ?: return false
-            val uri = PathUtils.safeParseUri(path)
-            val host = uri.host ?: return false
-            val pathSegments = uri.pathSegments
-            if (pathSegments == null || pathSegments.size < 2) return false
-            
-            val shareName = pathSegments[0]
-            val filePath = "/" + pathSegments.drop(1).joinToString("/")
-            
-            tempFile.outputStream().use { outputStream ->
-                val result = smbClient.downloadFile(
-                    SmbConnectionInfo(
-                        server = host,
-                        shareName = shareName,
-                        username = credentials.username,
-                        password = credentials.password,
-                        domain = credentials.domain,
-                        port = if (uri.port > 0) uri.port else 445
-                    ),
-                    remotePath = filePath,
-                    localOutputStream = outputStream
-                )
-                result is SmbResult.Success
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to download SMB file")
-            false
-        }
-    }
-    
-    private suspend fun downloadSftpFile(path: String, resource: MediaResource, tempFile: File): Boolean {
-        return try {
-            if (resource.credentialsId == null) return false
-            
-            val credentials = credentialsRepository.getByCredentialId(resource.credentialsId) ?: return false
-            val uri = PathUtils.safeParseUri(path)
-            val host = uri.host ?: return false
-            val port = if (uri.port > 0) uri.port else 22
-            val sftpPath = uri.path ?: return false
-            
-            tempFile.outputStream().use { outputStream ->
-                val connectionInfo = SftpClient.SftpConnectionInfo(
-                    host = host,
-                    port = port,
-                    username = credentials.username,
-                    password = credentials.password
-                )
-                val result = sftpClient.downloadFile(connectionInfo, sftpPath, outputStream)
-                result.isSuccess
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to download SFTP file")
-            false
-        }
-    }
-    
-    private suspend fun downloadFtpFile(path: String, resource: MediaResource, tempFile: File): Boolean {
-        return try {
-            if (resource.credentialsId == null) return false
-            
-            val credentials = credentialsRepository.getByCredentialId(resource.credentialsId) ?: return false
-            val uri = PathUtils.safeParseUri(path)
-            val host = uri.host ?: return false
-            val port = if (uri.port > 0) uri.port else 21
-            val ftpPath = uri.path ?: return false
-            
-            ftpClient.connect(host, port, credentials.username, credentials.password)
-            try {
-                tempFile.outputStream().use { outputStream ->
-                    val result = ftpClient.downloadFile(ftpPath, outputStream)
-                    result.isSuccess
-                }
-            } finally {
-                ftpClient.disconnect()
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to download FTP file")
-            false
-        }
-    }
+    ) = shareOperationsHelper.shareSelectedFiles(selectedFiles, resource)
     
     fun cleanup() {
         // Cancel any pending operations if needed

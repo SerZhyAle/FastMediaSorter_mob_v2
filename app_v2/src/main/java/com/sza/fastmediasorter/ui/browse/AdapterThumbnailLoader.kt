@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.utils.GlideCacheStats
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Handles all thumbnail loading for [MediaFileAdapter] ViewHolders.
@@ -51,7 +50,6 @@ class AdapterThumbnailLoader(
 ) {
 
     companion object {
-        private val s0136PostFirstLoadDone = AtomicBoolean(false)
         const val CACHED_THUMBNAIL_SIZE = 300
         private const val VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE = "Video player priority - thumbnail loading suspended"
         // PDF thumbnail size limits for network resources when "Large PDF Thumbnails" is ENABLED (bytes)
@@ -486,9 +484,6 @@ class AdapterThumbnailLoader(
                         }
                         override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
-                            if (s0136PostFirstLoadDone.compareAndSet(false, true)) {
-                                com.sza.fastmediasorter.core.util.CacheStatusHelper.logGlideDiskCacheStatusOnce(context, "first-network-thumb")
-                            }
                             Timber.v("CACHE_HIT_DEBUG: Network image loaded from ${dataSource.name} for ${file.name}")
                             resetThumbnailStyle(imageView)
                             return false

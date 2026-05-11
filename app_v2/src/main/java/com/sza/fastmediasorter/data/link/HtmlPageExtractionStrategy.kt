@@ -150,7 +150,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
 
         // S0151: for known video-first social hosts, OG-image-only results are not real content.
         val host = httpUrl.host
-        if (KnownAuthResources.isVideoFirstHost(host)) {
+        if (KnownAuthResources.isPreviewSensitiveHost(host)) {
             val hasRealContent = filtered.any { c ->
                 c.source != HtmlMediaCandidate.Source.OG_IMAGE &&
                     c.source != HtmlMediaCandidate.Source.IMG_TAG &&

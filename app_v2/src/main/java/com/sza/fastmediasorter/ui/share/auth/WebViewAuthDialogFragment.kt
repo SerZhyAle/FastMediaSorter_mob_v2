@@ -17,12 +17,16 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.data.link.auth.AccountNameHintExtractor
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.net.HttpCookie
+import java.util.UUID
 
 /**
  * S0116 §5.1 pillar L: in-app WebView dialog that lets the user authenticate to
@@ -157,8 +161,41 @@ class WebViewAuthDialogFragment : DialogFragment() {
             }
             return
         }
-        viewModel.saveSession(targetHost, cookies)
+        // S0155: show "Name this account" dialog with best-effort cookie-derived hint.
+        val hint = AccountNameHintExtractor.extract(cookies)
+        val defaultAccountName = getString(R.string.s0157_account_default_name)
+        val nameInput = TextInputEditText(requireContext()).apply {
+            setText(hint ?: defaultAccountName)
+            setHint(R.string.s0155_name_account_hint)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.s0155_name_account_title)
+            .setView(nameInput)
+            .setPositiveButton(R.string.s0155_name_account_positive) { _, _ ->
+                val typed = nameInput.text?.toString()?.trim()
+                val displayName = when {
+                    !typed.isNullOrBlank() -> typed
+                    !hint.isNullOrBlank() -> hint
+                    else -> defaultAccountName
+                }
+                val accountId = UUID.randomUUID().toString()
+                viewModel.saveSession(targetHost, accountId, displayName, cookies)
+                scrubWebViewState()
+                // S0155: pass accountId so ReceiveShareActivity routes the resumed
+                // download to exactly this account, avoiding the accountId=null bug.
+                emitResultAndDismiss(saved = true, accountId = accountId)
+            }
+            // S0157: cancel does NOT save cookies — user may have decided not to commit the login.
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                emitResultAndDismiss(saved = false)
+            }
+            .setOnCancelListener {
+                emitResultAndDismiss(saved = false)
+            }
+            .show()
+    }
 
+    private fun scrubWebViewState() {
         // S0116 §5.1 pillar L: scrub WebView state so harvested cookies do not
         // leak into other WebView contexts that may share the singleton CookieManager.
         runCatching { CookieManager.getInstance().removeAllCookies(null) }
@@ -168,7 +205,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
             webView?.clearHistory()
             webView?.clearFormData()
         }
-        emitResultAndDismiss(saved = true)
     }
 
     private fun refreshSaveButtonState() {
@@ -194,11 +230,16 @@ class WebViewAuthDialogFragment : DialogFragment() {
 
     // S0144: notify the host (e.g. ReceiveShareActivity) that the auth dialog closed,
     // so a proactive share-auth offer can resume the original download afterwards.
-    private fun emitResultAndDismiss(saved: Boolean) {
+    // S0155: when auth was saved, pass the new accountId so the caller can skip re-querying.
+    private fun emitResultAndDismiss(saved: Boolean, accountId: String? = null) {
         runCatching {
             parentFragmentManager.setFragmentResult(
                 RESULT_KEY,
-                bundleOf(RESULT_HOST to targetHost, RESULT_SAVED to saved),
+                bundleOf(
+                    RESULT_HOST to targetHost,
+                    RESULT_SAVED to saved,
+                    RESULT_ACCOUNT_ID to accountId,
+                ),
             )
         }
         dismissAllowingStateLoss()
@@ -232,6 +273,8 @@ class WebViewAuthDialogFragment : DialogFragment() {
         const val RESULT_KEY = "s0144_webview_auth_result"
         const val RESULT_HOST = "host"
         const val RESULT_SAVED = "saved"
+        // S0155: newly created accountId, non-null only when saved=true.
+        const val RESULT_ACCOUNT_ID = "account_id"
 
         fun newInstance(targetUrl: String): WebViewAuthDialogFragment =
             WebViewAuthDialogFragment().apply {

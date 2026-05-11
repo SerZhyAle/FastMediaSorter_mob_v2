@@ -94,6 +94,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Camera capture**: Take photos or videos with the default camera app directly into the current folder.
 - **Copy/move progress**: Shows overall byte-based percentage, current transfer speed, and estimated time remaining (ETA).
 - **Player file operation handling**: Moving or deleting the currently playing file stops playback, transfers, and advances. Renaming stops playback and resumes with the new name.
+- **Queued player file actions**: Move, delete, and rename in the player are accepted immediately, run one by one in the background, and no longer make the buttons feel stuck while the previous operation is still finishing.
 
 ## 4. Destination Management
 
@@ -263,7 +264,11 @@ This document is the canonical inventory of all user-facing features implemented
 - **MediaStore sync**: Pings central Android endpoints after operations to keep third-party galleries accurate.
 - **Database persistence & Caches**: Progress DB for media, scalable Thumbnail caches, and File metadata caches to discard repetitive network reads.
 - **Default player system hooks**: Integrate with Android intent routing for media viewing and share-sheet intake.
-- **Auto-download incoming links**: Fetches media directly from shared HTTP, HLS, or DASH URLs, utilizing in-app WebView auth for social links (Instagram, TikTok, etc.).
+- **Auto-download incoming links**: Fetches media directly from shared HTTP, HLS, or DASH URLs, utilizing in-app WebView auth for any host (Instagram, TikTok, and beyond).
+- **Background link download queue**: After auth is resolved, the app immediately returns the user to the source app (Instagram, browser…) and downloads the file in the background. A progress notification is shown during download; a result notification confirms the saved file name or reports failure. For sign-in-required hosts a "Sign in" action in the result notification re-opens the auth flow.
+- Instagram and Threads links: downloads the real video or carousel images instead of the preview thumbnail; if only a preview was found, offers sign-in (or re-sign-in) before saving anything. Threads links on `threads.com` are recognized alongside `threads.net`.
+- When no sign-in exists for a host, the app offers to add one with three options: add now, skip this time, or never ask again for this site.
+- Sites where the offer was permanently declined appear in the authorization settings list and can be re-enabled by deleting the entry.
 - **Standalone player operations**: File actions (Rename, Delete, Favorite, Open in FMS) available directly when opening media from external apps. Includes robust audio focus management and UX parity.
 
 ## 23. Scheduled File Operations

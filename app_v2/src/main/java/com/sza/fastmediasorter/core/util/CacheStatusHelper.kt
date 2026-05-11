@@ -53,8 +53,4 @@ object CacheStatusHelper {
             Timber.e(e, "Failed to check Glide disk cache status")
         }
     }
-
-    fun logGlideDiskCacheStatusOnce(context: Context, tag: String) {
-        logGlideDiskCacheStatus(context)
-    }
 }

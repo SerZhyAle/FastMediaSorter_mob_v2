@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="52dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/margin_xlarge"
+    android:paddingEnd="@dimen/margin_normal"
+    android:paddingVertical="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvAccountDisplayName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBody1"
+            tools:text="@myusername" />
+
+        <TextView
+            android:id="@+id/tvAccountMeta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/text_color_secondary"
+            tools:text="3 cookies · 2026-05-09 · last used 2026-05-11" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnAccountRelogin"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_rotate"
+        android:contentDescription="@string/s0155_relogin_account_label" />
+
+    <ImageButton
+        android:id="@+id/btnAccountRename"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_edit"
+        android:contentDescription="@string/s0155_rename_account_title" />
+
+    <ImageButton
+        android:id="@+id/btnAccountDelete"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_delete"
+        android:contentDescription="@string/auth_sessions_delete_button_desc" />
+</LinearLayout>

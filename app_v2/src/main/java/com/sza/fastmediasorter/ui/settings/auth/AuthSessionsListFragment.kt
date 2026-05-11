@@ -20,6 +20,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
@@ -29,15 +30,18 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * S0116 §5.1 pillar K: settings sub-screen listing saved auth sessions with
- * single-tap delete. The "Add authorization" CTA is a `+` action in the host
- * Activity's toolbar (S0144) — see [WebViewAuthDialogFragment].
+ * S0116 §5.1 pillar K / S0155: settings sub-screen listing saved auth accounts
+ * grouped by host. Each host group shows its accounts with rename / delete / re-login
+ * actions and an "add another account" button.
+ *
+ * The "Add authorization" CTA in the toolbar still opens the full host picker so
+ * users can add an account for any host, not just existing ones.
  */
 @AndroidEntryPoint
 class AuthSessionsListFragment : Fragment(), MenuProvider {
 
     private val viewModel: AuthSessionsListViewModel by viewModels()
-    private lateinit var adapter: AuthSessionAdapter
+    private lateinit var adapter: AuthAccountGroupAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,7 +55,20 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().addMenuProvider(this, viewLifecycleOwner)
 
-        adapter = AuthSessionAdapter(onDelete = viewModel::delete)
+        adapter = AuthAccountGroupAdapter(
+            onAddAccount = { host, loginUrl -> launchAddAccount(host, loginUrl) },
+            onDelete = { host, account ->
+                val displayName = account.visibleLabel(getString(R.string.s0157_dismissed_label))
+                showDeleteConfirmation(host, account.accountId, displayName)
+            },
+            onRename = { host, accountId, currentName ->
+                showRenameDialog(host, accountId, currentName)
+            },
+            onRelogin = { host, accountId, loginUrl ->
+                launchRelogin(host, accountId, loginUrl)
+            },
+        )
+
         val list = view.findViewById<RecyclerView>(R.id.rvAuthSessions)
         list.layoutManager = LinearLayoutManager(requireContext())
         list.adapter = adapter
@@ -65,9 +82,9 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.sessions.collect { items ->
-                    adapter.submitList(items)
-                    empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+                viewModel.accountGroups.collect { groups ->
+                    adapter.submitList(adapter.buildItems(groups))
+                    empty.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
                 }
             }
         }
@@ -85,6 +102,62 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
             false
         }
     }
+
+    // ── Host-level "add another account" (from group header button) ──────────
+
+    private fun launchAddAccount(host: String, loginUrl: String) {
+        if (loginUrl.isNotBlank()) {
+            Timber.i("AuthSessionsListFragment: adding account for host=%s", host)
+            WebViewAuthDialogFragment.newInstance(loginUrl)
+                .show(parentFragmentManager, "s0155_webview_add_account")
+        } else {
+            promptForManualUrl()
+        }
+    }
+
+    // ── Delete confirmation ───────────────────────────────────────────────────
+
+    private fun showDeleteConfirmation(host: String, accountId: String, displayName: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.s0155_delete_account_confirm, displayName))
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                viewModel.deleteAccount(host, accountId)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // ── Rename dialog ─────────────────────────────────────────────────────────
+
+    private fun showRenameDialog(host: String, accountId: String, currentName: String) {
+        val input = TextInputEditText(requireContext()).apply { setText(currentName) }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.s0155_rename_account_title)
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newName = input.text?.toString()?.trim().orEmpty()
+                if (newName.isNotBlank()) {
+                    viewModel.updateDisplayName(host, accountId, newName)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // ── Re-login (opens WebView so user can refresh session) ──────────────────
+
+    private fun launchRelogin(host: String, accountId: String, loginUrl: String) {
+        Timber.i(
+            "AuthSessionsListFragment: re-login for host=%s accountId=%s",
+            host, accountId,
+        )
+        val url = if (loginUrl.isNotBlank()) loginUrl
+        else KnownAuthResources.matchHost(host)?.loginUrl ?: return
+        WebViewAuthDialogFragment.newInstance(url)
+            .show(parentFragmentManager, "s0155_webview_relogin")
+    }
+
+    // ── Toolbar "+" — add new host or known resource ─────────────────────────
 
     private fun promptForUrlAndOpenWebView() {
         val resources = KnownAuthResources.all
@@ -117,9 +190,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                     WebViewAuthDialogFragment.newInstance(url)
                         .show(parentFragmentManager, "s0116_webview_auth")
                 } else {
-                    com.google.android.material.snackbar.Snackbar
-                        .make(requireView(), R.string.webview_auth_invalid_url, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
-                        .show()
+                    Snackbar.make(requireView(), R.string.webview_auth_invalid_url, Snackbar.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)

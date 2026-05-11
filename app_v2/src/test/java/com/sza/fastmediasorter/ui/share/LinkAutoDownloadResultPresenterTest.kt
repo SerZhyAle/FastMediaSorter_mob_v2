@@ -1,13 +1,16 @@
 package com.sza.fastmediasorter.ui.share
 
 import android.content.Context
+import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.test.core.app.ApplicationProvider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -19,6 +22,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows
 import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowToast
@@ -34,12 +38,17 @@ class LinkAutoDownloadResultPresenterTest {
     private val activity: AppCompatActivity =
         Robolectric.buildActivity(AppCompatActivity::class.java).create().get()
 
-    private fun presenter(openInPlayer: Boolean): LinkAutoDownloadResultPresenter {
+    private fun presenter(
+        openInPlayer: Boolean,
+        authSessionRepository: AuthSessionRepository = mockk(relaxed = true),
+    ): LinkAutoDownloadResultPresenter {
         val settings = mockk<SettingsRepository>()
         coEvery { settings.getSettings() } returns flowOf(
             AppSettings(linkAutoDownloadOpenInPlayer = openInPlayer),
         )
-        return LinkAutoDownloadResultPresenter(appContext, settings)
+        coEvery { authSessionRepository.isDismissedForHost(any()) } returns false
+        coEvery { authSessionRepository.isDismissedForAccount(any(), any()) } returns false
+        return LinkAutoDownloadResultPresenter(appContext, settings, authSessionRepository)
     }
 
     @After
@@ -189,5 +198,31 @@ class LinkAutoDownloadResultPresenterTest {
         val toast = ShadowToast.getTextOfLatestToast()
         assertNotNull("friendly-copy fallback toast must be shown", toast)
         assertEquals(false, toast.isNullOrBlank())
+    }
+
+    @Test
+    fun `SocialPreviewOnly negative action stores account-scoped dismissal when accountId is available`() = runTest {
+        val authRepository = mockk<AuthSessionRepository>(relaxed = true)
+        coEvery { authRepository.isDismissedForHost(any()) } returns false
+        coEvery { authRepository.isDismissedForAccount(any(), any()) } returns false
+        val result = LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly(
+            originalUrl = "https://instagram.com/p/example",
+            host = "instagram.com",
+            hadExistingSession = true,
+            accountId = "acct-42",
+            accountDisplayName = "@named_account",
+        )
+
+        presenter(openInPlayer = false, authSessionRepository = authRepository).present(result, activity)
+
+        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        assertNotNull("reactive reauth dialog expected", dialog)
+        dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).performClick()
+        Shadows.shadowOf(Looper.getMainLooper()).idle()
+
+        coVerify(exactly = 1) {
+            authRepository.markDismissedForAccount("instagram.com", "acct-42", "@named_account")
+        }
+        coVerify(exactly = 0) { authRepository.markDismissed(any()) }
     }
 }

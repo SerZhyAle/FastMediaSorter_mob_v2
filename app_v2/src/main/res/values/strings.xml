@@ -12,10 +12,14 @@
     <string name="copy">Copy</string>
     <string name="move">Move</string>
     <string name="delete">Delete</string>
+    <string name="action_retry">Retry</string>
     <string name="rename">Rename</string>
     <string name="edit">Edit</string>
     <string name="open">Open</string>
     <string name="select">Select</string>
+    <string name="error_queued_operation_move">Couldn\'t move "%1$s". Try again.</string>
+    <string name="error_queued_operation_delete">Couldn\'t delete "%1$s". Try again.</string>
+    <string name="error_queued_operation_rename">Couldn\'t rename "%1$s". Try again.</string>
     <string name="file_info">File Info</string>
     <string name="control">Control</string>
     <string name="save">Save</string>
@@ -23,6 +27,13 @@
     <string name="cancel">Cancel</string>
     <string name="sign_in">Sign In</string>
     <string name="ok">OK</string>
+    <string name="dialog_player_exit_pending_queue_title">Background operations are still running</string>
+    <plurals name="dialog_player_exit_pending_queue_message">
+        <item quantity="one">%1$d file operation is still finishing. Stay here to let it finish, or leave now.</item>
+        <item quantity="other">%1$d file operations are still finishing. Stay here to let them finish, or leave now.</item>
+    </plurals>
+    <string name="dialog_player_exit_pending_queue_leave">Leave anyway</string>
+    <string name="dialog_player_exit_pending_queue_stay">Stay</string>
     <string name="create_folder">Create Folder</string>
     <string name="create_folder_title">New Folder</string>
     <string name="create_folder_hint">Folder name</string>
@@ -108,8 +119,8 @@
     <string name="error_move">Could not move the files</string>
     <string name="error_delete">Could not delete the files</string>
     <string name="error_all_operations_failed">Nothing completed.</string>
-    <string name="all_copy_operations_failed">Could not copy the selected files.</string>
-    <string name="all_move_operations_failed">Could not move the selected files.</string>
+    <string name="all_copy_operations_failed">Could not copy the selected files.\n\n%1$s</string>
+    <string name="all_move_operations_failed">Could not move the selected files.\n\n%1$s</string>
     <string name="all_delete_operations_failed">Could not delete the selected files.</string>
     <string name="cloud_auth_required">%1$s requires re-authentication. Please sign in again.</string>
 
@@ -850,6 +861,7 @@ Close the player and try again.</string>
     <string name="error_network_unsupported">Operation not supported by this server.</string>
     <string name="error_network_generic">Network error. Please try again.</string>
     <string name="error_sftp_copy_failed_server">Could not copy file from %1$s. Check connection and try again.</string>
+    <string name="error_ftp_connection_dropped">FTP connection to %1$s was interrupted. Try again.</string>
     <string name="error_sftp_copy_access_denied">No access to file on SFTP server. Check permissions.</string>
     <string name="error_sftp_connection_limit">Server %1$s limits concurrent connections. Stop playback and try again.</string>
     <string name="error_smb_mobile_network">SMB resource is not accessible via mobile network. SMB works only on a local Wi&#8209;Fi network. Connect to the same network as the device (%1$s).</string>
@@ -3349,7 +3361,7 @@ Close the player and try again.</string>
     <string name="s0151_dialog_auth_title">Sign in to %1$s?</string>
     <string name="s0151_dialog_reauth_title">Refresh sign-in for %1$s?</string>
     <string name="s0151_dialog_message">The real content from this link needs a sign-in — the preview image was skipped.</string>
-    <string name="s0151_dialog_reauth_message">The saved sign-in for %1$s may have expired. Signing in again lets the app fetch the actual content.</string>
+    <string name="s0151_dialog_reauth_message">We applied your saved sign-in for %1$s, but the page returned only a preview. The session may have expired, or this post needs a different account. Sign in again?</string>
     <string name="s0151_dialog_reauth_positive">Sign in again</string>
 
     <!-- S0117: batch progress and summary UX for noLegal site extraction -->
@@ -3463,6 +3475,18 @@ Close the player and try again.</string>
     <string name="addresource_folder_added_to_list">Folder added to the list.</string>
     <string name="favorites_slideshow_open_first">Open Favorites first, then start the slideshow there.</string>
     <string name="google_drive_sign_in_unavailable">Google Drive sign-in isn\'t available right now. Try again later.</string>
+
+    <!-- S0161: link download background queue — notification channel and messages -->
+    <string name="link_download_notif_channel_name">Link downloads</string>
+    <string name="link_download_notif_channel_description">Progress and results for link downloads</string>
+    <string name="link_download_notif_title_downloading">Downloading..</string>
+    <string name="link_download_notif_title_done">Download complete</string>
+    <string name="link_download_notif_text_saved">Saved: %1$s</string>
+    <string name="link_download_notif_text_failed">Download failed</string>
+    <string name="link_download_notif_text_batch_done">%1$d of %2$d downloaded</string>
+    <string name="link_download_notif_title_sign_in_needed">Sign in required</string>
+    <string name="link_download_notif_text_sign_in_needed">%1$s requires sign-in to download this content</string>
+    <string name="link_download_notif_action_sign_in">Sign in</string>
 </resources>
 
 

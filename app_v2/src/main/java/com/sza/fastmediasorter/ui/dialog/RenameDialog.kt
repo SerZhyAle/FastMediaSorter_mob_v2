@@ -31,6 +31,7 @@ class RenameDialog(
     private val files: List<File>,
     private val sourceFolderName: String,
     private val fileOperationUseCase: FileOperationUseCase,
+    private val onNameChosen: ((oldPath: String, newName: String) -> Unit)? = null,
     private val onComplete: (oldPath: String, newFile: File) -> Unit,
     private val onBeforeRename: ((oldPath: String) -> Unit)? = null,
 ) : Dialog(context) {
@@ -138,6 +139,12 @@ class RenameDialog(
 
         val oldPath = file.absolutePath
         onBeforeRename?.invoke(oldPath)
+
+        onNameChosen?.let { callback ->
+            callback(oldPath, newName)
+            dismiss()
+            return
+        }
 
         lifecycleOwner.lifecycleScope.launch {
             try {

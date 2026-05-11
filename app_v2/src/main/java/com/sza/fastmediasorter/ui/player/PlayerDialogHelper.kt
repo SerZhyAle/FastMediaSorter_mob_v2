@@ -153,6 +153,7 @@ class PlayerDialogHelper(
         fun onImageEditComplete()
         fun onGifEditComplete()
         fun onBeforeRenameDialog(oldPath: String)
+        fun onRenameRequested(oldPath: String, newName: String)
         fun onRenameComplete(oldPath: String, newPath: String)
     }
     
@@ -338,6 +339,7 @@ class PlayerDialogHelper(
             files = listOf(file),
             sourceFolderName = resource?.name ?: "Current folder",
             fileOperationUseCase = viewModel.fileOperationUseCase,
+            onNameChosen = { oldPath, newName -> dialogCallback.onRenameRequested(oldPath, newName) },
             onComplete = { oldPath, newFile -> dialogCallback.onRenameComplete(oldPath, newFile.path) },
             onBeforeRename = { oldPath -> dialogCallback.onBeforeRenameDialog(oldPath) },
         ).also { safeShow(it) }

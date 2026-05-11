@@ -9,8 +9,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
-import com.sza.fastmediasorter.data.link.auth.AuthOfferDismissalStore
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
+import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.player.StandalonePlayerActivity
@@ -34,7 +34,7 @@ import javax.inject.Singleton
 class LinkAutoDownloadResultPresenter @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val settings: SettingsRepository,
-    private val authOfferDismissalStore: AuthOfferDismissalStore,
+    private val authSessionRepository: AuthSessionRepository,
 ) {
 
     /**
@@ -109,25 +109,52 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         }
     }
 
-    private fun presentSocialPreviewOnly(
+    private suspend fun presentSocialPreviewOnly(
         result: LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly,
         hostActivity: AppCompatActivity,
         onAuthRetryRequested: suspend (originalUrl: String) -> Unit,
     ) {
-        Timber.d("S0151: presenter SocialPreviewOnly host=${result.host} hadExistingSession=${result.hadExistingSession}")
-        if (authOfferDismissalStore.isDismissed(result.host)) {
+        Timber.d(
+            "S0151: presenter SocialPreviewOnly host=%s hadExistingSession=%s",
+            result.host,
+            result.hadExistingSession,
+        )
+        val isDismissed = result.accountId
+            ?.takeIf { it.isNotBlank() }
+            ?.let { authSessionRepository.isDismissedForAccount(result.host, it) }
+            ?: authSessionRepository.isDismissedForHost(result.host)
+        if (isDismissed) {
             toast(R.string.s0151_toast_content_unavailable)
             return
         }
         val loginUrl = KnownAuthResources.matchHost(result.host)?.loginUrl ?: result.originalUrl
-        val titleRes = if (result.hadExistingSession)
-            R.string.s0151_dialog_reauth_title else R.string.s0151_dialog_auth_title
-        val positiveLabel = appContext.getString(
-            if (result.hadExistingSession) R.string.s0151_dialog_reauth_positive
-            else R.string.auth_offer_dialog_add,
-        )
-        val builder = MaterialAlertDialogBuilder(hostActivity)
-            .setTitle(appContext.getString(titleRes, result.host))
+        // S0155: when we know the account display name, show a personalised "sign in again
+        // as <name>?" prompt; otherwise fall back to the generic S0151 copy.
+        val displayName = result.accountDisplayName
+        val title: String
+        val message: String
+        val positiveLabel: String
+        when {
+            displayName != null -> {
+                // Named account reauth.
+                title = appContext.getString(R.string.s0155_reauth_title, displayName)
+                message = appContext.getString(R.string.s0155_reauth_message, displayName)
+                positiveLabel = appContext.getString(R.string.s0155_reauth_positive)
+            }
+            result.hadExistingSession -> {
+                title = appContext.getString(R.string.s0151_dialog_reauth_title, result.host)
+                message = appContext.getString(R.string.s0151_dialog_reauth_message, result.host)
+                positiveLabel = appContext.getString(R.string.s0151_dialog_reauth_positive)
+            }
+            else -> {
+                title = appContext.getString(R.string.s0151_dialog_auth_title, result.host)
+                message = appContext.getString(R.string.s0151_dialog_message)
+                positiveLabel = appContext.getString(R.string.auth_offer_dialog_add)
+            }
+        }
+        MaterialAlertDialogBuilder(hostActivity)
+            .setTitle(title)
+            .setMessage(message)
             .setCancelable(false)
             .setPositiveButton(positiveLabel) { _, _ ->
                 hostActivity.supportFragmentManager.setFragmentResultListener(
@@ -144,20 +171,29 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                     WebViewAuthDialogFragment.newInstance(loginUrl)
                         .show(hostActivity.supportFragmentManager, "s0151_webview_reauth")
                 }.onFailure {
-                    Timber.w(it, "S0151: reauth WebView launch failed")
+                    Timber.w(it, "S0151/S0155: reauth WebView launch failed")
                     toast(R.string.s0151_toast_content_unavailable)
                 }
             }
-            .setNegativeButton(R.string.auth_offer_dialog_skip) { _, _ ->
-                authOfferDismissalStore.markDismissed(result.host)
+            .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
                 toast(R.string.s0151_toast_content_unavailable)
             }
-        if (result.hadExistingSession) {
-            builder.setMessage(appContext.getString(R.string.s0151_dialog_reauth_message, result.host))
-        } else {
-            builder.setMessage(appContext.getString(R.string.s0151_dialog_message))
-        }
-        builder.show()
+            .setNegativeButton(R.string.s0157_auth_offer_dismiss_always) { _, _ ->
+                hostActivity.lifecycleScope.launch {
+                    val accountId = result.accountId?.takeIf { it.isNotBlank() }
+                    if (accountId != null) {
+                        authSessionRepository.markDismissedForAccount(
+                            host = result.host,
+                            accountId = accountId,
+                            displayName = result.accountDisplayName,
+                        )
+                    } else {
+                        authSessionRepository.markDismissed(result.host)
+                    }
+                }
+                toast(R.string.s0151_toast_content_unavailable)
+            }
+            .show()
     }
 
     private fun showBatchSummary(

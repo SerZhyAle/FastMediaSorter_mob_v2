@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.FastMediaSorter.App" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary colors - Lighter blue for dark theme -->
+        <!-- Primary colors - same blue_500 as light theme; colorOnPrimary=white for contrast on #1976D2 -->
         <item name="colorPrimary">@color/blue_500</item>
         <item name="colorPrimaryVariant">@color/blue_700</item>
-        <item name="colorOnPrimary">@color/black</item>
-        
+        <item name="colorOnPrimary">@color/white</item>
+
         <!-- Secondary colors - Lighter teal accent -->
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
-        
+
         <!-- Background colors for dark theme -->
         <item name="android:colorBackground">@color/item_normal</item>
         <item name="colorSurface">@color/item_normal</item>
         <item name="colorOnBackground">@color/white</item>
         <item name="colorOnSurface">@color/white</item>
-        
+
         <!-- Window background - dark for night mode -->
         <item name="android:windowBackground">@color/item_normal</item>
         <!-- Disable preview on app launch - no icon/splash shown until app fully loads -->

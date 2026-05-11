@@ -14,23 +14,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.data.link.auth.AuthOfferDismissalStore
+import com.sza.fastmediasorter.data.link.auth.KnownAuthResource
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
-import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
-// LinkAutoDownloadResultPresenter is in the same package — no import needed.
+import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,12 +58,19 @@ class ReceiveShareActivity : AppCompatActivity() {
     @Inject lateinit var fileOperationUseCase: FileOperationUseCase
     @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
     @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var linkAutoDownloadCoordinator: LinkAutoDownloadCoordinator
-    @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
     @Inject lateinit var authSessionRepository: AuthSessionRepository
-    @Inject lateinit var authOfferDismissalStore: AuthOfferDismissalStore
 
-    private var linkDownloadJob: Job? = null
+    private lateinit var accountSelectionManager: AccountSelectionManager
+
+    companion object {
+        /**
+         * S0161: when set on an incoming Intent, the Activity skips the normal share-intent
+         * flow and immediately runs [maybeOfferAuthThenDownload] for the given URL.
+         * Used by [LinkDownloadWorker] to re-open this Activity from a "Sign in" notification
+         * action after a background download returned [SocialPreviewOnly].
+         */
+        const val EXTRA_REAUTH_URL = "extra_reauth_url"
+    }
 
     private val tempDir: File by lazy {
         cacheDir.resolve("temp_share").also { it.mkdirs() }
@@ -88,6 +99,17 @@ class ReceiveShareActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        accountSelectionManager = AccountSelectionManager(authSessionRepository)
+
+        // S0161: re-auth flow initiated from a background download result notification.
+        // The URL was passed via a PendingIntent from LinkDownloadWorker when the worker
+        // received a SocialPreviewOnly result and could not show dialogs itself.
+        // Must be checked BEFORE the action guard below, which would reject this Intent.
+        val reAuthUrl = intent?.getStringExtra(EXTRA_REAUTH_URL)
+        if (reAuthUrl != null) {
+            maybeOfferAuthThenDownload(reAuthUrl)
+            return
+        }
 
         val action = intent?.action
         if (action != Intent.ACTION_SEND && action != Intent.ACTION_SEND_MULTIPLE) {
@@ -154,133 +176,119 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     /**
-     * S0144: when a shared link points at a known social resource and no auth session
-     * exists for it (and the user has not dismissed the offer before), ask whether to
-     * add an authorization first; otherwise fall through to the normal download path.
+     * S0144/S0155/S0157: for any http(s) URL, determine which account to use
+     * (0 and not dismissed → offer auth; 0 but dismissed → proceed without auth;
+     * 1 → use silently; ≥2 → show picker) then start the download.
      */
     private fun maybeOfferAuthThenDownload(url: String) {
-        val resource = KnownAuthResources.matchHost(Uri.parse(url).host)
-        if (resource == null) {
-            processLinkAutoDownload(url)
+        val host = Uri.parse(url).host.orEmpty()
+        if (host.isBlank()) {
+            processLinkAutoDownload(url, accountId = null)
             return
         }
+        val resource = KnownAuthResources.matchHost(host)
         lifecycleScope.launch {
-            val hasSession = try {
-                authSessionRepository.hasSession(resource.host)
-            } catch (ce: kotlinx.coroutines.CancellationException) {
-                throw ce
-            } catch (t: Throwable) {
-                Timber.w(t, "ReceiveShareActivity: hasSession check failed for %s", resource.host)
-                false
-            }
-            if (hasSession || authOfferDismissalStore.isDismissed(resource.host)) {
-                processLinkAutoDownload(url)
+            if (authSessionRepository.isDismissedForHost(host)) {
+                processLinkAutoDownload(url, accountId = null)
                 return@launch
             }
-            MaterialAlertDialogBuilder(this@ReceiveShareActivity)
-                .setTitle(getString(R.string.auth_offer_dialog_title, resource.displayName))
-                .setMessage(getString(R.string.auth_offer_dialog_message, resource.displayName))
-                .setCancelable(false)
-                .setPositiveButton(R.string.auth_offer_dialog_add) { _, _ ->
-                    supportFragmentManager.setFragmentResultListener(
-                        WebViewAuthDialogFragment.RESULT_KEY,
-                        this@ReceiveShareActivity,
-                    ) { _, _ ->
-                        supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
-                        processLinkAutoDownload(url)
-                    }
-                    WebViewAuthDialogFragment.newInstance(resource.loginUrl)
-                        .show(supportFragmentManager, "s0144_webview_auth_offer")
-                }
-                .setNegativeButton(R.string.auth_offer_dialog_skip) { _, _ ->
-                    authOfferDismissalStore.markDismissed(resource.host)
-                    processLinkAutoDownload(url)
-                }
-                .show()
+            accountSelectionManager.selectAccount(
+                host = host,
+                activity = this@ReceiveShareActivity,
+                onSelected = { account ->
+                    processLinkAutoDownload(url, accountId = account.accountId)
+                },
+                onNoneAvailable = {
+                    // No accounts saved for this host — offer auth.
+                    offerAuthThenDownload(url, host, resource)
+                },
+                onCancelled = {
+                    cleanupAndFinish()
+                },
+            )
         }
     }
 
     /**
-     * S0003 §05.3: drive the link auto-download coordinator behind the dedicated
-     * cancellable progress dialog, mapping the terminal Result to user-facing toasts.
+     * S0144/S0157: 3-button auth offer when no accounts are saved for [host].
+     * Add → WebView login; Skip (neutral) → proceed without auth, no dismissal;
+     * Don't ask (negative) → mark dismissed, proceed without auth.
+     * [resource] is non-null for known platforms, null for unknown hosts.
      */
-    private fun processLinkAutoDownload(url: String) {
-        Timber.i("ReceiveShareActivity: link auto-download enter url=%s", url)
-        val progressDialog = LinkAutoDownloadProgressDialog(
-            activity = this,
-            onCancel = { linkDownloadJob?.cancel() },
-        )
-        progressDialog.show()
-        linkDownloadJob = lifecycleScope.launch {
-            val result = try {
-                linkAutoDownloadCoordinator.handle(
-                    url,
-                    object : LinkAutoDownloadCoordinator.Callbacks {
-                        override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) {
-                            runOnUiThread { runCatching { progressDialog.update(state) } }
-                        }
-                    }
-                )
-            } catch (ce: kotlinx.coroutines.CancellationException) {
-                Timber.i("ReceiveShareActivity: link auto-download cancelled by user")
-                progressDialog.dismiss()
-                cleanupAndFinish()
-                throw ce
-            } catch (t: Throwable) {
-                Timber.e(t, "ReceiveShareActivity: link auto-download crashed")
-                LinkAutoDownloadCoordinator.Result.Failed.Other(t)
+    private fun offerAuthThenDownload(url: String, host: String, resource: KnownAuthResource?) {
+        val displayLabel = resource?.displayName ?: host
+        val loginUrl = resource?.loginUrl ?: url
+        MaterialAlertDialogBuilder(this@ReceiveShareActivity)
+            .setTitle(getString(R.string.auth_offer_dialog_title, displayLabel))
+            .setMessage(getString(R.string.auth_offer_dialog_message, displayLabel))
+            .setCancelable(false)
+            .setPositiveButton(R.string.auth_offer_dialog_add) { _, _ ->
+                supportFragmentManager.setFragmentResultListener(
+                    WebViewAuthDialogFragment.RESULT_KEY,
+                    this@ReceiveShareActivity,
+                ) { _, bundle ->
+                    supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
+                    // S0155: use the accountId the fragment just created — avoids passing
+                    // null when accounts went from 0→1 (root cause of the bug in on-device test).
+                    val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
+                    processLinkAutoDownload(url, accountId = savedAccountId)
+                }
+                WebViewAuthDialogFragment.newInstance(loginUrl)
+                    .show(supportFragmentManager, "s0157_webview_auth_offer")
             }
-            Timber.i("ReceiveShareActivity: link auto-download result=%s", result::class.java.simpleName)
-            progressDialog.dismiss()
-            handleLinkAutoDownloadResult(result)
-            cleanupAndFinish()
-        }
+            .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
+                // Skip for now — no dismissal recorded; offer will appear again next time.
+                processLinkAutoDownload(url, accountId = null)
+            }
+            .setNegativeButton(R.string.s0157_auth_offer_dismiss_always) { _, _ ->
+                lifecycleScope.launch { authSessionRepository.markDismissed(host) }
+                processLinkAutoDownload(url, accountId = null)
+            }
+            .show()
     }
 
-    private fun processLinkAutoDownloadBatch(urls: List<String>) {
-        Timber.i("ReceiveShareActivity: link auto-download batch enter count=%d", urls.size)
-        val progressDialog = LinkAutoDownloadProgressDialog(
-            activity = this,
-            onCancel = { linkDownloadJob?.cancel() },
-        )
-        progressDialog.show()
-        linkDownloadJob = lifecycleScope.launch {
-            val result = try {
-                linkAutoDownloadCoordinator.handleBatch(
-                    urls,
-                    object : LinkAutoDownloadCoordinator.Callbacks {
-                        override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) {
-                            runOnUiThread { runCatching { progressDialog.update(state) } }
-                        }
-                    },
-                )
-            } catch (ce: kotlinx.coroutines.CancellationException) {
-                Timber.i("ReceiveShareActivity: link auto-download batch cancelled by user")
-                progressDialog.dismiss()
-                cleanupAndFinish()
-                throw ce
-            } catch (t: Throwable) {
-                Timber.e(t, "ReceiveShareActivity: link auto-download batch crashed")
-                LinkAutoDownloadCoordinator.Result.Failed.Other(t)
-            }
-            Timber.i("ReceiveShareActivity: link auto-download batch result=%s", result::class.java.simpleName)
-            progressDialog.dismiss()
-            handleLinkAutoDownloadResult(result)
-            cleanupAndFinish()
-        }
-    }
-
-    private fun handleLinkAutoDownloadResult(result: LinkAutoDownloadCoordinator.Result) {
-        // S0116 §5.1 pillar M: all UX projection lives in LinkAutoDownloadResultPresenter.
-        // The retry hook re-runs `processLinkAutoDownload` so the WebView auth flow can
-        // resume the original download once cookies are saved.
-        lifecycleScope.launch {
-            resultPresenter.present(
-                result = result,
-                hostActivity = this@ReceiveShareActivity,
-                onAuthRetryRequested = { retryUrl -> processLinkAutoDownload(retryUrl) },
+    /**
+     * S0161: enqueue [url] as a background [LinkDownloadWorker] job and immediately
+     * finish the Activity so the user can return to the source app (Instagram, browser…).
+     *
+     * Auth dialogs (WebView, account picker) always complete *before* this is called —
+     * the worker only performs the HTTP download, not any interactive auth.
+     *
+     * S0155: [accountId] identifies the account whose cookies the coordinator should use;
+     * null means no specific account (falls back to store default).
+     */
+    private fun processLinkAutoDownload(url: String, accountId: String?) {
+        Timber.i("ReceiveShareActivity: enqueue link download url=%s accountId=%s", url, accountId)
+        val request = OneTimeWorkRequestBuilder<LinkDownloadWorker>()
+            .setInputData(
+                workDataOf(
+                    LinkDownloadWorker.KEY_URL to url,
+                    LinkDownloadWorker.KEY_ACCOUNT_ID to accountId,
+                ),
             )
-        }
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        // REPLACE: if the user shares the same URL again before the previous job finishes,
+        // restart with fresh auth credentials rather than silently skipping the new share.
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork("link_dl_${url.hashCode()}", ExistingWorkPolicy.REPLACE, request)
+        cleanupAndFinish()
+    }
+
+    /**
+     * S0161: batch variant — enqueues all [urls] in a single [LinkDownloadWorker] job
+     * (coordinator.handleBatch handles ordering) and returns the user to the source app.
+     */
+    private fun processLinkAutoDownloadBatch(urls: List<String>) {
+        Timber.i("ReceiveShareActivity: enqueue batch download count=%d", urls.size)
+        val request = OneTimeWorkRequestBuilder<LinkDownloadWorker>()
+            .setInputData(
+                workDataOf(LinkDownloadWorker.KEY_URLS to urls.toTypedArray()),
+            )
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(this).enqueue(request)
+        cleanupAndFinish()
     }
 
     @Suppress("DEPRECATION") // getParcelableExtra deprecated in API 33; minSdk 26 needs the old path

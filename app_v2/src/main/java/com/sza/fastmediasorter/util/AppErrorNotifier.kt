@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.util
 
 import android.app.Activity
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
@@ -80,7 +81,10 @@ object AppErrorNotifier {
         val rootView = activity.window.decorView.rootView
 
         val snackbar = Snackbar.make(rootView, displayMessage, Snackbar.LENGTH_INDEFINITE)
-        snackbar.view.setBackgroundColor(ContextCompat.getColor(activity, bgColorRes))
+        // backgroundTintList is required on Material3/Android 12+ — setBackgroundColor() only sets
+        // the SnackbarLayout outer shell and is overridden by the inner SnackbarContentLayout tint.
+        val bgColor = ContextCompat.getColor(activity, bgColorRes)
+        snackbar.view.backgroundTintList = ColorStateList.valueOf(bgColor)
         snackbar.setTextColor(textColor)
 
         // Auto-dismiss after target duration

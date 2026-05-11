@@ -11,6 +11,7 @@ import android.webkit.WebViewClient
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
+import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
 import com.sza.fastmediasorter.domain.usecase.link.BlockedReason
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
@@ -51,6 +52,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     @Named("linkDownload") private val httpClient: OkHttpClient,
     private val direct: DirectFileExtractionStrategy,
     private val cookieStore: EncryptedCookieStore,
+    private val sessionContext: LinkDownloadSessionContext,
 ) : UrlExtractionStrategy {
 
     override val id: String = "dynamic"
@@ -102,7 +104,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         // social host, signal SocialPreviewOnly — do not fall back to downloading the preview.
         if (nonImageCandidates.isEmpty()) {
             val host = httpUrl.host
-            if (KnownAuthResources.isVideoFirstHost(host)) {
+            if (KnownAuthResources.isPreviewSensitiveHost(host)) {
                 LinkDownloadTrace.verbose(
                     "dynamic-strategy social-preview-only host=${LinkDownloadTrace.truncateUrl(url)}",
                 )
@@ -342,10 +344,20 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     private fun injectSavedCookies(url: String) {
         val cookieManager = CookieManager.getInstance()
         val host = url.toHttpUrlOrNull()?.host ?: return
-        cookieDomainsFor(host).forEach { domain ->
-            cookieStore.loadFor(domain).forEach { cookie ->
-                val header = buildCookieHeader(cookie, domain)
+        // S0155: prefer session-context cookies when an account was selected for this run.
+        val contextCookies = sessionContext.cookiesFor(host)
+        if (contextCookies != null) {
+            contextCookies.forEach { cookie ->
+                val header = buildCookieHeader(cookie, host)
                 cookieManager.setCookie(url, header)
+            }
+        } else {
+            cookieDomainsFor(host).forEach { domain ->
+                @Suppress("DEPRECATION")
+                cookieStore.loadFor(domain).forEach { cookie ->
+                    val header = buildCookieHeader(cookie, domain)
+                    cookieManager.setCookie(url, header)
+                }
             }
         }
         cookieManager.flush()
