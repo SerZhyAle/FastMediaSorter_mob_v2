@@ -66,7 +66,6 @@ class PlayerCropDelegate(
         val overlay = activity.layoutInflater.inflate(R.layout.player_crop_overlay_content, parent, false)
         cropOverlayView = overlay
         parent.addView(overlay)
-        Timber.d("S0106: showCropOverlay attached to mediaContentArea size=${parent.width}x${parent.height}")
 
         val cropView = overlay.findViewById<CropOverlayView>(R.id.crop_overlay_view)
         cropView.pinchPassthroughTarget = activity.activityBinding.photoView

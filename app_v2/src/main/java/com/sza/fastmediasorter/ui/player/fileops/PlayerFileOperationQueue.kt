@@ -217,7 +217,8 @@ class PlayerFileOperationQueue(
                                 pendingIntent = result.pendingIntent,
                             )
                         )
-                        if (!gate.await()) {
+                        val granted = gate.await()
+                        if (!granted) {
                             _events.emit(
                                 PlayerFileOperationEvent.Failed(
                                     op = op,
@@ -227,6 +228,14 @@ class PlayerFileOperationQueue(
                             )
                             return
                         }
+                        // Permission granted: Android MediaStore batch-delete already
+                        // removed the file when the user confirmed the system dialog.
+                        // Re-invoking the use case would fail with "local file does not
+                        // exist" because the upload completed before PermissionRequired
+                        // was returned. Emit success and exit without restarting.
+                        Timber.d("S0154: batch-delete permission granted for ${op.sourcePath} — emitting Succeeded without restarting use case")
+                        _events.emit(PlayerFileOperationEvent.Succeeded(op, 1))
+                        return
                     }
                 }
             } catch (cancelled: kotlinx.coroutines.CancellationException) {

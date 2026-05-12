@@ -2,23 +2,19 @@ package com.sza.fastmediasorter.data.link
 
 import com.sza.fastmediasorter.domain.model.link.StreamingManifest
 
-/**
- * S0003 — strategic §5.1 pillar D: candidate harvested from an HTML page.
- *
- * The [Source] enum order encodes the canonical tie-breaker priority used by
- * [CandidateSelectionPolicy]: structured data / oEmbed > og:* meta tags >
- * Twitter player > native media tags > srcset/img > standalone anchors.
- *
- * S0116 §5.1 pillar G: streaming manifests (HLS/DASH) are surfaced as additional
- * Source values; the parsed [manifest] reference is carried forward to the streaming
- * pipeline without re-detection.
- */
+/** Candidate harvested from a page-level extraction pass. */
 data class HtmlMediaCandidate(
     val url: String,
     val source: Source,
     val tentativeMime: String?,
     val tentativeSizeBytes: Long?,
     val manifest: StreamingManifest? = null,
+    /**
+     * S0171: scheme+host of the page that produced this candidate (e.g. `https://www.instagram.com`).
+     * Used to build the `Referer` header when re-fetching a signed CDN URL — Instagram's CDN edge
+     * rejects the request without it. `null` for candidates whose origin couldn't be determined.
+     */
+    val pageOrigin: String? = null,
 ) {
     enum class Source {
         JSON_LD,
@@ -32,7 +28,6 @@ data class HtmlMediaCandidate(
         IMG_TAG,
         IMG_SRCSET,
         INLINE_LINK,
-        // S0116 §5.1 pillar G: streaming manifest variants.
         HLS_MANIFEST,
         DASH_MANIFEST,
     }

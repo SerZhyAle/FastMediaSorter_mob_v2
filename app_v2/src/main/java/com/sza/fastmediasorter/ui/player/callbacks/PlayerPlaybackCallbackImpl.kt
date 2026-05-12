@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.callbacks
 
 import android.os.Handler
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
@@ -55,7 +56,13 @@ class PlayerPlaybackCallbackImpl(
         }
     }
     
-    override fun onPlaybackError(error: Throwable) {
+    override fun onPlaybackError(error: Throwable, userMessage: String?) {
+        if (userMessage != null) {
+            // WHY: timeout-specific feedback should replace the generic skip toast, not stack with it.
+            Toast.makeText(activity, userMessage, Toast.LENGTH_LONG).show()
+            activity.navigationManager.navigateNextFromControl()
+            return
+        }
         activity.handleMediaLoadErrorAndSkip()
     }
     

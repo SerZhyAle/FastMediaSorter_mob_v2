@@ -46,7 +46,9 @@ internal object PrefetchLoadControlFactory {
             maxMs = VideoPlayerManager.MAX_BUFFER_MS
             playbackMs = VideoPlayerManager.BUFFER_FOR_PLAYBACK_MS
             rebufferMs = VideoPlayerManager.BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            Timber.d("PrefetchLoadControl[%s]: fallback standard defaults", tag)
+            // WHY S0168 §5.4: fallback to standard defaults means no PrefetchPlan was
+            // delivered before createPlayer() — elevate to W for visibility in log analysis.
+            Timber.w("PrefetchLoadControl[%s]: fallback standard defaults", tag)
         }
 
         val defaultLoadControl = DefaultLoadControl.Builder()

@@ -28,21 +28,6 @@ import timber.log.Timber
 import java.net.HttpCookie
 import java.util.UUID
 
-/**
- * S0116 §5.1 pillar L: in-app WebView dialog that lets the user authenticate to
- * any user-supplied domain and harvest the resulting session cookies into
- * [com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore].
- *
- * Lifecycle:
- *
- * 1. Open the requested URL in a fresh WebView.
- * 2. User completes login (CAPTCHA / 2FA / OAuth — whatever the site requires).
- * 3. User taps "Save authorization" — fragment harvests cookies via
- *    [CookieManager], delegates to [WebViewAuthViewModel.saveSession], then
- *    clears WebView state so cookies do not leak to other WebView contexts.
- *
- * Argument: [ARG_TARGET_URL] — http(s) URL to open.
- */
 @AndroidEntryPoint
 class WebViewAuthDialogFragment : DialogFragment() {
 
@@ -50,6 +35,11 @@ class WebViewAuthDialogFragment : DialogFragment() {
     private var webView: WebView? = null
     private var saveButton: MaterialButton? = null
     private var targetHost: String = ""
+    // In harvest mode the dialog opens the content URL directly and auto-closes once a CDN
+    // video URL is intercepted. The user just needs to scroll/tap play on the page.
+    private var harvestMode: Boolean = false
+    // Guards against emitting multiple results when several CDN requests fire at once.
+    private val mediaHarvested = java.util.concurrent.atomic.AtomicBoolean(false)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,6 +48,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
     ): View {
         val view = inflater.inflate(R.layout.dialog_webview_auth, container, false)
         val targetUrl = arguments?.getString(ARG_TARGET_URL).orEmpty()
+        harvestMode = arguments?.getBoolean(ARG_HARVEST_MODE, false) ?: false
         targetHost = Uri.parse(targetUrl).host.orEmpty()
 
         val web = view.findViewById<WebView>(R.id.webViewAuth)
@@ -67,7 +58,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
         if (targetUrl.isNotBlank()) {
             val initialCookies = CookieManager.getInstance().getCookie(targetUrl)?.split(';')?.size ?: 0
             LinkDownloadTrace.tag(
-                "webview-auth opened for ${LinkDownloadTrace.truncateUrl(targetUrl)}, cookies-before=$initialCookies",
+                "webview-auth opened for ${LinkDownloadTrace.truncateUrl(targetUrl)}, cookies-before=$initialCookies, harvest=$harvestMode",
             )
             web.loadUrl(targetUrl)
         }
@@ -75,18 +66,18 @@ class WebViewAuthDialogFragment : DialogFragment() {
         view.findViewById<MaterialButton>(R.id.btnWebviewAuthCancel).setOnClickListener {
             emitResultAndDismiss(saved = false)
         }
-        saveButton?.setOnClickListener {
-            harvestAndDismiss()
+        if (harvestMode) {
+            // In harvest mode there's nothing for the user to save manually — hide the button.
+            saveButton?.visibility = View.GONE
+        } else {
+            saveButton?.setOnClickListener { harvestAndDismiss() }
+            refreshSaveButtonState()
         }
-        refreshSaveButtonState()
         return view
     }
 
     override fun onStart() {
         super.onStart()
-        // S0141: DialogFragment defaults the window to wrap_content, which collapses the
-        // embedded WebView to zero pixels before any page renders. Force the dialog window
-        // to fill the screen so the WebView is actually visible and receives touch input.
         dialog?.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -96,24 +87,16 @@ class WebViewAuthDialogFragment : DialogFragment() {
     private fun configureWebView(web: WebView) {
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
-        // S0141: many login flows rely on JS confirm/alert dialogs and progress events;
-        // a missing WebChromeClient silently breaks those. A minimal default is enough.
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                refreshSaveButtonState()
+                if (!harvestMode) refreshSaveButtonState()
             }
         }
         web.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?,
-            ): Boolean {
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val uri = request?.url ?: return false
                 val scheme = uri.scheme?.lowercase()
                 if (scheme == "http" || scheme == "https") return false
-                // S0144: a site (e.g. Instagram) redirected to a non-web scheme.
-                // Never hand intent:// / app schemes to the engine — that yields
-                // net::ERR_UNKNOWN_URL_SCHEME and a blank dialog.
                 LinkDownloadTrace.verbose("webview-auth blocked-redirect scheme=$scheme host=${uri.host.orEmpty()}")
                 if (scheme == "intent") {
                     runCatching {
@@ -126,9 +109,36 @@ class WebViewAuthDialogFragment : DialogFragment() {
                 return true
             }
 
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?,
+            ): android.webkit.WebResourceResponse? {
+                // In harvest mode: intercept CDN video/HLS/DASH requests and auto-close
+                // as soon as the first media URL is found. The page is fully rendered
+                // because it’s a real visible WebView with real user gestures.
+                if (harvestMode && !request?.isForMainFrame!!) {
+                    val url = request?.url?.toString()
+                    if (url != null && isMediaCandidateUrl(url)) {
+                        if (mediaHarvested.compareAndSet(false, true)) {
+                            Timber.i(
+                                "[S0166] harvest-mode: intercepted CDN media url=%s",
+                                LinkDownloadTrace.truncateUrl(url),
+                            )
+                            // shouldInterceptRequest is called on a background thread — post dismiss to main.
+                            view?.handler?.post {
+                                if (isAdded && !isDetached) {
+                                    emitResultAndDismiss(saved = false, mediaUrl = url)
+                                }
+                            }
+                        }
+                    }
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                refreshSaveButtonState()
+                if (!harvestMode) refreshSaveButtonState()
             }
 
             override fun onReceivedError(
@@ -136,7 +146,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
                 request: WebResourceRequest?,
                 error: WebResourceError?,
             ) {
-                // S0141: surface load failures so we can diagnose blank pages without a debugger.
                 if (request?.isForMainFrame == true) {
                     LinkDownloadTrace.verbose(
                         "fallback=webview-auth-load-error code=${error?.errorCode} desc=${error?.description}",
@@ -148,12 +157,24 @@ class WebViewAuthDialogFragment : DialogFragment() {
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
     }
 
+    /**
+     * Returns true for URLs that look like streamable video content — used by harvest mode
+     * to auto-detect when the page requests a CDN video file.
+     * We check path extensions only (no response headers available in shouldInterceptRequest).
+     */
+    private fun isMediaCandidateUrl(url: String): Boolean {
+        val path = android.net.Uri.parse(url).path?.lowercase() ?: return false
+        return path.endsWith(".mp4") || path.endsWith(".m3u8") || path.endsWith(".mpd") ||
+            path.endsWith(".webm") || path.endsWith(".mkv") || path.contains(".mp4?")
+    }
+
     private fun harvestAndDismiss() {
         if (targetHost.isBlank()) {
             emitResultAndDismiss(saved = false)
             return
         }
         val cookies = currentCookies()
+        Timber.d("S0170: webview auth cookies collected (deduped) — host=%s count=%d", targetHost, cookies.size)
         if (cookies.isEmpty()) {
             refreshSaveButtonState()
             view?.let {
@@ -161,7 +182,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
             }
             return
         }
-        // S0155: show "Name this account" dialog with best-effort cookie-derived hint.
         val hint = AccountNameHintExtractor.extract(cookies)
         val defaultAccountName = getString(R.string.s0157_account_default_name)
         val nameInput = TextInputEditText(requireContext()).apply {
@@ -181,11 +201,14 @@ class WebViewAuthDialogFragment : DialogFragment() {
                 val accountId = UUID.randomUUID().toString()
                 viewModel.saveSession(targetHost, accountId, displayName, cookies)
                 scrubWebViewState()
-                // S0155: pass accountId so ReceiveShareActivity routes the resumed
-                // download to exactly this account, avoiding the accountId=null bug.
+                Timber.i(
+                    "[S0166] browser login saved: account=%s host=%s",
+                    displayName,
+                    targetHost,
+                )
+                Timber.d("S0155: WebView auth saved host=%s accountId=%s", targetHost, accountId)
                 emitResultAndDismiss(saved = true, accountId = accountId)
             }
-            // S0157: cancel does NOT save cookies — user may have decided not to commit the login.
             .setNegativeButton(android.R.string.cancel) { _, _ ->
                 emitResultAndDismiss(saved = false)
             }
@@ -196,8 +219,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
     }
 
     private fun scrubWebViewState() {
-        // S0116 §5.1 pillar L: scrub WebView state so harvested cookies do not
-        // leak into other WebView contexts that may share the singleton CookieManager.
         runCatching { CookieManager.getInstance().removeAllCookies(null) }
         runCatching { CookieManager.getInstance().flush() }
         runCatching {
@@ -208,30 +229,22 @@ class WebViewAuthDialogFragment : DialogFragment() {
     }
 
     private fun refreshSaveButtonState() {
-        // WebView's CookieManager does not expose cookie attributes in a structured form,
-        // so "at least one cookie visible for this host" is the safest live signal we have
-        // that the user has completed enough of the auth flow to save a usable session.
         saveButton?.isEnabled = currentCookies().isNotEmpty()
     }
 
     private fun currentCookies(): List<HttpCookie> {
         if (targetHost.isBlank()) return emptyList()
         val raw = try {
-            // getCookie() requires a full URL with scheme; a bare hostname silently returns null
-            // on Chromium-based WebView even when cookies exist for that host.
             CookieManager.getInstance().getCookie("https://$targetHost") ?: ""
-        } catch (t: Throwable) {
-            if (t is kotlinx.coroutines.CancellationException) throw t
-            LinkDownloadTrace.verbose("fallback=webview-auth-cookie-read reason=${t::class.simpleName}")
+        } catch (throwable: Throwable) {
+            if (throwable is kotlinx.coroutines.CancellationException) throw throwable
+            LinkDownloadTrace.verbose("fallback=webview-auth-cookie-read reason=${throwable::class.simpleName}")
             return emptyList()
         }
         return parseCookieHeader(raw, targetHost)
     }
 
-    // S0144: notify the host (e.g. ReceiveShareActivity) that the auth dialog closed,
-    // so a proactive share-auth offer can resume the original download afterwards.
-    // S0155: when auth was saved, pass the new accountId so the caller can skip re-querying.
-    private fun emitResultAndDismiss(saved: Boolean, accountId: String? = null) {
+    private fun emitResultAndDismiss(saved: Boolean, accountId: String? = null, mediaUrl: String? = null) {
         runCatching {
             parentFragmentManager.setFragmentResult(
                 RESULT_KEY,
@@ -239,6 +252,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
                     RESULT_HOST to targetHost,
                     RESULT_SAVED to saved,
                     RESULT_ACCOUNT_ID to accountId,
+                    RESULT_MEDIA_URL to mediaUrl,
                 ),
             )
         }
@@ -247,6 +261,9 @@ class WebViewAuthDialogFragment : DialogFragment() {
 
     private fun parseCookieHeader(header: String, host: String): List<HttpCookie> {
         if (header.isBlank()) return emptyList()
+        // S0170 BUG-6: CookieManager.getCookie() lists a name once per (domain,path) scope —
+        // e.g. csrftoken at .instagram.com and at www.instagram.com — so the raw header carries
+        // duplicates. Keep the last-seen value per name.
         return header.split(';')
             .mapNotNull { entry ->
                 val pair = entry.trim().split('=', limit = 2)
@@ -257,6 +274,9 @@ class WebViewAuthDialogFragment : DialogFragment() {
                     secure = true
                 }
             }
+            .associateBy { it.name }
+            .values
+            .toList()
     }
 
     override fun onDestroyView() {
@@ -268,17 +288,20 @@ class WebViewAuthDialogFragment : DialogFragment() {
 
     companion object {
         const val ARG_TARGET_URL = "target_url"
-
-        // S0144: fragment-result channel for hosts that need to react to dialog dismissal.
+        const val ARG_HARVEST_MODE = "harvest_mode"
         const val RESULT_KEY = "s0144_webview_auth_result"
         const val RESULT_HOST = "host"
         const val RESULT_SAVED = "saved"
-        // S0155: newly created accountId, non-null only when saved=true.
         const val RESULT_ACCOUNT_ID = "account_id"
+        /** Set when harvest mode intercepts a CDN media URL — use for direct download. */
+        const val RESULT_MEDIA_URL = "media_url"
 
-        fun newInstance(targetUrl: String): WebViewAuthDialogFragment =
+        fun newInstance(targetUrl: String, harvestMode: Boolean = false): WebViewAuthDialogFragment =
             WebViewAuthDialogFragment().apply {
-                arguments = Bundle().apply { putString(ARG_TARGET_URL, targetUrl) }
+                arguments = Bundle().apply {
+                    putString(ARG_TARGET_URL, targetUrl)
+                    putBoolean(ARG_HARVEST_MODE, harvestMode)
+                }
             }
     }
 }

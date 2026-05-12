@@ -20,6 +20,7 @@
     <string name="error_queued_operation_move">Couldn\'t move "%1$s". Try again.</string>
     <string name="error_queued_operation_delete">Couldn\'t delete "%1$s". Try again.</string>
     <string name="error_queued_operation_rename">Couldn\'t rename "%1$s". Try again.</string>
+    <string name="error_queued_move_permission_denied">"%1$s" was copied to the destination, but the local copy couldn\'t be deleted — permission was denied.</string>
     <string name="file_info">File Info</string>
     <string name="control">Control</string>
     <string name="save">Save</string>
@@ -864,6 +865,9 @@ Close the player and try again.</string>
     <string name="error_ftp_connection_dropped">FTP connection to %1$s was interrupted. Try again.</string>
     <string name="error_sftp_copy_access_denied">No access to file on SFTP server. Check permissions.</string>
     <string name="error_sftp_connection_limit">Server %1$s limits concurrent connections. Stop playback and try again.</string>
+    <string name="error_sftp_access_denied">Access denied by SFTP server. Check the account permissions and try again.</string>
+    <string name="error_sftp_server_rejected">SFTP server rejected the operation. Try again or check the server settings.</string>
+    <string name="error_sftp_move_copied_source_remains">File was copied to the destination but the original could not be deleted. Remove it manually.</string>
     <string name="error_smb_mobile_network">SMB resource is not accessible via mobile network. SMB works only on a local Wi&#8209;Fi network. Connect to the same network as the device (%1$s).</string>
     <string name="error_smb_not_on_local_network">Cannot connect to SMB resource. Make sure you are on the same local network as the device and that it is powered on.</string>
 
@@ -1174,6 +1178,7 @@ Close the player and try again.</string>
     <string name="link_autodownload_error_no_network">No network connection</string>
     <string name="link_autodownload_error_resource_unavailable">Selected resource is unavailable</string>
     <string name="link_autodownload_error_no_media">No downloadable media at this link</string>
+    <string name="link_autodownload_error_corrupted">Couldn\'t download a usable file — the server returned an error page or an incomplete file</string>
     <string name="link_autodownload_error_timeout">Download timed out</string>
     <string name="link_autodownload_error_mime_blocked">This file type is not supported</string>
     <string name="vr_fullscreen_already_active">Already fullscreen in VR</string>
@@ -1825,6 +1830,9 @@ Close the player and try again.</string>
     <string name="msg_network_error_max_retries">Network stream error after %1$d retries: %2$s</string>
     <string name="msg_playback_error">Playback error: %1$s</string>
     <string name="error_loading_media">Error loading file, skipping</string>
+    <string name="video_playback_failed_with_name">Could not play: %1$s</string>
+    <string name="video_playback_failed_session_warning">This file could not be played earlier in this session.</string>
+    <string name="warning_low_memory_playback">Low memory — video playback may fail.</string>
     <string name="warning_audio_format_unsupported">Audio format not supported — playing without sound</string>
 
     <!-- Dialog messages -->
@@ -3487,6 +3495,11 @@ Close the player and try again.</string>
     <string name="link_download_notif_title_sign_in_needed">Sign in required</string>
     <string name="link_download_notif_text_sign_in_needed">%1$s requires sign-in to download this content</string>
     <string name="link_download_notif_action_sign_in">Sign in</string>
+    <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \&quot;Sign-in declined\&quot; were created when you chose \&quot;Do not ask\&quot; — they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \&quot;Add authorization\&quot; in the top menu.</string>
+    <string name="link_download_ytdlp_extracting">Extracting media link…</string>
+    <string name="link_download_ytdlp_downloading">Downloading via universal extractor…</string>
+    <string name="link_download_ytdlp_error_extract">Could not extract media from this link.</string>
+    <string name="link_download_ytdlp_error_runtime">Universal extractor is not available.</string>
 </resources>
 
 

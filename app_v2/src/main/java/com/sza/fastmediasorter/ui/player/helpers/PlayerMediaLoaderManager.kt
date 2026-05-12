@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.net.Uri
 import android.os.Handler
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.Player
@@ -25,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -75,7 +75,9 @@ class PlayerMediaLoaderManager(
     private val sftpClient: SftpClient? = null,
     private val ftpClient: FtpClient? = null,
     private val credentialsRepository: NetworkCredentialsRepository? = null,
-    private val cloudClients: Map<String, CloudStorageClient> = emptyMap()
+    private val cloudClients: Map<String, CloudStorageClient> = emptyMap(),
+    // S0172: used to read/restore SFTP audio position before playback starts
+    private val playbackPositionRepository: PlaybackPositionRepository? = null
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
@@ -306,9 +308,21 @@ class PlayerMediaLoaderManager(
                 val cachedFile = preCacheCloudAudio(path, currentFile)
                 if (cachedFile != null) {
                     Timber.d("playAudioViaService: CLOUD pre-cache OK — playing via service: ${cachedFile.absolutePath}")
+                    // Set original cloud path as the position key (ADR-3, S0173)
+                    AudioPlaybackService.currentOriginalPath = path
                     val uri = Uri.fromFile(cachedFile)
                     val title = currentFile.name.substringBeforeLast('.')
+                    // Read saved position and show resume toast
+                    val savedPositionMs = playbackPositionRepository?.let { repo ->
+                        PlaybackPositionRestorer.restoreAndNotify(
+                            path = path,
+                            repository = repo,
+                            context = activity,
+                            resumedFromStringResId = R.string.playback_resumed_from
+                        )
+                    } ?: 0L
                     controller.playAudioWithMetadata(uri, title) { player ->
+                        if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
                         activity.runOnUiThread { bindServicePlayerToView(player) }
                     }
                 } else {
@@ -347,7 +361,22 @@ class PlayerMediaLoaderManager(
             if (cachedFile != null) {
                 val uri = Uri.fromFile(cachedFile)
                 val netTitle = viewModel.state.value.currentFile?.name?.substringBeforeLast('.') ?: cachedFile.nameWithoutExtension
+
+                // Set original network path as position key (ADR-2, S0172)
+                AudioPlaybackService.currentOriginalPath = path
+
+                // Read saved position and show resume toast
+                val savedPositionMs = playbackPositionRepository?.let { repo ->
+                    PlaybackPositionRestorer.restoreAndNotify(
+                        path = path,
+                        repository = repo,
+                        context = activity,
+                        resumedFromStringResId = R.string.playback_resumed_from
+                    )
+                } ?: 0L
+
                 controller.playAudioWithMetadata(uri, netTitle) { player ->
+                    if (savedPositionMs > 0L) player.seekTo(savedPositionMs)
                     activity.runOnUiThread { bindServicePlayerToView(player) }
                 }
             } else {
@@ -369,6 +398,10 @@ class PlayerMediaLoaderManager(
      *  title metadata for all tracks and enables native ExoPlayer next/prev for N-item queues.
      *  Falls back to single-file playAudio() if NowPlayingManager is unavailable. */
     private fun playLocalAudioViaService(path: String, controller: AudioServiceController) {
+        // S0172: local files are keyed by their local path inside VideoPlayerManager;
+        // reset the companion field so the service doesn't accidentally save against a stale network key.
+        AudioPlaybackService.currentOriginalPath = ""
+
         val allFiles = viewModel.state.value.files
         val currentIndex = allFiles.indexOfFirst { it.path == path }
         if (currentIndex < 0) {

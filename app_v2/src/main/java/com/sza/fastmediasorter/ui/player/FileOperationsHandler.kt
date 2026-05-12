@@ -59,7 +59,7 @@ class FileOperationsHandler(
         return when {
             result.errorRes != null -> appCtx.getString(result.errorRes, *result.formatArgs.toTypedArray())
             alreadyExistsRes != null && result.error.contains("already exists", ignoreCase = true) -> {
-                appCtx.getString(alreadyExistsRes, *alreadyExistsArgs)
+                  appCtx.getString(alreadyExistsRes, *alreadyExistsArgs)
             }
             else -> appCtx.getString(fallbackRes)
         }
@@ -150,6 +150,8 @@ class FileOperationsHandler(
                             if (settings.goToNextAfterCopy) {
                                 callback.onCopySuccess(destination, true)
                             }
+                            // Surface SFTP partial failure (access-denied, copied-source-remains, etc.)
+                            if (result.errors.isNotEmpty()) callback.onOperationError(result.errors.first(), null)
                         }
                         is FileOperationResult.Failure -> {
                             val message = formatFailureMessage(
@@ -224,6 +226,8 @@ class FileOperationsHandler(
                         is FileOperationResult.PartialSuccess -> {
                             Toast.makeText(appCtx, appCtx.getString(com.sza.fastmediasorter.R.string.msg_copy_success_count, result.processedCount, folderName), Toast.LENGTH_SHORT).show()
                             if (settings.goToNextAfterCopy) callback.onCopyToPathSuccess(destinationPath, true)
+                               // Surface SFTP partial failure (access-denied, copied-source-remains, etc.)
+                               if (result.errors.isNotEmpty()) callback.onOperationError(result.errors.first(), null)
                         }
                         is FileOperationResult.Failure -> {
                             val msg = formatFailureMessage(result, com.sza.fastmediasorter.R.string.error_copy_failed)

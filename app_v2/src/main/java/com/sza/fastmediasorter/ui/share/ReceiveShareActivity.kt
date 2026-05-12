@@ -14,7 +14,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
@@ -27,6 +26,7 @@ import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
@@ -59,6 +59,8 @@ class ReceiveShareActivity : AppCompatActivity() {
     @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var authSessionRepository: AuthSessionRepository
+    @Inject lateinit var coordinator: LinkAutoDownloadCoordinator
+    @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
 
     private lateinit var accountSelectionManager: AccountSelectionManager
 
@@ -79,6 +81,11 @@ class ReceiveShareActivity : AppCompatActivity() {
     private var cachedFiles: List<File> = emptyList()
     private var isFinishTriggered = false
     private var folderPickerActive = false
+
+    // S0170 BUG-1: the unknown-host auth offer must fire at most once per Activity instance.
+    // Without this guard a host whose extraction keeps returning NoMediaFound (e.g. Facebook)
+    // loops: offer → login → NoMediaFound → offer → … until the user escapes via Back.
+    private var authOfferShown = false
 
     private val folderPickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -136,11 +143,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                     if (urls.isNotEmpty() && settings.linkAutoDownloadEnabled) {
                         loadingDialog.dismiss()
                         if (urls.size == 1) {
-                            // S0161: skip auth dialogs — silently use best saved account, enqueue
-                            // background download, return user to source app immediately.
-                            // Auth dialog is shown ONLY after worker reports download failure
-                            // (SocialPreviewOnly) via EXTRA_REAUTH_URL notification action.
-                            enqueueLinkDownloadSilent(urls.first())
+                            routeSingleLinkAutoDownload(urls.first())
                         } else {
                             processLinkAutoDownloadBatch(urls)
                         }
@@ -192,6 +195,7 @@ class ReceiveShareActivity : AppCompatActivity() {
         val resource = KnownAuthResources.matchHost(host)
         lifecycleScope.launch {
             if (authSessionRepository.isDismissedForHost(host)) {
+                Timber.i("[S0166] rejection record found for host, skipping auth dialog: host=%s", host)
                 processLinkAutoDownload(url, accountId = null)
                 return@launch
             }
@@ -202,7 +206,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                     processLinkAutoDownload(url, accountId = account.accountId)
                 },
                 onNoneAvailable = {
-                    // No accounts saved for this host — offer auth.
+                    Timber.i("[S0166] no stored auth for host: host=%s", host)
                     offerAuthThenDownload(url, host, resource)
                 },
                 onCancelled = {
@@ -213,19 +217,46 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     /**
+     * S0166 routes known social hosts through the explicit auth/account decision tree.
+     * Unknown hosts keep the standard pipeline and only escalate later if extraction proves it is needed.
+     */
+    private fun routeSingleLinkAutoDownload(url: String) {
+        val host = Uri.parse(url).host.orEmpty()
+        val resource = KnownAuthResources.matchHost(host)
+        if (resource != null) {
+            Timber.i("[S0166] known social: host=%s", host)
+            maybeOfferAuthThenDownload(url)
+        } else {
+            if (host.isNotBlank()) {
+                Timber.i("[S0166] unknown host, standard pipeline: host=%s", host)
+            }
+            enqueueLinkDownloadSilent(url)
+        }
+    }
+
+    /**
      * S0144/S0157: 3-button auth offer when no accounts are saved for [host].
      * Add → WebView login; Skip (neutral) → proceed without auth, no dismissal;
      * Don't ask (negative) → mark dismissed, proceed without auth.
      * [resource] is non-null for known platforms, null for unknown hosts.
      */
-    private fun offerAuthThenDownload(url: String, host: String, resource: KnownAuthResource?) {
+    private fun offerAuthThenDownload(
+        url: String,
+        host: String,
+        resource: KnownAuthResource?,
+        dialogType: String = "initial",
+    ) {
         val displayLabel = resource?.displayName ?: host
         val loginUrl = resource?.loginUrl ?: url
+        // S0170 BUG-1: once shown, never re-escalate for this Activity instance regardless of outcome.
+        authOfferShown = true
+        Timber.i("[S0166] auth dialog shown: type=%s account=unknown host=%s", dialogType, host)
         MaterialAlertDialogBuilder(this@ReceiveShareActivity)
             .setTitle(getString(R.string.auth_offer_dialog_title, displayLabel))
             .setMessage(getString(R.string.auth_offer_dialog_message, displayLabel))
             .setCancelable(false)
             .setPositiveButton(R.string.auth_offer_dialog_add) { _, _ ->
+                Timber.i("[S0166] auth accepted: type=%s host=%s", dialogType, host)
                 supportFragmentManager.setFragmentResultListener(
                     WebViewAuthDialogFragment.RESULT_KEY,
                     this@ReceiveShareActivity,
@@ -234,28 +265,36 @@ class ReceiveShareActivity : AppCompatActivity() {
                     // S0155: use the accountId the fragment just created — avoids passing
                     // null when accounts went from 0→1 (root cause of the bug in on-device test).
                     val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
-                    processLinkAutoDownload(url, accountId = savedAccountId)
+                    Timber.d("S0155: offerAuthThenDownload resuming with accountId=%s", savedAccountId)
+                    // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
+                    // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
+                    processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
                 }
                 WebViewAuthDialogFragment.newInstance(loginUrl)
                     .show(supportFragmentManager, "s0157_webview_auth_offer")
             }
             .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
-                // Skip for now — no dismissal recorded; offer will appear again next time.
-                processLinkAutoDownload(url, accountId = null)
+                Timber.i("[S0166] auth dismissed (no record created): type=%s host=%s", dialogType, host)
+                // Skip for now — no dismissal recorded; offer will appear again next time the link is shared.
+                // S0170 BUG-1: isAuthRetry=true — do not re-escalate within this share session.
+                processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
             }
             .setNegativeButton(R.string.s0157_auth_offer_dismiss_always) { _, _ ->
-                lifecycleScope.launch { authSessionRepository.markDismissed(host) }
-                processLinkAutoDownload(url, accountId = null)
+                Timber.i("[S0166] auth dismissed with rejection record created: type=%s host=%s", dialogType, host)
+                // S0170 BUG-1: await markDismissed before re-running the pipeline — otherwise the
+                // escalation block can read a stale isDismissedForHost() and loop once.
+                lifecycleScope.launch {
+                    authSessionRepository.markDismissed(host)
+                    processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
+                }
             }
             .show()
     }
 
     /**
      * S0161: silently pick the best saved account for [url]'s host (last-used first;
-     * null if none) and enqueue a background [LinkDownloadWorker] job without showing
-     * any dialog. The Activity finishes immediately — user stays in the source app.
-     *
-     * Auth is only shown after the worker signals SocialPreviewOnly via [EXTRA_REAUTH_URL].
+     * null if none) then run a blocking download with progress dialog. No auth picker
+     * is shown upfront — auth is offered ONLY if the download returns SocialPreviewOnly.
      */
     private fun enqueueLinkDownloadSilent(url: String) {
         val host = Uri.parse(url).host.orEmpty()
@@ -289,35 +328,105 @@ class ReceiveShareActivity : AppCompatActivity() {
                 processLinkAutoDownload(url, accountId = null)
             } else {
                 val resource = if (host.isNotBlank()) KnownAuthResources.matchHost(host) else null
-                offerAuthThenDownload(url, host, resource)
+                offerAuthThenDownload(url, host, resource, dialogType = "reauth")
             }
         }
     }
     /**
-     * S0161: enqueue [url] as a background [LinkDownloadWorker] job and immediately
-     * finish the Activity so the user can return to the source app (Instagram, browser…).     *
-     * Auth dialogs (WebView, account picker) always complete *before* this is called —
-     * the worker only performs the HTTP download, not any interactive auth.
+     * S0161/S0116: blocking link download — shows [LinkAutoDownloadProgressDialog] while
+     * the coordinator runs, then delegates the result to [resultPresenter].
+     *
+     * For [SocialPreviewOnly] (not dismissed): presenter shows an auth dialog;
+     * the Activity stays alive for dialog interaction. On "Sign in" the WebView auth
+     * completes and [onAuthRetryRequested] triggers a single retry run.
+     * For all other results: presenter shows a toast and the Activity finishes immediately.
      *
      * S0155: [accountId] identifies the account whose cookies the coordinator should use;
-     * null means no specific account (falls back to store default).
+     * null means no specific account (coordinator falls back to store default).
      */
-    private fun processLinkAutoDownload(url: String, accountId: String?) {
-        Timber.i("ReceiveShareActivity: enqueue link download url=%s accountId=%s", url, accountId)
-        val request = OneTimeWorkRequestBuilder<LinkDownloadWorker>()
-            .setInputData(
-                workDataOf(
-                    LinkDownloadWorker.KEY_URL to url,
-                    LinkDownloadWorker.KEY_ACCOUNT_ID to accountId,
-                ),
+    private fun processLinkAutoDownload(url: String, accountId: String?, isAuthRetry: Boolean = false) {
+        Timber.i("ReceiveShareActivity: blocking link download url=%s accountId=%s retry=%s", url, accountId, isAuthRetry)
+        val progressDialog = LinkAutoDownloadProgressDialog(this@ReceiveShareActivity) {
+            // Cancel pressed — abort and return user to source app.
+            cleanupAndFinish()
+        }
+        progressDialog.show()
+        lifecycleScope.launch {
+            val result = coordinator.handle(
+                url = url,
+                callbacks = object : LinkAutoDownloadCoordinator.Callbacks {
+                    override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) {
+                        // writeFromStream calls this from Dispatchers.IO; Material3 progress
+                        // indicators use ValueAnimator internally which requires the Looper thread.
+                        this@ReceiveShareActivity.runOnUiThread { progressDialog.update(state) }
+                    }
+                },
+                accountId = accountId,
             )
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        // REPLACE: if the user shares the same URL again before the previous job finishes,
-        // restart with fresh auth credentials rather than silently skipping the new share.
-        WorkManager.getInstance(this)
-            .enqueueUniqueWork("link_dl_${url.hashCode()}", ExistingWorkPolicy.REPLACE, request)
-        cleanupAndFinish()
+            progressDialog.dismiss()
+
+            Timber.d(
+                "S0170: link share result — host=%s result=%s accountId=%s isAuthRetry=%s authOfferShown=%s",
+                Uri.parse(url).host.orEmpty(),
+                result::class.simpleName,
+                accountId ?: "none",
+                isAuthRetry,
+                authOfferShown,
+            )
+            // S0166 §2 Step 0: unknown-host escalation — if the standard pipeline returned nothing
+            // and this host is not a known social (KnownAuthResources), offer the same 3-button auth
+            // dialog. S0170 BUG-1: fire at most once per Activity instance (authOfferShown), skip if
+            // this is an auth-retry run, skip if a session was already applied (accountId != null —
+            // re-running auth cannot help), and skip if the host has been dismissed ("Don't ask").
+            if (result is LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound &&
+                !isAuthRetry && !authOfferShown && accountId == null
+            ) {
+                val hostForEscalation = Uri.parse(url).host.orEmpty()
+                if (hostForEscalation.isNotBlank() && KnownAuthResources.matchHost(hostForEscalation) == null) {
+                    val dismissed = authSessionRepository.isDismissedForHost(hostForEscalation)
+                    val hasActiveSession = runCatching {
+                        authSessionRepository.listAccountsForHost(hostForEscalation).any { !it.isDismissed }
+                    }.getOrDefault(false)
+                    if (!dismissed && !hasActiveSession) {
+                        Timber.i("[S0166] unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
+                        offerAuthThenDownload(url, hostForEscalation, resource = null, dialogType = "initial")
+                        return@launch
+                    }
+                }
+            }
+
+            // SocialPreviewOnly (not dismissed) shows an auth dialog asynchronously —
+            // we must NOT call cleanupAndFinish() until dialog interaction completes.
+            // Check dismissed status here (suspend context) to match presenter’s logic.
+            // isAuthRetry=true also gates the presenter to skip the re-auth dialog on retry.
+            val showsAuthDialog = if (result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly) {
+                val acctId = result.accountId?.takeIf { it.isNotBlank() }
+                val dismissed = if (acctId != null) {
+                    authSessionRepository.isDismissedForAccount(result.host, acctId)
+                } else {
+                    authSessionRepository.isDismissedForHost(result.host)
+                }
+                // On a retry that already had a session the presenter will just toast — no dialog.
+                !dismissed && !isAuthRetry
+            } else false
+
+            resultPresenter.present(result, this@ReceiveShareActivity, isAuthRetry) { retryUrl ->
+                // Presenter hands back a URL: either a CDN media URL from harvest-mode
+                // interception, or the original URL for a normal extraction retry.
+                val host = Uri.parse(retryUrl).host.orEmpty()
+                val newAccountId = runCatching {
+                    authSessionRepository.listAccountsForHost(host)
+                        .filter { !it.isDismissed }
+                        .maxByOrNull { it.savedAt }
+                        ?.accountId
+                }.getOrNull()
+                processLinkAutoDownload(retryUrl, newAccountId, isAuthRetry = true)
+            }
+
+            if (!showsAuthDialog) cleanupAndFinish()
+            // For showsAuthDialog=true: Activity stays alive; cleanupAndFinish() is triggered
+            // by the retry path above completing, or by the user pressing Back.
+        }
     }
 
     /**

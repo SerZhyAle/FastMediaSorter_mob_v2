@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.link
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.link.BlockedReason
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
@@ -24,16 +25,6 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
 
-/**
- * S0003 — strategic §5.1 pillar D, sub-strategy 2: HTML page parsing.
- *
- * Probes by Content-Type sniff (text/html → Applicable). Open downloads the page
- * (max 2 MiB), extracts media candidates by source priority, runs ≤ 8 parallel HEAD
- * probes within a 4 s budget, applies [CandidateSelectionPolicy], then delegates the
- * actual download to [DirectFileExtractionStrategy] for the chosen URL.
- *
- * `data:`/`blob:` candidates and script-loaded content are out of scope per §5.1 D.3.
- */
 @Singleton
 class HtmlPageExtractionStrategy @Inject constructor(
     @Named("linkDownload") private val httpClient: OkHttpClient,
@@ -49,8 +40,11 @@ class HtmlPageExtractionStrategy @Inject constructor(
         val httpUrl = url.toHttpUrlOrNull() ?: return@withContext ProbeResult.NotApplicable
         try {
             val request = Request.Builder().url(httpUrl).head().build()
-            httpClient.newCall(request).execute().use { resp ->
-                val contentType = resp.header("Content-Type")?.substringBefore(';')?.trim()?.lowercase()
+            httpClient.newCall(request).execute().use { response ->
+                val contentType = response.header("Content-Type")
+                    ?.substringBefore(';')
+                    ?.trim()
+                    ?.lowercase()
                 if (contentType == "text/html") {
                     ProbeResult.Applicable(tentativeMime = null, tentativeSizeBytes = null)
                 } else {
@@ -67,41 +61,35 @@ class HtmlPageExtractionStrategy @Inject constructor(
         url: String,
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
     ): OpenResult {
-        val httpUrl = url.toHttpUrlOrNull()
-            ?: return OpenResult.Blocked(com.sza.fastmediasorter.domain.usecase.link.BlockedReason.NonHttpScheme)
+        val httpUrl = url.toHttpUrlOrNull() ?: return OpenResult.Blocked(BlockedReason.NonHttpScheme)
 
         val fetchResult: HtmlFetchResult = try {
             withContext(Dispatchers.IO) {
                 val request = Request.Builder().url(httpUrl).get().build()
-                httpClient.newCall(request).execute().use { resp ->
+                httpClient.newCall(request).execute().use { response ->
                     when {
-                        // S0116 §5.1 pillar L: surface auth requirement for the WebView flow.
-                        resp.code == 401 || resp.code == 403 -> {
+                        response.code == 401 || response.code == 403 -> {
                             LinkDownloadTrace.verbose(
-                                "auth-required for ${LinkDownloadTrace.truncateUrl(url)} status=${resp.code} strategy=$id",
+                                "auth-required for ${LinkDownloadTrace.truncateUrl(url)} status=${response.code} strategy=$id",
                             )
                             HtmlFetchResult.AuthRequired
                         }
-                        !resp.isSuccessful -> HtmlFetchResult.Failed
-                        else -> {
-                            val limit = MAX_HTML_BYTES
-                            HtmlFetchResult.Body(
-                                value = resp.peekBody(limit).string(),
-                                finalUrl = resp.request.url.toString(),
-                            )
-                        }
+                        !response.isSuccessful -> HtmlFetchResult.Failed
+                        else -> HtmlFetchResult.Body(
+                            value = response.peekBody(MAX_HTML_BYTES).string(),
+                            finalUrl = response.request.url.toString(),
+                        )
                     }
                 }
             }
         } catch (io: IOException) {
-            Timber.w(io, "HtmlPageExtractionStrategy: html fetch failed")
+            Timber.w(io, "HtmlPageExtractionStrategy: html fetch failed for %s", url)
             return OpenResult.Error(io)
         }
 
-        val rawHtml: String = when (fetchResult) {
+        val rawHtml = when (fetchResult) {
             is HtmlFetchResult.Body -> fetchResult.value
-            HtmlFetchResult.AuthRequired ->
-                return OpenResult.Blocked(com.sza.fastmediasorter.domain.usecase.link.BlockedReason.AuthRequired)
+            HtmlFetchResult.AuthRequired -> return OpenResult.Blocked(BlockedReason.AuthRequired)
             HtmlFetchResult.Failed -> return OpenResult.NotFound("html_fetch_failed")
         }
         val finalUrl = (fetchResult as? HtmlFetchResult.Body)?.finalUrl ?: httpUrl.toString()
@@ -113,54 +101,49 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 LinkDownloadTrace.verbose(
                     "auth-required soft-login-wall for ${LinkDownloadTrace.truncateUrl(finalUrl)} strategy=$id",
                 )
-                return OpenResult.Blocked(com.sza.fastmediasorter.domain.usecase.link.BlockedReason.AuthRequired)
+                return OpenResult.Blocked(BlockedReason.AuthRequired)
             }
             return OpenResult.NotFound("no_media_in_html")
         }
 
-        // HEAD-probe (capped fan-out + total budget).
         val probed = probeCandidates(candidates.take(MAX_HEAD_PROBES))
-        // Carry through any candidates we didn't probe (kept in input order).
         val full = probed + candidates.drop(MAX_HEAD_PROBES)
-        val filtered = full.filter { c ->
-            // S0116 §5.1 pillar G: streaming manifests carry non-media MIME
-            // (`application/vnd.apple.mpegurl` / `application/dash+xml`) and must
-            // bypass the direct-file MIME whitelist.
-            if (c.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
-                c.source == HtmlMediaCandidate.Source.DASH_MANIFEST) return@filter true
-            val mime = c.tentativeMime
+        val filtered = full.filter { candidate ->
+            if (
+                candidate.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
+                candidate.source == HtmlMediaCandidate.Source.DASH_MANIFEST
+            ) {
+                return@filter true
+            }
+            val mime = candidate.tentativeMime
             mime == null || MediaMimeWhitelist.isAllowed(mime)
         }
 
         val chosen = CandidateSelectionPolicy.choose(filtered)
             ?: return OpenResult.NotFound("no_media_in_html")
 
-        // S0116 §5.1 pillar G: streaming candidates short-circuit to OpenResult.Streaming;
-        // the coordinator routes them into the streaming pipeline (Phase 03).
-        if (chosen.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
+        if (
+            chosen.source == HtmlMediaCandidate.Source.HLS_MANIFEST ||
             chosen.source == HtmlMediaCandidate.Source.DASH_MANIFEST
         ) {
-            val manifest = chosen.manifest
-                ?: return OpenResult.NotFound("streaming_candidate_missing_manifest")
+            val manifest = chosen.manifest ?: return OpenResult.NotFound("streaming_candidate_missing_manifest")
             return OpenResult.Streaming(
                 manifest = manifest,
                 tentativeFileName = deriveStreamingFileName(chosen.url),
             )
         }
 
-        // S0151: for known video-first social hosts, OG-image-only results are not real content.
         val host = httpUrl.host
         if (KnownAuthResources.isPreviewSensitiveHost(host)) {
-            val hasRealContent = filtered.any { c ->
-                c.source != HtmlMediaCandidate.Source.OG_IMAGE &&
-                    c.source != HtmlMediaCandidate.Source.IMG_TAG &&
-                    c.source != HtmlMediaCandidate.Source.IMG_SRCSET
+            val hasRealContent = filtered.any { candidate ->
+                candidate.source != HtmlMediaCandidate.Source.OG_IMAGE &&
+                    candidate.source != HtmlMediaCandidate.Source.IMG_TAG &&
+                    candidate.source != HtmlMediaCandidate.Source.IMG_SRCSET
             }
             if (!hasRealContent) {
                 LinkDownloadTrace.verbose(
                     "html-strategy social-preview-only host=${LinkDownloadTrace.truncateUrl(httpUrl.toString())}",
                 )
-                Timber.d("S0151: html-strategy social-preview-only host=$host")
                 return OpenResult.SocialPreviewOnly(host = host)
             }
         }
@@ -180,16 +163,19 @@ class HtmlPageExtractionStrategy @Inject constructor(
         if (input.isEmpty()) return input
         val timed = withTimeoutOrNull(CANDIDATE_BUDGET_MS) {
             coroutineScope {
-                input.map { c ->
+                input.map { candidate ->
                     async(Dispatchers.IO) {
                         runCatching {
-                            val req = Request.Builder().url(c.url).head().build()
-                            httpClient.newCall(req).execute().use { resp ->
-                                val mime = resp.header("Content-Type")?.substringBefore(';')?.trim()
-                                val size = resp.header("Content-Length")?.toLongOrNull()
-                                c.copy(tentativeMime = mime ?: c.tentativeMime, tentativeSizeBytes = size ?: c.tentativeSizeBytes)
+                            val request = Request.Builder().url(candidate.url).head().build()
+                            httpClient.newCall(request).execute().use { response ->
+                                val mime = response.header("Content-Type")?.substringBefore(';')?.trim()
+                                val size = response.header("Content-Length")?.toLongOrNull()
+                                candidate.copy(
+                                    tentativeMime = mime ?: candidate.tentativeMime,
+                                    tentativeSizeBytes = size ?: candidate.tentativeSizeBytes,
+                                )
                             }
-                        }.getOrElse { c }
+                        }.getOrElse { candidate }
                     }
                 }.awaitAll()
             }
@@ -237,22 +223,26 @@ class HtmlPageExtractionStrategy @Inject constructor(
 
         fun add(source: HtmlMediaCandidate.Source, raw: String?) {
             if (raw.isNullOrBlank()) return
-            val abs = if (raw.startsWith("http://", true) || raw.startsWith("https://", true)) raw else null
-            val resolved = abs ?: runCatching { doc.baseUri().toHttpUrlOrNull()?.resolve(raw)?.toString() }.getOrNull()
+            val absolute = if (raw.startsWith("http://", true) || raw.startsWith("https://", true)) raw else null
+            val resolved = absolute ?: runCatching {
+                doc.baseUri().toHttpUrlOrNull()?.resolve(raw)?.toString()
+            }.getOrNull()
             if (resolved.isNullOrBlank()) return
             if (resolved.startsWith("data:", true) || resolved.startsWith("blob:", true)) return
-            out.add(HtmlMediaCandidate(resolved, source, tentativeMime = null, tentativeSizeBytes = null))
+            out += HtmlMediaCandidate(
+                url = resolved,
+                source = source,
+                tentativeMime = null,
+                tentativeSizeBytes = null,
+            )
         }
 
-        // 1. Open Graph video / image
         doc.select("meta[property=og:video], meta[property=og:video:url], meta[property=og:video:secure_url]")
             .forEach { add(HtmlMediaCandidate.Source.OG_VIDEO, it.attr("content")) }
         doc.select("meta[property=og:image], meta[property=og:image:url], meta[property=og:image:secure_url]")
             .forEach { add(HtmlMediaCandidate.Source.OG_IMAGE, it.attr("content")) }
-        // 2. Twitter player stream
         doc.select("meta[name=twitter:player:stream]")
             .forEach { add(HtmlMediaCandidate.Source.TWITTER_PLAYER_STREAM, it.attr("content")) }
-        // 3. Native media tags
         doc.select("video[src]")
             .forEach { add(HtmlMediaCandidate.Source.VIDEO_TAG, it.attr("abs:src")) }
         doc.select("video > source[src]")
@@ -261,7 +251,6 @@ class HtmlPageExtractionStrategy @Inject constructor(
             .forEach { add(HtmlMediaCandidate.Source.AUDIO_TAG, it.attr("abs:src")) }
         doc.select("audio > source[src]")
             .forEach { add(HtmlMediaCandidate.Source.SOURCE_TAG, it.attr("abs:src")) }
-        // 4. <img>
         doc.select("img[src]")
             .forEach { add(HtmlMediaCandidate.Source.IMG_TAG, it.attr("abs:src")) }
         doc.select("img[srcset]").forEach { img ->
@@ -270,20 +259,15 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 if (token.isNotBlank()) add(HtmlMediaCandidate.Source.IMG_SRCSET, token)
             }
         }
-        // 5. Standalone anchors with whitelisted extensions
-        doc.select("a[href]").forEach { a ->
-            val href = a.attr("abs:href")
+        doc.select("a[href]").forEach { anchor ->
+            val href = anchor.attr("abs:href")
             val ext = href.substringAfterLast('.', "").substringBefore('?').lowercase()
             if (ext.isNotBlank() && ext.length <= 5 && MediaMimeWhitelist.mimeForExtension(ext) != null) {
                 add(HtmlMediaCandidate.Source.INLINE_LINK, href)
             }
         }
 
-        // S0116 §5.1 pillar G: append HLS/DASH manifest candidates harvested from the
-        // same HTML body. distinctBy below dedups overlapping URLs (same manifest reachable
-        // via multiple sources).
-        out.addAll(streamingSniffer.sniff(html, baseUri = doc.baseUri()))
-
+        out += streamingSniffer.sniff(html, baseUri = doc.baseUri())
         return out.distinctBy { it.url }
     }
 
@@ -307,10 +291,11 @@ class HtmlPageExtractionStrategy @Inject constructor(
             signals += 1
         }
 
-        val hasMediaIntent = doc.select("meta[property=og:type], meta[property=og:video], meta[name=twitter:card]").any { meta ->
-            val content = meta.attr("content")
-            content.contains("video", ignoreCase = true) || content.contains("player", ignoreCase = true)
-        }
+        val hasMediaIntent = doc.select("meta[property=og:type], meta[property=og:video], meta[name=twitter:card]")
+            .any { meta ->
+                val content = meta.attr("content")
+                content.contains("video", ignoreCase = true) || content.contains("player", ignoreCase = true)
+            }
         if (hasMediaIntent) {
             signals += 1
         }
@@ -328,11 +313,6 @@ class HtmlPageExtractionStrategy @Inject constructor(
     }
 }
 
-/**
- * S0116 §5.1 pillar L: tri-state outcome of the initial HTML GET so the strategy
- * can distinguish "auth required" (401/403 → BlockedReason.AuthRequired) from a
- * generic non-2xx failure (→ NotFound) without relying on null-as-signal.
- */
 private sealed interface HtmlFetchResult {
     data class Body(val value: String, val finalUrl: String) : HtmlFetchResult
     data object AuthRequired : HtmlFetchResult

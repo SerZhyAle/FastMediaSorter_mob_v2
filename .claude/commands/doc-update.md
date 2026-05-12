@@ -54,6 +54,8 @@ If a repo documentation/helper script required for the update is broken or insuf
 
 A change is "user-facing" if it adds, removes, or materially alters something the end user can see or do.
 
+**noLegal exception:** features exclusive to the `noLegal` flavor go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored). They are NEVER added to the public `docs/FEATURES*.md` files. Conversely, public feature entries are never copied into the `_noLegal` files. The routing rule: if `BuildConfig.IS_NO_LEGAL_FLAVOR` is the sole gate, use B-noLegal below; otherwise use B1–B3.
+
 #### B1. `docs/FEATURES.md` (English)
 
 Add or update a bullet in the relevant numbered section. Style: `**Feature name**: plain-English description.`
@@ -61,6 +63,11 @@ Add or update a bullet in the relevant numbered section. Style: `**Feature name*
 #### B2. `docs/FEATURES_RU.md` (Russian) · B3. `docs/FEATURES_UK.md` (Ukrainian)
 
 Mirror the B1 change. Identical section numbers and bullet layout.
+
+#### B-noLegal. `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (noLegal sideload-only)
+
+**When:** new or changed capability gated exclusively by `BuildConfig.IS_NO_LEGAL_FLAVOR == true`.
+**How:** add a section under `## noLegal-Only Features` using the template in the file. Mirror in all three locale files. Never touch B1–B3 for this class of change.
 
 ---
 
@@ -198,6 +205,8 @@ Update only sections directly relevant to the change.
 | New string resource | A1, C1, C2, C3 |
 | New user-facing feature | A1, B1–B3, F6, F7 + relevant F + G1–G3 |
 | New feature + new strings | A1, B1–B3, C1–C3, F6, F7 + relevant F + G1–G3 |
+| New `noLegal`-only feature | A1, B-noLegal (all 3 locale files) — do NOT touch B1–B3, G |
+| New `noLegal` feature + new strings | A1, B-noLegal (all 3), C1–C3 — do NOT touch B1–B3, G |
 | New architectural component | A1, D1, D4 |
 | Wear module change | A1, H1, H2 |
 | New doc file created | I1 |

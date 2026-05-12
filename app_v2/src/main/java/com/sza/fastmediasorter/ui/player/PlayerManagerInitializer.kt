@@ -465,13 +465,29 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                                 event.message,
                             )
                             if (event.retryable && !activity.isFinishing && !activity.isDestroyed) {
-                                Snackbar.make(
+                                // When batch-delete permission is denied on a Move, the upload already
+                                // completed — the file exists at the destination. Show a specific message
+                                // instead of the generic "couldn't move" to avoid confusion.
+                                val isMovePermissionDenied = event.message == "permission_denied" &&
+                                    (event.op is PlayerFileOperation.MoveToResource || event.op is PlayerFileOperation.MoveToPath)
+                                val snackbarMessage = if (isMovePermissionDenied) {
+                                    activity.getString(R.string.error_queued_move_permission_denied, event.op.displayName)
+                                } else {
+                                    queuedFailureMessage(event.op)
+                                }
+                                val snackbar = Snackbar.make(
                                     activity.activityBinding.root,
-                                    queuedFailureMessage(event.op),
+                                    snackbarMessage,
                                     Snackbar.LENGTH_LONG,
-                                ).setAction(activity.getString(R.string.action_retry).uppercase()) {
-                                    activity.playerFileOperationQueue.enqueue(cloneQueuedOperation(event.op))
-                                }.show()
+                                )
+                                // Retry is not useful for permission_denied on Move (the file is already
+                                // at the destination) — do not offer retry in that case.
+                                if (!isMovePermissionDenied) {
+                                    snackbar.setAction(activity.getString(R.string.action_retry).uppercase()) {
+                                        activity.playerFileOperationQueue.enqueue(cloneQueuedOperation(event.op))
+                                    }
+                                }
+                                snackbar.show()
                             }
                         }
 
@@ -954,7 +970,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 "googledrive" to activity.googleDriveClient,
                 "onedrive" to activity.oneDriveClient,
                 "dropbox" to activity.dropboxClient
-            )
+            ),
+            playbackPositionRepository = activity.playbackPositionRepository
         )
     }
 

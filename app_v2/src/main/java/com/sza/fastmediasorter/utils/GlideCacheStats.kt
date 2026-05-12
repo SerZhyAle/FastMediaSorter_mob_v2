@@ -96,7 +96,9 @@ object GlideCacheStats {
         val cacheHitRate = (disk + memory + repo) * 100.0 / total
         Timber.i("✅ Overall cache hit rate: %.1f%%".format(cacheHitRate))
 
-        if (disk == 0 && repo == 0 && total > 10) {
+        // Warn only when there were cold loads (network/local) that should have populated disk cache
+        // but did not. If all loads came from memory, disk cache was simply not needed — no warning.
+        if (disk == 0 && repo == 0 && (network + local) > 0 && total > 10) {
             Timber.w("")
             Timber.w("⚠️ WARNING: Zero disk cache hits with $total total loads!")
             Timber.w("This suggests:")

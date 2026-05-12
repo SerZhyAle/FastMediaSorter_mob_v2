@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -123,6 +124,8 @@ class BrowseRefreshManager(
                         }
                     }
                 }
+                // Manual refresh means "re-check this file again", so drop session-only timeout hints too.
+                VideoPlaybackFailureSessionCache.clearAll()
                 NetworkFileDataFetcher.clearFailedVideoCache()
                 loadResource(true)
             }

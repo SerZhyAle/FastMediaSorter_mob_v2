@@ -317,6 +317,9 @@
     <string name="error_ftp_connection_dropped">З\'єднання з FTP-сервером %1$s перервалося. Спробуйте ще раз.</string>
     <string name="error_sftp_copy_access_denied">Немає доступу до файлу на SFTP-сервері. Перевірте права доступу.</string>
     <string name="error_sftp_connection_limit">Сервер %1$s обмежує кількість з\'єднань. Зупиніть відтворення та спробуйте ще раз.</string>
+    <string name="error_sftp_access_denied">Сервер SFTP заборонив доступ. Перевірте права облікового запису та спробуйте ще раз.</string>
+    <string name="error_sftp_server_rejected">Сервер SFTP відхилив операцію. Спробуйте ще раз або перевірте налаштування сервера.</string>
+    <string name="error_sftp_move_copied_source_remains">Файл скопійовано до призначення, але оригінал видалити не вдалося. Видаліть його вручну.</string>
     <string name="error_smb_mobile_network">SMB-ресурс недоступний через мобільний інтернет. SMB працює лише у локальній Wi&#8209;Fi мережі. Підключіться до тієї ж мережі, що й пристрій (%1$s).</string>
     <string name="error_smb_not_on_local_network">Не вдалося підключитися до SMB ресурсу. Переконайтеся, що пристрій увімкнено і ви перебуваєте з ним в одній локальній мережі.</string>
 
@@ -1021,6 +1024,7 @@
     <string name="link_autodownload_error_no_network">Немає підключення до мережі</string>
     <string name="link_autodownload_error_resource_unavailable">Вибраний ресурс недоступний</string>
     <string name="link_autodownload_error_no_media">За посиланням не знайдено файл для завантаження</string>
+    <string name="link_autodownload_error_corrupted">Не вдалося завантажити придатний файл — сервер повернув сторінку з помилкою або неповний файл</string>
     <string name="link_autodownload_error_timeout">Перевищено час очікування завантаження</string>
     <string name="link_autodownload_error_mime_blocked">Цей тип файлу не підтримується</string>
     <string name="vr_fullscreen_already_active">У VR вже активний повноекранний режим</string>
@@ -1398,6 +1402,7 @@
     <string name="error_queued_operation_move">Не вдалося перемістити "%1$s". Спробуйте ще раз.</string>
     <string name="error_queued_operation_delete">Не вдалося видалити "%1$s". Спробуйте ще раз.</string>
     <string name="error_queued_operation_rename">Не вдалося перейменувати "%1$s". Спробуйте ще раз.</string>
+    <string name="error_queued_move_permission_denied">"%1$s" скопійовано до папки призначення, але видалити локальну копію не вдалося — дозвіл відхилено.</string>
     <string name="error_file_exists_move">Файл "%1$s" вже є в "%2$s".\n\nЯкщо хочете замінити його, увімкніть "Перезапис при переміщенні" в Налаштування -&gt; Копіювання та переміщення.</string>
     <string name="msg_delete_success">Видалили.</string>
     <string name="error_delete_failed">Не вдалося видалити файл.</string>
@@ -1520,6 +1525,9 @@
     <string name="msg_network_error_max_retries">Помилка мережі після %1$d спроб: %2$s</string>
     <string name="msg_playback_error">Помилка відтворення: %1$s</string>
     <string name="error_loading_media">Помилка завантаження файлу, пропуск</string>
+    <string name="video_playback_failed_with_name">Не вдалося відтворити: %1$s</string>
+    <string name="video_playback_failed_session_warning">У цій сесії цей файл вже не вдалося відтворити.</string>
+    <string name="warning_low_memory_playback">Мало пам\'яті — відтворення може не запуститись.</string>
     <string name="warning_audio_format_unsupported">Аудіоформат не підтримується — відтворення без звуку</string>
 
     <!-- Dialog messages -->
@@ -3396,4 +3404,9 @@
     <string name="link_download_notif_title_sign_in_needed">Потрібен вхід</string>
     <string name="link_download_notif_text_sign_in_needed">Для завантаження цього матеріалу %1$s вимагає входу</string>
     <string name="link_download_notif_action_sign_in">Увійти</string>
+    <string name="auth_sessions_info_text">Тут зберігаються авторизації, збережені через вбудований браузер. Кожен запис містить куки для одного облікового запису на одному сайті. Записи «Вхід відхилено» створено при виборі «Не пропонувати» — вони вимикають діалог авторизації для цього сайту. Щоб додати другий обліковий запис для того ж сайту, скористайтесь «Додати авторизацію» у меню.</string>
+    <string name="link_download_ytdlp_extracting">Вилучення посилання на медіа…</string>
+    <string name="link_download_ytdlp_downloading">Завантаження через універсальний екстрактор…</string>
+    <string name="link_download_ytdlp_error_extract">Не вдалося вилучити медіа з цього посилання.</string>
+    <string name="link_download_ytdlp_error_runtime">Універсальний екстрактор недоступний.</string>
 </resources>

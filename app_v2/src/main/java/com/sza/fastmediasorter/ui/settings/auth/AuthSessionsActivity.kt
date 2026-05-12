@@ -9,17 +9,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.sza.fastmediasorter.R
 import dagger.hilt.android.AndroidEntryPoint
 
-/**
- * S0116 §5.1 pillar K: thin host Activity for [AuthSessionsListFragment].
- *
- * Settings UI uses ViewPager2 tabs at the top level (`SettingsActivity`), so a
- * sub-screen launched from a settings tab cannot be a fragment-replace — it has
- * to be its own host. Mirrors the project's existing pattern of opening
- * dedicated Activities for non-tab settings surfaces.
- *
- * S0144: hosts a [MaterialToolbar] (screen title + `+` action item, the latter
- * supplied by the fragment via `MenuProvider`); content respects system-bar insets.
- */
 @AndroidEntryPoint
 class AuthSessionsActivity : AppCompatActivity() {
 

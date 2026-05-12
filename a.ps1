@@ -22,6 +22,8 @@
     s    - Setup Test Media
     bp   - Build and Push All
     ss   - Show unresolved specs (alias: sca-specs)
+    nl   - Build noLegal Release
+    nd   - Build noLegal Debug
 .EXAMPLE
     .\a.ps1 d
     .\a d
@@ -57,6 +59,8 @@ $scripts = @{
     'bp'        = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
     'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
     'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
+    'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @() }
+    'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @() }
 }
 
 # Validate command
@@ -81,6 +85,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  b    - Build and Push All (same as bp)" -ForegroundColor Cyan
     Write-Host "  bp   - Build and Push All" -ForegroundColor Cyan
     Write-Host "  ss   - Show unresolved specs (alias: sca-specs)" -ForegroundColor Cyan
+    Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
+    Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray
     Write-Host "Example: .\a.ps1 d" -ForegroundColor Gray

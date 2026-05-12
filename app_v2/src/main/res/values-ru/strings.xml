@@ -323,6 +323,9 @@
     <string name="error_ftp_connection_dropped">Соединение с FTP-сервером %1$s прервалось. Попробуйте ещё раз.</string>
     <string name="error_sftp_copy_access_denied">Нет доступа к файлу на SFTP-сервере. Проверьте права доступа.</string>
     <string name="error_sftp_connection_limit">Сервер %1$s ограничивает количество соединений. Остановите воспроизведение и попробуйте снова.</string>
+    <string name="error_sftp_access_denied">Сервер SFTP запретил доступ. Проверьте права учётной записи и попробуйте снова.</string>
+    <string name="error_sftp_server_rejected">Сервер SFTP отклонил операцию. Попробуйте ещё раз или проверьте настройки сервера.</string>
+    <string name="error_sftp_move_copied_source_remains">Файл скопирован в назначение, но оригинал удалить не удалось. Удалите его вручную.</string>
     <string name="error_smb_mobile_network">SMB-ресурс недоступен через мобильный интернет. SMB работает только в локальной Wi&#8209;Fi сети. Подключитесь к одной сети с устройством (%1$s).</string>
     <string name="error_smb_not_on_local_network">Не удалось подключиться к SMB ресурсу. Убедитесь, что устройство включено и вы находитесь с ним в одной локальной сети.</string>
 
@@ -1027,6 +1030,7 @@
     <string name="link_autodownload_error_no_network">Нет подключения к сети</string>
     <string name="link_autodownload_error_resource_unavailable">Выбранный ресурс недоступен</string>
     <string name="link_autodownload_error_no_media">По ссылке не найден файл для скачивания</string>
+    <string name="link_autodownload_error_corrupted">Не удалось скачать пригодный файл — сервер вернул страницу с ошибкой или неполный файл</string>
     <string name="link_autodownload_error_timeout">Превышено время ожидания загрузки</string>
     <string name="link_autodownload_error_mime_blocked">Этот тип файла не поддерживается</string>
     <string name="vr_fullscreen_already_active">В VR уже активен полноэкранный режим</string>
@@ -1403,6 +1407,7 @@
     <string name="error_queued_operation_move">Не получилось переместить "%1$s". Попробуйте ещё раз.</string>
     <string name="error_queued_operation_delete">Не получилось удалить "%1$s". Попробуйте ещё раз.</string>
     <string name="error_queued_operation_rename">Не получилось переименовать "%1$s". Попробуйте ещё раз.</string>
+    <string name="error_queued_move_permission_denied">"%1$s" скопирован в папку назначения, но удалить локальную копию не удалось — разрешение отклонено.</string>
     <string name="error_file_exists_move">Файл "%1$s" уже есть в "%2$s".\n\nЕсли хотите заменить его, включите "Перезапись при перемещении" в Настройки -&gt; Копирование и перемещение.</string>
     <string name="msg_delete_success">Удалили.</string>
     <string name="error_delete_failed">Не получилось удалить файл.</string>
@@ -1531,6 +1536,9 @@
     <string name="msg_network_error_max_retries">Ошибка сети после %1$d попыток: %2$s</string>
     <string name="msg_playback_error">Ошибка воспроизведения: %1$s</string>
     <string name="error_loading_media">Ошибка загрузки файла, пропуск</string>
+    <string name="video_playback_failed_with_name">Не удалось воспроизвести: %1$s</string>
+    <string name="video_playback_failed_session_warning">В этой сессии этот файл уже не удалось воспроизвести.</string>
+    <string name="warning_low_memory_playback">Мало памяти — воспроизведение может не запуститься.</string>
     <string name="warning_audio_format_unsupported">Аудиоформат не поддерживается — воспроизведение без звука</string>
 
     <!-- Dialog messages -->
@@ -3435,4 +3443,9 @@
     <string name="link_download_notif_title_sign_in_needed">Требуется вход</string>
     <string name="link_download_notif_text_sign_in_needed">Для загрузки этого материала %1$s требует входа</string>
     <string name="link_download_notif_action_sign_in">Войти</string>
+    <string name="auth_sessions_info_text">Здесь хранятся авторизации, сохранённые через встроенный браузер. Каждая запись содержит куки для одного аккаунта на одном сайте. Записи «Вход отклонён» созданы при выборе «Не предлагать» — они отключают диалог авторизации для данного сайта. Чтобы добавить второй аккаунт для того же сайта, используйте «Добавить авторизацию» в меню.</string>
+    <string name="link_download_ytdlp_extracting">Извлечение ссылки на медиа…</string>
+    <string name="link_download_ytdlp_downloading">Загрузка через универсальный экстрактор…</string>
+    <string name="link_download_ytdlp_error_extract">Не удалось извлечь медиа из этой ссылки.</string>
+    <string name="link_download_ytdlp_error_runtime">Универсальный экстрактор недоступен.</string>
 </resources>

@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.remote.ITunesApiService
 import com.sza.fastmediasorter.domain.model.AudioMetadata
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -52,6 +53,12 @@ class SearchAudioCoverUseCase @Inject constructor(
             }
             if (settings.searchAudioCoversOnlyOnWifi && !isWiFiConnected()) {
                 Timber.d("WiFi-only mode enabled, WiFi not connected")
+                return null
+            }
+
+            // m4a files are voice/mic recordings — searching cover art makes no sense
+            if (filename.endsWith(".m4a", ignoreCase = true)) {
+                Timber.d("Cover search skipped: m4a is a microphone recording ($filename)")
                 return null
             }
 
@@ -112,6 +119,9 @@ class SearchAudioCoverUseCase @Inject constructor(
             // 3. MusicBrainz + Cover Art Archive (free, no key; community DB)
             searchMusicBrainz(enrichedQuery)?.let { return it }
 
+        } catch (e: CancellationException) {
+            Timber.d("Cover search cancelled for: $filename")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error searching cover art for: $filename")
         }
@@ -146,6 +156,9 @@ class SearchAudioCoverUseCase @Inject constructor(
             ).also {
                 Timber.i("iTunes: found '${it.artistName} - ${it.trackName}' (${it.albumName}, ${it.releaseYear})")
             }
+        } catch (e: CancellationException) {
+            Timber.d("iTunes search cancelled for '$query'")
+            throw e
         } catch (e: Exception) {
             Timber.w("iTunes search failed for '$query': ${e.message}")
             null
@@ -193,6 +206,9 @@ class SearchAudioCoverUseCase @Inject constructor(
             ).also {
                 Timber.i("Deezer: found '${it.artistName} - ${it.trackName}' cover=$coverUrl")
             }
+        } catch (e: CancellationException) {
+            Timber.d("Deezer search cancelled for '$query'")
+            throw e
         } catch (e: Exception) {
             Timber.w("Deezer search failed for '$query': ${e.message}")
             null
@@ -243,6 +259,9 @@ class SearchAudioCoverUseCase @Inject constructor(
             ).also {
                 Timber.i("MusicBrainz: found '${it.artistName} - ${it.trackName}' mbid=$releaseMbid")
             }
+        } catch (e: CancellationException) {
+            Timber.d("MusicBrainz search cancelled for '$query'")
+            throw e
         } catch (e: Exception) {
             Timber.w("MusicBrainz search failed for '$query': ${e.message}")
             null

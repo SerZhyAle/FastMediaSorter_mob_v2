@@ -71,12 +71,26 @@ class DirectFileExtractionStrategy @Inject constructor(
     override suspend fun open(
         url: String,
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
+    ): OpenResult = open(url, onProgress, extraHeaders = emptyMap())
+
+    /**
+     * S0171 overload: re-fetch with additional request headers. The hidden-WebView strategy
+     * uses this to replay the page context (`Referer`, browser `User-Agent`, `Range`) when
+     * downloading a signed CDN URL it intercepted — without these the CDN returns a tiny error
+     * stub. Not part of [UrlExtractionStrategy] (which keeps the 2-arg contract for the registry).
+     */
+    suspend fun open(
+        url: String,
+        onProgress: (bytesRead: Long, total: Long?) -> Unit,
+        extraHeaders: Map<String, String>,
     ): OpenResult = withContext(Dispatchers.IO) {
         val httpUrl = url.toHttpUrlOrNull()
             ?: return@withContext OpenResult.Blocked(BlockedReason.NonHttpScheme)
 
         try {
-            val request = Request.Builder().url(httpUrl).get().build()
+            val request = Request.Builder().url(httpUrl).get().apply {
+                extraHeaders.forEach { (name, value) -> header(name, value) }
+            }.build()
             val response: Response = httpClient.newCall(request).execute()
             // OkHttp's HttpOnlyRedirectInterceptor rejects non-http(s) hops at request build time;
             // double-check the final url anyway in case of internal redirect handling differences.

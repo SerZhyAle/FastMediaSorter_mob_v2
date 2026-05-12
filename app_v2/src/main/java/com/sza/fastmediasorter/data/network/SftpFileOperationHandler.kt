@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpDownloadExhaustedException
+import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
@@ -191,9 +192,13 @@ class SftpFileOperationHandler @Inject constructor(
                                 successCount++
                                 Timber.i("SFTP executeMove: SUCCESS - bridged move of $fileName to FTP")
                             } else {
-                                val error = "Uploaded $fileName to FTP but failed to delete SFTP source: ${deleteResult.exceptionOrNull()?.message}"
-                                Timber.e("SFTP executeMove: $error")
-                                errors.add(error)
+                                // Classify the SFTP delete failure so the user sees the right message.
+                                // copyCompleted=true: the file exists at FTP destination.
+                                val deleteEx = deleteResult.exceptionOrNull() ?: Exception("Delete source failed")
+                                val failure = SftpOperationFailure.fromThrowable(deleteEx, operationKind = "move", copyCompleted = true)
+                                val spec = SftpOperationMessageResolver.resolve(failure)
+                                Timber.e("SFTP executeMove: move-copy-ok-delete-failed operation=move category=${failure.category} statusCode=${failure.statusCode} copyCompleted=true")
+                                errors.add(context.getString(spec.messageResId))
                             }
                         } else {
                             val error = "Failed to upload $fileName to FTP: ${uploadResult.exceptionOrNull()?.message}"
@@ -366,9 +371,14 @@ class SftpFileOperationHandler @Inject constructor(
                 }
 
                 else -> {
-                    val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${renameResult.exceptionOrNull()?.message ?: "Rename failed"}"
-                    Timber.e("SFTP executeRename: FAILED - $error")
-                    FileOperationResult.Failure(error)
+                    val renameEx = renameResult.exceptionOrNull()
+                    val failure = SftpOperationFailure.fromThrowable(renameEx ?: Exception("Rename failed"), operationKind = "rename")
+                    val spec = SftpOperationMessageResolver.resolve(failure)
+                    Timber.e("SFTP executeRename: FAILED category=${failure.category} statusCode=${failure.statusCode}")
+                    FileOperationResult.Failure(
+                        error = renameEx?.message ?: "Rename failed",
+                        errorRes = spec.messageResId
+                    )
                 }
             }
         } catch (e: Exception) {

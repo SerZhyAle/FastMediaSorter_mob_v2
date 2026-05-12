@@ -14,7 +14,7 @@ class StreamingManifestSnifferTest {
     private val sniffer = StreamingManifestSniffer()
 
     @Test
-    fun `harvests HLS from <source> tag`() {
+    fun `harvests HLS from video-source element`() {
         val html = """
             <html><body>
               <video><source src="https://cdn.example.com/video/index.m3u8" type="application/vnd.apple.mpegurl"/></video>

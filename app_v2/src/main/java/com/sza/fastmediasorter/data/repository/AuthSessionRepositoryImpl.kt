@@ -15,49 +15,27 @@ import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * S0116 §5.1 pillar K: in-memory state-flow over [EncryptedCookieStore].
- *
- * S0155: Implements the full multi-account [AuthSessionRepository] API.
- * Legacy `observeDomains()` / `saveSession(domain, cookies)` stubs are kept
- * for backward-compat until all callers are updated in S0155 later phases.
- */
 @Singleton
 class AuthSessionRepositoryImpl @Inject constructor(
     private val store: EncryptedCookieStore,
 ) : AuthSessionRepository {
 
-    /** Flow of active-only accounts; refreshed on every mutation. */
-    private val accountFlow: MutableStateFlow<List<AuthAccountDomain>> =
-        MutableStateFlow(emptyList())
+    private val accountFlow = MutableStateFlow<List<AuthAccountDomain>>(emptyList())
+    private val accountFlowAll = MutableStateFlow<List<AuthAccountDomain>>(emptyList())
 
-    /** S0157: flow including active sessions AND dismissed records; for settings screen. */
-    private val accountFlowAll: MutableStateFlow<List<AuthAccountDomain>> =
-        MutableStateFlow(emptyList())
-
-    /** Deprecated legacy flow; one entry per host (most-recently-saved account). */
     @Suppress("DEPRECATION")
-    private val legacyFlow: MutableStateFlow<List<AuthSessionDomain>> =
-        MutableStateFlow(emptyList())
+    private val legacyFlow = MutableStateFlow<List<AuthSessionDomain>>(emptyList())
 
     init {
-        // S0155: migration requires a localized string for the legacy displayName;
-        // the impl has no Context, so English fallback is used (store-level migration
-        // runs once; user can rename in Settings).
         store.migrateIfNeeded(LEGACY_DISPLAY_NAME)
         refreshFlows()
     }
 
-    // ── Multi-account API ─────────────────────────────────────────────────────
-
     override fun observeAccounts(): Flow<List<AuthAccountDomain>> = accountFlow.asStateFlow()
 
-    override suspend fun saveSession(
-        host: String,
-        accountId: String,
-        displayName: String,
-        cookies: List<HttpCookie>,
-    ) {
+    override fun observeAccountsAll(): Flow<List<AuthAccountDomain>> = accountFlowAll.asStateFlow()
+
+    override suspend fun saveSession(host: String, accountId: String, displayName: String, cookies: List<HttpCookie>) {
         if (host.isBlank() || accountId.isBlank() || cookies.isEmpty()) {
             Timber.i("AuthSessionRepositoryImpl: skipped empty account save host=%s accountId=%s", host, accountId)
             return
@@ -77,7 +55,24 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
     override suspend fun listAccountsForHost(host: String): List<AuthAccountDomain> =
         withContext(Dispatchers.IO) {
-            store.listAccounts(host).map { entry -> entry.toAuthAccountDomain(host) }
+            val live = store.listAccounts(host).map { entry -> entry.toDomain(host) }
+            val dismissed = buildList {
+                val hostDismiss = store.hasDismissedRecord(host)
+                if (hostDismiss) {
+                    add(
+                        AuthAccountDomain(
+                            host = host,
+                            accountId = EncryptedCookieStore.DISMISSED_ACCOUNT_ID,
+                            displayName = "",
+                            cookieCount = 0,
+                            savedAt = Instant.now(),
+                            lastUsedAt = null,
+                            isDismissed = true,
+                        ),
+                    )
+                }
+            }
+            (live + dismissed).sortedWith(SETTINGS_ACCOUNT_ORDER)
         }
 
     override suspend fun markLastUsed(host: String, accountId: String) {
@@ -96,8 +91,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
     override suspend fun hasAnySession(host: String): Boolean =
         withContext(Dispatchers.IO) { store.listAccounts(host).isNotEmpty() }
-
-    // ── Dismissed-record API (S0157) ──────────────────────────────────────────
 
     override suspend fun markDismissed(host: String) {
         if (host.isBlank()) return
@@ -127,24 +120,16 @@ class AuthSessionRepositoryImpl @Inject constructor(
             if (accountId.isBlank()) {
                 store.hasDismissedRecord(host)
             } else {
-                // A host-level permanent skip must still suppress reactive prompts on that host.
                 store.hasDismissedRecord(host) || store.hasDismissedRecordForAccount(host, accountId)
             }
         }
-
-    override fun observeAccountsAll(): Flow<List<AuthAccountDomain>> = accountFlowAll.asStateFlow()
-
-    // ── Deprecated legacy API ─────────────────────────────────────────────────
 
     @Suppress("DEPRECATION", "OverridingDeprecatedMember")
     override fun observeDomains(): Flow<List<AuthSessionDomain>> = legacyFlow.asStateFlow()
 
     @Suppress("DEPRECATION", "OverridingDeprecatedMember")
     override suspend fun saveSession(domain: String, cookies: List<HttpCookie>) {
-        if (domain.isBlank() || cookies.isEmpty()) {
-            Timber.i("S0140: skipped empty auth session save for %s", domain)
-            return
-        }
+        if (domain.isBlank() || cookies.isEmpty()) return
         withContext(Dispatchers.IO) {
             store.saveFor(domain, cookies)
             refreshFlows()
@@ -162,44 +147,30 @@ class AuthSessionRepositoryImpl @Inject constructor(
     @Suppress("DEPRECATION", "OverridingDeprecatedMember")
     override suspend fun hasSession(domain: String): Boolean = hasAnySession(domain)
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
     private fun refreshFlows() {
         val all = store.listAllAccounts()
         val now = Instant.now()
 
-        // S0157: prune only active entries with zero cookies; dismissed records must survive.
-        val stalePairs = all.filter { (_, entry) ->
-            entry.cookieCount == 0 && entry.type == EncryptedCookieStore.TYPE_ACTIVE
+        val live = all.filter { (_, entry) ->
+            entry.type == EncryptedCookieStore.TYPE_ACTIVE && entry.cookieCount > 0
         }
-        if (stalePairs.isNotEmpty()) {
-            stalePairs.forEach { (host, entry) ->
-                store.deleteForAccount(host, entry.accountId)
-            }
-            Timber.i("AuthSessionRepositoryImpl: pruned %d empty account(s)", stalePairs.size)
-        }
+        val dismissed = all.filter { (_, entry) -> entry.type == EncryptedCookieStore.TYPE_DISMISSED }
 
-        val live = all.filter { (_, entry) -> entry.cookieCount > 0 }
         val liveAccounts = live
-            .map { (host, entry) -> entry.toAuthAccountDomain(host, now) }
+            .map { (host, entry) -> entry.toDomain(host, now) }
             .sortedWith(SETTINGS_ACCOUNT_ORDER)
         accountFlow.value = liveAccounts
 
-        // S0157: accountFlowAll includes active sessions + dismissed records.
-        val dismissed = all.filter { (_, entry) -> entry.type == EncryptedCookieStore.TYPE_DISMISSED }
         accountFlowAll.value = (
             liveAccounts +
-            dismissed.map { (host, entry) -> entry.toAuthAccountDomain(host, now, isDismissed = true) }
+                dismissed.map { (host, entry) -> entry.toDomain(host, now, isDismissed = true) }
         ).sortedWith(SETTINGS_ACCOUNT_ORDER)
 
         @Suppress("DEPRECATION")
         legacyFlow.value = live
             .groupBy { (host, _) -> host }
-            .mapValues { (_, pairs) ->
-                pairs.maxByOrNull { (_, entry) -> entry.savedAt ?: Instant.MIN }
-            }
-            .mapNotNull { (host, pair) ->
-                val entry = pair?.second ?: return@mapNotNull null
+            .mapNotNull { (host, pairs) ->
+                val entry = pairs.maxByOrNull { (_, value) -> value.savedAt ?: Instant.MIN }?.second ?: return@mapNotNull null
                 AuthSessionDomain(
                     host = host,
                     cookieCount = entry.cookieCount,
@@ -209,7 +180,7 @@ class AuthSessionRepositoryImpl @Inject constructor(
             .sortedBy { it.host }
     }
 
-    private fun EncryptedCookieStore.AccountEntry.toAuthAccountDomain(
+    private fun EncryptedCookieStore.AccountEntry.toDomain(
         host: String,
         fallbackNow: Instant = Instant.now(),
         isDismissed: Boolean = false,
@@ -226,6 +197,8 @@ class AuthSessionRepositoryImpl @Inject constructor(
     )
 
     private companion object {
+        const val LEGACY_DISPLAY_NAME = "Account 1"
+
         val SETTINGS_ACCOUNT_ORDER = Comparator<AuthAccountDomain> { first, second ->
             val byBucket = settingsBucket(first).compareTo(settingsBucket(second))
             if (byBucket != 0) return@Comparator byBucket
@@ -241,10 +214,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
             first.displayName.compareTo(second.displayName)
         }
-
-        // Hardcoded English fallback — the only context where the store migration runs;
-        // the localized string (R.string.s0155_account_default_name) is not accessible here.
-        const val LEGACY_DISPLAY_NAME = "Account 1"
 
         fun settingsBucket(account: AuthAccountDomain): Int = when {
             account.isDismissed -> 2

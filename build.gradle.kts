@@ -26,6 +26,9 @@ plugins {
     id("com.google.devtools.ksp") version "2.3.2" apply false
     id("com.google.dagger.hilt.android") version "2.57.2" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.10" apply false
+    // S0174: Chaquopy Python runtime — applied only in app_v2 (noLegal flavor).
+    // 17.0.0: first version supporting AGP 9.x / Gradle 9.x (removes VersionNumber dependency).
+    id("com.chaquo.python") version "17.0.0" apply false
 }
 
 tasks.register("clean", Delete::class) {

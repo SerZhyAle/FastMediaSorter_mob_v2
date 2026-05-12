@@ -57,7 +57,7 @@ Timber.d("Sxxxx: <short description of exercised path>")
 | Creating/updating `PLAN/Sxxxx_*.md` | `/spec` |
 | Full spec pipeline (idea → verified implementation, unattended) | `/spec-all` |
 | UI/UX change touching layout, menus, visibility, orientation, empty/error states, overflow | `/ui-clarify` (blocks impl until ambiguities resolved) |
-| Editing `docs/FEATURES*.md` or other feature docs | `/doc-update` (EN/RU/UK mirrors) |
+| Editing `docs/FEATURES*.md` or other feature docs | `/doc-update` (EN/RU/UK mirrors; `noLegal`-only features → `docs/FEATURES_noLegal*.md`, never public files) |
 | Analysing `logs/current.log` or logcat | `/log-reader` |
 | Build questions or triggering a build | `/build` (do NOT invoke gradle directly) |
 | Git questions (commit/stage/push/diff/history) | `/git` |
@@ -145,6 +145,8 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 
 `docs/FEATURES.md` is canonical (21 feature areas). Read before implementing anything to avoid duplication. Mirrors: `docs/FEATURES_RU.md`, `docs/FEATURES_UK.md`.
 
+**noLegal exception:** `noLegal`-only capabilities are NOT listed in `docs/FEATURES*.md`. They are tracked in `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored, local only — S0156 §6.9). Never add `noLegal` entries to public feature files; never add public features to the `_noLegal` files.
+
 ## UI Communication Policy
 
 `docs/COMMUNICATION_POLICY.md` is the canonical source for tone, message formulas, and feedback-channel routing. Mirrors: `docs/COMMUNICATION_POLICY_RU.md`, `docs/COMMUNICATION_POLICY_UK.md`. Origin: S0118.
@@ -159,7 +161,7 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 1. **Dev Changelog** after every code/config change — run
    `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`
    (never edit `dev/CHANGELOG.md` directly).
-2. **Feature docs** after any new user-facing feature — update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet.
+2. **Feature docs** after any new user-facing feature — update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet. **Exception:** `noLegal`-only features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored) — never into the public files.
 3. **String locale audit** after adding/removing any `strings.xml` keys — run
    `pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`
    to verify EN/RU/UK parity. Exit code 1 = missing keys, must fix before commit.

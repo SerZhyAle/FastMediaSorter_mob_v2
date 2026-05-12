@@ -142,7 +142,11 @@ class BrowseFileOperationsManager(
                     )
                     when (val result = fileOperationUseCase.execute(operation)) {
                         is FileOperationResult.Success -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
-                        is FileOperationResult.PartialSuccess -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                        is FileOperationResult.PartialSuccess -> {
+                            Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                            // Surface the first error so access-denied / partial failures are not silently hidden
+                            if (result.errors.isNotEmpty()) callbacks.onShowError(result.errors.first())
+                        }
                         is FileOperationResult.Failure -> showFailureError(R.string.move_failed, result)
                         is FileOperationResult.PermissionRequired -> Toast.makeText(context, R.string.permission_error_retry, Toast.LENGTH_LONG).show()
                         is FileOperationResult.AuthenticationRequired -> callbacks.onAuthRequest(result.provider)
@@ -265,6 +269,8 @@ class BrowseFileOperationsManager(
                         Toast.makeText(context, context.getString(msgRes, result.processedCount), Toast.LENGTH_SHORT).show()
                         callbacks.clearSelection()
                         callbacks.onOperationCompleted()
+                        // Surface SFTP partial failure details (access-denied, copied-source-remains, etc.)
+                        if (result.errors.isNotEmpty()) callbacks.onShowError(result.errors.first())
                     }
                     is FileOperationResult.Failure -> {
                         Timber.e("executeOperationToPath: FAILURE - ${result.error}")

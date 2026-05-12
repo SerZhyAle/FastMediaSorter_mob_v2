@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S0174: noLegal flavor manifest overlay.
+  Sets extractNativeLibs=true so that Chaquopy can unpack libpython3.so from the APK.
+  Required by Chaquopy 16.x — without this flag the Python shared library cannot be
+  loaded from a compressed APK entry on Android 6+.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:extractNativeLibs="true"
+        tools:replace="android:extractNativeLibs" />
+
+</manifest>

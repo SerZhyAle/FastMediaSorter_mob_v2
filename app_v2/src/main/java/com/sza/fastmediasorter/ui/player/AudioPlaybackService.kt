@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.IBinder
 import com.sza.fastmediasorter.ui.main.MainActivity
+import androidx.core.app.NotificationCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
@@ -24,7 +25,17 @@ import android.os.Handler
 import android.os.Looper
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import dagger.hilt.android.AndroidEntryPoint
+import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * Audio-only background playback service using Media3 MediaSessionService.
@@ -39,8 +50,12 @@ import timber.log.Timber
  * Lifecycle: starts on audio play (when background setting is ON),
  * survives Activity destruction, stops when playback ends or user stops.
  */
+@AndroidEntryPoint
 @UnstableApi
 class AudioPlaybackService : MediaSessionService() {
+
+    @Inject
+    lateinit var playbackPositionRepository: PlaybackPositionRepository
 
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
@@ -52,9 +67,14 @@ class AudioPlaybackService : MediaSessionService() {
             stopSelf()
         }
     }
-
+    // Position persistence for SFTP/SMB/FTP/Cloud audio
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var positionSaveLoop: PositionSaveLoop? = null
     companion object {
         private const val AUTO_STOP_DELAY_MS = 10_000L
+        /** Matches VideoPlayerManager.POSITION_SAVE_INTERVAL_MS (15 s). */
+        private const val POSITION_SAVE_INTERVAL_MS = 15_000L
+
         @Volatile
         var isRunning: Boolean = false
 
@@ -74,6 +94,13 @@ class AudioPlaybackService : MediaSessionService() {
         var currentResourceId: Long = -1L
         @Volatile
         var currentInitialIndex: Int = 0
+
+        /** Original network path (sftp:// / smb:// / ftp://) of the currently playing file.
+         *  Set by PlayerMediaLoaderManager before starting playback so position can be
+         *  saved/restored using a stable, cache-path-independent key (ADR-2, S0172).
+         *  Empty string = local file (position handled by VideoPlayerManager). */
+        @Volatile
+        var currentOriginalPath: String = ""
     }
 
     override fun onCreate() {
@@ -83,6 +110,28 @@ class AudioPlaybackService : MediaSessionService() {
 
         // Create notification channel (required for Android 8+)
         MediaNotificationManager.createNotificationChannel(this)
+
+        // S0172: call startForeground immediately so the OS 5-second deadline never fires on
+        // cold start (e.g. car media-button restart with no track loaded yet).
+        // Media3 DefaultMediaNotificationProvider will replace this placeholder with the real
+        // media notification once a MediaSession + track are established.
+        val placeholderNotification = NotificationCompat
+            .Builder(this, MediaNotificationManager.NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification_audio)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText("")
+            .setSilent(true)
+            .build()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            startForeground(
+                MediaNotificationManager.NOTIFICATION_ID,
+                placeholderNotification,
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+        } else {
+            startForeground(MediaNotificationManager.NOTIFICATION_ID, placeholderNotification)
+        }
+        Timber.d("S0172: AudioPlaybackService startForeground called in onCreate")
 
         // Set custom notification provider
         setMediaNotificationProvider(
@@ -112,13 +161,32 @@ class AudioPlaybackService : MediaSessionService() {
                         // Don't stopSelf immediately — give Activity time to load next track.
                         // If no new track starts within AUTO_STOP_DELAY_MS, stop the service.
                         Timber.d("AudioPlaybackService: playback ended, scheduling auto-stop in ${AUTO_STOP_DELAY_MS}ms")
+                        // S0172: stop save loop and persist final position before track ends
+                        stopPositionSaving()
+                        saveCurrentPosition()
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                         autoStopHandler.postDelayed(autoStopRunnable, AUTO_STOP_DELAY_MS)
                     }
-                    Player.STATE_READY, Player.STATE_BUFFERING -> {
-                        // New track loaded — cancel auto-stop
+                    Player.STATE_READY -> {
+                        // New track loaded — cancel auto-stop, start position save loop
+                        autoStopHandler.removeCallbacks(autoStopRunnable)
+                        // S0172: begin periodic save once player is ready
+                        startPositionSaving()
+                    }
+                    Player.STATE_BUFFERING -> {
+                        // New track loading — cancel auto-stop; save loop starts on STATE_READY
                         autoStopHandler.removeCallbacks(autoStopRunnable)
                     }
+                    Player.STATE_IDLE -> {
+                        stopPositionSaving()
+                    }
+                }
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (!isPlaying) {
+                    // S0172: persist position on pause so it survives a kill
+                    saveCurrentPosition()
                 }
             }
 
@@ -233,6 +301,24 @@ class AudioPlaybackService : MediaSessionService() {
         Timber.d("AudioPlaybackService: onDestroy")
         isRunning = false
         autoStopHandler.removeCallbacks(autoStopRunnable)
+
+        // Capture position before player is released, then stop the save loop
+        val p = player
+        val path = currentOriginalPath.takeIf { it.isNotEmpty() }
+        val finalPos = p?.currentPosition ?: -1L
+        val finalDur = p?.duration ?: -1L
+        stopPositionSaving()
+        if (path != null && finalDur > 0 && finalPos >= 0) {
+            serviceScope.launch(Dispatchers.IO) {
+                try {
+                    playbackPositionRepository.savePosition(path, finalPos, finalDur)
+                } catch (e: Exception) {
+                    Timber.e(e, "AudioPlaybackService: onDestroy save position failed")
+                }
+            }
+        }
+        serviceScope.cancel()
+
         mediaSession?.run {
             player.release()
             release()
@@ -242,9 +328,36 @@ class AudioPlaybackService : MediaSessionService() {
         super.onDestroy()
     }
 
+    // ─── Position save/restore helpers ──────────────────────────────────────
+
+    private fun startPositionSaving() {
+        val p = player ?: return
+        positionSaveLoop = PositionSaveLoop(
+            intervalMs = POSITION_SAVE_INTERVAL_MS,
+            getPath = { currentOriginalPath.takeIf { it.isNotEmpty() } },
+            getPositionMs = { p.currentPosition },
+            getDurationMs = { p.duration },
+            scope = serviceScope,
+            onSave = { path, pos, dur -> playbackPositionRepository.savePosition(path, pos, dur) }
+        )
+        positionSaveLoop!!.start()
+        Timber.d("AudioPlaybackService: position auto-save started for path=$currentOriginalPath")
+    }
+
+    private fun stopPositionSaving() {
+        positionSaveLoop?.stop()
+        positionSaveLoop = null
+        Timber.d("AudioPlaybackService: position auto-save stopped")
+    }
+
+    private fun saveCurrentPosition() {
+        positionSaveLoop?.saveNow()
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+
     /**
-     * R2 bridge: single entry point for all command-driven playback actions.
-     *
+     * R2 bridge: single entry point for all command-driven playback actions.     *
      * Routes any [com.sza.fastmediasorter.domain.input.CommandId] value to the
      * corresponding player operation. Called by Phase 06 settings UI (binding test)
      * and externally triggered media actions so every entry point shares one code path.

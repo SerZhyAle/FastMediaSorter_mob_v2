@@ -64,7 +64,6 @@ class ImageCropManager(
         currentResource: MediaResource?,
         callback: Callback
     ) {
-        Timber.d("S0106: enterCropMode mode=$mode file=${currentFile.name}")
         editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.CROP)
         currentMode = mode
         activeCallback = callback
@@ -411,7 +410,6 @@ class ImageCropManager(
             val safeTop = rect.top.coerceIn(0, ih)
             val safeRight = rect.right.coerceIn(0, iw)
             val safeBottom = rect.bottom.coerceIn(0, ih)
-            Timber.d("S0106: decodeRegion input=$rect actual=${iw}x${ih} safe=[$safeLeft,$safeTop,$safeRight,$safeBottom]")
             if (safeLeft >= safeRight || safeTop >= safeBottom) {
                 decoder.recycle()
                 // Log technical details before throwing — performCrop catches and logs the exception.

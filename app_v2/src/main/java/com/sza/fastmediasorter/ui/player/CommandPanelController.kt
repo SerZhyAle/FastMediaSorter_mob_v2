@@ -926,6 +926,7 @@ class CommandPanelController(
     private fun getOverflowableButtons(): List<View> {
         val list = mutableListOf<View>(
             // Group 1: high-priority adaptive buttons
+            binding.btnPlaybackOrderCmd,
             binding.btnDeleteCmd,
             binding.btnFavorite,
             binding.btnShareCmd,
@@ -933,6 +934,7 @@ class CommandPanelController(
             binding.btnFullscreenCmd,
             binding.btnRandomCmd,
             // Group 2+
+            binding.btnBlackScreenCmd,
             safeViews.btnRenameCmd,
             safeViews.btnLyricsCmd,
             binding.btnSleepTimerCmd,
@@ -982,6 +984,8 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.UNDO -> safeViews.btnUndoCmd
             CommandPanelLayoutPlanner.PlayerCommand.CAST -> safeViews.btnCastCmd
             CommandPanelLayoutPlanner.PlayerCommand.LYRICS -> safeViews.btnLyricsCmd
+            CommandPanelLayoutPlanner.PlayerCommand.BLACK_SCREEN -> binding.btnBlackScreenCmd
+            CommandPanelLayoutPlanner.PlayerCommand.PLAYBACK_ORDER -> binding.btnPlaybackOrderCmd
             CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER -> binding.btnSleepTimerCmd
             CommandPanelLayoutPlanner.PlayerCommand.SEARCH_YOUTUBE_MUSIC -> safeViews.btnSearchYoutubeMusicCmd
             CommandPanelLayoutPlanner.PlayerCommand.SEARCH_PDF -> safeViews.btnSearchPdfCmd

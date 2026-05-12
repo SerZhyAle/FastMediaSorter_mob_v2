@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260511175
-        versionName = "2.60.5111.759"
+        versionCode = 260512155
+        versionName = "2.60.5121.559"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -133,14 +133,44 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "true")
         }
 
-        // ===== NO-LEGAL (Sideload-only full build with isolated GPL extractor support) =====
+        // ===== NO-LEGAL (Sideload-only full build: standard + VR + GPL extractors) =====
+        // S0156 ADR-8: single APK covers both Quest (arm64 + OpenXR) and phones (all ABIs).
+        // ndk.abiFilters = all 4 ABIs → APK installs on any device.
+        // cmake.abiFilters = arm64-v8a only → OpenXR native bridge compiles for Quest slice only;
+        //   non-arm64 slices simply omit openxr_native.so — VrPlayerActivity must graceful-fallback
+        //   to PlayerActivity when System.loadLibrary("openxr_native") throws UnsatisfiedLinkError.
         create("noLegal") {
             dimension = "version"
             applicationIdSuffix = ".nolegal"
             versionNameSuffix = "-NoLegal"
-            disableNativeBuild()
+            // S0174: Chaquopy 17.x Python 3.12 ships wheels only for arm64-v8a and x86_64.
+            // armeabi-v7a and x86 are excluded — 32-bit ARMv7 devices (pre-2017) and x86
+            // emulators are not supported for the Python runtime. noLegal is a sideload-only
+            // flavor targeting modern devices (arm64) and Quest headsets (arm64).
+            ndk {
+                abiFilters += listOf("arm64-v8a", "x86_64")
+            }
+            externalNativeBuild {
+                cmake {
+                    // Same JNI bridge as vr/vrUnlicensed — OpenXR loader AAR ships arm64-v8a only.
+                    targets += listOf("openxr_native")
+                    // Restrict CMake configure to arm64-v8a so AGP does not attempt to build
+                    // openxr_native for armeabi-v7a/x86/x86_64 where the OpenXR slice is absent.
+                    abiFilters += listOf("arm64-v8a")
+                    cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                    arguments += listOf(
+                        "-DANDROID_STL=c++_shared",
+                        "-DANDROID_PLATFORM=android-26",
+                        "-DENABLE_OPENXR=ON",
+                        // Revision 4: invalidates stale .tmp cmake cache from vr/vrUnlicensed runs.
+                        "-DFMS_BUILD_REVISION=4"
+                    )
+                }
+            }
             // S0117: keep the full standard capability surface while isolating
             // site-specific/GPL code behind a dedicated sideload-only flavor.
+            // S0156: VR capability surface enabled (ADR-8). On non-Quest devices
+            // VrPlayerActivity must fall back gracefully to PlayerActivity.
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
@@ -152,8 +182,9 @@ android {
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
-            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.ui.player.PlayerActivity\"")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "true")
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "true")
+            buildConfigField("String", "PLAYER_ACTIVITY_CLASS", "\"com.sza.fastmediasorter.vr.VrPlayerActivity\"")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             buildConfigField("boolean", "ENABLE_DTS_DECODER", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
@@ -365,7 +396,14 @@ android {
             java.directories.add("src/streamingEnabled/java")
         }
         getByName("standard") { java.directories.add("src/streamingEnabled/java") }
-        getByName("noLegal") { java.directories.add("src/streamingEnabled/java") }
+        getByName("noLegal") {
+            // S0156: noLegal = standard + VR + sideload-only capabilities.
+            // Mount vr source set so VrPlayerActivity and OpenXR bridge are available.
+            java.directories.add("src/vr/java")
+            res.directories.add("src/vr/res")
+            manifest.srcFile("src/vr/AndroidManifest.xml")
+            java.directories.add("src/streamingEnabled/java")
+        }
         getByName("legacy") { java.directories.add("src/streamingEnabled/java") }
         getByName("vr") { java.directories.add("src/streamingEnabled/java") }
         getByName("lite") { java.directories.add("src/streamingDisabled/java") }
@@ -596,6 +634,61 @@ androidComponents {
 }
 
 // CRITICAL: Do not change - must match compileOptions.targetCompatibility
+
+// S0174: Chaquopy is applied conditionally — only when chaquopy.enabled=true is set.
+// Reason: Chaquopy 17.x requires minSdk >= 24 for every variant it processes.
+// The `legacy` flavor has minSdk=23 (intentional — covers API 23-25 devices) and must
+// not be altered. There is no Kotlin-DSL variantFilter in Chaquopy (that API is
+// Groovy-only / Chaquopy ≤14). Gradle project property is the only CC-compatible,
+// zero-compromise path — gradle.startParameter.taskNames is not CC-tracked.
+//
+// To build noLegal:
+//   ./gradlew assembleNoLegalDebug -Pchaquopy.enabled=true
+//   ./gradlew assembleNoLegalRelease -Pchaquopy.enabled=true
+// Or add chaquopy.enabled=true to local.properties (machine-local, excluded from VCS).
+// All other flavors omit the flag — Chaquopy is never applied to them.
+val isNoLegalBuild = providers.gradleProperty("chaquopy.enabled")
+    .orNull?.equals("true", ignoreCase = true) == true
+if (isNoLegalBuild) {
+    // Chaquopy 17.x validates all variants at configuration time. Constraints:
+    //   - legacy has minSdk=23 (< Chaquopy's minimum of 24)
+    //   - Python 3.10+ ships wheels only for arm64-v8a and x86_64; standard/lite/photos/legacy
+    //     include armeabi-v7a in their abiFilters
+    // The only escape: disable every non-noLegal variant via AGP beforeVariants so that
+    // Chaquopy's onVariants() is never invoked for them. This is safe when building noLegal —
+    // those flavors are not requested and produce no APK in a noLegal invocation.
+    androidComponents {
+        beforeVariants { variantBuilder ->
+            val flavor = variantBuilder.flavorName ?: ""
+            if (flavor != "noLegal") {
+                variantBuilder.enable = false
+            }
+        }
+    }
+    apply(plugin = "com.chaquo.python")
+    configure<com.chaquo.python.ChaquopyExtension> {
+        defaultConfig {
+            // Python 3.12: Chaquopy 17.x supports arm64-v8a + x86_64 only for 3.11+.
+            // noLegal abiFilters is restricted to those two ABIs in productFlavors block.
+            version = "3.12"
+            // Windows: 'python3' is not available; use 'py' launcher with -3.12 flag.
+            // yt-dlp is pure-Python — buildPython version only needs to match the device version
+            // for packages that ship native extensions (yt-dlp does not).
+            buildPython("py", "-3.12")
+        }
+        productFlavors {
+            // Only noLegal installs yt-dlp — all other flavors get no Python packages.
+            // Use getByName because Chaquopy registers PythonExtension per-flavor automatically.
+            getByName("noLegal") {
+                pip {
+                    install("yt-dlp==2025.4.30")
+                }
+            }
+        }
+    }
+}
+
+
 // Replaces the deprecated android { kotlinOptions { jvmTarget } } block
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
@@ -787,9 +880,12 @@ dependencies {
     // Document Support - PDF extraction via built-in PdfRenderer (API 21+)
     // No external dependencies needed - metadata extraction removed to avoid conflicts
     
-    // OpenXR loader — only for vr and vr-unlicensed flavors (headset XR rendering)
+    // OpenXR loader — vr, vrUnlicensed and noLegal (headset XR rendering).
+    // noLegal ships the same arm64-v8a OpenXR slice; non-Quest devices simply never
+    // exercise VrPlayerActivity because the graceful fallback fires first.
     "vrImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
     "vrUnlicensedImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
+    "noLegalImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
 
     // SW AV1 decoder (libgav1) — source-only extension, not published on Google Maven.
     // TODO: build from source (same pipeline as fms-ffmpeg-dts.aar) before enabling.

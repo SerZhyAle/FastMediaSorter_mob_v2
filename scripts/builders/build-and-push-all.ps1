@@ -12,7 +12,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # 1. Clean and Build All
-Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR + Wear OS — Debug + Release ===" -ForegroundColor Cyan
+Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR / NoLegal + Wear OS — Debug + Release ===" -ForegroundColor Cyan
 Write-Host "This may take a while..." -ForegroundColor Yellow
 
 # Try to force-delete locked wear build directory (Windows file lock issue)
@@ -37,8 +37,8 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         # Explicitly enumerate all flavor+type combos to keep the build surface transparent.
         # assembleDebug/assembleRelease would also work but listing them avoids surprises when flavors change.
         & $gradlew `
-            assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
-            assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
+            assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug assembleNoLegalDebug `
+            assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease assembleNoLegalRelease `
             :wear:assembleDebug :wear:assembleRelease `
             | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
         
@@ -203,7 +203,7 @@ if ($gitStatus) {
     # Add all changes (including new APKs thanks to .gitignore update)
     git add .
     
-    $commitMsg = "Build artifacts $timestamp (Standard / Lite / Photos / Legacy / VR + Wear OS)"
+    $commitMsg = "Build artifacts $timestamp (Standard / Lite / Photos / Legacy / VR / NoLegal + Wear OS)"
     git commit -m "$commitMsg"
     
     Write-Host "Pushing to remote..." -ForegroundColor Yellow

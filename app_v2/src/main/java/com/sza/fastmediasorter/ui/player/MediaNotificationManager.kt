@@ -30,7 +30,7 @@ import timber.log.Timber
 object MediaNotificationManager {
 
     const val NOTIFICATION_CHANNEL_ID = "fastmediasorter_audio_playback"
-    private const val NOTIFICATION_ID = 1001
+    const val NOTIFICATION_ID = 1001
 
     /**
      * Creates the notification channel for audio playback (Android 8+).

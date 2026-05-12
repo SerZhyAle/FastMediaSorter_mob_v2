@@ -43,8 +43,9 @@ import javax.inject.Singleton
  * Viewport-based audio metadata loader for network files (SMB/SFTP/FTP).
  *
  * Reads the first 64KB of audio files over the network, parses metadata
- * (artist, album, title, duration) via Media3 [MetadataRetriever] (no temp files,
- * no native SIGSEGV risk), and caches results in both an in-memory map and
+ * (artist, album, title, duration) via Media3 [MetadataRetriever] through a
+ * temp-file bridge (no native SIGSEGV risk), and caches results in both an
+ * in-memory map and
  * the Room DB ([FileMetadataCacheDao]).
  *
  * Safety: If [KILL_SWITCH_THRESHOLD] consecutive extraction failures occur,
@@ -283,6 +284,29 @@ class AudioMetadataLoader @Inject constructor(
         }
     }
 
+    private fun shouldLogMetadataRetrieverFailureAsDebug(filePath: String, throwable: Throwable): Boolean {
+        if (!isPartialNetworkMetadataPath(filePath)) return false
+        return throwableCauseChain(throwable).any {
+            it.javaClass.simpleName == "UnrecognizedInputFormatException"
+        }
+    }
+
+    private fun metadataRetrieverFailureName(throwable: Throwable): String {
+        return throwableCauseChain(throwable)
+            .map { it.javaClass.simpleName }
+            .lastOrNull { it.isNotBlank() }
+            ?: throwable.javaClass.simpleName
+    }
+
+    private fun throwableCauseChain(throwable: Throwable): Sequence<Throwable> =
+        generateSequence(throwable) { it.cause }
+
+    private fun isPartialNetworkMetadataPath(path: String): Boolean {
+        return path.startsWith("smb://", ignoreCase = true) ||
+            path.startsWith("sftp://", ignoreCase = true) ||
+            path.startsWith("ftp://", ignoreCase = true)
+    }
+
     // ── Protocol routing ──────────────────────────────────────────────────────
 
     private suspend fun readPartialBytes(path: String): ByteArray? {
@@ -500,7 +524,13 @@ class AudioMetadataLoader @Inject constructor(
                 coverExtension = coverExtension
             )
         } catch (e: Exception) {
-            Timber.w("AudioMetadataLoader: Media3 MetadataRetriever failed on ${bytes.size} bytes: ${e.cause?.javaClass?.simpleName ?: e.javaClass.simpleName}")
+            val failureName = metadataRetrieverFailureName(e)
+            if (shouldLogMetadataRetrieverFailureAsDebug(filePath, e)) {
+                // Partial SMB/SFTP/FTP headers are best-effort inputs here, so format misses are expected noise.
+                Timber.d("AudioMetadataLoader: Media3 MetadataRetriever expected miss on ${bytes.size} bytes: $failureName")
+            } else {
+                Timber.w("AudioMetadataLoader: Media3 MetadataRetriever failed on ${bytes.size} bytes: $failureName")
+            }
             null
         } finally {
             try {

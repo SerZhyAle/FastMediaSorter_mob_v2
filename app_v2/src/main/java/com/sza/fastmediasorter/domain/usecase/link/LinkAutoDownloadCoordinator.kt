@@ -22,13 +22,6 @@ import java.net.UnknownHostException
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * S0003: orchestrates URL → file pipeline.
- *
- * Walks [LinkExtractionRegistry.ordered] strategies, accepts the first `Applicable`
- * probe, streams the response into [LinkDownloadWriter], and projects the writer
- * outcome into a user-friendly [Result] (auto-open URI is gated by user preference).
- */
 @Singleton
 class LinkAutoDownloadCoordinator @Inject constructor(
     private val settingsRepository: SettingsRepository,
@@ -40,11 +33,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val cookieStore: EncryptedCookieStore,
 ) {
 
-    /**
-     * S0155: load cookies for [accountId] (or the best available account when null)
-     * into [sessionContext] so the OkHttp cookie jar and the WebView extractor both
-     * inject the correct session for this download run.
-     */
     private fun applySessionContext(host: String, accountId: String?) {
         val cookies = when {
             accountId != null -> cookieStore.loadForAccount(host, accountId)
@@ -52,9 +40,17 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
         if (cookies.isNotEmpty()) {
             sessionContext.set(host, cookies)
+            Timber.i(
+                "[S0166] applying stored session: host=%s accountId=%s cookies=%d",
+                host,
+                accountId ?: "auto",
+                cookies.size,
+            )
             Timber.d(
                 "LinkAutoDownloadCoordinator: session context applied host=%s accountId=%s cookies=%d",
-                host, accountId ?: "auto", cookies.size,
+                host,
+                accountId ?: "auto",
+                cookies.size,
             )
         }
     }
@@ -64,7 +60,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         if (!settings.linkAutoDownloadEnabled) {
             return Result.Failed.Other(IllegalStateException("auto_download_disabled"))
         }
-        // S0155: set per-account cookies into context before the pipeline, clear after.
+
         val host = url.toHttpUrlOrNull()?.host ?: ""
         if (host.isNotBlank()) applySessionContext(host, accountId)
         val result = try {
@@ -72,10 +68,8 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         } finally {
             sessionContext.clear()
         }
-        // S0155: stamp last-used time when a specific account produced a successful download.
-        if (accountId != null && host.isNotBlank() &&
-            (result is Result.Saved || result is Result.FellBackToDownloads)
-        ) {
+
+        if (accountId != null && host.isNotBlank() && (result is Result.Saved || result is Result.FellBackToDownloads)) {
             runCatching { authSessionRepository.markLastUsed(host, accountId) }
         }
         return result
@@ -119,11 +113,12 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 callbacks.onProgress(ProgressState.Probing)
                 val probe = try {
                     strategy.probe(url)
-                } catch (t: Throwable) {
-                    if (t is kotlinx.coroutines.CancellationException) throw t
-                    Timber.w(t, "LinkAutoDownloadCoordinator: probe threw for %s", strategy.id)
+                } catch (throwable: Throwable) {
+                    if (throwable is kotlinx.coroutines.CancellationException) throw throwable
+                    Timber.w(throwable, "LinkAutoDownloadCoordinator: probe threw for %s", strategy.id)
                     continue
                 }
+
                 when (probe) {
                     is ProbeResult.Applicable -> {
                         callbacks.onProgress(
@@ -136,8 +131,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         val opened = strategy.open(url) { read, total ->
                             callbacks.onProgress(ProgressState.Downloading(read, total))
                         }
-                        // S0151-diag: permanent structured log for known auth hosts — used for
-                        // on-device resolution of §6.1 architecture question. Not a debug tag.
                         val urlHost = url.toHttpUrlOrNull()?.host ?: ""
                         if (KnownAuthResources.isPreviewSensitiveHost(urlHost)) {
                             Timber.d(
@@ -156,35 +149,37 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             is OpenResult.Streaming -> return runStreaming(opened, settings, callbacks)
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
                             is OpenResult.SocialPreviewOnly -> {
-                                if (socialPreviewHost == null) socialPreviewHost = opened.host
-                                Timber.v(
-                                    "LinkAutoDownloadCoordinator: %s social-preview-only host=%s, trying next",
-                                    strategy.id,
+                                Timber.i(
+                                    "[S0166] preview-only result: host=%s strategy=%s accountId=%s",
                                     opened.host,
-                                )
-                                continue
-                            }
-                            is OpenResult.NotFound -> {
-                                // S0140 registers `dynamic` after `html`; a static HTML miss must
-                                // fall through so later strategies still get a chance to resolve.
-                                Timber.v(
-                                    "LinkAutoDownloadCoordinator: %s returned NotFound(%s), trying next strategy",
                                     strategy.id,
-                                    opened.reason,
+                                    accountId ?: "none",
                                 )
+                                if (socialPreviewHost == null) socialPreviewHost = opened.host
                                 continue
                             }
+                            is OpenResult.NotFound -> continue
                             is OpenResult.Blocked -> when (opened.reason) {
                                 BlockedReason.MimeNotAllowed,
                                 BlockedReason.NonHttpScheme,
-                                BlockedReason.RedirectToNonHttp -> return Result.Failed.MimeBlocked
+                                BlockedReason.RedirectToNonHttp,
+                                -> return Result.Failed.MimeBlocked
+
                                 BlockedReason.DrmProtected -> return Result.Failed.DrmBlocked
                                 BlockedReason.StreamingDisabled -> return Result.Failed.StreamingDisabled
                                 BlockedReason.MuxFailed -> return Result.Failed.MuxFailed(codec = "unknown")
-                                BlockedReason.AuthRequired -> return Result.Failed.AuthRequired(
-                                    host = url.toHttpUrlOrNull()?.host ?: url,
-                                    originalUrl = url,
-                                )
+                                BlockedReason.AuthRequired -> {
+                                    Timber.i(
+                                        "[S0166] login wall detected: host=%s strategy=%s accountId=%s",
+                                        url.toHttpUrlOrNull()?.host ?: url,
+                                        strategy.id,
+                                        accountId ?: "none",
+                                    )
+                                    return Result.Failed.AuthRequired(
+                                        host = url.toHttpUrlOrNull()?.host ?: url,
+                                        originalUrl = url,
+                                    )
+                                }
                             }
                             is OpenResult.Error -> return mapIoError(opened.cause)
                         }
@@ -200,21 +195,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             if (stream == null) {
                 val previewHost = socialPreviewHost
                 if (previewHost != null) {
-                    val hadSession = runCatching {
-                        authSessionRepository.hasAnySession(previewHost)
-                    }.getOrDefault(false)
-                    // S0155: propagate the selected account so the presenter can offer
-                    // named re-auth ("Sign in again as <displayName>?") rather than a
-                    // generic "add authorization" prompt.
+                    val hadSession = runCatching { authSessionRepository.hasAnySession(previewHost) }.getOrDefault(false)
                     val accountDisplayName = accountId?.let { id ->
                         runCatching {
                             authSessionRepository.listAccountsForHost(previewHost)
-                                .firstOrNull { it.accountId == id }?.displayName
+                                .firstOrNull { it.accountId == id }
+                                ?.displayName
                         }.getOrNull()
                     }
-                    Timber.d(
-                        "S0151: coordinator returning SocialPreviewOnly host=$previewHost hadSession=$hadSession",
-                    )
                     return Result.Failed.SocialPreviewOnly(
                         host = previewHost,
                         originalUrl = url,
@@ -223,6 +211,11 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         accountDisplayName = accountDisplayName,
                     )
                 }
+                Timber.i(
+                    "[S0166] no real media found after analysis: host=%s accountId=%s",
+                    url.toHttpUrlOrNull()?.host ?: url,
+                    accountId ?: "none",
+                )
                 return Result.Failed.NoMediaFound
             }
             return writeStreamResult(stream = stream, settings = settings, callbacks = callbacks)
@@ -248,22 +241,46 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
         val openInPlayer = settings.linkAutoDownloadOpenInPlayer
         return when (writeResult) {
-            is LinkDownloadWriter.WriteResult.Saved -> Result.Saved(
-                resourceLabel = writeResult.resourceLabel,
-                fileName = writeResult.fileName,
-                mime = stream.mime,
-                openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
-            )
-            is LinkDownloadWriter.WriteResult.FellBackToDownloads -> Result.FellBackToDownloads(
-                fileName = writeResult.fileName,
-                reason = when (writeResult.reason) {
-                    LinkDownloadWriter.FallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
-                    LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
-                    LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
-                },
-                openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
-            )
+            is LinkDownloadWriter.WriteResult.Saved -> {
+                Timber.i(
+                    "[S0166] real media saved: file=%s mime=%s resource=%s",
+                    writeResult.fileName,
+                    stream.mime,
+                    writeResult.resourceLabel,
+                )
+                Result.Saved(
+                    resourceLabel = writeResult.resourceLabel,
+                    fileName = writeResult.fileName,
+                    mime = stream.mime,
+                    openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                )
+            }
+            is LinkDownloadWriter.WriteResult.FellBackToDownloads -> {
+                Timber.i(
+                    "[S0166] real media saved via fallback: file=%s reason=%s",
+                    writeResult.fileName,
+                    writeResult.reason,
+                )
+                Result.FellBackToDownloads(
+                    fileName = writeResult.fileName,
+                    reason = when (writeResult.reason) {
+                        LinkDownloadWriter.FallbackReason.NoResourceConfigured -> FallbackReason.NoResourceConfigured
+                        LinkDownloadWriter.FallbackReason.ResourceUnavailable -> FallbackReason.ResourceUnavailable
+                        LinkDownloadWriter.FallbackReason.ResourceWriteFailed -> FallbackReason.ResourceWriteFailed
+                    },
+                    openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
+                )
+            }
             is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
+            is LinkDownloadWriter.WriteResult.Corrupted -> {
+                Timber.i(
+                    "[S0166] download rejected as corrupted: kind=%s bytes=%d mime=%s",
+                    writeResult.sniffedKind,
+                    writeResult.bytesWritten,
+                    stream.mime,
+                )
+                Result.Failed.DownloadCorrupted
+            }
         }
     }
 
@@ -291,7 +308,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             val itemCallbacks = object : Callbacks {
                 override fun onProgress(state: ProgressState) {
                     when (state) {
-                        ProgressState.Probing -> callbacks.onProgress(
+                        ProgressState.Probing,
+                        ProgressState.AnalyzingPage,
+                        -> callbacks.onProgress(
                             ProgressState.BatchDownloading(
                                 itemIndex = itemIndex,
                                 itemCount = batch.items.size,
@@ -300,15 +319,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 total = null,
                             ),
                         )
-                        ProgressState.AnalyzingPage -> callbacks.onProgress(
-                            ProgressState.BatchDownloading(
-                                itemIndex = itemIndex,
-                                itemCount = batch.items.size,
-                                itemTitle = item.title,
-                                bytesRead = 0L,
-                                total = null,
-                            ),
-                        )
+
                         is ProgressState.Downloading -> callbacks.onProgress(
                             ProgressState.BatchDownloading(
                                 itemIndex = itemIndex,
@@ -318,6 +329,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 total = state.total,
                             ),
                         )
+
                         is ProgressState.BatchDownloading -> callbacks.onProgress(state)
                     }
                 }
@@ -359,13 +371,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
     }
 
-    /**
-     * S0116 §5.1 pillar I: route a Streaming outcome through the [StreamingPipeline]
-     * (Media3 download + MediaMuxer remux on video flavors; no-op `Disabled` on
-     * lite/photos) and project the resulting MP4 file into the existing
-     * [LinkDownloadWriter] contract so [Saved] / [FellBackToDownloads] reuse the
-     * S0003 user-visible UX.
-     */
     private suspend fun runStreaming(
         streaming: OpenResult.Streaming,
         settings: AppSettings,
@@ -413,6 +418,15 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             openInPlayerUri = writeResult.destinationUri.takeIf { openInPlayer },
                         )
                         is LinkDownloadWriter.WriteResult.Failed -> Result.Failed.Other(writeResult.cause)
+                        is LinkDownloadWriter.WriteResult.Corrupted -> {
+                            Timber.i(
+                                "[S0166] download rejected as corrupted: kind=%s bytes=%d mime=%s",
+                                writeResult.sniffedKind,
+                                writeResult.bytesWritten,
+                                outcome.mime,
+                            )
+                            Result.Failed.DownloadCorrupted
+                        }
                     }
                 } finally {
                     runCatching { input.close() }
@@ -464,25 +478,17 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         )
 
         sealed interface Failed : Result {
-            object NoNetwork : Failed
-            object Timeout : Failed
-            object NoMediaFound : Failed
-            object MimeBlocked : Failed
-            // S0116 §5.1 pillar I: streaming pipeline-specific terminal outcomes.
+            data object NoNetwork : Failed
+            data object Timeout : Failed
+            data object NoMediaFound : Failed
+
+            /** S0170 BUG-2: media URL was found but the downloaded bytes are not a usable file. */
+            data object DownloadCorrupted : Failed
+            data object MimeBlocked : Failed
             data object DrmBlocked : Failed
             data object StreamingDisabled : Failed
             data class MuxFailed(val codec: String) : Failed
-            // S0116 §5.1 pillar L: source returned 401/403 — UI offers WebView sign-in flow.
             data class AuthRequired(val host: String, val originalUrl: String) : Failed
-            /**
-             * S0151: all extraction strategies returned only an OG/image preview for a known
-             * video-first social host. The UI should offer sign-in (or re-sign-in if a session
-             * existed) and retry the download.
-             *
-             * S0155: [accountId] and [accountDisplayName] are set when a specific account was
-             * chosen before the download. The presenter uses these to offer named re-auth
-             * ("Sign in again as <displayName>?") instead of the generic "add authorization" prompt.
-             */
             data class SocialPreviewOnly(
                 val host: String,
                 val originalUrl: String,
@@ -501,7 +507,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     }
 
     sealed interface ProgressState {
-        object Probing : ProgressState
+        data object Probing : ProgressState
         data object AnalyzingPage : ProgressState
         data class Downloading(val bytesRead: Long, val total: Long?) : ProgressState
         data class BatchDownloading(
@@ -516,7 +522,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private companion object {
         const val DYNAMIC_STRATEGY_ID = "dynamic"
 
-        /** S0151-diag helper: compact outcome label for the structured log. */
         fun outcomeKindOf(opened: OpenResult): String = when (opened) {
             is OpenResult.Stream -> "stream"
             is OpenResult.Batch -> "batch(${opened.items.size})"

@@ -18,6 +18,7 @@ import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -49,6 +50,7 @@ import com.sza.fastmediasorter.ui.player.helpers.stopPositionSaving
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import android.os.Debug
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,7 +101,7 @@ class VideoPlayerManager(
 
     interface PlayerCallback {
         fun onPlaybackReady()
-        fun onPlaybackError(error: Throwable)
+        fun onPlaybackError(error: Throwable, userMessage: String? = null)
         fun onBuffering(isBuffering: Boolean)
         fun onPlaybackStateChanged(isPlaying: Boolean)
         fun onPlaybackEnded()
@@ -151,6 +153,9 @@ class VideoPlayerManager(
         // Force a full recreation every N tracks or when native heap free falls below the threshold.
         private const val PLAYER_RECREATE_INTERVAL = 4
         private const val NATIVE_HEAP_RECREATE_THRESHOLD_BYTES = 15L * 1024 * 1024
+        // S0168 §5.3: VP9/other codec decoders allocate 20-30 MB native at init.
+        // 30 MB free is the minimum safe margin before we attempt Glide eviction + GC.
+        private const val NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES = 30L * 1024 * 1024
         internal const val DEFAULT_BRIGHTNESS_PROGRESS = 50
 
         // Playback health-check — thresholds for detecting stuck / white-noise audio
@@ -217,8 +222,7 @@ class VideoPlayerManager(
 
     // Playback position saving
     internal var currentFilePath: String? = null
-    internal var positionSaveRunnable: Runnable? = null
-    internal var lastSavedPosition: Long = -1L
+    internal var positionSaveLoop: com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop? = null
 
     // S0029: idempotency guard for STATE_ENDED → markPlaybackCompleted.
     // Reset on every load of a new media file so re-opening the same path re-arms the path.
@@ -341,6 +345,7 @@ class VideoPlayerManager(
                     Timber.d("VideoPlayerManager: Playback ready")
                     logMemoryStats("AFTER STATE_READY")
                     playbackRetryCount = 0
+                    currentFilePath?.let(VideoPlaybackFailureSessionCache::clear)
                     playerCallback.onBuffering(false)
                     playerCallback.onPlaybackReady()
                     startPlaybackHealthCheck()
@@ -498,6 +503,18 @@ class VideoPlayerManager(
                 }
             }
 
+            if (error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT) {
+                currentFilePath?.let(VideoPlaybackFailureSessionCache::markFailed)
+                val userMessage = currentFilePath
+                    ?.substringAfterLast('/')
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { context.getString(R.string.video_playback_failed_with_name, it) }
+                    ?: context.getString(R.string.error_loading_media)
+                playerCallback.onBuffering(false)
+                playerCallback.onPlaybackError(error, userMessage)
+                return
+            }
+
             playerCallback.onBuffering(false)
             playerCallback.onPlaybackError(error)
         }
@@ -653,10 +670,17 @@ class VideoPlayerManager(
         pendingEffectsApply = false
 
         currentFilePath = path
+        if (VideoPlaybackFailureSessionCache.hasFailure(path)) {
+            // WHY: a previous timeout would otherwise look like a random skip again on retry.
+            Toast.makeText(
+                context,
+                context.getString(R.string.video_playback_failed_session_warning),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
         posterExtractor.reset()
         lastCompletedPath = null
         audioUnsupportedShownForPath = null
-        lastSavedPosition = -1L
         stopPositionSaving()
 
         // Recreate ExoPlayer periodically to release accumulated native codec/decoder allocations.
@@ -667,6 +691,32 @@ class VideoPlayerManager(
                 Timber.i("VideoPlayerManager: recreating ExoPlayer — trackChanges=$trackChangesSinceRecreate, nativeFree=${nativeFree / 1024 / 1024}MB")
                 releasePlayer()
                 trackChangesSinceRecreate = 0
+            }
+        }
+
+        // WHY S0168 §5.3: VP9/other codec decoders allocate 20–30 MB native at init.
+        // When native heap is critically low, buffer allocation stalls immediately → errorCode=1004.
+        // Run Glide eviction + GC before ExoPlayer starts to maximise available native memory.
+        val nativeFreePrePlay = Debug.getNativeHeapFreeSize()
+        if (nativeFreePrePlay < NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES) {
+            Timber.w(
+                "VideoPlayerManager: native heap low before playback — free=%dMB, running Glide eviction + GC (S0168 §5.3)",
+                nativeFreePrePlay / 1024 / 1024
+            )
+            Glide.get(context).clearMemory()
+            Runtime.getRuntime().gc()
+            val nativeFreeAfterGc = Debug.getNativeHeapFreeSize()
+            if (nativeFreeAfterGc < NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES) {
+                Timber.w(
+                    "VideoPlayerManager: native heap still low after GC — free=%dMB — proceeding with caution",
+                    nativeFreeAfterGc / 1024 / 1024
+                )
+                Toast.makeText(context, context.getString(R.string.warning_low_memory_playback), Toast.LENGTH_SHORT).show()
+            } else {
+                Timber.i(
+                    "VideoPlayerManager: native heap recovered after GC — free=%dMB",
+                    nativeFreeAfterGc / 1024 / 1024
+                )
             }
         }
 

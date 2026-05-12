@@ -26,12 +26,14 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 import timber.log.Timber
 
 /**
@@ -50,6 +52,12 @@ class AudioCoverArtLoader(
 ) {
     interface Callback {
         fun onAudioMetadataLoaded(metadata: AudioMetadata)
+    }
+
+    companion object {
+        // Cache missing cover URLs for the process lifetime so repeated tracks do not
+        // hit the same dead endpoint once Glide has already confirmed a 404.
+        private val knownMissingCoverUrls = ConcurrentHashMap.newKeySet<String>()
     }
 
     private var coverArtJob: Job? = null
@@ -216,6 +224,12 @@ class AudioCoverArtLoader(
                                 return@withContext
                             }
                             if (cached.coverArtUrl != null) {
+                                if (isKnownMissingCoverUrl(cached.coverArtUrl)) {
+                                    Timber.d("loadAudioCoverArt[$callId]: skipping known missing cover URL - ${urlHost(cached.coverArtUrl)}")
+                                    audioEmptyStateController?.show(settings.audioEmptyStateMode)
+                                        ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
+                                    return@withContext
+                                }
                                 audioEmptyStateController?.hide()
                                 binding.audioCoverArtView.isVisible = true
                                 Glide.with(binding.audioCoverArtView.context).load(cached.coverArtUrl)
@@ -233,6 +247,12 @@ class AudioCoverArtLoader(
                         val coverUrl = metadata?.coverArtUrl
                         if (coverUrl != null) {
                             callback.onAudioMetadataLoaded(metadata)
+                            if (isKnownMissingCoverUrl(coverUrl)) {
+                                Timber.d("loadAudioCoverArt[$callId]: skipping known missing cover URL - ${urlHost(coverUrl)}")
+                                audioEmptyStateController?.show(settings.audioEmptyStateMode)
+                                    ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
+                                return@withContext
+                            }
                             // Save to local cache if enabled
                             lifecycleScope.launch(Dispatchers.IO) {
                                 try {
@@ -241,6 +261,8 @@ class AudioCoverArtLoader(
                                     val imageBytes = downloadImageBytes(coverUrl)
                                     audioMetadataCacheRepository.saveMetadata(file.name, AudioMetadataSaveData(metadata.trackName, metadata.artistName, metadata.albumName, metadata.releaseYear, coverUrl, if (imageBytes != null) ext else null))
                                     if (imageBytes != null) audioMetadataCacheRepository.saveCover(file.name, imageBytes, ext)
+                                } catch (e: CancellationException) {
+                                    throw e
                                 } catch (e: Exception) { Timber.d(e, "AudioMetadataCache: save failed for %s", file.name) }
                             }
                             Timber.d("loadAudioCoverArt[$callId]: ONLINE cover found: $coverUrl")
@@ -253,6 +275,7 @@ class AudioCoverArtLoader(
                             request.listener(object : RequestListener<Drawable> {
                                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                                     if (is404NotFound(e)) {
+                                        rememberMissingCoverUrl(model)
                                         Timber.d("loadAudioCoverArt[$callId]: cover art not found (404) — ${urlHost(model)}")
                                     } else {
                                         Timber.w("loadAudioCoverArt[$callId]: cover art load failed: ${e?.message}")
@@ -272,6 +295,9 @@ class AudioCoverArtLoader(
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                Timber.d("loadAudioCoverArt[$callId]: cancelled for ${file.name}")
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load audio cover art for ${file.name}")
                 withContext(Dispatchers.Main) {
@@ -324,6 +350,11 @@ class AudioCoverArtLoader(
                 withContext(Dispatchers.Main) {
                     if (coverUrl != null) {
                         callback.onAudioMetadataLoaded(metadata)
+                        if (isKnownMissingCoverUrl(coverUrl)) {
+                            Timber.d("searchOnlineAndDisplayCover[$callId]: skipping known missing cover URL - ${urlHost(coverUrl)}")
+                            audioEmptyStateController?.show(mode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+                            return@withContext
+                        }
                         // Save to local cache if enabled
                         lifecycleScope.launch(Dispatchers.IO) {
                             try {
@@ -332,6 +363,8 @@ class AudioCoverArtLoader(
                                 val imageBytes = downloadImageBytes(coverUrl)
                                 audioMetadataCacheRepository.saveMetadata(file.name, AudioMetadataSaveData(metadata.trackName, metadata.artistName, metadata.albumName, metadata.releaseYear, coverUrl, if (imageBytes != null) ext else null))
                                 if (imageBytes != null) audioMetadataCacheRepository.saveCover(file.name, imageBytes, ext)
+                            } catch (e: CancellationException) {
+                                throw e
                             } catch (e: Exception) { Timber.d(e, "AudioMetadataCache: save failed for %s", file.name) }
                         }
                         Timber.d("searchOnlineAndDisplayCover[$callId]: Found URL: $coverUrl")
@@ -343,6 +376,7 @@ class AudioCoverArtLoader(
                         request.listener(object : RequestListener<Drawable> {
                             override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                                 if (is404NotFound(e)) {
+                                    rememberMissingCoverUrl(model)
                                     Timber.d("searchOnlineAndDisplayCover[$callId]: cover art not found (404) — ${urlHost(model)}")
                                 } else {
                                     Timber.w("searchOnlineAndDisplayCover[$callId]: cover art load failed: ${e?.message}")
@@ -362,6 +396,9 @@ class AudioCoverArtLoader(
                         audioEmptyStateController?.show(mode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                     }
                 }
+            } catch (e: CancellationException) {
+                Timber.d("searchOnlineAndDisplayCover[$callId]: cancelled for ${file.name}")
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "searchOnlineAndDisplayCover[$callId]: EXCEPTION")
                 withContext(Dispatchers.Main) {
@@ -408,6 +445,16 @@ class AudioCoverArtLoader(
      * Returns true if the GlideException root cause is HTTP 404 — expected "not found",
      * not a real network failure. Suppressed to DEBUG to avoid log noise.
      */
+    private fun isKnownMissingCoverUrl(url: String?): Boolean =
+        normalizeCoverUrl(url)?.let(knownMissingCoverUrls::contains) == true
+
+    private fun rememberMissingCoverUrl(model: Any?) {
+        normalizeCoverUrl(model?.toString())?.let(knownMissingCoverUrls::add)
+    }
+
+    private fun normalizeCoverUrl(url: String?): String? =
+        url?.trim()?.takeIf { it.isNotEmpty() }
+
     private fun is404NotFound(e: GlideException?): Boolean =
         e?.rootCauses?.filterIsInstance<HttpException>()?.any { it.statusCode == 404 } == true
 

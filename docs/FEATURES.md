@@ -267,6 +267,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Auto-download incoming links**: Fetches media directly from shared HTTP, HLS, or DASH URLs, utilizing in-app WebView auth for any host (Instagram, TikTok, and beyond).
 - **Background link download queue**: After auth is resolved, the app immediately returns the user to the source app (Instagram, browser…) and downloads the file in the background. A progress notification is shown during download; a result notification confirms the saved file name or reports failure. For sign-in-required hosts a "Sign in" action in the result notification re-opens the auth flow.
 - Instagram and Threads links: downloads the real video or carousel images instead of the preview thumbnail; if only a preview was found, offers sign-in (or re-sign-in) before saving anything. Threads links on `threads.com` are recognized alongside `threads.net`.
+- Multiple accounts per host: save separate sign-ins for the same site (e.g., a personal and a work Instagram account); the app asks which account to use before downloading; account sessions can be added, renamed, and removed individually in Settings → Authorizations.
 - When no sign-in exists for a host, the app offers to add one with three options: add now, skip this time, or never ask again for this site.
 - Sites where the offer was permanently declined appear in the authorization settings list and can be re-enabled by deleting the entry.
 - **Standalone player operations**: File actions (Rename, Delete, Favorite, Open in FMS) available directly when opening media from external apps. Includes robust audio focus management and UX parity.
@@ -308,3 +309,4 @@ Reads documents directly from network or cloud storage, integrating reading them
 - **Android TV Media Centers (Kodi, Plex)**: Provides complete file management, media playback, and slideshows controllable entirely via remote/keyboard without a backend server.
 
 **Bottom line:** FMS provides a consistent, unified experience with deep network and cloud integration that eliminates constant app-switching for users who manage media across local, NAS, and cloud storage.
+

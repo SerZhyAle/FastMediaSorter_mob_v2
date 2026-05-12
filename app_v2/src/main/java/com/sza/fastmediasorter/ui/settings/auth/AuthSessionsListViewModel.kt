@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.sza.fastmediasorter.ui.settings.auth
 
 import androidx.lifecycle.ViewModel
@@ -13,13 +15,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * S0155: groups saved accounts by host for the Settings "Saved authorizations" screen.
- * Previously exposed a flat [AuthSessionDomain] list (S0116); now uses [AuthAccountDomain].
- */
 data class AuthHostGroup(
     val host: String,
-    /** Non-null when [host] matches a [KnownAuthResources] entry. */
     val resource: KnownAuthResource?,
     val accounts: List<AuthAccountDomain>,
 )
@@ -29,17 +26,16 @@ class AuthSessionsListViewModel @Inject constructor(
     private val repository: AuthSessionRepository,
 ) : ViewModel() {
 
-    /** Live stream of accounts grouped by host, preserving repository activity ordering. */
     val accountGroups: Flow<List<AuthHostGroup>> = repository.observeAccountsAll()
         .map { accounts ->
             accounts
                 .groupBy { it.host }
                 .entries
-                .map { (host, accs) ->
+                .map { (host, groupedAccounts) ->
                     AuthHostGroup(
                         host = host,
                         resource = KnownAuthResources.matchHost(host),
-                        accounts = accs,
+                        accounts = groupedAccounts,
                     )
                 }
         }
@@ -52,21 +48,18 @@ class AuthSessionsListViewModel @Inject constructor(
         viewModelScope.launch { repository.updateDisplayName(host, accountId, newName) }
     }
 
-    /**
-     * The UI side launches [WebViewAuthDialogFragment] with [loginUrl]; this method
-     * exists so the fragment stays as a thin shell (routing logic in the ViewModel).
-     */
     fun addAccount(loginUrl: String, onLaunchWebView: (url: String) -> Unit) {
         onLaunchWebView(loginUrl)
     }
-
-    // ── Deprecated stubs (S0116 callers; replaced by S0155 account-scoped API) ─
 
     @Deprecated("Use accountGroups", ReplaceWith("accountGroups"))
     val sessions: Flow<List<AuthSessionDomain>> = repository.observeDomains()
 
     @Deprecated("Use deleteAccount(host, accountId)")
     fun delete(host: String) {
-        viewModelScope.launch { @Suppress("DEPRECATION") repository.deleteSession(host) }
+        viewModelScope.launch {
+            @Suppress("DEPRECATION")
+            repository.deleteSession(host)
+        }
     }
 }

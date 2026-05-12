@@ -1,0 +1,119 @@
+# Build NoLegal Debug APK and Install on Device (phone or Quest via ADB)
+# S0156: noLegal = standard + VR + sideload-only capabilities (single universal APK).
+# On phones: launches MainActivity (standard + noLegal mode, VR inactive).
+# On Quest:  launches MainActivity as 2D panel (full VR bridge available).
+# Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
+
+# ADB path
+$adb = "C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+
+Write-Host "Building NoLegal Debug APK (auto-versioned)..." -ForegroundColor Cyan
+Write-Host "Features: Full standard + OpenXR VR + sideload-only (NewPipe, etc.)" -ForegroundColor Yellow
+Write-Host "Target: any ADB-connected device (phone or Quest)" -ForegroundColor Magenta
+
+# Generate version
+$now = Get-Date
+$yy  = $now.ToString("yy")
+$mon = $now.ToString("MM")
+$dd  = $now.ToString("dd")
+$HH  = $now.ToString("HH")
+$mm  = $now.ToString("mm")
+
+# versionCode: YYMMDDHHm (9 digits, first digit of minutes — avoids Int32 overflow)
+$versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
+# versionName: Y.YM.MDDH.Hmm  e.g. 2.60.4260.457
+$versionName = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"
+
+Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+
+# Resolve paths relative to script location
+$projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
+$gradlew = "$projectRoot\gradlew.bat"
+$logDir = "$projectRoot\temp"
+
+# Clean stale Gradle CMake .tmp files that cause "Access is denied" lock errors.
+$cxxDebugDir = Join-Path $projectRoot "app_v2\build\intermediates\cxx\Debug"
+if (Test-Path $cxxDebugDir) {
+    $tmpFiles = @(Get-ChildItem -Path $cxxDebugDir -Recurse -Filter "*.tmp" -ErrorAction SilentlyContinue)
+    foreach ($f in $tmpFiles) {
+        Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue
+        if (-not (Test-Path $f.FullName)) {
+            Write-Host "  Cleaned stale lock: $($f.Name)" -ForegroundColor DarkGray
+        }
+    }
+}
+
+# Update build.gradle.kts
+$buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
+$content = Get-Content $buildGradlePath -Raw
+$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
+$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
+Set-Content $buildGradlePath $content -NoNewline
+
+# Start the Gradle build process
+& $gradlew assembleNoLegalDebug
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
+Write-Host "`nBuild Successful!" -ForegroundColor Green
+
+# Resolve actual APK path from AGP output metadata
+$apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\noLegal\debug"
+$metadataPath = Join-Path $apkDir "output-metadata.json"
+$apkPath = $null
+
+if (Test-Path -Path $metadataPath) {
+    try {
+        $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
+        if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
+            $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
+        }
+    }
+    catch {
+        Write-Host "Warning: Failed to parse output-metadata.json" -ForegroundColor Yellow
+    }
+}
+
+if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
+    $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($latestApk) { $apkPath = $latestApk.FullName }
+}
+
+if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
+    Write-Host "Error: APK not found in $apkDir" -ForegroundColor Red
+    exit 1
+}
+
+# Wait for device
+Write-Host "`nWaiting for device..." -ForegroundColor Yellow
+& $adb wait-for-device
+
+# Clear logcat before launching
+Write-Host "Clearing logcat..." -ForegroundColor Cyan
+& $adb logcat -c
+
+# Install and launch
+Write-Host "Installing and launching NoLegal debug build..." -ForegroundColor Cyan
+& $adb install -r -d $apkPath
+& $adb shell am start -n com.sza.fastmediasorter.nolegal.debug/com.sza.fastmediasorter.ui.main.MainActivity
+
+Write-Host "`nNoLegal debug build launched successfully!" -ForegroundColor Green
+
+# Copy to DOWNLOADS folder
+$downloadsDir = "$projectRoot\DOWNLOADS"
+if (!(Test-Path -Path $downloadsDir)) {
+    New-Item -ItemType Directory -Path $downloadsDir | Out-Null
+}
+$destName = "FastMediaSorter_nolegal_debug.apk"
+Copy-Item -Path $apkPath -Destination "$downloadsDir\$destName" -Force
+Write-Host "APK copied to $downloadsDir\$destName" -ForegroundColor Green
+
+# Log build to journal
+$journalPath = "$downloadsDir\builds_versions.lst"
+$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$logEntry = "$timestamp | nolegal-debug-device | $destName"
+Add-Content -Path $journalPath -Value $logEntry
+Write-Host "Build logged to journal" -ForegroundColor Gray

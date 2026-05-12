@@ -1,27 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingHorizontal="@dimen/margin_normal"
-    android:paddingTop="@dimen/margin_normal"
-    android:paddingBottom="@dimen/margin_small">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="@dimen/margin_normal" android:paddingTop="@dimen/margin_normal" android:paddingBottom="@dimen/margin_small">
 
-    <TextView
-        android:id="@+id/tvAuthHostName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textAppearance="?attr/textAppearanceSubtitle2"
-        tools:text="instagram.com" />
+    <TextView android:id="@+id/tvAuthHostName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textAppearance="?attr/textAppearanceSubtitle2" tools:text="instagram.com" />
 
-    <ImageButton
-        android:id="@+id/btnAddAccount"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_input_add"
-        android:contentDescription="@string/s0155_add_account_label" />
+    <ImageButton android:id="@+id/btnAddAccount" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/s0155_add_account_label" android:src="@android:drawable/ic_input_add" />
 </LinearLayout>

@@ -44,6 +44,13 @@ class LinkDownloadWriter @Inject constructor(
         data class Saved(val resourceLabel: String, val fileName: String, val destinationUri: Uri?) : WriteResult
         data class FellBackToDownloads(val fileName: String, val reason: FallbackReason, val destinationUri: Uri?) : WriteResult
         data class Failed(val cause: Throwable) : WriteResult
+
+        /**
+         * S0170 BUG-2: the bytes that arrived are not a usable media file (HTML error page,
+         * JSON, truncated/garbage body). Surfaces an honest failure instead of saving the file
+         * and opening the player on something that immediately errors out.
+         */
+        data class Corrupted(val bytesWritten: Long, val sniffedKind: String) : WriteResult
     }
 
     enum class FallbackReason {
@@ -64,9 +71,9 @@ class LinkDownloadWriter @Inject constructor(
         val tempFile = uniqueFile(tempDir, fileName)
 
         try {
+            var totalBytes = 0L
             FileOutputStream(tempFile).use { out ->
                 val buffer = ByteArray(64 * 1024)
-                var totalBytes = 0L
                 while (true) {
                     currentCoroutineContext().ensureActive()
                     val read = stream.read(buffer)
@@ -75,6 +82,16 @@ class LinkDownloadWriter @Inject constructor(
                     totalBytes += read
                     onBytesCopied(totalBytes)
                 }
+            }
+
+            // S0170 BUG-2: validate the downloaded bytes before declaring success. A signed CDN
+            // URL re-fetched without the WebView request context (Referer/UA) often yields a
+            // 403-HTML page, a JSON error, or a truncated chunk — none of which are playable.
+            val sniff = sniffMedia(tempFile)
+            if (sniff != null) {
+                Timber.w("LinkDownloadWriter: rejected corrupted download — kind=%s bytes=%d name=%s", sniff, totalBytes, fileName)
+                Timber.d("S0170: rejected corrupted link download — kind=%s bytes=%d mime=%s", sniff, totalBytes, mime)
+                return@withContext WriteResult.Corrupted(bytesWritten = totalBytes, sniffedKind = sniff)
             }
 
             // Step 2/3: try the configured resource, else fall through to Downloads.
@@ -168,6 +185,52 @@ class LinkDownloadWriter @Inject constructor(
             Timber.e(e, "LinkDownloadWriter: failed to save to Downloads")
             null
         }
+    }
+
+    /**
+     * S0170 BUG-2: lightweight content sniff. Returns `null` when the file looks like a usable
+     * media container; otherwise a short reason string ("empty", "too-small", "html", "json").
+     * Deliberately lenient — only rejects clearly-wrong content (error pages, truncated stubs),
+     * never a real binary just because we don't enumerate its magic bytes.
+     */
+    private fun sniffMedia(file: File): String? {
+        val length = file.length()
+        if (length == 0L) return "empty"
+        val head = ByteArray(16)
+        val read = FileInputStream(file).use { it.read(head) }
+        if (read <= 0) return "empty"
+
+        fun startsWith(vararg bytes: Int): Boolean =
+            read >= bytes.size && bytes.indices.all { (head[it].toInt() and 0xFF) == bytes[it] }
+        fun asciiAt(offset: Int, text: String): Boolean {
+            if (read < offset + text.length) return false
+            return text.indices.all { (head[offset + it].toInt() and 0xFF) == text[it].code }
+        }
+
+        // Known media container signatures → accept.
+        val isKnownMedia =
+            asciiAt(4, "ftyp") ||                                   // MP4 / MOV / M4A / 3GP / HEIF
+            startsWith(0x1A, 0x45, 0xDF, 0xA3) ||                   // Matroska / WebM (EBML)
+            asciiAt(0, "RIFF") ||                                   // AVI / WAV / WebP
+            asciiAt(0, "FLV") ||                                    // FLV
+            asciiAt(0, "OggS") ||                                   // OGG
+            asciiAt(0, "ID3") ||                                    // MP3 (ID3v2)
+            startsWith(0xFF, 0xFB) || startsWith(0xFF, 0xF3) || startsWith(0xFF, 0xF2) || // MP3 frame
+            startsWith(0xFF, 0xF1) || startsWith(0xFF, 0xF9) ||     // AAC/ADTS
+            startsWith(0xFF, 0xD8, 0xFF) ||                         // JPEG
+            startsWith(0x89, 0x50, 0x4E, 0x47) ||                   // PNG
+            asciiAt(0, "GIF8") ||                                   // GIF
+            startsWith(0x42, 0x4D)                                  // BMP
+        if (isKnownMedia) return null
+
+        // Obvious error-page / metadata content → reject.
+        when (head[0].toInt() and 0xFF) {
+            0x3C -> return "html"   // '<'  — HTML / XML
+            0x7B, 0x5B -> return "json"  // '{' or '['
+        }
+        // Too small to be the media the user asked for (signed CDN error stubs are tiny).
+        if (length < 1024L) return "too-small"
+        return null
     }
 
     private fun uniqueFile(dir: File, fileName: String): File {

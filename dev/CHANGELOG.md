@@ -8762,3 +8762,318 @@ Format: | datetime | file | target | description |
 | 2026-05-11 18:27:27 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | S0161 fix: inject AuthSessionRepository, IMPORTANCE_HIGH notifications (heads-up), check isDismissedForHost before sign-in notification |
 | 2026-05-11 18:28:06 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | S0161 fix: inject AuthSessionRepository, IMPORTANCE_HIGH notifications (heads-up), check isDismissedForHost before sign-in notification |
 | 2026-05-11 18:30:27 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt` | `LinkDownloadWorker` | S0161 fix: remove setForeground/buildForegroundInfo — conflicts with setExpedited on Android 12+ (WakeLock SecurityException); expedited work is sufficient for short link downloads |
+| 2026-05-11 18:35:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpOperationFailure.kt` | `SftpOperationFailure` | S0149 Phase 01: new typed SFTP failure classifier with SftpFailureCategory enum and fromThrowable() helper; maps SSH_FX_PERMISSION_DENIED (3) to PERMISSION_DENIED, others to GENERIC/TRANSIENT |
+| 2026-05-11 18:35:55 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt` | `SftpOperationStrategy` | S0149 Phase 01: remove generic Exception wrappers in deleteFile and writeFile; SftpException with status code now flows unmodified to callers |
+| 2026-05-11 18:37:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpOperationMessageResolver.kt` | `SftpOperationMessageResolver` | S0149 Phase 02: new resolver mapping SftpOperationFailure to string resource ids; covers access denied, server rejected, move-copy-ok-delete-failed |
+| 2026-05-11 18:37:42 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0149 Phase 02: add error_sftp_access_denied, error_sftp_server_rejected, error_sftp_move_copied_source_remains (EN) |
+| 2026-05-11 18:37:42 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0149 Phase 02: add error_sftp_access_denied, error_sftp_server_rejected, error_sftp_move_copied_source_remains (RU) |
+| 2026-05-11 18:37:42 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0149 Phase 02: add error_sftp_access_denied, error_sftp_server_rejected, error_sftp_move_copied_source_remains (UK) |
+| 2026-05-11 18:37:46 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0149 Phase 02: add error_sftp_access_denied, error_sftp_server_rejected, error_sftp_move_copied_source_remains (EN) |
+| 2026-05-11 18:37:46 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0149 Phase 02: add error_sftp_access_denied, error_sftp_server_rejected, error_sftp_move_copied_source_remains (RU) |
+| 2026-05-11 18:37:46 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0149 Phase 02: add error_sftp_access_denied, error_sftp_server_rejected, error_sftp_move_copied_source_remains (UK) |
+| 2026-05-11 18:37:50 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0149 Phase 02: add 3 error_sftp_* keys (RU) |
+| 2026-05-11 18:37:50 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0149 Phase 02: add 3 error_sftp_* keys (UK) |
+| 2026-05-11 18:50:46 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt` | `SftpFileOperationHandler` | S0149 Phase 03: wire SftpOperationFailure classifier + SftpOperationMessageResolver into executeMove SFTP->FTP delete-failed and executeRename failure paths |
+| 2026-05-11 18:50:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | S0149 Phase 03: surface result.errors from PartialSuccess in both executeOperationToPath and move handlers |
+| 2026-05-11 18:50:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | S0149 Phase 03: surface result.errors from PartialSuccess in both copy-to-destination and copy-to-path handlers |
+| 2026-05-11 18:50:50 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/SftpFileOperationHandler.kt` | `SftpFileOperationHandler` | S0149 Phase 03: wire SftpOperationFailure classifier and SftpOperationMessageResolver into executeMove SFTP-to-FTP delete-failed and executeRename failure paths |
+| 2026-05-11 18:50:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | S0149 Phase 03: surface result.errors from PartialSuccess in both executeOperationToPath and move handlers |
+| 2026-05-11 18:50:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | S0149 Phase 03: surface result.errors from PartialSuccess in copy-to-destination and copy-to-path handlers |
+| 2026-05-11 18:56:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | S0149: Fixed Success/PartialSuccess block merge; restored PartialSuccess branch in executeOperationToPath; error surfacing now correct in both PartialSuccess handlers |
+| 2026-05-11 18:56:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | S0149: Fixed Success/PartialSuccess block merge; restored PartialSuccess branch in executeOperationToPath; error surfacing now correct in both PartialSuccess handlers |
+| 2026-05-11 18:59:00 | `PLAN/S0149_enh-sftp-permission-denied-message/INDEX.md` | `S0149/INDEX.md` | S0149: Marked all 4 phases Done; Status Done |
+| 2026-05-11 18:59:00 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl` | S0149: Catalog rescan after adding SftpOperationFailure.kt and SftpOperationMessageResolver.kt |
+| 2026-05-11 18:59:00 | `dev/CATALOG/app_v2.md` | `app_v2.md` | S0149: Catalog render after rescan |
+| 2026-05-11 18:59:04 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl` | S0149: Catalog rescan after adding SftpOperationFailure.kt and SftpOperationMessageResolver.kt |
+| 2026-05-11 18:59:09 | `dev/CATALOG/app_v2.md` | `app_v2.md` | S0149: Catalog render after rescan |
+| 2026-05-11 19:27:16 | `PLAN/S0162_screen-rotation-control.md` | `S0162` | Strategic spec: screen rotation control — follow OS or manual in-player toggle |
+| 2026-05-11 20:59:10 | `PLAN/S0163_bugfix-smb-move-double-upload-after-batchdelete.md` | `S0163` | New spec: SMB Move double-upload bug after batch-delete dialog (logs/20260511_203620.log, 10 errors, 5 files) |
+| 2026-05-11 20:59:10 | `PLAN/S0164_bugfix-glide-diskcache-warning-false-positive.md` | `S0164` | New spec: Glide disk cache warning false positive when memory hit rate=100% |
+| 2026-05-11 20:59:10 | `PLAN/S0154_player-file-operation-queue.md` | `S0154` | Add Last Audit §13: batch-delete resume bug confirmed in logs, links to S0163 |
+| 2026-05-11 21:01:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0161 revert to blocking dialog: processLinkAutoDownload now uses LinkAutoDownloadProgressDialog + coordinator + resultPresenter; auth dialog shown in-app on SocialPreviewOnly with retry; silent cookie lookup preserved |
+| 2026-05-11 21:03:50 | `PLAN/S0161_link-download-background-queue.md` | `S0161` | Updated strategic spec: revised architecture (blocking dialog + silent cookie lookup); added Phase 05-06; Last Audit with build/device test results; status -> Implemented |
+| 2026-05-11 21:09:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/fileops/PlayerFileOperationQueue.kt` | `PlayerFileOperationQueue` | S0154: fix batch-delete resume loop — emit Succeeded after permission granted instead of restarting full operation |
+| 2026-05-11 21:09:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer.initFileOps` | S0154: show specific message when batch-delete permission denied on Move (file already at destination); suppress retry button in that case |
+| 2026-05-11 21:09:19 | `app_v2/src/main/res/values/strings.xml` | `error_queued_move_permission_denied` | S0154: add EN/RU/UK string for move-permission-denied case (file copied, local not deleted) |
+| 2026-05-11 21:28:02 | `docs/FEATURES.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07) |
+| 2026-05-11 21:28:02 | `docs/FEATURES_RU.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 RU) |
+| 2026-05-11 21:28:02 | `docs/FEATURES_UK.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
+| 2026-05-11 21:28:02 | `dev/CATALOG/app_v2.jsonl` | `S0155` | Catalog regen: scan+render; set roles for LinkDownloadSessionContext/AccountNameHintExtractor/AccountSelectionManager/AuthAccountGroupAdapter |
+| 2026-05-11 21:28:02 | `dev/CATALOG/app_v2.md` | `S0155` | Catalog render after S0155 Phase 07 scan |
+| 2026-05-11 21:28:07 | `docs/FEATURES_RU.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 RU) |
+| 2026-05-11 21:28:07 | `docs/FEATURES_UK.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
+| 2026-05-11 21:28:07 | `dev/CATALOG/app_v2.jsonl` | `S0155` | Catalog regen: set roles for new S0155 classes |
+| 2026-05-11 21:28:07 | `dev/CATALOG/app_v2.md` | `S0155` | Catalog render after S0155 Phase 07 |
+| 2026-05-11 21:28:11 | `docs/FEATURES_UK.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
+| 2026-05-11 21:28:11 | `dev/CATALOG/app_v2.jsonl` | `S0155` | Catalog regen: set roles for new S0155 classes |
+| 2026-05-11 21:28:11 | `dev/CATALOG/app_v2.md` | `S0155` | Catalog render after S0155 Phase 07 |
+| 2026-05-11 21:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `S0155` | Add S0155 debug tag on emitResultAndDismiss(saved=true) |
+| 2026-05-11 21:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `S0155` | Add S0155 debug tag on offerAuthThenDownload resume with savedAccountId |
+| 2026-05-11 21:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `S0155` | Add S0155 debug tag on account picker shown (>=2 accounts) |
+| 2026-05-11 21:31:06 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `S0151` | Update tactical plan INDEX: phases 1-3 Done, 3/4 done |
+| 2026-05-11 21:31:06 | `PLAN/S0155_link-auth-multi-account/PHASE_07__docs-catalog-cleanup.md` | `S0155` | Mark Phase 07 Done (docs/catalog/locale-audit complete) |
+| 2026-05-11 21:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `S0155` | Add S0155 debug tag on offerAuthThenDownload resume with savedAccountId |
+| 2026-05-11 21:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `S0155` | Add S0155 debug tag on account picker shown (>=2 accounts) |
+| 2026-05-11 21:31:12 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `S0151` | Update tactical plan INDEX: phases 1-3 Done, 3/4 done |
+| 2026-05-11 21:31:12 | `PLAN/S0155_link-auth-multi-account/PHASE_07__docs-catalog-cleanup.md` | `S0155` | Mark Phase 07 Done (docs/catalog/locale-audit complete) |
+| 2026-05-11 21:31:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `S0155` | Add S0155 debug tag on account picker shown (>=2 accounts) |
+| 2026-05-11 21:31:15 | `PLAN/S0155_link-auth-multi-account/PHASE_07__docs-catalog-cleanup.md` | `S0155` | Mark Phase 07 Done |
+| 2026-05-11 21:33:13 | `PLAN/S0163_bugfix-smb-move-double-upload-after-batchdelete/INDEX.md` | `S0163` | Tactical plan created: verification-only (S0154 gate covers all criteria); all phases verified via code review |
+| 2026-05-11 21:34:57 | `PLAN/S0163_bugfix-smb-move-double-upload-after-batchdelete.md` | `S0163` | Pipeline Verified: all §9 criteria confirmed via code review; S0154 PermissionGate covers the double-upload regression; build PASS |
+| 2026-05-11 21:36:48 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/GlideCacheStats.kt` | `GlideCacheStats.logStats` | S0164: fix false-positive 'Zero disk cache hits' warning — guard with (network+local)>0 so 100% memory-cache sessions are silent |
+| 2026-05-11 22:00:25 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `spec-recovery` | Recover S0156 from temp/done archive back into PLAN, restore research folder, and reopen spec-catalog record to Approved |
+| 2026-05-11 22:02:09 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `spec-update` | Add noLegal research direction for Browse-triggered third-party APK installation via explicit PackageInstaller flow |
+| 2026-05-11 22:06:16 | `PLAN/S0165_browse-create-folder.md` | `S0165` | Strategic spec: Browse create-folder command for showSubfoldersAsItems resources |
+| 2026-05-11 22:09:56 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchAudioCoverUseCase.kt` | `SearchAudioCoverUseCase` | Skip online cover art search for .m4a files (microphone recordings) |
+| 2026-05-11 22:23:37 | `PLAN/S0166_link-receive-and-auth-storage.md` | `S0166` | Created strategic spec: link receive + auth storage scenario (replaces archived S0151, S0155) |
+| 2026-05-11 22:30:05 | `PLAN/S0167_bugfix-cover-art-search-cancelled-as-error.md` | `S0167` | New spec: false ERROR log when cover art search coroutine cancelled during Activity destroy |
+| 2026-05-11 22:30:05 | `PLAN/S0168_bugfix-video-playback-stuck-buffering-no-feedback.md` | `S0168` | New spec: ExoPlayer errorCode=1004 stuck buffering silently skips file without user feedback |
+| 2026-05-11 22:30:05 | `PLAN/S0169_bugfix-audio-metadata-retriever-smb-excessive-warnings.md` | `S0169` | New spec: AudioMetadataLoader W-level noise on SMB audio files for expected MetadataRetriever fallback |
+| 2026-05-11 22:30:09 | `PLAN/S0168_bugfix-video-playback-stuck-buffering-no-feedback.md` | `S0168` | New spec: ExoPlayer errorCode=1004 stuck buffering silently skips file without user feedback |
+| 2026-05-11 22:30:09 | `PLAN/S0169_bugfix-audio-metadata-retriever-smb-excessive-warnings.md` | `S0169` | New spec: AudioMetadataLoader W-level noise on SMB audio files for expected MetadataRetriever fallback |
+| 2026-05-11 22:30:13 | `PLAN/S0169_bugfix-audio-metadata-retriever-smb-excessive-warnings.md` | `S0169` | New spec: AudioMetadataLoader W-level noise on SMB audio files for expected MetadataRetriever fallback |
+| 2026-05-11 23:07:26 | `PLAN/S0166_link-receive-and-auth-storage.md` | `S0166` | Rewrote spec: incorporated owner answers, removed Q&A format, clean definitive decisions |
+| 2026-05-11 23:09:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioCoverArtLoader.kt` | `AudioCoverArtLoader` | Handled coroutine cancellation without error logs and cached 404 cover URLs for the session |
+| 2026-05-11 23:09:12 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SearchAudioCoverUseCase.kt` | `SearchAudioCoverUseCase` | Stopped treating coroutine cancellation as cover-search failures |
+| 2026-05-11 23:13:33 | `temp/backup_S0166_link_auth_20260511` | `S0166 Phase 00` | Backed up 35 files (broken link-auth code) to temp/backup_S0166_link_auth_20260511/, deleted from source |
+| 2026-05-11 23:13:33 | `PLAN/S0166_link-receive-and-auth-storage/INDEX.md` | `S0166` | Created tactical plan INDEX.md + PHASE_00 (backup-and-delete) |
+| 2026-05-11 23:22:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/cache/VideoPlaybackFailureSessionCache.kt` | `VideoPlaybackFailureSessionCache` | Added session-only playback timeout failure cache for retry warnings |
+| 2026-05-11 23:22:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Added timeout-specific playback feedback and session retry warning hook |
+| 2026-05-11 23:22:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | Handled timeout-specific skip toast without generic duplicate message |
+| 2026-05-11 23:22:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseRefreshManager.kt` | `BrowseRefreshManager` | Clear session playback timeout warnings during manual refresh |
+| 2026-05-11 23:22:04 | `app_v2/src/main/res/values/strings.xml` | `playback-timeout-strings` | Added EN playback timeout feedback strings |
+| 2026-05-11 23:22:04 | `app_v2/src/main/res/values-ru/strings.xml` | `playback-timeout-strings` | Added RU playback timeout feedback strings |
+| 2026-05-11 23:22:05 | `app_v2/src/main/res/values-uk/strings.xml` | `playback-timeout-strings` | Added UK playback timeout feedback strings |
+| 2026-05-11 23:22:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/AuthSessionRepository.kt` | `AuthSessionRepository` | Restored S0166 auth storage domain contract and account models |
+| 2026-05-11 23:22:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStore.kt` | `EncryptedCookieStore` | Reimplemented encrypted multi-account cookie store with dismissed-record support for S0166 |
+| 2026-05-11 23:22:37 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `AuthSessionRepositoryImpl` | Reimplemented auth session repository flows over encrypted cookie store for S0166 |
+| 2026-05-11 23:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/UrlExtractionStrategy.kt` | `UrlExtractionStrategy` | Restored link extraction contract for S0166 pipeline |
+| 2026-05-11 23:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `LinkExtractionRegistry` | Restored ordered extraction strategy registry for S0166 |
+| 2026-05-11 23:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlMediaCandidate.kt` | `HtmlMediaCandidate` | Restored HTML media candidate model for page extraction |
+| 2026-05-11 23:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadSessionContext.kt` | `LinkDownloadSessionContext` | Restored per-run cookie context for selected account in S0166 |
+| 2026-05-11 23:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadCookieJar.kt` | `LinkDownloadCookieJar` | Restored OkHttp cookie injection for S0166 auth sessions |
+| 2026-05-11 23:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `KnownAuthResources` | Restored built-in auth-sensitive host registry for S0166 |
+| 2026-05-11 23:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `AccountSelectionManager` | Restored account picker helper for multi-account S0166 flow |
+| 2026-05-11 23:33:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `AudioMetadataLoader` | Downgrade expected partial network MetadataRetriever misses from warning to debug for SMB/SFTP/FTP audio headers |
+| 2026-05-11 23:33:03 | `PLAN/S0169_bugfix-audio-metadata-retriever-smb-excessive-warnings.md` | `S0169` | Align strategic spec with implemented MetadataRetriever warning-classification fix and mark status Implemented |
+| 2026-05-11 23:33:49 | `app_v2/build.gradle.kts` | `build-debug validation` | Revert unrelated auto-version bump introduced by build-debug validation run |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage.md` | `spec-all` | Resume pipeline status sync for S0166 |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_01__data-model-and-storage.md` | `spec-all` | Added Phase 01 tactical plan for S0166 |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_02__extraction-pipeline.md` | `spec-all` | Added Phase 02 tactical plan for S0166 |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_03__coordinator-and-worker.md` | `spec-all` | Added Phase 03 tactical plan for S0166 |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_04__auth-dialog-and-settings-ui.md` | `spec-all` | Added Phase 04 tactical plan for S0166 |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_05__di-and-integration.md` | `spec-all` | Added Phase 05 tactical plan for S0166 |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_06__tests-and-logging.md` | `spec-all` | Added Phase 06 tactical plan for S0166 |
+| 2026-05-11 23:41:21 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_07__docs-catalog-cleanup.md` | `spec-all` | Added Phase 07 tactical plan for S0166 |
+| 2026-05-11 23:57:58 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | Restored S0166 coordinator, session handling, and diagnostics |
+| 2026-05-11 23:57:58 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlPageExtractionStrategy.kt` | `HtmlPageExtractionStrategy` | Restored HTML extraction and soft login-wall classification for S0166 |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | Restored hidden WebView extraction with cookie injection for S0166 |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/CandidateSelectionPolicy.kt` | `CandidateSelectionPolicy` | Restored deterministic candidate selection for page-level media results |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/di/LinkDownloadModule.kt` | `LinkDownloadModule` | Restored Hilt bindings for S0166 link download stack |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | Restored S0166 post-download and reauth result presentation |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | Restored in-app WebView auth capture flow for S0166 |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthViewModel.kt` | `WebViewAuthViewModel` | Restored auth session save ViewModel for S0166 |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsActivity.kt` | `AuthSessionsActivity` | Restored saved authorizations settings host activity |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListFragment.kt` | `AuthSessionsListFragment` | Restored saved authorizations settings list UI |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthSessionsListViewModel.kt` | `AuthSessionsListViewModel` | Restored grouped auth account state for settings UI |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthAccountGroupAdapter.kt` | `AuthAccountGroupAdapter` | Restored grouped account list adapter for settings auth screen |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/auth/AuthAccountLabels.kt` | `AuthAccountLabels` | Added helper labels for dismissed auth records |
+| 2026-05-11 23:57:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | Aligned single-link S0166 routing with known-host auth/account selection |
+| 2026-05-11 23:57:59 | `app_v2/src/main/res/layout/dialog_webview_auth.xml` | `dialog_webview_auth` | Restored default WebView auth dialog layout |
+| 2026-05-11 23:57:59 | `app_v2/src/main/res/layout/activity_auth_sessions.xml` | `activity_auth_sessions` | Added default layout for saved authorizations screen |
+| 2026-05-11 23:57:59 | `app_v2/src/main/res/layout/fragment_auth_sessions_list.xml` | `fragment_auth_sessions_list` | Added default layout for saved authorizations list |
+| 2026-05-11 23:57:59 | `app_v2/src/main/res/layout/item_auth_host_group.xml` | `item_auth_host_group` | Added host header row for saved authorizations list |
+| 2026-05-11 23:57:59 | `app_v2/src/main/res/layout/item_auth_account.xml` | `item_auth_account` | Added account row layout for saved authorizations list |
+| 2026-05-11 23:57:59 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/CandidateSelectionPolicyTest.kt` | `CandidateSelectionPolicyTest` | Added focused JVM coverage for S0166 candidate selection |
+| 2026-05-11 23:57:59 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/auth/AccountNameHintExtractorTest.kt` | `AccountNameHintExtractorTest` | Added focused JVM coverage for auth account hint extraction |
+| 2026-05-11 23:57:59 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResourcesTest.kt` | `KnownAuthResourcesTest` | Added focused JVM coverage for known auth host matching |
+| 2026-05-12 00:03:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | Added S0166 branch diagnostics for preview-only, login-wall, and saved media outcomes |
+| 2026-05-12 00:03:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | Added S0166 auth-dialog diagnostics and reauth dialog typing |
+| 2026-05-12 00:03:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `AccountSelectionManager` | Added S0166 account picker diagnostic log |
+| 2026-05-12 00:03:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | Added S0166 browser-login-saved diagnostic log |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage.md` | `S0166` | Patched strategic audit block and final status to Partial |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/INDEX.md` | `S0166 tactical index` | Synced tactical index phase statuses with audit result |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_01__data-model-and-storage.md` | `S0166 Phase 01` | Marked data/storage phase complete |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_02__extraction-pipeline.md` | `S0166 Phase 02` | Marked extraction phase complete |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_03__coordinator-and-worker.md` | `S0166 Phase 03` | Marked coordinator and worker phase complete |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_04__auth-dialog-and-settings-ui.md` | `S0166 Phase 04` | Marked auth UI phase partial with explanatory-block gap |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_05__di-and-integration.md` | `S0166 Phase 05` | Marked DI and integration phase complete |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_06__tests-and-logging.md` | `S0166 Phase 06` | Marked tests and logging phase partial due remaining coverage gaps |
+| 2026-05-12 00:03:07 | `PLAN/S0166_link-receive-and-auth-storage/PHASE_07__docs-catalog-cleanup.md` | `S0166 Phase 07` | Marked docs and catalog cleanup phase complete |
+| 2026-05-12 00:03:07 | `PLAN/spec-catalog.jsonl` | `S0166` | Updated spec-catalog ticket status to Partial after audit |
+| 2026-05-12 00:03:07 | `dev/CATALOG/app_v2.jsonl` | `app_v2 catalog` | Refreshed catalog records after S0166 Kotlin changes |
+| 2026-05-12 00:03:07 | `dev/CATALOG/app_v2.md` | `app_v2 catalog` | Re-rendered catalog markdown after S0166 Kotlin changes |
+| 2026-05-12 00:19:19 | `app_v2/src/main/res/layout/fragment_auth_sessions_list.xml` | `fragment_auth_sessions_list` | S0166 §4: added explanatory info block above RecyclerView (changed FrameLayout→LinearLayout+FrameLayout) |
+| 2026-05-12 00:19:19 | `app_v2/src/main/res/layout-land/fragment_auth_sessions_list.xml` | `fragment_auth_sessions_list (land)` | S0166 §4: added explanatory info block to landscape variant |
+| 2026-05-12 00:19:19 | `app_v2/src/main/res/values/strings.xml` | `auth_sessions_info_text (EN)` | S0166 §4: added EN explanatory text for auth sessions screen |
+| 2026-05-12 00:19:19 | `app_v2/src/main/res/values-ru/strings.xml` | `auth_sessions_info_text (RU)` | S0166 §4: added RU explanatory text for auth sessions screen |
+| 2026-05-12 00:19:19 | `app_v2/src/main/res/values-uk/strings.xml` | `auth_sessions_info_text (UK)` | S0166 §4: added UK explanatory text for auth sessions screen |
+| 2026-05-12 00:19:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0166 §2 Step 0: added unknown-host NoMediaFound escalation to auth-offer dialog |
+| 2026-05-12 00:19:19 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/filelist/BrowseFileListManagerTest.kt` | `BrowseFileListManagerTest` | Fixed missing assertTrue import |
+| 2026-05-12 00:19:19 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/StreamingManifestSnifferTest.kt` | `StreamingManifestSnifferTest` | Renamed test with <source> in name (XML-illegal chars) to video-source element |
+| 2026-05-12 00:19:19 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Added missing putEnvelopeDataItem to FakeWearableDataLayerRepository |
+| 2026-05-12 00:19:19 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/cookie/EncryptedCookieStoreTest.kt` | `EncryptedCookieStoreTest` | Fixed compile (RuntimeEnvironment, @Config sdk=34); @Ignore class (AndroidKeyStore unavailable in Robolectric JVM) |
+| 2026-05-12 00:20:49 | `PLAN/S0166_link-receive-and-auth-storage.md` | `S0166` | Promoted Last Audit to Verified after closing all remaining gaps |
+| 2026-05-12 00:20:49 | `PLAN/spec-catalog.jsonl` | `S0166` | Status Partial -> Verified |
+| 2026-05-12 00:20:49 | `dev/CATALOG/app_v2.jsonl` | `app_v2 catalog` | Refreshed catalog after S0166 final fixes |
+| 2026-05-12 00:20:49 | `dev/CATALOG/app_v2.md` | `app_v2 catalog` | Re-rendered catalog after S0166 final fixes |
+| 2026-05-12 00:30:06 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/share/AccountSelectionManagerTest.kt` | `AccountSelectionManagerTest` | S0166 Phase 06: add branch-selection unit tests (no-record, single-active, dismissed-only, mixed) |
+| 2026-05-12 00:30:06 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/CandidateSelectionPolicyTest.kt` | `CandidateSelectionPolicyTest` | S0166 Phase 06: extend with hasRealContent predicate tests for social preview classification |
+| 2026-05-12 00:30:06 | `PLAN/S0166_link-receive-and-auth-storage.md` | `spec-check` | Audit S0166 -> Verified; PASS 18/WARN 0/FAIL 0; PHASE_04 and PHASE_06 marked Done |
+| 2026-05-12 01:09:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | Add harvest mode: shouldInterceptRequest catches CDN video URLs and auto-dismisses with RESULT_MEDIA_URL |
+| 2026-05-12 01:09:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | presentSocialPreviewOnly: when hadExistingSession skip 3-btn dialog, open harvest-mode WebView on content URL directly |
+| 2026-05-12 01:09:11 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | Revert HARD_TIMEOUT_MS back to 8s (harvest mode replaces dynamic strategy for social hosts) |
+| 2026-05-12 01:09:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `WebViewAuthDialogFragment` | Add harvest mode: shouldInterceptRequest catches CDN video URLs, auto-dismiss with RESULT_MEDIA_URL |
+| 2026-05-12 01:09:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | presentSocialPreviewOnly: hadExistingSession skips 3-btn dialog, opens harvest-mode WebView on content URL directly |
+| 2026-05-12 01:09:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | Increase HARD_TIMEOUT_MS 8000->22000, DOM_SETTLE_MS 3500->4000 for heavy SPA pages |
+| 2026-05-12 01:33:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | Fix threading crash: dispatch onProgress to main thread via runOnUiThread (Material3 ValueAnimator crash from Dispatchers.IO) |
+| 2026-05-12 01:33:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `LinkAutoDownloadResultPresenter` | Revert harvest-mode visible WebView approach: remove openHarvestWebView(), use toast for hadExistingSession+failed case |
+| 2026-05-12 01:37:24 | `PLAN/S0168_bugfix-video-playback-stuck-buffering-no-feedback.md` | `S0168` | Added Scenario 2 (VP9/WebM 818KB + chronic low native heap), pre-check heap §5.3, PrefetchLoadControl diagnostics §5.4; status Implemented→In Progress, priority 40→55 |
+| 2026-05-12 01:46:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0168` | Add NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES=30MB pre-check: Glide.clearMemory()+GC before ExoPlayer start, warning_low_memory_playback Toast if heap still low after GC |
+| 2026-05-12 01:46:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PrefetchLoadControlFactory.kt` | `S0168` | Elevate fallback standard defaults log level D->W for ExoPlayer plan-miss visibility |
+| 2026-05-12 01:46:53 | `app_v2/src/main/res/values*/strings.xml` | `S0168` | Add warning_low_memory_playback string EN/RU/UK |
+| 2026-05-12 02:05:23 | `PLAN/S0170_link-download-platform-bugs.md` | `S0170` | New spec: platform-specific link-download bugs (Facebook auth loop, Instagram unplayable file, TikTok cookie mismatch, etc.) |
+| 2026-05-12 02:17:06 | `PLAN/S0170_link-download-platform-bugs.md` | `spec-update` | Refinement (claude-opus-4-7, focus: completeness, consistency) - added research addendum section 8 |
+| 2026-05-12 02:20:49 | `PLAN/S0170_link-download-platform-bugs.md` | `spec-all` | Approved + partial implementation pass: BUG-1, BUG-2 validation, BUG-6 |
+| 2026-05-12 02:29:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `S0170` | BUG-1: one-shot auth-offer escalation; isAuthRetry passed from offer callbacks; await markDismissed |
+| 2026-05-12 02:29:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/LinkDownloadWriter.kt` | `S0170` | BUG-2: sniff downloaded bytes; WriteResult.Corrupted on HTML/JSON/truncated content |
+| 2026-05-12 02:29:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `S0170` | BUG-2: Result.Failed.DownloadCorrupted mapped from WriteResult.Corrupted |
+| 2026-05-12 02:29:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `S0170` | BUG-2: toast link_autodownload_error_corrupted for DownloadCorrupted |
+| 2026-05-12 02:29:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `S0170` | BUG-6: dedup cookies by name before save |
+| 2026-05-12 02:29:33 | `app_v2/src/main/res/values/strings.xml` | `S0170` | Add link_autodownload_error_corrupted (EN/RU/UK) |
+| 2026-05-12 02:29:34 | `PLAN/S0170_link-download-platform-bugs.md` | `spec-all` | Pipeline: BUG-1/BUG-2-validation/BUG-6 implemented; status BlockNeedUserTest |
+| 2026-05-12 03:11:41 | `PLAN/S0171_link-download-cdn-replay-tiktok-ua.md` | `S0171` | New spec: CDN Referer replay for Instagram + TikTok desktop-UA extraction (deferred from S0170) |
+| 2026-05-12 03:19:10 | `PLAN/S0171_link-download-cdn-replay-tiktok-ua.md` | `spec-update` | Refinement (claude-opus-4-7) - added research addendum section 8; S0170 fixes verified from test log; corrections to section 2.A |
+| 2026-05-12 03:25:25 | `PLAN/S0171_link-download-cdn-replay-tiktok-ua.md` | `spec-all` | Approved + implementation: CDN Referer/UA replay + TikTok desktop-UA + __UNIVERSAL_DATA__ parse |
+| 2026-05-12 03:34:10 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/HtmlMediaCandidate.kt` | `S0171` | Add pageOrigin field for CDN Referer replay |
+| 2026-05-12 03:34:10 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/DirectFileExtractionStrategy.kt` | `S0171` | open() overload with extraHeaders for CDN re-fetch |
+| 2026-05-12 03:34:11 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `S0171` | Track page URL; pageOrigin on candidates; TikTok desktop-UA; __UNIVERSAL_DATA__ parse; CDN replay headers; trusted media sources |
+| 2026-05-12 03:34:11 | `app_v2/src/main/java/com/sza/fastmediasorter/di/LinkDownloadModule.kt` | `S0171` | DefaultUserAgentInterceptor - browser UA on link-download requests |
+| 2026-05-12 03:34:11 | `PLAN/S0171_link-download-cdn-replay-tiktok-ua.md` | `spec-all` | Implemented (STANDARD): CDN Referer/UA replay + TikTok desktop-UA + __UNIVERSAL_DATA__ parse; status BlockNeedUserTest |
+| 2026-05-12 10:29:53 | `PLAN/S0171_link-download-cdn-replay-tiktok-ua.md` | `S0171 spec` | Added §8.E (second on-device pass analysis from build 333 log): IG CDN 248-byte stub persists, TikTok MimeBlocked+403 root causes documented, debug enrichment requirements added (candidate URL, HTTP status, redirect chain, page HTML dump) |
+| 2026-05-12 10:36:41 | `PLAN/S0171_link-download-cdn-replay-tiktok-ua.md` | `S0171 spec` | Resumed: status BlockNeedUserTest->In Progress; added Steps 6-8 (debug enrichment, TikTok downloadAddr priority, LinkDownloadCookieJar eTLD+1 wildcard) |
+| 2026-05-12 10:36:41 | `PLAN/S0170_link-download-platform-bugs.md` | `S0170 spec` | All 3 checklist items marked PASS; archived (temp/done/) |
+| 2026-05-12 10:55:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | S0171 Step 6a/6c: extended CDN re-fetch log (+url), HTML dump on empty DOM result (DEBUG only); Step 7: TikTok downloadAddr/bitrateInfo priority over playAddr in DOM_DISCOVERY_SCRIPT |
+| 2026-05-12 10:55:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/DirectFileExtractionStrategy.kt` | `DirectFileExtractionStrategy` | S0171 Step 6b: response status/Content-Type/redirect-chain debug logging |
+| 2026-05-12 10:55:13 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadCookieJar.kt` | `LinkDownloadCookieJar` | S0171 Step 8: eTLD+1 wildcard fallback in loadForRequest — forwards registered-domain cookies to CDN subdomains (v16-webapp-prime.tiktok.com fix) |
+| 2026-05-12 11:18:50 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | S0171 diag-pass: log all intercepted/dom candidates at finish(); rejection log per candidate; all-image/SocialPreviewOnly branch log; dom-result log before HTML dump; Step 9: Sec-Fetch-Dest/Mode/Site for TikTok CDN |
+| 2026-05-12 12:06:37 | `PLAN/S0172_bugfix-car-audio-service-crash-and-position-resume.md` | `spec` | Add strategic spec S0172: car audio service crash + SFTP position resume |
+| 2026-05-12 12:12:33 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `KnownAuthResources` | S0171 Fix1: remove previewOnlyMeansLogin from threads.net/threads.com — CDN delivers full-res images without login |
+| 2026-05-12 12:12:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt` | `InvisibleWebViewExtractionStrategy` | S0171 Fix2: filter TikTok aweme/v1/play API redirect from candidates + add isTikTokApiRedirect(); remove all S0171 debug tags |
+| 2026-05-12 12:12:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/DirectFileExtractionStrategy.kt` | `DirectFileExtractionStrategy` | S0171: remove S0171 debug tags (direct-open response/redirect logging) |
+| 2026-05-12 12:17:59 | `PLAN/S0172_bugfix-car-audio-service-crash-and-position-resume/INDEX.md` | `S0172` | spec-tech: created tactical plan INDEX + 4 phase files for car audio crash + SFTP position resume |
+| 2026-05-12 12:17:59 | `PLAN/S0172_bugfix-car-audio-service-crash-and-position-resume.md` | `S0172` | spec-tech: status updated Approved -> Tactical, tactical spec link added |
+| 2026-05-12 12:21:56 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156` | Absorbed S0117 baseline, ADR-5/6/7, open questions 11-12 (lint-rule gap, distribution channel); archived S0117 |
+| 2026-05-12 12:22:25 | `PLAN/S0171_link-download-cdn-replay-tiktok-ua.md` | `S0171` | Archived (Verified): CDN replay headers + TikTok UA + cookie eTLD+1 + API-redirect filter — all confirmed working; file moved to temp/done/ |
+| 2026-05-12 12:22:28 | `PLAN/S0170_link-download-platform-bugs.md` | `S0170` | File moved to temp/done/ (spec was already Archived in catalog) |
+| 2026-05-12 12:24:39 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156` | Build topology resolved: single APK split ABI filters, graceful VR fallback, noLegal in build-and-push-all, ADR-8 added |
+| 2026-05-12 12:27:36 | `PLAN/S0163_bugfix-smb-move-double-upload-after-batchdelete.md` | `spec-arc` | Archive S0163 (bugfix-smb-move-double-upload-after-batchdelete) -> temp/done/ |
+| 2026-05-12 12:27:58 | `PLAN/S0164_bugfix-glide-diskcache-warning-false-positive.md` | `spec-arc` | Archive S0164 (bugfix-glide-diskcache-warning-false-positive) -> temp/done/ |
+| 2026-05-12 12:28:55 | `app_v2/build.gradle.kts` | `noLegal flavor` | S0156: upgrade noLegal to VR-capable — CMake block, split ABI filters (ndk=4 ABI, cmake=arm64), VR BuildConfig flags, vr sourceSets mount, OpenXR dependency |
+| 2026-05-12 12:28:55 | `scripts/builders/build-nolegal-debug.ps1` | `build-nolegal-debug` | S0156: new script — build noLegal debug APK with CMake stale-lock cleanup |
+| 2026-05-12 12:28:55 | `scripts/builders/build-nolegal-release.ps1` | `build-nolegal-release` | S0156: new script — build noLegal release APK |
+| 2026-05-12 12:28:55 | `scripts/builders/build-nolegal-device.ps1` | `build-nolegal-device` | S0156: new script — build + ADB install noLegal debug on connected device |
+| 2026-05-12 12:28:55 | `scripts/builders/build-and-push-all.ps1` | `build-and-push-all` | S0156: add assembleNoLegalDebug/Release to full build matrix |
+| 2026-05-12 12:28:59 | `scripts/builders/build-nolegal-debug.ps1` | `build-nolegal-debug` | S0156: new script — build noLegal debug APK with CMake stale-lock cleanup |
+| 2026-05-12 12:28:59 | `scripts/builders/build-nolegal-release.ps1` | `build-nolegal-release` | S0156: new script — build noLegal release APK |
+| 2026-05-12 12:28:59 | `scripts/builders/build-nolegal-device.ps1` | `build-nolegal-device` | S0156: new script — build + ADB install noLegal debug on connected device |
+| 2026-05-12 12:28:59 | `scripts/builders/build-and-push-all.ps1` | `build-and-push-all` | S0156: add assembleNoLegalDebug/Release to full build matrix |
+| 2026-05-12 12:29:03 | `scripts/builders/build-nolegal-release.ps1` | `build-nolegal-release` | S0156: new script — build noLegal release APK |
+| 2026-05-12 12:29:03 | `scripts/builders/build-nolegal-device.ps1` | `build-nolegal-device` | S0156: new script — build + ADB install noLegal debug on connected device |
+| 2026-05-12 12:29:03 | `scripts/builders/build-and-push-all.ps1` | `build-and-push-all` | S0156: add assembleNoLegalDebug/Release to full build matrix |
+| 2026-05-12 12:29:06 | `scripts/builders/build-nolegal-device.ps1` | `build-nolegal-device` | S0156: new script — build + ADB install noLegal debug |
+| 2026-05-12 12:29:06 | `scripts/builders/build-and-push-all.ps1` | `build-and-push-all` | S0156: add assembleNoLegalDebug/Release to full build matrix |
+| 2026-05-12 12:29:10 | `scripts/builders/build-and-push-all.ps1` | `build-and-push-all` | S0156: add assembleNoLegalDebug/Release to full build matrix |
+| 2026-05-12 12:30:19 | `PLAN/S0106_player-image-crop.md` | `spec-arc` | Archive S0106 (player-image-crop) -> temp/done/ [force] |
+| 2026-05-12 12:30:19 | `PLAN/S0107_image-draw-overlay.md` | `spec-arc` | Archive S0107 (image-draw-overlay) -> temp/done/ [force] |
+| 2026-05-12 12:30:19 | `PLAN/S0099_sftp-concurrent-access-fix.md` | `spec-arc` | Archive S0099 (sftp-concurrent-access-fix) -> temp/done/ [force] |
+| 2026-05-12 12:30:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager` | Remove stale S0106 debug tags (spec archived) |
+| 2026-05-12 12:30:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `PlayerCropDelegate` | Remove stale S0106 debug tag (spec archived) |
+| 2026-05-12 12:30:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/MediaNotificationManager.kt` | `MediaNotificationManager` | S0172 Phase 01: expose NOTIFICATION_ID as public const for startForeground |
+| 2026-05-12 12:30:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `AudioPlaybackService` | S0172 Phase 01+02: @AndroidEntryPoint, inject PlaybackPositionRepository, startForeground in onCreate, periodic position save, currentOriginalPath companion field |
+| 2026-05-12 12:30:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | S0172 Phase 03: inject playbackPositionRepository, set currentOriginalPath, seekTo saved position + toast for SFTP audio |
+| 2026-05-12 12:30:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | S0172 Phase 03: pass playbackPositionRepository to PlayerMediaLoaderManager |
+| 2026-05-12 12:30:23 | `PLAN/S0107_image-draw-overlay.md` | `spec-arc` | Archive S0107 (image-draw-overlay) -> temp/done/ [force] |
+| 2026-05-12 12:30:23 | `PLAN/S0099_sftp-concurrent-access-fix.md` | `spec-arc` | Archive S0099 (sftp-concurrent-access-fix) -> temp/done/ [force] |
+| 2026-05-12 12:30:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager` | Remove stale S0106 debug tags (spec archived) |
+| 2026-05-12 12:30:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `PlayerCropDelegate` | Remove stale S0106 debug tag (spec archived) |
+| 2026-05-12 12:30:27 | `PLAN/S0099_sftp-concurrent-access-fix.md` | `spec-arc` | Archive S0099 (sftp-concurrent-access-fix) -> temp/done/ [force] |
+| 2026-05-12 12:30:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `ImageCropManager` | Remove stale S0106 debug tags (spec archived) |
+| 2026-05-12 12:30:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `PlayerCropDelegate` | Remove stale S0106 debug tag (spec archived) |
+| 2026-05-12 12:38:32 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity.xrAvailable` | S0156: add openxr_native to early UnsatisfiedLinkError guard — non-Quest/non-arm64 devices now fall back to phone screen before super.onCreate |
+| 2026-05-12 12:40:13 | `PLAN/S0173_refactor-playback-position-persistence.md` | `S0173` | Created strategic spec: refactor position save/restore into PositionSaveLoop + PlaybackPositionRestorer, cover cloud branch |
+| 2026-05-12 14:01:36 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156` | Added follow-up spec naming rule: nolegal slug + Epic: S0156 header (Столп D + Столп F) |
+| 2026-05-12 14:04:51 | `PLAN/S0174_nolegal-ytdlp-universal-extractor.md` | `spec` | Add strategic spec S0174: noLegal yt-dlp universal extractor (Chaquopy, 1800+ sites, epic S0156) |
+| 2026-05-12 14:04:51 | `PLAN/S0175_nolegal-newpipe-version-bump.md` | `spec` | Add strategic spec S0175: noLegal NewPipeExtractor version bump + Odysee allowlist (epic S0156) |
+| 2026-05-12 14:04:51 | `PLAN/S0176_nolegal-session-context-etld-fix.md` | `spec` | Add strategic spec S0176: fix applySessionContext eTLD+1 lookup in shared coordinator (epic S0156) |
+| 2026-05-12 14:04:51 | `PLAN/S0177_nolegal-native-site-extractors.md` | `spec` | Add strategic spec S0177: noLegal native Kotlin extractors for ArtStation/Vimeo/DeviantArt/Dailymotion (epic S0156) |
+| 2026-05-12 14:13:59 | `PLAN/S0173_refactor-playback-position-persistence/INDEX.md` | `spec-tech` | Create tactical plan for S0173 |
+| 2026-05-12 14:13:59 | `PLAN/S0173_refactor-playback-position-persistence/PHASE_01__utility-classes.md` | `spec-tech` | Phase 01: utility-classes |
+| 2026-05-12 14:14:00 | `PLAN/S0173_refactor-playback-position-persistence/PHASE_02__refactor-save-loop.md` | `spec-tech` | Phase 02: refactor-save-loop |
+| 2026-05-12 14:14:00 | `PLAN/S0173_refactor-playback-position-persistence/PHASE_03__refactor-media-loader.md` | `spec-tech` | Phase 03: refactor-media-loader |
+| 2026-05-12 14:14:00 | `PLAN/S0173_refactor-playback-position-persistence/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-12 14:14:00 | `PLAN/S0173_refactor-playback-position-persistence.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-12 14:14:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PositionSaveLoop.kt` | `S0173` | Add PositionSaveLoop — standalone periodic save-loop utility |
+| 2026-05-12 14:15:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionRestorer.kt` | `S0173` | Add PlaybackPositionRestorer — suspend restore-and-notify utility |
+| 2026-05-12 14:17:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `S0173` | Replace positionSaveRunnable/lastSavedPosition with positionSaveLoop field |
+| 2026-05-12 14:18:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackPositionHelper.kt` | `S0173` | Delegate save-loop to PositionSaveLoop; formatTime delegates to PlaybackPositionRestorer |
+| 2026-05-12 14:21:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `S0173` | Replace private save-loop with PositionSaveLoop; add serviceScope |
+| 2026-05-12 14:23:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Fix BLACK_SCREEN and PLAYBACK_ORDER buttons missing in portrait bar: add both to getOverflowableButtons() and barViewForCommand() |
+| 2026-05-12 14:24:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0173` | SFTP restore via PlaybackPositionRestorer; cloud branch adds save+restore; remove formatTimeMs |
+| 2026-05-12 14:28:11 | `dev/CATALOG/app_v2.jsonl` | `S0173` | Catalog regen after adding PositionSaveLoop and PlaybackPositionRestorer |
+| 2026-05-12 14:30:30 | `PLAN/S0173_refactor-playback-position-persistence.md` | `spec-check` | Audit S0173 -> Verified; PASS 21/WARN 0/FAIL 0 |
+| 2026-05-12 14:40:28 | `PLAN/S0176_nolegal-session-context-etld-fix.md` | `spec-update` | Refinement (claude-sonnet-4-5, focus: all) — applied 8, proposed 1 DISCUSS |
+| 2026-05-12 15:03:28 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/INDEX.md` | `spec-tech` | Create tactical plan for S0174 |
+| 2026-05-12 15:03:28 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_01__gradle-chaquopy-setup.md` | `spec-tech` | Phase 01: gradle-chaquopy-setup |
+| 2026-05-12 15:03:28 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_02__priority-order-fix.md` | `spec-tech` | Phase 02: priority-order-fix |
+| 2026-05-12 15:03:29 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_03__cookie-bridge.md` | `spec-tech` | Phase 03: cookie-bridge |
+| 2026-05-12 15:03:29 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_04__ytdlp-strategy.md` | `spec-tech` | Phase 04: ytdlp-strategy |
+| 2026-05-12 15:03:29 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_05__auth-resources.md` | `spec-tech` | Phase 05: auth-resources |
+| 2026-05-12 15:03:30 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
+| 2026-05-12 15:03:30 | `PLAN/S0174_nolegal-ytdlp-universal-extractor.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-12 15:04:44 | `build.gradle.kts` | `S0174` | Add Chaquopy plugin (com.chaquo.python 16.0.0) to root plugins block, apply false |
+| 2026-05-12 15:06:48 | `app_v2/build.gradle.kts` | `S0174` | Apply Chaquopy plugin; configure Python 3.11 in defaultConfig; add yt-dlp==2025.4.30 pip install in noLegal flavor |
+| 2026-05-12 15:06:48 | `app_v2/src/noLegal/AndroidManifest.xml` | `S0174` | New: noLegal manifest overlay with extractNativeLibs=true for Chaquopy |
+| 2026-05-12 15:45:59 | `app_v2/build.gradle.kts` | `Chaquopy S0174` | Conditional Chaquopy apply via -Pchaquopy.enabled=true; beforeVariants disables non-noLegal flavors; Python 3.12; noLegal ABI arm64+x86_64 |
+| 2026-05-12 15:45:59 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_01__gradle-chaquopy-setup.md` | `spec-dev S0174` | Phase 01 Done: all steps [x], both builds PASS |
+| 2026-05-12 15:45:59 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/INDEX.md` | `spec-dev S0174` | Phase 01 marked Done; INDEX updated 1/6 |
+| 2026-05-12 15:47:52 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `LinkExtractionRegistry` | S0174: insert ytdlp at position 0 in CANONICAL_ORDER |
+| 2026-05-12 15:47:52 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_02__priority-order-fix.md` | `spec-dev S0174` | Phase 02 Done: CANONICAL_ORDER updated |
+| 2026-05-12 15:51:14 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/CookieFileWriter.kt` | `CookieFileWriter` | S0174: new class — Netscape cookie file writer for yt-dlp, eTLD+1 matching, deleteOnExit |
+| 2026-05-12 15:51:14 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/nolegal/CookieFileWriterTest.kt` | `CookieFileWriterTest` | S0174: unit tests for CookieFileWriter Netscape serialisation |
+| 2026-05-12 15:51:14 | `PLAN/S0174_nolegal-ytdlp-universal-extractor/PHASE_03__cookie-bridge.md` | `spec-dev S0174` | Phase 03 Done: CookieFileWriter created |
+| 2026-05-12 16:12:06 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/ChaquopyRuntimeHolder.kt` | `ChaquopyRuntimeHolder` | S0174 Phase04: lazy Python runtime init guard with double-checked locking |
+| 2026-05-12 16:12:06 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/YtDlpExtractionStrategy.kt` | `YtDlpExtractionStrategy` | S0174 Phase04: yt-dlp backed URL extraction strategy for noLegal flavor |
+| 2026-05-12 16:12:06 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `NoLegalLinkDownloadModule` | S0174 Phase04: bind YtDlpExtractionStrategy into UrlExtractionStrategy set |
+| 2026-05-12 16:12:23 | `PLAN/S0178_video-thumbnail-black-frame-detection.md` | `spec` | Add strategic spec S0178 for ad-hoc video-thumbnail-black-frame-detection |
+| 2026-05-12 16:16:55 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `KnownAuthResources` | S0174 Phase05: add facebook.com with previewOnlyMeansLogin=true |
+| 2026-05-12 16:16:55 | `app_v2/src/main/res/values/strings.xml` | `strings` | S0174 Phase05: add link_download_ytdlp_* strings (EN) |
+| 2026-05-12 16:16:55 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | S0174 Phase05: add link_download_ytdlp_* strings (RU) |
+| 2026-05-12 16:16:55 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | S0174 Phase05: add link_download_ytdlp_* strings (UK) |
+| 2026-05-12 16:16:55 | `app_v2/src/testNoLegal/java/com/sza/fastmediasorter/data/link/nolegal/CookieFileWriterTest.kt` | `CookieFileWriterTest` | S0174 Phase05: move test to testNoLegal source set (was failing standard test compilation) |
+| 2026-05-12 16:22:36 | `app_v2/build.gradle.kts` | `S0174` | Add Chaquopy plugin + yt-dlp wheel for noLegal flavor; noLegal abiFilters restricted to arm64-v8a + x86_64 |
+| 2026-05-12 16:22:36 | `app_v2/src/noLegal/AndroidManifest.xml` | `S0174` | Add extractNativeLibs=true overlay for Chaquopy libpython3.so |
+| 2026-05-12 16:22:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `LinkExtractionRegistry` | S0174 Phase02: add ytdlp to CANONICAL_ORDER at position 0 |
+| 2026-05-12 16:22:36 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/CookieFileWriter.kt` | `CookieFileWriter` | S0174 Phase03: Netscape cookie file serialiser for yt-dlp |
+| 2026-05-12 16:22:36 | `docs/FEATURES.md` | `S0174` | Add noLegal yt-dlp flavor section |
+| 2026-05-12 16:22:36 | `docs/FEATURES_RU.md` | `S0174` | Add noLegal yt-dlp flavor section (RU) |
+| 2026-05-12 16:22:36 | `docs/FEATURES_UK.md` | `S0174` | Add noLegal yt-dlp flavor section (UK) |
+| 2026-05-12 16:22:36 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0174: add noLegal classes ChaquopyRuntimeHolder, YtDlpExtractionStrategy, CookieFileWriter |
+| 2026-05-12 16:22:36 | `dev/CATALOG/app_v2.md` | `catalog` | S0174: regenerate catalog MD with 1018 records |
+| 2026-05-12 16:23:19 | `PLAN/S0178_video-thumbnail-black-frame-detection/INDEX.md` | `spec-tech` | Create tactical plan for S0178 |
+| 2026-05-12 16:23:20 | `PLAN/S0178_video-thumbnail-black-frame-detection/PHASE_01__darkness-evaluator.md` | `spec-tech` | Phase 01: darkness-evaluator |
+| 2026-05-12 16:23:20 | `PLAN/S0178_video-thumbnail-black-frame-detection/PHASE_02__network-decoder-retry.md` | `spec-tech` | Phase 02: network-decoder-retry |
+| 2026-05-12 16:23:20 | `PLAN/S0178_video-thumbnail-black-frame-detection/PHASE_03__background-extractor-retry.md` | `spec-tech` | Phase 03: background-extractor-retry |
+| 2026-05-12 16:23:20 | `PLAN/S0178_video-thumbnail-black-frame-detection/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
+| 2026-05-12 16:23:21 | `PLAN/S0178_video-thumbnail-black-frame-detection.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-12 16:26:43 | `PLAN/S0174_nolegal-ytdlp-universal-extractor.md` | `spec-check` | Audit S0174 -> Verified; PASS 20/WARN 0/FAIL 0; 5 manual on-device items |
+| 2026-05-12 16:29:54 | `docs/FEATURES_noLegal.md` | `FEATURES_noLegal` | S0174: add §1 Universal Media Extractor (yt-dlp); noLegal-only feature inventory |
+| 2026-05-12 16:29:54 | `docs/FEATURES.md` | `FEATURES` | S0174: remove noLegal section (not for publication; moved to FEATURES_noLegal.md) |
+| 2026-05-12 16:29:54 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0174: remove noLegal section |
+| 2026-05-12 16:29:54 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0174: remove noLegal section |
+| 2026-05-12 16:30:42 | `docs/FEATURES_noLegal.md` | `FEATURES_noLegal` | Create private noLegal feature inventory (gitignored, S0156 §6.9) |
+| 2026-05-12 16:30:42 | `docs/FEATURES_noLegal_RU.md` | `FEATURES_noLegal_RU` | Create Russian mirror of noLegal feature inventory |
+| 2026-05-12 16:30:42 | `docs/FEATURES_noLegal_UK.md` | `FEATURES_noLegal_UK` | Create Ukrainian mirror of noLegal feature inventory |
+| 2026-05-12 16:30:43 | `.gitignore` | `.gitignore` | Gitignore docs/FEATURES_noLegal*.md — private sideload-only inventory |
+| 2026-05-12 16:30:43 | `CLAUDE.md` | `CLAUDE.md` | Document noLegal feature inventory exception in Feature Inventory, Post-Change Steps, and mandatory skills table |
+| 2026-05-12 16:30:43 | `.claude/commands/doc-update.md` | `doc-update skill` | Add B-noLegal section and decision matrix rows for noLegal-only features |

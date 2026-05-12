@@ -258,3 +258,8 @@ dev/CATALOG/app_v2.jsonl
 dev/CATALOG/app_v2.md
 dev/CATALOG/wear.jsonl
 dev/CATALOG/wear.md
+
+# noLegal private feature inventory (sideload-only, not for public repo — S0156 §6.9)
+docs/FEATURES_noLegal.md
+docs/FEATURES_noLegal_RU.md
+docs/FEATURES_noLegal_UK.md

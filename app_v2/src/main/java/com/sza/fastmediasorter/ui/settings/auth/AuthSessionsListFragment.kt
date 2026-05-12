@@ -29,14 +29,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-/**
- * S0116 §5.1 pillar K / S0155: settings sub-screen listing saved auth accounts
- * grouped by host. Each host group shows its accounts with rename / delete / re-login
- * actions and an "add another account" button.
- *
- * The "Add authorization" CTA in the toolbar still opens the full host picker so
- * users can add an account for any host, not just existing ones.
- */
 @AndroidEntryPoint
 class AuthSessionsListFragment : Fragment(), MenuProvider {
 
@@ -72,14 +64,13 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
         val list = view.findViewById<RecyclerView>(R.id.rvAuthSessions)
         list.layoutManager = LinearLayoutManager(requireContext())
         list.adapter = adapter
-        ViewCompat.setOnApplyWindowInsetsListener(list) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(list) { recyclerView, insets ->
             val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-            v.updatePadding(bottom = bottom + resources.getDimensionPixelSize(R.dimen.padding_large))
+            recyclerView.updatePadding(bottom = bottom + resources.getDimensionPixelSize(R.dimen.padding_large))
             insets
         }
 
         val empty = view.findViewById<TextView>(R.id.tvAuthSessionsEmpty)
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.accountGroups.collect { groups ->
@@ -103,8 +94,6 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
         }
     }
 
-    // ── Host-level "add another account" (from group header button) ──────────
-
     private fun launchAddAccount(host: String, loginUrl: String) {
         if (loginUrl.isNotBlank()) {
             Timber.i("AuthSessionsListFragment: adding account for host=%s", host)
@@ -115,8 +104,6 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
         }
     }
 
-    // ── Delete confirmation ───────────────────────────────────────────────────
-
     private fun showDeleteConfirmation(host: String, accountId: String, displayName: String) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.s0155_delete_account_confirm, displayName))
@@ -126,8 +113,6 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
-
-    // ── Rename dialog ─────────────────────────────────────────────────────────
 
     private fun showRenameDialog(host: String, accountId: String, currentName: String) {
         val input = TextInputEditText(requireContext()).apply { setText(currentName) }
@@ -144,20 +129,12 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
             .show()
     }
 
-    // ── Re-login (opens WebView so user can refresh session) ──────────────────
-
     private fun launchRelogin(host: String, accountId: String, loginUrl: String) {
-        Timber.i(
-            "AuthSessionsListFragment: re-login for host=%s accountId=%s",
-            host, accountId,
-        )
-        val url = if (loginUrl.isNotBlank()) loginUrl
-        else KnownAuthResources.matchHost(host)?.loginUrl ?: return
+        Timber.i("AuthSessionsListFragment: re-login for host=%s accountId=%s", host, accountId)
+        val url = if (loginUrl.isNotBlank()) loginUrl else KnownAuthResources.matchHost(host)?.loginUrl ?: return
         WebViewAuthDialogFragment.newInstance(url)
             .show(parentFragmentManager, "s0155_webview_relogin")
     }
-
-    // ── Toolbar "+" — add new host or known resource ─────────────────────────
 
     private fun promptForUrlAndOpenWebView() {
         val resources = KnownAuthResources.all

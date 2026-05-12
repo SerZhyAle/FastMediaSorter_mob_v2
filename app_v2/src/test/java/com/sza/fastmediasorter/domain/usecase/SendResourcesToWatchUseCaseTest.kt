@@ -163,6 +163,9 @@ private class FakeWearableDataLayerRepository : WearableDataLayerRepository {
     }
 
     override suspend fun sendMessage(nodeId: String, path: String, data: ByteArray) = Unit
+
+    // Required by the interface but not exercised in these tests.
+    override suspend fun putEnvelopeDataItem(path: String, envelope: com.sza.fastmediasorter.domain.model.WearEventEnvelope) = Unit
 }
 
 private data class PutCall(

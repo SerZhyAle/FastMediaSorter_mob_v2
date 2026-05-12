@@ -1,22 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvAuthSessions"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:padding="@dimen/margin_small"
-        android:paddingBottom="@dimen/padding_large" />
+    <!-- S0166 §4: explanatory block — describes dismissal records and multi-account use -->
+    <TextView android:id="@+id/tvAuthSessionsInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingHorizontal="@dimen/margin_normal" android:paddingTop="@dimen/margin_normal" android:paddingBottom="@dimen/margin_small" android:text="@string/auth_sessions_info_text" android:textAppearance="?attr/textAppearanceCaption" />
 
-    <TextView
-        android:id="@+id/tvAuthSessionsEmpty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/auth_sessions_empty"
-        android:textAppearance="?attr/textAppearanceBody2"
-        android:visibility="gone" />
-</FrameLayout>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvAuthSessions" android:layout_width="match_parent" android:layout_height="match_parent" android:clipToPadding="false" android:padding="@dimen/margin_small" android:paddingBottom="@dimen/padding_large" />
+
+        <TextView android:id="@+id/tvAuthSessionsEmpty" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/auth_sessions_empty" android:textAppearance="?attr/textAppearanceBody2" android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>

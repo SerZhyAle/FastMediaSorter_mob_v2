@@ -7,17 +7,6 @@ import okhttp3.HttpUrl
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * S0116 §5.1 pillar K: OkHttp `CookieJar` adapter over [EncryptedCookieStore].
- *
- * S0155: Checks [LinkDownloadSessionContext] first — if the context has pre-loaded
- * cookies for the requested host (matching the account selected before the pipeline
- * started), those are used; otherwise falls back to the deprecated `store.loadFor(host)`
- * to preserve backward compat for callers that have not yet been updated.
- *
- * `saveFromResponse` is intentionally a no-op (per S0116 §5.1 pillar L cookies arrive
- * exclusively through the WebView authentication flow in Phase 05).
- */
 @Singleton
 class LinkDownloadCookieJar @Inject constructor(
     private val store: EncryptedCookieStore,
@@ -26,29 +15,42 @@ class LinkDownloadCookieJar @Inject constructor(
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         val host = url.host
-        // S0155: prefer session-context cookies when an account was selected for this run.
+        @Suppress("DEPRECATION")
         val raw = context.cookiesFor(host)
-            ?: @Suppress("DEPRECATION") store.loadFor(host)
+            ?: store.loadFor(host).ifEmpty { null }
+            // S0171: eTLD+1 wildcard — forward registered-domain cookies to CDN subdomains.
+            // Ensures www.tiktok.com session reaches v16-webapp-prime.tiktok.com on re-fetches.
+            ?: registrableDomain(host)?.let { reg ->
+                store.listAllAccounts()
+                    .firstOrNull { (h, _) -> registrableDomain(h) == reg }
+                    ?.let { (h, e) -> store.loadForAccount(h, e.accountId) }
+            }
+            ?: emptyList()
         if (raw.isEmpty()) return emptyList()
-        val out = raw.mapNotNull { c ->
+
+        val out = raw.mapNotNull { cookie ->
             try {
                 val builder = Cookie.Builder()
-                    .name(c.name)
-                    .value(c.value ?: "")
-                    .path(c.path ?: "/")
-                if (c.domain.isNullOrBlank()) builder.hostOnlyDomain(host) else builder.domain(c.domain.trimStart('.'))
-                if (c.maxAge >= 0L) {
-                    val expiresAt = System.currentTimeMillis() + c.maxAge * 1000L
-                    builder.expiresAt(expiresAt)
+                    .name(cookie.name)
+                    .value(cookie.value ?: "")
+                    .path(cookie.path ?: "/")
+                if (cookie.domain.isNullOrBlank()) {
+                    builder.hostOnlyDomain(host)
+                } else {
+                    builder.domain(cookie.domain.trimStart('.'))
                 }
-                if (c.secure) builder.secure()
-                if (c.isHttpOnly) builder.httpOnly()
+                if (cookie.maxAge >= 0L) {
+                    builder.expiresAt(System.currentTimeMillis() + cookie.maxAge * 1000L)
+                }
+                if (cookie.secure) builder.secure()
+                if (cookie.isHttpOnly) builder.httpOnly()
                 builder.build()
-            } catch (t: Throwable) {
-                if (t is kotlinx.coroutines.CancellationException) throw t
+            } catch (throwable: Throwable) {
+                if (throwable is kotlinx.coroutines.CancellationException) throw throwable
                 null
             }
         }
+
         LinkDownloadTrace.verbose(
             "link-download-cookie-jar inject host=$host ${LinkDownloadTrace.truncateCookies(out)}",
         )
@@ -56,6 +58,13 @@ class LinkDownloadCookieJar @Inject constructor(
     }
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-        // Intentional no-op — see class kdoc.
+        // Cookies are persisted only via the explicit WebView auth flow.
+    }
+
+    // S0171: returns the registrable domain (eTLD+1) for host, e.g. "tiktok.com" for
+    // "v16-webapp-prime.tiktok.com". Naive split is sufficient for the platforms we support.
+    private fun registrableDomain(host: String): String? {
+        val parts = host.split('.')
+        return if (parts.size >= 2) "${parts[parts.size - 2]}.${parts.last()}" else null
     }
 }

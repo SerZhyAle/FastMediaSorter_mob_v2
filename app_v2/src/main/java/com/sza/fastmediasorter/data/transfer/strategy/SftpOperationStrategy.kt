@@ -121,12 +121,11 @@ class SftpOperationStrategy @Inject constructor(
             // Try to figure out if it's a directory or file
             val statResult = sftpClient.getFileAttributes(connectionInfo, pathInfo.remotePath)
             
+            // Pass SftpException (with its status code) directly so callers can classify the failure
             if (statResult.isSuccess && statResult.getOrNull()?.isDirectory == true) {
-                 val result = sftpClient.deleteDirectory(connectionInfo, pathInfo.remotePath)
-                 if (result.isSuccess) Result.success(Unit) else Result.failure(Exception("Delete directory failed: ${result.exceptionOrNull()?.message}"))
+                sftpClient.deleteDirectory(connectionInfo, pathInfo.remotePath)
             } else {
-                 val result = sftpClient.deleteFile(connectionInfo, pathInfo.remotePath)
-                 if (result.isSuccess) Result.success(Unit) else Result.failure(Exception("Delete file failed: ${result.exceptionOrNull()?.message}"))
+                sftpClient.deleteFile(connectionInfo, pathInfo.remotePath)
             }
         } catch (e: Exception) {
             Timber.e(e, "SftpOperationStrategy: Delete failed - $path")
@@ -174,8 +173,8 @@ class SftpOperationStrategy @Inject constructor(
                 progressCallback = null
             )
             
-            if (uploadResult.isSuccess) Result.success(Unit) 
-            else Result.failure(Exception("Upload failed: ${uploadResult.exceptionOrNull()?.message}"))
+            // Return the uploadResult directly to preserve any SftpException and its status code
+            uploadResult
         } catch (e: Exception) {
             Timber.e(e, "SftpOperationStrategy: Write file failed - $path")
             Result.failure(e)

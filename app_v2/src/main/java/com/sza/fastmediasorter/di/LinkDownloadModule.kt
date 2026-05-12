@@ -20,17 +20,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
 
-/**
- * S0003: Hilt bindings for the link-auto-download channel.
- *
- * Phase 02 only ships the OkHttp client (with redirect-scheme guard).
- * Phase 03/04 add the strategies via `@IntoSet` multibindings (in a sibling abstract module).
- *
- * S0116: streaming/cookie/auth bindings appended in later phases (Phase 03 streaming via
- * flavor-specific `StreamingModule.kt` in `src/streamingEnabled|streamingDisabled/.../di/`;
- * Phase 04 cookie storage via the `LinkDownloadCookieJar`; Phase 05 WebView auth via the
- * `AuthSessionRepository` binding).
- */
 @Module
 @InstallIn(SingletonComponent::class)
 object LinkDownloadModule {
@@ -38,37 +27,45 @@ object LinkDownloadModule {
     @Provides
     @Singleton
     @Named("linkDownload")
-    fun provideOkHttpClient(cookieJar: LinkDownloadCookieJar): OkHttpClient = OkHttpClient.Builder()
+    fun provideLinkDownloadClient(cookieJar: LinkDownloadCookieJar): OkHttpClient = OkHttpClient.Builder()
         .callTimeout(30, TimeUnit.SECONDS)
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .followRedirects(true)
         .followSslRedirects(true)
         .cookieJar(cookieJar)
+        .addInterceptor(DefaultUserAgentInterceptor)
         .addNetworkInterceptor(HttpOnlyRedirectInterceptor)
         .build()
 
+    /**
+     * S0171: many CDNs / SPA backends (Instagram, TikTok, …) treat OkHttp's default
+     * `User-Agent: okhttp/4.x` as a bot and reject it or serve a degraded response.
+     * Set a real desktop-browser UA unless the caller already specified one.
+     */
+    private object DefaultUserAgentInterceptor : Interceptor {
+        private const val BROWSER_UA =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val request = chain.request()
+            if (request.header("User-Agent") != null) return chain.proceed(request)
+            return chain.proceed(request.newBuilder().header("User-Agent", BROWSER_UA).build())
+        }
+    }
+
     private object HttpOnlyRedirectInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
-            val req = chain.request()
-            val scheme = req.url.scheme.lowercase()
+            val request = chain.request()
+            val scheme = request.url.scheme.lowercase()
             require(scheme == "http" || scheme == "https") {
                 "linkDownload OkHttp call rejected non-http(s) scheme: $scheme"
             }
-            return chain.proceed(req)
+            return chain.proceed(request)
         }
     }
 }
 
-/**
- * Multibindings module for [UrlExtractionStrategy] implementations.
- * S0140 appends `dynamic` after `html` so JS-rendered pages get one more generic
- * fallback before the coordinator gives up on the shared URL.
- *
- * S0116 §5.1 pillar K: also binds [AuthSessionRepository] to its impl so the
- * UI layer can observe / mutate saved sessions without touching the encrypted
- * cookie store directly.
- */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class LinkDownloadStrategiesModule {

@@ -664,11 +664,16 @@ class VrPlayerActivity : PlayerActivity() {
         internal const val VR_FALLBACK_ERROR_DELAY_MS = 350L
 
         private val xrAvailable: Boolean by lazy {
+            // S0156 ADR-8: noLegal APK ships openxr_native.so only for arm64-v8a
+            // (cmake.abiFilters = arm64-v8a). On other ABIs or devices without the
+            // Meta XR runtime, either library will throw UnsatisfiedLinkError — we
+            // catch it here so VrPlayerActivity falls back gracefully to the phone screen.
             try {
                 System.loadLibrary("openxr_loader")
+                System.loadLibrary("openxr_native")
                 true
             } catch (_: UnsatisfiedLinkError) {
-                Timber.d("VrPlayerActivity: OpenXR loader not available")
+                Timber.w("VrPlayerActivity: OpenXR native bridge unavailable (non-Quest or unsupported ABI)")
                 false
             }
         }
