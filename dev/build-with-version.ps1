@@ -53,7 +53,7 @@ function Invoke-VersionedBuild {
         [switch]$NoDaemon
     )
 
-    $gradleArgs = @(":app_v2:assembleDebug")
+    $gradleArgs = @("assembleStandardDebug", "-Pchaquopy.enabled=false")
     if ($DisableBuildCache) {
         $gradleArgs += "--no-build-cache"
         $gradleArgs += "--rerun-tasks"

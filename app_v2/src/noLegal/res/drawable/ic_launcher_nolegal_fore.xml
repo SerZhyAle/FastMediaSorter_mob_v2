@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- noLegal adaptive-icon foreground: main icon foreground + pirate skull badge overlay.
+     The skull badge is placed bottom-right so the main icon identity remains recognisable. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base: main app foreground (inherited from main source set) -->
+    <item android:drawable="@mipmap/ic_launcher_adaptive_fore" />
+    <!-- Top: skull badge — marks this as the noLegal sideload-only build -->
+    <item android:drawable="@drawable/ic_skull_badge" />
+</layer-list>

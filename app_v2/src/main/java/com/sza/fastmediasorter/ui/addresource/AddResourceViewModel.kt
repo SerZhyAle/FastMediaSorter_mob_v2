@@ -29,10 +29,14 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+/** Live progress snapshot for the host-discovery scan. */
+data class ScanProgress(val subnet: String, val done: Int, val total: Int)
+
 data class AddResourceState(
     val resourcesToAdd: List<MediaResource> = emptyList(),
     val selectedPaths: Set<String> = emptySet(),
     val isScanning: Boolean = false,
+    val scanProgress: ScanProgress? = null,
     val copyFromResource: MediaResource? = null,
     val foundNetworkHosts: List<NetworkHost> = emptyList(),
     val foundShares: List<String> = emptyList(),

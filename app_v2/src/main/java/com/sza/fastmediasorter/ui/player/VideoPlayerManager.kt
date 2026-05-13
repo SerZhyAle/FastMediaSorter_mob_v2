@@ -156,6 +156,10 @@ class VideoPlayerManager(
         // S0168 §5.3: VP9/other codec decoders allocate 20-30 MB native at init.
         // 30 MB free is the minimum safe margin before we attempt Glide eviction + GC.
         private const val NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES = 30L * 1024 * 1024
+        // WHY: GC cannot reclaim native codec allocations — free rarely rises above ~20 MB on
+        // constrained devices. Toast fires only when free < 10 MB after GC (actual failure risk),
+        // not at the 30 MB eviction threshold where it was becoming chronic noise.
+        private const val NATIVE_HEAP_CRITICAL_TOAST_THRESHOLD_BYTES = 10L * 1024 * 1024
         internal const val DEFAULT_BRIGHTNESS_PROGRESS = 50
 
         // Playback health-check — thresholds for detecting stuck / white-noise audio
@@ -231,6 +235,11 @@ class VideoPlayerManager(
 
     // Guards the one-shot audio-unsupported toast; reset per file load in playVideo().
     @Volatile private var audioUnsupportedShownForPath: String? = null
+
+    // One-shot low-memory toast guard — shown at most once per PlayerActivity session.
+    // Not reset on periodic ExoPlayer recreation — only resets when the Activity is destroyed
+    // (new VideoPlayerManager instance). Prevents chronic spam on constrained-memory devices.
+    @Volatile private var lowMemoryToastShownThisSession = false
 
     // Playback health monitoring (detect "white noise" / stuck playback)
     internal var playbackHealthCheckRunnable: Runnable? = null
@@ -706,15 +715,16 @@ class VideoPlayerManager(
             Glide.get(context).clearMemory()
             Runtime.getRuntime().gc()
             val nativeFreeAfterGc = Debug.getNativeHeapFreeSize()
-            if (nativeFreeAfterGc < NATIVE_HEAP_PREPLAY_THRESHOLD_BYTES) {
+            if (nativeFreeAfterGc < NATIVE_HEAP_CRITICAL_TOAST_THRESHOLD_BYTES && !lowMemoryToastShownThisSession) {
+                lowMemoryToastShownThisSession = true
                 Timber.w(
-                    "VideoPlayerManager: native heap still low after GC — free=%dMB — proceeding with caution",
+                    "VideoPlayerManager: native heap critically low after GC — free=%dMB — showing toast once this session",
                     nativeFreeAfterGc / 1024 / 1024
                 )
                 Toast.makeText(context, context.getString(R.string.warning_low_memory_playback), Toast.LENGTH_SHORT).show()
             } else {
                 Timber.i(
-                    "VideoPlayerManager: native heap recovered after GC — free=%dMB",
+                    "VideoPlayerManager: native heap after GC — free=%dMB",
                     nativeFreeAfterGc / 1024 / 1024
                 )
             }

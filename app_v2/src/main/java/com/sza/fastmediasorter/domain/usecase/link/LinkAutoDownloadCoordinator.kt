@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.link.LinkDownloadWriter
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
+import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.link.MediaQualityPreference
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
@@ -33,26 +34,59 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val cookieStore: EncryptedCookieStore,
 ) {
 
-    private fun applySessionContext(host: String, accountId: String?) {
-        val cookies = when {
+    // S0176: resolves the stored host whose cookies should be applied to the current run.
+    // Order: exact host match first; eTLD+1 registrable-domain fallback second.
+    // accountId selection is deterministic so the dynamic WebView flow cannot rely on the
+    // shared HTTP cookie bridge to mask misses.
+    private fun resolveSessionHost(host: String, accountId: String?): String? {
+        // Exact match — fastest path, backward compatible.
+        val exactCookies = when {
             accountId != null -> cookieStore.loadForAccount(host, accountId)
             else -> @Suppress("DEPRECATION") cookieStore.loadFor(host)
         }
+        if (exactCookies.isNotEmpty()) return host
+
+        // eTLD+1 fallback — scan all accounts for a matching registrable domain.
+        val reg = registrableDomainOrNull(host) ?: return null
+        val match = if (accountId != null) {
+            cookieStore.listAllAccounts()
+                .firstOrNull { (h, e) ->
+                    e.accountId == accountId && e.cookieCount > 0 && registrableDomainOrNull(h) == reg
+                }
+        } else {
+            cookieStore.listAllAccounts()
+                .firstOrNull { (h, e) -> e.cookieCount > 0 && registrableDomainOrNull(h) == reg }
+        }
+        return match?.first
+    }
+
+    // S0176: uses resolveSessionHost() so that www.instagram.com falls back to the
+    // instagram.com stored session when the exact host has no cookies. Returns the
+    // resolved stored host so handle() can pass it to markLastUsed().
+    private fun applySessionContext(host: String, accountId: String?): String? {
+        val resolvedHost = resolveSessionHost(host, accountId) ?: return null
+        val cookies = when {
+            accountId != null -> cookieStore.loadForAccount(resolvedHost, accountId)
+            else -> @Suppress("DEPRECATION") cookieStore.loadFor(resolvedHost)
+        }
         if (cookies.isNotEmpty()) {
-            sessionContext.set(host, cookies)
+            sessionContext.set(resolvedHost, cookies)
             Timber.i(
-                "[S0166] applying stored session: host=%s accountId=%s cookies=%d",
+                "[S0166] applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d",
                 host,
+                resolvedHost,
                 accountId ?: "auto",
                 cookies.size,
             )
             Timber.d(
-                "LinkAutoDownloadCoordinator: session context applied host=%s accountId=%s cookies=%d",
+                "LinkAutoDownloadCoordinator: session context applied host=%s resolvedHost=%s accountId=%s cookies=%d",
                 host,
+                resolvedHost,
                 accountId ?: "auto",
                 cookies.size,
             )
         }
+        return resolvedHost
     }
 
     suspend fun handle(url: String, callbacks: Callbacks, accountId: String? = null): Result {
@@ -62,7 +96,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
 
         val host = url.toHttpUrlOrNull()?.host ?: ""
-        if (host.isNotBlank()) applySessionContext(host, accountId)
+        val appliedSessionHost = if (host.isNotBlank()) applySessionContext(host, accountId) else null
         val result = try {
             handleUrl(url = url, settings = settings, callbacks = callbacks, accountId = accountId)
         } finally {
@@ -70,7 +104,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
 
         if (accountId != null && host.isNotBlank() && (result is Result.Saved || result is Result.FellBackToDownloads)) {
-            runCatching { authSessionRepository.markLastUsed(host, accountId) }
+            runCatching { authSessionRepository.markLastUsed(appliedSessionHost ?: host, accountId) }
         }
         return result
     }

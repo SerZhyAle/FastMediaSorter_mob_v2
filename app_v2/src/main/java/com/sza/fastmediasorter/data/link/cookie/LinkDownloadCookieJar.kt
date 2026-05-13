@@ -18,11 +18,11 @@ class LinkDownloadCookieJar @Inject constructor(
         @Suppress("DEPRECATION")
         val raw = context.cookiesFor(host)
             ?: store.loadFor(host).ifEmpty { null }
-            // S0171: eTLD+1 wildcard — forward registered-domain cookies to CDN subdomains.
-            // Ensures www.tiktok.com session reaches v16-webapp-prime.tiktok.com on re-fetches.
-            ?: registrableDomain(host)?.let { reg ->
+            // S0171/S0176: eTLD+1 wildcard — forward registered-domain cookies to CDN subdomains.
+            // Uses the shared PSL-aware resolver (S0176) so co.uk / com.au are handled correctly.
+            ?: registrableDomainOrNull(host)?.let { reg ->
                 store.listAllAccounts()
-                    .firstOrNull { (h, _) -> registrableDomain(h) == reg }
+                    .firstOrNull { (h, _) -> registrableDomainOrNull(h) == reg }
                     ?.let { (h, e) -> store.loadForAccount(h, e.accountId) }
             }
             ?: emptyList()
@@ -61,10 +61,4 @@ class LinkDownloadCookieJar @Inject constructor(
         // Cookies are persisted only via the explicit WebView auth flow.
     }
 
-    // S0171: returns the registrable domain (eTLD+1) for host, e.g. "tiktok.com" for
-    // "v16-webapp-prime.tiktok.com". Naive split is sufficient for the platforms we support.
-    private fun registrableDomain(host: String): String? {
-        val parts = host.split('.')
-        return if (parts.size >= 2) "${parts[parts.size - 2]}.${parts.last()}" else null
-    }
 }

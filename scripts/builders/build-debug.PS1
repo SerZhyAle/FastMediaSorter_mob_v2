@@ -89,7 +89,7 @@ function Invoke-DebugBuild {
         [switch]$NoDaemon
     )
 
-    $gradleArgs = @("assembleStandardDebug")
+    $gradleArgs = @("assembleStandardDebug", "-Pchaquopy.enabled=false")
     if ($DisableBuildCache) {
         $gradleArgs += "--no-build-cache"
         $gradleArgs += "--rerun-tasks"

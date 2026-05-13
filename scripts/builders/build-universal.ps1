@@ -54,7 +54,7 @@ Write-Host "Features: $features" -ForegroundColor Yellow
 # Build the APK
 $taskName = "assemble" + $Flavor.Substring(0, 1).ToUpper() + $Flavor.Substring(1) + $BuildType.Substring(0, 1).ToUpper() + $BuildType.Substring(1)
 Write-Host "`nBuilding $Flavor $BuildType APK..." -ForegroundColor Cyan
-& $gradlew $taskName
+& $gradlew $taskName "-Pchaquopy.enabled=false"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

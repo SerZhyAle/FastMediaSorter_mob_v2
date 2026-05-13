@@ -46,7 +46,7 @@ $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName
 Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process
-& $gradlew assembleLegacyDebug
+& $gradlew assembleLegacyDebug "-Pchaquopy.enabled=false"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

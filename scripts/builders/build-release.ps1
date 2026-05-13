@@ -43,7 +43,7 @@ Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process (Release with R8 optimizations)
 # Note: Now builds 'standardRelease' flavor automatically
-& $gradlew assembleRelease
+& $gradlew assembleStandardRelease "-Pchaquopy.enabled=false"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

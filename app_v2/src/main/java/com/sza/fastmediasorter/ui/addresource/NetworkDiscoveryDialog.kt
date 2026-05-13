@@ -4,21 +4,21 @@ import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.core.view.ViewCompat
-import androidx.core.view.accessibility.AccessibilityViewCommand
-import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.NetworkHost
 import com.sza.fastmediasorter.databinding.DialogNetworkDiscoveryBinding
 import com.sza.fastmediasorter.databinding.ItemNetworkHostBinding
+import kotlinx.coroutines.launch
 
 
 class NetworkDiscoveryDialog : DialogFragment() {
@@ -31,12 +31,13 @@ class NetworkDiscoveryDialog : DialogFragment() {
 
     var onHostSelected: ((NetworkHost) -> Unit)? = null
 
+    // onCreateDialog inflates the view and sets it via setView() so the dialog has
+    // visible content. viewLifecycleOwner is NOT available in this path — observation
+    // uses lifecycleScope + repeatOnLifecycle(STARTED) instead (STARTED = dialog visible).
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        _binding = DialogNetworkDiscoveryBinding.inflate(layoutInflater)
-
+        _binding = DialogNetworkDiscoveryBinding.inflate(LayoutInflater.from(requireContext()))
         setupViews()
         observeData()
-
         return MaterialAlertDialogBuilder(requireContext())
             .setView(binding.root)
             .create()
@@ -49,11 +50,9 @@ class NetworkDiscoveryDialog : DialogFragment() {
         }
         binding.rvHosts.adapter = adapter
 
-        // tvStatus announces scan state changes to screen readers.
-        ViewCompat.setAccessibilityLiveRegion(
-            binding.tvStatus,
-            ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE
-        )
+        // tvStatus announces scan state changes to screen readers. Use View property
+        // directly — ViewCompat.setAccessibilityLiveRegion is deprecated (minSdk 26).
+        binding.tvStatus.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
 
         // btnStopScan may be null in landscape layout variant — use safe call
         binding.btnStopScan?.setOnClickListener {
@@ -73,28 +72,36 @@ class NetworkDiscoveryDialog : DialogFragment() {
     }
 
     private fun observeData() {
-        collectOnLifecycle(viewModel.state) { state ->
-            // Update progress and status text.
-            binding.progressBar.isVisible = state.isScanning
-            binding.tvStatus.text = if (state.isScanning) {
-                getString(R.string.msg_scanning_subnet)
-            } else if (state.foundNetworkHosts.isEmpty()) {
-                getString(R.string.msg_scan_complete)
-            } else {
-                getString(R.string.msg_scan_complete)
-            }
+        // DialogFragment via onCreateDialog+setView has no view lifecycle —
+        // use fragment lifecycle (STARTED = dialog is visible and interactive).
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    // Update progress and status text.
+                    binding.progressBar.isVisible = state.isScanning
+                    binding.tvStatus.text = when {
+                        state.isScanning -> {
+                            val p = state.scanProgress
+                            // Show per-subnet progress counter while scan is running.
+                            if (p != null) "${p.subnet}.x (${p.done}/${p.total})"
+                            else getString(R.string.msg_scanning_subnet)
+                        }
+                        else -> getString(R.string.msg_scan_complete)
+                    }
 
-            // Stop button label switches based on scanning state — null-safe for landscape
-            binding.btnStopScan?.text = if (state.isScanning) {
-                getString(R.string.stop)
-            } else {
-                getString(R.string.msg_scan_again)
-            }
+                    // Stop button label switches based on scanning state — null-safe for landscape
+                    binding.btnStopScan?.text = if (state.isScanning) {
+                        getString(R.string.stop)
+                    } else {
+                        getString(R.string.msg_scan_again)
+                    }
 
-            // Hosts list.
-            adapter.submitList(state.foundNetworkHosts)
-            binding.tvEmpty.isVisible = !state.isScanning && state.foundNetworkHosts.isEmpty()
-            binding.rvHosts.isVisible = state.foundNetworkHosts.isNotEmpty()
+                    // Hosts list.
+                    adapter.submitList(state.foundNetworkHosts)
+                    binding.tvEmpty.isVisible = !state.isScanning && state.foundNetworkHosts.isEmpty()
+                    binding.rvHosts.isVisible = state.foundNetworkHosts.isNotEmpty()
+                }
+            }
         }
     }
 
@@ -121,7 +128,7 @@ class NetworkHostAdapter(
     private val onItemClick: (NetworkHost) -> Unit
 ) : ListAdapter<NetworkHost, NetworkHostAdapter.ViewHolder>(DiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemNetworkHostBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
@@ -146,7 +153,7 @@ class NetworkHostAdapter(
         fun bind(host: NetworkHost) {
             binding.tvHostname.text = host.hostname
             binding.tvIp.text = host.ip
-            
+
             val services = host.openPorts.joinToString(", ") { port ->
                 when(port) {
                     445 -> "SMB"

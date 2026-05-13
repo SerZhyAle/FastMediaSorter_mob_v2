@@ -1,6 +1,38 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5030.230** (May 2026)
+**Current release: 2.60.5130.151** (May 2026)
+
+> Changes since version 2.60.5030.230
+
+---
+
+## What's New
+
+- **Adaptive player command bar** — buttons automatically scale to screen width; overflow items move to a "more" menu
+- **Sort progress indicator in Browse** — a loading indicator is shown when sorting large libraries (12,000+ files)
+- **m2ts / BD-TS playback** — format detected by byte signature; routed through a dedicated decoder
+- **Black-frame-free video thumbnails** — up to three retries to find a non-black frame when generating previews
+- **SFTP audio position saved** — playback position is remembered and restored between sessions
+- **SMB: auto-reconnect** — a stalled connection is restarted automatically; connection closes in background on app minimize
+- **"Recents" resource without folder filter** — shows all recent media files regardless of their location
+- **Network device discovery 3× faster** — ports probed in parallel; real-time scan progress shown in the UI
+- **Link download: broken file detection** — a corrupted download is detected automatically; Instagram and TikTok CDN Referer/User-Agent replayed
+
+## What's Fixed
+
+- AVI files on network resources no longer cause a 10-second stall when loading thumbnails
+- "End of String" speed-test error no longer surfaces in the UI
+- Race condition generating video thumbnails over SMB during active playback — fixed
+- SFTP: ArrayIndexOutOfBoundsException on seek in channel (JSch update 0.2.16 → 0.2.26)
+- Volume buttons (Mute / 50% / MAX) did not fit the portrait player command bar — fixed
+- Network device discovery dialog showed blank content and crashed on open — fixed
+- Player: low-memory toast threshold lowered to 10 MB; repeat toasts suppressed within one session
+- Browse: cancelling a background operation no longer invalidates the folder cache or appears as an error in logs
+- Log noise removed: cancelled Glide requests, test credentials, and internal copy operations no longer logged
+
+---
+
+## Previous Release: 2.60.5030.230 (May 2026)
 
 > Changes since version 2.60.422.246
 

@@ -13,6 +13,8 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.utils.VideoFrameDarknessEvaluator
+import com.sza.fastmediasorter.utils.VideoFrameExtractionPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.io.File
@@ -94,12 +96,37 @@ class ThumbnailExtractorHelper @Inject constructor(
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(localFile.absolutePath)
-            val bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                ?: return false
-            FileOutputStream(outputFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+
+            // ADR-3: start at 5 s to skip black leader; fall back to t=0 for short videos.
+            val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                ?.toLongOrNull() ?: 0L
+            val candidates = if (durationMs < 5_000L) {
+                LongArray(1) { 0L }
+            } else {
+                VideoFrameExtractionPolicy.SEEK_OFFSETS_US
             }
-            bitmap.recycle()
+
+            var bestBitmap: Bitmap? = null
+            val maxAttempts = VideoFrameExtractionPolicy.MAX_RETRIES_LOCAL + 1
+            for (i in 0 until minOf(candidates.size, maxAttempts)) {
+                val offsetUs = candidates[i]
+                val frame = retriever.getFrameAtTime(offsetUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                    ?: break
+                if (VideoFrameDarknessEvaluator.isDark(frame)) {
+                    Timber.d("[S0178] bg-extractor: dark frame at ${offsetUs / 1_000_000}s, retrying: ${localFile.name}")
+                    if (bestBitmap == null) bestBitmap = frame else frame.recycle()
+                } else {
+                    bestBitmap?.recycle()
+                    bestBitmap = frame
+                    break
+                }
+            }
+
+            if (bestBitmap == null) return false
+            FileOutputStream(outputFile).use { out ->
+                bestBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+            }
+            bestBitmap.recycle()
             true
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailExtractor: video extraction failed")

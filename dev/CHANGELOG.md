@@ -9077,3 +9077,92 @@ Format: | datetime | file | target | description |
 | 2026-05-12 16:30:43 | `.gitignore` | `.gitignore` | Gitignore docs/FEATURES_noLegal*.md — private sideload-only inventory |
 | 2026-05-12 16:30:43 | `CLAUDE.md` | `CLAUDE.md` | Document noLegal feature inventory exception in Feature Inventory, Post-Change Steps, and mandatory skills table |
 | 2026-05-12 16:30:43 | `.claude/commands/doc-update.md` | `doc-update skill` | Add B-noLegal section and decision matrix rows for noLegal-only features |
+| 2026-05-12 17:48:33 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | Add exact-to-eTLD+1 fallback for applySessionContext and preserve stored-host session binding |
+| 2026-05-12 17:48:33 | `PLAN/S0176_nolegal-session-context-etld-fix.md` | `S0176` | Primitive /spec-tech execution; status moved to BlockNeedUserTest |
+| 2026-05-12 17:55:58 | `app_v2/src/noLegal/res/` | `noLegal launcher icon` | Add pirate skull badge overlay icon for noLegal flavor: ic_skull_badge.xml vector, ic_launcher_nolegal_fore.xml layer-list, adaptive icon XMLs for anydpi-v26 |
+| 2026-05-12 17:56:03 | `PLAN/S0176_nolegal-session-context-etld-fix.md` | `spec-tech` | Correct S0176 to Tactical and replace the accidental primitive-path note |
+| 2026-05-12 17:56:03 | `PLAN/S0176_nolegal-session-context-etld-fix/INDEX.md` | `spec-tech` | Create tactical index for S0176 |
+| 2026-05-12 17:56:03 | `PLAN/S0176_nolegal-session-context-etld-fix/PHASE_01__domain-resolution.md` | `spec-tech` | Phase 01 tactical plan for shared domain resolution |
+| 2026-05-12 17:56:03 | `PLAN/S0176_nolegal-session-context-etld-fix/PHASE_02__session-context-binding.md` | `spec-tech` | Phase 02 tactical plan for coordinator session binding |
+| 2026-05-12 17:56:03 | `PLAN/S0176_nolegal-session-context-etld-fix/PHASE_03__regression-tests.md` | `spec-tech` | Phase 03 tactical plan for regression coverage |
+| 2026-05-12 17:56:03 | `PLAN/S0176_nolegal-session-context-etld-fix/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04 tactical plan for cleanup and verification handoff |
+| 2026-05-12 17:58:24 | `app_v2/build.gradle.kts` | `build.gradle.kts` | S0175: bump NewPipeExtractor v0.24.0->v0.26.1; fix local.properties Chaquopy detection; add --no-configuration-cache to noLegal builds |
+| 2026-05-12 17:58:24 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/NewPipeSiteExtractionStrategy.kt` | `NewPipeSiteExtractionStrategy` | S0175: replace deprecated Stream.url with Stream.content (v0.26.1 API) |
+| 2026-05-12 17:58:25 | `scripts/builders/build-nolegal-debug.ps1` | `build-nolegal-debug.ps1` | S0175: add --no-configuration-cache flag (Chaquopy incompatibility with Gradle CC) |
+| 2026-05-12 17:58:25 | `scripts/builders/build-nolegal-release.ps1` | `build-nolegal-release.ps1` | S0175: add --no-configuration-cache flag |
+| 2026-05-12 17:58:25 | `scripts/builders/build-nolegal-device.ps1` | `build-nolegal-device.ps1` | S0175: add --no-configuration-cache flag |
+| 2026-05-12 17:58:25 | `app_v2/src/vr/res/mipmap-anydpi-v26/` | `ic_launcher.xml` | S0175: remove duplicate launcher icons (identical to main source set) to fix noLegal resource merge conflict |
+| 2026-05-12 18:03:15 | `PLAN/S0175_nolegal-newpipe-version-bump.md` | `spec-check` | Audit S0175 -> Verified; PASS/WARN/FAIL 13/0/0; EXEMPT 1 |
+| 2026-05-12 18:08:17 | `PLAN/S0176_nolegal-session-context-etld-fix.md` | `spec-update` | Resolve research blockers Q1 Q2 Q3 and fix the strategic decisions for S0176 |
+| 2026-05-12 18:08:17 | `PLAN/S0176_nolegal-session-context-etld-fix/INDEX.md` | `spec-update` | Mark S0176 tactical blockers resolved and unblock spec-dev |
+| 2026-05-12 18:08:17 | `PLAN/S0176_nolegal-session-context-etld-fix/PHASE_01__domain-resolution.md` | `spec-update` | Fix Phase 01 to require the PSL-aware OkHttp resolver |
+| 2026-05-12 18:08:17 | `PLAN/S0176_nolegal-session-context-etld-fix/PHASE_02__session-context-binding.md` | `spec-update` | Fix Phase 02 scope after research confirmed dynamic WebView impact and unchanged holder |
+| 2026-05-12 18:08:17 | `PLAN/S0176_nolegal-session-context-etld-fix/PHASE_03__regression-tests.md` | `spec-update` | Fix Phase 03 test scope for resolved Q3 session-context behavior |
+| 2026-05-12 18:22:32 | `TEMP/garbage/` | `project root / dev / PLAN/Other / source backups` | Move 31 junk files to TEMP/garbage: AI agent dumps (root .kt copies, build logs, compile_errors.txt), 4 .backup and 1 .aar.bak from source tree, 11 dev/ TASK+DESIGN temp docs, 9 PLAN/Other/ ad-hoc notes, stale log.log, stray androidx .class file |
+| 2026-05-12 18:47:33 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkCookieDomainResolver.kt` | `LinkCookieDomainResolver` | S0176: add shared PSL-aware registrableDomainOrNull() resolver using OkHttp topPrivateDomain() |
+| 2026-05-12 18:47:33 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadCookieJar.kt` | `LinkDownloadCookieJar` | S0176: replace naive two-label registrableDomain() with shared PSL-aware registrableDomainOrNull() |
+| 2026-05-12 18:47:33 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0176: add eTLD+1 fallback in resolveSessionHost(); applySessionContext() uses resolved host for sessionContext.set() and markLastUsed() |
+| 2026-05-12 18:47:33 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/cookie/LinkCookieDomainResolverTest.kt` | `LinkCookieDomainResolverTest` | S0176: add contract tests for registrableDomainOrNull() PSL resolver |
+| 2026-05-12 18:47:33 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadSessionContextTest.kt` | `LinkDownloadSessionContextTest` | S0176: add contract tests for cookiesFor() matching rules (Q3 research result) |
+| 2026-05-12 18:47:33 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinatorTest.kt` | `LinkAutoDownloadCoordinatorTest` | S0176: add coordinator tests for exact-match precedence, eTLD+1 fallback host binding, and markLastUsed resolved host |
+| 2026-05-12 18:49:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0176: insert Timber.d debug tag for BlockNeedUserTest verification |
+| 2026-05-12 19:59:41 | `PLAN/S0176_nolegal-session-context-etld-fix.md` | `spec-check` | Audit S0176 -> Partial; PASS/WARN/FAIL 14/1/0; WARN: coordinator LOC budget pre-existing; removed BlockNeedUserTest debug tag |
+| 2026-05-12 19:59:48 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `spec-check` | S0176: remove stale Timber.d debug tag (status leaving BlockNeedUserTest) |
+| 2026-05-12 20:00:26 | `PLAN/S0176_nolegal-session-context-etld-fix.md` | `spec-fix` | Annotate Last Audit (S0176): 0 auto-fixed, 1 FOLLOW-UP (line budget pre-existing) |
+| 2026-05-12 20:05:21 | `PLAN/S0177_nolegal-native-site-extractors/INDEX.md` | `spec-tech` | Create tactical plan for S0177 — noLegal native site extractors |
+| 2026-05-12 20:05:21 | `PLAN/S0177_nolegal-native-site-extractors/PHASE_01__artstation-extractor.md` | `spec-tech` | Phase 01: artstation-extractor — CANONICAL_ORDER + ArtStation strategy + DI |
+| 2026-05-12 20:05:21 | `PLAN/S0177_nolegal-native-site-extractors/PHASE_02__deviantart-extractor.md` | `spec-tech` | Phase 02: deviantart-extractor — __INITIAL_STATE__ + oEmbed fallback |
+| 2026-05-12 20:05:21 | `PLAN/S0177_nolegal-native-site-extractors/PHASE_03__vimeo-extractor.md` | `spec-tech` | Phase 03: vimeo-extractor — player config JSON, MP4 or HLS |
+| 2026-05-12 20:05:21 | `PLAN/S0177_nolegal-native-site-extractors/PHASE_04__dailymotion-extractor.md` | `spec-tech` | Phase 04: dailymotion-extractor — embed page HLS stream |
+| 2026-05-12 20:05:21 | `PLAN/S0177_nolegal-native-site-extractors/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup — noLegal feature docs + catalog regen |
+| 2026-05-12 20:05:21 | `PLAN/S0177_nolegal-native-site-extractors.md` | `spec-tech` | Status Approved → Tactical; tactical plan linked |
+| 2026-05-12 20:06:27 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `S0177` | Add artstation/deviantart/vimeo/dailymotion to CANONICAL_ORDER |
+| 2026-05-12 20:07:50 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/ArtStationExtractionStrategy.kt` | `S0177` | New native extractor for artstation.com |
+| 2026-05-12 20:07:50 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `S0177` | Bind ArtStationExtractionStrategy |
+| 2026-05-12 20:15:28 | `app_v2/build.gradle.kts` | `isNoLegalBuild` | Fix Chaquopy variant gate: explicit -Pchaquopy.enabled flag now overrides local.properties; prevents non-noLegal variants being disabled when local.properties has chaquopy.enabled=true |
+| 2026-05-12 20:15:28 | `scripts/builders/` | `build scripts (20 files)` | Add -Pchaquopy.enabled=false to all non-noLegal build scripts; split build-and-push-all into two-pass (non-noLegal first, noLegal second) |
+| 2026-05-12 20:17:47 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/DeviantArtExtractionStrategy.kt` | `S0177` | New native extractor for deviantart.com with __INITIAL_STATE__ + oEmbed fallback |
+| 2026-05-12 20:17:47 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `S0177` | Bind DeviantArtExtractionStrategy |
+| 2026-05-12 20:19:59 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/VimeoExtractionStrategy.kt` | `S0177` | New native extractor for vimeo.com — player config JSON, MP4 or HLS |
+| 2026-05-12 20:19:59 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `S0177` | Bind VimeoExtractionStrategy |
+| 2026-05-12 20:21:13 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/DailymotionExtractionStrategy.kt` | `S0177` | New native extractor for dailymotion.com — embed page HLS stream |
+| 2026-05-12 20:21:13 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalLinkDownloadModule.kt` | `S0177` | Bind DailymotionExtractionStrategy |
+| 2026-05-12 20:31:49 | `docs/FEATURES_noLegal.md` | `S0177` | Document native extractors: ArtStation, DeviantArt, Vimeo, Dailymotion |
+| 2026-05-12 20:31:49 | `dev/CATALOG/app_v2.md` | `S0177` | Catalog regen: 4 new noLegal extractor classes |
+| 2026-05-12 20:33:52 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/ArtStationExtractionStrategy.kt` | `S0177` | Insert BlockNeedUserTest debug tag |
+| 2026-05-12 20:33:52 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/DeviantArtExtractionStrategy.kt` | `S0177` | Insert BlockNeedUserTest debug tag |
+| 2026-05-12 20:33:52 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/VimeoExtractionStrategy.kt` | `S0177` | Insert BlockNeedUserTest debug tag |
+| 2026-05-12 20:33:52 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/DailymotionExtractionStrategy.kt` | `S0177` | Insert BlockNeedUserTest debug tag |
+| 2026-05-12 20:38:10 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/ArtStationExtractionStrategy.kt` | `spec-check` | Remove S0177 debug tag (BlockNeedUserTest -> Partial) |
+| 2026-05-12 20:38:10 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/DeviantArtExtractionStrategy.kt` | `spec-check` | Remove S0177 debug tag (BlockNeedUserTest -> Partial) |
+| 2026-05-12 20:38:10 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/VimeoExtractionStrategy.kt` | `spec-check` | Remove S0177 debug tag (BlockNeedUserTest -> Partial) |
+| 2026-05-12 20:38:10 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/DailymotionExtractionStrategy.kt` | `spec-check` | Remove S0177 debug tag (BlockNeedUserTest -> Partial) |
+| 2026-05-12 20:38:10 | `PLAN/S0177_nolegal-native-site-extractors.md` | `spec-check` | Audit S0177 -> Partial; PASS/WARN/FAIL 40/4/0; phase 03+04 metadata stale |
+| 2026-05-12 20:39:58 | `PLAN/S0177_nolegal-native-site-extractors.md` | `spec-fix` | Annotate Last Audit (S0177) |
+| 2026-05-12 20:39:58 | `PLAN/S0177_nolegal-native-site-extractors/PHASE_03__vimeo-extractor.md` | `spec-fix` | Fix phase 03 metadata: flip header+steps to Done |
+| 2026-05-12 20:39:58 | `PLAN/S0177_nolegal-native-site-extractors/PHASE_04__dailymotion-extractor.md` | `spec-fix` | Fix phase 04 metadata: flip header+steps to Done |
+| 2026-05-12 20:40:52 | `PLAN/S0177_nolegal-native-site-extractors.md` | `spec-check` | Audit S0177 -> Verified; PASS/WARN/FAIL 44/0/0 |
+| 2026-05-12 22:34:19 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/VideoFrameExtractionPolicy.kt` | `S0178` | Add VideoFrameExtractionPolicy: seek offsets and retry limits for black-frame detection |
+| 2026-05-12 22:34:25 | `app_v2/src/main/java/com/sza/fastmediasorter/utils/VideoFrameDarknessEvaluator.kt` | `S0178` | Add VideoFrameDarknessEvaluator: mean luma computation for black frame detection |
+| 2026-05-12 22:34:27 | `dev/CATALOG/scripts/render.ps1` | `spec-check S0177` | Fix Resolve-SourceLink: add noLegal/java + streamingEnabled/java to candidateRoots — was generating wrong src/main/java paths for noLegal classes |
+| 2026-05-12 22:34:27 | `dev/CATALOG/app_v2.md` | `spec-check S0177` | Regen after render.ps1 fix — noLegal extractor links now point to src/noLegal/java |
+| 2026-05-12 22:34:27 | `PLAN/S0177_nolegal-native-site-extractors.md` | `spec-check` | Re-audit S0177 -> Verified; PASS 46/WARN 0/FAIL 0; fixed render.ps1 candidateRoots bug |
+| 2026-05-12 22:36:42 | `gradle.properties` | `gradle.properties` | Demote CC problems to warn: Chaquopy 17.x is not configuration-cache-compatible, noLegal builds from AS now proceed without failing |
+| 2026-05-12 22:40:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkVideoFrameDecoder.kt` | `S0178` | Add dark-frame retry loop and lazy cache eviction to network video frame decoder |
+| 2026-05-12 22:41:46 | `gradle.properties` | `org.gradle.jvmargs` | Add --add-opens java.base/java.lang.ref=ALL-UNNAMED to jvmargs: fixes InaccessibleObjectException when Gradle CC serializer touches ReferenceQueue.head |
+| 2026-05-12 22:43:35 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt` | `S0178` | Add dark-frame retry loop to background video thumbnail extractor |
+| 2026-05-12 22:46:29 | `gradle.properties` | `gradle.properties` | Disable configuration cache globally: Chaquopy 17.x holds non-serializable Gradle types in task actions; problems=warn and --add-opens are insufficient, ConfigurationCacheError is fatal regardless |
+| 2026-05-12 22:47:13 | `docs/FEATURES.md` | `S0178` | Document black-frame detection for video thumbnails |
+| 2026-05-12 22:47:13 | `docs/FEATURES_RU.md` | `S0178` | Document black-frame detection (RU) |
+| 2026-05-12 22:47:14 | `docs/FEATURES_UK.md` | `S0178` | Document black-frame detection (UK) |
+| 2026-05-12 22:51:22 | `PLAN/S0178_video-thumbnail-black-frame-detection.md` | `spec-check` | Audit S0178 -> Verified; PASS/WARN/FAIL 32/0/0 |
+| 2026-05-12 23:22:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt` | `NetworkDiscoveryDialog` | Fix IllegalStateException: move view inflation to onCreateView/onViewCreated so viewLifecycleOwner is available when collectOnLifecycle is called |
+| 2026-05-12 23:55:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/DiscoverNetworkResourcesUseCase.kt` | `DiscoverNetworkResourcesUseCase` | Parallelize port probing per IP (445+139+21+22 concurrent async) — worst-case per-IP drops from 1000ms to 300ms; add onProgress callback for live scan status |
+| 2026-05-12 23:55:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceState` | Add ScanProgress data class and scanProgress field to expose per-subnet probe counter |
+| 2026-05-12 23:55:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceNetworkScanCoordinator.kt` | `AddResourceNetworkScanCoordinator` | Wire onProgress callback from UseCase to AddResourceState.scanProgress |
+| 2026-05-12 23:55:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt` | `NetworkDiscoveryDialog` | Show live scan progress in tvStatus: subnet.x (done/total) instead of static Scanning text |
+| 2026-05-13 00:01:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt` | `NetworkDiscoveryDialog` | Replace deprecated ViewCompat.setAccessibilityLiveRegion with View.accessibilityLiveRegion property (minSdk 26) |
+| 2026-05-13 00:19:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt` | `NetworkDiscoveryDialog` | Fix dialog empty content: restore setView() in onCreateDialog, replace viewLifecycleOwner collection with lifecycleScope+repeatOnLifecycle(STARTED) |
+| 2026-05-13 00:44:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Lower low-memory toast threshold from 30 MB to 10 MB (NATIVE_HEAP_CRITICAL_TOAST_THRESHOLD_BYTES); add one-shot guard (lowMemoryToastShownThisSession) to suppress chronic spam on constrained-memory devices |
+| 2026-05-13 00:52:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkMediaDataSource.kt` | `NetworkMediaDataSource.readAt` | Remove Timber.d on closed-DataSource path — MediaMetadataRetriever calls readAt in a tight loop after close, producing ~3200 log lines/sec of pure noise |
+| 2026-05-13 01:46:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseNavigationManager.kt` | `BrowseNavigationManager` | Fix: CancellationException from ConnectionThrottleManager no longer logged as E or invalidates directory cache; re-thrown cleanly for structured concurrency |

@@ -19,6 +19,8 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.utils.GlideCacheStats
+import com.sza.fastmediasorter.utils.VideoFrameDarknessEvaluator
+import com.sza.fastmediasorter.utils.VideoFrameExtractionPolicy
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
@@ -177,17 +179,22 @@ class NetworkVideoFrameDecoder(
                 val elapsed = System.currentTimeMillis() - startTime
                 Timber.v("Successfully extracted video thumbnail in ${elapsed}ms: $fileName")
 
-                // Save to cache BEFORE completing the future so secondary waiters can read immediately
-                runBlocking {
-                    try {
-                        val cachedFile = saveThumbnailToCache(source.path, outcome.bitmap)
-                        if (cachedFile != null) {
-                            thumbnailCacheRepository.saveThumbnail(source.path, cachedFile)
-                            Timber.v("Saved thumbnail to cache: $fileName")
+                // ADR-4: skip caching dark frames — next request will re-extract with retry logic.
+                if (!VideoFrameDarknessEvaluator.isDark(outcome.bitmap)) {
+                    // Save to cache BEFORE completing the future so secondary waiters can read immediately
+                    runBlocking {
+                        try {
+                            val cachedFile = saveThumbnailToCache(source.path, outcome.bitmap)
+                            if (cachedFile != null) {
+                                thumbnailCacheRepository.saveThumbnail(source.path, cachedFile)
+                                Timber.v("Saved thumbnail to cache: $fileName")
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to save thumbnail to cache: $fileName")
                         }
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to save thumbnail to cache: $fileName")
                     }
+                } else {
+                    Timber.d("[S0178] all candidates dark — not caching, returning best-effort frame: $fileName")
                 }
 
                 extractionSucceeded = true
@@ -247,6 +254,13 @@ class NetworkVideoFrameDecoder(
         return try {
             val bitmap = BitmapFactory.decodeFile(cached.absolutePath)
             if (bitmap != null) {
+                // ADR-4: lazy eviction — discard already-cached dark thumbnails on first access.
+                if (VideoFrameDarknessEvaluator.isDark(bitmap)) {
+                    Timber.d("[S0178] cached thumbnail is dark — evicting and re-extracting: $fileName")
+                    runBlocking { thumbnailCacheRepository.deleteThumbnail(path) }
+                    bitmap.recycle()
+                    return null
+                }
                 GlideCacheStats.recordThumbnailRepoHit()
                 val drawable = BitmapDrawable(FastMediaSorterApp.appContext.resources, bitmap)
                 BitmapDrawableResource(drawable, bitmapPool)
@@ -275,14 +289,34 @@ class NetworkVideoFrameDecoder(
             try {
                 retriever.setDataSource(mediaDataSource)
 
-                // Extract frame at 1 second; if null the file header is unreadable — skip fallback
-                // to avoid a second system-level "videoFrame is a NULL pointer" warning.
-                val frameTime = 1_000_000L // 1 second in microseconds
-                val frame = retriever.getFrameAtTime(frameTime, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                if (frame == null) {
-                    Timber.w("getFrameAtTime returned null for ${path.substringAfterLast('/')}, skipping fallback")
+                // ADR-3: start at 5 s to skip black leader; fall back to t=0 for short videos.
+                val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    ?.toLongOrNull() ?: 0L
+                val candidates = if (durationMs < 5_000L) {
+                    LongArray(1) { 0L }
+                } else {
+                    VideoFrameExtractionPolicy.SEEK_OFFSETS_US
                 }
-                frame
+
+                var bestBitmap: Bitmap? = null
+                val maxAttempts = VideoFrameExtractionPolicy.MAX_RETRIES_NETWORK + 1
+                for (i in 0 until minOf(candidates.size, maxAttempts)) {
+                    val positionUs = candidates[i]
+                    val frame = retriever.getFrameAtTime(positionUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                    if (frame == null) {
+                        Timber.w("getFrameAtTime returned null for ${path.substringAfterLast('/')}, skipping fallback")
+                        break
+                    }
+                    if (VideoFrameDarknessEvaluator.isDark(frame)) {
+                        Timber.d("[S0178] dark frame at ${positionUs / 1_000_000}s, trying next offset: ${path.substringAfterLast('/')}")
+                        if (bestBitmap == null) bestBitmap = frame else frame.recycle()
+                    } else {
+                        bestBitmap?.recycle()
+                        bestBitmap = frame
+                        break
+                    }
+                }
+                bestBitmap
             } catch (e: Exception) {
                 if (isExpectedFrameExtractionFailure(e)) {
                     Timber.w("Video frame extraction skipped for ${path.substringAfterLast('/')} - ${e.message}")

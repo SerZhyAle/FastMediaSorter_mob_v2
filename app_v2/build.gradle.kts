@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260512155
-        versionName = "2.60.5121.559"
+        versionCode = 260513015
+        versionName = "2.60.5130.151"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -647,8 +647,23 @@ androidComponents {
 //   ./gradlew assembleNoLegalRelease -Pchaquopy.enabled=true
 // Or add chaquopy.enabled=true to local.properties (machine-local, excluded from VCS).
 // All other flavors omit the flag — Chaquopy is never applied to them.
-val isNoLegalBuild = providers.gradleProperty("chaquopy.enabled")
-    .orNull?.equals("true", ignoreCase = true) == true
+//
+// S0175 fix: providers.gradleProperty() does NOT read local.properties. Read it explicitly
+// so that the "add to local.properties" comment above actually works.
+val _chaquopyLocalPropsFile = rootProject.file("local.properties")
+val _chaquopyLocalProps = Properties()
+if (_chaquopyLocalPropsFile.exists()) {
+    _chaquopyLocalProps.load(FileInputStream(_chaquopyLocalPropsFile))
+}
+// Explicit -Pchaquopy.enabled (CLI or gradle.properties) takes strict precedence over local.properties.
+// This lets build scripts pass -Pchaquopy.enabled=false to build non-noLegal flavors even when
+// local.properties has chaquopy.enabled=true (machine-level IDE-sync convenience setting).
+val _gradleChaquopyPropRaw = providers.gradleProperty("chaquopy.enabled").orNull
+val isNoLegalBuild = if (_gradleChaquopyPropRaw != null) {
+    _gradleChaquopyPropRaw.equals("true", ignoreCase = true)
+} else {
+    _chaquopyLocalProps.getProperty("chaquopy.enabled", "false").equals("true", ignoreCase = true)
+}
 if (isNoLegalBuild) {
     // Chaquopy 17.x validates all variants at configuration time. Constraints:
     //   - legacy has minSdk=23 (< Chaquopy's minimum of 24)
@@ -872,7 +887,8 @@ dependencies {
     }
     implementation("org.jsoup:jsoup:1.17.2")
     // S0117: GPL extractor is linked only into the sideload-only noLegal flavor.
-    "noLegalImplementation"("com.github.TeamNewPipe:NewPipeExtractor:v0.24.0")
+    // S0175: bumped v0.24.0 -> v0.26.1; no wrapper changes needed (breaking changes in v0.25/v0.26 don't touch our API surface).
+    "noLegalImplementation"("com.github.TeamNewPipe:NewPipeExtractor:v0.26.1")
 
     // Markdown Rendering (for .md text files)
     implementation("io.noties.markwon:core:4.6.2")

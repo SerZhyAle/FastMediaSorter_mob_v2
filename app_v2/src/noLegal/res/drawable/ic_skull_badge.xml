@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pirate skull badge overlay for noLegal launcher icon.
+     Positioned bottom-right of the 108dp adaptive-icon foreground canvas.
+     Semi-transparent dark backdrop improves visibility over any icon background. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Dark circular backdrop — ensures skull is readable over any icon background -->
+    <path
+        android:fillColor="#CC000000"
+        android:pathData="M62,85 A23,23 0 1,0 108,85 A23,23 0 1,0 62,85 Z" />
+
+    <!-- Skull cranium (off-white filled circle) -->
+    <path
+        android:fillColor="#F0F0F0"
+        android:pathData="M67,78 A18,18 0 1,0 103,78 A18,18 0 1,0 67,78 Z" />
+
+    <!-- Jaw base (off-white rectangle below cranium) -->
+    <path
+        android:fillColor="#F0F0F0"
+        android:pathData="M70,95 L70,106 L100,106 L100,95 Z" />
+
+    <!-- Left eye socket -->
+    <path
+        android:fillColor="#111111"
+        android:pathData="M72,78 A5,6 0 1,0 82,78 A5,6 0 1,0 72,78 Z" />
+
+    <!-- Right eye socket -->
+    <path
+        android:fillColor="#111111"
+        android:pathData="M88,78 A5,6 0 1,0 98,78 A5,6 0 1,0 88,78 Z" />
+
+    <!-- Nose cavity (inverted triangle) -->
+    <path
+        android:fillColor="#111111"
+        android:pathData="M83,88 L85,93 L87,88 Z" />
+
+    <!-- Jaw top divider strip -->
+    <path
+        android:fillColor="#111111"
+        android:pathData="M70,93 L70,96 L100,96 L100,93 Z" />
+
+    <!-- Teeth dividers (4 dark vertical strips = 5 teeth) -->
+    <path
+        android:fillColor="#111111"
+        android:pathData="M77,95 L77,107 L79,107 L79,95 Z
+                          M84,95 L84,107 L86,107 L86,95 Z
+                          M91,95 L91,107 L93,107 L93,95 Z
+                          M98,95 L98,107 L100,107 L100,95 Z" />
+
+</vector>

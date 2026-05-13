@@ -64,8 +64,7 @@ class NetworkMediaDataSource(
 
     override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
         if (isClosed) {
-            Timber.d("readAt: DataSource is closed, returning EOF")
-            return -1
+            return -1 // closed MediaDataSource returns EOF per contract — no logging (tight-loop caller)
         }
 
         if (position >= fileSize) {

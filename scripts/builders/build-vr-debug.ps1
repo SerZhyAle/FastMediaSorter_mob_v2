@@ -1,4 +1,4 @@
-﻿# Build VR Debug APK
+# Build VR Debug APK
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 Write-Host "Building VR Debug APK (auto-versioned)..." -ForegroundColor Cyan
@@ -44,7 +44,7 @@ $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName
 Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process
-& $gradlew assembleVrDebug
+& $gradlew assembleVrDebug "-Pchaquopy.enabled=false"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

@@ -35,10 +35,15 @@ internal class AddResourceNetworkScanCoordinator(
         // kill any in-flight scan before restarting — prevents interleaved emissions
         networkScanJob?.cancel()
         networkScanJob = bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
-            bridge.mutate { it.copy(isScanning = true, foundNetworkHosts = emptyList()) }
+            bridge.mutate { it.copy(isScanning = true, foundNetworkHosts = emptyList(), scanProgress = null) }
             try {
-                discoverNetworkResourcesUseCase.execute().collect { host ->
-                    // stream each host as soon as it's discovered so the list fills progressively
+                discoverNetworkResourcesUseCase.execute(
+                    onProgress = { subnet, probed, total ->
+                        // Called from IO threads — StateFlow.update is thread-safe.
+                        bridge.mutate { it.copy(scanProgress = ScanProgress(subnet, probed, total)) }
+                    }
+                ).collect { host ->
+                    // Stream each host as soon as it's discovered so the list fills progressively.
                     bridge.mutate { state ->
                         state.copy(foundNetworkHosts = state.foundNetworkHosts + host)
                     }
@@ -49,7 +54,7 @@ internal class AddResourceNetworkScanCoordinator(
                 Timber.e(e, "Error scanning network")
                 bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_scan_failed_short)))
             } finally {
-                bridge.mutate { it.copy(isScanning = false) }
+                bridge.mutate { it.copy(isScanning = false, scanProgress = null) }
             }
         }
     }

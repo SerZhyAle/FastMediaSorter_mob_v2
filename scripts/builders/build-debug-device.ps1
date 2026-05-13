@@ -47,7 +47,7 @@ Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process (Debug only for speed)
 # Note: Now builds 'standardDebug' flavor automatically
-& $gradlew assembleStandardDebug
+& $gradlew assembleStandardDebug "-Pchaquopy.enabled=false"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

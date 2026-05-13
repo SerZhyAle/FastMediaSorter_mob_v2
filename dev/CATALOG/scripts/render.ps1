@@ -34,9 +34,12 @@ $byLayer = $records | Group-Object -Property layer | Sort-Object Name
 $now = (Get-Date -Format 'yyyy-MM-dd HH:mm')
 
 function Resolve-SourceLink([string]$module, [string]$relPath, [string]$root) {
+    # Must stay in sync with scan.ps1 $srcRoots.
     $candidateRoots = @(
         "$module/src/main/java",
-        "$module/src/vr/java"
+        "$module/src/vr/java",
+        "$module/src/noLegal/java",
+        "$module/src/streamingEnabled/java"
     )
     foreach ($candidateRoot in $candidateRoots) {
         $candidate = Join-Path $root ($candidateRoot -replace '/', '\\')

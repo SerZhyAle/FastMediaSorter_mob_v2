@@ -53,8 +53,14 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
     /**
      * Returns a cold Flow that emits discovered [NetworkHost] objects in real time.
      * Cancel the collecting coroutine to stop the scan immediately.
+     *
+     * @param onProgress called from background threads after each IP is probed;
+     *   args: subnet prefix (e.g. "192.168.1"), probed count, total (always 254).
+     *   Safe to mutate UI state via StateFlow — never called from the main thread.
      */
-    suspend fun execute(): Flow<NetworkHost> = channelFlow {
+    suspend fun execute(
+        onProgress: ((subnet: String, probed: Int, total: Int) -> Unit)? = null
+    ): Flow<NetworkHost> = channelFlow {
         val localIp = getLocalIpAddress() ?: run {
             Timber.w("DiscoverNetworkResourcesUseCase: could not detect local IPv4 address")
             return@channelFlow
@@ -63,7 +69,7 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
         Timber.d("Network scan: primary subnet=$detectedSubnet.*, localIp=$localIp")
 
         // Phase 1: scan the detected subnet.
-        val primaryCount = scanSubnet(detectedSubnet, skipIp = localIp) { host ->
+        val primaryCount = scanSubnet(detectedSubnet, skipIp = localIp, onProgress = onProgress) { host ->
             if (isActive) send(host)
         }
         Timber.d("Network scan: primary subnet found $primaryCount host(s)")
@@ -74,7 +80,7 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
             Timber.d("Network scan: trying fallback subnets: $fallbacks")
             for (subnet in fallbacks) {
                 if (!isActive) break
-                val count = scanSubnet(subnet, skipIp = null) { host ->
+                val count = scanSubnet(subnet, skipIp = null, onProgress = onProgress) { host ->
                     if (isActive) send(host)
                 }
                 Timber.d("Network scan: fallback subnet $subnet.* found $count host(s)")
@@ -88,25 +94,33 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
      * by [MAX_CONCURRENT_PROBES]. Returns the number of hosts discovered.
      *
      * [skipIp] is the device's own IP address — skipped to avoid self-probing.
+     * [onProgress] receives (subnet, probedCount, 254) after each IP is resolved.
      * [emit] is called for each discovered host; runs on IO, so the caller must
      * guard with `isActive` before forwarding to a channel.
      */
     internal suspend fun scanSubnet(
         subnet: String,
         skipIp: String?,
+        onProgress: ((subnet: String, probed: Int, total: Int) -> Unit)? = null,
         emit: suspend (NetworkHost) -> Unit
     ): Int = coroutineScope {
         val semaphore = Semaphore(MAX_CONCURRENT_PROBES)
         val foundCount = AtomicInteger(0)
+        val probedCount = AtomicInteger(0)
+        val total = 254
 
         (1..254).map { i ->
             async(Dispatchers.IO) {
                 val ip = "$subnet.$i"
-                if (ip == skipIp) return@async
+                if (ip == skipIp) {
+                    onProgress?.invoke(subnet, probedCount.incrementAndGet(), total)
+                    return@async
+                }
 
                 semaphore.withPermit {
                     if (!isActive) return@withPermit
                     val openPorts = probePorts(ip)
+                    onProgress?.invoke(subnet, probedCount.incrementAndGet(), total)
                     if (openPorts.isNotEmpty()) {
                         foundCount.incrementAndGet()
                         val host = resolveHost(ip, openPorts)
@@ -120,26 +134,27 @@ open class DiscoverNetworkResourcesUseCase @Inject constructor() {
     }
 
     /**
-     * Probes SMB-oriented ports on [ip]:
-     * - Port 445 (SMB2/3) first; port 139 (NetBIOS/SMB1) as fallback only if 445 is closed.
-     * - Port 21 (FTP) and 22 (SFTP) independently.
-     *
-     * Reporting 139 separately lets the caller use the correct port for the SMBJ connection.
+     * Probes SMB-oriented ports on [ip] in parallel:
+     * - Ports 445, 139, 21, 22 are all fired simultaneously.
+     * - 445 and 139 are mutually exclusive in the result: 139 is added only when 445
+     *   is closed (legacy NetBIOS fallback). Reporting 139 separately lets the caller
+     *   use the correct port for the SMBJ connection.
+     * - Worst-case latency per IP: max(SMB_PROBE_TIMEOUT_MS, OTHER_PROBE_TIMEOUT_MS)
+     *   instead of their sum — O(max) vs O(sum).
      */
-    internal fun probePorts(ip: String): List<Int> {
-        val openPorts = mutableListOf<Int>()
+    internal suspend fun probePorts(ip: String): List<Int> = coroutineScope {
+        // Fire all four probes concurrently on IO threads.
+        val p445 = async(Dispatchers.IO) { isTcpPortOpen(ip, 445, SMB_PROBE_TIMEOUT_MS) }
+        val p139 = async(Dispatchers.IO) { isTcpPortOpen(ip, 139, SMB_PROBE_TIMEOUT_MS) }
+        val p21  = async(Dispatchers.IO) { isTcpPortOpen(ip, 21,  OTHER_PROBE_TIMEOUT_MS) }
+        val p22  = async(Dispatchers.IO) { isTcpPortOpen(ip, 22,  OTHER_PROBE_TIMEOUT_MS) }
 
-        // SMB: try 445 first; 139 is a legacy NetBIOS fallback, not a separate protocol result.
-        if (isTcpPortOpen(ip, 445, SMB_PROBE_TIMEOUT_MS)) {
-            openPorts.add(445)
-        } else if (isTcpPortOpen(ip, 139, SMB_PROBE_TIMEOUT_MS)) {
-            openPorts.add(139)
-        }
-
-        if (isTcpPortOpen(ip, 21, OTHER_PROBE_TIMEOUT_MS)) openPorts.add(21)
-        if (isTcpPortOpen(ip, 22, OTHER_PROBE_TIMEOUT_MS)) openPorts.add(22)
-
-        return openPorts
+        val open = mutableListOf<Int>()
+        // SMB port selection: 445 wins; 139 only if 445 is closed (both already resolved).
+        if (p445.await()) open.add(445) else if (p139.await()) open.add(139)
+        if (p21.await())  open.add(21)
+        if (p22.await())  open.add(22)
+        open
     }
 
     /**

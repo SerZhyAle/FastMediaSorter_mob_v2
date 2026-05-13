@@ -34,14 +34,28 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         }
         
         Write-Host "Running Gradle build... Logs saved to build_all_log.txt" -ForegroundColor Yellow
-        # Explicitly enumerate all flavor+type combos to keep the build surface transparent.
-        # assembleDebug/assembleRelease would also work but listing them avoids surprises when flavors change.
+        # Two-pass build: non-noLegal flavors first (Chaquopy disabled), then noLegal (Chaquopy enabled).
+        # Chaquopy 17.x must not see non-noLegal variants (minSdk/ABI incompatibilities).
+        # -Pchaquopy.enabled=false overrides local.properties so standard/lite/etc. variants are enabled.
+        Write-Host "  Pass 1: non-noLegal flavors..." -ForegroundColor DarkGray
         & $gradlew `
-            assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug assembleNoLegalDebug `
-            assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease assembleNoLegalRelease `
+            assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
+            assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
             :wear:assembleDebug :wear:assembleRelease `
+            "-Pchaquopy.enabled=false" `
             | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
-        
+
+        $pass1Exit = $LASTEXITCODE
+        if ($pass1Exit -ne 0) {
+            throw "Pass 1 (non-noLegal) failed with exit code $pass1Exit"
+        }
+
+        Write-Host "  Pass 2: noLegal flavor..." -ForegroundColor DarkGray
+        & $gradlew `
+            assembleNoLegalDebug assembleNoLegalRelease `
+            "-Pchaquopy.enabled=true" `
+            | Tee-Object -Append -FilePath "$projectRoot\build_all_log.txt"
+
         if ($LASTEXITCODE -eq 0) {
             $buildSuccess = $true
         }

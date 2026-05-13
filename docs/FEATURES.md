@@ -65,6 +65,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Intelligent thumbnail loading**: Previews for photos and video frames; can be disabled per resource for large network directories.
 - **Fast placeholder for unsupported network video**: Containers that cannot be decoded over a network stream show an icon immediately instead of waiting for a timeout.
 - **Network thumbnail previews recover automatically**: Transient extraction failures during streaming clear themselves once playback stops.
+- Video thumbnails automatically skip to a later frame when the initial frame is black (black leader), trying offsets at 5 s, 15 s, and 30 s.
 - **File metadata overlay**: Crucial details like EXIF data, duration, resolution, and size are overlaid on list items.
 - **Cancellable scan with progress**: Large network scans show a live file counter and an immediate STOP button.
 - **Inline audio mini-player**: Play audio directly from any Browse resource (local, network, cloud) without opening the full player.

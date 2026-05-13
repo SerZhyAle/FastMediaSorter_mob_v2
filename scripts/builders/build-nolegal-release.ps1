@@ -45,8 +45,9 @@ $content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
 $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
 Set-Content $buildGradlePath $content -NoNewline
 
-# Start the Gradle build process (Release with R8 optimizations)
-& $gradlew assembleNoLegalRelease
+# Start the Gradle build process (Release with R8 optimizations).
+# --no-configuration-cache: Chaquopy 17.x is not configuration-cache-compatible (S0175).
+& $gradlew assembleNoLegalRelease --no-configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

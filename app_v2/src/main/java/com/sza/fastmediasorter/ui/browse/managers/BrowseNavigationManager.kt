@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -424,6 +425,10 @@ class BrowseNavigationManager(
             if (filteredContents.isEmpty()) {
                 sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.empty_folder)))
             }
+        } catch (e: CancellationException) {
+            // Throttle or cooperative cancellation — propagate cleanly; no error shown to user.
+            Timber.d("BrowseNavigationManager.loadDirectoryContents: cancelled for '$path' (${e.message})")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "BrowseNavigationManager.loadDirectoryContents: error loading '$path'")
             sendEvent(BrowseEvent.ShowError(
@@ -447,6 +452,9 @@ class BrowseNavigationManager(
                 showHiddenFiles = false
             )
             computeContentHash(contents)
+        } catch (e: CancellationException) {
+            // Throttle or cooperative cancellation — propagate cleanly; do not mark cache invalid.
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "BrowseNavigationManager: failed to compute directory hash for '$path'")
             null
