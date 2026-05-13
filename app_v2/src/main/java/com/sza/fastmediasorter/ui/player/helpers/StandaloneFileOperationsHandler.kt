@@ -84,10 +84,21 @@ class StandaloneFileOperationsHandler(
 
                     uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
                             && isMediaStoreSpecificUri(uri) -> {
-                        // API 30+: system dialog auto-deletes after user grants.
-                        // Only valid for MediaStore-vended URIs with a numeric ID — other
-                        // content:// authorities (file-provider, external share) fall through
-                        // to the contentResolver.delete() branch below.
+                        // Try direct delete first: succeeds immediately for app-owned items without
+                        // a system dialog. createDeleteRequest is for cross-app deletion — calling
+                        // it on app-owned files throws IAE on some OEM builds
+                        // (observed: API 35, content://media/external/downloads/<id> written by
+                        // LinkDownloadWriter; exception originates inside the MediaStore provider
+                        // via IPC, not the client-side URI check).
+                        val ownedRows = withContext(Dispatchers.IO) {
+                            try { activity.contentResolver.delete(uri, null, null) }
+                            catch (_: SecurityException) { -1 }
+                        }
+                        if (ownedRows > 0) {
+                            onDeleteSuccess(fileName)
+                            return@launch
+                        }
+                        // File not owned by this app — show system confirmation dialog.
                         val pendingIntent = MediaStore.createDeleteRequest(activity.contentResolver, listOf(uri))
                         pendingDeleteFileName = fileName
                         batchDeleteLauncher.launch(

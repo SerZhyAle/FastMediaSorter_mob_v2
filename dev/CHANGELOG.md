@@ -9166,3 +9166,58 @@ Format: | datetime | file | target | description |
 | 2026-05-13 00:44:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Lower low-memory toast threshold from 30 MB to 10 MB (NATIVE_HEAP_CRITICAL_TOAST_THRESHOLD_BYTES); add one-shot guard (lowMemoryToastShownThisSession) to suppress chronic spam on constrained-memory devices |
 | 2026-05-13 00:52:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkMediaDataSource.kt` | `NetworkMediaDataSource.readAt` | Remove Timber.d on closed-DataSource path — MediaMetadataRetriever calls readAt in a tight loop after close, producing ~3200 log lines/sec of pure noise |
 | 2026-05-13 01:46:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseNavigationManager.kt` | `BrowseNavigationManager` | Fix: CancellationException from ConnectionThrottleManager no longer logged as E or invalidates directory cache; re-thrown cleanly for structured concurrency |
+| 2026-05-13 02:27:10 | `app_v2/src/noLegalDebug/res/` | `noLegal debug icon fix` | Add noLegalDebug source set to override debug buildType icon: copy main PNGs for all densities + adaptive icon XMLs pointing to skull-badge foreground drawable |
+| 2026-05-13 02:57:54 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/YtDlpExtractionStrategy.kt` | `S0174` | Fix probe() using process=False to skip network calls; add inner runCatching logging |
+| 2026-05-13 10:08:12 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/YtDlpExtractionStrategy.kt` | `S0174` | Fix probe(): replace extract_info network call with ytdlp_utils.probe_url() suitable() pattern match — zero network, auth-required sites now correctly return Applicable |
+| 2026-05-13 10:08:12 | `app_v2/src/noLegal/python/ytdlp_utils.py` | `S0174` | New: Python helper module — probe_url() iterates yt-dlp extractors via suitable() without network calls |
+| 2026-05-13 11:26:22 | `PLAN/S0165_browse-create-folder/INDEX.md` | `spec-tech` | Create tactical plan for S0165 |
+| 2026-05-13 11:26:22 | `PLAN/S0165_browse-create-folder/PHASE_01__resources.md` | `spec-tech` | Phase 01: resources |
+| 2026-05-13 11:26:22 | `PLAN/S0165_browse-create-folder/PHASE_02__kotlin-wiring.md` | `spec-tech` | Phase 02: kotlin-wiring |
+| 2026-05-13 11:26:22 | `PLAN/S0165_browse-create-folder/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
+| 2026-05-13 11:26:22 | `PLAN/S0165_browse-create-folder.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-13 11:26:43 | `PLAN/S0162_screen-rotation-control/` | `S0162` | Write tactical spec: 5-phase plan for screen rotation control (ScreenRotationManager, AppSettings fields, PlaybackSettingsFragment toggle, CommandPanelLayoutPlanner ROTATION_TOGGLE command, PlayerActivity wiring) |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle/INDEX.md` | `spec-tech` | Create tactical plan for S0160 |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle/PHASE_01__settings-model.md` | `spec-tech` | S0160 Phase 01: settings-model |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle/PHASE_02__scan-single-resource.md` | `spec-tech` | S0160 Phase 02: scan-single-resource |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle/PHASE_03__adapter-overflow.md` | `spec-tech` | S0160 Phase 03: adapter-overflow |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle/PHASE_04__settings-ui.md` | `spec-tech` | S0160 Phase 04: settings-ui |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle/PHASE_05__activity-wiring.md` | `spec-tech` | S0160 Phase 05: activity-wiring |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | S0160 Phase 06: docs-catalog-cleanup |
+| 2026-05-13 11:47:14 | `PLAN/S0160_resource-ops-overflow-toggle.md` | `spec-tech` | S0160 Status -> Tactical |
+| 2026-05-13 11:51:37 | `PLAN/S0135_play-store-listing-optimization/INDEX.md` | `spec-tech` | Create tactical plan for S0135 |
+| 2026-05-13 11:51:37 | `PLAN/S0135_play-store-listing-optimization/PHASE_01__copywriting.md` | `spec-tech` | Phase 01: copywriting |
+| 2026-05-13 11:51:37 | `PLAN/S0135_play-store-listing-optimization/PHASE_02__design-brief.md` | `spec-tech` | Phase 02: design-brief |
+| 2026-05-13 11:51:38 | `PLAN/S0135_play-store-listing-optimization/PHASE_03__review-foundation.md` | `spec-tech` | Phase 03: review-foundation |
+| 2026-05-13 11:51:38 | `PLAN/S0135_play-store-listing-optimization/PHASE_04__review-integration.md` | `spec-tech` | Phase 04: review-integration |
+| 2026-05-13 11:51:38 | `PLAN/S0135_play-store-listing-optimization/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-13 11:51:38 | `PLAN/S0135_play-store-listing-optimization.md` | `spec-tech` | Status → Tactical |
+| 2026-05-13 11:51:42 | `PLAN/S0159_file-ops-overflow-menu/INDEX.md` | `spec-tech` | Create tactical plan for S0159 file-ops-overflow-menu |
+| 2026-05-13 11:51:42 | `PLAN/S0159_file-ops-overflow-menu/PHASE_01__settings-model.md` | `spec-tech` | Phase 01: settings-model |
+| 2026-05-13 11:51:42 | `PLAN/S0159_file-ops-overflow-menu/PHASE_02__adapter-overflow-menu.md` | `spec-tech` | Phase 02: adapter-overflow-menu |
+| 2026-05-13 11:51:42 | `PLAN/S0159_file-ops-overflow-menu/PHASE_03__browse-wiring.md` | `spec-tech` | Phase 03: browse-wiring |
+| 2026-05-13 11:51:42 | `PLAN/S0159_file-ops-overflow-menu/PHASE_04__settings-ui.md` | `spec-tech` | Phase 04: settings-ui |
+| 2026-05-13 11:51:43 | `PLAN/S0159_file-ops-overflow-menu/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup |
+| 2026-05-13 11:51:43 | `PLAN/S0159_file-ops-overflow-menu.md` | `spec-tech` | Status Approved -> Tactical |
+| 2026-05-13 11:56:33 | `PLAN/S0158_player-large-buttons.md` | `spec-update` | S0158: renamed to Big Buttons Mode, expanded scope to top toolbar (8-button limit, overflow, icons, captions), height 150%->200% |
+| 2026-05-13 12:05:48 | `PLAN/S0158_player-large-buttons.md` | `spec-update` | S0158: clarified height as 2x px (not screen proportion); short labels resolved as new string resources |
+| 2026-05-13 12:25:43 | `PLAN/S0179_git-branching-model.md` | `spec` | Add strategic spec S0179 for git-branching-model |
+| 2026-05-13 12:40:49 | `PLAN/S0179_git-branching-model.md` | `spec` | Refine S0179: max 2 DEBUG branches, future-branch concept, resolve open questions |
+| 2026-05-13 12:49:11 | `PLAN/S0179_git-branching-model/INDEX.md` | `spec-tech` | Create tactical plan for S0179 |
+| 2026-05-13 12:49:12 | `PLAN/S0179_git-branching-model/PHASE_01__claude-md-rules.md` | `spec-tech` | Phase 01: claude-md-rules |
+| 2026-05-13 12:49:12 | `PLAN/S0179_git-branching-model/PHASE_02__dev-docs-update.md` | `spec-tech` | Phase 02: dev-docs-update |
+| 2026-05-13 12:49:12 | `PLAN/S0179_git-branching-model/PHASE_03__dev-log-branch-tag.md` | `spec-tech` | Phase 03: dev-log-branch-tag |
+| 2026-05-13 12:49:12 | `PLAN/S0179_git-branching-model/PHASE_04__build-script-warning.md` | `spec-tech` | Phase 04: build-script-warning |
+| 2026-05-13 12:49:13 | `PLAN/S0179_git-branching-model/PHASE_05__git-branch-init.md` | `spec-tech` | Phase 05: git-branch-init |
+| 2026-05-13 12:49:13 | `PLAN/S0179_git-branching-model.md` | `spec-tech` | Status -> Tactical |
+| 2026-05-13 13:05:50 | `CLAUDE.md` | `Git Branching Model` | Add Git Branching Model section and branch-context post-change step |
+| 2026-05-13 13:06:57 | `dev/PROJECT_OPERATIONS_INDEX.md` | `Workspace Topology` | Add branch model reference and git branch commands |
+| 2026-05-13 13:06:57 | `dev/AGENT_WORKFLOW.md` | `8.0 Task Definition` | Add branch check step and future-branch planning note |
+| 2026-05-13 13:07:35 | `scripts/add_to_dev_log.ps1` | `add_to_dev_log` | Add branch tag to dev log entries [branch: main] |
+| 2026-05-13 13:08:13 | `dev/build-with-version.ps1` | `build-with-version` | Add main-branch warning at startup [branch: main] |
+| 2026-05-13 13:09:24 | `.git/refs/heads/DEBUG-v001` | `git` | Create DEBUG-v001 from main (release/v2.60.5130.151) [branch: DEBUG-v001] |
+| 2026-05-13 13:09:58 | `PLAN/S0179_git-branching-model.md` | `S0179` | Status -> Implemented; all 5 phases done [branch: DEBUG-v001] |
+| 2026-05-13 13:11:32 | `PLAN/S0179_git-branching-model.md` | `spec-check` | Audit S0179 -> Verified; PASS 17/WARN 0/FAIL 0 [branch: DEBUG-v001] |
+| 2026-05-13 13:18:08 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/YtDlpExtractionStrategy.kt` | `S0174` | Fix open(): replace buildMap Kotlin Map with native Python dict via py.builtins.callAttr(dict) — Kotlin Map.get() takes 1 arg, yt-dlp calls opts.get(key, default) with 2 args [branch: DEBUG-v001] |
+| 2026-05-13 13:39:55 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/YtDlpExtractionStrategy.kt` | `S0174` | Fix: use format-level http_headers for CDN download (TikTok signed URLs); return NotFound for 'no video in post' and 'Unsupported URL' errors to enable fallback chain [branch: DEBUG-v001] |
+| 2026-05-13 13:39:55 | `app_v2/src/noLegal/python/ytdlp_utils.py` | `S0174` | Fix: exclude threads.com from probe_url (ThreadsIE supports threads.net only in this yt-dlp build); add _PROBE_EXCLUDED_HOSTS guard [branch: DEBUG-v001] |
+| 2026-05-13 14:24:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFileOperationsHandler.kt` | `StandaloneFileOperationsHandler` | Fix: delete failed IAE on API 35 for app-owned MediaStore files — try contentResolver.delete() first, fall back to createDeleteRequest only for cross-app files [branch: DEBUG-v001] |
