@@ -953,9 +953,9 @@
     <string name="tooltip_compact_elements_title">Режим компактних елементів</string>
     <string name="tooltip_compact_elements_message">Цей режим масштабує елементи інтерфейсу (списки, кнопки, текст) у 0.5 раза для збільшення обсягу видимої інформації. Примітка: зони натискання також стануть меншими.</string>
     <string name="big_buttons_mode_title">Режим великі кнопки</string>
-    <string name="big_buttons_mode_summary">Подвоює висоту кнопок і розтягує керування на всю ширину — зручно для автомагнітол</string>
+    <string name="big_buttons_mode_summary">Збільшує кнопки плеєра й розтягує керування на всю ширину — зручно для автомагнітол</string>
     <string name="tooltip_big_buttons_mode_title">Режим великі кнопки</string>
-    <string name="tooltip_big_buttons_mode_message">Усі кнопки керування збільшуються вдвічі по висоті та займають всю ширину екрана. На верхній панелі міститься до 8 кнопок; решта переходять до меню. У горизонтальній орієнтації збільшена нижня панель може зменшити область відтворення.</string>
+    <string name="tooltip_big_buttons_mode_message">Кнопки керування плеєром стають більшими й займають всю ширину екрана. На верхній панелі міститься від 5 до 10 кнопок залежно від доступної ширини; решта переходять до меню. У горизонтальній орієнтації висока нижня панель може зменшити область відтворення.</string>
     <string name="big_btn_short_playback_order">Порядок</string>
     <string name="big_btn_short_delete">Видалити</string>
     <string name="big_btn_short_favorite">Вибр.</string>

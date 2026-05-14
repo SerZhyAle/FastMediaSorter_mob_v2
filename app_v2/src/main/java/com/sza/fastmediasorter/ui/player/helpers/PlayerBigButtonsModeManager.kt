@@ -65,15 +65,12 @@ class PlayerBigButtonsModeManager(private val context: Context) {
         if (!bigButtonsMode) return
         if (topPanelSavedStates.isNotEmpty()) return // already applied
 
-        // Spec S0158 §5.1: height = 2× player_cmd_button_size (fixed dimen, not measuredHeight).
-        // Using measuredHeight causes runaway growth on restore→apply cycles when the layout pass
-        // has not yet settled — each apply doubles the still-inflated previous height.
-        val buttonSize = topCommandPanel.resources.getDimensionPixelSize(R.dimen.player_cmd_button_size)
+        // S0158/S0208: fixed dimen prevents runaway growth on restore→apply cycles.
+        val buttonHeight = topCommandPanel.resources.getDimensionPixelSize(R.dimen.player_big_button_height)
 
-        // Double the panel height
         val panelParams = topCommandPanel.layoutParams
         topPanelOriginalHeight = topPanelOriginalHeight ?: panelParams.height
-        panelParams.height = buttonSize * 2
+        panelParams.height = buttonHeight
         topCommandPanel.layoutParams = panelParams
 
         val allButtons = (visibleButtons + listOfNotNull(overflowButton))
@@ -107,13 +104,13 @@ class PlayerBigButtonsModeManager(private val context: Context) {
             val wrapper = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-                // 3 parts icon + 1 part label
-                weightSum = 4f
+                // S0208: 85% icon + 15% label (weights 17 / 3 of weightSum 20).
+                weightSum = 20f
             }
 
-            // Icon fills 3/4 of wrapper height; FIT_CENTER scales it up proportionally
+            // S0208: icon dominates 85% of wrapper height; FIT_CENTER scales it up proportionally.
             button.layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 3f
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 17f
             )
             when (button) {
                 is ImageView -> {
@@ -129,15 +126,20 @@ class PlayerBigButtonsModeManager(private val context: Context) {
             wrapper.addView(button)
 
             if (button !is TextView) {
-                // Label fills 1/4 of wrapper height, centred
+                // S0208: label gets 15% of wrapper height; single line + ellipsize prevents
+                // long uk/ru translations from wrapping into the icon area.
                 wrapper.addView(TextView(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f
+                        LinearLayout.LayoutParams.MATCH_PARENT, 0, 3f
                     )
                     text = getShortLabel(button)
-                    textSize = 11f
+                    textSize = context.resources.getDimension(
+                        R.dimen.player_big_button_top_label_text_size
+                    ) / context.resources.displayMetrics.scaledDensity
                     gravity = Gravity.CENTER
                     setTextColor(Color.WHITE)
+                    maxLines = 1
+                    ellipsize = android.text.TextUtils.TruncateAt.END
                 })
             }
 
@@ -243,12 +245,11 @@ class PlayerBigButtonsModeManager(private val context: Context) {
             )
         }
 
-        // Spec S0158 §5.1: height = 2× player_cmd_button_size (fixed dimen, not measuredHeight).
-        // Same anti-growth reason as in applyToTopCommandPanel.
-        val buttonSize = buttonRow.resources.getDimensionPixelSize(R.dimen.player_cmd_button_size)
+        // S0208: unified big-button height applies to both top and bottom panels.
+        val buttonHeight = buttonRow.resources.getDimensionPixelSize(R.dimen.player_big_button_height)
 
         val rowParams = buttonRow.layoutParams
-        rowParams.height = buttonSize * 2
+        rowParams.height = buttonHeight
         buttonRow.layoutParams = rowParams
 
         val dp8 = (8 * context.resources.displayMetrics.density).toInt()
@@ -256,7 +257,10 @@ class PlayerBigButtonsModeManager(private val context: Context) {
         for (child in visibleChildren) {
             child.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
             when (child) {
-                is MaterialButton -> child.textSize = 18f
+                // S0208: bottom row stays icon-only — no text labels added. MaterialButtons here
+                // already render glyph-style "text" (▶ / ‖ / skip arrows); bumped to 22sp so they
+                // scale with the new 100dp row height.
+                is MaterialButton -> child.textSize = 22f
                 is ImageView -> {
                     child.scaleType = ImageView.ScaleType.FIT_CENTER
                     child.setPadding(dp8, dp8, dp8, dp8)
@@ -307,7 +311,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
     ) {
         if (!bigButtonsMode) return
 
-        val rowHeight = context.resources.getDimensionPixelSize(R.dimen.player_cmd_button_size) * 2
+        val rowHeight = context.resources.getDimensionPixelSize(R.dimen.player_big_button_height)
         val dp16 = (16 * context.resources.displayMetrics.density).toInt()
         val dp12 = (12 * context.resources.displayMetrics.density).toInt()
         val dp24 = (24 * context.resources.displayMetrics.density).toInt()

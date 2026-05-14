@@ -9900,3 +9900,15 @@ Format: | datetime | file | target | description |
 | 2026-05-15 01:08:21 | `PLAN/S0207_radical-memory-reduction/PHASE_07__network-idle-disconnect.md` | `spec-tech` | Phase 07: IdleDisconnectPolicy + SFTP/SMB/FTP wiring [branch: DEBUG-v001] |
 | 2026-05-15 01:08:21 | `PLAN/S0207_radical-memory-reduction/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: catalog regen + dev log audit + acceptance measurement [branch: DEBUG-v001] |
 | 2026-05-15 01:08:21 | `PLAN/S0207_radical-memory-reduction.md` | `spec-tech` | S0207 Status -> Tactical [branch: DEBUG-v001] |
+| 2026-05-15 01:26:31 | `PLAN/S0208_player-big-buttons-tuning/INDEX.md` | `spec-tech` | Create tactical plan for S0208 [branch: DEBUG-v001] |
+| 2026-05-15 01:26:35 | `PLAN/S0208_player-big-buttons-tuning/PHASE_01__dimens-resources.md` | `spec-tech` | Phase 01: dimens-resources [branch: DEBUG-v001] |
+| 2026-05-15 01:26:39 | `PLAN/S0208_player-big-buttons-tuning/PHASE_02__dynamic-slot-count.md` | `spec-tech` | Phase 02: dynamic-slot-count [branch: DEBUG-v001] |
+| 2026-05-15 01:26:43 | `PLAN/S0208_player-big-buttons-tuning/PHASE_03__manager-height-layout.md` | `spec-tech` | Phase 03: manager-height-layout [branch: DEBUG-v001] |
+| 2026-05-15 01:26:48 | `PLAN/S0208_player-big-buttons-tuning/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v001] |
+| 2026-05-15 01:26:52 | `PLAN/S0208_player-big-buttons-tuning.md` | `spec-tech` | Status -> Tactical (S0208) [branch: DEBUG-v001] |
+| 2026-05-15 01:27:29 | `app_v2/src/main/res/values/dimens.xml` | `S0208` | Phase 01: add big-buttons dimens (height/min-slot/label-size) [branch: DEBUG-v001] |
+| 2026-05-15 01:30:29 | `app_v2/src/main/res/values/dimens.xml` | `S0208` | Phase 01: add player_big_button_height (100dp), min_slot_width (50dp), top_label_text_size (10sp) [branch: DEBUG-v001] |
+| 2026-05-15 01:30:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0208` | Phase 02: dynamic top-panel slot count via resolveBigButtonsTopPanelSlotCount [branch: DEBUG-v001] |
+| 2026-05-15 01:39:18 | `app_v2/src/main/res/values/strings.xml` | `Big Buttons Mode strings` | Updated summary and tooltip to describe adaptive 5-10 button layout [branch: DEBUG-v001] |
+| 2026-05-15 01:39:18 | `app_v2/src/main/res/values-ru/strings.xml` | `Big Buttons Mode strings` | Updated summary and tooltip to describe adaptive 5-10 button layout [branch: DEBUG-v001] |
+| 2026-05-15 01:39:19 | `app_v2/src/main/res/values-uk/strings.xml` | `Big Buttons Mode strings` | Updated summary and tooltip to describe adaptive 5-10 button layout [branch: DEBUG-v001] |

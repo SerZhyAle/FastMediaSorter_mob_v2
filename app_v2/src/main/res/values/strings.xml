@@ -1100,9 +1100,9 @@ Close the player and try again.</string>
     <string name="tooltip_compact_elements_title">Compact Elements Mode</string>
     <string name="tooltip_compact_elements_message">This mode scales UI elements (lists, buttons, text) by 0.5x to increase the amount of information visible on the screen. Note: touch targets will also become smaller.</string>
     <string name="big_buttons_mode_title">Big Buttons Mode</string>
-    <string name="big_buttons_mode_summary">Doubles button height and expands controls to full width — ideal for car head units</string>
+    <string name="big_buttons_mode_summary">Enlarges player buttons and expands controls to full width — ideal for car head units</string>
     <string name="tooltip_big_buttons_mode_title">Big Buttons Mode</string>
-    <string name="tooltip_big_buttons_mode_message">All player control buttons expand to 2× height and full screen width. Top toolbar fits up to 8 buttons; remaining commands move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
+    <string name="tooltip_big_buttons_mode_message">Player controls become larger and stretch across the full width. The top toolbar shows 5 to 10 buttons depending on available width; the rest move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
     <string name="big_btn_short_playback_order">Order</string>
     <string name="big_btn_short_delete">Delete</string>
     <string name="big_btn_short_favorite">Fav</string>

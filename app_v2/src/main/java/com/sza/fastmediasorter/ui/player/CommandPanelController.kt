@@ -119,7 +119,6 @@ class CommandPanelController(
     
     companion object {
         private const val SMALL_CONTROLS_SCALE = 0.5f
-        private const val BIG_BUTTONS_TOP_PANEL_SLOT_COUNT = 8
     }
 
     private lateinit var castMediaManager: CastMediaManager
@@ -368,10 +367,11 @@ class CommandPanelController(
             safeViews.btnEditCmd.contentDescription = binding.root.context.getString(editLabel)
             updateBigButtonsTopPanelContentDescriptions(editLabel)
 
-            // S0158 counts the overflow trigger as one of the eight visible top-panel slots,
-            // so command buttons must be replanned after the fixed navigation buttons reserve
-            // their positions.
-            val commandSlots = (BIG_BUTTONS_TOP_PANEL_SLOT_COUNT - bigButtonsFixedButtons().count {
+            // S0158/S0208: total top-panel slot count is now a function of panel width
+            // (resolveBigButtonsTopPanelSlotCount). Fixed nav buttons reserve their share first,
+            // the remainder is handed to the planner.
+            val totalSlots = resolveBigButtonsTopPanelSlotCount()
+            val commandSlots = (totalSlots - bigButtonsFixedButtons().count {
                 it.isVisible
             }).coerceAtLeast(0)
             val result = planner.planBigButtonsLayout(activeCommands, commandSlots)
@@ -1092,6 +1092,25 @@ class CommandPanelController(
         }
         val slideshowFixed = if (binding.btnSlideshowCmd.isVisible) 1 else 0
         return (panelWidth - buttonPx * (3 + slideshowFixed)).coerceAtLeast(0) // Back + Slideshow + Prev + Next
+    }
+
+    /**
+     * Big Buttons Mode total visible top-panel slot count.
+     *
+     * Formula: `(panelWidthPx / minSlotWidthPx).coerceIn(5, 10)`.
+     * `panelWidthPx` is the laid-out width of `topCommandPanel`; falls back to
+     * `displayMetrics.widthPixels` before the first layout pass.
+     * `minSlotWidthPx` is `R.dimen.player_big_button_min_slot_width`.
+     *
+     * Strategic S0208 §3.1.4 / §5.1.3.
+     */
+    private fun resolveBigButtonsTopPanelSlotCount(): Int {
+        val dm = binding.root.resources.displayMetrics
+        val panelWidthPx = binding.topCommandPanel.width.takeIf { it > 0 } ?: dm.widthPixels
+        val minSlotWidthPx = binding.root.resources
+            .getDimensionPixelSize(R.dimen.player_big_button_min_slot_width)
+            .coerceAtLeast(1)
+        return (panelWidthPx / minSlotWidthPx).coerceIn(5, 10)
     }
 
     private fun isWifiConnected(context: android.content.Context): Boolean {
