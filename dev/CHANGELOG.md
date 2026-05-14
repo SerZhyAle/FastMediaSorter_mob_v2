@@ -9912,3 +9912,4 @@ Format: | datetime | file | target | description |
 | 2026-05-15 01:39:18 | `app_v2/src/main/res/values/strings.xml` | `Big Buttons Mode strings` | Updated summary and tooltip to describe adaptive 5-10 button layout [branch: DEBUG-v001] |
 | 2026-05-15 01:39:18 | `app_v2/src/main/res/values-ru/strings.xml` | `Big Buttons Mode strings` | Updated summary and tooltip to describe adaptive 5-10 button layout [branch: DEBUG-v001] |
 | 2026-05-15 01:39:19 | `app_v2/src/main/res/values-uk/strings.xml` | `Big Buttons Mode strings` | Updated summary and tooltip to describe adaptive 5-10 button layout [branch: DEBUG-v001] |
+| 2026-05-15 01:51:31 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.5150.150 — plateau merge from DEBUG-v001 [branch: DEBUG-v001] |
