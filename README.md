@@ -11,13 +11,10 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5030.230 (May 2026)
-
-**New:**
-keyboard & mouse & gamepad support across all screens · keybinding remapper in Settings · camera capture in Browse · Play Random in Browse · quick start from resource icon · link auto-download via Share · single-eye 3D mode · Settings restructured
+## What's New in v2.60.5142.201 (May 2026) — Fix Release
 
 **Fixed:**
-video hue/brightness on track change · RANDOM sort reshuffle · camera upload to network resources · ScheduledOperationsWorker freeze · Print crash on Android 8 · SMB scan error surfacing · EPUB WebView OOM · ExoPlayer native heap OOM in long sessions
+IllegalStateException crash on VR passthrough camera capture when requesting the headset camera permission.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

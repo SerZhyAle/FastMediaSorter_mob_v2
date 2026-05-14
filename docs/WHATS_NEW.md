@@ -1,6 +1,16 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5130.151** (May 2026)
+**Current release: 2.60.5142.201** (May 2026) — Fix Release
+
+> Fix: vr-permission-bridge-fragment-public
+
+## What's Fixed
+
+- Fix IllegalStateException crash on VR passthrough camera capture when requesting the headset camera permission (spec S0203)
+
+---
+
+## Previous Release: 2.60.5130.151 (May 2026)
 
 > Changes since version 2.60.5030.230
 
