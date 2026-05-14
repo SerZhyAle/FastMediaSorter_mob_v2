@@ -29,6 +29,9 @@ class PlayerImageLoadingCallbackImpl(
     }
 
     override fun showError(message: String, exception: Throwable?) {
+        if (activity.slideshowResourceAvailabilityManager.handleImageLoadFailure(exception)) {
+            return
+        }
         activity.showError(message, exception)
     }
 
@@ -74,5 +77,10 @@ class PlayerImageLoadingCallbackImpl(
     // S0107: expose loaded bitmap so ImageDrawOverlayManager can access it for merge
     override fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {
         viewModel.currentDisplayedBitmap = bitmap
+        activity.slideshowResourceAvailabilityManager.onImageLoadSucceeded()
+    }
+
+    override fun onImageContentLoaded() {
+        activity.slideshowResourceAvailabilityManager.onImageLoadSucceeded()
     }
 }

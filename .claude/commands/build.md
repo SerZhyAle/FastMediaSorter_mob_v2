@@ -54,15 +54,43 @@ Do not search the codebase unless the user's question requires it. The reference
 
 ### Product Flavors
 
-| Flavor | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM | minSdk |
-|--------|:-----:|:-----:|:------:|:-----:|:----:|:----:|:------:|
-| `standard` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 |
-| `lite` | ✓ | — | ✓ | — | — | — | 26 |
-| `photos` | — | — | ✓ | — | — | ✓ | 26 |
-| `legacy` | ✓ | ✓ | ✓ | — | — | ✓ | 23 |
+| Flavor | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM | VR | minSdk | Distribution |
+|--------|:-----:|:-----:|:------:|:-----:|:----:|:----:|:--:|:------:|:-------------|
+| `standard` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | 26 | Google Play |
+| `lite` | ✓ | — | ✓ | — | — | — | — | 26 | Google Play |
+| `photos` | — | — | ✓ | — | — | ✓ | — | 26 | Google Play |
+| `legacy` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | 23 | Google Play (API 23-25) |
+| `vr` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 | Meta Horizon Store |
+| `vrUnlicensed` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 | ADB sideload only (same appId as `vr`) |
+| `noLegal` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 | Sideload only (gitignored docs) |
 
-Features are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
-Source of truth for flavor config: `app_v2/build.gradle.kts`.
+Capability flags are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`. Use them only inside flavor source sets — not inside `src/main/java/`. Source of truth for flavor config: `app_v2/build.gradle.kts`.
+
+### Flavor Source Set Discipline
+
+Each flavor has its own source set: `app_v2/src/<flavor>/java/`, `.../res/`, `AndroidManifest.xml`. Flavor-only code goes there, NOT into `src/main/java/`.
+
+| Layout | Purpose | Where to place new code |
+|--------|---------|-------------------------|
+| `src/main/java/` | Shared across all flavors | Contract interfaces + No-Op fallbacks |
+| `src/standard/java/` | Currently empty; reserved for standard-only logic | Standard-only impls (rare) |
+| `src/vr/java/` | OpenXR rendering, VR HUD, immersive activity | All VR-only impls; mounted into `vr`, `vrUnlicensed`, `noLegal` |
+| `src/noLegal/java/` | yt-dlp / NewPipe extractors, GPL components | noLegal-only impls (sideload only, never in Google Play) |
+| `src/lite/`, `src/photos/`, `src/legacy/` | Manifest + res only at present | Add Java sources here if these flavors need divergent behavior |
+| `src/streamingEnabled/java/` | Shared by flavors with HLS/DASH (`standard`, `noLegal`, `legacy`, `vr`, `vrUnlicensed`) | Streaming download pipeline |
+| `src/streamingDisabled/java/` | Shared by flavors without streaming (`lite`, `photos`) | No-Op streaming pipeline |
+
+Rules: `dev/FLAVOR_DEVELOPMENT_RULES.md` + CLAUDE.md Rule 15. Quick recipe for a new flavor-specific feature:
+
+1. `src/main/java/.../FeatureX.kt` — `interface FeatureX { ... }` + `class NoOpFeatureX : FeatureX` + `@Module class FeatureXMainModule { @Binds fun bind(noOp: NoOpFeatureX): FeatureX }`.
+2. `src/<flavor>/java/.../RealFeatureX.kt` — real implementation.
+3. `src/<flavor>/java/.../di/FeatureXFlavorModule.kt` — `@Module class FeatureXFlavorModule { @Binds fun bind(real: RealFeatureX): FeatureX }` + `@TestInstallIn` or replace-strategy as the flavor's main module.
+4. Never write `if (BuildConfig.SUPPORT_VR_PLAYER) { startVr() } else { ... }` inside `src/main/java/`.
+
+Troubleshooting:
+- `unresolved reference: SomeClass` when building flavor X but not Y → `src/main/java/` is referencing a class that lives only in `src/<Y>/java/`. Move the reference behind an interface in main.
+- "leaks GPL code to standard build" warning during compliance audit → check `src/main/java/` for imports from `com.sza.fastmediasorter.noLegal.*` (must be zero).
+- VR build compiles for non-arm64 ABI → check `cmake.abiFilters = arm64-v8a` in the flavor's `externalNativeBuild` block.
 
 **Gradle flavor targets:**
 ```powershell

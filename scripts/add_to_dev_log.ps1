@@ -30,10 +30,24 @@ param(
     [string]$Target,
 
     [Parameter(Mandatory = $true, Position = 2)]
-    [string]$Description
+    [string]$Description,
+
+    [Parameter(Mandatory = $false)]
+    [string]$Branch = ""
 )
 
 $ErrorActionPreference = "Stop"
+
+# Detect current git branch for changelog context
+if ([string]::IsNullOrEmpty($Branch)) {
+    $detectedBranch = (git branch --show-current 2>$null).Trim()
+    if ([string]::IsNullOrEmpty($detectedBranch)) {
+        # Detached HEAD — use short SHA
+        $shortSha = (git rev-parse --short HEAD 2>$null).Trim()
+        $detectedBranch = if ($shortSha) { "detached/$shortSha" } else { "unknown" }
+    }
+    $Branch = $detectedBranch
+}
 
 # Resolve paths — script is at <repo>/scripts/add_to_dev_log.ps1
 $scriptDir = $PSScriptRoot
@@ -70,7 +84,8 @@ $safeTarget = $Target -replace '\|', '\|'
 $safeDesc = $Description -replace '\|', '\|'
 
 # Append entry
-$entry = "| $timestamp | ``$safeFile`` | ``$safeTarget`` | $safeDesc |"
+$branchTag = "[branch: $Branch]"
+$entry = "| $timestamp | ``$safeFile`` | ``$safeTarget`` | $safeDesc $branchTag |"
 Add-Content -Path $logFile -Value $entry -Encoding UTF8
 
-Write-Host "[DEV_LOG] $timestamp | $safeFile | $safeTarget | $safeDesc" -ForegroundColor Green
+Write-Host "[DEV_LOG] $timestamp | $safeFile | $safeTarget | $safeDesc $branchTag" -ForegroundColor Green

@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
+import com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileMenuAction
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
@@ -74,6 +75,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     @Inject lateinit var googleDriveClient: GoogleDriveRestClient
     @Inject lateinit var resourceOpsMenuManager: com.sza.fastmediasorter.ui.browse.managers.ResourceOpsMenuManager
+    @Inject lateinit var browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
     @Inject lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
     @Inject lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
     @Inject lateinit var fileOperationUseCase: FileOperationUseCase
@@ -85,12 +87,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
     @Inject lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
     @Inject lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
+    @Inject lateinit var unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
     @Inject lateinit var gamepadInputManager: GamepadInputManager
     @Inject lateinit var keyBindingManager: KeyBindingManager
     @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
     @Inject lateinit var passthroughCaptureProvider: java.util.Optional<BrowsePassthroughCaptureProvider>
+    // Flavor multibinding keeps flavor-only Browse actions out of market APKs.
+    @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -101,6 +106,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
+        // S0183: ActivityResultLaunchers MUST be registered before the lifecycle progresses past
+        // CREATED — registerForActivityResult throws IllegalStateException once STARTED.
+        // BaseActivity defers setupViews() via binding.root.post, which fires after RESUMED, so we
+        // cannot register from there.
+        binaryFileMenuActions.forEach { it.registerLaunchers(this) }
         // S0028: resolve windowId before any use-case call (ViewModel reads same key from SavedStateHandle)
         windowId = savedInstanceState?.getString(EXTRA_WINDOW_ID)
             ?: intent.getStringExtra(EXTRA_WINDOW_ID)
@@ -222,7 +232,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             credentialsRepository = credentialsRepository,
             unifiedFileOperationHandler = unifiedFileOperationHandler,
             audioMetadataLoader = audioMetadataLoader,
+            unifiedFileCache = unifiedFileCache,
             resourceOpsMenuManager = resourceOpsMenuManager,
+            browseFileOverflowMenuManager = browseFileOverflowMenuManager,
             launcherManager = launcherManager,
             showVideoThumbnailsGetter = { showVideoThumbnails },
             showPdfThumbnailsGetter = { showPdfThumbnails },
@@ -230,6 +242,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             updateShowPdfThumbnails = { showPdfThumbnails = it },
             isSkipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false),
             passthroughProvider = passthroughCaptureProvider.orElse(null),
+            binaryFileMenuActions = binaryFileMenuActions,
         )
 
         initializer.initialize()

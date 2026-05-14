@@ -743,6 +743,32 @@ class BrowseViewModel @Inject constructor(
      */
     fun saveManualOrder(orderedPaths: List<String>) = manualOrderCoordinator.saveManualOrder(orderedPaths)
 
+    /**
+     * Move [file] one position up in MANUAL sort order.
+     * No-op if sort mode is not MANUAL, file is already first, or file is not in the list.
+     */
+    fun moveFileUp(file: MediaFile) {
+        if (state.value.sortMode != SortMode.MANUAL) return
+        val files = state.value.mediaFiles.toMutableList()
+        val idx = files.indexOfFirst { it.path == file.path }
+        if (idx <= 0) return
+        files.add(idx - 1, files.removeAt(idx))
+        saveManualOrder(files.map { it.path })
+    }
+
+    /**
+     * Move [file] one position down in MANUAL sort order.
+     * No-op if sort mode is not MANUAL, file is already last, or file is not in the list.
+     */
+    fun moveFileDown(file: MediaFile) {
+        if (state.value.sortMode != SortMode.MANUAL) return
+        val files = state.value.mediaFiles.toMutableList()
+        val idx = files.indexOfFirst { it.path == file.path }
+        if (idx < 0 || idx >= files.size - 1) return
+        files.add(idx + 1, files.removeAt(idx))
+        saveManualOrder(files.map { it.path })
+    }
+
     fun saveLastViewedFile(filePath: String) = resourceStateManager.saveLastViewedFile(filePath)
     
     fun saveScrollPosition(position: Int) = resourceStateManager.saveScrollPosition(position)

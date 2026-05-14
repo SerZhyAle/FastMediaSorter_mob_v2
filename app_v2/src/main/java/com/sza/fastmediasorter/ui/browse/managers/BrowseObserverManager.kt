@@ -42,6 +42,7 @@ class BrowseObserverManager(
         observeInlinePlayer()
         observeFavoritesSetting()
         observeHideGridActionButtons()
+        observeFileOpsOverflowMenu()
         observeLoadingProgress()
         observeSettings()
         observeError()
@@ -79,6 +80,12 @@ class BrowseObserverManager(
     private fun observeHideGridActionButtons() {
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             adapter.setHideGridActionButtons(settings.hideGridActionButtons)
+        }
+    }
+
+    private fun observeFileOpsOverflowMenu() {
+        lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+            adapter.setFileOpsInOverflowMenu(settings.fileOpsInOverflowMenu)
         }
     }
 

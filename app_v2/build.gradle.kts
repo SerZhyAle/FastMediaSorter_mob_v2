@@ -696,7 +696,11 @@ if (isNoLegalBuild) {
             // Use getByName because Chaquopy registers PythonExtension per-flavor automatically.
             getByName("noLegal") {
                 pip {
-                    install("yt-dlp==2025.4.30")
+                    // S0190: bumped from 2025.4.30 → 2026.3.17 (latest non-dev release on PyPI
+                    // at spec time). Brings 2025-H2 + early-2026 YouTube player.js handling
+                    // plus extractor_args.youtube.player_client support, used in ytdlp_utils.py
+                    // to prefer Android client which typically bypasses PoToken requirements.
+                    install("yt-dlp==2026.3.17")
                 }
             }
         }

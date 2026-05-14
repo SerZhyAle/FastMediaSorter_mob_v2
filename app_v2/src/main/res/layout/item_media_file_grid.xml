@@ -23,6 +23,9 @@
                 <!-- Operation buttons: bottom-right of thumbnail -->
                 <ViewStub android:id="@+id/stubOperations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|end" android:inflatedId="@+id/llOperations" android:layout="@layout/item_media_file_grid_operations" />
 
+                <!-- Overflow menu button: bottom-right, shown instead of stubOperations when fileOpsInOverflowMenu=true -->
+                <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="bottom|end" android:padding="6dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/overflow_menu" android:scaleType="fitCenter" android:src="@drawable/ic_more_vert" app:tint="@color/selector_themed_button_tint" android:visibility="gone" tools:visibility="visible" />
+
             </FrameLayout>
 
             <!-- Filename below the thumbnail, outside the overlay zone -->

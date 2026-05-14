@@ -366,6 +366,10 @@ class VrRenderPipelineManager(
                 vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
             Timber.d("VR_AUDIT/14: cold-start phase=first-frame-submission absFromInitMs=%d",
                 vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
+            // S0132 P05.3a: STAGE_FIRST_FRAME marker — terminal milestone of the cold-start
+            // budget; elapsed is measured from xrInitStartedAtMs (activity-side anchor).
+            Timber.d("VR_AUDIT/14: cold-start stage=STAGE_FIRST_FRAME elapsed=%d",
+                vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
         }
 
         if (n % 300L == 1L) {

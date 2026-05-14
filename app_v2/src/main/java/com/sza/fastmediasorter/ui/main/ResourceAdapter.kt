@@ -43,7 +43,8 @@ class ResourceAdapter(
     private val onCopyFromClick: (MediaResource) -> Unit,
     private val onDeleteClick: (MediaResource) -> Unit,
     private val onMoveUpClick: (MediaResource) -> Unit,
-    private val onMoveDownClick: (MediaResource) -> Unit
+    private val onMoveDownClick: (MediaResource) -> Unit,
+    private val onScanClick: (MediaResource) -> Unit = {}
 ) : ListAdapter<MediaResource, RecyclerView.ViewHolder>(ResourceDiffCallback()) {
 
     companion object {
@@ -162,6 +163,16 @@ class ResourceAdapter(
 
     /** Optional drag listener; when non-null, drag handles become visible. */
     var dragStartListener: DragStartListener? = null
+
+    // S0160: when true, ⋮ button is forced visible on every resource row; inline buttons hidden.
+    private var overflowModeEnabled: Boolean = false
+
+    fun setOverflowModeEnabled(enabled: Boolean) {
+        if (this.overflowModeEnabled != enabled) {
+            this.overflowModeEnabled = enabled
+            notifyDataSetChanged()
+        }
+    }
 
     /** Live-reorder shadow of currentList (ADR-2); reconciled via submitList() in clearView(). */
     private val _items = mutableListOf<MediaResource>()
@@ -364,6 +375,34 @@ class ResourceAdapter(
                         dragStartListener?.onStartDrag(this@GridViewHolder)
                     }
                     false
+                }
+
+                // Overflow menu for grid items (S0160)
+                if (resource.id == -100L) {
+                    btnMoreActions.visibility = android.view.View.GONE
+                } else if (overflowModeEnabled) {
+                    val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
+                    btnMoreActions.visibility = android.view.View.VISIBLE
+                    btnMoreActions.setOnClickListener { view ->
+                        val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
+                        popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
+                        popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
+                        popup.setForceShowIcon(true)
+                        popup.setOnMenuItemClickListener { item ->
+                            when (item.itemId) {
+                                R.id.action_edit -> { onEditClick(resource); true }
+                                R.id.action_copy -> { onCopyFromClick(resource); true }
+                                R.id.action_scan -> { onScanClick(resource); true }
+                                R.id.action_move_up -> { onMoveUpClick(resource); true }
+                                R.id.action_move_down -> { onMoveDownClick(resource); true }
+                                R.id.action_delete -> { onDeleteClick(resource); true }
+                                else -> false
+                            }
+                        }
+                        popup.show()
+                    }
+                } else {
+                    btnMoreActions.visibility = android.view.View.GONE
                 }
             }
         }
@@ -621,7 +660,8 @@ class ResourceAdapter(
                 } else {
                     val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
 
-                    val showInlineActions = root.resources.getBoolean(R.bool.is_resource_actions_inline)
+                    val showInlineActions = !overflowModeEnabled &&
+                        root.resources.getBoolean(R.bool.is_resource_actions_inline)
                     if (showInlineActions) {
                         btnMoreActions.visibility = android.view.View.GONE
                         layoutInlineActions.visibility = android.view.View.VISIBLE
@@ -650,6 +690,10 @@ class ResourceAdapter(
                                     }
                                     R.id.action_copy -> {
                                         onCopyFromClick(resource)
+                                        true
+                                    }
+                                    R.id.action_scan -> {
+                                        onScanClick(resource)
                                         true
                                     }
                                     R.id.action_move_up -> {

@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
+import com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +43,8 @@ class CommandPanelController(
     private val binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
-    private val callback: CommandPanelCallback
+    private val callback: CommandPanelCallback,
+    private val bigButtonsMode: Boolean = false
 ) {
     
     interface CommandPanelCallback {
@@ -92,6 +94,7 @@ class CommandPanelController(
         fun onCropToFileClicked()
         fun onCompressCopyClicked()
         fun onDrawOverlayClicked()
+        fun onRotationToggleClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -100,10 +103,12 @@ class CommandPanelController(
     private val originalContainerPaddings = mutableMapOf<Int, android.graphics.Rect>()
     private var smallControlsApplied = false
     private val safeViews = PlayerBindingSafeViews(binding)
+    private val bigButtonsModeManager = PlayerBigButtonsModeManager(binding.root.context)
 
     // Adaptive portrait layout
     private val planner = CommandPanelLayoutPlanner()
     private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
+    private var latestBigButtonsBarCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var lastKnownFavoriteVisible = true
     // S0028: cached from settings; BuildConfig.SUPPORT_VR_PLAYER guard applied at write time
     private var lastKnownAllowSeparateWindow: Boolean = false
@@ -114,6 +119,7 @@ class CommandPanelController(
     
     companion object {
         private const val SMALL_CONTROLS_SCALE = 0.5f
+        private const val BIG_BUTTONS_TOP_PANEL_SLOT_COUNT = 8
     }
 
     private lateinit var castMediaManager: CastMediaManager
@@ -235,8 +241,14 @@ class CommandPanelController(
             isClickable = true
             isFocusable = true
         }
+
+        // S0162: Rotation toggle
+        safeViews.btnRotationToggleCmd.setOnClickListener {
+            callback.onRotationToggleClicked()
+        }
+
     }
-    
+
     /**
      * Update command availability based on state
      */
@@ -302,6 +314,13 @@ class CommandPanelController(
         val showInPortrait = effectiveShowCommandPanel && !isLandscapeMode
         
         val showRandomNavigation = shouldShowRandomNavigation(resource?.profile)
+        val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
+        val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
+        val isPdf = currentFile.type == MediaType.PDF
+        val isText = currentFile.type == MediaType.TEXT
+        val isEpub = currentFile.type == MediaType.EPUB
+        val isAudio = currentFile.type == MediaType.AUDIO
+        val showSlideshow = isImage || isVideo
 
         // Back + Previous/Next are fixed anchors — always visible when command panel is shown.
         binding.btnBack.isVisible = effectiveShowCommandPanel
@@ -337,10 +356,35 @@ class CommandPanelController(
         }
         
         // Center buttons visibility
-        if (showInPortrait) {
-            val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
-            val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
-            val showSlideshow = isImage || isVideo
+        if (bigButtonsMode && effectiveShowCommandPanel) {
+            binding.btnSlideshowCmd.isVisible = showSlideshow
+            val activeCommands = planner.buildActiveCommands(
+                state, canWrite, canRead, isWifiConnected(binding.root.context),
+                showFavorite = lastKnownFavoriteVisible,
+                showRandom = showRandomNavigation,
+                allowSeparateWindow = lastKnownAllowSeparateWindow
+            )
+            val editLabel = if (isVideo) R.string.control else R.string.edit
+            safeViews.btnEditCmd.contentDescription = binding.root.context.getString(editLabel)
+            updateBigButtonsTopPanelContentDescriptions(editLabel)
+
+            // S0158 counts the overflow trigger as one of the eight visible top-panel slots,
+            // so command buttons must be replanned after the fixed navigation buttons reserve
+            // their positions.
+            val commandSlots = (BIG_BUTTONS_TOP_PANEL_SLOT_COUNT - bigButtonsFixedButtons().count {
+                it.isVisible
+            }).coerceAtLeast(0)
+            val result = planner.planBigButtonsLayout(activeCommands, commandSlots)
+            latestBigButtonsBarCommands = result.barCommands
+            latestOverflowCommands = result.overflowCommands
+
+            getOverflowableButtons().forEach { it.isVisible = false }
+            result.barCommands.forEach { cmd -> barViewForCommand(cmd)?.isVisible = true }
+            safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
+            safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
+
+        } else if (showInPortrait) {
+            latestBigButtonsBarCommands = emptyList()
             binding.btnSlideshowCmd.isVisible = showSlideshow
             // Adaptive portrait layout: planner decides which commands fit on bar vs overflow
             val activeCommands = planner.buildActiveCommands(
@@ -367,12 +411,7 @@ class CommandPanelController(
             safeViews.btnOverflowMenu.isVisible = result.showOverflowButton
 
         } else if (showInLandscape) {
-            val isImage = currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF
-            val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
-            val isPdf = currentFile.type == MediaType.PDF
-            val isText = currentFile.type == MediaType.TEXT
-            val isEpub = currentFile.type == MediaType.EPUB
-            val isAudio = currentFile.type == MediaType.AUDIO
+            latestBigButtonsBarCommands = emptyList()
 
             // Group 1: inside HorizontalScrollView (Previous/Next set in common section)
             binding.btnPlaybackOrderCmd.isVisible = (currentFile.type == MediaType.AUDIO || currentFile.type == MediaType.VIDEO)
@@ -442,6 +481,7 @@ class CommandPanelController(
             latestOverflowCommands = landscapeOverflowCmds
             safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
         } else {
+            latestBigButtonsBarCommands = emptyList()
             // Command panel hidden
             safeViews.btnOverflowMenu.isVisible = false
             latestOverflowCommands = emptyList()
@@ -500,6 +540,10 @@ class CommandPanelController(
             binding.root.post {
                 logPanelGeometrySnapshot("post+1")
             }
+        }
+
+        if (bigButtonsMode) {
+            syncBigButtonsTopPanelLayout()
         }
         
 
@@ -776,7 +820,7 @@ class CommandPanelController(
             binding.topCommandPanel.post { updateCommandAvailability(state) }
         }
     }
-    
+
     /**
      * Show the overflow popup menu, ordered by command priority (highest priority first).
      *
@@ -791,6 +835,14 @@ class CommandPanelController(
 
         val commands = latestOverflowCommands
         if (commands.isEmpty()) return
+
+        // S0158: Big Buttons Mode uses a custom ListPopupWindow with doubled row height
+        if (bigButtonsMode) {
+            bigButtonsModeManager.buildBigButtonsOverflowMenu(anchor, commands, bigButtonsMode = true) { cmd ->
+                handleOverflowCommand(cmd)
+            }
+            return
+        }
 
         val popup = PopupMenu(context, anchor)
         popup.setForceShowIcon(true)
@@ -824,47 +876,8 @@ class CommandPanelController(
         }
 
         popup.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.menu_delete -> callback.onDeleteClicked()
-                R.id.menu_favorite -> callback.onFavoriteClicked()
-                R.id.menu_share -> callback.onShareClicked()
-                R.id.menu_info -> callback.onInfoClicked()
-                R.id.menu_fullscreen -> callback.onFullscreenClicked()
-                R.id.menu_slideshow -> callback.onSlideshowClicked()
-                R.id.menu_random -> callback.onRandomClicked()
-                R.id.menu_rename -> callback.onRenameClicked()
-                R.id.menu_lyrics -> callback.onLyricsClicked()
-                R.id.menu_search_youtube_music -> callback.onSearchYoutubeMusicClicked()
-                R.id.menu_cast -> callback.onCastClicked()
-                R.id.menu_edit -> callback.onEditClicked()
-                R.id.menu_search -> callback.onSearchClicked()
-                R.id.menu_translate -> callback.onTranslateClicked()
-                R.id.menu_text_settings -> callback.onTranslationSettingsClicked()
-                R.id.menu_ocr -> callback.onOcrClicked()
-                R.id.menu_google_lens -> callback.onGoogleLensClicked()
-                R.id.menu_copy_text -> callback.onCopyTextClicked()
-                R.id.menu_edit_text -> callback.onEditTextClicked()
-                R.id.menu_undo -> callback.onUndoClicked()
-                R.id.menu_sleep_timer -> callback.onSleepTimerClicked()
-                R.id.menu_reopen_encoding -> callback.onReopenEncodingClicked()
-                R.id.menu_toggle_markdown -> callback.onToggleMarkdownClicked()
-                R.id.menu_reader_settings -> callback.onReaderSettingsClicked()
-                R.id.menu_read_aloud -> callback.onReadAloudClicked()
-                R.id.menu_pdf_scroll_mode -> callback.onPdfScrollModeClicked()
-                R.id.menu_pdf_color_mode -> callback.onPdfColorModeClicked()
-                R.id.menu_pdf_thumbnails -> callback.onPdfThumbnailsClicked()
-                R.id.menu_epub_reader_settings -> callback.onEpubReaderSettingsClicked()
-                R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
-                R.id.menu_print -> callback.onPrintClicked()
-                R.id.menu_save_frame -> callback.onSaveFrameClicked()
-                R.id.menu_3d_vr -> callback.on3dVrToggleClicked()
-                R.id.menu_black_screen -> callback.onBlackScreenClicked()
-                R.id.menu_open_in_separate_window -> callback.onOpenInSeparateWindowClicked()
-                R.id.menu_crop -> callback.onCropClicked()
-                R.id.menu_crop_to_file -> callback.onCropToFileClicked()
-                R.id.menu_compress_copy -> callback.onCompressCopyClicked()
-                R.id.menu_draw_overlay -> callback.onDrawOverlayClicked()
-            }
+            val cmd = CommandPanelLayoutPlanner.PlayerCommand.entries.find { it.menuItemId == menuItem.itemId }
+            if (cmd != null) handleOverflowCommand(cmd)
             true
         }
 
@@ -917,7 +930,53 @@ class CommandPanelController(
             popup.show()
         }
     }
-    
+
+    /** S0158: Dispatch overflow menu command from both PopupMenu and big-buttons ListPopupWindow paths. */
+    private fun handleOverflowCommand(cmd: CommandPanelLayoutPlanner.PlayerCommand) {
+        when (cmd.menuItemId) {
+            R.id.menu_delete -> callback.onDeleteClicked()
+            R.id.menu_favorite -> callback.onFavoriteClicked()
+            R.id.menu_share -> callback.onShareClicked()
+            R.id.menu_info -> callback.onInfoClicked()
+            R.id.menu_fullscreen -> callback.onFullscreenClicked()
+            R.id.menu_slideshow -> callback.onSlideshowClicked()
+            R.id.menu_random -> callback.onRandomClicked()
+            R.id.menu_rename -> callback.onRenameClicked()
+            R.id.menu_lyrics -> callback.onLyricsClicked()
+            R.id.menu_search_youtube_music -> callback.onSearchYoutubeMusicClicked()
+            R.id.menu_cast -> callback.onCastClicked()
+            R.id.menu_edit -> callback.onEditClicked()
+            R.id.menu_search -> callback.onSearchClicked()
+            R.id.menu_translate -> callback.onTranslateClicked()
+            R.id.menu_text_settings -> callback.onTranslationSettingsClicked()
+            R.id.menu_ocr -> callback.onOcrClicked()
+            R.id.menu_google_lens -> callback.onGoogleLensClicked()
+            R.id.menu_copy_text -> callback.onCopyTextClicked()
+            R.id.menu_edit_text -> callback.onEditTextClicked()
+            R.id.menu_undo -> callback.onUndoClicked()
+            R.id.menu_sleep_timer -> callback.onSleepTimerClicked()
+            R.id.menu_reopen_encoding -> callback.onReopenEncodingClicked()
+            R.id.menu_toggle_markdown -> callback.onToggleMarkdownClicked()
+            R.id.menu_reader_settings -> callback.onReaderSettingsClicked()
+            R.id.menu_read_aloud -> callback.onReadAloudClicked()
+            R.id.menu_pdf_scroll_mode -> callback.onPdfScrollModeClicked()
+            R.id.menu_pdf_color_mode -> callback.onPdfColorModeClicked()
+            R.id.menu_pdf_thumbnails -> callback.onPdfThumbnailsClicked()
+            R.id.menu_epub_reader_settings -> callback.onEpubReaderSettingsClicked()
+            R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
+            R.id.menu_print -> callback.onPrintClicked()
+            R.id.menu_save_frame -> callback.onSaveFrameClicked()
+            R.id.menu_3d_vr -> callback.on3dVrToggleClicked()
+            R.id.menu_black_screen -> callback.onBlackScreenClicked()
+            R.id.menu_open_in_separate_window -> callback.onOpenInSeparateWindowClicked()
+            R.id.menu_crop -> callback.onCropClicked()
+            R.id.menu_crop_to_file -> callback.onCropToFileClicked()
+            R.id.menu_compress_copy -> callback.onCompressCopyClicked()
+            R.id.menu_draw_overlay -> callback.onDrawOverlayClicked()
+            R.id.menu_rotation_toggle -> callback.onRotationToggleClicked()
+        }
+    }
+
     /**
      * All adaptive center buttons that may move between bar and overflow.
      * These are hidden at the start of every portrait-branch pass and then
@@ -939,6 +998,7 @@ class CommandPanelController(
             safeViews.btnLyricsCmd,
             binding.btnSleepTimerCmd,
             safeViews.btnSearchYoutubeMusicCmd,
+            safeViews.btnRotationToggleCmd,
             safeViews.btnCastCmd,
             safeViews.btnEditCmd,
             safeViews.btnSaveFrameCmd,
@@ -988,6 +1048,7 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.PLAYBACK_ORDER -> binding.btnPlaybackOrderCmd
             CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER -> binding.btnSleepTimerCmd
             CommandPanelLayoutPlanner.PlayerCommand.SEARCH_YOUTUBE_MUSIC -> safeViews.btnSearchYoutubeMusicCmd
+            CommandPanelLayoutPlanner.PlayerCommand.ROTATION_TOGGLE -> safeViews.btnRotationToggleCmd
             CommandPanelLayoutPlanner.PlayerCommand.SEARCH_PDF -> safeViews.btnSearchPdfCmd
             CommandPanelLayoutPlanner.PlayerCommand.TRANSLATE_PDF -> safeViews.btnTranslatePdfCmd
             CommandPanelLayoutPlanner.PlayerCommand.PDF_TEXT_SETTINGS -> safeViews.btnPdfTextSettingsCmd
@@ -1045,6 +1106,17 @@ class CommandPanelController(
         }
     }
 
+    fun updateRotationToggleIcon(sensorEnabled: Boolean) {
+        val iconRes = if (sensorEnabled) R.drawable.ic_rotation_unlocked
+                      else R.drawable.ic_rotation_locked
+        safeViews.btnRotationToggleCmd.setImageResource(iconRes)
+        safeViews.btnRotationToggleCmd.contentDescription =
+            binding.root.context.getString(
+                if (sensorEnabled) R.string.rotation_toggle_sensor_on_desc
+                else R.string.rotation_toggle_sensor_off_desc
+            )
+    }
+
     fun updatePlaybackOrderButtonIcon(mode: PlaybackOrderMode) {
         val iconRes = when (mode) {
             PlaybackOrderMode.LOOP_LIST    -> R.drawable.ic_loop_list
@@ -1061,5 +1133,56 @@ class CommandPanelController(
         })
         binding.btnPlaybackOrderCmd.contentDescription =
             binding.root.context.getString(R.string.playback_order_button_desc, modeLabel)
+    }
+
+    private fun bigButtonsFixedButtons(): List<View> = listOf(
+        binding.btnBack,
+        binding.btnSlideshowCmd,
+        binding.btnPreviousCmd,
+        binding.btnNextCmd
+    )
+
+    private fun syncBigButtonsTopPanelLayout() {
+        binding.topCommandPanel.post {
+            bigButtonsModeManager.restoreTopCommandPanel(binding.topCommandPanel)
+
+            val orderedButtons = buildList {
+                if (binding.btnBack.isVisible) add(binding.btnBack)
+                latestBigButtonsBarCommands.forEach { command ->
+                    barViewForCommand(command)
+                        ?.takeIf { it.isVisible }
+                        ?.let(::add)
+                }
+                if (safeViews.btnOverflowMenu.isVisible) add(safeViews.btnOverflowMenu)
+                if (binding.btnSlideshowCmd.isVisible) add(binding.btnSlideshowCmd)
+                if (binding.btnPreviousCmd.isVisible) add(binding.btnPreviousCmd)
+                if (binding.btnNextCmd.isVisible) add(binding.btnNextCmd)
+            }
+
+            if (orderedButtons.isEmpty()) return@post
+
+            bigButtonsModeManager.applyToTopCommandPanel(
+                topCommandPanel = binding.topCommandPanel,
+                visibleButtons = orderedButtons,
+                overflowButton = null,
+                bigButtonsMode = true
+            )
+        }
+    }
+
+    private fun updateBigButtonsTopPanelContentDescriptions(editLabelRes: Int) {
+        val context = binding.root.context
+        binding.btnBack.contentDescription = context.getString(R.string.back)
+        binding.btnPreviousCmd.contentDescription = context.getString(R.string.previous)
+        binding.btnNextCmd.contentDescription = context.getString(R.string.next)
+        binding.btnSlideshowCmd.contentDescription = context.getString(R.string.slideshow)
+        safeViews.btnOverflowMenu.contentDescription = context.getString(R.string.more_actions)
+
+        CommandPanelLayoutPlanner.PlayerCommand.entries.forEach { command ->
+            barViewForCommand(command)?.contentDescription = context.getString(
+                if (command == CommandPanelLayoutPlanner.PlayerCommand.EDIT) editLabelRes
+                else command.titleResId
+            )
+        }
     }
 }

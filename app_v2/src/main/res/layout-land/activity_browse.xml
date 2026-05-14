@@ -44,6 +44,9 @@
         <!-- Small space -->
         <Space android:layout_width="@dimen/match_constraint" android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
+        <!-- Create Folder (S0165) — shown only when resource has subfoldersAsItems + writable + !virtual -->
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCreateFolder" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/action_create_folder" android:gravity="start|center_vertical" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:visibility="gone" app:icon="@drawable/ic_create_new_folder_24" app:iconTint="?attr/colorControlNormal" />
+
         <!-- Resource Operations -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnResourceOps" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/cd_resource_ops_menu" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@drawable/ic_more_vert" app:iconTint="?attr/colorControlNormal" />
 

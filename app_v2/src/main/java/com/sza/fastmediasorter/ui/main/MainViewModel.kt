@@ -677,6 +677,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    // S0160: test availability + refresh file count for a single resource row.
+    fun scanSingleResource(resource: MediaResource) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            when (scanCoordinator.scanAndRefreshSingleResource(resource)) {
+                is ResourceScanCoordinator.SingleScanResult.Unavailable ->
+                    sendEvent(MainEvent.ShowMessage(
+                        context.getString(R.string.resource_unavailable_name, resource.name)
+                    ))
+                is ResourceScanCoordinator.SingleScanResult.Available -> {
+                    // DB updated via updateResourceUseCase inside scanCoordinator;
+                    // the resource-list observer refreshes the UI automatically.
+                }
+            }
+        }
+    }
+
     private suspend fun performScanAllResources() {
         setLoading(true)
         try {

@@ -13,10 +13,16 @@ class WebViewAuthViewModel @Inject constructor(
     private val repository: AuthSessionRepository,
 ) : ViewModel() {
 
-    fun saveSession(host: String, accountId: String, displayName: String, cookies: List<HttpCookie>) {
+    fun saveSession(
+        host: String,
+        accountId: String,
+        displayName: String,
+        cookies: List<HttpCookie>,
+        userAgent: String? = null,
+    ) {
         if (host.isBlank() || accountId.isBlank() || cookies.isEmpty()) return
         viewModelScope.launch {
-            repository.saveSession(host, accountId, displayName, cookies)
+            repository.saveSession(host, accountId, displayName, cookies, userAgent)
         }
     }
 

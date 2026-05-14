@@ -185,6 +185,7 @@ class PlayerNavigationManager(
         val randomOffset = Random.nextInt(files.size - 1) + 1
         val randomIndex = (currentIndex + randomOffset) % files.size
         Timber.tag("TOUCH_ZONE_DEBUG").w("RANDOM triggered by: UI Manager RANDOM button clicked -> $currentIndex to $randomIndex")
+        activity.onManualSlideshowNavigation()
         viewModel.jumpToIndex(randomIndex, manual = true)
 
         if (currentState.currentFile?.type == MediaType.AUDIO) {
@@ -215,6 +216,9 @@ class PlayerNavigationManager(
      */
     private fun navigatePrevious(skipDocuments: Boolean = false, manual: Boolean = false) {
         val currentFileBeforeNav = viewModel.state.value.currentFile
+        if (manual) {
+            activity.onManualSlideshowNavigation()
+        }
         viewModel.previousFile(skipDocuments, manual)
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
@@ -229,6 +233,9 @@ class PlayerNavigationManager(
      */
     private fun navigateNext(skipDocuments: Boolean = false, manual: Boolean = false) {
         val currentFileBeforeNav = viewModel.state.value.currentFile
+        if (manual) {
+            activity.onManualSlideshowNavigation()
+        }
         viewModel.nextFile(skipDocuments, manual)
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
@@ -300,7 +307,7 @@ class PlayerNavigationManager(
      */
     fun navigatePreviousFromTouchZone() {
         Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Touch zone click")
-        navigatePrevious()
+        navigatePrevious(manual = true)
     }
 
     /**
@@ -308,35 +315,35 @@ class PlayerNavigationManager(
      */
     fun navigateNextFromTouchZone() {
         Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Touch zone click")
-        navigateNext()
+        navigateNext(manual = true)
     }
 
     /**
      * Navigate to previous file (from keyboard/remote control)
      */
-    fun navigatePreviousFromControl() {
-        navigatePrevious()
+    fun navigatePreviousFromControl(manual: Boolean = true) {
+        navigatePrevious(manual = manual)
     }
 
     /**
      * Navigate to next file (from keyboard/remote control)
      */
-    fun navigateNextFromControl() {
-        navigateNext()
+    fun navigateNextFromControl(manual: Boolean = true) {
+        navigateNext(manual = manual)
     }
 
     /**
      * Navigate to previous file (from mouse scroll - already logged)
      */
     fun navigatePreviousFromMouseScroll() {
-        navigatePrevious()
+        navigatePrevious(manual = true)
     }
 
     /**
      * Navigate to next file (from mouse scroll - already logged)
      */
     fun navigateNextFromMouseScroll() {
-        navigateNext()
+        navigateNext(manual = true)
     }
 
     /**

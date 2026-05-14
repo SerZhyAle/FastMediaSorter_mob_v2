@@ -98,16 +98,17 @@ For ad-hoc: evaluate the scope by affected modules and user impact, assign the c
 **4 — Allocate ticket id.** Before any file write:
 
 ```powershell
-$ticketId = (& pwsh -File scripts/spec_catalog/insert.ps1 `
-    -Name "<short-name>" `
-    -File "PLAN/<placeholder>" `
-    -Status Draft `
-    -Tier <N> `
-    -Priority <P>).Trim()
+$ticketId = (& pwsh -File scripts/spec_catalog/next-id.ps1).Trim()
+& pwsh -File scripts/spec_catalog/insert.ps1 `
+  -Name "<short-name>" `
+  -File "PLAN/${ticketId}_<short-name>.md" `
+  -Status Draft `
+  -Tier <N> `
+  -Priority <P> | Out-Null
 # $ticketId -> e.g. "S0042"
 ```
 
-The `name` field in the journal is the **bare slug** — no `spec_` prefix. The placeholder `-File` value is harmless because step 5 immediately overwrites it via `update.ps1`. After allocation, build the real path: `PLAN/$ticketId\_<short-name>.md`.
+The `name` field in the journal is the **bare slug** — no `spec_` prefix. Current `insert.ps1` validates the file path at insert time, so pass the final `PLAN/Sxxxx_<short-name>.md` immediately. Step 5 may still call `update.ps1 -File ...` idempotently after the file is written.
 
 **5 — Write the strategic file** at `PLAN/<Sxxxx>_<short-name>.md` using the template below. The `**Ticket:** Sxxxx` and `**Priority:** N` fields go in the frontmatter. Then patch the journal `file` field:
 

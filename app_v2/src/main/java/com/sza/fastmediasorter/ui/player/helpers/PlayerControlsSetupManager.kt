@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
@@ -41,9 +42,11 @@ class PlayerControlsSetupManager(
     private val translationButtonManager: TranslationButtonManager,
     private val exoPlayerControlsManager: ExoPlayerControlsManager,
     private val searchControlsManager: SearchControlsManager,
-    private val blackScreenOverlayManager: BlackScreenOverlayManager
+    private val blackScreenOverlayManager: BlackScreenOverlayManager,
+    private val bigButtonsMode: Boolean = false
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+    private val bigButtonsModeManager = PlayerBigButtonsModeManager(activity)
     
     /**
      * Setup all controls in the activity.
@@ -63,22 +66,35 @@ class PlayerControlsSetupManager(
         setupDocumentFullscreenExitButton()
         setupExoPlayerControls()
         setupTouchZonesHelpButton()
+        applyBigButtonsModeToPlaybackRow()
     }
-    
+
+    /**
+     * S0158: Expand ExoPlayer controls button row to full-width 2× height when big buttons mode
+     * is active. Targets [R.id.exoPlayerButtonRow] inside the PlayerView — the visible playback
+     * controls in both portrait and landscape non-fullscreen mode.
+     */
+    fun applyBigButtonsModeToPlaybackRow() {
+        if (!bigButtonsMode) return
+        val exoRow = binding.playerView.findViewById<LinearLayout>(R.id.exoPlayerButtonRow)
+            ?: return
+        exoRow.post {
+            bigButtonsModeManager.applyToBottomPlaybackRow(exoRow, bigButtonsMode = true)
+        }
+    }
+
     /**
      * Setup navigation controls (Previous/Next buttons).
      */
     private fun setupNavigationControls() {
         binding.btnPrevious.setOnClickListener {
             UserActionLogger.logButtonClick("Previous", "PlayerActivity")
-            viewModel.previousFile(manual = true)
-            activity.scheduleHideControls()
+            activity.navigationManager.navigatePreviousFromButton()
         }
 
         binding.btnNext.setOnClickListener {
             UserActionLogger.logButtonClick("Next", "PlayerActivity")
-            viewModel.nextFile(manual = true)
-            activity.scheduleHideControls()
+            activity.navigationManager.navigateNextFromButton()
         }
     }
     

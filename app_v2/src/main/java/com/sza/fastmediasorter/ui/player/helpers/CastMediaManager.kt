@@ -322,6 +322,7 @@ class CastMediaManager(
      */
     private suspend fun downloadToTemp(file: MediaFile): File? = withContext(Dispatchers.IO) {
         try {
+            Timber.d("S0137: CastMediaManager.downloadToTemp — delegating to NetworkFileManager for ${file.name}")
             networkFileManager.prepareFileForRead(file)
         } catch (e: Exception) {
             Timber.e(e, "CastMediaManager: download failed for ${file.name}")

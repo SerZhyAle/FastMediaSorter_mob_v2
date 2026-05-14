@@ -101,6 +101,8 @@ data class BackupSettings(
     val confirmMove: Boolean = false,
     val defaultGridMode: Boolean = false,
     val hideGridActionButtons: Boolean = true,
+    val fileOpsInOverflowMenu: Boolean = false,
+    val fileOpsOverflowMenuHintShown: Boolean = false,
     val hideSystemUiInFullscreen: Boolean = true,
     val defaultIconSize: Int = 96,
     val defaultShowCommandPanel: Boolean = true,

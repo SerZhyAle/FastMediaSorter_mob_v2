@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
+import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
@@ -35,16 +36,25 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
     override fun observeAccountsAll(): Flow<List<AuthAccountDomain>> = accountFlowAll.asStateFlow()
 
-    override suspend fun saveSession(host: String, accountId: String, displayName: String, cookies: List<HttpCookie>) {
+    override suspend fun saveSession(
+        host: String,
+        accountId: String,
+        displayName: String,
+        cookies: List<HttpCookie>,
+        userAgent: String?,
+    ) {
         if (host.isBlank() || accountId.isBlank() || cookies.isEmpty()) {
             Timber.i("AuthSessionRepositoryImpl: skipped empty account save host=%s accountId=%s", host, accountId)
             return
         }
         withContext(Dispatchers.IO) {
-            store.saveForAccount(host, accountId, displayName, cookies)
+            store.saveForAccount(host, accountId, displayName, cookies, userAgent)
             refreshFlows()
         }
     }
+
+    override suspend fun loadUserAgent(host: String, accountId: String): String? =
+        withContext(Dispatchers.IO) { store.loadUserAgentForAccount(host, accountId) }
 
     override suspend fun deleteAccount(host: String, accountId: String) {
         withContext(Dispatchers.IO) {
@@ -55,7 +65,42 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
     override suspend fun listAccountsForHost(host: String): List<AuthAccountDomain> =
         withContext(Dispatchers.IO) {
-            val live = store.listAccounts(host).map { entry -> entry.toDomain(host) }
+            // S0166 fix: exact host first; if empty, fall back to any account that lives
+            // under the same eTLD+1 registrable domain. Without this, sharing from
+            // vm.tiktok.com fails to find the account saved under www.tiktok.com and the
+            // user is forced to re-authenticate even though valid cookies exist.
+            // Matches the resolution logic in LinkAutoDownloadCoordinator.resolveSessionHost.
+            val exactEntries = store.listAccounts(host)
+            val (resolvedHost, entries) = if (exactEntries.isNotEmpty()) {
+                host to exactEntries
+            } else {
+                val reg = registrableDomainOrNull(host)
+                val fallbackHost = if (reg != null) {
+                    store.listAllAccounts()
+                        .asSequence()
+                        .filter { (h, e) ->
+                            e.type == EncryptedCookieStore.TYPE_ACTIVE &&
+                                e.cookieCount > 0 &&
+                                registrableDomainOrNull(h) == reg
+                        }
+                        .map { it.first }
+                        .firstOrNull()
+                } else {
+                    null
+                }
+                if (fallbackHost != null) {
+                    Timber.d(
+                        "[S0166] listAccountsForHost eTLD+1 fallback: host=%s resolvedHost=%s reg=%s",
+                        host,
+                        fallbackHost,
+                        reg,
+                    )
+                    fallbackHost to store.listAccounts(fallbackHost)
+                } else {
+                    host to emptyList()
+                }
+            }
+            val live = entries.map { entry -> entry.toDomain(resolvedHost) }
             val dismissed = buildList {
                 val hostDismiss = store.hasDismissedRecord(host)
                 if (hostDismiss) {

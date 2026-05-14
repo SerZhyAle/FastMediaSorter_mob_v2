@@ -1,0 +1,27 @@
+# release-worktree-sync.txt
+# ---------------------------------------------------------------------------
+# Files that are gitignored in the dev directory but REQUIRED for release
+# builds. The a.ps1 release path copies these from the dev directory to the
+# release worktree before invoking the build script.
+#
+# Format: one relative path per line (relative to repo root).
+# Lines starting with # and blank lines are ignored.
+# Paths use forward slashes. Missing source files are skipped with a warning
+# (not an error) — builds may still succeed if the file is optional.
+# ---------------------------------------------------------------------------
+
+# Machine-specific SDK/NDK paths — always required
+local.properties
+
+# Release signing credentials
+keystore.properties
+fastmediasorter.keystore
+
+# OAuth client secrets (production credentials, release flavor only)
+app_v2/src/release/res/values/google_oauth.xml
+
+# Private resource file (sideload-only content, not in public repo)
+app_v2/src/main/res/xml/sza_resources.xml
+
+# Google Services / Firebase config (if present)
+google-services.json

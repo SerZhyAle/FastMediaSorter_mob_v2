@@ -30,5 +30,6 @@ data class HtmlMediaCandidate(
         INLINE_LINK,
         HLS_MANIFEST,
         DASH_MANIFEST,
+        EMBEDDED_JSON,
     }
 }

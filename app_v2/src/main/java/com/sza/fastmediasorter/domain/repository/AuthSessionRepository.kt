@@ -17,9 +17,18 @@ interface AuthSessionRepository {
 
     fun observeAccountsAll(): Flow<List<AuthAccountDomain>>
 
-    suspend fun saveSession(host: String, accountId: String, displayName: String, cookies: List<HttpCookie>)
+    suspend fun saveSession(
+        host: String,
+        accountId: String,
+        displayName: String,
+        cookies: List<HttpCookie>,
+        userAgent: String? = null,
+    )
 
     suspend fun deleteAccount(host: String, accountId: String)
+
+    /** S0182: returns the User-Agent captured when the cookies were saved, or null. */
+    suspend fun loadUserAgent(host: String, accountId: String): String?
 
     suspend fun listAccountsForHost(host: String): List<AuthAccountDomain>
 

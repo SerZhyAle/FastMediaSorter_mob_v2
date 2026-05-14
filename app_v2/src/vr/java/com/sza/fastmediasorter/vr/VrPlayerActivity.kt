@@ -224,6 +224,7 @@ class VrPlayerActivity : PlayerActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Timber.d("S0132: VrPlayerActivity.onCreate — cold-start stage breakdown + swapchain + fisheye logging path")
         // High-priority diagnostic: android.util.Log.e so this always appears in logcat
         // even when the buffer is flooded by system (XR runtime) log spam.
         Log.e("VR_BOOT", "VrPlayerActivity.onCreate intent=${intent?.toUri(0)} savedState=$savedInstanceState")
@@ -243,6 +244,10 @@ class VrPlayerActivity : PlayerActivity() {
         super.onCreate(savedInstanceState)
         Timber.i("VrPlayerActivity: super.onCreate done")
         Timber.d("VR_AUDIT/14: cold-start phase=super.onCreate-done deltaMs=%d", (System.nanoTime() - xrColdStartNanos) / 1_000_000)
+        // S0132 P05.3a: STAGE_SETUP_VIEWS marker — BaseActivity.setupViews completes inside
+        // super.onCreate, so this anchor sits at the boundary needed for the stage-breakdown
+        // grep pattern `cold-start stage=STAGE_*`.
+        Timber.d("VR_AUDIT/14: cold-start stage=STAGE_SETUP_VIEWS elapsed=%d", (System.nanoTime() - xrColdStartNanos) / 1_000_000)
 
         forceImmersiveThisLaunch = intent.getBooleanExtra(EXTRA_FORCE_IMMERSIVE, false)
         Timber.i("VrPlayerActivity: forceImmersiveThisLaunch=%b", forceImmersiveThisLaunch)

@@ -8,6 +8,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- S0183: APK install from Browse — noLegal only; forbidden in market builds -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <application
         android:extractNativeLibs="true"
         tools:replace="android:extractNativeLibs" />

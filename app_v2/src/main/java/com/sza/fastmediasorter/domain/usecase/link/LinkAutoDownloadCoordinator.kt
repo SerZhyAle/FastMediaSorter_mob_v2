@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.link
 
 import android.net.Uri
 import com.sza.fastmediasorter.data.link.LinkDownloadWriter
+import com.sza.fastmediasorter.data.link.LinkUrlCanonicalizer
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
@@ -32,6 +33,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private val authSessionRepository: AuthSessionRepository,
     private val sessionContext: LinkDownloadSessionContext,
     private val cookieStore: EncryptedCookieStore,
+    private val urlCanonicalizer: LinkUrlCanonicalizer,
 ) {
 
     // S0176: resolves the stored host whose cookies should be applied to the current run.
@@ -63,6 +65,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // S0176: uses resolveSessionHost() so that www.instagram.com falls back to the
     // instagram.com stored session when the exact host has no cookies. Returns the
     // resolved stored host so handle() can pass it to markLastUsed().
+    // S0182: also loads the pinned User-Agent captured at login time and pushes it
+    // into LinkDownloadSessionContext so every downstream stack (yt-dlp, OkHttp)
+    // sends the same UA Meta/anti-bot first saw with these cookies.
     private fun applySessionContext(host: String, accountId: String?): String? {
         val resolvedHost = resolveSessionHost(host, accountId) ?: return null
         val cookies = when {
@@ -70,13 +75,31 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             else -> @Suppress("DEPRECATION") cookieStore.loadFor(resolvedHost)
         }
         if (cookies.isNotEmpty()) {
-            sessionContext.set(resolvedHost, cookies)
+            // S0182: pull UA for the same (resolvedHost, accountId) the cookies came from.
+            // If accountId is null, scan accounts under resolvedHost for any active entry
+            // that recorded a UA (best-effort fallback used by the auto path).
+            val pinnedUa = if (accountId != null) {
+                cookieStore.loadUserAgentForAccount(resolvedHost, accountId)
+            } else {
+                cookieStore.listAccounts(resolvedHost)
+                    .asSequence()
+                    .mapNotNull { e -> cookieStore.loadUserAgentForAccount(resolvedHost, e.accountId) }
+                    .firstOrNull()
+            }
+            sessionContext.set(resolvedHost, cookies, pinnedUa)
+            Timber.d(
+                "S0182: applySessionContext bound resolvedHost=%s accountId=%s pinnedUa=%s",
+                resolvedHost,
+                accountId ?: "auto",
+                if (pinnedUa != null) "pinned" else "fallback",
+            )
             Timber.i(
-                "[S0166] applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d",
+                "[S0166] applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d ua=%s",
                 host,
                 resolvedHost,
                 accountId ?: "auto",
                 cookies.size,
+                pinnedUa?.take(60) ?: "(none)",
             )
             Timber.d(
                 "LinkAutoDownloadCoordinator: session context applied host=%s resolvedHost=%s accountId=%s cookies=%d",
@@ -95,10 +118,17 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             return Result.Failed.Other(IllegalStateException("auto_download_disabled"))
         }
 
-        val host = url.toHttpUrlOrNull()?.host ?: ""
+        // S0190: rewrite well-known equivalent URLs (music.youtube.com, m.youtube.com,
+        // youtube.com/shorts/<id>) to a canonical form recognised by both yt-dlp and
+        // NewPipe upstream. Cookie host resolution below also benefits because the
+        // canonical host (youtube.com) is what EncryptedCookieStore is keyed by.
+        Timber.d("S0190: handle entry url=%s accountId=%s", url.take(80), accountId ?: "auto")
+        val canonicalUrl = urlCanonicalizer.canonicalize(url)
+
+        val host = canonicalUrl.toHttpUrlOrNull()?.host ?: ""
         val appliedSessionHost = if (host.isNotBlank()) applySessionContext(host, accountId) else null
         val result = try {
-            handleUrl(url = url, settings = settings, callbacks = callbacks, accountId = accountId)
+            handleUrl(url = canonicalUrl, settings = settings, callbacks = callbacks, accountId = accountId)
         } finally {
             sessionContext.clear()
         }
@@ -115,10 +145,13 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             return Result.Failed.Other(IllegalStateException("auto_download_disabled"))
         }
 
+        // S0190: canonicalize before distinct() so YouTube equivalents (e.g.
+        // shorts/<id> vs watch?v=<id>) collapse into a single batch item.
         val items = urls
             .map(String::trim)
             .filter { it.isNotBlank() }
             .filter { it.toHttpUrlOrNull() != null }
+            .map { urlCanonicalizer.canonicalize(it) }
             .distinct()
             .map { SiteBatchItem(url = it) }
 
@@ -162,8 +195,20 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 ProgressState.Downloading(0L, probe.tentativeSizeBytes)
                             },
                         )
-                        val opened = strategy.open(url) { read, total ->
-                            callbacks.onProgress(ProgressState.Downloading(read, total))
+                        val opened = try {
+                            strategy.open(url) { read, total ->
+                                callbacks.onProgress(ProgressState.Downloading(read, total))
+                            }
+                        } catch (throwable: Throwable) {
+                            // S0186: open() can throw uncaught Throwable (notably PyException
+                            // from yt-dlp via Chaquopy). Without this catch the for-loop aborts
+                            // and subsequent strategies (NewPipe site, html, dynamic) never get
+                            // a chance. CancellationException is re-thrown so user-triggered
+                            // cancellation still propagates.
+                            if (throwable is kotlinx.coroutines.CancellationException) throw throwable
+                            Timber.w(throwable, "LinkAutoDownloadCoordinator: open threw for %s", strategy.id)
+                            Timber.d("S0186: open() threw for %s, continuing cascade", strategy.id)
+                            continue
                         }
                         val urlHost = url.toHttpUrlOrNull()?.host ?: ""
                         if (KnownAuthResources.isPreviewSensitiveHost(urlHost)) {

@@ -51,6 +51,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Network credential management**: Encrypted vault for network passwords with a last-used tracking audit.
 - **Last browse position save & restore**: Saves and restores the exact scroll position and last viewed file for every resource, opening directly into subfolders on resume.
 - **File list caching**: Persists the file index in a local database to bypass network fetching on subsequent visits.
+- **Compact resource actions**: An optional setting collapses per-resource action buttons into a single ⋮ overflow menu, reducing visual clutter on small screens and in portrait orientation. The overflow menu includes a dedicated Refresh action to test availability and update the file count for a single resource without opening it.
 
 ## 2. Media Browsing
 
@@ -61,6 +62,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Multi-select**: Select multiple files to batch copy, move, delete, or share.
 - **Show subfolders as items**: Treat subdirectories as clickable entries mixed directly into the file list, or uncheck to flatten the view (recursive scan).
 - **Subfolder operations**: Select, copy, move, rename, delete, and create subfolders directly in Browse for local, network, and cloud resources.
+- **Create Folder button** in Browse toolbar — visible for writable resources with "show subfolders as items" enabled; creates a folder in the current browsed path.
 - **Show hidden/all files**: Toggle visibility of system-hidden files, or bypass media filters to view all binary files and archives.
 - **Intelligent thumbnail loading**: Previews for photos and video frames; can be disabled per resource for large network directories.
 - **Fast placeholder for unsupported network video**: Containers that cannot be decoded over a network stream show an icon immediately instead of waiting for a timeout.
@@ -96,6 +98,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Copy/move progress**: Shows overall byte-based percentage, current transfer speed, and estimated time remaining (ETA).
 - **Player file operation handling**: Moving or deleting the currently playing file stops playback, transfers, and advances. Renaming stops playback and resumes with the new name.
 - **Queued player file actions**: Move, delete, and rename in the player are accepted immediately, run one by one in the background, and no longer make the buttons feel stuck while the previous operation is still finishing.
+- **File ops overflow menu**: Optional setting to collapse copy/move/rename/delete and other per-file actions into a single «⋮» overflow button on each file row; play button always stays separate.
 
 ## 4. Destination Management
 
@@ -141,6 +144,8 @@ This document is the canonical inventory of all user-facing features implemented
 - **Diagnostic overlays**: Optional VR HUD FPS or flat player FPS bubble.
 - **Black Screen mode**: Collapses the screen to solid black while playback continues uninterrupted.
 - **Network DVD VOB routing fix**: Correctly routes `.vob` files and handles stream errors clearly.
+- **In-player rotation toggle**: Lock or unlock screen rotation mid-session without leaving the player.
+- **Big Buttons Mode**: Scales player controls and the top toolbar to full screen width with 2× height — designed for car head units and one-handed use while driving.
 
 ## 8. VR Edition
 
@@ -247,6 +252,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Landscape-adaptive dialogs**: All dialogs are constrained and scrollable in landscape orientation.
 - **Keyboard navigation**: Navigate settings entirely by keyboard, including an inline search overlay.
 - **Diagnostic tools**: Unified error display with Save/Share actions for stack-trace logs.
+- **Screen rotation control**: Follow OS auto-rotate or manage independently per session, with a quick-access toggle in the player.
 
 ## 20. Settings Search
 

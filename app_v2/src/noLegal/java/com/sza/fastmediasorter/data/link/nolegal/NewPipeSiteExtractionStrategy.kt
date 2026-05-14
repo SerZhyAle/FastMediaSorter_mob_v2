@@ -56,7 +56,11 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
     ): OpenResult = withContext(Dispatchers.IO) {
         downloader.ensureInitialized()
-        val service = resolveService(url) ?: return@withContext OpenResult.NotFound("site_service_not_supported")
+        Timber.d("NewPipeSiteExtractionStrategy: open url=%s", url.take(80))
+        val service = resolveService(url) ?: run {
+            Timber.d("NewPipeSiteExtractionStrategy: no service for url=%s", url.take(80))
+            return@withContext OpenResult.NotFound("site_service_not_supported")
+        }
         val linkType = try {
             service.getLinkTypeByUrl(url)
         } catch (error: ParsingException) {
@@ -77,6 +81,15 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
     ): OpenResult = try {
         val info = StreamInfo.getInfo(service, url)
+        Timber.d(
+            "NewPipeSiteExtractionStrategy: stream info url=%s name='%s' videoStreams=%d audioStreams=%d hls=%b dash=%b",
+            url.take(60),
+            info.name?.take(40).orEmpty(),
+            info.videoStreams.size,
+            info.audioStreams.size,
+            !info.hlsUrl.isNullOrBlank(),
+            !info.dashMpdUrl.isNullOrBlank(),
+        )
         val safeBaseName = sanitiseFileName(info.name)
 
         selectProgressiveStream(info)?.let { selection ->
@@ -100,6 +113,14 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
             )
         }
 
+        Timber.d(
+            "NewPipeSiteExtractionStrategy: no stream url=%s prog_video=%d prog_audio=%d hls=%b dash=%b",
+            url.take(60),
+            info.videoStreams.count { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP },
+            info.audioStreams.count { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP },
+            !info.hlsUrl.isNullOrBlank(),
+            !info.dashMpdUrl.isNullOrBlank(),
+        )
         OpenResult.NotFound("site_no_supported_stream")
     } catch (error: Throwable) {
         mapExtractionFailure(error)
@@ -183,6 +204,7 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
     }
 
     private fun mapExtractionFailure(error: Throwable): OpenResult {
+        Timber.d("NewPipeSiteExtractionStrategy: extraction failure %s: %s", error::class.simpleName, error.message?.take(100))
         return when (error) {
             is PrivateContentException,
             is PaidContentException,

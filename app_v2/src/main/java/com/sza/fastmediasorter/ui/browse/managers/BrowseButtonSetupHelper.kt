@@ -41,6 +41,7 @@ class BrowseButtonSetupHelper(
         fun onResourceOpsClicked(anchor: android.view.View)
         fun onRetryClicked()
         fun onStopScanClicked()
+        fun onCreateFolderClicked()
         fun isAudioOnlyResource(): Boolean
         fun onMicRecordTouchDown()
         fun onMicRecordTouchUp()
@@ -144,6 +145,11 @@ class BrowseButtonSetupHelper(
             callbacks.onRetryClicked()
         }
 
+        binding.btnCreateFolder?.setOnClickListener {
+            UserActionLogger.logButtonClick("CreateFolder", "BrowseActivity")
+            callbacks.onCreateFolderClicked()
+        }
+
         var micTouchDownTime = 0L
         binding.btnMicRecord?.setOnTouchListener { _, event ->
             when (event.action) {
@@ -228,6 +234,7 @@ class BrowseButtonSetupHelper(
             binding.btnSelectAll.text = ctx.getString(R.string.select_all_short)
             binding.btnPlay.text = ctx.getString(R.string.slideshow)
             binding.btnPlayRandom?.text = ctx.getString(R.string.play_random_short)
+            binding.btnCreateFolder?.text = ctx.getString(R.string.action_create_folder)
         } else {
             binding.btnBack.text = null
             binding.btnFilter.text = null
@@ -237,6 +244,7 @@ class BrowseButtonSetupHelper(
             binding.btnPlay.text = null
             binding.btnPlayRandom?.text = null
             binding.btnResourceOps?.text = null
+            binding.btnCreateFolder?.text = null
         }
     }
 }

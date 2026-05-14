@@ -136,6 +136,28 @@
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_hide_grid_action_buttons_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
                     </LinearLayout>
+
+                    <!-- File Ops Overflow Menu -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchFileOpsOverflowMenu"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/pref_file_ops_overflow_menu_title"
+                                android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/pref_file_ops_overflow_menu_desc"
+                                android:textSize="@dimen/toggler_desc_text_size"
+                                android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -157,6 +179,17 @@
                         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/hide_system_ui_in_fullscreen" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_hide_system_ui_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- S0162: Follow OS auto-rotate -->
+                    <LinearLayout android:id="@+id/layoutFollowSystemRotation" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchFollowSystemRotation" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_follow_system_rotation_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_follow_system_rotation_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -212,6 +245,20 @@
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_panel_stereo_single_eye_title" android:textSize="@dimen/toggler_title_text_size" />
                             <TextView android:id="@+id/textPanelStereoSingleEyeSummary" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pref_panel_stereo_single_eye_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- S0158: Big Buttons Mode -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchBigButtonsMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/big_buttons_mode_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/big_buttons_mode_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                        <ImageButton android:id="@+id/iconHelpBigButtonsMode" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_big_buttons_mode_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
 

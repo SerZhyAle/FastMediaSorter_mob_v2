@@ -30,6 +30,8 @@ Examples:
 - Многофайловых рефакторингов (>3 файлов или >50 LOC суммарно).
 - Любого изменения UI-поведения, видимости, ориентации, состояний, оверфлоу — это `/ui-clarify` + `/spec`.
 - Задач, которые пользователь формулирует через "хочу фичу", "добавь возможность", "сделай чтобы можно было".
+- Любой правки в `src/main/java/**`, добавляющей `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED` или другой `BuildConfig.SUPPORT_*` / `ENABLE_*` / `IS_*` flavor-гейт — нарушает CLAUDE.md Rule 15 и `dev/FLAVOR_DEVELOPMENT_RULES.md`. Это всегда `/spec` (interface в main + impl в `src/<flavor>/java/` + flavor-specific Hilt module).
+- Любого нового файла в `src/main/java/com/sza/fastmediasorter/vr/**` или с явной flavor-семантикой (`*Vr*`, `*NoLegal*` в имени класса) — должен лежать в `src/<flavor>/java/`, не в main.
 
 При срабатывании любого из этих признаков — **отказать и предложить `/spec` или `/spec-all`**, не выполнять.
 

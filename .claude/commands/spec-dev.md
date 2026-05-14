@@ -52,6 +52,7 @@ For each step in plan order:
    - File >500 lines and not yet backed up → create timestamped copy in `temp/` first.
    - Projected post-edit size >1500 lines → abort: "line budget violation, split via Manager pattern."
    - File is in `res/layout/` → **check `res/layout-land/` counterpart**. If landscape variant exists and is NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step — update `Files Touched` and prompt before proceeding."
+   - **Flavor isolation guard:** target path is `src/main/java/**` AND prompt instructs to insert `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED`, or another `BuildConfig.SUPPORT_*` / `ENABLE_*` / `IS_*` flavor guard → abort with: "Flavor leak: writing flavor-specific guard in src/main violates CLAUDE.md Rule 15. Refactor as interface-in-main + impl in src/<flavor>/java/, bind via flavor-specific Hilt module. See dev/FLAVOR_DEVELOPMENT_RULES.md. Update the phase prompt before retry." Do not silently rewrite — push back through `/spec-update`.
 6. **Flip step to `[~] in progress`** in phase file.
 7. **Apply the edit** — `Edit` or `Write` per the Prompt. Scope strictly to what the prompt specifies: no surrounding refactors, no extra comments, no unrelated import cleanup.
 7a. **Communication policy check.** If the edit adds or changes user-visible strings, verify them against `docs/COMMUNICATION_POLICY.md` §2 and §6 before marking the step done.
@@ -99,6 +100,7 @@ Stop immediately and report — never guess or recover, never make assumptions a
 12. **Trilingual gap** — step adds UI string but prompt names <3 `values/` files. Stop, never fabricate translations.
 12a. **Communication policy violation** — step adds or modifies a user-visible string that fails §6 tone checklist of `docs/COMMUNICATION_POLICY.md` (raw exception text as primary message, "Are you sure?" without consequence, "operation completed successfully", empty state with no CTA). Rewrite the string to comply before proceeding; do not commit policy-violating copy.
 13. **External dependency missing** — step needs library version / hardware / third-party state not present. Set status `BlockExternal`, stop.
+14. **Flavor leak** — step writes a `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guard inside `src/main/java/**`, OR places a flavor-only class (any new file containing `vr.*Activity`, `Vr*Renderer`, `*NoLegal*`, NewPipe/yt-dlp wrappers, OpenXR JNI) under `src/main/java/**` instead of `src/<flavor>/java/**`. Stop: the tactical spec is wrong and needs `/spec-update`. The correct pattern is interface in `src/main/` + impl in flavor source set + Hilt module per flavor. See `dev/FLAVOR_DEVELOPMENT_RULES.md` and CLAUDE.md Rule 15. Never compensate by adding the guard "just for this step".
 
 ---
 

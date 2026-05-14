@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Basic ops — shown/hidden based on permissions -->
+    <group android:id="@+id/group_file_ops_basic">
+        <item android:id="@+id/action_file_copy"   android:title="@string/copy" />
+        <item android:id="@+id/action_file_move"   android:title="@string/move" />
+        <item android:id="@+id/action_file_rename" android:title="@string/rename" />
+        <item android:id="@+id/action_file_delete" android:title="@string/delete" />
+    </group>
+    <!-- Extended: move-up/move-down (grid mode with manual order) — hidden by default -->
+    <group android:id="@+id/group_file_ops_extended">
+        <item android:id="@+id/action_file_move_up"   android:title="@string/move_up" />
+        <item android:id="@+id/action_file_move_down" android:title="@string/move_down" />
+    </group>
+</menu>

@@ -33,7 +33,7 @@ A fix is auto-applicable iff purely mechanical — no logic, design, or naming d
 | Stale `Timber.d("S\d{4}:` debug tag | Delete the line if the tag's spec is not currently `BlockNeedUserTest` (resolve via `select.ps1 -Id <Sxxxx> -Format json`). Applies to the audited spec's own tags and to any such tag found in a `.kt` file already being edited for another fix. Never delete a tag whose spec is `BlockNeedUserTest`. See CLAUDE.md "Debug Verification Tags". |
 | INDEX counter drift | Recompute counter from phase statuses, overwrite. |
 | INDEX row status drift | Update row to match phase file header. |
-| FEATURES bullet missing in RU/UK | Mirror EN bullet as `<!-- TODO translate: <EN> -->` placeholder. |
+| FEATURES bullet missing in RU/UK | Only if strategic §8 contains a FEATURES sentence (not "Без изменений"). Mirror EN bullet as `<!-- TODO translate: <EN> -->` placeholder. |
 | Orphan `TODO(phase-NN)` markers | List them — do NOT auto-delete. Record as follow-up. |
 
 Everything else becomes a **manual follow-up**. Never modifies method bodies, class signatures, data models, SQL, or control flow. Never invents translations. Never bumps Room version or adds migrations. Never creates new Kotlin files.

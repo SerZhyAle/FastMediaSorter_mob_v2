@@ -36,6 +36,7 @@ class PlayerPlaybackCallbackImpl(
 ) : VideoPlayerManager.PlayerCallback {
 
     override fun onPlaybackReady() {
+        activity.slideshowResourceAvailabilityManager.onPlaybackReady()
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         binding.progressBar.isVisible = false
 
@@ -57,10 +58,13 @@ class PlayerPlaybackCallbackImpl(
     }
     
     override fun onPlaybackError(error: Throwable, userMessage: String?) {
+        if (activity.slideshowResourceAvailabilityManager.handlePlaybackError(error, userMessage)) {
+            return
+        }
         if (userMessage != null) {
             // WHY: timeout-specific feedback should replace the generic skip toast, not stack with it.
             Toast.makeText(activity, userMessage, Toast.LENGTH_LONG).show()
-            activity.navigationManager.navigateNextFromControl()
+            activity.navigationManager.navigateNextFromControl(manual = false)
             return
         }
         activity.handleMediaLoadErrorAndSkip()
@@ -87,6 +91,9 @@ class PlayerPlaybackCallbackImpl(
         val wasAudio = viewModel.state.value.currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.AUDIO
         // S0120: track auto-advance transitions with correct scenario name per media type
         MemoryEnduranceTracker.checkpoint("TRANSITION", if (wasAudio) "AUD-playback" else "VID-playback")
+        if (viewModel.state.value.isSlideShowActive && activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()) {
+            return
+        }
         if (viewModel.state.value.isSlideShowActive) {
             Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Playback ended (slideshow)")
             viewModel.nextFile(skipDocuments = true)

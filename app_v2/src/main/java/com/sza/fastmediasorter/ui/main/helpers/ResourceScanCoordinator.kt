@@ -70,6 +70,29 @@ class ResourceScanCoordinator(
     }
     
     /**
+     * Result of a single-resource scan operation (S0160).
+     */
+    sealed class SingleScanResult {
+        data class Available(val resource: MediaResource) : SingleScanResult()
+        data class Unavailable(val resource: MediaResource) : SingleScanResult()
+    }
+
+    /**
+     * Scan a single resource and return its availability result (S0160).
+     * Calls the existing private [scanSingleResource] which updates the DB via [updateResourceUseCase].
+     */
+    suspend fun scanAndRefreshSingleResource(resource: MediaResource): SingleScanResult {
+        return try {
+            val isWritable = scanSingleResource(resource)
+            if (isWritable != null) SingleScanResult.Available(resource)
+            else SingleScanResult.Unavailable(resource)
+        } catch (e: Exception) {
+            Timber.w(e, "Single resource scan failed: ${resource.name}")
+            SingleScanResult.Unavailable(resource)
+        }
+    }
+
+    /**
      * Check if any resources are aggregate virtual paths (All Music, All Videos, All Documents).
      * Used to show a warning dialog before mass rescan.
      */

@@ -249,7 +249,7 @@ Block states (any active spec may transition into one of these and back via `upd
 
 ## 8. Влияние на пользователя (docs/FEATURES)
 
-<Одно предложение для `docs/FEATURES.md` + `_RU` + `_UK` после реализации. Если невидима — «Без изменений в docs/FEATURES.» с обоснованием.>
+<По умолчанию: «Без изменений в docs/FEATURES.» — если только этот спек не вводит способность, которую пользователь воспринял бы как новую фичу. Улучшения кода, рефакторинги, фиксы, UX-полировка, перфоманс, внутренние изменения — всегда «Без изменений». Если по факту новое: одно предложение для `docs/FEATURES.md` + `_RU` + `_UK`.>
 
 ---
 
@@ -303,3 +303,4 @@ Block states (any active spec may transition into one of these and back via `upd
 - Output hygiene: do not duplicate existing `docs/FEATURES.md` entries.
 - Repo boundaries: never reference read-only zones `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Conditional notes: if the feature adds new dependency wiring, mention the need in §5.3 only at the architectural-role level and defer concrete Hilt module/file details to `/spec-tech`. If the feature has `BuildConfig`-gated behavior, note the product constraint or flavor gate in §3.2 and defer concrete flag/file details to `/spec-tech`.
+- **Flavor scope (mandatory for non-`standard` work).** If the feature targets any non-`standard` flavor (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) — or explicitly excludes one — §3.2 MUST name the target flavors AND state that the implementation will follow `dev/FLAVOR_DEVELOPMENT_RULES.md` (interface in `src/main/` + impl in `src/<flavor>/java/` + flavor-specific Hilt module). §5.3 (Точки расширяемости) MUST list the abstraction interface introduced or extended. Never plan a flavor feature as "add `BuildConfig.SUPPORT_*` check inside main" — that is forbidden by CLAUDE.md Rule 15. The strategic spec stays role-level (no file paths), but the source-set discipline statement is non-negotiable.

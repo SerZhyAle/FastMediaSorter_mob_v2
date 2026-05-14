@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.di
 import com.sza.fastmediasorter.data.link.DirectFileExtractionStrategy
 import com.sza.fastmediasorter.data.link.HtmlPageExtractionStrategy
 import com.sza.fastmediasorter.data.link.InvisibleWebViewExtractionStrategy
+import com.sza.fastmediasorter.data.link.LinkDownloadUserAgents
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadCookieJar
 import com.sza.fastmediasorter.data.repository.AuthSessionRepositoryImpl
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
@@ -39,18 +40,19 @@ object LinkDownloadModule {
         .build()
 
     /**
-     * S0171: many CDNs / SPA backends (Instagram, TikTok, …) treat OkHttp's default
-     * `User-Agent: okhttp/4.x` as a bot and reject it or serve a degraded response.
-     * Set a real desktop-browser UA unless the caller already specified one.
+     * S0171/S0182: many CDNs / SPA backends reject OkHttp's default
+     * `User-Agent: okhttp/4.x`, but a desktop fallback is also wrong for our mobile app.
+     * Use the shared Android Chrome Mobile fallback unless the caller already pinned a UA.
      */
     private object DefaultUserAgentInterceptor : Interceptor {
-        private const val BROWSER_UA =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-
         override fun intercept(chain: Interceptor.Chain): Response {
             val request = chain.request()
             if (request.header("User-Agent") != null) return chain.proceed(request)
-            return chain.proceed(request.newBuilder().header("User-Agent", BROWSER_UA).build())
+            return chain.proceed(
+                request.newBuilder()
+                    .header("User-Agent", LinkDownloadUserAgents.MOBILE_BROWSER_UA)
+                    .build(),
+            )
         }
     }
 

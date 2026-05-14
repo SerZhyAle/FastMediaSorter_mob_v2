@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.R
 object PlayerLayoutModePrefs {
     private const val FILE_NAME = "player_layout_mode"
     private const val KEY_USE_COMPACT_ELEMENTS = "use_compact_elements"
+    private const val KEY_BIG_BUTTONS_MODE = "big_buttons_mode"
 
     fun isCompact(context: Context): Boolean {
         val prefs = context.applicationContext
@@ -29,6 +30,21 @@ object PlayerLayoutModePrefs {
             .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(KEY_USE_COMPACT_ELEMENTS, useCompact)
+            .apply()
+    }
+
+    fun isBigButtonsMode(context: Context): Boolean {
+        val prefs = context.applicationContext
+            .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+        // Default false — standard layout unless user enables Big Buttons Mode (ADR-2: read once at player init).
+        return prefs.getBoolean(KEY_BIG_BUTTONS_MODE, false)
+    }
+
+    fun setBigButtonsMode(context: Context, enabled: Boolean) {
+        context.applicationContext
+            .getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_BIG_BUTTONS_MODE, enabled)
             .apply()
     }
 

@@ -27,17 +27,22 @@ import timber.log.Timber
 /**
  * Handles all background initialization tasks for the application.
  * Extracted from Application class for better testability and separation of concerns.
+ *
+ * S0194: All seven repository / use-case dependencies are passed as [dagger.Lazy]
+ * so the underlying singletons are not constructed until the corresponding async
+ * task actually runs. Each task dereferences `.get()` inside its own coroutine
+ * body — never at construction time.
  */
 class AppStartupInitializer(
     private val context: Context,
-    private val settingsRepository: SettingsRepository,
-    private val resourceRepository: ResourceRepository,
-    private val playbackPositionRepository: PlaybackPositionRepository,
-    private val thumbnailCacheRepository: ThumbnailCacheRepository,
+    private val settingsRepository: dagger.Lazy<SettingsRepository>,
+    private val resourceRepository: dagger.Lazy<ResourceRepository>,
+    private val playbackPositionRepository: dagger.Lazy<PlaybackPositionRepository>,
+    private val thumbnailCacheRepository: dagger.Lazy<ThumbnailCacheRepository>,
     private val applicationScope: CoroutineScope,
-    private val renameVirtualResourcesUseCase: RenameVirtualResourcesUseCase,
-    private val inputBindingRepository: InputBindingRepository,
-    private val defaultsMapLoader: DefaultsMapLoader,
+    private val renameVirtualResourcesUseCase: dagger.Lazy<RenameVirtualResourcesUseCase>,
+    private val inputBindingRepository: dagger.Lazy<InputBindingRepository>,
+    private val defaultsMapLoader: dagger.Lazy<DefaultsMapLoader>,
 ) {
     
     /**
@@ -66,8 +71,9 @@ class AppStartupInitializer(
 
     private suspend fun applyDefaultsChromeOsIfEmpty() {
         try {
-            if (!inputBindingRepository.hasOverrides()) {
-                inputBindingRepository.insertAllAsOverrides(defaultsMapLoader.loadChromeOsDefaults())
+            val bindings = inputBindingRepository.get()
+            if (!bindings.hasOverrides()) {
+                bindings.insertAllAsOverrides(defaultsMapLoader.get().loadChromeOsDefaults())
                 Timber.i("AppStartupInitializer: Chrome OS keybinding defaults applied")
             }
         } catch (e: Exception) {
@@ -82,7 +88,7 @@ class AppStartupInitializer(
     private fun syncCacheSizeToSharedPreferences() {
         applicationScope.launch {
             try {
-                val settings = settingsRepository.getSettings().first()
+                val settings = settingsRepository.get().getSettings().first()
                 context.getSharedPreferences("glide_config", Context.MODE_PRIVATE)
                     .edit()
                     .putInt("cache_size_mb", settings.cacheSizeMb)
@@ -264,13 +270,14 @@ class AppStartupInitializer(
     private fun fixCloudResourcesWritableFlag() {
         applicationScope.launch {
             try {
-                val resources = resourceRepository.getAllResources().first()
-                val cloudResources = resources.filter { 
-                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.CLOUD && !it.isWritable 
+                val repo = resourceRepository.get()
+                val resources = repo.getAllResources().first()
+                val cloudResources = resources.filter {
+                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.CLOUD && !it.isWritable
                 }
                 if (cloudResources.isNotEmpty()) {
                     cloudResources.forEach { resource ->
-                        resourceRepository.updateResource(resource.copy(isWritable = true))
+                        repo.updateResource(resource.copy(isWritable = true))
                     }
                     Timber.d("Fixed isWritable flag for ${cloudResources.size} cloud resources")
                 }
@@ -289,7 +296,8 @@ class AppStartupInitializer(
     private fun fixLocalResourcesWritableFlag() {
         applicationScope.launch {
             try {
-                val resources = resourceRepository.getAllResources().first()
+                val repo = resourceRepository.get()
+                val resources = repo.getAllResources().first()
                 val broken = resources.filter {
                     it.type == com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
                         && !it.isWritable
@@ -297,7 +305,7 @@ class AppStartupInitializer(
                 }
                 if (broken.isNotEmpty()) {
                     broken.forEach { resource ->
-                        resourceRepository.updateResource(resource.copy(isWritable = true))
+                        repo.updateResource(resource.copy(isWritable = true))
                     }
                     Timber.d("Fixed isWritable flag for ${broken.size} LOCAL resources")
                 }
@@ -315,13 +323,14 @@ class AppStartupInitializer(
     private fun fixVirtualAggregateWritableFlag() {
         applicationScope.launch {
             try {
-                val resources = resourceRepository.getAllResources().first()
+                val repo = resourceRepository.get()
+                val resources = repo.getAllResources().first()
                 val broken = resources.filter {
                     VirtualPathUtils.isAggregateVirtualPath(it.path) && !it.isWritable
                 }
                 if (broken.isNotEmpty()) {
                     broken.forEach { resource ->
-                        resourceRepository.updateResource(resource.copy(isWritable = true))
+                        repo.updateResource(resource.copy(isWritable = true))
                     }
                 }
             } catch (e: Exception) {
@@ -332,7 +341,7 @@ class AppStartupInitializer(
 
     private fun renameVirtualResourceNames() {
         applicationScope.launch {
-            renameVirtualResourcesUseCase()
+            renameVirtualResourcesUseCase.get().invoke()
         }
     }
 
@@ -342,14 +351,14 @@ class AppStartupInitializer(
     private fun cleanupPlaybackPositions() {
         applicationScope.launch {
             try {
-                playbackPositionRepository.cleanupOldPositions()
+                playbackPositionRepository.get().cleanupOldPositions()
                 Timber.d("Checked playback positions count limit")
             } catch (e: Exception) {
                 Timber.e(e, "Failed to cleanup playback positions")
             }
         }
     }
-    
+
     /**
      * Migrate thumbnails from old cache directory to persistent storage.
      * One-time migration from cacheDir to filesDir.
@@ -357,9 +366,10 @@ class AppStartupInitializer(
     private fun migrateThumbnailCache() {
         applicationScope.launch {
             try {
+                val repo = thumbnailCacheRepository.get()
                 // Cast to implementation to access migration method
-                if (thumbnailCacheRepository is com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl) {
-                    thumbnailCacheRepository.migrateLegacyCache()
+                if (repo is com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl) {
+                    repo.migrateLegacyCache()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to migrate thumbnail cache")
@@ -374,13 +384,14 @@ class AppStartupInitializer(
     private fun cleanupOldThumbnails() {
         applicationScope.launch {
             try {
-                val deletedByAge = thumbnailCacheRepository.cleanupOldThumbnails(30)
+                val thumbnails = thumbnailCacheRepository.get()
+                val deletedByAge = thumbnails.cleanupOldThumbnails(30)
                 Timber.d("ThumbnailCache: age cleanup removed $deletedByAge entries")
 
                 // Enforce size limit: use the same cacheSizeMb setting as Glide
-                val settings = settingsRepository.getSettings().first()
+                val settings = settingsRepository.get().getSettings().first()
                 val limitBytes = settings.cacheSizeMb.toLong() * 1024L * 1024L
-                val deletedBySize = thumbnailCacheRepository.enforceSizeLimit(limitBytes)
+                val deletedBySize = thumbnails.enforceSizeLimit(limitBytes)
                 if (deletedBySize > 0) {
                     Timber.i("ThumbnailCache: evicted $deletedBySize entries to respect ${settings.cacheSizeMb}MB limit")
                 }
@@ -389,7 +400,7 @@ class AppStartupInitializer(
             }
         }
     }
-    
+
     /**
      * Initialize ConnectionThrottleManager with saved settings.
      * Observes settings changes and updates network limit dynamically.
@@ -397,7 +408,7 @@ class AppStartupInitializer(
     private fun initializeConnectionThrottleManager() {
         applicationScope.launch {
             try {
-                settingsRepository.getSettings()
+                settingsRepository.get().getSettings()
                     .map { it.networkParallelism }
                     .distinctUntilChanged()
                     .collect { limit ->

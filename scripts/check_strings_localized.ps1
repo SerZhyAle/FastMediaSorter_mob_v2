@@ -9,22 +9,33 @@
 .PARAMETER Module
     Android module to search (default: app_v2).
 
+.PARAMETER SourceSet
+    Android source set under <module>/src/ to search (default: main).
+    Use flavor-specific values such as noLegal when auditing non-main resources.
+
 .EXAMPLE
     pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "local_network_permission"
     pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "*permission*"
+    pwsh -File scripts/check_strings_localized.ps1 -Module app_v2 -SourceSet noLegal -KeyPrefix "s0183_"
 #>
 param(
     [Parameter(Mandatory)]
     [string]$KeyPrefix,
-    [string]$Module = "app_v2"
+    [string]$Module = "app_v2",
+    [string]$SourceSet = "main"
 )
 
-$resDir = "$PSScriptRoot\..\$Module\src\main\res"
+$resDir = "$PSScriptRoot\..\$Module\src\$SourceSet\res"
 $locales = @(
     @{ Tag = "EN"; Dir = "values" },
     @{ Tag = "RU"; Dir = "values-ru" },
     @{ Tag = "UK"; Dir = "values-uk" }
 )
+
+if (-not (Test-Path $resDir)) {
+    Write-Error "Resource dir not found: $resDir"
+    exit 1
+}
 
 # Normalize prefix to wildcard pattern
 $pattern = if ($KeyPrefix -match '\*') { $KeyPrefix } else { "$KeyPrefix*" }

@@ -210,6 +210,8 @@ class ImportSettingsUseCase @Inject constructor(
                                         confirmDelete = data["confirmDelete"]?.toBoolean() ?: true,
                                         defaultGridMode = data["defaultGridMode"]?.toBoolean() ?: false,
                                         hideGridActionButtons = data["hideGridActionButtons"]?.toBoolean() ?: false,
+                                        fileOpsInOverflowMenu = data["fileOpsInOverflowMenu"]?.toBoolean() ?: false,
+                                        fileOpsOverflowMenuHintShown = data["fileOpsOverflowMenuHintShown"]?.toBoolean() ?: false,
                                         defaultIconSize = data["defaultIconSize"]?.toInt() ?: 96,
                                         defaultShowCommandPanel = data["defaultShowCommandPanel"]?.toBoolean() ?: true,
                                         showDetailedErrors = data["showDetailedErrors"]?.toBoolean() ?: false,

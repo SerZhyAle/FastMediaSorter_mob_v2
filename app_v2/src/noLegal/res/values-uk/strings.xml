@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S0183: APK install from Browse (noLegal only) -->
+    <string name="s0183_apk_install_action">Встановити</string>
+    <string name="s0183_apk_install_rationale_title">Встановлення з невідомих джерел</string>
+    <string name="s0183_apk_install_rationale_message">Щоб встановлювати APK-файли, дозвольте додатку встановлювати програми з невідомих джерел у Налаштуваннях.</string>
+    <string name="s0183_apk_install_rationale_btn_settings">Відкрити налаштування</string>
+    <string name="s0183_apk_install_rationale_btn_cancel">Скасувати</string>
+    <string name="s0183_apk_install_success">APK встановлено</string>
+    <string name="s0183_apk_install_cancelled">Встановлення скасовано</string>
+    <string name="s0183_apk_install_failed">Помилка встановлення</string>
+</resources>

@@ -23,9 +23,11 @@ import com.sza.fastmediasorter.domain.usecase.link.SiteBatchItem
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -52,6 +54,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     @ApplicationContext private val appContext: Context,
     @Named("linkDownload") private val httpClient: OkHttpClient,
     private val direct: DirectFileExtractionStrategy,
+    private val structuredMediaSniffer: StructuredMediaSniffer,
     private val cookieStore: EncryptedCookieStore,
     private val sessionContext: LinkDownloadSessionContext,
 ) : UrlExtractionStrategy {
@@ -85,6 +88,15 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     ): OpenResult {
         val httpUrl = url.toHttpUrlOrNull() ?: return OpenResult.Blocked(BlockedReason.NonHttpScheme)
 
+        // YouTube (and youtu.be) are handled exclusively by yt-dlp and NewPipe. The WebView
+        // extractor renders YouTube's error/consent pages and picks up static assets such as
+        // failure.mp3 — never a real video. Exclude to avoid false-positive downloads.
+        val hostLower = httpUrl.host.lowercase()
+        if (EXCLUDED_HOSTS.any { hostLower == it || hostLower.endsWith(".$it") }) {
+            Timber.d("InvisibleWebViewExtractionStrategy: host excluded url=%s", url.take(80))
+            return OpenResult.NotFound("dynamic_excluded_host")
+        }
+
         val renderedCandidates = renderCandidates(httpUrl.toString())
         if (renderedCandidates.isEmpty()) {
             return OpenResult.NotFound("dynamic_no_candidates")
@@ -102,7 +114,15 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         }
 
         val nonImageCandidates = merged.filterNot(::isImageCandidate)
-        if (nonImageCandidates.isEmpty()) {
+        // S0197: a candidate harvested from an authoritative data-sjs payload is itself the
+        // signal that this is a legitimate image post (Threads/IG photo single or carousel).
+        // Treat that signal as overriding the preview-only guard — without this bypass,
+        // Instagram photo posts always return SocialPreviewOnly because they contain no
+        // <video> element and only OG/IMG/EMBEDDED_JSON candidates.
+        val hasEmbeddedJsonImage = merged.any {
+            it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON && isImageCandidate(it)
+        }
+        if (nonImageCandidates.isEmpty() && !hasEmbeddedJsonImage) {
             val host = httpUrl.host
             if (KnownAuthResources.isPreviewSensitiveHost(host)) {
                 LinkDownloadTrace.verbose(
@@ -110,6 +130,11 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                 )
                 return OpenResult.SocialPreviewOnly(host = host)
             }
+        } else if (nonImageCandidates.isEmpty() && hasEmbeddedJsonImage) {
+            LinkDownloadTrace.verbose(
+                "dynamic-strategy embedded-json-image-present bypass-preview-only " +
+                    "host=${LinkDownloadTrace.truncateUrl(url)}",
+            )
         }
 
         val preferred = nonImageCandidates.ifEmpty { merged }
@@ -214,8 +239,13 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
 
     private fun shouldReturnBatch(candidates: List<HtmlMediaCandidate>): Boolean {
         if (candidates.size < 2) return false
+        // S0197: an EMBEDDED_JSON candidate is authoritative (e.g. a Threads/IG carousel slide
+        // emitted from data-sjs). Treat it as substantial regardless of probed size — sizes for
+        // these CDN URLs often arrive after the HEAD-probe budget expires.
         val substantial = candidates.count {
-            it.manifest != null || (it.tentativeSizeBytes ?: 0L) >= MIN_BATCH_BYTES
+            it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON ||
+                it.manifest != null ||
+                (it.tentativeSizeBytes ?: 0L) >= MIN_BATCH_BYTES
         }
         return substantial >= 2
     }
@@ -292,7 +322,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                     }
                 }
 
-                fun finish(domCandidates: List<HtmlMediaCandidate>) {
+                fun finish(pageCandidates: List<HtmlMediaCandidate>) {
                     if (!finished.compareAndSet(false, true)) return
                     val intercepted = synchronized(observedRequests) {
                         observedRequests.mapNotNull { (candidateUrl, pair) ->
@@ -301,7 +331,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                     }
                     destroyWebView()
                     if (continuation.isActive) {
-                        continuation.resume((intercepted + domCandidates).distinctBy { it.url })
+                        continuation.resume(mergePageAndInterceptedCandidates(pageCandidates, intercepted))
                     }
                 }
 
@@ -383,18 +413,36 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                         val target = view ?: return@postDelayed finish(emptyList())
                         runCatching {
                             target.evaluateJavascript(DOM_DISCOVERY_SCRIPT) { raw ->
-                                val domCandidates = parseDomCandidates(raw, currentPageUrl.get())
-                                // Dump page HTML for diagnosis when DOM script finds no
-                                // candidates. Only in DEBUG builds — avoids leaking page content.
-                                if (BuildConfig.DEBUG && domCandidates.isEmpty()) {
+                                val pageUrl = currentPageUrl.get()
+                                val domCandidates = parseDomCandidates(raw, pageUrl)
+                                if (shouldInspectEmbeddedJson(pageUrl)) {
                                     runCatching {
                                         target.evaluateJavascript("document.documentElement.outerHTML") { html ->
-                                            dumpPageHtml(html, currentPageUrl.get())
-                                            finish(domCandidates)
+                                            val decodedHtml = decodeEvaluatedHtml(html)
+                                            val baseUri = pageUrl ?: url ?: pageUrl
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                // Threads hydrates the authoritative post media in data-sjs;
+                                                // prefer that over noisy preview assets captured via request sniffing.
+                                                val embeddedCandidates = decodedHtml
+                                                    ?.takeIf { !baseUri.isNullOrBlank() }
+                                                    ?.let { structuredMediaSniffer.sniffEmbeddedJson(it, baseUri!!) }
+                                                    .orEmpty()
+                                                mainHandler.post {
+                                                    if (BuildConfig.DEBUG) {
+                                                        dumpDecodedPageHtml(decodedHtml, currentPageUrl.get())
+                                                    }
+                                                    finish(embeddedCandidates + domCandidates)
+                                                }
+                                            }
                                         }
-                                    }.onFailure { finish(domCandidates) }
+                                    }.onFailure {
+                                        LinkDownloadTrace.verbose(
+                                            "dynamic-extractor embedded-json-eval failed reason=${it::class.simpleName}",
+                                        )
+                                        finishWithOptionalDebugDump(target, domCandidates, currentPageUrl.get(), finish)
+                                    }
                                 } else {
-                                    finish(domCandidates)
+                                    finishWithOptionalDebugDump(target, domCandidates, pageUrl, finish)
                                 }
                             }
                         }.onFailure {
@@ -471,6 +519,44 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         }
     }
 
+    private fun finishWithOptionalDebugDump(
+        webView: WebView,
+        pageCandidates: List<HtmlMediaCandidate>,
+        pageUrl: String?,
+        finish: (List<HtmlMediaCandidate>) -> Unit,
+    ) {
+        if (BuildConfig.DEBUG && pageCandidates.isEmpty()) {
+            runCatching {
+                webView.evaluateJavascript("document.documentElement.outerHTML") { html ->
+                    dumpPageHtml(html, pageUrl)
+                    finish(pageCandidates)
+                }
+            }.onFailure { finish(pageCandidates) }
+            return
+        }
+        finish(pageCandidates)
+    }
+
+    private fun mergePageAndInterceptedCandidates(
+        pageCandidates: List<HtmlMediaCandidate>,
+        intercepted: List<HtmlMediaCandidate>,
+    ): List<HtmlMediaCandidate> {
+        val prioritizedPage = pageCandidates.filter { it.source in PRIORITIZED_PAGE_SOURCES }
+        val fallbackPage = pageCandidates.filterNot { it.source in PRIORITIZED_PAGE_SOURCES }
+        return (prioritizedPage + intercepted + fallbackPage).distinctBy { it.url }
+    }
+
+    private fun shouldInspectEmbeddedJson(pageUrl: String?): Boolean {
+        val host = pageUrl?.toHttpUrlOrNull()?.host?.lowercase().orEmpty()
+        // S0197: host gating delegated to KnownAuthResources so Instagram (instagram.com)
+        // is covered alongside Threads without duplicating a host list.
+        val supported = KnownAuthResources.supportsEmbeddedJson(host)
+        if (supported) {
+            Timber.d("S0197: dynamic-strategy embedded-json activated host=%s", host)
+        }
+        return supported
+    }
+
     private fun originOf(pageUrl: String?): String? =
         pageUrl?.toHttpUrlOrNull()?.let { "${it.scheme}://${it.host}" }
 
@@ -533,17 +619,28 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     // S0171: writes a truncated page HTML snapshot for post-hoc diagnosis when DOM extraction
     // produces no candidates. Only called in DEBUG builds. File lands in external app storage.
     private fun dumpPageHtml(html: String?, pageUrl: String?) {
-        if (html.isNullOrBlank()) return
+        dumpDecodedPageHtml(decodeEvaluatedHtml(html), pageUrl)
+    }
+
+    private fun dumpDecodedPageHtml(decodedHtml: String?, pageUrl: String?) {
+        if (decodedHtml.isNullOrBlank()) return
         val host = pageUrl?.toHttpUrlOrNull()?.host ?: "unknown"
         val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val file = File(appContext.getExternalFilesDir(null), "link_debug_${host}_$ts.html")
         runCatching {
-            // WebView returns outerHTML as a JSON-encoded string — unescape before writing.
-            val decoded: String = try { JSONArray("[$html]").getString(0) } catch (e: Exception) { html ?: "" }
-            val limited = if (decoded.length > 512 * 1024) decoded.substring(0, 512 * 1024) else decoded
+            val limited = if (decodedHtml.length > 512 * 1024) decodedHtml.substring(0, 512 * 1024) else decodedHtml
             file.writeText(limited, Charsets.UTF_8)
         }.onFailure {
             Timber.w("InvisibleWebViewExtractionStrategy: page-html-dump failed — %s", it.message)
+        }
+    }
+
+    private fun decodeEvaluatedHtml(rawHtml: String?): String? {
+        val payload = rawHtml?.takeIf { it.isNotBlank() && it != "null" } ?: return null
+        return try {
+            JSONArray("[$payload]").getString(0)
+        } catch (_: Exception) {
+            payload
         }
     }
 
@@ -561,6 +658,12 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif")
         val SEGMENT_EXTENSIONS = setOf("m4s", "ts", "cmf", "cmfa", "cmfv", "mp4a", "part")
 
+        // Hosts where the dynamic WebView extractor must not run. These hosts have dedicated
+        // extraction strategies (yt-dlp + NewPipe for YouTube). The WebView renders their
+        // error/consent pages instead of real content and produces false-positive media hits
+        // (e.g. YouTube's failure.mp3 error sound asset).
+        val EXCLUDED_HOSTS = setOf("youtube.com", "youtu.be")
+
         // S0171: hosts whose mobile web serves an "open in app" interstitial — load with a desktop UA.
         val TIKTOK_HOSTS = setOf("tiktok.com", "vm.tiktok.com", "vt.tiktok.com")
         const val DESKTOP_CHROME_UA =
@@ -573,10 +676,13 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
             HtmlMediaCandidate.Source.AUDIO_TAG,
             HtmlMediaCandidate.Source.OG_VIDEO,
             HtmlMediaCandidate.Source.JSON_LD,
+            HtmlMediaCandidate.Source.EMBEDDED_JSON,
             HtmlMediaCandidate.Source.TWITTER_PLAYER_STREAM,
             HtmlMediaCandidate.Source.HLS_MANIFEST,
             HtmlMediaCandidate.Source.DASH_MANIFEST,
         )
+
+        val PRIORITIZED_PAGE_SOURCES = TRUSTED_MEDIA_SOURCES
 
         val DOM_DISCOVERY_SCRIPT = """
             (function() {

@@ -57,7 +57,7 @@ Verification mechanics:
 | Room version | Read `AppDatabase.kt`, match `@Database(version = N` |
 | Dev log entry | `Grep` for file path in `dev/CHANGELOG.md` |
 | Catalog up-to-date | `Grep` for class name in `dev/CATALOG/<module>.jsonl` |
-| FEATURES trilingual | `Grep` for keyword in all three FEATURES docs — PASS only if all three hit |
+| FEATURES trilingual | Read strategic §8 first. If §8 text is "Без изменений" (or equivalent "no change") → EXEMPT. Otherwise `Grep` for keyword in all three FEATURES docs — PASS only if all three hit |
 | File size vs budget | `Read` file, count lines, compare to step budget |
 | Flavor gating | `Grep` for `BuildConfig.<FLAG>` if §3.2 names a flag |
 | Step status consistency | Parse `[x] done` in phase file; cross-check Verification predicates |

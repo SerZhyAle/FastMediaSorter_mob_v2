@@ -397,6 +397,9 @@ class VrStereoRenderer {
         targetWidthPx: Int,
         targetHeightPx: Int,
     ) {
+        if (!dbgFirstFisheyeLogged) {
+            Timber.d("S0132: renderFisheyeQuad entry — VR180 fisheye uniform diagnostic path")
+        }
         if (!isGlInitialized || fisheyeProgram == 0) {
             Timber.w("VrStereoRenderer: fisheye program not ready, skipping renderFisheyeQuad")
             return
@@ -418,11 +421,15 @@ class VrStereoRenderer {
             // and full mapped FOV = PI (theta range from -PI/2..+PI/2). If the source
             // lens FOV deviates from 180°, the picture appears scaled — record the
             // shader-side constants to compare against capture lens spec.
+            // S0132 P01.2a: fisheye uniforms — fov is the shader's full mapped FOV (PI rad);
+            // uvOffset selects the SBS eye half (0=left, 0.5=right); uvScale is the hardcoded
+            // SBS U-axis scale used by the fisheye fragment shader. Surface these three values
+            // so a log session can confirm/reject hypotheses A/D from strategic spec §6.
             Timber.d(
-                "VR_QUALITY_DEBUG: fisheye first frame uOffset=%.2f target=%dx%d fisheyeProgram=%d" +
-                    " shaderHalfFovRad=%.6f shaderFullFovRad=%.6f stereo=%s",
-                fisheyeUOffset, targetWidthPx, targetHeightPx, fisheyeProgram,
-                Math.PI / 2.0, Math.PI, currentStereoMode
+                "VR_QUALITY_DEBUG: fisheye uniforms fov=%.4f uvOffset=%.2f uvScale=%.2f" +
+                    " shaderHalfFovRad=%.6f target=%dx%d fisheyeProgram=%d stereo=%s",
+                Math.PI, fisheyeUOffset, 0.5,
+                Math.PI / 2.0, targetWidthPx, targetHeightPx, fisheyeProgram, currentStereoMode
             )
             Timber.d(
                 "VR_AUDIT/6: fisheye shader uniforms uFisheyeUOffset=%.2f shaderHalfFovRad=%.6f shaderFullFovRad=%.6f target=%dx%d stereo=%s",

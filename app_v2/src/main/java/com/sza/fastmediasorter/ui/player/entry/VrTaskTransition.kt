@@ -119,6 +119,7 @@ object VrTaskTransition {
      * (which on the VR flavor resolves to `VrPlayerActivity` and reproduces the clone bug).
      */
     fun exitImmersiveToFlatPlayer(source: Activity, playerIntent: Intent) {
+        Timber.d("S0132: exitImmersiveToFlatPlayer entry — task switcher cloning verification path")
         val targetClass = playerIntent.component?.className?.substringAfterLast('.')
         val filePath = playerIntent.getStringExtra("extra_initial_file_path")
             ?: playerIntent.getStringExtra("initialFilePath")

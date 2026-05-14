@@ -441,6 +441,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
             onMoveDownClick = { resource ->
                 viewModel.moveResourceDown(resource)
+            },
+            onScanClick = { resource ->
+                viewModel.scanSingleResource(resource)
             }
         )
         
@@ -794,6 +797,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 View.GONE
             }
             resourceAdapter.setUseCompactElements(settings.useCompactElements)
+            resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
         }

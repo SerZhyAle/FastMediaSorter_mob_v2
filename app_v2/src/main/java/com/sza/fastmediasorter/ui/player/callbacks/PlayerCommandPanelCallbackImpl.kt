@@ -293,4 +293,8 @@ class PlayerCommandPanelCallbackImpl(
     override fun onDrawOverlayClicked() {
         activity.imageDrawOverlayManager.enterDrawMode()
     }
+
+    override fun onRotationToggleClicked() {
+        viewModel.toggleRotationSensor()
+    }
 }

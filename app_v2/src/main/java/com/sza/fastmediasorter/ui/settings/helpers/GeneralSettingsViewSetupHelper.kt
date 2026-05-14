@@ -108,6 +108,13 @@ class GeneralSettingsViewSetupHelper(
                 }
                 .show()
         }
+        // S0160: resource ops overflow toggle
+        binding.switchResourceOpsInOverflowMenu?.setOnCheckedChangeListener { _, isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.resourceOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
+            viewModel.updateSettings(current.copy(resourceOpsInOverflowMenu = isChecked))
+        }
         binding.switchAllFiles.setOnCheckedChangeListener { _, isChecked ->
             if (getIsUpdatingSpinner()) {
                 Timber.d("GeneralSettings: switchAllFiles listener blocked by isUpdatingSpinner")

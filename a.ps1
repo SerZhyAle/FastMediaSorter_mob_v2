@@ -104,8 +104,104 @@ if (-not (Test-Path $scriptPath)) {
     exit 1
 }
 
-# Execute script
-Write-Host "🚀 Executing: $($scriptEntry.Path) $($scriptArgs -join ' ')" -ForegroundColor Green
+# Release commands are always built from the release worktree (main branch).
+# The worktree lives at ../FastMediaSorter_release — created via:
+#   git worktree add ../FastMediaSorter_release main
+$releaseCommands = @('r', 'vr', 'nl')
+if ($releaseCommands -contains $Command) {
+    $worktreePath = Join-Path (Split-Path $ProjectRoot -Parent) "FastMediaSorter_release"
+    if (Test-Path $worktreePath) {
+        Write-Host "Release build — delegating to release worktree [main]" -ForegroundColor Cyan
+        Write-Host "  $worktreePath" -ForegroundColor DarkGray
+
+        # Pull latest main into worktree
+        Write-Host "Pulling latest main..." -ForegroundColor Yellow
+        Push-Location $worktreePath
+        git pull --ff-only
+        $pullExit = $LASTEXITCODE
+        Pop-Location
+        if ($pullExit -ne 0) {
+            Write-Host "Warning: git pull --ff-only failed (exit $pullExit)." -ForegroundColor Yellow
+            Write-Host "Worktree may have uncommitted changes or a diverged history." -ForegroundColor Yellow
+            Write-Host "Resolve manually in $worktreePath, then re-run." -ForegroundColor Yellow
+            exit 1
+        }
+
+        # Sync gitignored-but-required files from dev directory to release worktree.
+        # Source of truth is always the dev directory; worktree copies are transient.
+        $syncManifest = Join-Path $ProjectRoot "scripts\release-worktree-sync.txt"
+        if (Test-Path $syncManifest) {
+            Write-Host "Syncing local files to release worktree..." -ForegroundColor Yellow
+            $syncLines = Get-Content $syncManifest | Where-Object { $_ -notmatch '^\s*#' -and $_.Trim() -ne '' }
+            foreach ($relPath in $syncLines) {
+                $relPath = $relPath.Trim()
+                $srcFile  = Join-Path $ProjectRoot $relPath
+                $dstFile  = Join-Path $worktreePath $relPath
+                if (Test-Path $srcFile) {
+                    $dstDir = Split-Path $dstFile -Parent
+                    if (-not (Test-Path $dstDir)) {
+                        New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+                    }
+                    Copy-Item -Path $srcFile -Destination $dstFile -Force
+                    Write-Host "  synced: $relPath" -ForegroundColor DarkGray
+                } else {
+                    Write-Host "  skipped (not found): $relPath" -ForegroundColor DarkYellow
+                }
+            }
+        }
+
+        # Run the script from inside the worktree so $PSScriptRoot resolves there
+        $worktreeScript = Join-Path $worktreePath $scriptEntry.Path
+        if (-not (Test-Path $worktreeScript)) {
+            Write-Host "Error: script not found in release worktree: $worktreeScript" -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "Executing (worktree): $($scriptEntry.Path) $($scriptArgs -join ' ')" -ForegroundColor Green
+        Write-Host ""
+        & $worktreeScript @scriptArgs
+        $buildExit = $LASTEXITCODE
+
+        # Mirror DOWNLOADS from worktree to local dev directory
+        if ($buildExit -eq 0) {
+            $worktreeDownloads = Join-Path $worktreePath "DOWNLOADS"
+            $localDownloads    = Join-Path $ProjectRoot  "DOWNLOADS"
+            if (Test-Path $worktreeDownloads) {
+                if (-not (Test-Path $localDownloads)) {
+                    New-Item -ItemType Directory -Path $localDownloads | Out-Null
+                }
+                # Copy all build artifacts (overwrite) — skip the journal so we append below
+                Get-ChildItem -Path $worktreeDownloads -File |
+                    Where-Object { $_.Name -ne "builds_versions.lst" } |
+                    ForEach-Object {
+                        Copy-Item -Path $_.FullName -Destination (Join-Path $localDownloads $_.Name) -Force
+                    }
+                # Append only the last journal line (most recent build entry) to local journal
+                $worktreeJournal = Join-Path $worktreeDownloads "builds_versions.lst"
+                $localJournal    = Join-Path $localDownloads    "builds_versions.lst"
+                if (Test-Path $worktreeJournal) {
+                    $lastEntry = Get-Content $worktreeJournal | Select-Object -Last 1
+                    if ($lastEntry) {
+                        Add-Content -Path $localJournal -Value $lastEntry -Encoding UTF8
+                    }
+                }
+                Write-Host ""
+                Write-Host "DOWNLOADS synced to: $localDownloads" -ForegroundColor Cyan
+            }
+        }
+
+        exit $buildExit
+    }
+    else {
+        Write-Host "Warning: release worktree not found at $worktreePath" -ForegroundColor Yellow
+        Write-Host "Set it up once with:" -ForegroundColor Gray
+        Write-Host "  git worktree add ../FastMediaSorter_release main" -ForegroundColor Gray
+        Write-Host "Falling back to current directory ($(git branch --show-current 2>$null))." -ForegroundColor Yellow
+        Write-Host ""
+    }
+}
+
+# Execute script (non-release commands, or release fallback when no worktree)
+Write-Host "Executing: $($scriptEntry.Path) $($scriptArgs -join ' ')" -ForegroundColor Green
 Write-Host ""
 
 & $scriptPath @scriptArgs
