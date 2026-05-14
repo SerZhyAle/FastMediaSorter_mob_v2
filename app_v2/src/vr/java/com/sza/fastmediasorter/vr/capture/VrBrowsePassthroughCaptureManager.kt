@@ -302,7 +302,10 @@ class VrBrowsePassthroughCaptureManager @Inject constructor(
     }
 }
 
-private class VrPermissionBridgeFragment : Fragment() {
+// S0203: must be public (top-level, no 'private') so FragmentManager can recreate it from instance
+// state after process death / config change; a file-private Kotlin class compiles to package-private
+// Java and FragmentTransaction.doAddOp throws "must be a public static class".
+class VrPermissionBridgeFragment : Fragment() {
 
     var onGranted: (() -> Unit)? = null
     var onDenied: ((showRationale: Boolean) -> Unit)? = null
