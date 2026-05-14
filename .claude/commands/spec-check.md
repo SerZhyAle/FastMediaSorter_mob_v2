@@ -87,6 +87,18 @@ Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers.
 # plus one line per modified phase / INDEX
 ```
 
+**7a — Functionality log fallback.**
+
+Only on a verdict that flips the journal status to `Verified` (full / strategic mode). Detects the bypass case where `/spec-dev` did not run (e.g. spec went `Draft → … → Verified` by hand).
+
+- Grep `dev/FUNCTIONALITY.log` for `<Sxxxx>` within the last 24 hours of entries. If at least one match exists → skip (the entry was already recorded by `/spec-dev` or an earlier `/spec-check`).
+- If no match exists AND the spec delivered a user-visible change (apply the same heuristics as `/spec-dev`: §2 Goals, §8 FEATURES diff, touched files): append `ADD` for a new capability or `CHANGE` for a behaviour change to an existing one:
+  ```powershell
+  .\scripts\add_to_functionality_log.ps1 -Id <Sxxxx> -Op <ADD|CHANGE> -Description "<english one-line summary>"
+  ```
+- Skip silently for `Partial` / `Broken` verdicts and for tactical-only audits.
+- Skip silently when the spec is purely internal (no user-perceivable change).
+
 **8 — Auto-chain to `/spec-fix`.**
 
 If outcome is `Partial` or `Broken` — immediately invoke `/spec-fix <Sxxxx>` to apply all mechanical fixes. If outcome is `Verified` — no further action needed.

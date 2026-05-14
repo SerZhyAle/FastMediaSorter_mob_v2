@@ -70,7 +70,8 @@ class SmbConnectionManagerTest {
         connectionManager = SmbConnectionManager(
             mockNetworkStateMonitor,
             mockk<SmbPlaybackConnectionTracker>(relaxed = true),
-            mockReachabilityGate
+            mockReachabilityGate,
+            dagger.Lazy { mockk(relaxed = true) },
         )
     }
     

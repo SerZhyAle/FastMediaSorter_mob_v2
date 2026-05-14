@@ -19,8 +19,6 @@ import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
-import com.sza.fastmediasorter.data.network.SmbConnectionManager
-import com.sza.fastmediasorter.data.network.SmbBackgroundLifecycleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
@@ -74,18 +72,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var cachedFileListRepository: dagger.Lazy<com.sza.fastmediasorter.data.repository.CachedFileListRepository>
 
-    // S0195 scope — stays eager (synchronous .start() / .attach() / observer registration in onCreate).
-    @Inject
-    lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
-
-    @Inject
-    lateinit var smbConnectionManager: SmbConnectionManager
-
-    @Inject
-    lateinit var smbBackgroundLifecycleManager: SmbBackgroundLifecycleManager
-
-    @Inject
-    lateinit var networkLifecycleObserver: com.sza.fastmediasorter.core.lifecycle.NetworkLifecycleObserver
+    // S0195: the four network lifecycle hooks (NetworkStateMonitor / SmbConnectionManager /
+    // SmbBackgroundLifecycleManager / NetworkLifecycleObserver) used to be @Inject'd here and
+    // started in onCreate. They are now bootstrapped lazily by NetworkLifecycleBootstrapper
+    // on first real remote use — see data.network.lifecycle.NetworkLifecycleBootstrapper.
 
     @Inject
     lateinit var tempFileManager: dagger.Lazy<com.sza.fastmediasorter.domain.transfer.TempFileManager>
@@ -112,6 +102,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         Timber.d("S0194: Application.onCreate entered — 13 Hilt singletons wrapped in dagger.Lazy<T>")
+        Timber.d("S0195: eager network hooks removed — bootstrap deferred to first remote use")
 
         // Material You: apply wallpaper-based dynamic colors on Android 12+
         DynamicColors.applyToActivitiesIfAvailable(this)
@@ -142,12 +133,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 onAppForegrounded()
             }
         })
-        // S0061 Phase 04: close UI SMB connections on background (preserves BACKGROUND_WORKER).
-        ProcessLifecycleOwner.get().lifecycle.addObserver(smbBackgroundLifecycleManager)
+        // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
+        // NetworkLifecycleBootstrapper on first remote use — formerly attached eagerly here.
 
-        // S0067 Phase 06: protocol-neutral lifecycle gates (SMB / SFTP / FTP / Cloud).
-        networkLifecycleObserver.attach()
-        
         // PDF Support: Using built-in Android PdfRenderer (API 21+)
         // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
         // PDFBox was removed to avoid BouncyCastle conflicts and reduce APK size
@@ -186,12 +174,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }.onFailure { Timber.e(it, "S0133: bootstrap failed") }
         }
 
-        // Start network state monitoring for automatic connection recovery
-        networkStateMonitor.start()
-        
-        // Setup SMB auto-reset callback to show user feedback
-        setupSmbAutoReset()
-        
+        // S0195: NetworkStateMonitor.start() and SMB reset-callback registration moved
+        // into NetworkLifecycleBootstrapper — fired on first remote use.
+
         // Log Glide disk cache status at startup (off main thread)
         applicationScope.launch(Dispatchers.IO) {
             CacheStatusHelper.logGlideDiskCacheStatus(this@FastMediaSorterApp)
@@ -303,29 +288,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             )
     }
 
-    /**
-     * Setup SMB connection auto-reset callback.
-     * Shows toast to user when system automatically resets SMB connections
-     * due to authentication or configuration errors.
-     */
-    private fun setupSmbAutoReset() {
-        smbConnectionManager.setResetCallback(object : com.sza.fastmediasorter.data.network.SmbResetCallback {
-            override fun onAutoReset(reason: String) {
-                applicationScope.launch(Dispatchers.Main) {
-                    try {
-                        val message = getString(R.string.smb_auto_reset_notification)
-                        com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(
-                            applicationContext, message, android.widget.Toast.LENGTH_SHORT
-                        )
-                        Timber.d("SMB auto-reset notification shown: $reason")
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to show SMB auto-reset notification")
-                    }
-                }
-            }
-        })
-    }
-    
+    // S0195: SMB auto-reset toast wiring moved verbatim into NetworkLifecycleBootstrapper.
+
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory.get())

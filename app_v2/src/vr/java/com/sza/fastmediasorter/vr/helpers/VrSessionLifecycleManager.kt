@@ -14,13 +14,13 @@ import com.sza.fastmediasorter.ui.player.VrForcedFormatResolver
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.render.RenderPriority
 import com.sza.fastmediasorter.ui.player.render.RenderTarget
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerFactory
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderContext
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderingMode
 import com.sza.fastmediasorter.vr.VrPlayerActivity
 import com.sza.fastmediasorter.vr.VrLaunchRoute
 import com.sza.fastmediasorter.vr.openxr.OpenXrSessionManager
-import com.sza.fastmediasorter.vr.render.VrLayerFactory
 import com.sza.fastmediasorter.vr.render.VrPhotoSphereRenderer
-import com.sza.fastmediasorter.vr.render.VrRenderContext
-import com.sza.fastmediasorter.vr.render.VrRenderingMode
 import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

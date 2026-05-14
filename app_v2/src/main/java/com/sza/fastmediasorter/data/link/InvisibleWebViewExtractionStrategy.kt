@@ -550,11 +550,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         val host = pageUrl?.toHttpUrlOrNull()?.host?.lowercase().orEmpty()
         // S0197: host gating delegated to KnownAuthResources so Instagram (instagram.com)
         // is covered alongside Threads without duplicating a host list.
-        val supported = KnownAuthResources.supportsEmbeddedJson(host)
-        if (supported) {
-            Timber.d("S0197: dynamic-strategy embedded-json activated host=%s", host)
-        }
-        return supported
+        return KnownAuthResources.supportsEmbeddedJson(host)
     }
 
     private fun originOf(pageUrl: String?): String? =

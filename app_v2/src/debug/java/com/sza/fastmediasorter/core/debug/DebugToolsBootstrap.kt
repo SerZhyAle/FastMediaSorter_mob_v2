@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.debug
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.ui.debug.CrashActivity
 import com.sza.fastmediasorter.ui.debug.DebugActivity
 import leakcanary.LeakCanary
@@ -26,6 +27,9 @@ object DebugToolsBootstrap {
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             if (crashing.compareAndSet(false, true)) {
                 runCatching {
+                    // Persist before showing the debug UI because this handler intentionally
+                    // bypasses the system crash chain to keep the in-app crash dialog alive.
+                    LoggingHelper.persistFatalCrash(thread, throwable)
                     val report = CrashReportFormatter.buildReport(thread, throwable)
                     val intent = CrashActivity.createIntent(application, report)
                     application.startActivity(intent)

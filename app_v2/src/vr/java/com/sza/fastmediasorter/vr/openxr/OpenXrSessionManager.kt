@@ -7,7 +7,7 @@ import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLDisplay
 import android.opengl.EGLSurface
-import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 

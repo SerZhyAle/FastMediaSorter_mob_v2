@@ -47,7 +47,8 @@ class OneDriveRestClient @Inject constructor(
     private val pendingRevocationDao: PendingRevocationDao,
     private val networkCredentialsRepository: NetworkCredentialsRepository,
     @ApplicationScope private val applicationScope: CoroutineScope,
-    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
+    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.ONEDRIVE
@@ -72,7 +73,9 @@ class OneDriveRestClient @Inject constructor(
     
     private suspend fun initializeMsal(): Boolean = auth.initializeMsal()
     
+    /** S0195: trigger network lifecycle bootstrap on first OneDrive use. */
     override suspend fun authenticate(): AuthResult {
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("Cloud-OneDrive")
         return auth.authenticate()
     }

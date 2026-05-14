@@ -6,16 +6,23 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
+import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
 import timber.log.Timber
 
 /**
@@ -38,18 +45,32 @@ class LinkDownloadWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val coordinator: LinkAutoDownloadCoordinator,
     private val authSessionRepository: AuthSessionRepository,
+    private val resultBus: ShareDownloadResultBus,
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
         const val KEY_URL = "link_dl_url"
         const val KEY_ACCOUNT_ID = "link_dl_account_id"
         const val KEY_URLS = "link_dl_urls"
+        // S0202: passed through workData so the worker can mirror the activity's auth-retry
+        // context. Reserved for future single-URL retry-aware logic; currently unused inside
+        // the worker but the share-Activity sets it on every enqueue.
+        const val KEY_IS_AUTH_RETRY = "link_dl_is_auth_retry"
+        // S0202: encodes the coordinator Result's kind in WorkInfo.outputData so the
+        // activity-side observer can trigger NoMediaFound escalation when the worker
+        // completes within the watchdog window.
+        const val KEY_RESULT_KIND = "link_dl_result_kind"
 
         const val NOTIFICATION_CHANNEL_ID = "link_download_channel"
         private const val NOTIF_ID_PROGRESS = 7100
         // Result notifications use NOTIF_ID_RESULT_BASE + (abs(url.hashCode) % 100)
         // to give each download its own slot while avoiding unbounded ID growth.
         private const val NOTIF_ID_RESULT_BASE = 7200
+    }
+
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        ensureChannel(context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+        return buildForegroundInfo(context.getString(R.string.link_download_notif_text_probing))
     }
 
     override suspend fun doWork(): Result {
@@ -62,12 +83,11 @@ class LinkDownloadWorker @AssistedInject constructor(
             return Result.failure()
         }
 
-        // setForeground() is intentionally NOT called here.
-        // The work request uses setExpedited(), which is the correct mechanism for
-        // short-lived tasks (<30 sec). Calling setForeground() from an expedited worker
-        // on Android 12+ causes a SecurityException (WakeLock conflict with WorkManager's
-        // internal expedited foreground service). Result notifications are posted directly
-        // via NotificationManager so no ForegroundInfo is needed at all.
+        // S0202: dual-mode worker — single-URL share runs as a long-running foreground
+        // worker (setForeground from getForegroundInfo) so backgrounding the share Activity
+        // does not kill the download. Batch mode keeps the existing short-lived expedited
+        // path (no setForeground), because batch is enqueued from the share-Activity in a
+        // fire-and-forget style and result notifications already cover its UX.
         Timber.i(
             "LinkDownloadWorker: start url=%s batch=%d accountId=%s",
             url ?: "(batch)",
@@ -75,10 +95,20 @@ class LinkDownloadWorker @AssistedInject constructor(
             accountId,
         )
 
-        val result: LinkAutoDownloadCoordinator.Result = if (!urls.isNullOrEmpty()) {
-            coordinator.handleBatch(urls.toList(), silentCallbacks())
-        } else {
-            coordinator.handle(url!!, silentCallbacks(), accountId)
+        val result: LinkAutoDownloadCoordinator.Result = coroutineScope {
+            ensureActive()
+            if (!urls.isNullOrEmpty()) {
+                coordinator.handleBatch(urls.toList(), silentCallbacks())
+            } else {
+                try {
+                    setForeground(buildForegroundInfo(context.getString(R.string.link_download_notif_text_probing)))
+                } catch (e: Exception) {
+                    Timber.w(e, "LinkDownloadWorker: setForeground failed (non-fatal)")
+                }
+                Timber.d("S0202: LinkDownloadWorker single-mode foreground started url=%s", url)
+                ensureActive()
+                coordinator.handle(url!!, progressCallbacks(), accountId)
+            }
         }
 
         Timber.i("LinkDownloadWorker: done result=%s", result::class.java.simpleName)
@@ -87,12 +117,87 @@ class LinkDownloadWorker @AssistedInject constructor(
             ?.let { runCatching { authSessionRepository.isDismissedForHost(it.host) }.getOrDefault(false) }
             ?: false
         postResultNotification(result, originalUrl = url ?: urls?.firstOrNull() ?: "", isDismissedHost = isDismissedHost)
-        return Result.success()
+        // S0202: surface the coordinator Result kind in outputData so the share Activity
+        // observer can dispatch on it (e.g. unknown-host NoMediaFound auth escalation) when
+        // the worker completes before the activity's 4-second watchdog.
+        val outputData = androidx.work.Data.Builder()
+            .putString(KEY_RESULT_KIND, result::class.java.simpleName)
+            .build()
+        // S0202: also push the terminal result to the in-memory bus so the foreground
+        // Activity (typically MainActivity when the user returns from Instagram/Threads)
+        // can present it on resume — toast, open-in-player, or auth-required dialog —
+        // without depending on whether the share Activity is still alive.
+        runCatching {
+            resultBus.publish(
+                ShareDownloadResultBus.Pending(
+                    url = url ?: urls?.firstOrNull() ?: "",
+                    result = result,
+                    notificationShown = true,
+                )
+            )
+        }.onFailure { Timber.w(it, "S0202: result bus emit failed") }
+        return Result.success(outputData)
     }
 
     /** No-op callbacks — progress is not reflected in the notification for simplicity. */
     private fun silentCallbacks() = object : LinkAutoDownloadCoordinator.Callbacks {
         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) = Unit
+    }
+
+    /**
+     * S0202: progress callbacks for the single-URL foreground mode. Each emission is
+     * mirrored into `WorkInfo.progress` (consumed by `ReceiveShareActivity`'s observer
+     * via `LinkDownloadProgressCodec.decode`) AND into the ongoing foreground notification
+     * (so backgrounded users still see live progress in the system shade).
+     *
+     * `setProgressAsync` is fire-and-forget — `onProgress` is a non-suspending interface
+     * method called from Dispatchers.IO; awaiting the ListenableFuture would force us to
+     * either block the IO thread or wrap each callback in a coroutine builder, both of
+     * which add latency for no observable benefit.
+     */
+    private fun progressCallbacks() = object : LinkAutoDownloadCoordinator.Callbacks {
+        override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) {
+            runCatching { setProgressAsync(LinkDownloadProgressCodec.encode(state)) }
+            runCatching { updateNotification(state) }
+        }
+    }
+
+    private fun updateNotification(state: LinkAutoDownloadCoordinator.ProgressState) {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
+            .setOngoing(true)
+            .addAction(buildCancelAction())
+        when (state) {
+            LinkAutoDownloadCoordinator.ProgressState.Probing -> {
+                builder.setContentText(context.getString(R.string.link_download_notif_text_probing))
+                builder.setProgress(0, 0, true)
+            }
+            LinkAutoDownloadCoordinator.ProgressState.AnalyzingPage -> {
+                builder.setContentText(context.getString(R.string.link_download_notif_text_analyzing))
+                builder.setProgress(0, 0, true)
+            }
+            is LinkAutoDownloadCoordinator.ProgressState.Downloading -> {
+                val total = state.total
+                if (total != null && total > 0L) {
+                    val pct = ((state.bytesRead * 100L) / total).toInt().coerceIn(0, 100)
+                    builder.setContentText(context.getString(R.string.link_download_notif_text_downloading_pct, pct))
+                    builder.setProgress(100, pct, false)
+                } else {
+                    builder.setContentText(context.getString(R.string.link_download_notif_text_probing))
+                    builder.setProgress(0, 0, true)
+                }
+            }
+            is LinkAutoDownloadCoordinator.ProgressState.BatchDownloading -> {
+                val pct = if (state.itemCount > 0) {
+                    ((state.itemIndex.toLong() * 100L) / state.itemCount).toInt().coerceIn(0, 100)
+                } else 0
+                builder.setContentText(context.getString(R.string.link_download_notif_text_downloading_pct, pct))
+                builder.setProgress(100, pct, false)
+            }
+        }
+        nm.notify(NOTIF_ID_PROGRESS, builder.build())
     }
 
     // ── Result notification ───────────────────────────────────────────────────
@@ -182,6 +287,45 @@ class LinkDownloadWorker @AssistedInject constructor(
             R.drawable.ic_lock,
             context.getString(R.string.link_download_notif_action_sign_in),
             pi,
+        )
+    }
+
+    // ── Foreground notification (S0202) ───────────────────────────────────────
+
+    /**
+     * Builds the ongoing foreground-service notification used by the single-URL
+     * share path. The notification is updated incrementally by `updateNotification`
+     * (Step 01.5) as the coordinator emits ProgressState events.
+     *
+     * Uses the existing `link_download_channel` (no new channel introduced).
+     */
+    private fun buildForegroundInfo(text: String): ForegroundInfo {
+        val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
+            .setContentText(text)
+            .setOngoing(true)
+            .setProgress(0, 0, true)
+            .addAction(buildCancelAction())
+            .build()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIF_ID_PROGRESS, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIF_ID_PROGRESS, notification)
+        }
+    }
+
+    /**
+     * Cancel action wired to WorkManager.createCancelPendingIntent — tapping it
+     * cancels this worker's unique work, which in turn raises CancellationException
+     * inside coordinator.handle (Phase 03 ensures atomic cleanup).
+     */
+    private fun buildCancelAction(): NotificationCompat.Action {
+        val cancelIntent = WorkManager.getInstance(context).createCancelPendingIntent(id)
+        return NotificationCompat.Action(
+            R.drawable.ic_cancel,
+            context.getString(R.string.link_download_notif_action_cancel),
+            cancelIntent,
         )
     }
 

@@ -35,11 +35,8 @@ import com.sza.fastmediasorter.vr.helpers.VrSessionLifecycleManager
 import com.sza.fastmediasorter.vr.helpers.VrToggleButtonManager
 import com.sza.fastmediasorter.vr.openxr.OpenXrSessionManager
 import com.sza.fastmediasorter.vr.openxr.XrRenderCallback
-import com.sza.fastmediasorter.vr.render.VrEye
 import com.sza.fastmediasorter.vr.render.VrInteractivePanelDriver
-import com.sza.fastmediasorter.vr.render.VrLayerFactory
 import com.sza.fastmediasorter.vr.render.VrPhotoSphereRenderer
-import com.sza.fastmediasorter.vr.render.VrRenderContext
 import com.sza.fastmediasorter.vr.render.VrStereoRenderer
 import com.sza.fastmediasorter.vr.render.VrVideoSurfaceTextureBridge
 import com.sza.fastmediasorter.vr.ui.VrCheatsheetOverlayManager
@@ -49,6 +46,9 @@ import com.sza.fastmediasorter.vr.ui.VrFileOpsOverlayManager
 import com.sza.fastmediasorter.vr.ui.VrHandRayManager
 import com.sza.fastmediasorter.vr.ui.VrHudIndicatorManager
 import com.sza.fastmediasorter.vr.ui.VrZoomManager
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrEye
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerFactory
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderContext
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

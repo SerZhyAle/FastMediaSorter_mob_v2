@@ -53,7 +53,8 @@ class GoogleDriveRestClient @Inject constructor(
     private val httpClient: GoogleDriveHttpClient,
     private val pendingRevocationDao: PendingRevocationDao,
     private val networkCredentialsRepository: NetworkCredentialsRepository,
-    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
+    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.GOOGLE_DRIVE
@@ -83,8 +84,10 @@ class GoogleDriveRestClient @Inject constructor(
      * Try to restore client from stored credentials
      * Attempts silent sign-in first, then falls back to stored credentials
      */
+    /** S0195: trigger network lifecycle bootstrap on first Google Drive use. */
     suspend fun tryRestoreFromStorage(): Boolean {
         if (isAuthenticated()) return true
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("Cloud-GDrive")
 
         // Try silent sign-in first (most reliable)

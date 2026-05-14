@@ -65,9 +65,10 @@ class PlayerBigButtonsModeManager(private val context: Context) {
         if (!bigButtonsMode) return
         if (topPanelSavedStates.isNotEmpty()) return // already applied
 
-        val panelHeight = topCommandPanel.measuredHeight
-        val buttonSize = if (panelHeight > 0) panelHeight
-        else topCommandPanel.resources.getDimensionPixelSize(R.dimen.player_cmd_button_size)
+        // Spec S0158 §5.1: height = 2× player_cmd_button_size (fixed dimen, not measuredHeight).
+        // Using measuredHeight causes runaway growth on restore→apply cycles when the layout pass
+        // has not yet settled — each apply doubles the still-inflated previous height.
+        val buttonSize = topCommandPanel.resources.getDimensionPixelSize(R.dimen.player_cmd_button_size)
 
         // Double the panel height
         val panelParams = topCommandPanel.layoutParams
@@ -242,9 +243,9 @@ class PlayerBigButtonsModeManager(private val context: Context) {
             )
         }
 
-        val rowHeight = buttonRow.measuredHeight
-        val buttonSize = if (rowHeight > 0) rowHeight
-        else buttonRow.resources.getDimensionPixelSize(R.dimen.player_cmd_button_size)
+        // Spec S0158 §5.1: height = 2× player_cmd_button_size (fixed dimen, not measuredHeight).
+        // Same anti-growth reason as in applyToTopCommandPanel.
+        val buttonSize = buttonRow.resources.getDimensionPixelSize(R.dimen.player_cmd_button_size)
 
         val rowParams = buttonRow.layoutParams
         rowParams.height = buttonSize * 2

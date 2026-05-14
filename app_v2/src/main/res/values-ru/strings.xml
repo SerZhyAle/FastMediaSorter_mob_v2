@@ -3475,6 +3475,11 @@
     <string name="link_download_notif_title_sign_in_needed">Требуется вход</string>
     <string name="link_download_notif_text_sign_in_needed">Для загрузки этого материала %1$s требует входа</string>
     <string name="link_download_notif_action_sign_in">Войти</string>
+    <!-- S0202: foreground-service progress notification text + cancel action -->
+    <string name="link_download_notif_text_probing">Подготовка..</string>
+    <string name="link_download_notif_text_analyzing">Анализ страницы..</string>
+    <string name="link_download_notif_text_downloading_pct">Скачивание %1$d%%</string>
+    <string name="link_download_notif_action_cancel">Отмена</string>
     <string name="auth_sessions_info_text">Здесь хранятся авторизации, сохранённые через встроенный браузер. Каждая запись содержит куки для одного аккаунта на одном сайте. Записи «Вход отклонён» созданы при выборе «Не предлагать» — они отключают диалог авторизации для данного сайта. Чтобы добавить второй аккаунт для того же сайта, используйте «Добавить авторизацию» в меню.</string>
     <string name="link_download_ytdlp_extracting">Извлечение ссылки на медиа…</string>
     <string name="link_download_ytdlp_downloading">Загрузка через универсальный экстрактор…</string>

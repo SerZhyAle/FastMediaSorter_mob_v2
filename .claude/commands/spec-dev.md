@@ -76,6 +76,15 @@ After all phases done:
 
 - Flip strategic `Status:` to `Implemented`. Add `**Implemented date:** <YYYY-MM-DD>`. Do **not** insert debug tags here — they belong only to `BlockNeedUserTest`.
 - If on-device verification is part of the acceptance — flip journal status to `BlockNeedUserTest`. Before flipping, insert one `Timber.d("Sxxxx: <entry-point description>")` at the entry point of each changed flow across all phases (per CLAUDE.md "Debug Verification Tags" — one tag per flow entry, not per modified line). Run a dev log line for each file that gained a tag.
+- **Functionality log entry.** If the spec delivered a user-visible behaviour change, append one line to `dev/FUNCTIONALITY.log` (CLAUDE.md Post-Change Steps §3). Choose the operation by spec intent:
+  - **`ADD`** — strategic spec introduces a new user-visible capability (no prior equivalent in the app). Hints: §2 Goals describe a new feature; §8 mentions a new entry in `docs/FEATURES.md`; touched files are new classes / new screens / new menu entries.
+  - **`CHANGE`** — strategic spec modifies an existing user-visible behaviour. Hints: §2 Goals describe a behaviour change / UX improvement / reordering / visibility change; §8 says "Без изменений" but UI strings or visible state shifted.
+  - Skip the entry if the spec is purely internal (refactor, performance, build/CI plumbing) with no user-perceivable change. Document the skip decision in the chat output.
+  - Command:
+    ```powershell
+    .\scripts\add_to_functionality_log.ps1 -Id <Sxxxx> -Op <ADD|CHANGE> -Description "<english one-line summary>"
+    ```
+  - The description should be a concise user-visible summary (what the user can now do / how the behaviour has changed) — not an implementation note. Reuse the spec title or the first sentence of §2 Goals if possible.
 - **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` — in that case note: `→ Awaiting on-device test. Debug tags inserted: N. Run /spec-check <Sxxxx> after verification (it removes the tags on the Verified transition).`
 
 **Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any]. → Running /spec-check…`

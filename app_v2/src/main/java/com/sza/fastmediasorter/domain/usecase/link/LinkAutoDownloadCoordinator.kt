@@ -68,7 +68,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // S0182: also loads the pinned User-Agent captured at login time and pushes it
     // into LinkDownloadSessionContext so every downstream stack (yt-dlp, OkHttp)
     // sends the same UA Meta/anti-bot first saw with these cookies.
-    private fun applySessionContext(host: String, accountId: String?): String? {
+    // S0190: optional audioOnly hint is propagated from canonicalize() — true for
+    // YouTube Music share URLs so the downstream extractor picks an audio-only format.
+    private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean = false): String? {
         val resolvedHost = resolveSessionHost(host, accountId) ?: return null
         val cookies = when {
             accountId != null -> cookieStore.loadForAccount(resolvedHost, accountId)
@@ -86,7 +88,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                     .mapNotNull { e -> cookieStore.loadUserAgentForAccount(resolvedHost, e.accountId) }
                     .firstOrNull()
             }
-            sessionContext.set(resolvedHost, cookies, pinnedUa)
+            sessionContext.set(resolvedHost, cookies, pinnedUa, audioOnly)
             Timber.d(
                 "S0182: applySessionContext bound resolvedHost=%s accountId=%s pinnedUa=%s",
                 resolvedHost,
@@ -122,13 +124,17 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         // youtube.com/shorts/<id>) to a canonical form recognised by both yt-dlp and
         // NewPipe upstream. Cookie host resolution below also benefits because the
         // canonical host (youtube.com) is what EncryptedCookieStore is keyed by.
-        Timber.d("S0190: handle entry url=%s accountId=%s", url.take(80), accountId ?: "auto")
-        val canonicalUrl = urlCanonicalizer.canonicalize(url)
+        // The audioOnly hint is set only when the original host was music.youtube.com —
+        // propagated into LinkDownloadSessionContext so downstream extractors can pick
+        // an audio-only format.
+        val canonical = urlCanonicalizer.canonicalize(url)
+        Timber.d("S0190: handle entry url=%s accountId=%s audioOnly=%s", url.take(80), accountId ?: "auto", canonical.audioOnly)
 
-        val host = canonicalUrl.toHttpUrlOrNull()?.host ?: ""
-        val appliedSessionHost = if (host.isNotBlank()) applySessionContext(host, accountId) else null
+        val host = canonical.url.toHttpUrlOrNull()?.host ?: ""
+        val appliedSessionHost =
+            if (host.isNotBlank()) applySessionContext(host, accountId, canonical.audioOnly) else null
         val result = try {
-            handleUrl(url = canonicalUrl, settings = settings, callbacks = callbacks, accountId = accountId)
+            handleUrl(url = canonical.url, settings = settings, callbacks = callbacks, accountId = accountId)
         } finally {
             sessionContext.clear()
         }
@@ -147,11 +153,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
         // S0190: canonicalize before distinct() so YouTube equivalents (e.g.
         // shorts/<id> vs watch?v=<id>) collapse into a single batch item.
+        // Batch path is audio-hint-agnostic: a mixed-host batched share with YTMusic
+        // entries is a corner case not covered by Phase D (the audioOnly flag is
+        // dropped here on purpose).
         val items = urls
             .map(String::trim)
             .filter { it.isNotBlank() }
             .filter { it.toHttpUrlOrNull() != null }
-            .map { urlCanonicalizer.canonicalize(it) }
+            .map { urlCanonicalizer.canonicalize(it).url }
             .distinct()
             .map { SiteBatchItem(url = it) }
 

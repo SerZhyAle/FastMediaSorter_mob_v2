@@ -51,7 +51,7 @@ def probe_url(url):
     return None
 
 
-def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None):
+def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None, audio_only=False, progress_callback=None):
     """
     Download media via yt-dlp to out_dir/<file_stem>.<ext>.
     Returns a dict {'path': str, 'title': str, 'ext': str} on success.
@@ -59,6 +59,12 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None):
 
     user_agent (S0182): UA pinned to the session at login time. Replays the same UA
     the server first saw with these cookies, avoiding fingerprint flags.
+
+    audio_only (S0190): when True, format selector picks bestaudio instead of
+    best-progressive-video (used for YTMusic URLs after canonicalization).
+
+    progress_callback (S0190 Phase 03): optional two-arg callable (downloaded: int, total: int).
+    Called from yt-dlp's download thread via progress_hooks. total=-1 when unknown.
 
     Format cascade is single-stream only (no FFmpeg available on device for merge):
     1. Best MP4 progressive at any resolution (TikTok/IG can serve >=1080p like this)
@@ -75,23 +81,49 @@ def download_to_file(url, cookie_file, out_dir, file_stem, user_agent=None):
     import yt_dlp
     import os
     out_template = os.path.join(out_dir, file_stem + '.%(ext)s')
+
+    def _on_progress(d):
+        if progress_callback is None:
+            return
+        if d.get('status') != 'downloading':
+            return
+        downloaded = d.get('downloaded_bytes')
+        total = d.get('total_bytes') or d.get('total_bytes_estimate')
+        if downloaded is None:
+            return
+        try:
+            # Java side accepts long; total may be None → pass -1 sentinel.
+            progress_callback(int(downloaded), int(total) if total else -1)
+        except Exception:
+            # Never let a callback error abort the download.
+            pass
+
     opts = {
         'quiet': True,
         'no_warnings': True,
         'format': (
-            'best[ext=mp4]/best/'
-            'best[ext=mp4][height<=720]/best[height<=720]/'
-            'best[ext=mp4][height<=360]/best[height<=360]/'
-            'best'
+            'bestaudio[ext=m4a]/bestaudio[ext=opus]/bestaudio[ext=mp3]/bestaudio'
+            if audio_only else
+            (
+                'best[ext=mp4]/best/'
+                'best[ext=mp4][height<=720]/best[height<=720]/'
+                'best[ext=mp4][height<=360]/best[height<=360]/'
+                'best'
+            )
         ),
         'outtmpl': out_template,
         'socket_timeout': 60,
-        # Concurrent fragment download for HLS/DASH — speeds up YouTube/Vimeo
-        # without requiring ffmpeg (native fragment muxer handles single-stream HLS).
-        'concurrent_fragment_downloads': 4,
+        # S0190: explicit pin — protects against upstream default changes.
+        'http_chunk_size': 10485760,
+        'retries': 3,
+        'fragment_retries': 5,
+        # S0190 Phase D: single-stream pacing — parallel chunks can re-trigger CDN throttling.
+        'concurrent_fragment_downloads': 1,
         # Don't try to merge separate video+audio streams (we have no ffmpeg).
         # Forces selector to pick single-stream formats only.
         'allow_unplayable_formats': False,
+        # S0190 Phase 03: bridge progress_callback (Java interface) into yt-dlp hooks.
+        'progress_hooks': [_on_progress],
         # S0190: force preference for android then web YouTube clients.
         # Android client typically does NOT require PoToken and serves
         # progressive single-stream formats compatible with our no-ffmpeg setup.

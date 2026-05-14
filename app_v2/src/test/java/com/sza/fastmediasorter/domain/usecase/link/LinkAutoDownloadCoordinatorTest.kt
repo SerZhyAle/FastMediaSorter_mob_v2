@@ -76,7 +76,7 @@ class LinkAutoDownloadCoordinatorTest {
         coordinator.handle("https://instagram.com/p/test", noOpCallbacks, "acc1")
 
         // sessionContext set with exact host, not any eTLD+1 fallback host.
-        verify { sessionContext.set("instagram.com", cookies, pinnedUa) }
+        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false) }
     }
 
     @Test
@@ -97,7 +97,7 @@ class LinkAutoDownloadCoordinatorTest {
         coordinator.handle("https://www.instagram.com/p/test", noOpCallbacks, "acc1")
 
         // sessionContext must receive the resolved stored host, not the original URL host.
-        verify { sessionContext.set("instagram.com", cookies, pinnedUa) }
+        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false) }
     }
 
     @Test
@@ -136,7 +136,7 @@ class LinkAutoDownloadCoordinatorTest {
 
         coordinator.handle("https://www.instagram.com/p/test", noOpCallbacks, "acc1")
 
-        verify { sessionContext.set("instagram.com", cookies, pinnedUa) }
+        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false) }
         // markLastUsed must use the resolved stored host, not the original URL host.
         coVerify { authSessionRepository.markLastUsed("instagram.com", "acc1") }
     }

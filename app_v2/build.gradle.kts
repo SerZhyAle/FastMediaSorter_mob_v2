@@ -630,6 +630,15 @@ androidComponents {
                 }
             )
         }
+
+        // S0183: noLegal flavor source set sets manifest.srcFile to src/vr/AndroidManifest.xml
+        // (VR overlay). That call REPLACES the auto-detected src/noLegal/AndroidManifest.xml,
+        // so noLegal-specific manifest entries (e.g. REQUEST_INSTALL_PACKAGES) were silently
+        // dropped. addStaticManifestFile injects an additional manifest file into the merger
+        // input list without conflicting with the flavor srcFile override.
+        if (flavorName == "noLegal") {
+            variant.sources.manifests.addStaticManifestFile("src/noLegal/AndroidManifest.xml")
+        }
     }
 }
 
@@ -747,7 +756,10 @@ dependencies {
     
     // Material Design 3
     implementation("com.google.android.material:material:1.13.0")
-    
+
+    // Google Play In-App Review (S0135)
+    implementation("com.google.android.play:review-ktx:2.0.2")
+
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")

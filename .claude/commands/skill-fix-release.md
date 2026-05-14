@@ -279,6 +279,18 @@ git push --force-with-lease origin $CURRENT_DEBUG
 
 ---
 
+### Step 13a — Functionality log
+
+Each fix-release ships one or more user-visible fixes (otherwise no reason to publish). Append one `FIX` line per included spec — for `/skill-fix-release Sxxxx` this is exactly one line:
+
+```powershell
+.\scripts\add_to_functionality_log.ps1 -Id $SPEC_ID -Op FIX -Description "$FIX_SUMMARY"
+```
+
+If `$FIX_SUMMARY` is empty (very short spec without §2 Goals), fall back to `$SPEC_NAME` verbatim.
+
+---
+
 ### Step 14 — Final report
 
 ```

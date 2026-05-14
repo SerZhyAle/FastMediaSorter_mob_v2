@@ -207,6 +207,10 @@ class AppStartupInitializer(
                 Timber.i("%-30s = %s", "micRecordingEnabled", micRecordingEnabled)
                 Timber.i("%-30s = %s", "micRecordingAskFilename", micRecordingAskFilename)
 
+                // S0162: Screen rotation control
+                Timber.i("%-30s = %s", "followSystemRotation", followSystemRotation)
+                Timber.i("%-30s = %s", "playerRotationSensorEnabled", playerRotationSensorEnabled)
+
                 // Misc
                 Timber.i("%-30s = %s", "lastUsedResourceId", lastUsedResourceId)
             }

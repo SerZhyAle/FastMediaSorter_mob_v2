@@ -37,3 +37,45 @@
   - Mark progress directly in the planning files (`[x]`).
   - **FLAVOR RULES**: If the task involves a specific flavor (e.g., `noLegal`, `vr`), strictly follow the isolation rules in `dev/FLAVOR_DEVELOPMENT_RULES.md`. DO NOT use `BuildConfig` checks in `src/main`.
   - **FEATURES UPDATE (MANDATORY)**: After implementing any new user-facing feature, add a description entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this before marking the step complete. Use consistent bullet style matching existing entries.
+- **Validation ladder (mandatory):** Every implementation step closes with the level of evidence appropriate to its change type — see CLAUDE.md `## Validation Requirements` table. Grep-only is sufficient only for doc-only steps. Code, config, or script changes must close with the corresponding build/test/run gate. A step is NOT done until evidence passes.
+
+### 9. PROGRESS JOURNAL
+
+The human-readable progress journal lives at `logs/dev_progress.log`. It records only the essential signal per step; raw command output belongs in `temp/sessions/`.
+
+#### 9.1 Session markers
+
+Every journal file begins with a session-start marker and ends (when closed cleanly) with a session-end marker:
+
+```
+=== SESSION START [YYYY-MM-DD HH:MM:SS] branch=<branch> spec=<Sxxxx|ad-hoc> ===
+...entries...
+=== SESSION END [YYYY-MM-DD HH:MM:SS] result=<PASS|PARTIAL|BLOCKED> ===
+```
+
+#### 9.2 Step entry schema
+
+Each step produces exactly one concise journal entry:
+
+```
+[STEP <phase>.<step>] <verb> <target>
+changed: <comma-separated file paths or "doc-only">
+validation: <command or predicate> → <PASS|FAIL|SKIP>
+evidence: <temp/sessions/<artifact> or "inline">
+blocker: <description or "none">
+next: <next step id or "phase done">
+```
+
+- `validation` must name the actual command or predicate, not just "verified" or "checked".
+- `FAIL` on any line means the step is NOT done — add `blocker:` and stop.
+- `SKIP` is allowed only for doc-only steps where a grep-only preflight is the correct closure level.
+
+#### 9.3 Raw evidence separation
+
+Full build logs, grep dumps, and verbose command output are NOT written into the journal. They go to `temp/sessions/` with a filename of the form `<YYYYMMDD_HHMMSS>_<step-id>_<type>.txt` (e.g. `20260514_183000_04-1_build.txt`). Reference them from the `evidence:` field in the step entry.
+
+#### 9.4 Rotation
+
+At the start of every new session, rename the current `logs/dev_progress.log` to `logs/dev_progress_<YYYYMMDD_HHMMSS>.log` (timestamp = session start time), then create a fresh `logs/dev_progress.log` with the new session-start marker. This keeps each session independently readable and the active file short.
+
+Rotated files are kept in `logs/` alongside timestamped logcat files. No automatic purge — manual cleanup only.

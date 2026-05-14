@@ -4,14 +4,17 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.provider.Settings
 import timber.log.Timber
 
 /**
  * Manages screen orientation for the player.
  *
  * Two-level hierarchy (S0162 §5.3):
- *  - followSystem=true  → delegate to OS auto-rotate; player trigger hidden
+ *  - followSystem=true  → SCREEN_ORIENTATION_UNSPECIFIED: full OS delegation; no manual
+ *                         ACCELEROMETER_ROTATION read. The OS applies its own auto-rotate
+ *                         preference directly — works correctly on all devices including
+ *                         Samsung One UI (ADR-5: reading ACCELEROMETER_ROTATION was
+ *                         unreliable on some OEMs and did not react to runtime changes).
  *  - followSystem=false → own control; sensorEnabled drives requestedOrientation
  *
  * All callers must use [apply] or [reapply]; never set [Activity.requestedOrientation]
@@ -54,20 +57,12 @@ class ScreenRotationManager {
         }
 
         val orientation = when {
-            followSystem -> {
-                // Delegate to OS: read ACCELEROMETER_ROTATION system setting
-                val osAutoRotate = try {
-                    Settings.System.getInt(
-                        activity.contentResolver,
-                        Settings.System.ACCELEROMETER_ROTATION
-                    ) == 1
-                } catch (e: Settings.SettingNotFoundException) {
-                    Timber.w("ScreenRotationManager: ACCELEROMETER_ROTATION unreadable, assuming enabled")
-                    true
-                }
-                if (osAutoRotate) ActivityInfo.SCREEN_ORIENTATION_SENSOR
-                else ActivityInfo.SCREEN_ORIENTATION_LOCKED
-            }
+            // ADR-5: use UNSPECIFIED instead of reading ACCELEROMETER_ROTATION.
+            // UNSPECIFIED hands full control to the OS, which correctly honours the
+            // system auto-rotate setting on all devices (including Samsung One UI where
+            // ACCELEROMETER_ROTATION may stay 1 even when rotation is locked in Quick
+            // Settings). Also reacts to runtime OS setting changes without an onResume.
+            followSystem -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             sensorEnabled -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
             else -> ActivityInfo.SCREEN_ORIENTATION_LOCKED
         }

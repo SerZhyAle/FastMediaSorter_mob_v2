@@ -2,7 +2,12 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
 
 param(
-    [switch]$SkipZip
+    [switch]$SkipZip,
+    [string]$Task = "assembleStandardDebug",
+    # S0190 Phase 01 tooling: explicit opt-in for Chaquopy on tasks that don't auto-detect.
+    # Auto-enabled when -Task contains "noLegal" (case-insensitive), since the noLegal source
+    # set imports com.chaquo.python.* and won't compile without the plugin.
+    [switch]$Chaquopy
 )
 
 Write-Host "Building debug APK (auto-versioned)..." -ForegroundColor Cyan
@@ -89,7 +94,12 @@ function Invoke-DebugBuild {
         [switch]$NoDaemon
     )
 
-    $gradleArgs = @("assembleStandardDebug", "-Pchaquopy.enabled=false")
+    # S0190 Phase 01: enable Chaquopy when -Chaquopy switch is set OR when the task name
+    # contains "noLegal" (the only flavor that bundles the Python runtime). Standard / lite /
+    # photos / legacy builds keep Chaquopy off for speed.
+    $enableChaquopy = $script:Chaquopy.IsPresent -or ($script:Task -match '(?i)noLegal')
+    $chaquopyFlag = if ($enableChaquopy) { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
+    $gradleArgs = @($script:Task, $chaquopyFlag)
     if ($DisableBuildCache) {
         $gradleArgs += "--no-build-cache"
         $gradleArgs += "--rerun-tasks"

@@ -3,6 +3,10 @@ package com.sza.fastmediasorter.vr.render
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrEye
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderContext
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderPlanner
 import timber.log.Timber
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

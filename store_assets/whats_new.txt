@@ -1,16 +1,12 @@
-🎉 January 2026 Update - Enhanced Reliability!
+🎉 May 2026 Update
 
-✅ Critical Bug Fixes:
-• Fixed file visibility after copy/move operations - files now appear immediately in destination folders
-• Resolved empty folder scanning issue for standard Android directories (Pictures, DCIM, Downloads)
-• Fixed file deletion permission dialogs on Android 10-14
-• Corrected duplicate file removal when using FileObserver
+✅ New:
+• Move-to-trash toggle in Settings — choose between recoverable .trash with Undo or immediate permanent delete
+• Android TV launcher support — full Leanback compatibility
+• Bigger player controls and overflow menu for one-handed sorting
+• Screen rotation control for slideshow sessions
 
-🔧 Improvements:
-• Enhanced resource scanning with automatic media type detection from app settings
-• Improved file operation stability across all protocols (SMB, SFTP, FTP, Cloud)
-• Better handling of scoped storage restrictions on Android 10+
-
-🌍 Stability:
-• General performance optimizations
-• Enhanced error handling for network operations
+🐛 Fixed:
+• Playback position now resumes reliably across all delete and move flows
+• Clearer "stuck buffering" feedback on slow network sources
+• StandalonePlayer no longer crashes when deleting app-owned files on Android 15

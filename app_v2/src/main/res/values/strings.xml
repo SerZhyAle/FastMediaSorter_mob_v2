@@ -3527,6 +3527,11 @@ Close the player and try again.</string>
     <string name="link_download_notif_title_sign_in_needed">Sign in required</string>
     <string name="link_download_notif_text_sign_in_needed">%1$s requires sign-in to download this content</string>
     <string name="link_download_notif_action_sign_in">Sign in</string>
+    <!-- S0202: foreground-service progress notification text + cancel action -->
+    <string name="link_download_notif_text_probing">Preparing..</string>
+    <string name="link_download_notif_text_analyzing">Analyzing page..</string>
+    <string name="link_download_notif_text_downloading_pct">Downloading %1$d%%</string>
+    <string name="link_download_notif_action_cancel">Cancel</string>
     <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \&quot;Sign-in declined\&quot; were created when you chose \&quot;Do not ask\&quot; — they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \&quot;Add authorization\&quot; in the top menu.</string>
     <string name="link_download_ytdlp_extracting">Extracting media link…</string>
     <string name="link_download_ytdlp_downloading">Downloading via universal extractor…</string>

@@ -96,6 +96,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var passthroughCaptureProvider: java.util.Optional<BrowsePassthroughCaptureProvider>
     // Flavor multibinding keeps flavor-only Browse actions out of market APKs.
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
+    @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -243,6 +244,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             isSkipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false),
             passthroughProvider = passthroughCaptureProvider.orElse(null),
             binaryFileMenuActions = binaryFileMenuActions,
+            reviewRequestManager = reviewRequestManager,
         )
 
         initializer.initialize()

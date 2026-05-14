@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.vr.ui
 
-import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before

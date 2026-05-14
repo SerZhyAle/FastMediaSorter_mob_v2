@@ -77,7 +77,8 @@ data class SftpFileListing(
  */
 @Singleton
 class SftpClient @Inject constructor(
-    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
+    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
 ) {
 
     companion object {
@@ -100,17 +101,21 @@ class SftpClient @Inject constructor(
 
     private val pool = SftpConnectionPool()
 
+    /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     private suspend fun <T> withConnection(
         info: SftpConnectionInfo,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> {
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
         return pool.withConnection(info, block)
     }
 
     // ExoPlayer connection management lives in SftpConnectionPool.
+    /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpConnectionInfo): SftpConnectionPool.ExoPlayerConnection {
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
         return pool.getConnectionForExoPlayer(connectionInfo)
     }

@@ -93,6 +93,8 @@ class BrowseManagerInitializer(
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
     // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic.
     private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
+    // S0135 — Google Play In-App Review request after successful Move/Copy.
+    private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
 ) {
     // Cached settings and destinations — populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
@@ -391,6 +393,9 @@ class BrowseManagerInitializer(
                     operationType: FileOperationType, sourceFiles: List<File>, sourceCredentialsId: String?,
                     resourceType: ResourceType, resource: MediaResource, dirItems: List<MediaFile>
                 ) = folderPickerHandler.requestFolderPick(operationType, sourceFiles, sourceCredentialsId, resourceType, resource, dirItems)
+                override fun onSortOperationSuccess(count: Int) {
+                    reviewRequestManager.onSortOperationSuccess(activity, count)
+                }
             }
         )
 

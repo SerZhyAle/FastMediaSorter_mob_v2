@@ -75,6 +75,18 @@ For each action item: prepend `[FIXED]`, `[PARTIAL]`, `[FOLLOW-UP]`, `[PRE-RESOL
 # plus one line per modified source file
 ```
 
+**5a — Functionality log entry.**
+
+If at least one auto-fix modified source code that restores user-visible behaviour (e.g. trilingual string gap filled, `Log.d → Timber.d` rewrite affecting a logged user flow), append a `FIX` line to `dev/FUNCTIONALITY.log`:
+
+```powershell
+.\scripts\add_to_functionality_log.ps1 -Id <Sxxxx> -Op FIX -Description "<english one-line summary>"
+```
+
+- Description: pull from the spec title / §2 Goals or summarise the fixed user-perceivable behaviour in one sentence.
+- Skip silently for runs that only touch dev log entries, INDEX counter drift, catalog regeneration, or stale debug-tag deletions — none of those affect what the user sees.
+- Skip silently on `--dry-run`.
+
 **6 — Auto-chain to `/spec-check`.**
 
 After at least one fix was applied — immediately invoke `/spec-check <Sxxxx>` to re-audit and update the status. Skip if `--dry-run`.

@@ -1,13 +1,18 @@
 package com.sza.fastmediasorter.vr.render
 
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.DefaultVrLayerFactory
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerFactory
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerType
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderingMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * VR layer mapping is flavor-specific because the implementation lives under
- * `src/vr/java`, so the regression tests must compile only for the VR flavor.
+ * Layer mapping stays covered by `testVr` so the VR renderer slice keeps
+ * validating the shared-contract cutover together with VR-only code.
  */
 class VrLayerFactoryTest {
 

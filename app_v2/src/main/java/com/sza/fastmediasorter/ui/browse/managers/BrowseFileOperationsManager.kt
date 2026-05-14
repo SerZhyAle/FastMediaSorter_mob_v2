@@ -71,6 +71,8 @@ class BrowseFileOperationsManager(
         fun onPermissionRequired(pendingIntent: android.app.PendingIntent)
         fun onShowMessage(message: String)
         fun onShowError(message: String, details: String? = null)
+        /** Called after a successful Move or Copy operation. [count] = number of processed files. */
+        fun onSortOperationSuccess(count: Int) {}
         /** Called when user clicks "Select folder" in the destination dialog. */
         fun onFolderPickerRequested(
             operationType: FileOperationType,
@@ -141,7 +143,10 @@ class BrowseFileOperationsManager(
                         sourceCredentialsId = pending.sourceResource.credentialsId
                     )
                     when (val result = fileOperationUseCase.execute(operation)) {
-                        is FileOperationResult.Success -> Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                        is FileOperationResult.Success -> {
+                            Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                            callbacks.onSortOperationSuccess(result.processedCount)
+                        }
                         is FileOperationResult.PartialSuccess -> {
                             Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
                             // Surface the first error so access-denied / partial failures are not silently hidden
@@ -258,6 +263,7 @@ class BrowseFileOperationsManager(
                         callbacks.saveUndoOperation(undoOp)
                         callbacks.clearSelection()
                         callbacks.onOperationCompleted()
+                        callbacks.onSortOperationSuccess(result.processedCount)
                     }
                     is FileOperationResult.PartialSuccess -> {
                         Timber.w("executeOperationToPath: PARTIAL - ${result.processedCount} of ${result.processedCount + result.failedCount}")

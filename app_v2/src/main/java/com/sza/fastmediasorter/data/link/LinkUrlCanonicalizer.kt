@@ -10,7 +10,7 @@ import javax.inject.Singleton
  * yt-dlp and NewPipe's `YoutubeStreamLinkHandlerFactory` recognise reliably.
  *
  * Currently covers YouTube:
- *  - `music.youtube.com/watch?v=X`  → `www.youtube.com/watch?v=X`
+ *  - `music.youtube.com/watch?v=X`  → `www.youtube.com/watch?v=X` (`audioOnly = true`)
  *  - `m.youtube.com/...`            → `www.youtube.com/...`
  *  - `youtube.com/shorts/<id>`      → `www.youtube.com/watch?v=<id>`
  *
@@ -21,25 +21,30 @@ import javax.inject.Singleton
  *    regular watch URL falls back to the standard player which works without a
  *    `PoTokenProvider` (S0198 will provide one for the remaining cases).
  *
+ * The `audioOnly` flag on the returned [CanonicalizedUrl] is set only for
+ * `music.youtube.com` inputs — the canonical `www.youtube.com` host loses the
+ * audio-only hint that the original host carried.
+ *
  * Returns the URL unchanged when no rule applies or when parsing fails.
  */
 @Singleton
 class LinkUrlCanonicalizer @Inject constructor() {
 
-    fun canonicalize(url: String): String {
-        val parsed = url.toHttpUrlOrNull() ?: return url
+    fun canonicalize(url: String): CanonicalizedUrl {
+        val parsed = url.toHttpUrlOrNull() ?: return CanonicalizedUrl(url, audioOnly = false)
         val host = parsed.host.lowercase()
 
         val rewritten = when {
-            host == YT_MUSIC_HOST -> rebuildHost(parsed, WWW_YOUTUBE_HOST)
-            host == YT_MOBILE_HOST -> rebuildHost(parsed, WWW_YOUTUBE_HOST)
+            host == YT_MUSIC_HOST ->
+                CanonicalizedUrl(rebuildHost(parsed, WWW_YOUTUBE_HOST), audioOnly = true)
+            host == YT_MOBILE_HOST ->
+                CanonicalizedUrl(rebuildHost(parsed, WWW_YOUTUBE_HOST), audioOnly = false)
             (host == YOUTUBE_BARE_HOST || host == WWW_YOUTUBE_HOST) && isShortsPath(parsed) ->
-                buildShortsWatchUrl(parsed)
-            else -> return url
+                CanonicalizedUrl(buildShortsWatchUrl(parsed), audioOnly = false)
+            else -> CanonicalizedUrl(url, audioOnly = false)
         }
-
-        if (rewritten != url) {
-            Timber.d("S0190: canonicalize %s -> %s", url.take(80), rewritten.take(80))
+        if (rewritten.url != url) {
+            Timber.d("S0190: canonicalize %s -> %s audioOnly=%s", url.take(80), rewritten.url.take(80), rewritten.audioOnly)
         }
         return rewritten
     }

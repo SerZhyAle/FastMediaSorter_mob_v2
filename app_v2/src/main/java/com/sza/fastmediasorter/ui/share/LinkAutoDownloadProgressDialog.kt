@@ -53,6 +53,7 @@ class LinkAutoDownloadProgressDialog(
     }
 
     fun update(state: LinkAutoDownloadCoordinator.ProgressState) {
+        if (dialog == null) return  // observer fired before show() — discard
         val bar = progressBar ?: return
         val bytes = bytesView ?: return
         val title = titleView ?: return

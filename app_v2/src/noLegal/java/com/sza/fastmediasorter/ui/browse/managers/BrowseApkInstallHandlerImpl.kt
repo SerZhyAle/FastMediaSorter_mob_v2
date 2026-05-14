@@ -140,13 +140,16 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                 "${context.packageName}.fileprovider",
                 apkFile
             )
-            val intent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
-                data = uri
-                type = "application/vnd.android.package-archive"
+            // ACTION_INSTALL_PACKAGE is deprecated since API 25 and has no handler on Android 14+.
+            // Modern path: ACTION_VIEW with the APK MIME type — the system PackageInstaller activity
+            // registers for this intent in its manifest and shows the standard install confirmation UI.
+            // EXTRA_RETURN_RESULT is honoured by PackageInstallerActivity regardless of the action.
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 putExtra(Intent.EXTRA_RETURN_RESULT, true)
             }
-            Timber.d("S0183: launching ACTION_INSTALL_PACKAGE for ${file.name}")
+            Timber.d("S0183: launching ACTION_VIEW(apk) for ${file.name}")
             installLauncher?.launch(intent)
         } catch (e: Exception) {
             Timber.e(e, "S0183: failed to launch APK install for ${file.name}")

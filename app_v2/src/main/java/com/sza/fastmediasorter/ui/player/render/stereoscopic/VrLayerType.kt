@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.vr.render
+package com.sza.fastmediasorter.ui.player.render.stereoscopic
 
 /**
  * Stable layer IDs mirrored by the native OpenXR bridge.

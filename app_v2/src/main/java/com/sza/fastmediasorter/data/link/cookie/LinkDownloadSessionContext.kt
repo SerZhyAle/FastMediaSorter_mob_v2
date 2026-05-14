@@ -19,6 +19,7 @@ class LinkDownloadSessionContext @Inject constructor() {
         val host: String,
         val cookies: List<HttpCookie>,
         val userAgent: String?,
+        val audioOnly: Boolean = false,
     )
 
     @Volatile
@@ -30,7 +31,11 @@ class LinkDownloadSessionContext @Inject constructor() {
     }
 
     fun set(host: String, cookies: List<HttpCookie>, userAgent: String?) {
-        active = Active(host, cookies, userAgent)
+        set(host, cookies, userAgent, audioOnly = false)
+    }
+
+    fun set(host: String, cookies: List<HttpCookie>, userAgent: String?, audioOnly: Boolean) {
+        active = Active(host, cookies, userAgent, audioOnly)
     }
 
     fun cookiesFor(requestHost: String): List<HttpCookie>? {
@@ -42,6 +47,12 @@ class LinkDownloadSessionContext @Inject constructor() {
     fun userAgentFor(requestHost: String): String? {
         val a = active ?: return null
         return if (hostMatches(requestHost, a.host)) a.userAgent else null
+    }
+
+    /** S0190: returns `true` when the active session is bound to an audio-only request (e.g. YouTube Music). */
+    fun audioOnlyFor(requestHost: String): Boolean {
+        val a = active ?: return false
+        return hostMatches(requestHost, a.host) && a.audioOnly
     }
 
     fun clear() {

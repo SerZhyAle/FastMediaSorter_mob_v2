@@ -3436,6 +3436,11 @@
     <string name="link_download_notif_title_sign_in_needed">Потрібен вхід</string>
     <string name="link_download_notif_text_sign_in_needed">Для завантаження цього матеріалу %1$s вимагає входу</string>
     <string name="link_download_notif_action_sign_in">Увійти</string>
+    <!-- S0202: foreground-service progress notification text + cancel action -->
+    <string name="link_download_notif_text_probing">Підготовка..</string>
+    <string name="link_download_notif_text_analyzing">Аналіз сторінки..</string>
+    <string name="link_download_notif_text_downloading_pct">Завантаження %1$d%%</string>
+    <string name="link_download_notif_action_cancel">Скасувати</string>
     <string name="auth_sessions_info_text">Тут зберігаються авторизації, збережені через вбудований браузер. Кожен запис містить куки для одного облікового запису на одному сайті. Записи «Вхід відхилено» створено при виборі «Не пропонувати» — вони вимикають діалог авторизації для цього сайту. Щоб додати другий обліковий запис для того ж сайту, скористайтесь «Додати авторизацію» у меню.</string>
     <string name="link_download_ytdlp_extracting">Вилучення посилання на медіа…</string>
     <string name="link_download_ytdlp_downloading">Завантаження через універсальний екстрактор…</string>

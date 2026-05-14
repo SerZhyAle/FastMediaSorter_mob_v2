@@ -324,6 +324,23 @@ cd P:/ANDROID/FastMediaSorter_mob_v2
 
 ---
 
+### Step 12a — Functionality log sanity check
+
+The plateau release does not generate functionality-log entries on its own — those should already exist, one per spec, recorded by `/spec-dev` (ADD/CHANGE) or `/spec-fix` (FIX) during the DEBUG cycle.
+
+Cross-check: for every `Sxxxx` ticket whose status moved into `Verified` (or `Implemented`+`BlockNeedUserTest`) between `$PREV_TAG` and `HEAD`, confirm at least one entry exists in `dev/FUNCTIONALITY.log` referencing that id.
+
+```powershell
+# List specs reached in this plateau (Verified between $PREV_TAG and HEAD)
+git diff $PREV_TAG..HEAD --name-only -- PLAN/spec-catalog.jsonl
+# then for each Sxxxx referenced in the diff:
+Select-String -Path dev/FUNCTIONALITY.log -Pattern '\[S\d{4}\]'
+```
+
+If any spec is missing — surface a `[FUNC_LOG MISSED] Sxxxx` line in the final report under a new "Manual follow-ups" section. Do NOT silently backfill the entry; the operator decides whether the spec really delivered a user-visible change.
+
+---
+
 ### Step 13 — Final report
 
 After all steps complete, output a single structured summary:
@@ -335,9 +352,12 @@ Release pipeline complete.
   Tag:      release/v$NEW_VERSION
   Next branch: $NEXT_DEBUG (tracking origin/$NEXT_DEBUG)
   Build:    triggered via .\a r
+
+Manual follow-ups (if any):
+  [FUNC_LOG MISSED] Sxxxx — confirm whether spec delivered user-visible change; add entry via add_to_functionality_log.ps1
 ```
 
-No other prose.
+If there are no missed entries, omit the "Manual follow-ups" block. No other prose.
 
 ---
 

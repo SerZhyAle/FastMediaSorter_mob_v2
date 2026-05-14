@@ -215,7 +215,6 @@ class HtmlPageExtractionStrategy @Inject constructor(
         // S0197: harvest embedded data-sjs JSON for Threads/IG-family hosts so the cheap path
         // surfaces the authoritative post URL(s) before falling back to the WebView render.
         val embedded = if (KnownAuthResources.supportsEmbeddedJson(baseHost)) {
-            Timber.d("S0197: html-strategy embedded-json harvest host=%s", baseHost.orEmpty())
             structuredMediaSniffer.sniffEmbeddedJson(html, baseUri = baseUri)
         } else {
             emptyList()
