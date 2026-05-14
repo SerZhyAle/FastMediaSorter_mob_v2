@@ -26,4 +26,12 @@ class KnownAuthResourcesTest {
         assertTrue(KnownAuthResources.isPreviewSensitiveHost("www.instagram.com"))
         assertFalse(KnownAuthResources.isPreviewSensitiveHost("pinterest.com"))
     }
+
+    @Test
+    fun `youtube and music youtube resolve to youtube entry`() {
+        assertEquals("youtube.com", KnownAuthResources.matchHost("youtube.com")?.host)
+        assertEquals("youtube.com", KnownAuthResources.matchHost("www.youtube.com")?.host)
+        assertEquals("youtube.com", KnownAuthResources.matchHost("music.youtube.com")?.host)
+        assertFalse(KnownAuthResources.isPreviewSensitiveHost("youtube.com"))
+    }
 }

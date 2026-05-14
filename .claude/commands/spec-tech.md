@@ -97,7 +97,7 @@ Ordering rules:
 1. Foundations first: data classes, repo interfaces, DI, Room schema+migration.
 2. Dependency order within phases — state in `Depends on`.
 3. User-visible changes last within their area.
-4. Final phase always `PHASE_NN__docs-catalog-cleanup.md`: FEATURES trilingual, catalog regen, dev log.
+4. Final phase always `PHASE_NN__docs-catalog-cleanup.md`: catalog regen, dev log; FEATURES trilingual only if strategic §8 mandates an update (not "Без изменений").
 5. Minimum one phase per strategic pillar (§5.1). Small pillars may fuse.
 
 Target 3–8 phases. >10 → split the feature into multiple specs.
@@ -171,7 +171,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 ## Completion Gate
 
 - [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` updated (if user-facing — see strategic §8).
+- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` — update only if strategic §8 contains a FEATURES sentence (not "Без изменений"); skip otherwise.
 - [ ] `dev/CHANGELOG.md` has an entry for every modified file.
 - [ ] `dev/CATALOG/<module>.jsonl` regenerated if public API changed.
 - [ ] `/spec-check <Sxxxx>` returns `Verified`.
@@ -241,6 +241,8 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 | `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<Existing>.kt` | Modified | ≤ 500 |
 
 > File projected >500 lines after change → backup step required (timestamped copy in `temp/`). File >1500 lines → split via Manager pattern first.
+>
+> **Flavor placement.** Flavor-only classes (vr / vrUnlicensed / noLegal / lite / photos / legacy) MUST be listed under `app_v2/src/<flavor>/java/...` — not under `src/main/java/`. The shared contract interface and the No-Op fallback stay in `src/main/java/`. Hilt binding modules for the real impl go under `src/<flavor>/java/.../di/`. See `dev/FLAVOR_DEVELOPMENT_RULES.md`.
 
 ---
 
@@ -320,6 +322,8 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Do not duplicate strategic content — tactical says *what*, not *why*.
 - Never write phase steps that create audit / fix files in `PLAN/` — those are abolished.
 - **Landscape parity (MANDATORY):** any step that edits `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent — not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
+- **Flavor source-set discipline (MANDATORY).** If the strategic spec §3.2 names a non-`standard` flavor target (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) — or explicitly differentiates behavior between flavors — every flavor-specific file in `Files Touched` MUST live under `src/<flavor>/java/` (or `src/<flavor>/res/`, `src/<flavor>/AndroidManifest.xml`), never under `src/main/`. The contract interface and the No-Op fallback go to `src/main/java/`; the real implementation goes to the target flavor source set; binding happens in a flavor-local Hilt `@Module` placed under `src/<flavor>/java/.../di/`. Phase steps that write `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guards into `src/main/java/**` are forbidden — `/spec-dev` will hard-stop on them. Reference layout: `dev/FLAVOR_DEVELOPMENT_RULES.md` §3–§4. Examples of the correct pattern already on disk: `src/vr/java/.../vr/di/VrModule.kt` (binds `FullscreenCommandOverride` / `BrowsePassthroughCaptureProvider` / `VrLayerFactory`), `src/noLegal/java/.../di/NoLegalLinkDownloadModule.kt` (multibinding `@IntoSet` for link extraction strategies).
+- **Catalog hint for flavor-only classes.** A phase that introduces a flavor-only class under `src/<flavor>/java/` SHOULD include a sub-step in `PHASE_NN__docs-catalog-cleanup` to call `set.ps1 -NoFlavors "<other flavors>"` — e.g. a vr-only class declares `-NoFlavors "standard,lite,photos,legacy,noLegal"`. Source-set placement already governs physical isolation, but the catalog hint makes the intent searchable.
 
 ---
 

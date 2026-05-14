@@ -15,6 +15,10 @@ import javax.inject.Singleton
 /**
  * Hilt module that binds the [com.sza.fastmediasorter.data.network.lifecycle] subsystem.
  * S0067.
+ *
+ * S0195: [com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper]
+ * is constructor-injected via `@Inject` and therefore needs no explicit `@Provides`
+ * binding in this module. Do not add one — duplicate bindings break Hilt graph assembly.
  */
 @Module
 @InstallIn(SingletonComponent::class)

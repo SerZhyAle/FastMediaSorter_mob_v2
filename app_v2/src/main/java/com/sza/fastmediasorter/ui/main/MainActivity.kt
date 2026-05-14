@@ -35,7 +35,10 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.share.LinkAutoDownloadResultPresenter
+import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
+import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
@@ -110,6 +113,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var keyBindingManager: KeyBindingManager
 
+    // S0202: receive terminal share-download outcomes from the LinkDownloadWorker so the user
+    // sees a result even if the share Activity finished due to backgrounding/watchdog.
+    @Inject
+    lateinit var shareResultBus: ShareDownloadResultBus
+
+    @Inject
+    lateinit var shareResultPresenter: LinkAutoDownloadResultPresenter
+
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
@@ -130,6 +141,39 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         // Log config changes to detect unexpected recreations
         Timber.d("MainActivity.onCreate: savedInstanceState=${savedInstanceState != null}, isChangingConfigurations=$isChangingConfigurations")
+
+        // S0202: subscribe to terminal share-download outcomes pushed by LinkDownloadWorker.
+        // The worker's foreground notification is the primary feedback channel; this collector
+        // is a fallback for when the user has the app foregrounded at the moment of completion
+        // (auth-required dialogs and open-in-player intents need an Activity context).
+        lifecycleScope.launch {
+            shareResultBus.pending.collect { pending ->
+                Timber.d(
+                    "S0202: MainActivity received share result url=%s outcome=%s notification=%s",
+                    pending.url,
+                    pending.result::class.simpleName,
+                    pending.notificationShown,
+                )
+                val isSuccess = pending.result is LinkAutoDownloadCoordinator.Result.Saved ||
+                    pending.result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads ||
+                    pending.result is LinkAutoDownloadCoordinator.Result.BatchCompleted
+                val isAuthGated = pending.result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly
+                // Suppression: the worker already posted a result notification for these
+                // success kinds — skip the in-Activity toast to avoid double-feedback.
+                // SocialPreviewOnly's "Sign in" notification action is the primary path; the
+                // in-Activity dialog is also redundant.
+                if (pending.notificationShown && (isSuccess || isAuthGated)) {
+                    return@collect
+                }
+                runCatching {
+                    shareResultPresenter.present(
+                        result = pending.result,
+                        hostActivity = this@MainActivity,
+                        isAuthRetry = false,
+                    )
+                }.onFailure { Timber.w(it, "S0202: shareResultPresenter.present failed") }
+            }
+        }
 
         // Fix old cloud paths format (cloud:/ → cloud://)
         MediaFilesCacheManager.fixCloudPaths()
@@ -441,6 +485,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
             onMoveDownClick = { resource ->
                 viewModel.moveResourceDown(resource)
+            },
+            onScanClick = { resource ->
+                viewModel.scanSingleResource(resource)
             }
         )
         
@@ -794,6 +841,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 View.GONE
             }
             resourceAdapter.setUseCompactElements(settings.useCompactElements)
+            resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
         }

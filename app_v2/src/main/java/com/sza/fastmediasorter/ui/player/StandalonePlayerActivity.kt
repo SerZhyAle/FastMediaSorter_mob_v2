@@ -24,7 +24,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
@@ -75,6 +74,8 @@ import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
+import androidx.appcompat.widget.PopupMenu
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -310,14 +311,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 override fun onExitPlayer() = finish()
                 override fun onToggleSlideshow() { /* standalone has no playlist slideshow */ }
                 override fun onShowRenameDialog() = fileOperations.showStandaloneRenameDialog()
-                override fun onShowFileInfo() {
-                    val file = viewModel.state.value.mediaFile ?: return
-                    MaterialAlertDialogBuilder(this@StandalonePlayerActivity)
-                        .setTitle(file.name)
-                        .setMessage(file.path)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show()
-                }
+                override fun onShowFileInfo() = showFileInfo()
                 override fun onToggleCommandPanel() {
                     binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
                 }
@@ -752,12 +746,45 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         binding.btnRenameCmd.isVisible = false
         binding.btnRenameCmd.setOnClickListener { showStandaloneRenameDialog() }
 
-        // Open in FMS (repurpose info button)
+        // File Info
         binding.btnInfoCmd.visibility = View.VISIBLE
-        binding.btnInfoCmd.setImageResource(R.drawable.ic_open_in_browse)
-        binding.btnInfoCmd.contentDescription = getString(R.string.open_in_fms)
-        binding.btnInfoCmd.setOnClickListener { openInFms() }
+        binding.btnInfoCmd.setImageResource(R.drawable.ic_info)
+        binding.btnInfoCmd.contentDescription = getString(R.string.file_information)
+        binding.btnInfoCmd.setOnClickListener { showFileInfo() }
 
+        // More actions (Open in FMS)
+        binding.btnOverflowMenu.visibility = View.VISIBLE
+        binding.btnOverflowMenu.setOnClickListener { anchor ->
+            val popup = PopupMenu(this, anchor)
+            popup.inflate(R.menu.overflow_menu_standalone_player)
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.menu_open_in_fms -> { openInFms(); true }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
+
+    }
+
+    // ── File Info ─────────────────────────────────────────────────────────
+
+    private fun showFileInfo() {
+        val file = viewModel.state.value.mediaFile ?: return
+        if (isFinishing || isDestroyed) return
+        FileInfoDialog(
+            this,
+            file,
+            smbClient,
+            sftpClient,
+            ftpClient,
+            credentialsRepository,
+            unifiedCache,
+            downloadNetworkFileUseCase = null,
+            audioMetadataLoader = null,
+            audioMetadataCacheRepository = null
+        ).show()
     }
 
     // ── Delete ────────────────────────────────────────────────────────────

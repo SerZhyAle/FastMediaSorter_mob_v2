@@ -13,7 +13,7 @@ class SftpClientTest {
     fun `getConnectionForExoPlayer throws synchronously when reachability gate denies`() {
         val gate = mockk<NetworkReachabilityGate>()
         every { gate.requireAnyNetwork("SFTP") } throws NetworkConnectionLostException()
-        val client = SftpClient(gate)
+        val client = SftpClient(gate, dagger.Lazy { mockk(relaxed = true) })
 
         val info = SftpClient.SftpConnectionInfo(host = "anyhost", port = 22, username = "u", password = "p")
 

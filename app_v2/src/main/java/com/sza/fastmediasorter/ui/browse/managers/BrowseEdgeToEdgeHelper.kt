@@ -5,6 +5,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
+import timber.log.Timber
 
 /**
  * Applies edge-to-edge window insets to BrowseActivity layout.
@@ -34,12 +36,12 @@ object BrowseEdgeToEdgeHelper {
             ?.bottomMargin ?: binding.root.resources.getDimensionPixelSize(R.dimen.margin_small)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val statusBar = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val statusBarHeight = insets.getStatusBarHeightSafe(binding.root.resources)
             val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
 
             binding.layoutControls.setPadding(
                 topBarOrigPaddingLeft,
-                topBarOrigPaddingTop + statusBar.top,
+                topBarOrigPaddingTop + statusBarHeight,
                 topBarOrigPaddingRight,
                 topBarOrigPaddingBottom
             )

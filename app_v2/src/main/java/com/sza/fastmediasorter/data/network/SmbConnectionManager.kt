@@ -51,7 +51,8 @@ interface SmbResetCallback {
 class SmbConnectionManager @Inject constructor(
     private val networkStateMonitor: NetworkStateMonitor,
     private val playbackTracker: SmbPlaybackConnectionTracker,
-    private val reachabilityGate: NetworkReachabilityGate
+    private val reachabilityGate: NetworkReachabilityGate,
+    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
 ) {
     
     init {
@@ -247,12 +248,15 @@ class SmbConnectionManager @Inject constructor(
     /**
      * Execute block with a pooled SMB connection.
      * Handles connection pooling, retry logic, and health tracking.
+     *
+     * S0195: trigger network lifecycle bootstrap on first SMB use.
      */
     suspend fun <T> withConnection(
         connectionInfo: SmbConnectionInfo,
         allowRetry: Boolean = true,
         block: suspend (DiskShare) -> SmbResult<T>
     ): SmbResult<T> = connectionSemaphore.withPermit {
+        lifecycleBootstrapper.get().ensureInitialized()
         // Wi-Fi gate: synchronous fast-fail when no Wi-Fi/ethernet transport is active.
         // Throws NetworkConnectionLostException — no socket attempt is made.
         reachabilityGate.requireWifi("SMB")
@@ -874,6 +878,8 @@ class SmbConnectionManager @Inject constructor(
      * ExoPlayer should only use the DiskShare for file operations.
      */
     fun getConnectionForExoPlayer(connectionInfo: SmbConnectionInfo): PooledConnection {
+        // S0195: trigger network lifecycle bootstrap on first SMB use.
+        lifecycleBootstrapper.get().ensureInitialized()
         val key = ConnectionKey(
             server = connectionInfo.server,
             port = connectionInfo.port,

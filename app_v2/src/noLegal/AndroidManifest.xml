@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  S0174: noLegal flavor manifest overlay.
-  Sets extractNativeLibs=true so that Chaquopy can unpack libpython3.so from the APK.
-  Required by Chaquopy 16.x — without this flag the Python shared library cannot be
-  loaded from a compressed APK entry on Android 6+.
--->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+  noLegal flavor manifest overlay.
 
-    <application
-        android:extractNativeLibs="true"
-        tools:replace="android:extractNativeLibs" />
+  History:
+    S0174 originally set extractNativeLibs="true" here for Chaquopy 16.x. That entry was
+    silently ignored because productFlavors.noLegal had manifest.srcFile("src/vr/...")
+    set, which REPLACES the auto-detected flavor manifest. Chaquopy 17.x runs fine
+    without the explicit flag — useLegacyPackaging=false in packaging.jniLibs is the
+    modern default and Chaquopy adapts.
+
+    S0183 added REQUEST_INSTALL_PACKAGES here. To make this file actually contribute to
+    the merged manifest the build.gradle.kts androidComponents.onVariants block injects
+    it via variant.sources.manifests.addStaticManifestFile().
+
+  S0183: APK install from Browse — noLegal only; forbidden in market builds.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
 </manifest>

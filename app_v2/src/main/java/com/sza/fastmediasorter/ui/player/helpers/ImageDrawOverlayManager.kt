@@ -26,7 +26,10 @@ import timber.log.Timber
  */
 class ImageDrawOverlayManager(
     private val activity: Activity,
-    private val imageContainer: ViewGroup
+    private val imageContainer: ViewGroup,
+    // S0162 ADR-4: restore rotation manager state on draw-mode exit (not unconditional UNSPECIFIED)
+    private val screenRotationManager: ScreenRotationManager? = null,
+    private val hasAccelerometer: Boolean = false
 ) {
 
     enum class DrawTool { BRUSH, RECTANGLE, ERASER }
@@ -132,7 +135,12 @@ class ImageDrawOverlayManager(
         drawCanvasView?.let { imageContainer.removeView(it) }
         drawCanvasView = null
         imageContainer.requestDisallowInterceptTouchEvent(false)
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        // S0162 ADR-4: restore rotation manager state instead of unconditional UNSPECIFIED
+        if (screenRotationManager != null) {
+            screenRotationManager.reapply(activity, hasAccelerometer)
+        } else {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
         toolbarRoot?.visibility = View.GONE
         editModeCallback?.invoke(com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode.NONE)
     }

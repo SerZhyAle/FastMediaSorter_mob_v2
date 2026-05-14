@@ -32,80 +32,103 @@ class CommandPanelLayoutPlanner {
         val menuItemId: Int,
         val barCapable: Boolean,
         val titleResId: Int,
-        val iconResId: Int
+        val iconResId: Int,
+        // Short label for Big Buttons Mode top-panel display. 0 = use titleResId at runtime.
+        val shortTitleResId: Int = 0
     ) {
         // ── Group 1 : high-priority adaptive commands (priorities 5–70) ───────────
         // Lowest priority numbers = first on bar (leftmost), last to overflow.
         // Previous/Next are fixed right anchors — not in this group.
 
-        PLAYBACK_ORDER(5, R.id.menu_playback_order, true, R.string.playback_order_menu_title, 0),
-        DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete),
-        FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline),
-        SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share),
-        INFO(40, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info),
-        FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen),
-        SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play),
-        RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav),
+        PLAYBACK_ORDER(5, R.id.menu_playback_order, true, R.string.playback_order_menu_title, 0,
+            R.string.big_btn_short_playback_order),
+        DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete,
+            R.string.big_btn_short_delete),
+        FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline,
+            R.string.big_btn_short_favorite),
+        SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share,
+            R.string.big_btn_short_share),
+        INFO(40, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info,
+            R.string.big_btn_short_info),
+        FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen,
+            R.string.big_btn_short_fullscreen),
+        SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play,
+            R.string.big_btn_short_slideshow),
+        RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav,
+            R.string.big_btn_short_random),
 
         // ── Group 2 : current command-bar commands (priorities 200–499) ──────────────
 
         BLACK_SCREEN(195, R.id.menu_black_screen, true,
-            R.string.black_screen_button_title, R.drawable.ic_black_screen),
-        RENAME(200, R.id.menu_rename, true, R.string.rename, R.drawable.ic_rename),
-        EDIT(210, R.id.menu_edit, true, R.string.edit, android.R.drawable.ic_menu_edit),
+            R.string.black_screen_button_title, R.drawable.ic_black_screen,
+            R.string.big_btn_short_black_screen),
+        RENAME(200, R.id.menu_rename, true, R.string.rename, R.drawable.ic_rename,
+            R.string.big_btn_short_rename),
+        EDIT(210, R.id.menu_edit, true, R.string.edit, android.R.drawable.ic_menu_edit,
+            R.string.big_btn_short_edit),
         // VR flavor only: placed directly after EDIT so it sits next to the Control dialog button.
         VR_3D(211, R.id.menu_3d_vr, true, R.string.vr_toggle_enter_description,
             R.drawable.ic_vr_3d),
-        UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert),
-        CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast),
+        UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert,
+            R.string.big_btn_short_undo),
+        CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast,
+            R.string.big_btn_short_cast),
         // Low-priority direct video action: show on command bar when space permits,
         // otherwise let adaptive portrait layout spill it to overflow.
         SAVE_FRAME(235, R.id.menu_save_frame, true, R.string.menu_save_frame,
-            R.drawable.ic_save_frame),
-        LYRICS(240, R.id.menu_lyrics, true, R.string.lyrics, R.drawable.ic_microphone),
+            R.drawable.ic_save_frame, R.string.big_btn_short_save_frame),
+        LYRICS(240, R.id.menu_lyrics, true, R.string.lyrics, R.drawable.ic_microphone,
+            R.string.big_btn_short_lyrics),
         SEARCH_YOUTUBE_MUSIC(250, R.id.menu_search_youtube_music, true,
             R.string.search_in_youtube_music, R.drawable.ic_youtube_music),
+        // S0162: Rotation toggle — low-priority, shows on bar only when space permits
+        ROTATION_TOGGLE(490, R.id.menu_rotation_toggle, true,
+            R.string.rotation_toggle_title, R.drawable.ic_rotation_unlocked,
+            R.string.big_btn_short_rotation),
 
         // PDF
         SEARCH_PDF(260, R.id.menu_search, true, R.string.search,
-            android.R.drawable.ic_menu_search),
+            android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
         TRANSLATE_PDF(270, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate),  // icon replaced asynchronously by LanguageBadgeDrawable
+            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously by LanguageBadgeDrawable
         PDF_TEXT_SETTINGS(280, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book),
-        OCR_PDF(290, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
+            R.drawable.ic_book, R.string.big_btn_short_text_settings),
+        OCR_PDF(290, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
+            R.string.big_btn_short_ocr),
         GOOGLE_LENS_PDF(300, R.id.menu_google_lens, true, R.string.google_lens,
             R.drawable.ic_google_lens),
 
         // TEXT
         SEARCH_TEXT(310, R.id.menu_search, true, R.string.search,
-            android.R.drawable.ic_menu_search),
+            android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
         EDIT_TEXT(320, R.id.menu_edit_text, true, R.string.edit,
-            android.R.drawable.ic_menu_edit),
+            android.R.drawable.ic_menu_edit, R.string.big_btn_short_edit),
         TRANSLATE_TEXT(330, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate),  // icon replaced asynchronously
+            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
         TEXT_SETTINGS(340, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book),
+            R.drawable.ic_book, R.string.big_btn_short_text_settings),
         COPY_TEXT(350, R.id.menu_copy_text, true, R.string.copy,
-            android.R.drawable.ic_menu_save),
+            android.R.drawable.ic_menu_save, R.string.big_btn_short_copy),
 
         // EPUB
         SEARCH_EPUB(360, R.id.menu_search, true, R.string.search,
-            android.R.drawable.ic_menu_search),
+            android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
         TRANSLATE_EPUB(370, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate),  // icon replaced asynchronously
+            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
         EPUB_TEXT_SETTINGS(380, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book),
-        OCR_EPUB(390, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
+            R.drawable.ic_book, R.string.big_btn_short_text_settings),
+        OCR_EPUB(390, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
+            R.string.big_btn_short_ocr),
 
         // IMAGE / GIF
         TRANSLATE_IMAGE(400, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate),  // icon replaced asynchronously
+            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
         IMAGE_TEXT_SETTINGS(410, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book),
-        OCR_IMAGE(420, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
+            R.drawable.ic_book, R.string.big_btn_short_text_settings),
+        OCR_IMAGE(420, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
+            R.string.big_btn_short_ocr),
         GOOGLE_LENS_IMAGE(430, R.id.menu_google_lens, true, R.string.google_lens,
-            R.drawable.ic_google_lens),
+            R.drawable.ic_google_lens, R.string.big_btn_short_lens),
 
         // ── Group 3 : overflow-only commands (priorities 500–699) ───────────────────
 
@@ -195,6 +218,8 @@ class CommandPanelLayoutPlanner {
             if (BuildConfig.SUPPORT_CAST && (isImage || isVideo) && isWifiConnected) add(PlayerCommand.CAST)
             if (isAudio) add(PlayerCommand.LYRICS)
             if (isAudio) add(PlayerCommand.SEARCH_YOUTUBE_MUSIC)
+            // S0162: Rotation toggle — only when global delegation is OFF and device has accelerometer
+            if (state.showRotationToggle) add(PlayerCommand.ROTATION_TOGGLE)
 
             if (isPdf) add(PlayerCommand.SEARCH_PDF)
             if (isPdf && state.enableTranslation) add(PlayerCommand.TRANSLATE_PDF)
@@ -323,6 +348,51 @@ class CommandPanelLayoutPlanner {
             barCommands = onBar,
             overflowCommands = allOverflow,
             showOverflowButton = allOverflow.isNotEmpty()
+        )
+    }
+
+    /**
+     * Compute Big Buttons Mode layout for the top panel command area after fixed buttons have
+     * already reserved their slots. When overflow is required, the overflow trigger consumes one
+     * of the remaining command slots so the total visible top-panel button count still caps out.
+     */
+    fun planBigButtonsLayout(
+        activeCommands: List<PlayerCommand>,
+        maxCommandSlots: Int
+    ): LayoutResult {
+        if (activeCommands.isEmpty()) {
+            return LayoutResult(emptyList(), emptyList(), showOverflowButton = false)
+        }
+
+        val sorted = activeCommands.sortedBy { it.priority }
+        if (maxCommandSlots <= 0) {
+            return LayoutResult(
+                barCommands = emptyList(),
+                overflowCommands = sorted,
+                showOverflowButton = true
+            )
+        }
+
+        val barCapable = sorted.filter { it.barCapable }
+        val overflowOnly = sorted.filterNot { it.barCapable }
+
+        if (overflowOnly.isEmpty() && barCapable.size <= maxCommandSlots) {
+            return LayoutResult(
+                barCommands = barCapable,
+                overflowCommands = emptyList(),
+                showOverflowButton = false
+            )
+        }
+
+        val visibleBarSlots = (maxCommandSlots - 1).coerceAtLeast(0)
+        val onBar = barCapable.take(visibleBarSlots)
+        val overflow = (barCapable.drop(visibleBarSlots) + overflowOnly)
+            .sortedBy { it.priority }
+
+        return LayoutResult(
+            barCommands = onBar,
+            overflowCommands = overflow,
+            showOverflowButton = overflow.isNotEmpty()
         )
     }
 }

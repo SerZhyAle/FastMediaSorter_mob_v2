@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- noLegalDebug adaptive launcher icon.
+     Overrides src/debug/ so the skull badge is shown instead of the debug "D" icon.
+     Background and base foreground come from noLegalDebug mipmap PNGs (main-sourced);
+     skull badge is added via ic_launcher_nolegal_fore layer-list in src/noLegal/res/drawable/. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_adaptive_back" />
+    <foreground android:drawable="@drawable/ic_launcher_nolegal_fore" />
+</adaptive-icon>

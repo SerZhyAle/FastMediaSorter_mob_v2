@@ -50,6 +50,7 @@ class GoogleDriveTokenRefreshTest {
             pendingRevocationDao = mockPendingRevocationDao,
             networkCredentialsRepository = mockCredentialsRepo,
             reachabilityGate = mockk(relaxed = true),
+            lifecycleBootstrapper = dagger.Lazy { mockk(relaxed = true) },
         )
     }
 

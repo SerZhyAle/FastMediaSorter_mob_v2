@@ -43,6 +43,9 @@ class GeneralSettingsObserversHelper(
                 binding.switchSmallControls.isChecked = settings.showSmallControls
             if (binding.switchCompactElements?.isChecked != settings.useCompactElements)
                 binding.switchCompactElements?.isChecked = settings.useCompactElements
+            // S0160: resource ops overflow toggle
+            if (binding.switchResourceOpsInOverflowMenu?.isChecked != settings.resourceOpsInOverflowMenu)
+                binding.switchResourceOpsInOverflowMenu?.isChecked = settings.resourceOpsInOverflowMenu
 
             if (binding.switchAllFiles.isChecked != settings.allFiles) {
                 Timber.d("GeneralSettings: observeData updating switchAllFiles: ${binding.switchAllFiles.isChecked} -> ${settings.allFiles}")

@@ -111,7 +111,13 @@ class EncryptedCookieStore @Inject constructor(
         emptyList()
     }
 
-    fun saveForAccount(host: String, accountId: String, displayName: String, cookies: List<HttpCookie>) {
+    fun saveForAccount(
+        host: String,
+        accountId: String,
+        displayName: String,
+        cookies: List<HttpCookie>,
+        userAgent: String? = null,
+    ) {
         if (host.isBlank() || accountId.isBlank() || cookies.isEmpty()) return
         val savedAt = System.currentTimeMillis()
         val payload = JSONObject()
@@ -121,10 +127,29 @@ class EncryptedCookieStore @Inject constructor(
             .put("lastUsedAtEpochMillis", 0L)
             .put("type", TYPE_ACTIVE)
             .put("cookies", buildCookieArray(cookies, host, savedAt))
+        // S0182: persist the User-Agent the cookies were minted under, so the same UA
+        // can be replayed by yt-dlp/OkHttp on every subsequent request that uses these
+        // cookies. Avoids Meta/anti-bot flags from UA mismatch between login and API hits.
+        if (!userAgent.isNullOrBlank()) {
+            payload.put("userAgent", userAgent)
+        }
         prefs.edit().putString(keyForAccount(host, accountId), payload.toString()).apply()
         LinkDownloadTrace.verbose(
-            "encrypted-cookie-store save host=$host accountId=$accountId count=${cookies.size}",
+            "encrypted-cookie-store save host=$host accountId=$accountId count=${cookies.size}" +
+                if (!userAgent.isNullOrBlank()) " ua=${userAgent.take(60)}" else "",
         )
+    }
+
+    /**
+     * Returns the User-Agent captured at login time for the given account, or null
+     * if the entry pre-dates S0182 or had no UA recorded.
+     */
+    fun loadUserAgentForAccount(host: String, accountId: String): String? {
+        val raw = prefs.getString(keyForAccount(host, accountId), null) ?: return null
+        return runCatching {
+            val ua = JSONObject(raw).optString("userAgent", "")
+            ua.ifBlank { null }
+        }.getOrNull()
     }
 
     fun saveAsDismissed(host: String) {

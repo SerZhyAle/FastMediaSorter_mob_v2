@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.app.ActivityManager
+import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
@@ -14,6 +17,7 @@ import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import timber.log.Timber
 
 class GeneralSettingsLogHelper(
@@ -23,7 +27,8 @@ class GeneralSettingsLogHelper(
 ) {
     fun setupVersionInfo() {
         val versionInfo = "${com.sza.fastmediasorter.BuildConfig.VERSION_NAME} | Build ${com.sza.fastmediasorter.BuildConfig.VERSION_CODE} | sza@ukr.net"
-        binding.tvVersionInfo.text = versionInfo
+        // Keep a compact hardware line under the version so screenshot-only bug reports still identify the device.
+        binding.tvVersionInfo.text = "$versionInfo\n${buildDeviceSummary()}"
         binding.tvVersionInfo.setOnClickListener { openEmailClient() }
         binding.tvVersionInfo.setOnLongClickListener {
             val intent = DebugToolsBridge.maybeCreateDebugMenuIntent(fragment.requireContext())
@@ -90,6 +95,25 @@ class GeneralSettingsLogHelper(
             .setPositiveButton(R.string.share) { _, _ -> shareLogs() }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    private fun buildDeviceSummary(): String {
+        val model = sanitizeBuildField(Build.MODEL)
+        val product = sanitizeBuildField(Build.PRODUCT, fallback = sanitizeBuildField(Build.DEVICE))
+        val androidRelease = sanitizeBuildField(Build.VERSION.RELEASE, fallback = Build.VERSION.SDK_INT.toString())
+        return "$model-$product $androidRelease(${Build.VERSION.SDK_INT}) RAM:${getRoundedTotalRamGb()}G"
+    }
+
+    private fun sanitizeBuildField(value: String?, fallback: String = "unknown"): String {
+        return value?.takeIf { it.isNotBlank() } ?: fallback
+    }
+
+    private fun getRoundedTotalRamGb(): Int {
+        val activityManager = fragment.requireContext().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val memoryInfo = ActivityManager.MemoryInfo()
+        activityManager.getMemoryInfo(memoryInfo)
+        // Round to the marketed RAM size because this label is for quick human diagnostics, not precise profiling.
+        return (memoryInfo.totalMem / (1024.0 * 1024.0 * 1024.0)).roundToInt().coerceAtLeast(1)
     }
 
     private fun openEmailClient() {

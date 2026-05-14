@@ -6,7 +6,10 @@ Move a spec's files to `temp/done/` (git-ignored) and mark the journal record as
 
 ```text
 /spec-arc <Sxxxx>
+/spec-arc <Sxxxx> --removes-functionality
 ```
+
+`--removes-functionality`: explicit signal that archiving this spec corresponds to a real removal of user-visible behaviour from the app. Triggers a `DELETE` line in `dev/FUNCTIONALITY.log` (Process step 3a). Without this flag, archiving is treated as bookkeeping (cancelled / superseded / never implemented) and the functionality log is left untouched.
 
 ## When to use
 
@@ -35,6 +38,16 @@ The script:
 **3 — Remove leftover debug tags.**
 
 `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line — an archived spec must carry no debug tags (CLAUDE.md "Debug Verification Tags"). Idempotent no-op if none (the normal case — they should have been removed when the spec left `BlockNeedUserTest`). Run a dev log line per `.kt` file that lost a tag.
+
+**3a — Functionality log (only on `--removes-functionality`).**
+
+If the flag is set: append a `DELETE` line to `dev/FUNCTIONALITY.log` describing the removed user-visible capability. Pull the description from the spec title / §2 Goals.
+
+```powershell
+.\scripts\add_to_functionality_log.ps1 -Id <Sxxxx> -Op DELETE -Description "<english one-line summary of the removed capability>"
+```
+
+Without `--removes-functionality`: skip silently. Specs that are cancelled, superseded, or were never implemented produce no functionality-log entry — the catalogue only records lifecycle of behaviour that actually existed in shipped builds.
 
 **4 — Run dev log.**
 

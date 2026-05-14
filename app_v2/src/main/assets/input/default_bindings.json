@@ -375,6 +375,18 @@
       }
     },
     {
+      "command_id": "view.rotation_toggle",
+      "group": "VIEW_ZOOM",
+      "label_key": "keybinding_label_view_rotation_toggle",
+      "flavor_gate": null,
+      "triggers": {
+        "keyboard": ["key:46:0"],
+        "gamepad": [],
+        "mouse": [],
+        "vr": []
+      }
+    },
+    {
       "command_id": "view.pan",
       "group": "VIEW_ZOOM",
       "label_key": "cmd_view_pan",

@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.Intent
+import androidx.core.content.FileProvider
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -24,6 +26,7 @@ import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.FileOperationType
@@ -78,7 +81,9 @@ class BrowseManagerInitializer(
     private val credentialsRepository: NetworkCredentialsRepository,
     private val unifiedFileOperationHandler: UnifiedFileOperationHandler,
     private val audioMetadataLoader: AudioMetadataLoader,
+    private val unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
     private val resourceOpsMenuManager: ResourceOpsMenuManager,
+    private val browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager,
     private val launcherManager: BrowseLauncherManager,
     private val showVideoThumbnailsGetter: () -> Boolean,
     private val showPdfThumbnailsGetter: () -> Boolean,
@@ -86,7 +91,16 @@ class BrowseManagerInitializer(
     private val updateShowPdfThumbnails: (Boolean) -> Unit,
     private val isSkipAvailabilityCheck: Boolean,
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
+    // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic.
+    private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
+    // S0135 — Google Play In-App Review request after successful Move/Copy.
+    private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
 ) {
+    // Cached settings and destinations — populated via collectors in initialize().
+    // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
+    private var latestSettings: AppSettings? = null
+    private var latestHasDestinations: Boolean = false
+
     lateinit var mediaFileAdapter: MediaFileAdapter
     lateinit var dialogHelper: BrowseDialogHelper
     lateinit var mediaStoreObserver: BrowseMediaStoreObserver
@@ -192,6 +206,41 @@ class BrowseManagerInitializer(
                 viewModel.navigateToFolder(folder)
             },
             onBinaryFileClick = { file -> UserActionLogger.logItemClick(file.name, context = "Binary file click"); binaryFileHandler.showBinaryFileMenu(file) },
+            onOverflowMenuClick = overflowClick@{ file, anchor ->
+                // Use cached values — populated by collectors started in initialize().
+                // First-frame edge case (cache not yet populated): silently skip tap.
+                val settings = latestSettings ?: return@overflowClick
+                val currentState = viewModel.state.value
+                browseFileOverflowMenuManager.showFor(
+                    anchor = anchor,
+                    file = file,
+                    appSettings = settings,
+                    isWritable = currentState.resource?.isReadOnly == false,
+                    hasDestinations = latestHasDestinations,
+                    isGridMode = mediaFileAdapter.isInGridMode,
+                    // Single-file path: pass overridePaths so dialog does not touch multiselect state.
+                    onCopy = { f -> showCopyDialog(setOf(f.path)) },
+                    onMove = { f -> showMoveDialog(setOf(f.path)) },
+                    onRename = { f -> showRenameDialog(setOf(f.path)) },
+                    onDelete = { f -> showDeleteConfirmation(setOf(f.path)) },
+                    onMoveUp = if (currentState.sortMode == SortMode.MANUAL) {
+                        { f -> viewModel.moveFileUp(f) }
+                    } else null,
+                    onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
+                        { f -> viewModel.moveFileDown(f) }
+                    } else null,
+                    onFavorite = { f -> viewModel.toggleFavorite(f) },
+                    onShare = { f ->
+                        val resource = viewModel.state.value.resource
+                        if (resource != null) fileOperationsManager.shareSelectedFiles(listOf(f), resource)
+                    },
+                    onInfo = { f -> showFileInfoDialog(f) },
+                    onGoogleLens = { f -> launchGoogleLensForFile(f) },
+                    onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
+                    onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
+                    onOpenInPlayer = { f -> viewModel.openFile(f) }
+                )
+            },
             getShowVideoThumbnails = showVideoThumbnailsGetter,
             getShowPdfThumbnails = showPdfThumbnailsGetter
         )
@@ -344,6 +393,9 @@ class BrowseManagerInitializer(
                     operationType: FileOperationType, sourceFiles: List<File>, sourceCredentialsId: String?,
                     resourceType: ResourceType, resource: MediaResource, dirItems: List<MediaFile>
                 ) = folderPickerHandler.requestFolderPick(operationType, sourceFiles, sourceCredentialsId, resourceType, resource, dirItems)
+                override fun onSortOperationSuccess(count: Int) {
+                    reviewRequestManager.onSortOperationSuccess(activity, count)
+                }
             }
         )
 
@@ -383,8 +435,11 @@ class BrowseManagerInitializer(
             onShowCopyDialog = { showCopyDialog() },
             onShowMoveDialog = { showMoveDialog() },
             onShowRenameDialog = { showRenameDialog() },
-            onShowDeleteConfirmation = { showDeleteConfirmation() }
+            onShowDeleteConfirmation = { showDeleteConfirmation() },
+            binaryFileMenuActions = binaryFileMenuActions,
         )
+        // S0183: registerLaunchers MUST run before STARTED; BrowseActivity.onCreate handles it
+        // synchronously (this initialize() is invoked from binding.root.post, after RESUMED).
 
         errorDisplayManager = BrowseErrorDisplayManager(
             activity = activity,
@@ -488,6 +543,10 @@ class BrowseManagerInitializer(
                 viewModel.cancelScan(forceCancel = true)
                 Toast.makeText(activity, activity.getString(R.string.scan_stopped, viewModel.state.value.mediaFiles.size), Toast.LENGTH_SHORT).show()
             }
+            override fun onCreateFolderClicked() {
+                Timber.d("S0165: btnCreateFolder clicked → showCreateFolderDialog")
+                resourceOpsMenuManager.showCreateFolderDialog(viewModel)
+            }
             override fun isAudioOnlyResource() = viewModel.state.value.resource?.isAudioOnly() == true
             override fun onMicRecordTouchDown() = activity.onMicRecordTouchDown()
             override fun onMicRecordTouchUp() = activity.onMicRecordTouchUp()
@@ -522,6 +581,14 @@ class BrowseManagerInitializer(
             }
         })
         
+        // Warm up the cache used by onOverflowMenuClick for synchronous access.
+        lifecycleScope.launch {
+            settingsRepository.getSettings().collect { latestSettings = it }
+        }
+        lifecycleScope.launch {
+            getDestinationsUseCase().collect { latestHasDestinations = it.isNotEmpty() }
+        }
+
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
     }
 
@@ -558,38 +625,56 @@ class BrowseManagerInitializer(
             activity.resources.getQuantityString(R.plurals.selected_n_files, n, n), Toast.LENGTH_SHORT).show()
     }
 
-    private fun showRenameDialog() {
+    /**
+     * @param overridePaths When non-null, operates on this exact set instead of the current
+     *   selection. Used by the per-file overflow menu to target a single file without
+     *   mutating the shared multiselect state.
+     */
+    private fun showRenameDialog(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         if (state.resource?.isReadOnly == true) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-        // Read selection from selectionManager (avoids async state propagation lag)
-        dialogHelper.showRenameDialog(state.mediaFiles.filter { it.path in viewModel.currentSelectedPaths() })
+        val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
+        dialogHelper.showRenameDialog(state.mediaFiles.filter { it.path in selectedPaths })
     }
 
-    private fun showDeleteConfirmation() {
+    /**
+     * @param overridePaths When non-null, operates on this exact set instead of the current
+     *   selection. Used by the per-file overflow menu to target a single file without
+     *   mutating the shared multiselect state.
+     */
+    private fun showDeleteConfirmation(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         val resource = state.resource
         if (resource?.isReadOnly == true) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-        // Read selection from selectionManager (avoids async state propagation lag)
-        val sel = state.mediaFiles.filter { it.path in viewModel.currentSelectedPaths() }
+        val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
+        val sel = state.mediaFiles.filter { it.path in selectedPaths }
         lifecycleScope.launch { dialogHelper.showDeleteConfirmation(sel, resource, viewModel.getSettings()) }
     }
 
-    private fun showCopyDialog() {
+    /**
+     * @param overridePaths When non-null, operates on this exact set instead of the current
+     *   selection. Used by the per-file overflow menu to target a single file without
+     *   mutating the shared multiselect state.
+     */
+    private fun showCopyDialog(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
-        // Read selection from selectionManager (avoids async state propagation lag)
-        val selectedPaths = viewModel.currentSelectedPaths()
+        val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
         lifecycleScope.launch {
             fileOperationsManager.showCopyDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
         }
     }
 
-    private fun showMoveDialog() {
+    /**
+     * @param overridePaths When non-null, operates on this exact set instead of the current
+     *   selection. Used by the per-file overflow menu to target a single file without
+     *   mutating the shared multiselect state.
+     */
+    private fun showMoveDialog(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
         if (resource.isReadOnly) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-        // Read selection from selectionManager (avoids async state propagation lag)
-        val selectedPaths = viewModel.currentSelectedPaths()
+        val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
         lifecycleScope.launch {
             fileOperationsManager.showMoveDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
         }
@@ -647,6 +732,80 @@ class BrowseManagerInitializer(
         viewModel.reshuffleRandom()
         val resource = viewModel.state.value.resource
         val intent = PlayerActivity.createIntent(activity, resource?.id ?: 0L, 0, isSkipAvailabilityCheck)
+        if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
+        else activity.startActivity(intent)
+    }
+
+    /**
+     * S0159: Show FileInfoDialog directly from Browse without opening the player.
+     * Uses available file metadata; ExoPlayer-enriched duration/resolution are unavailable here.
+     */
+    private fun showFileInfoDialog(file: MediaFile) {
+        val dialog = com.sza.fastmediasorter.ui.dialog.FileInfoDialog(
+            context = activity,
+            mediaFile = file,
+            smbClient = smbClient,
+            sftpClient = sftpClient,
+            ftpClient = ftpClient,
+            credentialsRepository = credentialsRepository,
+            unifiedCache = unifiedFileCache,
+            audioMetadataLoader = audioMetadataLoader,
+        )
+        dialog.show()
+    }
+
+    /**
+     * S0159: Search YouTube Music directly from Browse using the filename (without extension)
+     * as the query — same fallback the player uses when iTunes metadata cache is empty.
+     */
+    private fun searchYoutubeMusicForFile(file: MediaFile) {
+        val query = file.name.substringBeforeLast(".")
+        val uri = android.net.Uri.parse("https://music.youtube.com/search?q=${android.net.Uri.encode(query)}")
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        try {
+            activity.startActivity(intent)
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(activity, R.string.search_in_youtube_music_no_app, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * S0159: Launch Google Lens directly for a local image file from the Browse overflow menu.
+     * Mirrors PlayerShareManager.shareFileToGoogleLens() — uses FileProvider + ACTION_SEND.
+     */
+    private fun launchGoogleLensForFile(file: MediaFile) {
+        try {
+            val localFile = java.io.File(file.path)
+            val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", localFile)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                clipData = ClipData.newRawUri(null, uri)
+            }
+            val pm = activity.packageManager
+            intent.setPackage("com.google.ar.lens")
+            if (intent.resolveActivity(pm) != null) { activity.startActivity(intent); return }
+            intent.setPackage("com.google.android.googlequicksearchbox")
+            if (intent.resolveActivity(pm) != null) { activity.startActivity(intent); return }
+            intent.setPackage(null)
+            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.enable_google_lens)))
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to launch Google Lens from Browse for: ${file.path}")
+            Toast.makeText(activity, R.string.toast_error_google_lens, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * S0159: Launch PlayerActivity for a file and immediately activate draw overlay mode.
+     * PlayerActivity reads EXTRA_ACTIVATE_DRAW_MODE and calls enterDrawMode() after init.
+     */
+    private fun launchPlayerWithDrawOverlay(file: MediaFile) {
+        val state = viewModel.state.value
+        val resource = state.resource ?: return
+        val index = state.mediaFiles.indexOfFirst { it.path == file.path }.coerceAtLeast(0)
+        val intent = PlayerActivity.createIntent(activity, resource.id, index, isSkipAvailabilityCheck)
+            .putExtra(PlayerActivity.EXTRA_ACTIVATE_DRAW_MODE, true)
         if (VrTaskTransition.shouldEnterImmersiveTask(intent)) VrTaskTransition.enterImmersive(activity, intent)
         else activity.startActivity(intent)
     }

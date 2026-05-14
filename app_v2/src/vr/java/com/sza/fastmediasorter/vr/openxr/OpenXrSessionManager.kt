@@ -7,7 +7,7 @@ import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLDisplay
 import android.opengl.EGLSurface
-import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -89,6 +89,7 @@ class OpenXrSessionManager(
      *         or EGL setup failed. On failure, no thread is left running.
      */
     fun initialize(activity: Activity): Boolean {
+        Timber.d("S0132: OpenXrSessionManager.initialize entry — swapchain format anchor + XR-init stage breakdown")
         synchronized(this) {
             if (running.get()) {
                 Timber.w("OpenXrSessionManager: already running")
@@ -105,6 +106,12 @@ class OpenXrSessionManager(
             starting.set(true)
             stopRequested.set(false)
         }
+
+        // S0132 P05.3a: STAGE_XR_INIT_BEGIN marker — first XR-init action after the guard
+        // synchronization block. Elapsed is measured from this point because the activity-side
+        // clock is owned by VrPlayerActivity; this anchor pairs with STAGE_SETUP_VIEWS upstream.
+        val xrInitBeginMs = SystemClock.uptimeMillis()
+        Timber.d("VR_AUDIT/14: cold-start stage=STAGE_XR_INIT_BEGIN elapsed=0 tUptimeMs=%d", xrInitBeginMs)
 
         val initialized = AtomicBoolean(false)
         val initFinished = AtomicBoolean(false)
@@ -128,6 +135,10 @@ class OpenXrSessionManager(
             }
             Timber.i("OpenXrSessionManager: EGL context created OK")
             Timber.i("VR_PERF: [xr-thread] egl_create=%dms", SystemClock.uptimeMillis() - tInit)
+            // S0132 P05.3a: STAGE_EGL_CREATE marker — same grep family as the rest of the
+            // stage-breakdown set; redundant with VR_PERF egl_create line above but uses the
+            // stable `cold-start stage=STAGE_*` wording the data-collection script expects.
+            Timber.d("VR_AUDIT/14: cold-start stage=STAGE_EGL_CREATE elapsed=%d", SystemClock.uptimeMillis() - xrInitBeginMs)
 
             val tNative = SystemClock.uptimeMillis()
             Timber.i("OpenXrSessionManager: calling nativeInitialize...")
@@ -139,11 +150,26 @@ class OpenXrSessionManager(
                 Timber.i("VR_PERF: [xr-thread] native_init=%dms  cumulative=%dms", SystemClock.uptimeMillis() - tNative, SystemClock.uptimeMillis() - tInit)
                 Timber.d("VR_AUDIT/14: cold-start phase=nativeInitialize-end result=%b nativeMs=%d eglToInitMs=%d",
                     result, SystemClock.uptimeMillis() - tNative, SystemClock.uptimeMillis() - tInit)
+                // S0132 P05.3a: STAGE_NATIVE_INIT marker — pairs with STAGE_EGL_CREATE for
+                // the native-init slice of the cold-start budget.
+                Timber.d("VR_AUDIT/14: cold-start stage=STAGE_NATIVE_INIT elapsed=%d result=%b",
+                    SystemClock.uptimeMillis() - xrInitBeginMs, result)
                 result
             } catch (t: Throwable) {
                 drainNativeLog()
                 Timber.e(t, "OpenXrSessionManager: nativeInitialize THREW — see stack above")
                 false
+            }
+
+            // S0132 P01.2a: swapchain format diagnostic for S0041 hypothesis E (sRGB
+            // double-gamma). Format selection lives in native code; this Kotlin-side anchor
+            // is logged when nativeInitialize succeeds so a single `grep VR_QUALITY_DEBUG`
+            // captures the session-creation timepoint. Native log lines from
+            // `OpenXrNative` (drainNativeLog) carry the actual numeric XR_*_FORMAT value.
+            if (ok) {
+                Timber.d(
+                    "VR_QUALITY_DEBUG: swapchain format=native-selected (see OpenXrNative log lines around nativeInitialize-end for XR_*_FORMAT)"
+                )
             }
 
             // Register the input callback as soon as the native session is up so that
@@ -202,6 +228,11 @@ class OpenXrSessionManager(
                 Timber.i("VR_PERF: [xr-thread] session_ready_cb=%dms  cumulative=%dms", SystemClock.uptimeMillis() - tReady, SystemClock.uptimeMillis() - tInit)
                 Timber.d("VR_AUDIT/14: cold-start phase=onSessionReady-end cbMs=%d sinceInitMs=%d",
                     SystemClock.uptimeMillis() - tReady, SystemClock.uptimeMillis() - tInit)
+                // S0132 P05.3a: STAGE_SESSION_READY marker — boundary between native session
+                // ready and the GL render pipeline starting; the first frame is tracked by
+                // STAGE_FIRST_FRAME in VrRenderPipelineManager.
+                Timber.d("VR_AUDIT/14: cold-start stage=STAGE_SESSION_READY elapsed=%d",
+                    SystemClock.uptimeMillis() - xrInitBeginMs)
             } catch (t: Throwable) {
                 Timber.e(t, "OpenXrSessionManager: onSessionReady THREW — continuing without pipeline")
             }

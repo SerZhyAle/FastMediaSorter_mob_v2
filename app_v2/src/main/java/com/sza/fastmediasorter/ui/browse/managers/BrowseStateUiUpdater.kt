@@ -55,6 +55,7 @@ class BrowseStateUiUpdater(
         adapter.setUseCompactElements(state.useCompactElements)
         applySmallControls(state)
         onUpdateBreadcrumb(state)
+        updateCreateFolderButtonVisibility(state)
         updateResourceActionButton(state)
     }
 
@@ -127,6 +128,15 @@ class BrowseStateUiUpdater(
         } else {
             smallControlsManager.restoreCommandButtonHeightsIfNeeded()
         }
+    }
+
+    private fun updateCreateFolderButtonVisibility(state: BrowseState) {
+        val resource = state.resource
+        val canCreateFolder = resource != null
+                && resource.showSubfoldersAsItems
+                && !resource.isReadOnly
+                && !VirtualPathUtils.isVirtualPath(resource.path)
+        binding.btnCreateFolder?.isVisible = canCreateFolder
     }
 
     private fun updateResourceActionButton(state: BrowseState) {

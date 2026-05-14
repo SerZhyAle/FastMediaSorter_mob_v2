@@ -119,6 +119,10 @@
 
     <!-- Player Activity -->
     <dimen name="player_cmd_button_size">40dp</dimen>
+    <dimen name="player_big_button_height">100dp</dimen>
+    <!-- Big Buttons Mode: starting value — adjust per S0208 §6.1 / §6.4 device-verify. -->
+    <dimen name="player_big_button_min_slot_width">50dp</dimen>
+    <dimen name="player_big_button_top_label_text_size">10sp</dimen>
     <dimen name="player_cmd_overflow_width">40dp</dimen>
     <dimen name="player_cmd_padding_vertical">2dp</dimen>
     <dimen name="player_cmd_padding_top">2dp</dimen>

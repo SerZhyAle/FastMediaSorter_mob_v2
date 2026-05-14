@@ -63,25 +63,29 @@ class DiscoverNetworkResourcesUseCaseTest {
     }
 
     // -- probePorts logic -------------------------------------------------------
+    // probePorts() became `suspend` after the parallel-probe refactor (uses
+    // coroutineScope), so each @Test must drive it through runTest(...) instead
+    // of calling it directly from a non-suspend test body.
 
     @Test
-    fun `probePorts returns 445 when port 445 is open`() {
+    fun `probePorts returns 445 when port 445 is open`() = runTest(UnconfinedTestDispatcher()) {
         val useCase = FakeUseCase(openPorts = mapOf("1.2.3.4" to setOf(445)))
         val ports = useCase.probePorts("1.2.3.4")
         assertTrue("445 must be reported", ports.contains(445))
     }
 
     @Test
-    fun `probePorts does NOT probe 139 when 445 is open`() {
-        val useCase = FakeUseCase(openPorts = mapOf("1.2.3.4" to setOf(445)))
-        useCase.probePorts("1.2.3.4")
-        // 139 must never be tried if 445 is already open (F-03: port 445 first, 139 as fallback only)
-        assertFalse("port 139 must not be probed when 445 is open",
-            useCase.probedPorts.any { it.first == "1.2.3.4" && it.second == 139 })
+    fun `probePorts omits 139 from result when 445 is open`() = runTest(UnconfinedTestDispatcher()) {
+        val useCase = FakeUseCase(openPorts = mapOf("1.2.3.4" to setOf(445, 139)))
+        val ports = useCase.probePorts("1.2.3.4")
+        // F-03 invariant: 445 wins; 139 must be omitted from the reported result
+        // even if a probe to 139 was fired in parallel.
+        assertTrue("445 must be present when open", ports.contains(445))
+        assertFalse("139 must NOT be in result when 445 is also open", ports.contains(139))
     }
 
     @Test
-    fun `probePorts returns 139 as fallback when 445 is closed`() {
+    fun `probePorts returns 139 as fallback when 445 is closed`() = runTest(UnconfinedTestDispatcher()) {
         val useCase = FakeUseCase(openPorts = mapOf("1.2.3.4" to setOf(139)))
         val ports = useCase.probePorts("1.2.3.4")
         assertTrue("139 must be reported as SMB fallback", ports.contains(139))
@@ -89,7 +93,7 @@ class DiscoverNetworkResourcesUseCaseTest {
     }
 
     @Test
-    fun `probePorts returns FTP and SFTP ports independently of SMB ports`() {
+    fun `probePorts returns FTP and SFTP ports independently of SMB ports`() = runTest(UnconfinedTestDispatcher()) {
         val useCase = FakeUseCase(openPorts = mapOf("1.2.3.4" to setOf(21, 22)))
         val ports = useCase.probePorts("1.2.3.4")
         assertTrue("FTP port 21 must be reported", ports.contains(21))
@@ -97,7 +101,7 @@ class DiscoverNetworkResourcesUseCaseTest {
     }
 
     @Test
-    fun `probePorts returns empty list when no ports are open`() {
+    fun `probePorts returns empty list when no ports are open`() = runTest(UnconfinedTestDispatcher()) {
         val useCase = FakeUseCase(openPorts = emptyMap())
         val ports = useCase.probePorts("1.2.3.4")
         assertTrue("no open ports should yield empty list", ports.isEmpty())

@@ -77,7 +77,8 @@ data class SftpFileListing(
  */
 @Singleton
 class SftpClient @Inject constructor(
-    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
+    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
 ) {
 
     companion object {
@@ -100,17 +101,21 @@ class SftpClient @Inject constructor(
 
     private val pool = SftpConnectionPool()
 
+    /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     private suspend fun <T> withConnection(
         info: SftpConnectionInfo,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> {
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
         return pool.withConnection(info, block)
     }
 
     // ExoPlayer connection management lives in SftpConnectionPool.
+    /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpConnectionInfo): SftpConnectionPool.ExoPlayerConnection {
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
         return pool.getConnectionForExoPlayer(connectionInfo)
     }
@@ -263,6 +268,15 @@ class SftpClient @Inject constructor(
                     Timber.e(e, "SFTP read file bytes failed: $remotePath")
                     Result.failure(e)
                 }
+            } catch (e: CancellationException) {
+                // S0205: never swallow cooperative coroutine cancellation
+                throw e
+            } catch (e: IOException) {
+                // S0205: IOException on intentional teardown (e.g. ConnectionThrottle ON_STOP) is
+                // expected — W level only. E level is reserved for non-IO logic failures.
+                Timber.d("S0205: readFileBytes IOException path — ${e.message}")
+                Timber.w("SFTP read file bytes interrupted (io): ${e.message} | $remotePath")
+                Result.failure(e)
             } catch (e: Exception) {
                 Timber.e(e, "SFTP read file bytes failed: $remotePath")
                 Result.failure(e)
@@ -285,6 +299,13 @@ class SftpClient @Inject constructor(
                         inputStream.copyTo(outputStream)
                     }
                     Result.success(outputStream.toByteArray())
+                } catch (e: CancellationException) {
+                    // S0205: never swallow cooperative coroutine cancellation
+                    throw e
+                } catch (e: IOException) {
+                    // S0205: IOException on retry is still transient/teardown — W level
+                    Timber.w("SFTP read file bytes retry interrupted (io): ${e.message} | $remotePath")
+                    Result.failure(e)
                 } catch (e: Exception) {
                     Timber.e(e, "SFTP read file bytes failed (retry): $remotePath")
                     Result.failure(e)

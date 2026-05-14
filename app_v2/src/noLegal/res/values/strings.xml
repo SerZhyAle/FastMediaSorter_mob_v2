@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S0183: APK install from Browse (noLegal only) -->
+    <string name="s0183_apk_install_action">Install</string>
+    <string name="s0183_apk_install_rationale_title">Install unknown apps</string>
+    <string name="s0183_apk_install_rationale_message">To install APK files, allow this app to install apps from unknown sources in Settings.</string>
+    <string name="s0183_apk_install_rationale_btn_settings">Open Settings</string>
+    <string name="s0183_apk_install_rationale_btn_cancel">Cancel</string>
+    <string name="s0183_apk_install_success">APK installed</string>
+    <string name="s0183_apk_install_cancelled">Installation cancelled</string>
+    <string name="s0183_apk_install_failed">Installation failed</string>
+</resources>

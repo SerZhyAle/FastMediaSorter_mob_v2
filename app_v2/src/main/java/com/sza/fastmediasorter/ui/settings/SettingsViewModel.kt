@@ -257,6 +257,8 @@ class SettingsViewModel @Inject constructor(
                 useTrash = defaults.useTrash,
                 defaultGridMode = defaults.defaultGridMode,
                 hideGridActionButtons = defaults.hideGridActionButtons,
+                fileOpsInOverflowMenu = defaults.fileOpsInOverflowMenu,
+                fileOpsOverflowMenuHintShown = defaults.fileOpsOverflowMenuHintShown,
                 hideSystemUiInFullscreen = defaults.hideSystemUiInFullscreen,
                 defaultIconSize = defaults.defaultIconSize,
                 defaultShowCommandPanel = defaults.defaultShowCommandPanel,

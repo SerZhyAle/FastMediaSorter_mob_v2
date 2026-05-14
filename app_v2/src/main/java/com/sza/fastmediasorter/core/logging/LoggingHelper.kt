@@ -43,6 +43,15 @@ object LoggingHelper {
     }
 
     /**
+     * Persist a fatal crash report without delegating to the uncaught-exception handler chain.
+     * Debug-only crash UIs use this path so they can keep their own shutdown flow while still
+     * producing the same on-disk crash artifacts as the standard handler.
+     */
+    fun persistFatalCrash(thread: Thread, throwable: Throwable) {
+        fileLoggingTree?.writeCrashSynchronously(thread, throwable)
+    }
+
+    /**
      * Returns true if crash report files from any previous session exist on disk.
      * Use at startup to warn the user to export logs.
      */

@@ -10,8 +10,8 @@ import com.sza.fastmediasorter.vr.commands.VrFullscreenCommandOverride
 import com.sza.fastmediasorter.vr.commands.VrSaveFrameCommandOverride
 import com.sza.fastmediasorter.vr.commands.VrSystemUiCommandOverride
 import com.sza.fastmediasorter.vr.helpers.VrRecentDestinationsPrefs
-import com.sza.fastmediasorter.vr.render.DefaultVrLayerFactory
-import com.sza.fastmediasorter.vr.render.VrLayerFactory
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.DefaultVrLayerFactory
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerFactory
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

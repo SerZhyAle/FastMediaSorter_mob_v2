@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.usecase.link.BlockedReason
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
+import com.sza.fastmediasorter.domain.usecase.link.SiteBatchItem
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -119,6 +120,18 @@ class HtmlPageExtractionStrategy @Inject constructor(
             mime == null || MediaMimeWhitelist.isAllowed(mime)
         }
 
+        // S0197: Threads/IG photo carousel — when ≥ 2 authoritative image candidates come from
+        // data-sjs, emit a Batch directly from the cheap path so the user gets all slides without
+        // having to spin up the WebView strategy.
+        val embeddedImages = filtered.filter {
+            it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON && isImageCandidate(it)
+        }
+        if (embeddedImages.size >= 2) {
+            return OpenResult.Batch(
+                items = embeddedImages.take(MAX_BATCH_ITEMS).map { SiteBatchItem(url = it.url) },
+            )
+        }
+
         val chosen = CandidateSelectionPolicy.choose(filtered)
             ?: return OpenResult.NotFound("no_media_in_html")
 
@@ -135,10 +148,23 @@ class HtmlPageExtractionStrategy @Inject constructor(
 
         val host = httpUrl.host
         if (KnownAuthResources.isPreviewSensitiveHost(host)) {
+            // S0197: EMBEDDED_JSON candidates are explicitly accepted as real-content. The prior
+            // OG/IMG-exclusion check already covered this implicitly, but the explicit branch
+            // makes the bypass observable in logs and survives future source-list refactors.
             val hasRealContent = filtered.any { candidate ->
-                candidate.source != HtmlMediaCandidate.Source.OG_IMAGE &&
-                    candidate.source != HtmlMediaCandidate.Source.IMG_TAG &&
-                    candidate.source != HtmlMediaCandidate.Source.IMG_SRCSET
+                candidate.source == HtmlMediaCandidate.Source.EMBEDDED_JSON ||
+                    (candidate.source != HtmlMediaCandidate.Source.OG_IMAGE &&
+                        candidate.source != HtmlMediaCandidate.Source.IMG_TAG &&
+                        candidate.source != HtmlMediaCandidate.Source.IMG_SRCSET)
+            }
+            val hasEmbeddedJsonImage = filtered.any { candidate ->
+                candidate.source == HtmlMediaCandidate.Source.EMBEDDED_JSON && isImageCandidate(candidate)
+            }
+            if (hasEmbeddedJsonImage) {
+                LinkDownloadTrace.verbose(
+                    "html-strategy embedded-json-image-present bypass-preview-only " +
+                        "host=${LinkDownloadTrace.truncateUrl(httpUrl.toString())}",
+                )
             }
             if (!hasRealContent) {
                 LinkDownloadTrace.verbose(
@@ -184,17 +210,28 @@ class HtmlPageExtractionStrategy @Inject constructor(
     }
 
     private suspend fun harvestCandidates(html: String, baseUri: String): List<HtmlMediaCandidate> {
+        val baseHost = baseUri.toHttpUrlOrNull()?.host?.lowercase()
         val structured = structuredMediaSniffer.sniff(html, baseUri = baseUri)
+        // S0197: harvest embedded data-sjs JSON for Threads/IG-family hosts so the cheap path
+        // surfaces the authoritative post URL(s) before falling back to the WebView render.
+        val embedded = if (KnownAuthResources.supportsEmbeddedJson(baseHost)) {
+            structuredMediaSniffer.sniffEmbeddedJson(html, baseUri = baseUri)
+        } else {
+            emptyList()
+        }
         val staticCandidates = harvestStaticCandidates(html, baseUri)
-        val merged = (structured + staticCandidates).distinctBy { it.url }
+        // Embedded first so selection sees the authoritative candidates ahead of OG/IMG noise.
+        val merged = (embedded + structured + staticCandidates).distinctBy { it.url }
 
         val structuredCount = merged.count {
             it.source == HtmlMediaCandidate.Source.JSON_LD ||
                 it.source == HtmlMediaCandidate.Source.OEMBED
         }
+        val embeddedCount = merged.count { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON }
         val directCount = merged.count {
             it.source != HtmlMediaCandidate.Source.JSON_LD &&
                 it.source != HtmlMediaCandidate.Source.OEMBED &&
+                it.source != HtmlMediaCandidate.Source.EMBEDDED_JSON &&
                 it.source != HtmlMediaCandidate.Source.HLS_MANIFEST &&
                 it.source != HtmlMediaCandidate.Source.DASH_MANIFEST &&
                 it.source != HtmlMediaCandidate.Source.OG_IMAGE &&
@@ -211,8 +248,9 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 it.source == HtmlMediaCandidate.Source.IMG_SRCSET
         }
         LinkDownloadTrace.tag(
-            "html-sniffer harvested ${merged.size} candidates (structured=$structuredCount, direct=$directCount, " +
-                "streaming=$streamingCount, image=$imageCount) for ${LinkDownloadTrace.truncateUrl(baseUri)}",
+            "html-sniffer harvested ${merged.size} candidates (structured=$structuredCount, " +
+                "embedded=$embeddedCount, direct=$directCount, streaming=$streamingCount, image=$imageCount) " +
+                "for ${LinkDownloadTrace.truncateUrl(baseUri)}",
         )
         return merged
     }
@@ -271,6 +309,29 @@ class HtmlPageExtractionStrategy @Inject constructor(
         return out.distinctBy { it.url }
     }
 
+    // S0197: mirrors InvisibleWebViewExtractionStrategy.isImageCandidate — image MIME, OG/IMG
+    // source, or known image extension. Used by the Batch trigger and (Step 03.4) the
+    // SocialPreviewOnly bypass for embedded-JSON-driven carousels.
+    private fun isImageCandidate(candidate: HtmlMediaCandidate): Boolean {
+        val mime = candidate.tentativeMime?.substringBefore(';')?.trim()?.lowercase()
+        if (mime?.startsWith("image/") == true) return true
+        return when (candidate.source) {
+            HtmlMediaCandidate.Source.OG_IMAGE,
+            HtmlMediaCandidate.Source.IMG_TAG,
+            HtmlMediaCandidate.Source.IMG_SRCSET,
+            -> true
+
+            else -> {
+                val ext = candidate.url.toHttpUrlOrNull()?.encodedPath
+                    ?.substringAfterLast('.', "")
+                    ?.substringBefore('?')
+                    ?.lowercase()
+                    .orEmpty()
+                ext in IMAGE_EXTENSIONS
+            }
+        }
+    }
+
     private fun looksLikeSoftLoginWall(html: String, finalUrl: String): Boolean {
         val doc = runCatching { Jsoup.parse(html, finalUrl) }.getOrNull() ?: return false
         var signals = 0
@@ -308,8 +369,10 @@ class HtmlPageExtractionStrategy @Inject constructor(
         const val MAX_HEAD_PROBES: Int = 8
         const val CANDIDATE_BUDGET_MS: Long = 4_000L
         const val MIN_LOGIN_WALL_SIGNALS: Int = 2
+        const val MAX_BATCH_ITEMS: Int = 12
 
         val LOGIN_MARKERS = listOf("login", "signin", "auth")
+        val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif")
     }
 }
 

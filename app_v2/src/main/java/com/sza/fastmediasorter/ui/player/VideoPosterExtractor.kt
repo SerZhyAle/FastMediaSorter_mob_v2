@@ -50,6 +50,7 @@ class VideoPosterExtractor {
     }
 
     suspend fun extract(context: Context, path: String, isPlayerBusy: Boolean): Result {
+        Timber.d("S0132: VideoPosterExtractor.extract entry — getFrameAtTime fallback path")
         val nativeFreeBytes = Debug.getNativeHeapFreeSize()
         Timber.d(
             "VideoPlayerManager: getFrameAtTime attempt path=$path " +

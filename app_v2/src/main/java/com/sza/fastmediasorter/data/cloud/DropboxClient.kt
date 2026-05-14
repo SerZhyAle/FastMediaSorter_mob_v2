@@ -53,7 +53,8 @@ import javax.inject.Singleton
 class DropboxClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
-    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
+    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.DROPBOX
@@ -165,8 +166,10 @@ class DropboxClient @Inject constructor(
      * Used for multi-account support when scanning cloud resources.
      * Falls back to any stored credentials if no per-account key found.
      */
+    /** S0195: trigger network lifecycle bootstrap on first Dropbox use. */
     suspend fun tryRestoreForAccount(email: String): Boolean {
         if (dbxClient != null && accountEmail == email) return true // Already correct account
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("Cloud-Dropbox")
         val stored = loadStoredCredentials(email)
         if (stored != null) {

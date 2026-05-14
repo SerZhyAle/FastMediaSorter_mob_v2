@@ -281,4 +281,10 @@
         android:title="@string/menu_draw_overlay"
         app:showAsAction="never" />
 
+    <!-- S0162: Rotation toggle -->
+    <item
+        android:id="@+id/menu_rotation_toggle"
+        android:title="@string/rotation_toggle_title"
+        app:showAsAction="never" />
+
 </menu>

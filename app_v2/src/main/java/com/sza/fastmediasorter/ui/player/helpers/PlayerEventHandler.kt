@@ -65,6 +65,10 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 activity.audioServiceController?.player?.pause()
                 Toast.makeText(activity, R.string.playback_order_stopped, Toast.LENGTH_SHORT).show()
             }
+            // S0162: rotation sensor toggled from player button
+            is PlayerViewModel.PlayerEvent.RotationSensorToggled -> {
+                activity.onRotationSensorToggled(event.sensorEnabled)
+            }
         }
     }
 

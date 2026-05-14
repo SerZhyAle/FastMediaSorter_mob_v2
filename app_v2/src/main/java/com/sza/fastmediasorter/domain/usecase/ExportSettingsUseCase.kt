@@ -110,6 +110,8 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <showSubfoldersAsItems>${settings.showSubfoldersAsItems}</showSubfoldersAsItems>")
                 
                 appendLine("    <hideGridActionButtons>${settings.hideGridActionButtons}</hideGridActionButtons>")
+                appendLine("    <fileOpsInOverflowMenu>${settings.fileOpsInOverflowMenu}</fileOpsInOverflowMenu>")
+                appendLine("    <fileOpsOverflowMenuHintShown>${settings.fileOpsOverflowMenuHintShown}</fileOpsOverflowMenuHintShown>")
                 appendLine("    <defaultIconSize>${settings.defaultIconSize}</defaultIconSize>")
                 appendLine("    <defaultShowCommandPanel>${settings.defaultShowCommandPanel}</defaultShowCommandPanel>")
                 appendLine("    <showDetailedErrors>${settings.showDetailedErrors}</showDetailedErrors>")

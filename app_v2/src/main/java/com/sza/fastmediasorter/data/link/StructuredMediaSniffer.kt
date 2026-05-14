@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.link
 
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
+import timber.log.Timber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -11,6 +12,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -35,6 +37,30 @@ class StructuredMediaSniffer @Inject constructor(
         }
     }
 
+    fun sniffEmbeddedJson(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> {
+        val doc = try {
+            Jsoup.parse(rawHtml, baseUri)
+        } catch (t: Throwable) {
+            LinkDownloadTrace.verbose("structured-sniffer embedded-json jsoup-parse failed: ${t::class.simpleName}")
+            return emptyList()
+        }
+
+        // S0197: deduplicate by filename (last URL path segment) rather than raw URL.
+        // collectJsonObjects() deep-traverses the entire data-sjs JSON tree; the same carousel
+        // slide can be emitted multiple times via different traversal paths. Meta CDN URLs for
+        // the same asset differ only in edge node and query-signing params — the last path
+        // segment ({assetId}_{photoId}_{shardId}_n.{ext}) is stable across all edge variants.
+        val result = buildList {
+            harvestEmbeddedJson(doc, this)
+        }.distinctBy { extractMetaAssetKey(it.url) }
+        Timber.d("S0197: sniffEmbeddedJson unique=%d baseUri=%s", result.size, LinkDownloadTrace.truncateUrl(baseUri))
+        LinkDownloadTrace.verbose(
+            "structured-sniffer embedded-json harvested ${result.size} unique assets" +
+                " baseUri=${LinkDownloadTrace.truncateUrl(baseUri)}",
+        )
+        return result
+    }
+
     private fun sniffInternal(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> {
         val doc = try {
             Jsoup.parse(rawHtml, baseUri)
@@ -52,8 +78,10 @@ class StructuredMediaSniffer @Inject constructor(
 
     private fun harvestJsonLd(doc: Document, out: MutableList<HtmlMediaCandidate>) {
         try {
-            doc.select("script[type=application/ld+json]").forEach { script ->
-                collectJsonObjects(script.data()).forEach { node ->
+            doc.select("script")
+                .filter { it.attr("type").equals("application/ld+json", ignoreCase = true) }
+                .forEach { script ->
+                collectJsonObjects(scriptPayload(script)).forEach { node ->
                     if (!hasSupportedType(node)) return@forEach
                     addCandidate(out, HtmlMediaCandidate.Source.JSON_LD, node.optString("contentUrl"), doc.baseUri())
                     addCandidate(
@@ -71,9 +99,28 @@ class StructuredMediaSniffer @Inject constructor(
         }
     }
 
+    private fun harvestEmbeddedJson(doc: Document, out: MutableList<HtmlMediaCandidate>) {
+        try {
+            doc.select("script")
+                .filter {
+                    it.attr("type").equals("application/json", ignoreCase = true) &&
+                        it.hasAttr("data-sjs")
+                }
+                .forEach { script ->
+                val payload = scriptPayload(script)
+                collectJsonObjects(payload).forEach { node ->
+                    collectThreadPostMedia(node, doc.baseUri(), out)
+                }
+            }
+        } catch (t: Throwable) {
+            LinkDownloadTrace.verbose("structured-sniffer embedded-json failed: ${t::class.simpleName}")
+        }
+    }
+
     private fun harvestOEmbed(doc: Document, out: MutableList<HtmlMediaCandidate>) {
         try {
-            doc.select("link[type=application/json+oembed][href]")
+            doc.select("link[href]")
+                .filter { it.attr("type").equals("application/json+oembed", ignoreCase = true) }
                 .mapNotNull { resolveHttpUrl(it.attr("href"), doc.baseUri()) }
                 .distinct()
                 .forEach { endpoint ->
@@ -150,8 +197,77 @@ class StructuredMediaSniffer @Inject constructor(
             source = source,
             tentativeMime = null,
             tentativeSizeBytes = null,
+            pageOrigin = originOf(baseUri),
         )
     }
+
+    private fun collectThreadPostMedia(
+        node: JSONObject,
+        baseUri: String,
+        out: MutableList<HtmlMediaCandidate>,
+    ) {
+        node.optJSONArray("thread_items")?.let { threadItems ->
+            for (index in 0 until threadItems.length()) {
+                val item = threadItems.optJSONObject(index) ?: continue
+                collectThreadPost(item.optJSONObject("post"), baseUri, out)
+            }
+        }
+        collectThreadPost(node.optJSONObject("post"), baseUri, out)
+    }
+
+    private fun collectThreadPost(
+        post: JSONObject?,
+        baseUri: String,
+        out: MutableList<HtmlMediaCandidate>,
+    ) {
+        if (post == null) return
+
+        addCandidate(
+            out,
+            HtmlMediaCandidate.Source.EMBEDDED_JSON,
+            firstUrl(post.optJSONObject("image_versions2")?.optJSONArray("candidates")),
+            baseUri,
+        )
+        addCandidate(
+            out,
+            HtmlMediaCandidate.Source.EMBEDDED_JSON,
+            firstUrl(post.optJSONArray("video_versions")),
+            baseUri,
+        )
+
+        val carousel = post.optJSONArray("carousel_media") ?: return
+        for (index in 0 until carousel.length()) {
+            val item = carousel.optJSONObject(index) ?: continue
+            // Keep one canonical URL per slide so the batch path sees slides, not every rendition.
+            addCandidate(
+                out,
+                HtmlMediaCandidate.Source.EMBEDDED_JSON,
+                firstUrl(item.optJSONObject("image_versions2")?.optJSONArray("candidates")),
+                baseUri,
+            )
+            addCandidate(
+                out,
+                HtmlMediaCandidate.Source.EMBEDDED_JSON,
+                firstUrl(item.optJSONArray("video_versions")),
+                baseUri,
+            )
+        }
+    }
+
+    private fun firstUrl(candidates: JSONArray?): String? {
+        if (candidates == null) return null
+        for (index in 0 until candidates.length()) {
+            val node = candidates.optJSONObject(index) ?: continue
+            val url = node.optString("url")
+            if (url.isNotBlank()) return url
+        }
+        return null
+    }
+
+    private fun scriptPayload(script: Element): String =
+        script.data().ifBlank {
+            script.dataNodes().joinToString(separator = "") { it.wholeData }.ifBlank { script.html() }
+        }
 
     private fun resolveHttpUrl(raw: String?, baseUri: String): String? {
         if (raw.isNullOrBlank()) return null
@@ -210,6 +326,22 @@ class StructuredMediaSniffer @Inject constructor(
         visit(root)
         return out
     }
+
+    private fun originOf(baseUri: String): String? =
+        baseUri.toHttpUrlOrNull()?.let { "${it.scheme}://${it.host}" }
+
+    /**
+     * S0197: key for deduplicating embedded-JSON candidates by asset identity rather than raw URL.
+     * Meta CDN URLs for the same asset differ only in edge node, signing tokens, and `_nc_*`
+     * params — but the path's last segment is stable: `{assetId}_{photoId}_{shardId}_n.{ext}`.
+     * Two URLs with the same last segment are the same physical asset. Falls back to the full URL
+     * for non-Meta / path-less URLs so that the key is always defined.
+     */
+    private fun extractMetaAssetKey(url: String): String =
+        url.toHttpUrlOrNull()
+            ?.pathSegments
+            ?.lastOrNull { it.isNotBlank() }
+            ?: url
 
     private companion object {
         val SUPPORTED_TYPES = setOf("VideoObject", "MediaObject", "ImageObject")

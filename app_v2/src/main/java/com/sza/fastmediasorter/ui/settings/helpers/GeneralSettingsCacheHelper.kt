@@ -111,9 +111,11 @@ class GeneralSettingsCacheHelper(
                         catch (e: Exception) { Timber.e(e, "Glide clearDiskCache failed") }
 
                         try {
+                            // S0194: FastMediaSorterApp.unifiedCache is now dagger.Lazy<UnifiedFileCache>.
                             val app = fragment.requireActivity().application as com.sza.fastmediasorter.FastMediaSorterApp
-                            val stats = app.unifiedCache.getCacheStats()
-                            app.unifiedCache.clearAll()
+                            val cache = app.unifiedCache.get()
+                            val stats = cache.getCacheStats()
+                            cache.clearAll()
                             Timber.d("Cleared UnifiedFileCache: ${stats.totalSizeMB} MB")
                         } catch (e: Exception) { Timber.e(e, "Failed to clear UnifiedFileCache") }
 
@@ -125,13 +127,15 @@ class GeneralSettingsCacheHelper(
                         catch (e: Exception) { Timber.e(e, "Failed to clear MediaFilesCacheManager") }
 
                         try {
+                            // S0194: dagger.Lazy<CachedFileListRepository>.
                             val app = fragment.requireActivity().application as com.sza.fastmediasorter.FastMediaSorterApp
-                            app.cachedFileListRepository.deleteAllCachedFiles()
+                            app.cachedFileListRepository.get().deleteAllCachedFiles()
                         } catch (e: Exception) { Timber.e(e, "Failed to clear CachedFileListRepository") }
 
                         try {
+                            // S0194: dagger.Lazy<PlaybackPositionRepository>.
                             val app = fragment.requireActivity().application as com.sza.fastmediasorter.FastMediaSorterApp
-                            app.playbackPositionRepository.deleteAllPositions()
+                            app.playbackPositionRepository.get().deleteAllPositions()
                         } catch (e: Exception) { Timber.e(e, "Failed to clear playback positions") }
 
                         try { audioMetadataCacheRepository.clearCache() }

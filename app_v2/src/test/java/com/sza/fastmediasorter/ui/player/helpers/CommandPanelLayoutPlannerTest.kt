@@ -127,4 +127,60 @@ class CommandPanelLayoutPlannerTest {
         assertTrue("overflowCommands should be empty", result.overflowCommands.isEmpty())
         assertFalse("showOverflowButton should be false", result.showOverflowButton)
     }
+
+    @Test
+    fun `big buttons layout reserves one slot for overflow when commands exceed slot cap`() {
+        val result = planner.planBigButtonsLayout(
+            activeCommands = listOf(
+                CommandPanelLayoutPlanner.PlayerCommand.DELETE,
+                CommandPanelLayoutPlanner.PlayerCommand.FAVORITE,
+                CommandPanelLayoutPlanner.PlayerCommand.SHARE,
+                CommandPanelLayoutPlanner.PlayerCommand.INFO,
+                CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN
+            ),
+            maxCommandSlots = 4
+        )
+
+        assertTrue("Only three commands may stay on bar when overflow also needs a slot", result.barCommands.size == 3)
+        assertTrue("Overflow button should remain visible when one command spills", result.showOverflowButton)
+        assertTrue("Spilled command should stay accessible in overflow", result.overflowCommands.contains(CommandPanelLayoutPlanner.PlayerCommand.INFO) || result.overflowCommands.contains(CommandPanelLayoutPlanner.PlayerCommand.FULLSCREEN))
+    }
+
+    @Test
+    fun `big buttons layout shows all bar capable commands when they fit exactly`() {
+        val commands = listOf(
+            CommandPanelLayoutPlanner.PlayerCommand.DELETE,
+            CommandPanelLayoutPlanner.PlayerCommand.FAVORITE,
+            CommandPanelLayoutPlanner.PlayerCommand.SHARE,
+            CommandPanelLayoutPlanner.PlayerCommand.INFO
+        )
+
+        val result = planner.planBigButtonsLayout(
+            activeCommands = commands,
+            maxCommandSlots = 4
+        )
+
+        assertTrue("All commands should stay on bar when slot count matches", result.barCommands == commands)
+        assertTrue("Overflow should be empty when everything fits", result.overflowCommands.isEmpty())
+        assertFalse("Overflow button should stay hidden when everything fits", result.showOverflowButton)
+    }
+
+    @Test
+    fun `big buttons layout keeps overflow only commands in overflow while using remaining bar slots`() {
+        val result = planner.planBigButtonsLayout(
+            activeCommands = listOf(
+                CommandPanelLayoutPlanner.PlayerCommand.DELETE,
+                CommandPanelLayoutPlanner.PlayerCommand.FAVORITE,
+                CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER
+            ),
+            maxCommandSlots = 3
+        )
+
+        assertTrue("Bar-capable commands should still use available bar slots", result.barCommands == listOf(
+            CommandPanelLayoutPlanner.PlayerCommand.DELETE,
+            CommandPanelLayoutPlanner.PlayerCommand.FAVORITE
+        ))
+        assertTrue("Overflow-only commands must remain in overflow", result.overflowCommands == listOf(CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER))
+        assertTrue("Overflow button should occupy the last slot when overflow-only items exist", result.showOverflowButton)
+    }
 }

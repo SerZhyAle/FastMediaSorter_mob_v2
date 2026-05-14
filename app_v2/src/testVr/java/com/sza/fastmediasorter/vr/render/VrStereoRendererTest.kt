@@ -1,13 +1,20 @@
 package com.sza.fastmediasorter.vr.render
 
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrEye
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerType
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderContext
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderPlanner
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderingMode
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrUvRect
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * VR planner coverage is flavor-specific because the render plan types live
- * under `src/vr/java`, so this test belongs to `testVr` rather than generic `test`.
+ * Planner coverage stays in `testVr` because the VR renderer package still owns
+ * the execution slice even after the shared contract types moved to `src/main/java`.
  */
 class VrStereoRendererTest {
 

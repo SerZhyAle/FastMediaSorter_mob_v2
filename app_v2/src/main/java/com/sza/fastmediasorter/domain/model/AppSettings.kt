@@ -7,6 +7,7 @@ package com.sza.fastmediasorter.domain.model
 data class AppSettings(
     // UI State settings (Persisted view modes)
     val isResourceGridMode: Boolean = false, // Resource list view mode (List/Grid)
+    val resourceOpsInOverflowMenu: Boolean = false, // S0160: collapse resource action buttons into ⋮ overflow menu
 
     // General settings
     val language: String = "en",
@@ -87,6 +88,8 @@ data class AppSettings(
     val confirmMove: Boolean = false, // Confirm before moving files (used by Safe Mode)
     val defaultGridMode: Boolean = false,
     val hideGridActionButtons: Boolean = true, // Hide quick action buttons (copy/move/rename/delete) on grid thumbnails
+    val fileOpsInOverflowMenu: Boolean = false, // Collapse file op buttons into a single ⋮ overflow menu per row
+    val fileOpsOverflowMenuHintShown: Boolean = false, // True after the one-time "ops moved to menu" Toast was shown
     val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
     val defaultIconSize: Int = 48, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
@@ -199,7 +202,15 @@ data class AppSettings(
     val showBlackScreenButton: Boolean = false,
 
     // S0028: Multi-window mode — allow opening Browse/Player in a separate window
-    val allowSeparateWindow: Boolean = false
+    val allowSeparateWindow: Boolean = false,
+
+    // S0162: Screen rotation control
+    // true = delegate to OS auto-rotate; false = own control via playerRotationSensorEnabled
+    val followSystemRotation: Boolean = true,
+    // Per-session sensor state (persisted; restored on next player launch).
+    // Active only when followSystemRotation = false.
+    // true = screen follows physical rotation; false = screen locked to current orientation
+    val playerRotationSensorEnabled: Boolean = true
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

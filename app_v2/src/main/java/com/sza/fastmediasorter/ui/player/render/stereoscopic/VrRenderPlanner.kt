@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.vr.render
+package com.sza.fastmediasorter.ui.player.render.stereoscopic
 
 import kotlin.math.abs
 import kotlin.math.roundToInt

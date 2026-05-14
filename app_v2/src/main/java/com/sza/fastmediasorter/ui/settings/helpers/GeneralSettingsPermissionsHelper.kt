@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -18,13 +17,8 @@ class GeneralSettingsPermissionsHelper(
     private val requestContextualPermission: RequestContextualPermissionUseCase,
     private val permissionRegistry: PermissionRegistryRepository,
 ) {
-    fun updatePermissionButtonsState() {
-        binding.btnLocalFilesPermission.visibility = View.GONE
-        binding.btnNetworkPermission.visibility = View.GONE
-        binding.btnManageMediaPermission?.visibility = View.GONE
-        binding.btnNotificationPermission?.visibility = View.GONE
-        binding.btnBatteryOptimizationPermission?.visibility = View.GONE
-    }
+    // Permission buttons removed — section replaced by btnPermissionsManagement (TonalButton)
+    fun updatePermissionButtonsState() = Unit
 
     fun handleLocalFilesPermissionAction() = navigateToPermissionsManagement()
 

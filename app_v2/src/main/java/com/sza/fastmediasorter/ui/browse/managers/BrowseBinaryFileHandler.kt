@@ -21,7 +21,8 @@ class BrowseBinaryFileHandler(
     private val onShowCopyDialog: () -> Unit,
     private val onShowMoveDialog: () -> Unit,
     private val onShowRenameDialog: () -> Unit,
-    private val onShowDeleteConfirmation: () -> Unit
+    private val onShowDeleteConfirmation: () -> Unit,
+    private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
 ) {
 
     fun showBinaryFileMenu(mediaFile: MediaFile) {
@@ -70,6 +71,10 @@ class BrowseBinaryFileHandler(
             onSelectFile(mediaFile.path)
             onShowDeleteConfirmation()
             bottomSheet.dismiss()
+        }
+
+        binaryFileMenuActions.forEach { action ->
+            action.bind(view, mediaFile) { bottomSheet.dismiss() }
         }
 
         bottomSheet.setContentView(view)

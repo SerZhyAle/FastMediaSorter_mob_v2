@@ -12,6 +12,7 @@ Purpose: single entrypoint for fast research and navigation.
 - Automation scripts: `scripts/`
 - Temporary artifacts only: `temp/`
 - Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`
+- Branch model: `main` = release-stable only; development in `DEBUG-v001`, `DEBUG-v002`, … (see `CLAUDE.md § Git Branching Model`).
 
 ## 2) Source Layout (Main App)
 Root package: `app_v2/src/main/java/com/sza/fastmediasorter/`
@@ -50,6 +51,9 @@ Dependency version policy:
 - Unit tests: `./gradlew.bat testStandardDebugUnitTest`
 - Lint: `./gradlew.bat lintStandardDebug`
 - Wear debug build: `./gradlew.bat :wear:assembleDebug`
+- Show current branch: `git branch --show-current`
+- Create next DEBUG branch: `git checkout main && git pull && git checkout -b DEBUG-v00N`
+- Merge DEBUG to main: `git checkout main && git merge --no-ff DEBUG-v00N`
 
 ## 6) Mandatory Constraints
 - Never write generated files/logs/backups to project root; use `temp/`

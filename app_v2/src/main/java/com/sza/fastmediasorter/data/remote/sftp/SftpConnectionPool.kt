@@ -7,6 +7,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -93,8 +94,12 @@ class SftpConnectionPool {
                         val newPc = getOrCreateFileOpsChannel(newPooled, info)
                         return@withContext newPc.mutex.withLock { block(newPc.channel) }
                     }
-                    // S0147: silent TCP drop — isConnected flags stay true but transport is dead
+                    // S0147: silent TCP drop — isConnected flags stay true but transport is dead.
+                    // S0205: skip retry when the coroutine is being cancelled — "inputstream is
+                    // closed" can arrive from ConnectionThrottle teardown, not only dead TCP.
                     if (isDeadTransportException(e)) {
+                        Timber.d("S0205: withConnection dead-transport branch, checking liveness before retry")
+                        ensureActive() // throws CancellationException if scope is being cancelled
                         Timber.w("SFTP [FILE_OPS] dead transport detected (${e.message}), reconnecting")
                         removeChannel(pooled, pc.channel)
                         invalidateSession(key)

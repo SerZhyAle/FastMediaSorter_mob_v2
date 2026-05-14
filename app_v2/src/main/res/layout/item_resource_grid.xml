@@ -117,6 +117,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- S0160: overflow trigger button; hidden by default, shown when overflowModeEnabled=true -->
+    <ImageButton
+        android:id="@+id/btnMoreActions"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/more_options"
+        android:src="@drawable/ic_more_vert"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Destination border (colored stroke) -->

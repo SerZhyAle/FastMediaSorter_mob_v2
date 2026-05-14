@@ -27,7 +27,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class FtpClient @Inject constructor(
-    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate
+    private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
+    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
 ) {
 
     private var ftpClient: FTPClient? = null
@@ -46,8 +47,10 @@ class FtpClient @Inject constructor(
 
     // region ExoPlayer pool
 
+    /** S0195: trigger network lifecycle bootstrap on first FTP use. */
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: FtpExoPlayerPool.FtpConnectionInfo): FtpExoPlayerPool.ExoPlayerFtpConnection {
+        lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("FTP")
         return exoPlayerPool.getConnectionForExoPlayer(connectionInfo)
     }
@@ -61,6 +64,7 @@ class FtpClient @Inject constructor(
 
     // region Connection lifecycle
 
+    /** S0195: trigger network lifecycle bootstrap on first FTP use. */
     suspend fun connect(
         host: String,
         port: Int = 21,
@@ -68,6 +72,7 @@ class FtpClient @Inject constructor(
         password: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            lifecycleBootstrapper.get().ensureInitialized()
             reachabilityGate.requireAnyNetwork("FTP")
             disconnect()
             val client = FTPClient()

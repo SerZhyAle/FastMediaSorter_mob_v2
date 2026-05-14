@@ -14,7 +14,7 @@ class FtpClientTest {
     fun `connect propagates NetworkConnectionLostException when reachability gate denies`() = runBlocking {
         val gate = mockk<NetworkReachabilityGate>()
         every { gate.requireAnyNetwork("FTP") } throws NetworkConnectionLostException()
-        val client = FtpClient(gate)
+        val client = FtpClient(gate, dagger.Lazy { mockk(relaxed = true) })
 
         val result = client.connect(host = "anyhost", port = 21, username = "u", password = "p")
 
@@ -26,7 +26,7 @@ class FtpClientTest {
     fun `getConnectionForExoPlayer throws synchronously when reachability gate denies`() {
         val gate = mockk<NetworkReachabilityGate>()
         every { gate.requireAnyNetwork("FTP") } throws NetworkConnectionLostException()
-        val client = FtpClient(gate)
+        val client = FtpClient(gate, dagger.Lazy { mockk(relaxed = true) })
 
         val info = FtpExoPlayerPool.FtpConnectionInfo(host = "anyhost", port = 21, username = "u", password = "p")
 

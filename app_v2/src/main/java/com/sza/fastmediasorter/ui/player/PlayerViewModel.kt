@@ -119,6 +119,10 @@ class PlayerViewModel @Inject constructor(
         val isCasting: Boolean = false,
         val castDeviceName: String? = null,
         val showBlackScreenButton: Boolean = false,
+        // S0162: screen rotation control
+        val followSystemRotation: Boolean = true,
+        val playerRotationSensorEnabled: Boolean = true,
+        val showRotationToggle: Boolean = false,  // true when followSystemRotation=false && hasAccelerometer
         val playbackOrderMode: PlaybackOrderMode = PlaybackOrderMode.LOOP_LIST,
         val shuffleIndices: List<Int> = emptyList()
     ) {
@@ -151,6 +155,8 @@ class PlayerViewModel @Inject constructor(
         /** Standard flavor: 3D content detected, suggest VR edition. */
         data class ShowVrInstallCta(val stereoMode: StereoMode) : PlayerEvent()
         object StopPlayback : PlayerEvent()
+        // S0162: fired when the player-level rotation sensor toggle is changed
+        data class RotationSensorToggled(val sensorEnabled: Boolean) : PlayerEvent()
     }
 
     override fun getInitialState(): PlayerState {
@@ -590,6 +596,46 @@ class PlayerViewModel @Inject constructor(
      */
     val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+
+    // S0162: set once from PlayerActivity.onCreate via initRotationCapability()
+    private var hasAccelerometer: Boolean = false
+
+    /**
+     * S0162: Called once from PlayerActivity after ScreenRotationManager.isAccelerometerPresent().
+     * Launches a coroutine that maps rotation-related AppSettings → PlayerState on every settings
+     * emission; the coroutine lives for the ViewModel's lifetime.
+     */
+    fun initRotationCapability(hasAccelerometer: Boolean) {
+        this.hasAccelerometer = hasAccelerometer
+        viewModelScope.launch {
+            settingsRepository.getSettings().collect { s ->
+                updateState {
+                    it.copy(
+                        followSystemRotation = s.followSystemRotation,
+                        playerRotationSensorEnabled = s.playerRotationSensorEnabled,
+                        showRotationToggle = !s.followSystemRotation && hasAccelerometer
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * S0162: Toggle the player-level rotation sensor.
+     * Guard: only fires when followSystemRotation=false (showRotationToggle must be visible).
+     * Persists the new state and emits RotationSensorToggled so the Activity applies it immediately.
+     */
+    fun toggleRotationSensor() {
+        val current = state.value
+        if (current.followSystemRotation) return   // guard: button must not be visible in this case
+        val newEnabled = !current.playerRotationSensorEnabled
+        updateState { it.copy(playerRotationSensorEnabled = newEnabled) }
+        viewModelScope.launch {
+            val appSettings = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(appSettings.copy(playerRotationSensorEnabled = newEnabled))
+            sendEvent(PlayerEvent.RotationSensorToggled(newEnabled))
+        }
+    }
 
     /**
      * Get adjacent files for preloading (previous + next).

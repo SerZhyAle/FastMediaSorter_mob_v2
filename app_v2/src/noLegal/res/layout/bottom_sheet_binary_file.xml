@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/bottom_sheet_binary_file_unknown_padding">
+
+    <!-- File Name Header -->
+    <TextView
+        android:id="@+id/tvFileName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/dialog_slideshow_settings_tvMusicLabel_textSize"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:text="@string/file_name" />
+
+    <!-- S0183: noLegal-only APK install action lives in the noLegal layout overlay. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnInstallApk"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/s0183_apk_install_action"
+        android:textAlignment="viewStart"
+        android:visibility="gone"
+        app:icon="@drawable/ic_cloud_download"
+        app:iconGravity="start" />
+
+    <!-- Share Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnShare"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/share"
+        android:textAlignment="viewStart"
+        app:icon="@drawable/ic_share"
+        app:iconGravity="start" />
+
+    <!-- Open With Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOpenWith"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/open_with"
+        android:textAlignment="viewStart"
+        app:icon="@drawable/ic_folder_open_24"
+        app:iconGravity="start" />
+
+    <!-- Copy Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCopy"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/copy"
+        android:textAlignment="viewStart"
+        app:icon="@drawable/ic_folder"
+        app:iconGravity="start" />
+
+    <!-- Move Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMove"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/move"
+        android:textAlignment="viewStart"
+        app:icon="@drawable/ic_folder"
+        app:iconGravity="start" />
+
+    <!-- Rename Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnRename"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/rename"
+        android:textAlignment="viewStart"
+        app:icon="@drawable/ic_rename"
+        app:iconGravity="start" />
+
+    <!-- Delete Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDelete"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete"
+        android:textAlignment="viewStart"
+        android:textColor="@color/error_color"
+        app:icon="@drawable/ic_clear"
+        app:iconGravity="start"
+        app:iconTint="@color/error_color" />
+
+</LinearLayout>

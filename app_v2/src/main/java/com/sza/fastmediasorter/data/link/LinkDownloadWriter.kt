@@ -178,7 +178,11 @@ class LinkDownloadWriter @Inject constructor(
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 downloadsDir.mkdirs()
                 val target = uniqueFile(downloadsDir, fileName)
-                tempFile.copyTo(target, overwrite = false)
+                // S0202: prefer atomic renameTo so a cancel mid-copy never leaves a partial
+                // file at the destination. Fallback to copy+delete when rename crosses devices.
+                if (!tempFile.renameTo(target)) {
+                    tempFile.copyTo(target, overwrite = false)
+                }
                 Uri.fromFile(target)
             }
         } catch (e: Exception) {

@@ -92,6 +92,7 @@ class ImageLoadingManager(
         fun isSlideshowActive(): Boolean
         fun isImageCropEditMode(): Boolean
         fun setAnimatedBadgeVisible(visible: Boolean)
+        fun onImageContentLoaded() {}
         /** S0107: Called when a static (non-GIF) image is fully loaded; null on load failure or video transition. */
         fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {}
     }
@@ -1098,6 +1099,7 @@ class ImageLoadingManager(
                     // S0107: expose loaded bitmap for draw overlay merge
                     val loadedBitmap = (resource as? android.graphics.drawable.BitmapDrawable)?.bitmap
                     callback.onStaticImageLoaded(loadedBitmap)
+                    callback.onImageContentLoaded()
 
                     // Trigger dynamic background extension if enabled.
                     // Guard with isInImageDisplayMode: a stale Glide request that completes
@@ -1184,6 +1186,7 @@ class ImageLoadingManager(
                     }
 
                     logMemoryStats("AFTER GIF onResourceReady")
+                    callback.onImageContentLoaded()
                 }
                 return false
             }

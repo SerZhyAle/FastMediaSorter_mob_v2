@@ -30,6 +30,8 @@ Examples:
 - Многофайловых рефакторингов (>3 файлов или >50 LOC суммарно).
 - Любого изменения UI-поведения, видимости, ориентации, состояний, оверфлоу — это `/ui-clarify` + `/spec`.
 - Задач, которые пользователь формулирует через "хочу фичу", "добавь возможность", "сделай чтобы можно было".
+- Любой правки в `src/main/java/**`, добавляющей `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED` или другой `BuildConfig.SUPPORT_*` / `ENABLE_*` / `IS_*` flavor-гейт — нарушает CLAUDE.md Rule 15 и `dev/FLAVOR_DEVELOPMENT_RULES.md`. Это всегда `/spec` (interface в main + impl в `src/<flavor>/java/` + flavor-specific Hilt module).
+- Любого нового файла в `src/main/java/com/sza/fastmediasorter/vr/**` или с явной flavor-семантикой (`*Vr*`, `*NoLegal*` в имени класса) — должен лежать в `src/<flavor>/java/`, не в main.
 
 При срабатывании любого из этих признаков — **отказать и предложить `/spec` или `/spec-all`**, не выполнять.
 
@@ -59,6 +61,20 @@ Examples:
 ```
 `<target>` — имя класса/ресурса/строки (`colors.xml`, `settings_fragment.xml`, `string/login_title`).
 
+**Step 4a — Functionality log (условно).**
+Если правка реально видна пользователю как изменение поведения уже существующей фичи (правка строки в UI, цвета акцента, отступа в видимом элементе, ориентации виджета) — добавить одну строку в `dev/FUNCTIONALITY.log` через:
+```powershell
+.\scripts\add_to_functionality_log.ps1 -Op CHANGE -Description "<short EN summary of the visible change>"
+```
+`-Id` не указывается — `/quick` не создаёт спеки. В логе будет слот `[------]`.
+
+Skip (тихий пропуск), если:
+- Правка чисто косметическая и невидима пользователю (опечатка в комментарии, форматирование, переименование приватной переменной).
+- Изменение касается строк/ресурсов, которые не доходят до конечного пользователя (debug overlay, лог-сообщения, имена в `tools:` неймспейсе).
+- Правка идёт в `PLAN/`, `dev/`, `docs/`, `scripts/`, `temp/` — это не функциональность приложения.
+
+Сомневаешься — лог. Двойная запись лучше, чем пропуск.
+
 **Step 5 — НЕ запускать:**
 - `docs/FEATURES*.md` обновление (skip — это `/doc-update`).
 - Catalog sync (`scan.ps1` / `render.ps1`) — даже для `.kt` (skip; пользователь синхронизирует отдельно при необходимости).
@@ -82,6 +98,7 @@ Examples:
 | `docs/FEATURES*`     | skip              |
 | Build verification   | skip              |
 | `dev/CHANGELOG.md`   | **обязательно**   |
+| `dev/FUNCTIONALITY.log` | условно (только если правка видна пользователю как изменение поведения) |
 | Author style (`..`, `ё`) | **обязательно** |
 
 Всё, что в skip — ответственность пользователя при необходимости.

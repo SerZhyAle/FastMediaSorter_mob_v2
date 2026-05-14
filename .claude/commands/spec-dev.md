@@ -52,6 +52,7 @@ For each step in plan order:
    - File >500 lines and not yet backed up → create timestamped copy in `temp/` first.
    - Projected post-edit size >1500 lines → abort: "line budget violation, split via Manager pattern."
    - File is in `res/layout/` → **check `res/layout-land/` counterpart**. If landscape variant exists and is NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step — update `Files Touched` and prompt before proceeding."
+   - **Flavor isolation guard:** target path is `src/main/java/**` AND prompt instructs to insert `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED`, or another `BuildConfig.SUPPORT_*` / `ENABLE_*` / `IS_*` flavor guard → abort with: "Flavor leak: writing flavor-specific guard in src/main violates CLAUDE.md Rule 15. Refactor as interface-in-main + impl in src/<flavor>/java/, bind via flavor-specific Hilt module. See dev/FLAVOR_DEVELOPMENT_RULES.md. Update the phase prompt before retry." Do not silently rewrite — push back through `/spec-update`.
 6. **Flip step to `[~] in progress`** in phase file.
 7. **Apply the edit** — `Edit` or `Write` per the Prompt. Scope strictly to what the prompt specifies: no surrounding refactors, no extra comments, no unrelated import cleanup.
 7a. **Communication policy check.** If the edit adds or changes user-visible strings, verify them against `docs/COMMUNICATION_POLICY.md` §2 and §6 before marking the step done.
@@ -75,6 +76,15 @@ After all phases done:
 
 - Flip strategic `Status:` to `Implemented`. Add `**Implemented date:** <YYYY-MM-DD>`. Do **not** insert debug tags here — they belong only to `BlockNeedUserTest`.
 - If on-device verification is part of the acceptance — flip journal status to `BlockNeedUserTest`. Before flipping, insert one `Timber.d("Sxxxx: <entry-point description>")` at the entry point of each changed flow across all phases (per CLAUDE.md "Debug Verification Tags" — one tag per flow entry, not per modified line). Run a dev log line for each file that gained a tag.
+- **Functionality log entry.** If the spec delivered a user-visible behaviour change, append one line to `dev/FUNCTIONALITY.log` (CLAUDE.md Post-Change Steps §3). Choose the operation by spec intent:
+  - **`ADD`** — strategic spec introduces a new user-visible capability (no prior equivalent in the app). Hints: §2 Goals describe a new feature; §8 mentions a new entry in `docs/FEATURES.md`; touched files are new classes / new screens / new menu entries.
+  - **`CHANGE`** — strategic spec modifies an existing user-visible behaviour. Hints: §2 Goals describe a behaviour change / UX improvement / reordering / visibility change; §8 says "Без изменений" but UI strings or visible state shifted.
+  - Skip the entry if the spec is purely internal (refactor, performance, build/CI plumbing) with no user-perceivable change. Document the skip decision in the chat output.
+  - Command:
+    ```powershell
+    .\scripts\add_to_functionality_log.ps1 -Id <Sxxxx> -Op <ADD|CHANGE> -Description "<english one-line summary>"
+    ```
+  - The description should be a concise user-visible summary (what the user can now do / how the behaviour has changed) — not an implementation note. Reuse the spec title or the first sentence of §2 Goals if possible.
 - **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit the implementation. Skip only if status was flipped to `BlockNeedUserTest` — in that case note: `→ Awaiting on-device test. Debug tags inserted: N. Run /spec-check <Sxxxx> after verification (it removes the tags on the Verified transition).`
 
 **Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any]. → Running /spec-check…`
@@ -99,6 +109,7 @@ Stop immediately and report — never guess or recover, never make assumptions a
 12. **Trilingual gap** — step adds UI string but prompt names <3 `values/` files. Stop, never fabricate translations.
 12a. **Communication policy violation** — step adds or modifies a user-visible string that fails §6 tone checklist of `docs/COMMUNICATION_POLICY.md` (raw exception text as primary message, "Are you sure?" without consequence, "operation completed successfully", empty state with no CTA). Rewrite the string to comply before proceeding; do not commit policy-violating copy.
 13. **External dependency missing** — step needs library version / hardware / third-party state not present. Set status `BlockExternal`, stop.
+14. **Flavor leak** — step writes a `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guard inside `src/main/java/**`, OR places a flavor-only class (any new file containing `vr.*Activity`, `Vr*Renderer`, `*NoLegal*`, NewPipe/yt-dlp wrappers, OpenXR JNI) under `src/main/java/**` instead of `src/<flavor>/java/**`. Stop: the tactical spec is wrong and needs `/spec-update`. The correct pattern is interface in `src/main/` + impl in flavor source set + Hilt module per flavor. See `dev/FLAVOR_DEVELOPMENT_RULES.md` and CLAUDE.md Rule 15. Never compensate by adding the guard "just for this step".
 
 ---
 

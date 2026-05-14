@@ -1,12 +1,18 @@
 package com.sza.fastmediasorter.data.link.nolegal
 
+import android.content.Context
+import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.sza.fastmediasorter.data.link.DirectFileExtractionStrategy
+import com.sza.fastmediasorter.data.link.LinkDownloadUserAgents
+import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
+import com.sza.fastmediasorter.domain.usecase.link.BlockedReason
 import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
 import com.sza.fastmediasorter.domain.usecase.link.SiteBatchItem
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
@@ -30,9 +36,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class YtDlpExtractionStrategy @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val runtimeHolder: ChaquopyRuntimeHolder,
     private val cookieWriter: CookieFileWriter,
     private val direct: DirectFileExtractionStrategy,
+    private val sessionContext: LinkDownloadSessionContext,
 ) : UrlExtractionStrategy {
 
     override val id: String = "ytdlp"
@@ -53,17 +61,18 @@ class YtDlpExtractionStrategy @Inject constructor(
                 val result = EXECUTOR.submit<Boolean> {
                     runCatching {
                         val py = Python.getInstance()
-                        val ytdlp = py.getModule("yt_dlp")
-                        val opts = mapOf(
-                            "quiet" to true,
-                            "no_warnings" to true,
-                            "socket_timeout" to 8,
-                            "extract_flat" to "in_playlist",
-                        )
-                        val ydl = ytdlp.callAttr("YoutubeDL", opts)
-                        val info = ydl.callAttr("extract_info", url, false)
-                        info != null
-                    }.getOrElse { false }
+                        // ytdlp_utils.probe_url() iterates yt-dlp extractors and calls
+                        // ie.suitable(url) — pure URL pattern matching, zero network calls.
+                        // Returns True if a non-generic extractor matches, None otherwise.
+                        // This avoids the auth-required failure: extract_info(download=False)
+                        // still makes real HTTP calls, which fail for Instagram/TikTok/Facebook
+                        // without cookies and silently return NotApplicable even when supported.
+                        val utils = py.getModule("ytdlp_utils")
+                        utils.callAttr("probe_url", url) != null
+                    }.getOrElse { e ->
+                        Timber.w(e, "YtDlpExtractionStrategy: probe inner error url=%s", url)
+                        false
+                    }
                 }.get()
                 if (result) {
                     Timber.d("YtDlpExtractionStrategy: probe applicable url=%s", url)
@@ -90,20 +99,41 @@ class YtDlpExtractionStrategy @Inject constructor(
 
         val targetHost = url.toHttpUrlOrNull()?.host ?: ""
         val cookieFile = cookieWriter.writeCookieFile(targetHost)
+        // S0182: replay the User-Agent captured during WebView login on every cookie-bound
+        // request. Falls back to a mobile UA (matches our actual Android device) instead
+        // of the legacy desktop UA so the fingerprint matches what Meta first observed.
+        val sessionUa = sessionContext.userAgentFor(targetHost) ?: LinkDownloadUserAgents.MOBILE_BROWSER_UA
+        Timber.d(
+            "YtDlpExtractionStrategy: open host=%s ua=%s%s",
+            targetHost,
+            sessionUa.take(60),
+            if (sessionContext.userAgentFor(targetHost) != null) " [pinned]" else " [fallback]"
+        )
 
         try {
             val result = EXECUTOR.submit<Any> {
                 runCatching {
                     val py = Python.getInstance()
                     val ytdlp = py.getModule("yt_dlp")
-                    val opts = buildMap<String, Any> {
-                        put("quiet", true)
-                        put("no_warnings", true)
-                        put("socket_timeout", 8)
-                        // TikTok watermark filter + best available video+audio fallback
-                        put("format", "bv[format_id!*=watermark]+ba/bv*+ba/best")
-                        cookieFile?.let { put("cookiefile", it.absolutePath) }
-                    }
+                    // Must be a native Python dict — yt-dlp calls opts.get(key, default)
+                    // with 2 args internally. Kotlin Map.get() only accepts 1 arg, causing
+                    // PyException: TypeError: MapBuilder.get takes 1 argument (2 given).
+                    val opts = py.builtins.callAttr("dict")
+                    opts.callAttr("__setitem__", "quiet", true)
+                    opts.callAttr("__setitem__", "no_warnings", true)
+                    opts.callAttr("__setitem__", "socket_timeout", 8)
+                    // Single-stream format chain — no ffmpeg required for merge.
+                    // YouTube without ffmpeg: pick best progressive MP4 (typically 720p
+                    // format 22, fallback to 360p format 18); higher resolutions are
+                    // DASH/HLS-only and would require merge. The Kotlin-side format
+                    // selection below still iterates `formats` to find the best stream
+                    // and routes manifest URLs to Python download (which yt-dlp can
+                    // handle natively for single-stream HLS).
+                    opts.callAttr("__setitem__", "format", "best[ext=mp4]/best")
+                    // S0182: pin the same UA the cookies were saved with so the server
+                    // sees identical login+API fingerprint.
+                    opts.callAttr("__setitem__", "user_agent", sessionUa)
+                    cookieFile?.let { opts.callAttr("__setitem__", "cookiefile", it.absolutePath) }
                     val ydl = ytdlp.callAttr("YoutubeDL", opts)
                     val info = ydl.callAttr("extract_info", url, false)
 
@@ -130,16 +160,33 @@ class YtDlpExtractionStrategy @Inject constructor(
                             }
                         }
                         val label = info.callAttr("get", "title")?.toString()
+                        // Empty batch means yt-dlp couldn't access media (image-only post,
+                        // restricted carousel, etc.) — fall through to html/dynamic strategy.
+                        if (items.isEmpty()) {
+                            return@runCatching OpenResult.NotFound("ytdlp_empty_batch")
+                        }
                         return@runCatching OpenResult.Batch(items, label)
                     }
 
-                    // Single video — find best format URL
+                    // Single video — split formats into progressive (direct OkHttp download
+                    // is possible) and manifest (HLS/DASH — must go via yt-dlp Python).
+                    // yt-dlp returns formats in ASCENDING quality order so we must iterate
+                    // all and pick best per-bucket.
                     val formats = info.callAttr("get", "formats")
-                    var cdnUrl: String? = null
-                    var ext = "mp4"
+                    var progressiveUrl: String? = null
+                    var progressiveExt = "mp4"
+                    var progressiveHeaders: PyObject? = null
+                    var progressiveQuality = Long.MIN_VALUE
+                    var progressiveProtocol: String? = null
+                    var manifestSeen = false
+                    var manifestBestProtocol: String? = null
+                    var manifestBestQuality = Long.MIN_VALUE
+                    // Absolute fallback: first URL in list regardless of video stream
+                    var firstUrl: String? = null
+                    var firstExt = "mp4"
+                    var firstHeaders: PyObject? = null
 
                     if (formats != null) {
-                        val formatsList = mutableListOf<Pair<String, String>>() // url, ext
                         val fmtIter = formats.callAttr("__iter__")
                         while (true) {
                             val fmt = runCatching { fmtIter.callAttr("__next__") }.getOrNull()
@@ -147,56 +194,211 @@ class YtDlpExtractionStrategy @Inject constructor(
                             val fmtUrl = fmt.callAttr("get", "url")?.toString() ?: continue
                             val fmtVcodec = fmt.callAttr("get", "vcodec")?.toString() ?: ""
                             val fmtExt = fmt.callAttr("get", "ext")?.toString() ?: "mp4"
-                            formatsList += fmtUrl to fmtExt
-                            // Prefer format with video stream
-                            if (cdnUrl == null && fmtVcodec.isNotEmpty() && fmtVcodec != "none") {
-                                cdnUrl = fmtUrl
-                                ext = fmtExt
+                            val fmtProtocol = runCatching {
+                                fmt.callAttr("get", "protocol")?.toString()
+                            }.getOrNull() ?: ""
+                            val fmtHeaders: PyObject? = runCatching {
+                                fmt.callAttr("get", "http_headers")
+                            }.getOrNull()
+                            // Quality score: height px × 10 000 + bitrate kbps
+                            val fmtHeight = runCatching {
+                                fmt.callAttr("get", "height")?.toString()?.toLongOrNull()
+                            }.getOrNull() ?: 0L
+                            val fmtTbr = runCatching {
+                                fmt.callAttr("get", "tbr")?.toString()?.toDoubleOrNull()?.toLong()
+                            }.getOrNull() ?: 0L
+                            val fmtId = runCatching {
+                                fmt.callAttr("get", "format_id")?.toString()
+                            }.getOrNull() ?: "?"
+                            val fmtAcodec = runCatching {
+                                fmt.callAttr("get", "acodec")?.toString()
+                            }.getOrNull() ?: ""
+                            val quality = fmtHeight * 10_000L + fmtTbr
+                            // Manifest protocols cannot be served by OkHttp as a single MP4 —
+                            // routes via yt-dlp Python downloader instead.
+                            val isManifest = fmtProtocol == "m3u8" ||
+                                fmtProtocol == "m3u8_native" ||
+                                fmtProtocol == "http_dash_segments" ||
+                                fmtProtocol == "dash"
+                            // Progressive = direct HTTP single-file download. yt-dlp uses
+                            // "https" / "http" / "" / "rtmp" (rtmp we treat as non-progressive).
+                            val isProgressive = !isManifest &&
+                                (fmtProtocol == "https" || fmtProtocol == "http" || fmtProtocol.isEmpty())
+                            Timber.d(
+                                "YtDlpExtractionStrategy: fmt id=%s ext=%s vcodec=%s acodec=%s proto=%s h=%d tbr=%d q=%d %s",
+                                fmtId, fmtExt, fmtVcodec.take(8), fmtAcodec.take(8),
+                                fmtProtocol, fmtHeight, fmtTbr, quality,
+                                if (isManifest) "[manifest]" else if (isProgressive) "[progressive]" else "[other]"
+                            )
+                            if (firstUrl == null) {
+                                firstUrl = fmtUrl; firstExt = fmtExt; firstHeaders = fmtHeaders
+                            }
+                            val hasVideo = fmtVcodec.isNotEmpty() && fmtVcodec != "none"
+                            when {
+                                isProgressive && hasVideo && quality > progressiveQuality -> {
+                                    progressiveUrl = fmtUrl
+                                    progressiveExt = fmtExt
+                                    progressiveHeaders = fmtHeaders
+                                    progressiveQuality = quality
+                                    progressiveProtocol = fmtProtocol
+                                }
+                                isManifest && hasVideo -> {
+                                    manifestSeen = true
+                                    if (quality > manifestBestQuality) {
+                                        manifestBestProtocol = fmtProtocol
+                                        manifestBestQuality = quality
+                                    }
+                                }
                             }
                         }
-                        // Fall back to first available URL if no video-bearing format found
-                        if (cdnUrl == null && formatsList.isNotEmpty()) {
-                            cdnUrl = formatsList.first().first
-                            ext = formatsList.first().second
-                        }
                     } else {
-                        // No formats list — try top-level url
-                        cdnUrl = info.callAttr("get", "url")?.toString()
+                        // No formats list — try top-level url (single direct media)
+                        progressiveUrl = info.callAttr("get", "url")?.toString()
                     }
-
-                    if (cdnUrl == null) {
-                        return@runCatching OpenResult.NotFound("ytdlp_no_format_url")
-                    }
+                    Timber.d(
+                        "YtDlpExtractionStrategy: pick progressive=%s q=%d proto=%s | manifestSeen=%b bestProto=%s q=%d",
+                        progressiveUrl?.take(60) ?: "(none)", progressiveQuality, progressiveProtocol ?: "?",
+                        manifestSeen, manifestBestProtocol ?: "?", manifestBestQuality
+                    )
 
                     val rawTitle = info.callAttr("get", "title")?.toString() ?: "download"
                     val safeTitle = rawTitle.replace(Regex("[^A-Za-z0-9._\\- ]"), "_")
                         .trim().take(120)
 
-                    val userAgent = info.callAttr("get", "http_headers")
-                        ?.callAttr("get", "User-Agent")?.toString()
-                        ?: BROWSER_UA
-
-                    val extraHeaders = mapOf(
-                        "Referer" to url,
-                        "User-Agent" to userAgent,
-                    )
-
-                    // Return delegation params — resolved outside the executor after .get()
-                    DelegateParams(cdnUrl, safeTitle, ext, extraHeaders)
+                    // Decision tree:
+                    // 1. Progressive http URL found → DelegateParams → direct.open via OkHttp.
+                    //    Falls through to Python on AuthRequired (TikTok signed CDN URL) or
+                    //    MimeNotAllowed (returned MIME mismatched whitelist).
+                    // 2. Only manifest formats (HLS/DASH) → PythonOnly → yt-dlp downloads
+                    //    natively (single-stream HLS variant is supported without ffmpeg).
+                    // 3. Last-resort: first format URL even if not progressive (legacy fallback).
+                    if (progressiveUrl != null) {
+                        val extraHeaders = mutableMapOf<String, String>()
+                        val headersSource = progressiveHeaders
+                            ?: info.callAttr("get", "http_headers")
+                        if (headersSource != null) {
+                            val keysIter = runCatching {
+                                headersSource.callAttr("keys").callAttr("__iter__")
+                            }.getOrNull()
+                            if (keysIter != null) {
+                                while (true) {
+                                    val k = runCatching { keysIter.callAttr("__next__") }
+                                        .getOrNull()?.toString() ?: break
+                                    val v = runCatching { headersSource.callAttr("get", k) }
+                                        .getOrNull()?.toString() ?: continue
+                                    extraHeaders[k] = v
+                                }
+                            }
+                        }
+                        // Always override Referer; add UA fallback if source didn't provide one.
+                        extraHeaders["Referer"] = url
+                        // S0182: always override UA with the session-pinned one — the
+                        // headers yt-dlp put on the format come from yt-dlp's own UA
+                        // which may not match the cookies' origin UA.
+                        extraHeaders["User-Agent"] = sessionUa
+                        DelegateParams(progressiveUrl, safeTitle, progressiveExt, extraHeaders)
+                    } else if (manifestSeen) {
+                        Timber.d(
+                            "YtDlpExtractionStrategy: only manifest formats — Python download url=%s",
+                            url
+                        )
+                        PythonOnly(safeTitle, "mp4")
+                    } else if (firstUrl != null) {
+                        // Legacy: no progressive, no manifest with video — try first URL
+                        // (audio-only formats land here). direct.open will handle MIME check.
+                        val extraHeaders = mutableMapOf<String, String>(
+                            "Referer" to url,
+                        )
+                        if (firstHeaders != null) {
+                            val keysIter = runCatching {
+                                firstHeaders.callAttr("keys").callAttr("__iter__")
+                            }.getOrNull()
+                            if (keysIter != null) {
+                                while (true) {
+                                    val k = runCatching { keysIter.callAttr("__next__") }
+                                        .getOrNull()?.toString() ?: break
+                                    val v = runCatching { firstHeaders.callAttr("get", k) }
+                                        .getOrNull()?.toString() ?: continue
+                                    extraHeaders[k] = v
+                                }
+                            }
+                        }
+                        // S0182: always pin session UA (after copying yt-dlp's headers).
+                        extraHeaders["User-Agent"] = sessionUa
+                        DelegateParams(firstUrl, safeTitle, firstExt, extraHeaders)
+                    } else {
+                        OpenResult.NotFound("ytdlp_no_format_url")
+                    }
                 }.getOrElse { error ->
-                    Timber.e(error, "YtDlpExtractionStrategy: open failed url=%s", url)
-                    OpenResult.Error(error)
+                    val msg = error.message ?: ""
+                    // These yt-dlp errors signal the URL is not handleable by this strategy.
+                    // Return NotFound so the chain falls through to html/dynamic/site strategies.
+                    if (msg.contains("There is no video in this post", ignoreCase = true) ||
+                        msg.contains("Unsupported URL:", ignoreCase = true) ||
+                        msg.contains("Instagram sent an empty media response", ignoreCase = true) ||
+                        // S0187: YouTube PoToken/JS-challenge failure — format selection raises
+                        // DownloadError instead of returning an empty list. Return NotFound so
+                        // the extraction cascade continues to NewPipeSiteExtractionStrategy.
+                        msg.contains("Requested format is not available", ignoreCase = true)) {
+                        Timber.d(
+                            "YtDlpExtractionStrategy: not applicable url=%s reason=%s",
+                            url, msg.take(100)
+                        )
+                        OpenResult.NotFound("ytdlp_not_applicable")
+                    } else {
+                        Timber.e(error, "YtDlpExtractionStrategy: open failed url=%s", url)
+                        OpenResult.Error(error)
+                    }
                 }
             }.get()
 
             when (result) {
                 is DelegateParams -> {
-                    val delegated = direct.open(result.cdnUrl, onProgress, result.extraHeaders)
-                    if (delegated is OpenResult.Stream) {
-                        delegated.copy(fileName = "${result.safeTitle}.${result.ext}")
+                    val cdnHost = result.cdnUrl.toHttpUrlOrNull()?.host.orEmpty().lowercase()
+                    val originHost = url.toHttpUrlOrNull()?.host.orEmpty().lowercase()
+                    val audioOnly = sessionContext.audioOnlyFor(originHost)
+                    if (cdnHost.endsWith(".googlevideo.com") || cdnHost == "googlevideo.com") {
+                        // S0190 Phase D: googlevideo throttles non-player linear reads → use yt-dlp
+                        // internal downloader (range-chunked, retry, throttle-aware).
+                        Timber.d("S0190: googlevideo Python downloader url=%s audioOnly=%s", url.take(80), audioOnly)
+                        Timber.d(
+                            "YtDlpExtractionStrategy: googlevideo CDN, Python download url=%s audioOnly=%s",
+                            url, audioOnly
+                        )
+                        downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, audioOnly) { bytes -> onProgress(bytes, null) }
                     } else {
-                        delegated
+                        val delegated = direct.open(result.cdnUrl, onProgress, result.extraHeaders)
+                        when {
+                            delegated is OpenResult.Stream ->
+                                delegated.copy(fileName = "${result.safeTitle}.${result.ext}")
+                            delegated is OpenResult.Blocked &&
+                                    delegated.reason == BlockedReason.AuthRequired -> {
+                                // CDN URL is session-bound (e.g., TikTok signed URLs): the URL
+                                // was generated by yt-dlp's session and cannot be replayed by
+                                // OkHttp even with the same cookies. Fall back to Python download.
+                                Timber.d(
+                                    "YtDlpExtractionStrategy: CDN auth failed, Python download url=%s",
+                                    url
+                                )
+                                downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
+                            }
+                            delegated is OpenResult.Blocked &&
+                                    delegated.reason == BlockedReason.MimeNotAllowed -> {
+                                // CDN returned non-media MIME (e.g., HLS manifest application/x-mpegURL).
+                                // Fall back to Python download which handles HLS/DASH natively.
+                                Timber.d(
+                                    "YtDlpExtractionStrategy: MIME blocked, Python download url=%s",
+                                    url
+                                )
+                                downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
+                            }
+                            else -> delegated
+                        }
                     }
+                }
+                is PythonOnly -> {
+                    // No progressive URL — use yt-dlp Python download (HLS/DASH native).
+                    downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
                 }
                 is OpenResult -> result
                 else -> OpenResult.NotFound("ytdlp_unexpected_result")
@@ -206,7 +408,109 @@ class YtDlpExtractionStrategy @Inject constructor(
         }
     }
 
-    /** Internal carrier for CDN delegation params — avoids returning mixed types from executor. */
+    /**
+     * Downloads media via Python/yt-dlp to a temp file and returns a streaming result.
+     *
+     * Called when:
+     * - [direct] returns 403 (TikTok session-bound CDN URL)
+     * - [direct] returns MimeNotAllowed (e.g., HLS manifest content-type)
+     * - Format selection found only HLS/DASH manifests (no progressive URL)
+     * - CDN is *.googlevideo.com (throttled by range-request detection — S0190 Phase D)
+     *
+     * yt-dlp's Python HTTP client downloads the file directly (re-using the same session
+     * that generated the CDN URL, handling HLS/DASH natively without ffmpeg). The temp file
+     * is deleted when [OpenResult.Stream.close] fires.
+     *
+     * Blocks the calling thread (Dispatchers.IO) for the duration of the download.
+     * Progress is forwarded via [onProgress] through [ProgressBridge] and yt-dlp's progress_hooks.
+     */
+    private fun downloadViaPython(
+        url: String,
+        cookieFile: java.io.File?,
+        fallbackTitle: String,
+        fallbackExt: String,
+        userAgent: String,
+        audioOnly: Boolean,
+        onProgress: (Long) -> Unit,           // S0190 Phase 03: forwarded to yt-dlp progress_hooks
+    ): OpenResult {
+        val cacheDir = context.cacheDir
+        val stem = "ytdlp_${System.currentTimeMillis()}"
+        Timber.d(
+            "YtDlpExtractionStrategy: Python download start url=%s stem=%s ua=%s",
+            url, stem, userAgent.take(60)
+        )
+
+        val progressBridge = ProgressBridge { downloaded, _ -> onProgress(downloaded) }
+        val pyResult: PyObject? = runCatching {
+            EXECUTOR.submit<PyObject?> {
+                runCatching {
+                    val py = Python.getInstance()
+                    val utils = py.getModule("ytdlp_utils")
+                    utils.callAttr(
+                        "download_to_file",
+                        url,
+                        cookieFile?.absolutePath,
+                        cacheDir.absolutePath,
+                        stem,
+                        userAgent,
+                        audioOnly,           // S0190: hint propagated from LinkDownloadSessionContext
+                        progressBridge,      // S0190 Phase 03: yt-dlp progress_hooks bridge
+                    )
+                }.getOrElse { e ->
+                    Timber.e(e, "YtDlpExtractionStrategy: Python download error url=%s", url)
+                    null
+                }
+            }.get()
+        }.getOrElse { e ->
+            Timber.e(e, "YtDlpExtractionStrategy: Python download executor error url=%s", url)
+            null
+        }
+
+        if (pyResult == null) return OpenResult.NotFound("ytdlp_python_download_failed")
+
+        val filePath = pyResult.callAttr("get", "path")?.toString()
+            ?: return OpenResult.NotFound("ytdlp_python_download_no_path")
+        val ext = pyResult.callAttr("get", "ext")?.toString() ?: fallbackExt
+        val rawTitle = pyResult.callAttr("get", "title")?.toString() ?: fallbackTitle
+        val safeTitle = rawTitle.replace(Regex("[^A-Za-z0-9._\\- ]"), "_").trim().take(120)
+
+        val file = java.io.File(filePath)
+        if (!file.exists()) return OpenResult.NotFound("ytdlp_python_download_file_missing")
+
+        Timber.d(
+            "YtDlpExtractionStrategy: Python download done size=%d url=%s",
+            file.length(), url
+        )
+        val mime = when (ext.lowercase()) {
+            "mp4", "m4v" -> "video/mp4"
+            "webm" -> "video/webm"
+            "mp3" -> "audio/mpeg"
+            "m4a" -> "audio/mp4"
+            "ogg", "opus" -> "audio/ogg"
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "gif" -> "image/gif"
+            else -> "video/mp4"
+        }
+        return OpenResult.Stream(
+            body = file.inputStream(),
+            contentLength = file.length().takeIf { it > 0 },
+            mime = mime,
+            fileName = "$safeTitle.$ext",
+            close = { runCatching { file.delete() } },
+        )
+    }
+
+    /**
+     * Chaquopy-compatible progress bridge: Python calls progress_callback(downloaded, total)
+     * → invoke(downloaded, total) → onProgress(downloaded).
+     * SAM interface maps to Python __call__ via Chaquopy's Java proxy.
+     */
+    private fun interface ProgressBridge {
+        fun invoke(downloaded: Long, total: Long)
+    }
+
+    /** Internal carrier for CDN delegation params — direct.open will handle the download. */
     private data class DelegateParams(
         val cdnUrl: String,
         val safeTitle: String,
@@ -214,13 +518,15 @@ class YtDlpExtractionStrategy @Inject constructor(
         val extraHeaders: Map<String, String>,
     )
 
+    /** Marker — extraction found only manifest formats; skip direct.open and use Python. */
+    private data class PythonOnly(
+        val safeTitle: String,
+        val ext: String,
+    )
+
     companion object {
         private const val PROBE_TIMEOUT_MS = 10_000L
         private const val MAX_BATCH_ITEMS = 50
-
-        /** Generic browser UA — sent as Referer context header to CDN servers. */
-        const val BROWSER_UA =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
         /**
          * Single-thread executor for yt-dlp calls.

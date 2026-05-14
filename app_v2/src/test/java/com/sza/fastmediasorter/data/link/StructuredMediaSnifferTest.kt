@@ -127,6 +127,86 @@ class StructuredMediaSnifferTest {
         assertEquals(1, out.count { it.url == "https://cdn.example.com/shared.jpg" })
     }
 
+        @Test
+        fun `sniffEmbeddedJson harvests Threads single image`() {
+                val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+                val html = """
+                        <html><head>
+                            <script type="application/json" data-sjs>
+                                {
+                                    "thread_items": [
+                                        {
+                                            "post": {
+                                                "image_versions2": {
+                                                    "candidates": [
+                                                        { "url": "https://cdn.example.com/thread-full.jpg" },
+                                                        { "url": "https://cdn.example.com/thread-fallback.jpg" }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            </script>
+                        </head></html>
+                """.trimIndent()
+
+                val out = sniffer.sniffEmbeddedJson(html, "https://www.threads.com/@user/post/1")
+
+                assertTrue(out.any {
+                        it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON &&
+                                it.url == "https://cdn.example.com/thread-full.jpg"
+                })
+        }
+
+        @Test
+        fun `sniffEmbeddedJson keeps one canonical URL per Threads carousel slide`() {
+                val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+                val html = """
+                        <html><head>
+                            <script type="application/json" data-sjs>
+                                {
+                                    "thread_items": [
+                                        {
+                                            "post": {
+                                                "carousel_media": [
+                                                    {
+                                                        "image_versions2": {
+                                                            "candidates": [
+                                                                { "url": "https://cdn.example.com/slide-1-full.jpg" },
+                                                                { "url": "https://cdn.example.com/slide-1-fallback.jpg" }
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "image_versions2": {
+                                                            "candidates": [
+                                                                { "url": "https://cdn.example.com/slide-2-full.jpg" },
+                                                                { "url": "https://cdn.example.com/slide-2-fallback.jpg" }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            </script>
+                        </head></html>
+                """.trimIndent()
+
+                val out = sniffer.sniffEmbeddedJson(html, "https://www.threads.com/@user/post/2")
+
+                assertEquals(
+                        listOf(
+                                "https://cdn.example.com/slide-1-full.jpg",
+                                "https://cdn.example.com/slide-2-full.jpg",
+                        ),
+                        out.map { it.url },
+                )
+                assertTrue(out.all { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON })
+        }
+
     private fun fakeHttpClient(jsonBody: String): OkHttpClient {
         val mediaType = "application/json".toMediaType()
         return OkHttpClient.Builder()

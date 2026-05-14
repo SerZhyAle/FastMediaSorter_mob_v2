@@ -193,9 +193,11 @@ class PlayerKeyboardCallbackImpl(
         viewModel.toggleCommandPanel()
     }
 
-    override fun onNextFile() = viewModel.nextFile(manual = true)
-    override fun onPreviousFile() = viewModel.previousFile(manual = true)
+    override fun onNextFile() = activity.navigationManager.navigateNextFromControl()
+    override fun onPreviousFile() = activity.navigationManager.navigatePreviousFromControl()
     override fun onToggleFavourite() = viewModel.toggleFavorite()
     override fun onUndoOperation() = viewModel.undoLastOperation()
     override fun onToggleBlackScreen() = activity.toggleBlackScreenOverlay()
+    // S0162: keyboard shortcut for rotation toggle — same action as the command panel button
+    override fun onToggleRotationSensor() = viewModel.toggleRotationSensor()
 }

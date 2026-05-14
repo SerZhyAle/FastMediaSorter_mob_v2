@@ -9,6 +9,10 @@
         android:title="@string/copy_resource"
         android:icon="@drawable/ic_copy" />
     <item
+        android:id="@+id/action_scan"
+        android:title="@string/action_refresh_resource"
+        android:icon="@drawable/ic_refresh" />
+    <item
         android:id="@+id/action_move_up"
         android:title="@string/move_up"
         android:icon="@drawable/ic_arrow_upward" />

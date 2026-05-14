@@ -38,6 +38,7 @@ object CommandId {
     const val ROTATE = "view.rotate"
     const val FIT_SCREEN = "view.fit_screen"
     const val FULLSCREEN = "view.fullscreen"
+    const val ROTATION_TOGGLE = "view.rotation_toggle"
     const val PAN = "view.pan"
     const val ASPECT_RATIO = "view.aspect_ratio"
 

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
+import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
@@ -127,6 +128,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
     internal lateinit var observerManager: PlayerObserverManager
+    internal lateinit var slideshowResourceAvailabilityManager: com.sza.fastmediasorter.ui.player.helpers.SlideshowResourceAvailabilityManager
 
     // LAZY INITIALIZATION: Document viewers only created when needed
     internal var _pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager? = null
@@ -258,6 +260,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     // Current settings cached for overlay visibility
     internal var currentSettings: AppSettings? = null
 
+    // S0162: screen rotation manager + accelerometer availability (lazy: deferred until first use)
+    internal val screenRotationManager = com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager()
+    internal val hasAccelerometer: Boolean by lazy { screenRotationManager.isAccelerometerPresent(this) }
+
     // Session-scoped translation settings (reset when exiting Browse/Resource)
     internal var translationSessionSettings = com.sza.fastmediasorter.domain.models.TranslationSessionSettings()
 
@@ -276,6 +282,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     @Inject
     lateinit var googleDriveClient: GoogleDriveRestClient
+
+    @Inject
+    lateinit var networkStateMonitor: NetworkStateMonitor
 
     @Inject
     lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -414,6 +423,12 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             Timber.d("PlayerActivity: Resume slideshow requested via resumeSlideshowEnabled")
         }
         initializeManagers()
+        // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
+        if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
+            window.decorView.post { if (isDrawOverlayManagerReady) imageDrawOverlayManager.enterDrawMode() }
+        }
+        // S0162: pass accelerometer capability once; ViewModel launches settings collector internally
+        viewModel.initRotationCapability(hasAccelerometer)
         setupToolbar()
         setupControls()
         translationButtonManager.setupTranslationDefaults()
@@ -855,7 +870,42 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         Toast.makeText(this, getString(R.string.slideshow_enabled_message, intervalSeconds), Toast.LENGTH_SHORT).show()
     }
 
+    internal fun onManualSlideshowNavigation() {
+        if (::slideshowResourceAvailabilityManager.isInitialized) {
+            slideshowResourceAvailabilityManager.onManualNavigation()
+        }
+    }
+
+    internal fun stopSlideshowDueToResourceIssue(message: String) {
+        if (!viewModel.state.value.isSlideShowActive || !::navigationManager.isInitialized) return
+
+        viewModel.setSlideShowActive(false)
+        navigationManager.updateSlideshowState()
+        if (::audioSlideshowPhotoModeManager.isInitialized && audioSlideshowPhotoModeManager.isActive) {
+            audioSlideshowPhotoModeManager.exit()
+        }
+        if (::dialogAndUiStateManager.isInitialized) {
+            dialogAndUiStateManager.updateSlideShowButton()
+        }
+        updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
     internal fun populateDestinationButtons() = destinationButtonsManager.populateDestinationButtons()
+
+    /**
+     * S0162: Called by PlayerEventHandler when RotationSensorToggled fires.
+     * followSystem=false is guaranteed by the guard in PlayerViewModel.toggleRotationSensor().
+     */
+    internal fun onRotationSensorToggled(sensorEnabled: Boolean) {
+        screenRotationManager.apply(
+            this,
+            followSystem = false,
+            sensorEnabled = sensorEnabled,
+            hasAccelerometer = hasAccelerometer
+        )
+        commandPanelController.updateRotationToggleIcon(sensorEnabled)
+    }
 
     private fun performCopyOperation(destination: MediaResource) = fileOperationsHandler.performCopy(destination)
 
@@ -878,7 +928,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     internal fun handleMediaLoadErrorAndSkip() {
         Toast.makeText(this, getString(R.string.error_loading_media), Toast.LENGTH_SHORT).show()
-        navigationManager.navigateNextFromControl()
+        navigationManager.navigateNextFromControl(manual = false)
     }
 
     internal fun releasePlayer() {
@@ -935,6 +985,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     override fun onResumeWithViews() {
         lifecycleManager.onResume()
+        // S0162: re-apply orientation on resume (re-reads OS auto-rotate state — ADR-1)
+        val rs = viewModel.state.value
+        screenRotationManager.apply(this, rs.followSystemRotation, rs.playerRotationSensorEnabled, hasAccelerometer)
         audioEmptyStateController?.onResume()
         nowPlayingManager?.onStart(
             viewModel.state.value.currentFile?.type,
@@ -1032,6 +1085,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal fun updateAudioSlideshowCurrentSongLabel() = audioSlideshowPhotoModeManager.updateCurrentSongLabel()
 
     override fun onDestroy() {
+        if (::slideshowResourceAvailabilityManager.isInitialized) {
+            slideshowResourceAvailabilityManager.cleanup()
+        }
         if (::eventHandler.isInitialized) eventHandler.onDestroy()
         if (isPlayerFileOperationQueueInitialized) playerFileOperationQueue.shutdown()
         lifecycleManager.onDestroy()
@@ -1178,6 +1234,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         const val EXTRA_MODIFIED_FILES = "modified_files"
         // S0028: per-window resume state isolation
         const val EXTRA_WINDOW_ID = "extra_window_id"
+        // S0159: pre-activate draw overlay mode when launched from Browse overflow menu
+        const val EXTRA_ACTIVATE_DRAW_MODE = "activate_draw_mode"
 
         // S0026: detected stereo mode hint. Browse fills this when launching VR; VrPlayerActivity
         // primes PlayerStereoModeCoordinator with this value before applying user-settings, so the

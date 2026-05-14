@@ -60,6 +60,7 @@ class MediaFileAdapter(
     private val onMoveClick: (MediaFile) -> Unit = {},
     private val onRenameClick: (MediaFile) -> Unit = {},
     private val onDeleteClick: (MediaFile) -> Unit = {},
+    private val onOverflowMenuClick: (MediaFile, android.view.View) -> Unit = { _, _ -> },
     private val onFolderClick: (MediaFile) -> Unit = {}, // Callback for folder navigation
     private val onBinaryFileClick: (MediaFile) -> Unit = {}, // Callback for binary files (Task 6)
     private var isGridMode: Boolean = false,
@@ -78,6 +79,7 @@ class MediaFileAdapter(
     private var skipInitialThumbnailLoad = false // Control initial thumbnail loading
     private var showFavoriteButton: Boolean = true // Show/hide favorite button based on settings
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
+    private var fileOpsInOverflowMenu: Boolean = false
     private var isAudioOnlyMode: Boolean = false
 
     private val thumbnailLoader = AdapterThumbnailLoader(
@@ -247,7 +249,16 @@ class MediaFileAdapter(
             notifyDataSetChanged() // Update button visibility across all items
         }
     }
-    
+
+    fun setFileOpsInOverflowMenu(enabled: Boolean) {
+        if (this.fileOpsInOverflowMenu != enabled) {
+            this.fileOpsInOverflowMenu = enabled
+            notifyDataSetChanged()
+        }
+    }
+
+    val isInGridMode: Boolean get() = isGridMode
+
     fun setResourcePermissions(hasDestinations: Boolean, isWritable: Boolean) {
         if (this.hasDestinations != hasDestinations || this.isWritable != isWritable) {
             this.hasDestinations = hasDestinations
@@ -579,6 +590,11 @@ class MediaFileAdapter(
                 onDeleteClick(file)
             }
 
+            binding.btnOverflowMenu.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onOverflowMenuClick(file, it)
+            }
+
             binding.btnPlayInline.setOnClickListener {
                 val file = getItemByPosition() ?: return@setOnClickListener
                 onPlayClick(file)
@@ -817,14 +833,14 @@ class MediaFileAdapter(
                 // Setup operation buttons with visibility checks
                 // HIDE buttons if: (It's Grid Mode AND HideGridActions is ON) OR it's a folder
                 val shouldHideActions = (isGridMode && hideGridActionButtons) || isFolder
-                
-                btnCopyItem.isVisible = !shouldHideActions
-                
-                btnMoveItem.isVisible = isWritable && !shouldHideActions
-                
-                btnRenameItem.isVisible = isWritable && !shouldHideActions
-                
-                btnDeleteItem.isVisible = isWritable && !shouldHideActions
+                val useOverflow = fileOpsInOverflowMenu && !isFolder
+                // Overflow button
+                binding.btnOverflowMenu.isVisible = useOverflow
+                // Direct op buttons — hide when overflow mode OR standard shouldHideActions rule applies
+                btnCopyItem.isVisible = !shouldHideActions && !useOverflow
+                btnMoveItem.isVisible = isWritable && !shouldHideActions && !useOverflow
+                btnRenameItem.isVisible = isWritable && !shouldHideActions && !useOverflow
+                btnDeleteItem.isVisible = isWritable && !shouldHideActions && !useOverflow
 
                 // Inline play button: visible for any audio file, suppressed by hideGridActionButtons in grid mode
                 val showPlayButton = file.type == MediaType.AUDIO && !isFolder && !(isGridMode && hideGridActionButtons)
@@ -962,6 +978,11 @@ class MediaFileAdapter(
                 onFavoriteClick(file)
             }
 
+            binding.btnOverflowMenu.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onOverflowMenuClick(file, it)
+            }
+
             // Task 8: Make item focusable for keyboard navigation
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = false
@@ -1077,16 +1098,19 @@ class MediaFileAdapter(
                 )
 
                 // Setup operation buttons with visibility
-                val shouldShowAnyOperation = true // Copy is always available (select folder option)
-                if (shouldShowAnyOperation) {
-                    ensureOperationsInflated()
+                val useOverflow = fileOpsInOverflowMenu && !isFolder
+                binding.btnOverflowMenu.isVisible = useOverflow
+                if (!useOverflow) {
+                    val shouldShowAnyOperation = true // Copy is always available (select folder option)
+                    if (shouldShowAnyOperation) ensureOperationsInflated()
+                    operationsContainer?.isVisible = shouldShowAnyOperation && !hideGridActionButtons
+                    btnCopyItem?.isVisible = !hideGridActionButtons
+                    btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
+                } else {
+                    operationsContainer?.isVisible = false
                 }
-
-                operationsContainer?.isVisible = shouldShowAnyOperation && !hideGridActionButtons
-                btnCopyItem?.isVisible = !hideGridActionButtons
-                btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
-                btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
-                btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
             }
         }
         

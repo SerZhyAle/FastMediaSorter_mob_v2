@@ -93,6 +93,7 @@ Each specification carries a stable ticket id `Sxxxx` (four digits, zero-padded)
    - Build/flags → `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`
    - Dependencies → `docs/TECH_STACK.md` + `dev/TECH_REQUIREMENTS.md`
    - Network → `dev/NETWORK_SPECS.md`
+   - Flavor-specific work (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) → `dev/FLAVOR_DEVELOPMENT_RULES.md` (MANDATORY before any edit targeting a non-`standard` flavor)
 5. Implementation files.
 
 **Multi-step tasks**: read `dev/AGENT_WORKFLOW.md` BEFORE execution (mandatory 5-step process).
@@ -140,6 +141,8 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 12. Layout orientation: editing any `res/layout/*.xml` → ALWAYS check `res/layout-land/*.xml` counterpart. If it exists, apply the equivalent change in the same step. If it should exist but doesn't, create it or add a blocker. **Never silently leave portrait-only edits in a layout that has a landscape counterpart.**
 13. Spec ticket discipline: never edit `PLAN/spec-catalog.jsonl` directly; never rename a spec file out of its `Sxxxx_` prefix; never re-introduce a `_spec_` segment in PLAN paths; new specs must allocate an id via `scripts/spec_catalog/insert.ps1` **before** the strategic `.md` is written to disk.
 14. Internal script ownership: do not work around broken or insufficient repo scripts when the current task depends on them. If a project script is buggy, outdated, or can be materially improved to complete the task safely, fix the script itself and then use it.
+15. **Flavor isolation:** writing `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED`, or any other `BuildConfig.SUPPORT_*` / `BuildConfig.ENABLE_*` / `BuildConfig.IS_*` flavor guard inside `src/main/java/**` is **forbidden** for new code. Flavor-specific logic lives in `src/<flavor>/java/` (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`). Pattern: define an interface in `src/main/java/`, ship a No-Op default impl in `src/main/java/` (or `src/standard/java/`), override with the real impl in the target flavor source set, bind via a flavor-specific Hilt `@Module`. Layout/string overrides go to `src/<flavor>/res/`, manifest additions to `src/<flavor>/AndroidManifest.xml`. Source of truth: `dev/FLAVOR_DEVELOPMENT_RULES.md` — read it before any task that targets a non-`standard` flavor or mentions VR / noLegal / lite / photos / legacy capabilities. Existing legacy gates (≈169 occurrences in `src/main/` as of 2026-05-14) are technical debt, not a precedent — never add new ones; refactor incrementally when touching surrounding code.
+16. **Non-trivial step evidence:** a step that modifies any executable artifact (`.kt`, `.kts`, `.py`, `.ps1`, `.xml`, `.json` build config) cannot be marked done on narration alone. The step log must include the validation command run and its exit code or explicit PASS/FAIL result.
 
 ## Feature Inventory
 
@@ -156,24 +159,64 @@ Hilt · Room v6 (bump version + migration on every schema change) · ExoPlayer M
 - **Exceptions:** legal texts, Terms of Service, machine-readable artifacts — keep formal neutral style, do not apply friendly rewrite.
 - **Deviations** from the policy are allowed only for the exempted categories above; any other deviation must be justified and noted in the spec or commit message.
 
+## Validation Requirements
+
+Every step closes with the minimum validation that is actually discriminating for the change type. Grep and text checks are structural preflight only — they do not close a non-trivial step alone.
+
+| Change type | Preflight | Required closure |
+|-------------|-----------|-----------------|
+| Doc-only (`.md`, `docs/**`, `PLAN/*.md`) | — | Grep for expected content |
+| Script (`.ps1`, `.sh`) | — | Dry-run or manual execution, exit 0 |
+| Config (`.kts`, `.gradle`, `strings.xml`, `*.json` build config) | Grep | Target variant build passes |
+| Kotlin / Java (`.kt`, `.java`) | Catalog sync | Target module compiles + affected unit tests pass |
+| Python (`.py`) | — | Syntax check + unit test or targeted import exercise |
+| Layout / manifest (`.xml`) | Lint structure | Target variant build passes |
+| Mixed (code + doc) | — | Highest applicable level from above |
+
+**Surrogate builds** (e.g. `standardDebug` when the change is in `noLegalDebug`) are acceptable only when explicitly documented as equivalent for the affected change. Otherwise use the target variant.
+
+**Expected vs actual:** every structural check must record the expected value and the actual value explicitly — `expected: X | actual: Y`. A mismatch is a hard failure, not a soft warning. "Verified" or "checked" without a concrete value pair is not a valid closure.
+
+**Shell convention:** repo automation scripts run under **PowerShell** (`pwsh`). Mixing shells inside a mandatory ritual step is not the default and requires an explicit justification. Ad-hoc Bash commands for one-off inspection are fine.
+
 ## Post-Change Steps (mandatory, all agents)
+
+**Fail-closed:** each numbered step below must succeed (script exit 0 / predicate pass) before the next step begins. A non-zero exit or failed predicate is a hard blocker — do not mark the step done, do not advance to the next step. Treat the failure as a build error: diagnose and fix before continuing.
 
 1. **Dev Changelog** after every code/config change — run
    `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`
    (never edit `dev/CHANGELOG.md` directly).
-2. **Feature docs** after any new user-facing feature — update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet. **Exception:** `noLegal`-only features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored) — never into the public files.
-3. **String locale audit** after adding/removing any `strings.xml` keys — run
+2. **Feature docs** only when a genuinely new user-visible capability is introduced — update `docs/FEATURES.md` + `_RU` + `_UK` with a concise bullet. **Skip for:** code improvements, refactors, bug fixes, UX polish, performance, internal architecture, or anything invisible to an end user as a new feature. **Exception:** `noLegal`-only new features go into `docs/FEATURES_noLegal.md` + `_RU` + `_UK` (gitignored) — never into the public files. Even when this step is skipped, the functionality log (step 3) must still be evaluated, because internal history covers more than the public catalogue (it also tracks changes, removals, and fixes of existing capabilities).
+3. **Functionality log** — when a task completes a user-visible behaviour change (new/changed/removed/fixed capability), append one line via
+   `.\scripts\add_to_functionality_log.ps1 -Id Sxxxx -Op <ADD|CHANGE|DELETE|FIX> -Description "<english summary>"`
+   (omit `-Id` for entries without a spec ticket). Skip for pure refactors, internal optimisations, or any change a user cannot perceive. Skills `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-all`, `/quick`, `/skill-fix-release` invoke this automatically — call the CLI manually only when no skill is in flight.
+4. **String locale audit** after adding/removing any `strings.xml` keys — run
    `pwsh -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"`
    to verify EN/RU/UK parity. Exit code 1 = missing keys, must fix before commit.
-4. **Catalogue sync** — run after **every** `.kt` file change (not only API changes):
+5. **Catalogue sync** — run after **every** `.kt` file change (not only API changes):
    - `pwsh -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>` — refreshes auto-fields; manual fields are preserved.
    - `pwsh -File dev/CATALOG/scripts/render.ps1 -Module <app_v2|wear>` — regenerates the human-readable `.md`.
    - For new classes, fill `role` + `status` via `set.ps1` (see `dev/CATALOG/README.md`).
    - Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` together with the code change.
-5. **Spec catalog sync** — run on every spec status transition (Draft → Approved → Tactical → In Progress → Implemented → Verified / Partial / Broken, or to/from any `Block*` state):
+6. **Spec catalog sync** — run on every spec status transition (Draft → Approved → Tactical → In Progress → Implemented → Verified / Partial / Broken, or to/from any `Block*` state):
    - `pwsh -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>` (also `-Priority N` when the urgency changes).
    - Skills `/spec`, `/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-update`, `/spec-all`, `/quick` perform this automatically — invoke the CLI yourself only when no skill is in flight.
    - Direct edits to `PLAN/spec-catalog.jsonl` are forbidden.
+7. **Branch context** — the `add_to_dev_log.ps1` script records the current branch automatically in every changelog entry. No manual action needed; verify with `git branch --show-current` if unsure.
+
+## Git Branching Model
+
+- `main` — release-stable only. Release builds are assembled exclusively from `main`.
+- Direct push of development changes to `main` is **prohibited**.
+- `main` accepts only: merges from a `DEBUG-v00N` branch after plateau verification, and **fix-release commits** (see below). All other direct pushes to `main` are prohibited.
+- Development branches: `DEBUG-v001`, `DEBUG-v002`, … — sequential numbering, no gaps, leading zeros (three digits).
+- Target: keep at most **2 live** DEBUG branches at a time — current (next-release candidate) + optional "future".
+- "Future" branch: created only on explicit owner request for work not intended for the upcoming release. Born from the current DEBUG branch, not from `main`.
+- When current DEBUG merges into `main`, the "future" branch (if any) becomes the new "current" — no re-branching required.
+- New standard DEBUG branch is always created from a fresh `main` after the previous one merges.
+- **Fix-release** — a published release to `standard`/VR flavors that contains **only fixes for previously working features**. No new behavior, no new UI, no new functionality. This is the only legitimate reason for a direct commit to `main` outside a DEBUG merge cycle. Fix-release flow: commit(s) directly to `main` → tag with new version → publish → **rebase all live DEBUG branches onto updated `main`**. `WHATS_NEW.md` updated with a "Fix Release" subsection. The "no new behavior" constraint is enforced by the author.
+- **Release worktree:** `P:/ANDROID/FastMediaSorter_release` is a permanent `git worktree` checked out to `main`. All release builds (`.\a.ps1 r`, `.\a.ps1 vr`) are run from there — the development directory (`FastMediaSorter_mob_v2`) is never switched to `main` for a build. After a fix-release is committed to `main`, pull it into the worktree: `cd ../FastMediaSorter_release && git pull`, then rebase DEBUG branches.
+- Before starting any task: confirm which branch the session is on (`git branch --show-current`). Tooling works on any branch; release builds require `main`.
 
 ## Version Format
 

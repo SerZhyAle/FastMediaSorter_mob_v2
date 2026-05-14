@@ -7,18 +7,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrEye
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderContext
 import com.sza.fastmediasorter.vr.VrPlayerActivity
 import com.sza.fastmediasorter.vr.openxr.OpenXrSessionManager
-import com.sza.fastmediasorter.vr.render.VrEye
 import com.sza.fastmediasorter.vr.render.VrHudRenderer
 import com.sza.fastmediasorter.vr.render.VrHudSceneComposer
 import com.sza.fastmediasorter.vr.render.VrHudSceneDriver
 import com.sza.fastmediasorter.vr.render.VrInteractivePanelComposer
 import com.sza.fastmediasorter.vr.render.VrInteractivePanelDriver
 import com.sza.fastmediasorter.vr.render.VrInteractivePanelRenderer
-import com.sza.fastmediasorter.vr.render.VrLayerDescriptor
 import com.sza.fastmediasorter.vr.render.VrPhotoSphereRenderer
-import com.sza.fastmediasorter.vr.render.VrRenderContext
 import com.sza.fastmediasorter.vr.render.VrStereoRenderer
 import com.sza.fastmediasorter.vr.render.VrVideoSurfaceTextureBridge
 import com.sza.fastmediasorter.vr.ui.VrCheatsheetOverlayManager
@@ -365,6 +365,10 @@ class VrRenderPipelineManager(
             Timber.i("VR_PERF: [gl-thread] first_frame_ready  abs_from_init=%dms",
                 vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
             Timber.d("VR_AUDIT/14: cold-start phase=first-frame-submission absFromInitMs=%d",
+                vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
+            // S0132 P05.3a: STAGE_FIRST_FRAME marker — terminal milestone of the cold-start
+            // budget; elapsed is measured from xrInitStartedAtMs (activity-side anchor).
+            Timber.d("VR_AUDIT/14: cold-start stage=STAGE_FIRST_FRAME elapsed=%d",
                 vrFirstFrameLoggedMs - activity.xrInitStartedAtMsInternal)
         }
 

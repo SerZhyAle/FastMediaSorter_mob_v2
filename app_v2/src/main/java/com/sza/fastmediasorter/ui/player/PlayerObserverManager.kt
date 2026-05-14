@@ -75,6 +75,15 @@ internal class PlayerObserverManager(
                         val isAudio = state.currentFile?.type == MediaType.AUDIO
                         activity.pipManager?.setupPipButton(settings.enablePictureInPicture, isAudio)
 
+                        // S0162: re-apply orientation whenever followSystemRotation changes
+                        activity.screenRotationManager.apply(
+                            activity,
+                            settings.followSystemRotation,
+                            settings.playerRotationSensorEnabled,
+                            activity.hasAccelerometer
+                        )
+                        activity.commandPanelController.updateRotationToggleIcon(settings.playerRotationSensorEnabled)
+
                         settings.enableFavorites || state.resource?.id == -100L
                     }.collect { shouldShow ->
                         activity.activityBinding.btnFavorite.isVisible = shouldShow

@@ -199,14 +199,21 @@ class WebViewAuthDialogFragment : DialogFragment() {
                     else -> defaultAccountName
                 }
                 val accountId = UUID.randomUUID().toString()
-                viewModel.saveSession(targetHost, accountId, displayName, cookies)
+                // S0182: pin the WebView's User-Agent at login time. Re-played later by
+                // yt-dlp/OkHttp on every cookie-bearing request so the same `sessionid`
+                // never appears under more than one UA.
+                val capturedUa = webView?.settings?.userAgentString?.takeIf { it.isNotBlank() }
+                viewModel.saveSession(targetHost, accountId, displayName, cookies, capturedUa)
                 scrubWebViewState()
                 Timber.i(
                     "[S0166] browser login saved: account=%s host=%s",
                     displayName,
                     targetHost,
                 )
-                Timber.d("S0155: WebView auth saved host=%s accountId=%s", targetHost, accountId)
+                Timber.d(
+                    "S0155: WebView auth saved host=%s accountId=%s ua=%s",
+                    targetHost, accountId, capturedUa?.take(60) ?: "(none)"
+                )
                 emitResultAndDismiss(saved = true, accountId = accountId)
             }
             .setNegativeButton(android.R.string.cancel) { _, _ ->

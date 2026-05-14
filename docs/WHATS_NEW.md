@@ -1,6 +1,28 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5142.201** (May 2026) — Fix Release
+**Current release: 2.60.5150.150** (May 2026)
+
+> Changes since version 2.60.5142.201
+
+---
+
+## What's New
+
+- **Big Buttons Mode refined** — 100dp controls, icon-dominant layout, adaptive 5..10 top-panel slots (spec S0208)
+- **Slideshow auto-stop on network loss** — slideshow halts on consecutive failures with an informational message and resume via the existing button (spec S0188)
+- **Permissions button relocated** — standalone tonal button below all card groups in General settings, before doc links
+- **Device summary in settings** — compact device and Android line next to the app version for screenshot-based diagnostics
+
+## What's Fixed
+
+- Toolbar overlap with the system status bar on Android 8.x OEM car head units (spec S0204)
+- NetworkLifecycleBootstrapper crash when initialised from a background thread (spec S0195)
+- SFTP teardown no longer surfaces as an error in the log on cancel (spec S0205)
+- Big Buttons Mode: audio player overflow menu now sized to the widest item
+
+---
+
+## Previous Release: 2.60.5142.201 (May 2026) — Fix Release
 
 > Fix: vr-permission-bridge-fragment-public
 

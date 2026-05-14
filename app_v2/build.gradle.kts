@@ -40,8 +40,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260514220
-        versionName = "2.60.5142.201"
+        versionCode = 260515015
+        versionName = "2.60.5150.150"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -630,6 +630,15 @@ androidComponents {
                 }
             )
         }
+
+        // S0183: noLegal flavor source set sets manifest.srcFile to src/vr/AndroidManifest.xml
+        // (VR overlay). That call REPLACES the auto-detected src/noLegal/AndroidManifest.xml,
+        // so noLegal-specific manifest entries (e.g. REQUEST_INSTALL_PACKAGES) were silently
+        // dropped. addStaticManifestFile injects an additional manifest file into the merger
+        // input list without conflicting with the flavor srcFile override.
+        if (flavorName == "noLegal") {
+            variant.sources.manifests.addStaticManifestFile("src/noLegal/AndroidManifest.xml")
+        }
     }
 }
 
@@ -696,7 +705,11 @@ if (isNoLegalBuild) {
             // Use getByName because Chaquopy registers PythonExtension per-flavor automatically.
             getByName("noLegal") {
                 pip {
-                    install("yt-dlp==2025.4.30")
+                    // S0190: bumped from 2025.4.30 → 2026.3.17 (latest non-dev release on PyPI
+                    // at spec time). Brings 2025-H2 + early-2026 YouTube player.js handling
+                    // plus extractor_args.youtube.player_client support, used in ytdlp_utils.py
+                    // to prefer Android client which typically bypasses PoToken requirements.
+                    install("yt-dlp==2026.3.17")
                 }
             }
         }
@@ -743,7 +756,10 @@ dependencies {
     
     // Material Design 3
     implementation("com.google.android.material:material:1.13.0")
-    
+
+    // Google Play In-App Review (S0135)
+    implementation("com.google.android.play:review-ktx:2.0.2")
+
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")

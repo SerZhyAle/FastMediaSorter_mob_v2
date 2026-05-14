@@ -11,10 +11,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5142.201 (May 2026) — Fix Release
+## What's New in v2.60.5150.150 (May 2026)
+
+**New:**
+Big Buttons Mode refined (100dp controls, adaptive 5..10 slots), slideshow auto-stop on network loss, Permissions button relocated, device summary in settings.
 
 **Fixed:**
-IllegalStateException crash on VR passthrough camera capture when requesting the headset camera permission.
+Toolbar overlap with status bar on Android 8.x car head units, NetworkLifecycleBootstrapper background-thread crash, SFTP teardown log noise, Big Buttons audio overflow menu sizing.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

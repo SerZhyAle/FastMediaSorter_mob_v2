@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.vr.render
+package com.sza.fastmediasorter.ui.player.render.stereoscopic
 
 import com.sza.fastmediasorter.domain.model.StereoMode
 

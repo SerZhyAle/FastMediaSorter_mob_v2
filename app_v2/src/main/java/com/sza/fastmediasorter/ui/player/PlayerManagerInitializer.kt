@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager
 import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
 import com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
@@ -155,6 +156,12 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             lifecycle = activity.lifecycle
         )
         activity.slideshowController = activity.navigationManager.getSlideshowController()
+        activity.slideshowResourceAvailabilityManager =
+            com.sza.fastmediasorter.ui.player.helpers.SlideshowResourceAvailabilityManager(
+                activity = activity,
+                networkStateMonitor = activity.networkStateMonitor,
+                lifecycleScope = activity.lifecycleScope
+            )
 
         activity.keyboardHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler(
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerKeyboardCallbackImpl(
@@ -207,10 +214,12 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activity = activity,
             imageCropManager = activity.imageCropManager,
         )
-        // S0107: Draw overlay manager
+        // S0107: Draw overlay manager; S0162: pass rotation manager for ADR-4 exit restore
         activity.imageDrawOverlayManager = com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager(
             activity = activity,
-            imageContainer = activity.activityBinding.photoDualSurfaceContainer!!
+            imageContainer = activity.activityBinding.photoDualSurfaceContainer!!,
+            screenRotationManager = activity.screenRotationManager,
+            hasAccelerometer = activity.hasAccelerometer
         )
         activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
         activity.setupDrawOverlaySaveCallback()
@@ -575,6 +584,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
     }
 
     private fun initCommandPanelAndImageLoading() {
+        val bigButtonsMode = PlayerLayoutModePrefs.isBigButtonsMode(activity)
         activity.commandPanelController = CommandPanelController(
             binding = activity.activityBinding,
             settingsRepository = activity.settingsRepository,
@@ -582,7 +592,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerCommandPanelCallbackImpl(
                 activity = activity,
                 viewModel = activity.viewModel
-            )
+            ),
+            bigButtonsMode = bigButtonsMode
         )
         activity.commandPanelController.updateOrientation(activity.resources.configuration)
 
@@ -934,6 +945,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 }
             },
             onAudioServiceReady = {
+                activity.slideshowResourceAvailabilityManager.onPlaybackReady()
                 val currentFile = activity.viewModel.state.value.currentFile
                 if (currentFile?.type == MediaType.AUDIO) {
                     activity.updateAudioFormatInfo()
@@ -946,6 +958,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 val direction = AudioPlaybackService.pendingDirection
                 AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
                 val wasAudio = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
+                if (activity.viewModel.state.value.isSlideShowActive &&
+                    activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()) {
+                    return@PlayerMediaLoaderManager
+                }
                 if (activity.viewModel.state.value.isSlideShowActive) {
                     activity.viewModel.nextFile(skipDocuments = true)
                     activity.slideshowController.restartTimer()
@@ -958,8 +974,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     activity.advanceAudioBackgroundPhoto()
                 }
             },
-            onAudioServicePlaybackError = { _ ->
-                activity.handleMediaLoadErrorAndSkip()
+            onAudioServicePlaybackError = { error ->
+                if (!activity.slideshowResourceAvailabilityManager.handlePlaybackError(error)) {
+                    activity.handleMediaLoadErrorAndSkip()
+                }
             },
             smbClient = activity.smbClient,
             sftpClient = activity.sftpClient,
@@ -1047,7 +1065,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             translationButtonManager = activity.translationButtonManager,
             exoPlayerControlsManager = activity.exoPlayerControlsManager,
             searchControlsManager = activity.searchControlsManager,
-            blackScreenOverlayManager = activity.blackScreenOverlayManager
+            blackScreenOverlayManager = activity.blackScreenOverlayManager,
+            bigButtonsMode = PlayerLayoutModePrefs.isBigButtonsMode(activity)
         )
 
         activity.gestureSetupManager = PlayerGestureSetupManager(

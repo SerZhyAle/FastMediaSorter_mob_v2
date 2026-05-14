@@ -13,6 +13,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.FutureTarget
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.core.util.MemoryTier
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrEye
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrLayerDescriptor
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderContext
+import com.sza.fastmediasorter.ui.player.render.stereoscopic.VrRenderPlanner
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData

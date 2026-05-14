@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -19,6 +20,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import kotlinx.coroutines.launch
 
@@ -174,13 +176,40 @@ class PlaybackSettingsFragment : Fragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(hideGridActionButtons = isChecked))
         }
-        
+
+        binding.switchFileOpsOverflowMenu.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (isChecked && !current.fileOpsOverflowMenuHintShown) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    R.string.file_ops_moved_to_menu_hint,
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+                viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = true, fileOpsOverflowMenuHintShown = true))
+            } else {
+                viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
+            }
+        }
+
         binding.switchHideSystemUiInFullscreen.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(hideSystemUiInFullscreen = isChecked))
         }
-        
+
+        // S0162: Screen rotation control — hide entire row on non-sensor devices
+        val hasAccelerometer = requireContext().packageManager
+            .hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
+        binding.layoutFollowSystemRotation.isVisible = hasAccelerometer
+        if (hasAccelerometer) {
+            binding.switchFollowSystemRotation.setOnCheckedChangeListener { _, isChecked ->
+                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(followSystemRotation = isChecked))
+            }
+        }
+
         binding.switchShowCommandPanel.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -352,6 +381,23 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(panelStereoSingleEye = isChecked))
         }
 
+        // S0158: Big Buttons Mode — stored in PlayerLayoutModePrefs (SharedPreferences, not DataStore).
+        // ADR-2: change takes effect on next player open; no restart required.
+        isUpdatingFromSettings = true
+        binding.switchBigButtonsMode.isChecked = PlayerLayoutModePrefs.isBigButtonsMode(requireContext())
+        isUpdatingFromSettings = false
+        binding.switchBigButtonsMode.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            PlayerLayoutModePrefs.setBigButtonsMode(requireContext(), isChecked)
+        }
+        binding.iconHelpBigButtonsMode?.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_big_buttons_mode_title,
+                R.string.tooltip_big_buttons_mode_message
+            )
+        }
+
         // Handle manual input
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -407,8 +453,15 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.switchHideGridActionButtons.isChecked != settings.hideGridActionButtons) {
                         binding.switchHideGridActionButtons.isChecked = settings.hideGridActionButtons
                     }
+                    if (binding.switchFileOpsOverflowMenu.isChecked != settings.fileOpsInOverflowMenu) {
+                        binding.switchFileOpsOverflowMenu.isChecked = settings.fileOpsInOverflowMenu
+                    }
                     if (binding.switchHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
                         binding.switchHideSystemUiInFullscreen.isChecked = settings.hideSystemUiInFullscreen
+                    }
+                    // S0162
+                    if (binding.switchFollowSystemRotation.isChecked != settings.followSystemRotation) {
+                        binding.switchFollowSystemRotation.isChecked = settings.followSystemRotation
                     }
                     if (binding.switchShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
                         binding.switchShowCommandPanel.isChecked = settings.defaultShowCommandPanel

@@ -108,6 +108,13 @@ class GeneralSettingsViewSetupHelper(
                 }
                 .show()
         }
+        // S0160: resource ops overflow toggle
+        binding.switchResourceOpsInOverflowMenu?.setOnCheckedChangeListener { _, isChecked ->
+            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.resourceOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
+            viewModel.updateSettings(current.copy(resourceOpsInOverflowMenu = isChecked))
+        }
         binding.switchAllFiles.setOnCheckedChangeListener { _, isChecked ->
             if (getIsUpdatingSpinner()) {
                 Timber.d("GeneralSettings: switchAllFiles listener blocked by isUpdatingSpinner")
@@ -431,17 +438,6 @@ class GeneralSettingsViewSetupHelper(
 
         binding.btnExportSettings.setOnClickListener { importExportHelper.showExportSettingsConfirmation() }
         binding.btnImportSettings.setOnClickListener { importExportHelper.showImportSettingsConfirmation() }
-
-        binding.btnLocalFilesPermission.setOnClickListener { permissionsHelper.handleLocalFilesPermissionAction() }
-        binding.btnNetworkPermission.setOnClickListener {
-            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_network_permissions_already_granted), Toast.LENGTH_SHORT).show()
-        }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            binding.btnManageMediaPermission.visibility = View.VISIBLE
-        } else {
-            binding.btnManageMediaPermission.visibility = View.GONE
-        }
-        permissionsHelper.updatePermissionButtonsState()
 
         logHelper.setupButtons()
 

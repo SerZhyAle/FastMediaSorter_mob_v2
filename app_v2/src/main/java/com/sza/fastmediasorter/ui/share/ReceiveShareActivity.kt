@@ -14,10 +14,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.sza.fastmediasorter.worker.LinkDownloadProgressCodec
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -26,7 +29,6 @@ import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
@@ -35,6 +37,7 @@ import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,7 +62,6 @@ class ReceiveShareActivity : AppCompatActivity() {
     @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var authSessionRepository: AuthSessionRepository
-    @Inject lateinit var coordinator: LinkAutoDownloadCoordinator
     @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
 
     private lateinit var accountSelectionManager: AccountSelectionManager
@@ -72,6 +74,20 @@ class ReceiveShareActivity : AppCompatActivity() {
          * action after a background download returned [SocialPreviewOnly].
          */
         const val EXTRA_REAUTH_URL = "extra_reauth_url"
+
+        /**
+         * S0202: dedup key for [WorkManager.enqueueUniqueWork]. The KEEP policy ignores a
+         * second share of the same URL ONLY while the prior work is still RUNNING/ENQUEUED;
+         * once it finishes (any terminal state), a re-share starts a fresh worker.
+         *
+         * The key is derived from canonicalized host+path so tracking parameters
+         * (utm_*, fbclid, etc.) do not split a single user share into multiple workers.
+         */
+        private fun uniqueWorkNameFor(url: String): String {
+            val u = android.net.Uri.parse(url)
+            val key = "${u.host.orEmpty()}${u.path.orEmpty()}"
+            return "share_dl_" + Math.abs(key.hashCode()).toString(16)
+        }
     }
 
     private val tempDir: File by lazy {
@@ -333,99 +349,119 @@ class ReceiveShareActivity : AppCompatActivity() {
         }
     }
     /**
-     * S0161/S0116: blocking link download — shows [LinkAutoDownloadProgressDialog] while
-     * the coordinator runs, then delegates the result to [resultPresenter].
+     * S0202: backgrounding-survival entry point. Shows [LinkAutoDownloadProgressDialog]
+     * while a [LinkDownloadWorker] performs the download, then dismisses the activity
+     * either when the worker finishes (within the 4-second watchdog) or when the watchdog
+     * fires (whichever comes first). After watchdog the foreground notification owns the
+     * UX; the activity is gone and the user can return to the source app.
      *
-     * For [SocialPreviewOnly] (not dismissed): presenter shows an auth dialog;
-     * the Activity stays alive for dialog interaction. On "Sign in" the WebView auth
-     * completes and [onAuthRetryRequested] triggers a single retry run.
-     * For all other results: presenter shows a toast and the Activity finishes immediately.
+     * Cancel from the dialog routes through `WorkManager.cancelUniqueWork` so the worker
+     * tears down its foreground notification and aborts at the next cancellation
+     * checkpoint inside the coordinator (Phase 03 of S0202).
      *
-     * S0155: [accountId] identifies the account whose cookies the coordinator should use;
-     * null means no specific account (coordinator falls back to store default).
+     * S0166 §2 Step 0 unknown-host NoMediaFound escalation is preserved best-effort via
+     * [handleNoMediaFoundEscalation] when the worker reports SUCCEEDED with the matching
+     * result_kind before the watchdog fires.
+     *
+     * S0155: [accountId] identifies the account whose cookies the worker should use;
+     * null means no specific account (coordinator falls back to the store default).
      */
     private fun processLinkAutoDownload(url: String, accountId: String?, isAuthRetry: Boolean = false) {
-        Timber.i("ReceiveShareActivity: blocking link download url=%s accountId=%s retry=%s", url, accountId, isAuthRetry)
+        Timber.i("ReceiveShareActivity: enqueue worker url=%s accountId=%s retry=%s", url, accountId, isAuthRetry)
+
         val progressDialog = LinkAutoDownloadProgressDialog(this@ReceiveShareActivity) {
-            // Cancel pressed — abort and return user to source app.
+            // Cancel — propagate to WorkManager so the worker tears down its foreground notification
+            // and aborts in-flight extraction at the next ensureActive() checkpoint (Phase 03).
+            WorkManager.getInstance(this@ReceiveShareActivity)
+                .cancelUniqueWork(uniqueWorkNameFor(url))
             cleanupAndFinish()
         }
         progressDialog.show()
+
+        val request = OneTimeWorkRequestBuilder<LinkDownloadWorker>()
+            .setInputData(
+                workDataOf(
+                    LinkDownloadWorker.KEY_URL to url,
+                    LinkDownloadWorker.KEY_ACCOUNT_ID to accountId,
+                    LinkDownloadWorker.KEY_IS_AUTH_RETRY to isAuthRetry,
+                ),
+            )
+            .build()
+        val workName = uniqueWorkNameFor(url)
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork(workName, ExistingWorkPolicy.KEEP, request)
+        Timber.d("S0202: ReceiveShareActivity enqueued worker url=%s accountId=%s retry=%s", url, accountId, isAuthRetry)
+
+        val workId = request.id
+        WorkManager.getInstance(this)
+            .getWorkInfoByIdLiveData(workId)
+            .observe(this) { info ->
+                if (info == null) return@observe
+                when (info.state) {
+                    WorkInfo.State.RUNNING -> {
+                        val state = LinkDownloadProgressCodec.decode(info.progress)
+                        if (state != null) progressDialog.update(state)
+                    }
+                    WorkInfo.State.SUCCEEDED -> {
+                        progressDialog.dismiss()
+                        val resultKind = info.outputData.getString(LinkDownloadWorker.KEY_RESULT_KIND)
+                        if (resultKind == "NoMediaFound") {
+                            handleNoMediaFoundEscalation(url, accountId, isAuthRetry)
+                        } else {
+                            cleanupAndFinish()
+                        }
+                    }
+                    WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> {
+                        progressDialog.dismiss()
+                        cleanupAndFinish()
+                    }
+                    WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> Unit
+                }
+            }
+
+        // Watchdog: if the worker has not finished within 4 seconds, dismiss the dialog
+        // and let the foreground notification take over the UX. Activity is dismissed so
+        // the user can return to the source app immediately.
         lifecycleScope.launch {
-            val result = coordinator.handle(
-                url = url,
-                callbacks = object : LinkAutoDownloadCoordinator.Callbacks {
-                    override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) {
-                        // writeFromStream calls this from Dispatchers.IO; Material3 progress
-                        // indicators use ValueAnimator internally which requires the Looper thread.
-                        this@ReceiveShareActivity.runOnUiThread { progressDialog.update(state) }
-                    }
-                },
-                accountId = accountId,
-            )
-            progressDialog.dismiss()
-
-            Timber.d(
-                "S0170: link share result — host=%s result=%s accountId=%s isAuthRetry=%s authOfferShown=%s",
-                Uri.parse(url).host.orEmpty(),
-                result::class.simpleName,
-                accountId ?: "none",
-                isAuthRetry,
-                authOfferShown,
-            )
-            // S0166 §2 Step 0: unknown-host escalation — if the standard pipeline returned nothing
-            // and this host is not a known social (KnownAuthResources), offer the same 3-button auth
-            // dialog. S0170 BUG-1: fire at most once per Activity instance (authOfferShown), skip if
-            // this is an auth-retry run, skip if a session was already applied (accountId != null —
-            // re-running auth cannot help), and skip if the host has been dismissed ("Don't ask").
-            if (result is LinkAutoDownloadCoordinator.Result.Failed.NoMediaFound &&
-                !isAuthRetry && !authOfferShown && accountId == null
-            ) {
-                val hostForEscalation = Uri.parse(url).host.orEmpty()
-                if (hostForEscalation.isNotBlank() && KnownAuthResources.matchHost(hostForEscalation) == null) {
-                    val dismissed = authSessionRepository.isDismissedForHost(hostForEscalation)
-                    val hasActiveSession = runCatching {
-                        authSessionRepository.listAccountsForHost(hostForEscalation).any { !it.isDismissed }
-                    }.getOrDefault(false)
-                    if (!dismissed && !hasActiveSession) {
-                        Timber.i("[S0166] unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
-                        offerAuthThenDownload(url, hostForEscalation, resource = null, dialogType = "initial")
-                        return@launch
-                    }
-                }
+            delay(4_000)
+            if (!isFinishTriggered) {
+                progressDialog.dismiss()
+                cleanupAndFinish()
             }
+        }
+    }
 
-            // SocialPreviewOnly (not dismissed) shows an auth dialog asynchronously —
-            // we must NOT call cleanupAndFinish() until dialog interaction completes.
-            // Check dismissed status here (suspend context) to match presenter’s logic.
-            // isAuthRetry=true also gates the presenter to skip the re-auth dialog on retry.
-            val showsAuthDialog = if (result is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly) {
-                val acctId = result.accountId?.takeIf { it.isNotBlank() }
-                val dismissed = if (acctId != null) {
-                    authSessionRepository.isDismissedForAccount(result.host, acctId)
-                } else {
-                    authSessionRepository.isDismissedForHost(result.host)
-                }
-                // On a retry that already had a session the presenter will just toast — no dialog.
-                !dismissed && !isAuthRetry
-            } else false
-
-            resultPresenter.present(result, this@ReceiveShareActivity, isAuthRetry) { retryUrl ->
-                // Presenter hands back a URL: either a CDN media URL from harvest-mode
-                // interception, or the original URL for a normal extraction retry.
-                val host = Uri.parse(retryUrl).host.orEmpty()
-                val newAccountId = runCatching {
-                    authSessionRepository.listAccountsForHost(host)
-                        .filter { !it.isDismissed }
-                        .maxByOrNull { it.savedAt }
-                        ?.accountId
-                }.getOrNull()
-                processLinkAutoDownload(retryUrl, newAccountId, isAuthRetry = true)
+    /**
+     * S0166 §2 Step 0 (extracted by S0202): unknown-host NoMediaFound escalation. Invoked
+     * from the WorkInfo observer when the worker reports SUCCEEDED with result_kind
+     * "NoMediaFound". Best-effort — if the watchdog fired first, the activity is gone and
+     * the foreground notification's "Sign in" path is the user's remaining route.
+     *
+     * S0170 BUG-1 invariants preserved: fires at most once per Activity instance
+     * (authOfferShown), skips on isAuthRetry, skips when accountId != null, skips when
+     * the host is dismissed.
+     */
+    private fun handleNoMediaFoundEscalation(url: String, accountId: String?, isAuthRetry: Boolean) {
+        if (isAuthRetry || authOfferShown || accountId != null) {
+            cleanupAndFinish()
+            return
+        }
+        val hostForEscalation = Uri.parse(url).host.orEmpty()
+        if (hostForEscalation.isBlank() || KnownAuthResources.matchHost(hostForEscalation) != null) {
+            cleanupAndFinish()
+            return
+        }
+        lifecycleScope.launch {
+            val dismissed = runCatching { authSessionRepository.isDismissedForHost(hostForEscalation) }.getOrDefault(false)
+            val hasActiveSession = runCatching {
+                authSessionRepository.listAccountsForHost(hostForEscalation).any { !it.isDismissed }
+            }.getOrDefault(false)
+            if (!dismissed && !hasActiveSession) {
+                Timber.i("[S0166] unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
+                offerAuthThenDownload(url, hostForEscalation, resource = null, dialogType = "initial")
+            } else {
+                cleanupAndFinish()
             }
-
-            if (!showsAuthDialog) cleanupAndFinish()
-            // For showsAuthDialog=true: Activity stays alive; cleanupAndFinish() is triggered
-            // by the retry path above completing, or by the user pressing Back.
         }
     }
 

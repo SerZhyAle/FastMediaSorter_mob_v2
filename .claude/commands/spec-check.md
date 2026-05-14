@@ -57,7 +57,7 @@ Verification mechanics:
 | Room version | Read `AppDatabase.kt`, match `@Database(version = N` |
 | Dev log entry | `Grep` for file path in `dev/CHANGELOG.md` |
 | Catalog up-to-date | `Grep` for class name in `dev/CATALOG/<module>.jsonl` |
-| FEATURES trilingual | `Grep` for keyword in all three FEATURES docs — PASS only if all three hit |
+| FEATURES trilingual | Read strategic §8 first. If §8 text is "Без изменений" (or equivalent "no change") → EXEMPT. Otherwise `Grep` for keyword in all three FEATURES docs — PASS only if all three hit |
 | File size vs budget | `Read` file, count lines, compare to step budget |
 | Flavor gating | `Grep` for `BuildConfig.<FLAG>` if §3.2 names a flag |
 | Step status consistency | Parse `[x] done` in phase file; cross-check Verification predicates |
@@ -86,6 +86,18 @@ Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers.
 .\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-check" "Audit <Sxxxx> → <score>; PASS/WARN/FAIL N/N/N"
 # plus one line per modified phase / INDEX
 ```
+
+**7a — Functionality log fallback.**
+
+Only on a verdict that flips the journal status to `Verified` (full / strategic mode). Detects the bypass case where `/spec-dev` did not run (e.g. spec went `Draft → … → Verified` by hand).
+
+- Grep `dev/FUNCTIONALITY.log` for `<Sxxxx>` within the last 24 hours of entries. If at least one match exists → skip (the entry was already recorded by `/spec-dev` or an earlier `/spec-check`).
+- If no match exists AND the spec delivered a user-visible change (apply the same heuristics as `/spec-dev`: §2 Goals, §8 FEATURES diff, touched files): append `ADD` for a new capability or `CHANGE` for a behaviour change to an existing one:
+  ```powershell
+  .\scripts\add_to_functionality_log.ps1 -Id <Sxxxx> -Op <ADD|CHANGE> -Description "<english one-line summary>"
+  ```
+- Skip silently for `Partial` / `Broken` verdicts and for tactical-only audits.
+- Skip silently when the spec is purely internal (no user-perceivable change).
 
 **8 — Auto-chain to `/spec-fix`.**
 

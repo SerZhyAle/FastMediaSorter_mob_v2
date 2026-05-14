@@ -29,6 +29,9 @@
             <!-- S0050: Black Screen mode button (AUDIO/VIDEO; visible when showBlackScreenButton=true) -->
             <ImageButton android:id="@+id/btnBlackScreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/black_screen_button_title" android:src="@drawable/ic_black_screen" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
+            <!-- S0162: Rotation toggle — visible only when followSystemRotation=false and hasAccelerometer -->
+            <ImageButton android:id="@+id/btnRotationToggleCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rotation_toggle_sensor_on_desc" android:src="@drawable/ic_rotation_unlocked" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+
             <!-- Text Viewer Actions - shown for TXT files -->
             <ImageButton android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@drawable/ic_search" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
@@ -212,7 +215,7 @@
 
             <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/player_text_viewer_padding" android:background="@color/activity_player_unified_toolbar_background" android:gravity="center">
+            <LinearLayout android:id="@+id/playbackButtonRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/player_text_viewer_padding" android:background="@color/activity_player_unified_toolbar_background" android:gravity="center">
 
                 <com.google.android.material.button.MaterialButton android:id="@+id/btnVolumeDown" style="@style/Widget.Material3.Button.IconButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth" android:text="@string/activity_player_unified_btnVolumeDown_text" android:textSize="@dimen/activity_player_btnVolumeUp_textSize" android:textColor="@color/white" android:visibility="gone" app:backgroundTint="@android:color/transparent" />
 

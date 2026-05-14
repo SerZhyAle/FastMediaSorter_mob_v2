@@ -148,9 +148,14 @@ pwsh -File dev/CATALOG/scripts/render.ps1 -Module app_v2
 pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
     -Role "Orchestrates SMB scan and caches results" -Status tested
 
-# Flavor exclusions
+# Flavor exclusions — valid values: standard, lite, photos, legacy, vr, vrUnlicensed, noLegal.
+# Source-set placement (src/<flavor>/java/) is what governs physical isolation;
+# `noFlavors` is the searchable declarative hint. A vr-only class typically declares
+# -NoFlavors "standard,lite,photos,legacy,noLegal" (i.e. everything except vr+vrUnlicensed).
 pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `
     -NoFlavors "lite,photos"
+pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "VrPlayerActivity.kt" `
+    -NoFlavors "standard,lite,photos,legacy,noLegal"
 
 # Function description
 pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "Foo.kt" `

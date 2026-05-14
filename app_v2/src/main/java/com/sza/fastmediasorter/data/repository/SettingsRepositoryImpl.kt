@@ -102,6 +102,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_CONFIRM_MOVE = booleanPreferencesKey("confirm_move")
         private val KEY_DEFAULT_GRID_MODE = booleanPreferencesKey("default_grid_mode")
         private val KEY_HIDE_GRID_ACTION_BUTTONS = booleanPreferencesKey("hide_grid_action_buttons")
+        private val KEY_FILE_OPS_IN_OVERFLOW_MENU = booleanPreferencesKey("file_ops_in_overflow_menu")
+        private val KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN = booleanPreferencesKey("file_ops_overflow_menu_hint_shown")
         private val KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN = booleanPreferencesKey("hide_system_ui_in_fullscreen")
         private val KEY_DEFAULT_ICON_SIZE = intPreferencesKey("default_icon_size")
         private val KEY_DEFAULT_SHOW_COMMAND_PANEL = booleanPreferencesKey("default_show_command_panel")
@@ -141,6 +143,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LAST_USED_RESOURCE_ID = longPreferencesKey("last_used_resource_id")
         private val KEY_DEFAULT_REMEMBER_FILE_LIST = booleanPreferencesKey("default_remember_file_list")
         private val KEY_IS_RESOURCE_GRID_MODE = booleanPreferencesKey("is_resource_grid_mode")
+        private val KEY_RESOURCE_OPS_IN_OVERFLOW_MENU = booleanPreferencesKey("resource_ops_in_overflow_menu")
         private val KEY_DYNAMIC_BACKGROUND_EXTENSION = booleanPreferencesKey("dynamic_background_extension")
 
         private val KEY_IS_PRIMARY_MEDIA_PLAYER = booleanPreferencesKey("is_primary_media_player")
@@ -189,6 +192,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
         // S0028: Multi-window mode
         private val KEY_ALLOW_SEPARATE_WINDOW = booleanPreferencesKey("allow_separate_window")
+
+        // S0162: Screen rotation control
+        private val KEY_FOLLOW_SYSTEM_ROTATION = booleanPreferencesKey("follow_system_rotation")
+        private val KEY_PLAYER_ROTATION_SENSOR_ENABLED = booleanPreferencesKey("player_rotation_sensor_enabled")
 
         // Adaptive pre-cache strategy (spec §5)
         private val KEY_PREFETCH_CACHE_MULTIPLIER = stringPreferencesKey("prefetch_cache_multiplier")
@@ -254,6 +261,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048,
                     isCacheSizeUserModified = preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] ?: false,
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
+                    resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: false,
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
                     allFiles = preferences[KEY_ALL_FILES] ?: false,
@@ -318,6 +326,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
+                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: false,
+                    fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: false,
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
@@ -402,7 +412,11 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?: 7,
 
                     // S0028: Multi-window mode
-                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: BuildConfig.SUPPORT_VR_PLAYER
+                    allowSeparateWindow = preferences[KEY_ALLOW_SEPARATE_WINDOW] ?: BuildConfig.SUPPORT_VR_PLAYER,
+
+                    // S0162: absent key → default true (no behaviour change on upgrade)
+                    followSystemRotation = preferences[KEY_FOLLOW_SYSTEM_ROTATION] ?: true,
+                    playerRotationSensorEnabled = preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] ?: true
                 )
             }
             .distinctUntilChanged()
@@ -503,6 +517,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_CONFIRM_MOVE] = settings.confirmMove
             preferences[KEY_DEFAULT_GRID_MODE] = settings.defaultGridMode
             preferences[KEY_HIDE_GRID_ACTION_BUTTONS] = settings.hideGridActionButtons
+            preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] = settings.fileOpsInOverflowMenu
+            preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] = settings.fileOpsOverflowMenuHintShown
             preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] = settings.hideSystemUiInFullscreen
             preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
             preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
@@ -532,6 +548,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
             preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
             preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
+            preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] = settings.resourceOpsInOverflowMenu
             preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
             preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
             preferences[KEY_ACCEPT_SHARED_FILES] = settings.acceptSharedFiles
@@ -581,6 +598,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
             // S0028: Multi-window mode
             preferences[KEY_ALLOW_SEPARATE_WINDOW] = settings.allowSeparateWindow
+
+            // S0162: Screen rotation control
+            preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.followSystemRotation
+            preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
         }
     }
 

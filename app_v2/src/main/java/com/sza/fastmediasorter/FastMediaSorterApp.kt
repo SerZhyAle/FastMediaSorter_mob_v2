@@ -19,8 +19,6 @@ import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
-import com.sza.fastmediasorter.data.network.SmbConnectionManager
-import com.sza.fastmediasorter.data.network.SmbBackgroundLifecycleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
@@ -46,56 +44,53 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         private const val ENABLE_DEBUG_STRICT_MODE = false
     }
     
+    // S0194: 13 Application-level singletons wrapped in dagger.Lazy<T> so Hilt
+    // defers their construction until first .get(). The 4 fields below that
+    // synchronously register lifecycle observers / OS callbacks in onCreate
+    // intentionally stay eager — they are addressed separately by S0195.
     @Inject
-    lateinit var workManagerScheduler: WorkManagerScheduler
-    
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
-    
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
-    
-    @Inject
-    lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
-    
-    @Inject
-    lateinit var thumbnailCacheRepository: com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
-    
-    @Inject
-    lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
-    
-    @Inject
-    lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+    lateinit var workManagerScheduler: dagger.Lazy<WorkManagerScheduler>
 
     @Inject
-    lateinit var cachedFileListRepository: com.sza.fastmediasorter.data.repository.CachedFileListRepository
-    
-    @Inject
-    lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
-    
-    @Inject
-    lateinit var smbConnectionManager: SmbConnectionManager
+    lateinit var workerFactory: dagger.Lazy<HiltWorkerFactory>
 
     @Inject
-    lateinit var smbBackgroundLifecycleManager: SmbBackgroundLifecycleManager
+    lateinit var settingsRepository: dagger.Lazy<SettingsRepository>
 
     @Inject
-    lateinit var networkLifecycleObserver: com.sza.fastmediasorter.core.lifecycle.NetworkLifecycleObserver
+    lateinit var playbackPositionRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository>
 
     @Inject
-    lateinit var tempFileManager: com.sza.fastmediasorter.domain.transfer.TempFileManager
+    lateinit var thumbnailCacheRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository>
 
     @Inject
-    lateinit var renameVirtualResourcesUseCase: com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
+    lateinit var resourceRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.ResourceRepository>
 
     @Inject
-    lateinit var backfillSmbCredentialShareNameUseCase: com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
+    lateinit var unifiedCache: dagger.Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
 
     @Inject
-    lateinit var inputBindingRepository: com.sza.fastmediasorter.data.input.InputBindingRepository
+    lateinit var cachedFileListRepository: dagger.Lazy<com.sza.fastmediasorter.data.repository.CachedFileListRepository>
+
+    // S0195: the four network lifecycle hooks (NetworkStateMonitor / SmbConnectionManager /
+    // SmbBackgroundLifecycleManager / NetworkLifecycleObserver) used to be @Inject'd here and
+    // started in onCreate. They are now bootstrapped lazily by NetworkLifecycleBootstrapper
+    // on first real remote use — see data.network.lifecycle.NetworkLifecycleBootstrapper.
 
     @Inject
-    lateinit var defaultsMapLoader: com.sza.fastmediasorter.data.input.DefaultsMapLoader
+    lateinit var tempFileManager: dagger.Lazy<com.sza.fastmediasorter.domain.transfer.TempFileManager>
+
+    @Inject
+    lateinit var renameVirtualResourcesUseCase: dagger.Lazy<com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase>
+
+    @Inject
+    lateinit var backfillSmbCredentialShareNameUseCase: dagger.Lazy<com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase>
+
+    @Inject
+    lateinit var inputBindingRepository: dagger.Lazy<com.sza.fastmediasorter.data.input.InputBindingRepository>
+
+    @Inject
+    lateinit var defaultsMapLoader: dagger.Lazy<com.sza.fastmediasorter.data.input.DefaultsMapLoader>
 
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -136,12 +131,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 onAppForegrounded()
             }
         })
-        // S0061 Phase 04: close UI SMB connections on background (preserves BACKGROUND_WORKER).
-        ProcessLifecycleOwner.get().lifecycle.addObserver(smbBackgroundLifecycleManager)
+        // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
+        // NetworkLifecycleBootstrapper on first remote use — formerly attached eagerly here.
 
-        // S0067 Phase 06: protocol-neutral lifecycle gates (SMB / SFTP / FTP / Cloud).
-        networkLifecycleObserver.attach()
-        
         // PDF Support: Using built-in Android PdfRenderer (API 21+)
         // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
         // PDFBox was removed to avoid BouncyCastle conflicts and reduce APK size
@@ -160,14 +152,14 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         
         // Clean up orphaned temp files (ML-007) — handles crashes that prevented cleanup
         applicationScope.launch(Dispatchers.IO) {
-            tempFileManager.cleanupOldTempFiles(24 * 60 * 60 * 1000L) // 24 hours max age
+            tempFileManager.get().cleanupOldTempFiles(24 * 60 * 60 * 1000L) // 24 hours max age
             Timber.d("App startup: cleaned up old orphaned temp files")
         }
 
         // S0139: one-shot backfill of empty SMB credential shareName from resource path.
         // Idempotent — flag-gated; runs only once per install/upgrade.
         applicationScope.launch(Dispatchers.IO) {
-            runCatching { backfillSmbCredentialShareNameUseCase() }
+            runCatching { backfillSmbCredentialShareNameUseCase.get().invoke() }
                 .onFailure { Timber.e(it, "S0139: backfill launch failed") }
         }
 
@@ -176,16 +168,13 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch {
             runCatching {
                 com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
-                    .apply(applicationContext, settingsRepository)
+                    .apply(applicationContext, settingsRepository.get())
             }.onFailure { Timber.e(it, "S0133: bootstrap failed") }
         }
 
-        // Start network state monitoring for automatic connection recovery
-        networkStateMonitor.start()
-        
-        // Setup SMB auto-reset callback to show user feedback
-        setupSmbAutoReset()
-        
+        // S0195: NetworkStateMonitor.start() and SMB reset-callback registration moved
+        // into NetworkLifecycleBootstrapper — fired on first remote use.
+
         // Log Glide disk cache status at startup (off main thread)
         applicationScope.launch(Dispatchers.IO) {
             CacheStatusHelper.logGlideDiskCacheStatus(this@FastMediaSorterApp)
@@ -235,7 +224,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch(Dispatchers.IO) {
             try {
                 kotlinx.coroutines.delay(2000) // Wait for UI to render first
-                val settings = settingsRepository.getSettings().first()
+                val settings = settingsRepository.get().getSettings().first()
                 logSettingsInfo(settings)
                 // Sync the synchronous SP mirror so the player picks the right controls layout
                 // on first inflate after upgrade from a build that didn't write the SP file yet.
@@ -243,25 +232,27 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                     this@FastMediaSorterApp,
                     settings.useCompactElements
                 )
+                // S0194: dereference Lazy<WorkManagerScheduler> once per coroutine entry.
+                val scheduler = workManagerScheduler.get()
                 if (settings.enableBackgroundSync) {
-                    workManagerScheduler.scheduleResourcesSync(
+                    scheduler.scheduleResourcesSync(
                         settings.backgroundSyncIntervalHours.toLong()
                     )
                     Timber.i("FastMediaSorterApp: Background resource sync scheduled (${settings.backgroundSyncIntervalHours}h)")
                 } else {
                     // Ensure legacy scheduled work is cleaned up on first launch after update
-                    workManagerScheduler.cancelResourcesSync()
+                    scheduler.cancelResourcesSync()
                     Timber.d("FastMediaSorterApp: Background sync is disabled, skipping scheduling")
                 }
                 // Orphan cleanup runs regardless of sync setting — lightweight maintenance task
-                workManagerScheduler.scheduleOrphanCleanup()
+                scheduler.scheduleOrphanCleanup()
                 // Retry any OAuth token revocations that failed during sign-out (B5-T3)
-                workManagerScheduler.schedulePendingRevocation()
+                scheduler.schedulePendingRevocation()
                 // Streaming-offload cache GC (spec §5.7). TTL pulled from settings; 0 = off.
-                workManagerScheduler.scheduleStreamingCacheGc(settings.streamingCacheTtlDays)
+                scheduler.scheduleStreamingCacheGc(settings.streamingCacheTtlDays)
                 // Reschedule all enabled scheduled file operations (survived force-stop / app update)
                 if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS && settings.enableScheduledOperations) {
-                    workManagerScheduler.rescheduleAll()
+                    scheduler.rescheduleAll()
                     Timber.d("FastMediaSorterApp: Scheduled operations rescheduled on startup")
                 }
             } catch (e: Exception) {
@@ -295,32 +286,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             )
     }
 
-    /**
-     * Setup SMB connection auto-reset callback.
-     * Shows toast to user when system automatically resets SMB connections
-     * due to authentication or configuration errors.
-     */
-    private fun setupSmbAutoReset() {
-        smbConnectionManager.setResetCallback(object : com.sza.fastmediasorter.data.network.SmbResetCallback {
-            override fun onAutoReset(reason: String) {
-                applicationScope.launch(Dispatchers.Main) {
-                    try {
-                        val message = getString(R.string.smb_auto_reset_notification)
-                        com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(
-                            applicationContext, message, android.widget.Toast.LENGTH_SHORT
-                        )
-                        Timber.d("SMB auto-reset notification shown: $reason")
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to show SMB auto-reset notification")
-                    }
-                }
-            }
-        })
-    }
-    
+    // S0195: SMB auto-reset toast wiring moved verbatim into NetworkLifecycleBootstrapper.
+
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
+            .setWorkerFactory(workerFactory.get())
             .build()
     
     /**
@@ -403,7 +374,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 
                 // Clean up all temp files under critical memory pressure (ML-007)
                 applicationScope.launch(Dispatchers.IO) {
-                    tempFileManager.cleanupAllTempFiles()
+                    tempFileManager.get().cleanupAllTempFiles()
                     Timber.i("onTrimMemory(COMPLETE): All temp files cleaned up")
                 }
                 // DO NOT clear disk cache here - it should persist between app launches

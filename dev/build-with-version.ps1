@@ -11,6 +11,18 @@ $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
 Write-Host "Working directory: $projectRoot" -ForegroundColor Gray
 
+# Branch awareness: warn when building from main
+$currentBranch = (git branch --show-current 2>$null).Trim()
+if ($currentBranch -eq "main") {
+    Write-Host ""
+    Write-Host "!! BUILDING FROM 'main' — this is a release-caliber build !!" -ForegroundColor Yellow
+    Write-Host "   If this is intentional (release or hotfix), continue." -ForegroundColor Yellow
+    Write-Host "   If you meant to build from a DEBUG branch, switch first." -ForegroundColor Yellow
+    Write-Host ""
+} else {
+    Write-Host "Branch: $currentBranch" -ForegroundColor DarkGray
+}
+
 function Stop-GradleDaemons {
     Write-Host "Stopping Gradle daemons before cleanup.." -ForegroundColor DarkGray
     & .\gradlew.bat --stop | Out-Null

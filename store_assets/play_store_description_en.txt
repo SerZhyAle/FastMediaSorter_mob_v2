@@ -1,50 +1,43 @@
 TITLE (30 chars):
-FastMediaSorter: Files & Cloud
+Fast Media Sorter & Organizer
 
 SHORT DESCRIPTION (80 chars):
-Organize media fast: Local, SMB, Cloud. Slideshow, editor, trash protection.
+Sort photos & videos fast. Swipe to organize files from storage, NAS, and cloud.
 
 FULL DESCRIPTION (4000 chars):
-FastMediaSorter is your all-in-one tool for managing media files on your device, local network, and cloud. Sort thousands of photos and videos in minutes, create slideshows, and keep your collection organized.
+Stop hunting for photos in cluttered galleries. Fast Media Sorter moves files exactly where you want them — with one tap.
 
-KEY FEATURES:
+★ SORT WITH ONE TAP
+Set up target folders once. From then on, a single tap while viewing moves or copies any file to its destination. No drag. No menu. Done.
 
-📂 All Files in One Place
-Manage files from phone storage, SD card, home NAS (SMB), servers (SFTP, FTP), and Google Drive in a single interface.
+📂 ALL STORAGE, ONE SCREEN
+Browse files on your phone, SD card, NAS, and cloud — without switching apps.
+• SMB — home NAS, Windows shares, Samba servers
+• SFTP and FTP — Linux servers, seedboxes, NAS
+• Google Drive, OneDrive, Dropbox
 
-⚡ Fast Sorting
-Configure destination folders and copy or move files with a single tap while viewing. Perfect for organizing photo archives.
+🖼️ VIEWER AND PLAYER BUILT IN
+View JPEG, PNG, HEIC, WEBP, GIF, animated WebP. Play MP4, MKV, AVI, MOV, M2TS, audio files. Full-screen slideshow.
 
-🖥️ Network Storage Support
-Direct connection to your servers and NAS. Browse, delete, and copy files without unnecessary intermediate downloads.
-- SMB (Windows Sharing/Samba)
-- SFTP (SSH File Transfer Protocol)
-- FTP (File Transfer Protocol)
-- Google Drive (Cloud capabilities)
+🗂️ ORGANIZE YOUR WAY
+• Batch select — move, copy, delete, rename in one action
+• Filter by date, size, and file type
+• Soft-delete (trash) with undo — no accidental permanent loss
+• Configurable sort order inside folders
 
-🖼️ Powerful Viewer & Player
-- View photos, GIFs, and videos.
-- Slideshow with customizable interval.
-- Zoom and pan images.
-- Video player supporting major formats.
+🌐 DIRECT NETWORK STORAGE
+Connect to your NAS or home server without cloud intermediaries. SMB, SFTP, and FTP — as fast as local storage.
 
-✏️ Image Editor
-Rotate, flip, adjust brightness/contrast, and apply filters (Grayscale, Sepia, etc.) directly in the app. Works even with network files!
+☁️ CROSS-CLOUD MOVES
+Move files between Google Drive, OneDrive, Dropbox, and local storage in a single operation.
 
-🧹 Safe Delete
-Accidentally deleted a file? No problem! The "Trash" feature (soft-delete) saves deleted files to a special .trash folder (supported on local and network resources).
+📹 WIDE FORMAT SUPPORT
+Video: MP4, MKV, AVI, MOV, M2TS, WebM and more.
+Photo: JPEG, PNG, HEIC, WEBP, TIFF, BMP and more.
+Audio: MP3, FLAC, AAC, OGG, OPUS and more.
+Documents: PDF and EPUB preview.
 
-🔍 Smart Search & Filters
-Filter media by type, date, size. Find the files you need instantly.
+✅ WORKS OFFLINE
+Local and NAS operations work without internet.
 
-🚀 Optimization
-- Thumbnail caching for fast performance.
-- Support for large collections (1000+ files).
-- Keyboard navigation (for Android TV / Desktop mode).
-
-No ads, no hidden fees. Your data remains yours — the app does not send files to third-party servers.
-
-OFFICIAL WEBSITE:
-https://serzhyale.github.io/FastMediaSorter_mob_v2/
-
-Download FastMediaSorter and organize your media library today!
+Fast Media Sorter — sort once, find forever.
