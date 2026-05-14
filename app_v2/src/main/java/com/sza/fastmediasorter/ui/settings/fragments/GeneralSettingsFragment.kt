@@ -181,7 +181,7 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnDeviceStorageRefresh?.setOnClickListener {
             viewModel.refreshDeviceStorage()
         }
-        binding.headerPermissions?.setOnClickListener {
+        binding.btnPermissionsManagement?.setOnClickListener {
             requireActivity().supportFragmentManager
                 .beginTransaction()
                 .replace(android.R.id.content, PermissionsManagementFragment())

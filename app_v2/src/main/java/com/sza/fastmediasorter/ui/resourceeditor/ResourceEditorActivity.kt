@@ -11,7 +11,9 @@ import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputSurface
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
@@ -23,9 +25,8 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
     override fun setupViews() {
         // Apply edge-to-edge insets: fragment toolbar below status bar, content above nav bar
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.fragmentContainer) { view, insets ->
-            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(0, statusBar.top, 0, navBar.bottom)
+            view.setPadding(0, insets.getStatusBarHeightSafe(resources), 0, navBar.bottom)
             insets
         }
         // setupViews() runs inside post{} — initial insets dispatch was already missed.

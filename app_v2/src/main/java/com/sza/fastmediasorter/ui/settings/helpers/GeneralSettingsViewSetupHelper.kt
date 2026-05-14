@@ -439,17 +439,6 @@ class GeneralSettingsViewSetupHelper(
         binding.btnExportSettings.setOnClickListener { importExportHelper.showExportSettingsConfirmation() }
         binding.btnImportSettings.setOnClickListener { importExportHelper.showImportSettingsConfirmation() }
 
-        binding.btnLocalFilesPermission.setOnClickListener { permissionsHelper.handleLocalFilesPermissionAction() }
-        binding.btnNetworkPermission.setOnClickListener {
-            Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_network_permissions_already_granted), Toast.LENGTH_SHORT).show()
-        }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            binding.btnManageMediaPermission.visibility = View.VISIBLE
-        } else {
-            binding.btnManageMediaPermission.visibility = View.GONE
-        }
-        permissionsHelper.updatePermissionButtonsState()
-
         logHelper.setupButtons()
 
         binding.btnAutoCalculateCache.setOnClickListener { cacheHelper.autoCalculateCacheSize() }

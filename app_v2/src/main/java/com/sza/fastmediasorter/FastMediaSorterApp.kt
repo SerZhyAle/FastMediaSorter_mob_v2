@@ -101,8 +101,6 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        Timber.d("S0194: Application.onCreate entered — 13 Hilt singletons wrapped in dagger.Lazy<T>")
-        Timber.d("S0195: eager network hooks removed — bootstrap deferred to first remote use")
 
         // Material You: apply wallpaper-based dynamic colors on Android 12+
         DynamicColors.applyToActivitiesIfAvailable(this)

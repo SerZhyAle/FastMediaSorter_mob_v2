@@ -349,6 +349,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
                     )
                     text = context.getString(cmd.titleResId)
                     textSize = 18f
+                    maxLines = 1
                 })
 
                 return row
@@ -358,7 +359,11 @@ class PlayerBigButtonsModeManager(private val context: Context) {
         val popup = ListPopupWindow(context).apply {
             setAnchorView(anchor)
             setAdapter(adapter)
-            width = ListPopupWindow.WRAP_CONTENT
+            // ListPopupWindow.WRAP_CONTENT leaves adapter rows measured against a zero-width
+            // constraint, which collapses the popup to icon-only width and wraps the label
+            // character-by-character on long translations (uk: "Поділитися" → "Под/ілит/ися").
+            // Pre-measure the widest row explicitly and cap at 85% of screen width.
+            width = measureMenuContentWidth(adapter)
             height = ListPopupWindow.WRAP_CONTENT
             isModal = true
             setOnItemClickListener { _, _, position, _ ->
@@ -367,6 +372,23 @@ class PlayerBigButtonsModeManager(private val context: Context) {
             }
         }
         popup.show()
+    }
+
+    private fun measureMenuContentWidth(adapter: ArrayAdapter<*>): Int {
+        val widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        val measureParent = LinearLayout(context)
+        var convertView: View? = null
+        var maxWidth = 0
+        for (i in 0 until adapter.count) {
+            convertView = adapter.getView(i, convertView, measureParent)
+            convertView.measure(widthSpec, heightSpec)
+            if (convertView.measuredWidth > maxWidth) maxWidth = convertView.measuredWidth
+        }
+        val dp8 = (8 * context.resources.displayMetrics.density).toInt()
+        val screenWidth = context.resources.displayMetrics.widthPixels
+        val cap = (screenWidth * 0.85f).toInt()
+        return (maxWidth + dp8).coerceAtMost(cap).coerceAtLeast(1)
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────────────────────

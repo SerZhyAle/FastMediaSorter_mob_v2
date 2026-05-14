@@ -14,8 +14,10 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.utils.NetworkUtils
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 internal class AddResourceFormManager(
     private val activity: AddResourceActivity,
@@ -36,10 +38,10 @@ internal class AddResourceFormManager(
 
     fun applyEdgeToEdgeInsets() {
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val safeStatusBarHeight = insets.getStatusBarHeightSafe(activity.resources)
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             binding.toolbar.setPadding(
-                binding.toolbar.paddingLeft, statusBar.top,
+                binding.toolbar.paddingLeft, safeStatusBarHeight,
                 binding.toolbar.paddingRight, binding.toolbar.paddingBottom
             )
             binding.root.setPadding(0, 0, 0, navBar.bottom)

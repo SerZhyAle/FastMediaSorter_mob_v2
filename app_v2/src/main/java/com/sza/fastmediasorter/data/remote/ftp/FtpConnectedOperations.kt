@@ -140,7 +140,7 @@ class FtpConnectedOperations(
                         } else {
                             inputStream.readBytes()
                         }
-                        if (!client.completePendingCommand()) {
+                        if (!safeCompletePendingCommand(client, "readFileBytes(passive)")) {
                             return@withContext Result.failure(
                                 IOException("FTP command failed after retrieving file")
                             )
@@ -161,7 +161,7 @@ class FtpConnectedOperations(
                             } else {
                                 inputStream.readBytes()
                             }
-                            if (!client.completePendingCommand()) {
+                            if (!safeCompletePendingCommand(client, "readFileBytes(active)")) {
                                 return@withContext Result.failure(
                                     IOException("FTP command failed after retrieving file (active mode)")
                                 )
@@ -208,7 +208,7 @@ class FtpConnectedOperations(
                             if (read == -1) break
                             totalRead += read
                         }
-                        if (!client.completePendingCommand()) {
+                        if (!safeCompletePendingCommand(client, "readFileBytesRange(passive)")) {
                             return@withContext Result.failure(
                                 IOException("FTP command failed after retrieving range")
                             )
@@ -229,7 +229,7 @@ class FtpConnectedOperations(
                                 if (read == -1) break
                                 totalRead += read
                             }
-                            if (!client.completePendingCommand()) {
+                            if (!safeCompletePendingCommand(client, "readFileBytesRange(active)")) {
                                 return@withContext Result.failure(
                                     IOException("FTP command failed after retrieving range (active mode)")
                                 )

@@ -142,42 +142,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- PERMISSIONS SECTION -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-
-                <TextView android:id="@+id/headerPermissions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_permissions" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
-
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
-
-                    <!-- Permissions -->
-                    <LinearLayout android:id="@+id/containerPermissions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
-
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnLocalFilesPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/grant_local_files_permission" android:textSize="10sp" />
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnNetworkPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="@dimen/settings_help_icon_margin" android:text="@string/grant_network_permission" android:textSize="10sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:orientation="horizontal">
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnManageMediaPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginEnd="@dimen/resource_field_margin_end" android:layout_weight="1" android:text="@string/grant_manage_media_permission" android:textSize="10sp" android:visibility="gone" />
-
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnNotificationPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="@dimen/settings_help_icon_margin" android:layout_weight="1" android:text="@string/grant_notifications_permission" android:textSize="10sp" android:visibility="gone" />
-
-                        </LinearLayout>
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBatteryOptimizationPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/grant_battery_optimization_permission" android:textSize="10sp" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
         <!-- APP DATA & BACKUPS SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
@@ -431,6 +395,19 @@
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- PERMISSIONS MANAGEMENT BUTTON — navigates to PermissionsManagementFragment -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPermissionsManagement"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/settings_margin_standard"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:text="@string/settings_category_permissions"
+            app:icon="@drawable/ic_lock"
+            app:iconGravity="start" />
 
         <!-- Documentation Links -->
         <LinearLayout android:id="@+id/containerDocLinks" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="start|center_vertical" android:orientation="horizontal">

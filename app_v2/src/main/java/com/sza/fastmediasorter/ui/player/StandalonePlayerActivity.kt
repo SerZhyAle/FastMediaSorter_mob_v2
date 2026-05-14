@@ -759,7 +759,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             popup.inflate(R.menu.overflow_menu_standalone_player)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_open_in_fms -> { Timber.d("S0180: menu_open_in_fms — standalone overflow"); openInFms(); true }
+                    R.id.menu_open_in_fms -> { openInFms(); true }
                     else -> false
                 }
             }
@@ -771,7 +771,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     // ── File Info ─────────────────────────────────────────────────────────
 
     private fun showFileInfo() {
-        Timber.d("S0180: showFileInfo entry — standalone player")
         val file = viewModel.state.value.mediaFile ?: return
         if (isFinishing || isDestroyed) return
         FileInfoDialog(

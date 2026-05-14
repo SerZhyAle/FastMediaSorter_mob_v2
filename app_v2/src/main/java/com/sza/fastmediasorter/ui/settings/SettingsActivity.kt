@@ -17,6 +17,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -209,13 +210,12 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
-        val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+        statusBarInsetPx = insets.getStatusBarHeightSafe(resources)
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-        statusBarInsetPx = statusBar.top
 
         // Toolbar container below status bar
         binding.toolbarContainer.setPadding(
-            binding.toolbarContainer.paddingLeft, statusBar.top,
+            binding.toolbarContainer.paddingLeft, statusBarInsetPx,
             binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
         )
 

@@ -226,7 +226,7 @@ object FtpStandaloneOperations {
             }
 
             if (bytes != null) {
-                if (!client.completePendingCommand()) {
+                if (!safeCompletePendingCommand(client, "standalone.readFileBytes(passive)")) {
                     throw IOException("FTP command failed after retrieving file")
                 }
                 Result.success(bytes)
@@ -249,7 +249,7 @@ object FtpStandaloneOperations {
                     IOException("Failed to open file stream (active mode): $remotePath")
                 )
 
-                if (!client.completePendingCommand()) {
+                if (!safeCompletePendingCommand(client, "standalone.readFileBytes(active)")) {
                     return@executeWithNewConnection Result.failure(
                         IOException("FTP command failed (active mode)")
                     )

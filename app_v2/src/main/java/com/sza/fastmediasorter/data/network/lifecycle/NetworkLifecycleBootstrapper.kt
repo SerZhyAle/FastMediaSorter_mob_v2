@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.network.lifecycle
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.sza.fastmediasorter.R
@@ -16,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -55,12 +58,36 @@ class NetworkLifecycleBootstrapper @Inject constructor(
 
     /**
      * Run the four lifecycle registrations exactly once across the process lifetime.
-     * Safe to call from any thread; the [AtomicBoolean] guard collapses concurrent
-     * first calls to a single execution. Subsequent calls return immediately.
+     *
+     * Safe to call from any thread. When invoked from a background thread the method
+     * dispatches the [LifecycleRegistry.addObserver] calls to the main thread and
+     * blocks the calling thread until they complete (required by AndroidX — addObserver
+     * must be called on the main thread). The [AtomicBoolean] guard collapses concurrent
+     * first calls to a single execution. Subsequent calls return immediately without
+     * blocking.
      */
     fun ensureInitialized() {
         if (!initialized.compareAndSet(false, true)) return
 
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            doRegistrations()
+        } else {
+            // addObserver requires the main thread; synchronously dispatch and wait.
+            val latch = CountDownLatch(1)
+            Handler(Looper.getMainLooper()).post {
+                try {
+                    doRegistrations()
+                } finally {
+                    latch.countDown()
+                }
+            }
+            latch.await()
+        }
+
+        Timber.i("S0195: network lifecycle bootstrap complete")
+    }
+
+    private fun doRegistrations() {
         // (1) SMB background lifecycle observer — closes UI SMB connections on app stop.
         runCatching {
             ProcessLifecycleOwner.get().lifecycle.addObserver(smbBackgroundLifecycleManager.get())
@@ -89,7 +116,7 @@ class NetworkLifecycleBootstrapper @Inject constructor(
                                 message,
                                 Toast.LENGTH_SHORT,
                             )
-                            Timber.d("S0195: SMB auto-reset notification shown: $reason")
+                            Timber.d("SMB auto-reset notification shown: $reason")
                         } catch (e: Exception) {
                             Timber.e(e, "S0195: Failed to show SMB auto-reset notification")
                         }
@@ -97,7 +124,5 @@ class NetworkLifecycleBootstrapper @Inject constructor(
                 }
             })
         }.onFailure { Timber.e(it, "S0195: SmbConnectionManager.setResetCallback failed") }
-
-        Timber.i("S0195: network lifecycle bootstrap complete")
     }
 }
