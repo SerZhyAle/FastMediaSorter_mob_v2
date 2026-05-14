@@ -9664,3 +9664,4 @@ Format: | datetime | file | target | description |
 | 2026-05-14 15:23:28 | `PLAN/S0112_android-tv-launcher-support.md` | `spec S0112` | Align strategic status to Verified with the existing Android TV launcher implementation [branch: DEBUG-v001] |
 | 2026-05-14 15:23:28 | `PLAN/S0112_android-tv-launcher-support/INDEX.md` | `spec S0112` | Close tactical plan after confirming the implementation payload already exists in code and git history [branch: DEBUG-v001] |
 | 2026-05-14 15:23:28 | `PLAN/spec-catalog.jsonl` | `spec S0112` | Advance S0112 journal status to Verified after implementation alignment [branch: DEBUG-v001] |
+| 2026-05-14 15:24:30 | `PLAN/S0196_activity-render-priority-research.md` | `spec-update` | Refine S0196 strategic scope: target surfaces, measurement protocol, research artifacts, and readiness criteria [branch: DEBUG-v001] |
