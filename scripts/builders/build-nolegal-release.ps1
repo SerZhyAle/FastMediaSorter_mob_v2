@@ -47,7 +47,10 @@ Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process (Release with R8 optimizations).
 # --no-configuration-cache: Chaquopy 17.x is not configuration-cache-compatible (S0175).
-& $gradlew assembleNoLegalRelease --no-configuration-cache
+# -Pchaquopy.enabled=true: noLegal flavor REQUIRES the Chaquopy Python runtime.
+#   Passing the flag explicitly removes the dependency on a machine-local
+#   `chaquopy.enabled=true` line in `local.properties` (gitignored, may be absent).
+& $gradlew assembleNoLegalRelease "-Pchaquopy.enabled=true" --no-configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

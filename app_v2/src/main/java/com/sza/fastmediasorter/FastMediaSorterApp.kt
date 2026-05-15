@@ -14,6 +14,8 @@ import com.google.android.material.color.DynamicColors
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
+import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -91,6 +93,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
     @Inject
     lateinit var defaultsMapLoader: dagger.Lazy<com.sza.fastmediasorter.data.input.DefaultsMapLoader>
+
+    // S0207 Phase 01: memory observability channel — emitted at fixed lifecycle anchors.
+    // Direct (non-Lazy) injection: used at end of onCreate, before any background work runs.
+    @Inject
+    lateinit var memoryProbe: MemoryProbe
 
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -259,6 +266,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 Timber.e(e, "FastMediaSorterApp: Failed to apply background sync settings on startup")
             }
         }
+
+        // S0207 Phase 01: APP_STARTED memory probe — last call in onCreate so the
+        // measurement reflects the post-init state of the process.
+        memoryProbe.record(MemoryCheckpoint.APP_STARTED)
     }
 
     private fun setupDebugStrictMode() {

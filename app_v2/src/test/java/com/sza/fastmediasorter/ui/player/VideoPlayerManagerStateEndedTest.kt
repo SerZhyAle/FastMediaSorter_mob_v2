@@ -61,7 +61,8 @@ class VideoPlayerManagerStateEndedTest {
             dropboxClient = mockk(relaxed = true),
             playbackPositionRepository = mockRepo,
             settingsRepository = mockSettings,
-            panelStereoSingleEyeNotifier = mockk(relaxed = true)
+            panelStereoSingleEyeNotifier = mockk(relaxed = true),
+            memoryProbe = mockk(relaxed = true),
         )
     }
 

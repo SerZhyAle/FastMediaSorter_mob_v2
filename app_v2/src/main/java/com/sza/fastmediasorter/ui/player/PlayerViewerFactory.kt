@@ -38,7 +38,9 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             dropboxClient = activity.dropboxClient,
             playbackPositionRepository = activity.playbackPositionRepository,
             settingsRepository = activity.settingsRepository,
-            panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier
+            panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier,
+            // S0207 Phase 01: forwarded for PRE_PLAY / AFTER_STATE_READY MEM_PROBE checkpoints.
+            memoryProbe = activity.memoryProbe,
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
         }

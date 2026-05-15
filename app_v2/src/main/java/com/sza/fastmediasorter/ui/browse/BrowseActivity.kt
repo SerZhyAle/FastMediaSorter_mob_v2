@@ -21,6 +21,8 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -97,6 +99,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // Flavor multibinding keeps flavor-only Browse actions out of market APKs.
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
+
+    // S0207 Phase 01: BROWSE_OPENED memory checkpoint emitter.
+    @Inject lateinit var memoryProbe: MemoryProbe
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -203,6 +208,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         )
+
+        // S0207 Phase 01: BROWSE_OPENED probe — fired at the end of onCreate so the measurement
+        // captures the cost of inflating the browse UI plus initial dependency wiring.
+        memoryProbe.record(MemoryCheckpoint.BROWSE_OPENED)
     }
 
     override fun getViewBinding(): ActivityBrowseBinding {

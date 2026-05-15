@@ -37,7 +37,9 @@ import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
 import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
 import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
 import com.sza.fastmediasorter.ui.player.helpers.formatTime
-import com.sza.fastmediasorter.ui.player.helpers.logMemoryStats
+import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.ui.player.helpers.playCloudVideo
 import com.sza.fastmediasorter.ui.player.helpers.playFtpVideo
 import com.sza.fastmediasorter.ui.player.helpers.playLocalVideoInternal
@@ -92,7 +94,9 @@ class VideoPlayerManager(
     internal val dropboxClient: DropboxClient,
     internal val playbackPositionRepository: PlaybackPositionRepository,
     internal val settingsRepository: SettingsRepository,
-    internal val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier
+    internal val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier,
+    // S0207 Phase 01: PRE_PLAY / AFTER_STATE_READY checkpoints emitted from playVideo / playerListener.
+    internal val memoryProbe: MemoryProbe,
 ) : DefaultLifecycleObserver {
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -352,7 +356,12 @@ class VideoPlayerManager(
             when (playbackState) {
                 Player.STATE_READY -> {
                     Timber.d("VideoPlayerManager: Playback ready")
-                    logMemoryStats("AFTER STATE_READY")
+                    // S0207 Phase 01: post-ready memory checkpoint. scenarioTag is derived from the
+                    // current file path so audio vs video can be filtered in MEM_PROBE log lines.
+                    memoryProbe.record(
+                        MemoryCheckpoint.AFTER_STATE_READY,
+                        scenarioTag = currentFilePath?.let(::scenarioTagFor),
+                    )
                     playbackRetryCount = 0
                     currentFilePath?.let(VideoPlaybackFailureSessionCache::clear)
                     playerCallback.onBuffering(false)
@@ -671,7 +680,8 @@ class VideoPlayerManager(
         playerCallback.onBeforeVideoLoad(path)
         // Reset the panel single-eye toast one-shot for the new media session.
         panelStereoSingleEyeNotifier.resetForNewSession()
-        logMemoryStats("BEFORE playVideo")
+        // S0207 Phase 01: PRE_PLAY checkpoint — captures native heap right before ExoPlayer starts.
+        memoryProbe.record(MemoryCheckpoint.PRE_PLAY, scenarioTag = scenarioTagFor(path))
 
         // Reset effects-deferral gate for the new file — size will be reported
         // again via onVideoSizeChanged once the decoder decodes the first frame.
@@ -860,4 +870,12 @@ class VideoPlayerManager(
     override fun onResume(owner: LifecycleOwner) = lifecycleHelper.onResume()
 
     override fun onDestroy(owner: LifecycleOwner) = lifecycleHelper.onDestroy()
+
+    // S0207 Phase 01: simple audio/video classifier for MEM_PROBE scenarioTag.
+    // The full scenario taxonomy is introduced by Phase 03 (memory-profile-abstraction);
+    // until then this two-bucket split is enough to filter audio-only sessions in logs.
+    private fun scenarioTagFor(path: String): String {
+        val ext = path.substringAfterLast('.', "").lowercase()
+        return if (ext in MediaTypeUtils.AUDIO_EXTENSIONS) "audio" else "video"
+    }
 }

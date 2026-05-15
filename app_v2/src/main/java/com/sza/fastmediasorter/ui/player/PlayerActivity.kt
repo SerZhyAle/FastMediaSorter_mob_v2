@@ -310,6 +310,10 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     @Inject
     lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 
+    // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
+    @Inject
+    lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
+
     @Inject
     lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
 
