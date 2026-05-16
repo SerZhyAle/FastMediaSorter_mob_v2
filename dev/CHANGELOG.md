@@ -10396,3 +10396,5 @@ Format: | datetime | file | target | description |
 | 2026-05-16 04:05:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0219.phase01.step01.4` | Unwrap uploadFile(InputStream): remove broad Exception catch [branch: DEBUG-v002] |
 | 2026-05-16 04:06:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0219.phase01.step01.5` | Tighten exists: keep point-catch for SSH_FX_NO_SUCH_FILE only; other errors propagate [branch: DEBUG-v002] |
 | 2026-05-16 04:27:35 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.5160.425 — plateau merge from DEBUG-v002 [branch: DEBUG-v002] |
+| 2026-05-16 04:35:24 | `PLAN/S0220_google-tv-availability-research.md` | `spec` | Add strategic spec S0220 for google-tv-availability-research [branch: DEBUG-v003] |
+| 2026-05-16 04:36:26 | `scripts/builders/build-aab-release.ps1` | `build` | Fallback AAB/APK search in sibling directories when Gradle daemon reuse writes outputs to dev worktree instead of release worktree [branch: DEBUG-v003] |
