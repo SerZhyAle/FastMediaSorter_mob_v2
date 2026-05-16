@@ -67,6 +67,9 @@ class FtpExoPlayerPool {
             client.defaultTimeout = SOCKET_TIMEOUT
             client.setDataTimeout(SOCKET_TIMEOUT)
             client.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
+            // S0212: encoding MUST be set before connect — Apache Commons Net
+            // captures the control-channel encoding inside _connectAction_().
+            client.applyUtf8Encoding()
 
             client.connect(connectionInfo.host, connectionInfo.port)
 
@@ -83,7 +86,8 @@ class FtpExoPlayerPool {
 
             client.enterLocalPassiveMode()
             client.setFileType(FTP.BINARY_FILE_TYPE)
-            client.controlEncoding = "UTF-8"
+            // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
+            client.enableUtf8Mode()
 
             return ExoPlayerFtpConnection(client)
         } catch (e: InterruptedException) {

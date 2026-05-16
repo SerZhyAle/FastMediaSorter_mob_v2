@@ -57,6 +57,7 @@ import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.entry.VrTaskTransition
+import com.sza.fastmediasorter.ui.player.helpers.toPlaybackOrderUiState
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
@@ -95,6 +96,11 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     // S0021: lazy-initialised FPS meter for the flat 2D player overlay.
     internal val playerFpsMeter: PlayerFpsMeter = PlayerFpsMeter()
     private var playerFpsCollectorStarted: Boolean = false
+
+    // Tracks whether viewModel.togglePause() was called from onPause() due to lifecycle
+    // (not user action). Cleared and reversed in onResumeWithViews() to prevent isPaused
+    // from leaking across background/resume cycles and breaking playWhenReady on next load.
+    private var wasToggledPausedByLifecycle = false
 
     internal lateinit var fileOperationsHandler: FileOperationsHandler
     internal lateinit var playerFileOperationQueue: com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
@@ -310,6 +316,24 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     @Inject
     lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 
+    // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
+    @Inject
+    lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
+
+    @Inject
+    lateinit var memoryProfileCoordinator: com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
+
+    // S0213 Pillar A: passed to VideoPlayerManager and PlayerMediaLoaderManager for decoder-error cooldown.
+    @Inject
+    lateinit var recentDecoderFailureTracker: com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
+
+    // S0213 Pillar C: source of FAIL-verdict events; collected by observeData() into a one-shot snackbar.
+    @Inject
+    lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
+
+    /** Per-Activity guard so the degradation snackbar is shown at most once per player session. */
+    private var memoryAlertShownInSession: Boolean = false
+
     @Inject
     lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
 
@@ -491,6 +515,19 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                     }
             }
         }
+        // S0213 Pillar C: surface a one-shot snackbar with "Close player" CTA on memory FAIL.
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                memoryDegradationSignal.events.collect { event ->
+                    if (memoryAlertShownInSession) return@collect
+                    memoryAlertShownInSession = true
+                    dialogAndUiStateManager.showMemoryDegradationSnackbar {
+                        Timber.i("S0213 user closed player from memory alert; event=$event")
+                        finish()
+                    }
+                }
+            }
+        }
     }
 
     // Open so VrPlayerActivity can route exit through VrTaskTransition instead of a plain finish(),
@@ -516,7 +553,8 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             prefs.getString(PlaybackControlPreferences.KEY_PLAYBACK_ORDER_VIDEO, null) ?: "")
         val initialMode = if (viewModel.state.value.currentFile?.type == MediaType.AUDIO) audioMode else videoMode
         viewModel.setPlaybackOrderMode(initialMode)
-        commandPanelController.updatePlaybackOrderButtonIcon(initialMode)
+        applyPlaybackOrderModeToActivePlayer(initialMode)
+        exoPlayerControlsManager.updatePlaybackOrderButtonState()
     }
 
     private fun setupTouchZones() = touchZoneSetupManager.setupLegacyTouchZoneListeners()
@@ -663,6 +701,97 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     internal val isDrawOverlayManagerReady: Boolean get() = ::imageDrawOverlayManager.isInitialized
 
     @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
+
+    // S0192 Phase 05 — Google Keep export, invoked from the draw editor overflow menu.
+    @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
+
+    /**
+     * S0192 Phase 06 — in-place overwrite callback for the `[Save]` button.
+     *
+     * Pipeline: merge overlay onto base bitmap → if resource is local + writable,
+     * overwrite `currentFile.path`; otherwise silently fall through to the
+     * legacy "save as new" pipeline (ADR-4 — no error shown to user).
+     */
+    internal fun setupDrawOverlayInPlaceSaveCallback() {
+        imageDrawOverlayManager.inPlaceSaveCallback =
+            object : com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager.DrawOverlayInPlaceSaveCallback {
+                override fun onInPlaceSaveRequested(overlayBitmap: android.graphics.Bitmap) {
+                    Timber.d("S0192: onInPlaceSaveRequested")
+                    val baseBitmap = viewModel.currentDisplayedBitmap ?: run {
+                        Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    val currentFile = viewModel.state.value.currentFile ?: run {
+                        Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    val ext = currentFile.name.substringAfterLast('.', "").lowercase()
+                    val outputFormat = if (ext == "jpg" || ext == "jpeg") {
+                        android.graphics.Bitmap.CompressFormat.JPEG
+                    } else {
+                        android.graphics.Bitmap.CompressFormat.PNG
+                    }
+                    val isReadOnly = viewModel.state.value.resource?.isReadOnly ?: false
+                    val isLocalFile = currentFile.path.startsWith("/")
+
+                    // ADR-4: silent fallback for read-only / non-local resources.
+                    // Route through the existing handleSaveRequest pipeline (file-name dialog → save-as-new).
+                    if (isReadOnly || !isLocalFile) {
+                        Timber.d("S0192: in-place save fallback (isReadOnly=$isReadOnly, isLocalFile=$isLocalFile) -> save-as-new")
+                        imageDrawOverlayManager.getOverlayBitmap()?.let { _ ->
+                            // Re-enter the legacy save path; handleSaveRequest will prompt
+                            // for a filename and then dispatch to saveCallback.
+                            imageDrawOverlayManager.exitDrawMode(save = true)
+                        }
+                        return
+                    }
+
+                    val displayRect = activityBinding.photoView.displayRect
+
+                    lifecycleScope.launch {
+                        val croppedOverlay = cropOverlayToImage(
+                            overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height
+                        )
+                        val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
+                        val bytes = mergeResult.getOrElse { e ->
+                            Timber.e(e, "S0192: overlay merge failed (in-place)")
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+                            }
+                            return@launch
+                        }
+
+                        val writeOk = withContext(Dispatchers.IO) {
+                            try {
+                                java.io.FileOutputStream(java.io.File(currentFile.path)).use { it.write(bytes) }
+                                true
+                            } catch (e: Throwable) {
+                                Timber.e(e, "S0192: in-place write failed for ${currentFile.path}")
+                                false
+                            }
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            if (writeOk) {
+                                Toast.makeText(this@PlayerActivity, R.string.draw_save_ok_toast, Toast.LENGTH_SHORT).show()
+                                imageDrawOverlayManager.exitDrawMode(save = false)
+                                // Notify the view model so any cached bitmap for currentFile is refreshed
+                                val refreshed = MediaFile(
+                                    path = currentFile.path,
+                                    name = currentFile.name,
+                                    type = currentFile.type,
+                                    size = bytes.size.toLong(),
+                                    createdDate = currentFile.createdDate
+                                )
+                                viewModel.onFileCreatedInCurrentDirectory(refreshed)
+                            } else {
+                                Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+    }
 
     /**
      * Wires the DrawOverlaySaveCallback to the merge + write + navigate pipeline.
@@ -928,6 +1057,12 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     internal fun handleMediaLoadErrorAndSkip() {
         Toast.makeText(this, getString(R.string.error_loading_media), Toast.LENGTH_SHORT).show()
+        // In slideshow mode the player must continue without interruption. If isPaused=true
+        // reached this point (e.g., a background/resume lifecycle race before the toggle-reversal
+        // in onResumeWithViews() completes), force-unpause so the next file gets playWhenReady=true.
+        if (viewModel.state.value.isSlideShowActive && viewModel.state.value.isPaused) {
+            viewModel.setPaused(false)
+        }
         navigationManager.navigateNextFromControl(manual = false)
     }
 
@@ -945,6 +1080,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         if (serviceAudioActiveOnPause) {
             binding.playerView.player = null
         } else {
+            // Track that we toggled pause due to lifecycle so onResumeWithViews() can reverse it.
+            // Must be set before togglePause() to survive the state emission.
+            wasToggledPausedByLifecycle = true
             viewModel.togglePause()
             // When finishing, release ExoPlayer from the PlayerView Surface immediately.
             // Without this, the CCodec (mp3/video decoder) keeps the Surface alive across
@@ -985,6 +1123,14 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
     override fun onResumeWithViews() {
         lifecycleManager.onResume()
+        // Reverse the lifecycle-induced togglePause() from onPause() so that isPaused does not
+        // persist across a background/resume cycle. Without this, isPaused=true causes every
+        // subsequent video load (playVideoWithResourceType) to start with playWhenReady=false,
+        // which breaks slideshow continuity and requires the user to press PLAY after errors.
+        if (wasToggledPausedByLifecycle) {
+            wasToggledPausedByLifecycle = false
+            viewModel.togglePause()
+        }
         // S0162: re-apply orientation on resume (re-reads OS auto-rotate state — ADR-1)
         val rs = viewModel.state.value
         screenRotationManager.apply(this, rs.followSystemRotation, rs.playerRotationSensorEnabled, hasAccelerometer)
@@ -1202,6 +1348,21 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         }
     }
 
+    private fun applyPlaybackOrderModeToActivePlayer(mode: PlaybackOrderMode) {
+        when (viewModel.state.value.currentFile?.type) {
+            MediaType.AUDIO -> audioServiceController?.applyPlaybackOrderMode(mode)
+            MediaType.VIDEO -> {
+                val exoRepeatMode = if (mode == PlaybackOrderMode.REPEAT_ONE) {
+                    Player.REPEAT_MODE_ONE
+                } else {
+                    Player.REPEAT_MODE_OFF
+                }
+                _videoPlayerManager?.getPlayer()?.repeatMode = exoRepeatMode
+            }
+            else -> {}
+        }
+    }
+
     internal fun onPlaybackOrderClicked() {
         val newMode = viewModel.cyclePlaybackOrderMode()
         val prefKey = if (viewModel.state.value.currentFile?.type == MediaType.AUDIO)
@@ -1210,22 +1371,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             PlaybackControlPreferences.KEY_PLAYBACK_ORDER_VIDEO
         getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
             .edit().putString(prefKey, newMode.toPrefsString()).apply()
-        when (viewModel.state.value.currentFile?.type) {
-            MediaType.AUDIO -> audioServiceController?.applyPlaybackOrderMode(newMode)
-            MediaType.VIDEO -> {
-                val exoRepeatMode = if (newMode == PlaybackOrderMode.REPEAT_ONE)
-                    Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
-                _videoPlayerManager?.getPlayer()?.repeatMode = exoRepeatMode
-            }
-            else -> {}
-        }
-        commandPanelController.updatePlaybackOrderButtonIcon(newMode)
-        val label = getString(when (newMode) {
-            PlaybackOrderMode.LOOP_LIST    -> R.string.playback_order_loop_list
-            PlaybackOrderMode.PLAY_THROUGH -> R.string.playback_order_play_through
-            PlaybackOrderMode.SHUFFLE      -> R.string.playback_order_shuffle
-            PlaybackOrderMode.REPEAT_ONE   -> R.string.playback_order_repeat_one
-        })
+        applyPlaybackOrderModeToActivePlayer(newMode)
+        exoPlayerControlsManager.updatePlaybackOrderButtonState()
+        val label = getString(newMode.toPlaybackOrderUiState().labelResId)
         Toast.makeText(this, getString(R.string.playback_order_mode_set, label), Toast.LENGTH_SHORT).show()
     }
 

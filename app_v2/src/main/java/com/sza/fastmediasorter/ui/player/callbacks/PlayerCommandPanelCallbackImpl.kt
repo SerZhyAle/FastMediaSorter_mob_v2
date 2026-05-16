@@ -274,10 +274,6 @@ class PlayerCommandPanelCallbackImpl(
         activity.tearOffPlayer()
     }
 
-    override fun onPlaybackOrderClicked() {
-        activity.onPlaybackOrderClicked()
-    }
-
     override fun onCropClicked() {
         activity.enterImageCropMode(com.sza.fastmediasorter.ui.player.helpers.ImageCropManager.CropMode.CROP)
     }

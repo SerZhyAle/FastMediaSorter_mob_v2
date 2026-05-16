@@ -6,13 +6,17 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.core.os.HandlerCompat
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
 import timber.log.Timber
 
 /**
- * Debug-only memory endurance tracker for S0120.
+ * Memory endurance tracker for S0120 + S0213 Pillar C.
  *
- * Emits structured Logcat lines prefixed with `MEM_ENDURANCE |` at each checkpoint.
- * All methods are no-ops in release builds.
+ * Emits structured Logcat lines prefixed with `MEM_ENDURANCE |` at each checkpoint
+ * (verbose logging is `BuildConfig.DEBUG`-only; state tracking and verdict emission are always on).
+ * On verdict FAIL — or when drift_from_baseline ≥ [DRIFT_FAIL_THRESHOLD] at cooldown — the tracker
+ * forwards a one-shot event to the wired [MemoryDegradationSignal] so the UI layer can react
+ * (release-safe: needed in production to drive the "Close player" snackbar from S0213 §5.1 Pillar C).
  *
  * Usage:
  * - Call [startScenario] when the endurance scenario begins.
@@ -32,6 +36,21 @@ object MemoryEnduranceTracker {
     private const val SUSPICIOUS_THRESHOLD = 40.0
     private const val MONOTONIC_FAIL_COUNT = 5
 
+    /** Drift threshold (percent above baseline) that triggers a degradation event at cooldown. */
+    private const val DRIFT_FAIL_THRESHOLD = 50
+
+    /**
+     * S0213 Pillar C: release-safe signal channel for FAIL verdicts.
+     * Wired once from [com.sza.fastmediasorter.FastMediaSorterApp.onCreate]; null until then.
+     */
+    @Volatile
+    private var degradationSignal: MemoryDegradationSignal? = null
+
+    /** Wire the release-safe signal channel from Hilt-aware context (Application#onCreate). */
+    fun wireDegradationSignal(signal: MemoryDegradationSignal) {
+        degradationSignal = signal
+    }
+
     private var scenarioId: String = ""
     private var startElapsed: Long = 0L
     private var baselineHeapMb: Long = 0L
@@ -47,7 +66,9 @@ object MemoryEnduranceTracker {
 
     /** Start a named endurance scenario. Resets all internal state. */
     fun startScenario(id: String) {
-        if (!BuildConfig.DEBUG) return
+        // S0213 Pillar C: state tracking runs in all builds so endScenario can produce a verdict
+        // and emit the release-safe degradation signal. Verbose Timber output stays DEBUG-only
+        // (see [logCheckpoint] / [emitVerbose]).
         scenarioId = id
         transitions = 0
         cycleCount = 0
@@ -70,7 +91,6 @@ object MemoryEnduranceTracker {
      * @param autoScenarioId Scenario id to use when auto-starting; ignored if a scenario is active.
      */
     fun checkpoint(label: String, autoScenarioId: String = "AUTO") {
-        if (!BuildConfig.DEBUG) return
         if (scenarioId.isEmpty()) startScenario(autoScenarioId)
         transitions++
         val heapMb = heapUsedMb()
@@ -83,42 +103,57 @@ object MemoryEnduranceTracker {
      * End the scenario. Logs SCENARIO_END, emits summary, schedules cooldown checkpoint.
      */
     fun endScenario() {
-        if (!BuildConfig.DEBUG) return
         val finalHeap = heapUsedMb()
         if (finalHeap > peakHeapMb) peakHeapMb = finalHeap
         logCheckpoint("SCENARIO_END")
         val verdict = deriveVerdict(finalHeap)
-        Timber.d(
-            "MEM_ENDURANCE | SUMMARY | scenario=$scenarioId" +
-                " | total_transitions=$transitions" +
-                " | baseline=${baselineHeapMb}MB" +
-                " | peak=${peakHeapMb}MB" +
-                " | final=${finalHeap}MB" +
-                " | verdict=$verdict"
-        )
+        if (BuildConfig.DEBUG) {
+            Timber.d(
+                "MEM_ENDURANCE | SUMMARY | scenario=$scenarioId" +
+                    " | total_transitions=$transitions" +
+                    " | baseline=${baselineHeapMb}MB" +
+                    " | peak=${peakHeapMb}MB" +
+                    " | final=${finalHeap}MB" +
+                    " | verdict=$verdict"
+            )
+        }
+        // S0213 Pillar C: release-safe forwarding to the UI layer. Drift at SCENARIO_END is not
+        // yet known (computed only in COOLDOWN_RESULT) — pass 0; the cooldown-result branch will
+        // emit a second event with the actual drift value if the threshold is crossed.
+        if (verdict == "FAIL") {
+            degradationSignal?.emitFail(scenarioId, peakHeapMb.toInt(), driftPercent = 0)
+        }
         handler.removeCallbacksAndMessages(COOLDOWN_TAG)
         HandlerCompat.postDelayed(handler, { cooldownCheckpoint() }, COOLDOWN_TAG, COOLDOWN_DELAY_MS)
     }
 
     /** Record the memory state 30 s after endScenario. Called automatically by endScenario. */
     fun cooldownCheckpoint() {
-        if (!BuildConfig.DEBUG) return
         logCheckpoint("COOLDOWN_END")
         val cooldownHeap = heapUsedMb()
         val recovery = if (baselineHeapMb > 0) {
             ((cooldownHeap - baselineHeapMb) * 100.0 / baselineHeapMb).toInt()
         } else 0
-        Timber.d(
-            "MEM_ENDURANCE | COOLDOWN_RESULT | scenario=$scenarioId" +
-                " | cooldown=${cooldownHeap}MB" +
-                " | baseline=${baselineHeapMb}MB" +
-                " | drift_from_baseline=${recovery}%"
-        )
+        if (BuildConfig.DEBUG) {
+            Timber.d(
+                "MEM_ENDURANCE | COOLDOWN_RESULT | scenario=$scenarioId" +
+                    " | cooldown=${cooldownHeap}MB" +
+                    " | baseline=${baselineHeapMb}MB" +
+                    " | drift_from_baseline=${recovery}%"
+            )
+        }
+        // S0213 Pillar C: high cooldown drift means native graph did not release after
+        // SCENARIO_END — emit even if endScenario verdict was below FAIL threshold.
+        if (recovery >= DRIFT_FAIL_THRESHOLD) {
+            degradationSignal?.emitFail(scenarioId, peakHeapMb.toInt(), driftPercent = recovery)
+        }
     }
 
     // -------------------------------------------------------------------------
 
     private fun logCheckpoint(label: String) {
+        // Verbose Timber output only in DEBUG — state mutation already happened in the caller.
+        if (!BuildConfig.DEBUG) return
         val heapMb = heapUsedMb()
         val nativeMb = nativeHeapMb()
         val heapMaxMb = Runtime.getRuntime().maxMemory() / 1_048_576
@@ -149,12 +184,14 @@ object MemoryEnduranceTracker {
             delta >= PLATEAU_THRESHOLD -> "SUSPICIOUS"
             else -> "PLATEAU"
         }
-        Timber.d(
-            "MEM_ENDURANCE | scenario=$scenarioId" +
-                " | cycle=$cycleCount" +
-                " | cycle_delta=${"%.1f".format(delta)}%" +
-                " | classification=$classification"
-        )
+        if (BuildConfig.DEBUG) {
+            Timber.d(
+                "MEM_ENDURANCE | scenario=$scenarioId" +
+                    " | cycle=$cycleCount" +
+                    " | cycle_delta=${"%.1f".format(delta)}%" +
+                    " | classification=$classification"
+            )
+        }
         lastCycleHeapMb = currentHeapMb
     }
 

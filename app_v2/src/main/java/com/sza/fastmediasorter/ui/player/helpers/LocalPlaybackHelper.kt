@@ -11,6 +11,7 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSourceFactory
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormatDetector
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
@@ -44,6 +45,7 @@ fun VideoPlayerManager.playLocalVideo(path: String, playWhenReady: Boolean = tru
 
 internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, playWhenReady: Boolean = true) {
     val normalizedPath = normalizeLocalPath(path)
+    val isAudio = normalizedPath.substringAfterLast('.', "").lowercase() in MediaTypeUtils.AUDIO_EXTENSIONS
     Timber.d("VideoPlayerManager: Playing local video - path=$path, normalizedPath=$normalizedPath")
 
     // Validate file exists for local files (IO thread to avoid StrictMode DiskReadViolation)
@@ -107,7 +109,7 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
     }
 
     if (exoPlayer == null && currentPlayerView != null) {
-        createPlayer(currentPlayerView!!)
+        createPlayer(currentPlayerView!!, isAudio = isAudio)
     }
 
     exoPlayer?.apply {

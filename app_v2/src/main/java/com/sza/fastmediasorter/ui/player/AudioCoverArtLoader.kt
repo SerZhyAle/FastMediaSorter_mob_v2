@@ -10,13 +10,13 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.HttpException
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.data.repository.AudioMetadataSaveData
@@ -63,6 +63,7 @@ class AudioCoverArtLoader(
     private var coverArtJob: Job? = null
     private var coverArtDisplayedForPath: String? = null
     private var audioEmptyStateController: AudioEmptyStateController? = null
+    private val decodeFormatResolver by lazy { binding.root.context.memoryPressureDecodeFormatResolver() }
 
     fun setAudioEmptyStateController(controller: AudioEmptyStateController) {
         audioEmptyStateController = controller
@@ -270,8 +271,10 @@ class AudioCoverArtLoader(
                             binding.audioCoverArtView.isVisible = true
                             val capturedMode = settings.audioEmptyStateMode
                             val request = Glide.with(binding.audioCoverArtView.context).load(coverUrl)
-                                .error(R.drawable.ic_music_note).diskCacheStrategy(DiskCacheStrategy.ALL)
-                            if (memoryTier == MemoryTier.LOW) request.format(DecodeFormat.PREFER_RGB_565).dontAnimate().override(512, 512)
+                                .error(R.drawable.ic_music_note)
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .format(decodeFormatResolver.decodeFormat())
+                            if (memoryTier == MemoryTier.LOW) request.dontAnimate().override(512, 512)
                             request.listener(object : RequestListener<Drawable> {
                                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                                     if (is404NotFound(e)) {
@@ -371,8 +374,10 @@ class AudioCoverArtLoader(
                         audioEmptyStateController?.hide()
                         binding.audioCoverArtView.isVisible = true
                         val request = Glide.with(binding.audioCoverArtView.context).load(coverUrl)
-                            .error(R.drawable.ic_music_note).diskCacheStrategy(DiskCacheStrategy.ALL)
-                        if (memoryTier == MemoryTier.LOW) request.format(DecodeFormat.PREFER_RGB_565).dontAnimate().override(512, 512)
+                            .error(R.drawable.ic_music_note)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .format(decodeFormatResolver.decodeFormat())
+                        if (memoryTier == MemoryTier.LOW) request.dontAnimate().override(512, 512)
                         request.listener(object : RequestListener<Drawable> {
                             override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                                 if (is404NotFound(e)) {

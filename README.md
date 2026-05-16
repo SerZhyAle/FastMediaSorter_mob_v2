@@ -2,6 +2,7 @@
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
 **📖 Other Languages:** [🇷🇺 Русский](docs/README_RU.md) | [🇺🇦 Українська](docs/README_UK.md)
 
@@ -11,13 +12,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5150.150 (May 2026)
+## What's New in v2.60.5160.425 (May 2026)
 
 **New:**
-Big Buttons Mode refined (100dp controls, adaptive 5..10 slots), slideshow auto-stop on network loss, Permissions button relocated, device summary in settings.
+Draw editor v2 (oval/text tools, 16-color palette, in-place save, Google Keep export), file size shown in browse list rows.
 
 **Fixed:**
-Toolbar overlap with status bar on Android 8.x car head units, NetworkLifecycleBootstrapper background-thread crash, SFTP teardown log noise, Big Buttons audio overflow menu sizing.
+Image-edit toolbar buttons no longer hidden in overflow for image viewer, spurious sign-in prompt during link downloads eliminated.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -83,6 +84,12 @@ For exact feature-by-flavor availability, use the canonical documentation:
 ## Download 📥
 
 📲 **[Get it on Google Play](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter)**
+
+<a href="https://github-store.org/app?repo=SerZhyAle/FastMediaSorter_mob_v2">
+  <img src="https://raw.githubusercontent.com/OpenHub-Store/GitHub-Store/main/media-resources/ghs_download_badge.png" alt="Get it on GitHub Store" height="80" />
+</a>
+
+Available on GitHub Store — install, update, and discover apps directly from GitHub releases.
 
 **Compiled APK files are NOT stored in this GitHub repository.** All builds are available on **Google Drive**:
 

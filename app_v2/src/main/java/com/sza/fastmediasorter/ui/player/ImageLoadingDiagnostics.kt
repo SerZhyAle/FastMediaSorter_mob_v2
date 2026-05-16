@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import com.bumptech.glide.load.engine.GlideException
+import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 
 /**
@@ -61,6 +62,9 @@ object ImageLoadingDiagnostics {
      * Call before/after image loading to track memory consumption patterns.
      */
     fun logMemoryStats(context: String, activePreloadJobs: Int) {
+        // S0207 Phase 01: gate behind DEBUG — not yet routed through MemoryProbe; gating
+        // prevents release-build computation overhead and keeps parity with MemoryProbeImpl.
+        if (!BuildConfig.DEBUG) return
         try {
             val runtime = Runtime.getRuntime()
 

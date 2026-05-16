@@ -1,13 +1,19 @@
 package com.sza.fastmediasorter.di
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
+import com.bumptech.glide.load.DecodeFormat
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.cache.InternalCacheDiskCacheFactory
 import com.bumptech.glide.load.engine.cache.LruResourceCache
 import com.bumptech.glide.module.AppGlideModule
+import com.bumptech.glide.request.RequestOptions
+import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
 import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailModelLoader
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
@@ -20,9 +26,10 @@ import com.sza.fastmediasorter.data.glide.PdfPageDecoder
 import com.sza.fastmediasorter.data.glide.EpubCoverDecoder
 import com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader
 import com.sza.fastmediasorter.data.glide.NetworkEpubCoverLoader
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import timber.log.Timber
 import java.io.File
 import java.io.InputStream
@@ -31,9 +38,9 @@ import java.io.InputStream
  * Glide configuration module.
  * Registers custom ModelLoader for network files (SMB/SFTP/FTP).
  *
- * Memory cache: 10% of Java heap (maxMemory), capped at 64MB.
+ * Memory cache: startup-only budget from [MemoryProfileCoordinator].
  * Disk cache: Configurable via AppSettings (default 2GB).
- * RGB_565: enabled globally on LOW-tier devices (heap < 256MB).
+ * RGB_565: startup default comes from the active memory profile.
  */
 @GlideModule
 class GlideAppModule : AppGlideModule() {
@@ -42,11 +49,14 @@ class GlideAppModule : AppGlideModule() {
         // Set log level to ERROR to suppress verbose "Load failed for" messages
         builder.setLogLevel(android.util.Log.ERROR)
 
-        // Memory cache: 10% of Java heap limit, capped at 64MB.
-        // IMPORTANT: Use maxMemory() (heap limit per process), NOT availMem (system free RAM).
-        // availMem * 40% was a critical bug — it reserved 160MB from a 512MB heap → 32%.
-        val maxHeapBytes = Runtime.getRuntime().maxMemory()
-        val memoryCacheSize = minOf((maxHeapBytes * 0.10).toLong(), 64L * 1024 * 1024)
+        val memoryProfileCoordinator = EntryPointAccessors.fromApplication(
+            context,
+            MemoryProfileEntryPoint::class.java,
+        ).memoryProfileCoordinator()
+        val startupProfile = memoryProfileCoordinator.current()
+        val memoryCacheSize = clampStartupMemoryCacheBytes(
+            memoryProfileCoordinator.startupGlideMemoryCacheBytes(),
+        )
 
         builder.setMemoryCache(LruResourceCache(memoryCacheSize))
 
@@ -76,22 +86,19 @@ class GlideAppModule : AppGlideModule() {
 
         builder.setDiskCache(InternalCacheDiskCacheFactory(context, "image_cache", diskCacheSize))
         
-        // Detect device tier using heap size (after GlideModule is initialized, Context is available)
-        val tier = com.sza.fastmediasorter.core.util.MemoryTier.detect(context)
+        builder.setDefaultRequestOptions(buildDefaultRequestOptions(startupProfile.useRgb565))
 
-        // Disable bitmap reuse to prevent IllegalArgumentException with mismatched sizes
-        // especially for network sources where image dimensions may vary.
-        // On LOW/STANDARD tier devices: use PREFER_RGB_565 globally (50% less memory per decoded bitmap).
-        val baseOptions = com.bumptech.glide.request.RequestOptions()
-            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.RESOURCE)
-        val defaultOptions = if (tier == com.sza.fastmediasorter.core.util.MemoryTier.LOW) {
-            baseOptions.format(com.bumptech.glide.load.DecodeFormat.PREFER_RGB_565)
-        } else {
-            baseOptions
-        }
-        builder.setDefaultRequestOptions(defaultOptions)
-
-        Timber.i("GlideAppModule: *** CACHE CONFIGURED *** Memory=${memoryCacheSize / 1024 / 1024}MB (heap=${maxHeapBytes / 1024 / 1024}MB), Disk=${diskCacheSizeMb}MB, tier=$tier, rgb565=${tier == com.sza.fastmediasorter.core.util.MemoryTier.LOW}")
+        Timber.i(
+            "GlideAppModule: startup memory cache configured from coordinator — %dMB",
+            memoryCacheSize / BYTES_PER_MB,
+        )
+        Timber.i(
+            "GlideAppModule: *** CACHE CONFIGURED *** Memory=%dMB, Disk=%dMB, tier=%s, rgb565=%s",
+            memoryCacheSize / BYTES_PER_MB,
+            diskCacheSizeMb,
+            startupProfile.tier,
+            startupProfile.useRgb565,
+        )
     }
     
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
@@ -193,4 +200,30 @@ class GlideAppModule : AppGlideModule() {
         // Disable manifest parsing for faster initialization
         return false
     }
+
+    companion object {
+        private const val BYTES_PER_MB: Long = 1024L * 1024L
+        private const val MIN_MEMORY_CACHE_MB = 4L
+        private const val MIN_MEMORY_CACHE_BYTES = MIN_MEMORY_CACHE_MB * BYTES_PER_MB
+
+        internal fun clampStartupMemoryCacheBytes(requestedBytes: Long): Long {
+            return requestedBytes.coerceAtLeast(MIN_MEMORY_CACHE_BYTES)
+        }
+
+        internal fun buildDefaultRequestOptions(useRgb565: Boolean): RequestOptions {
+            val baseOptions = RequestOptions()
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            return if (useRgb565) {
+                baseOptions.format(DecodeFormat.PREFER_RGB_565)
+            } else {
+                baseOptions
+            }
+        }
+    }
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface MemoryProfileEntryPoint {
+    fun memoryProfileCoordinator(): MemoryProfileCoordinator
 }

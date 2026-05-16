@@ -1,6 +1,24 @@
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.5150.150** (May 2026)
+**Current release: 2.60.5160.425** (May 2026)
+
+> Changes since version 2.60.5150.150
+
+---
+
+## What's New
+
+- **Draw editor v2** — oval and text annotation tools, 16-color palette dialog, in-place save, export to Google Keep
+- **File size in browse list** — size shown in media item info row for video, image, and audio files
+
+## What's Fixed
+
+- Image-edit toolbar buttons (crop, compress, draw, open in window) no longer hidden in overflow for image viewer
+- Link downloads no longer show a spurious sign-in prompt when a valid session is already active
+
+---
+
+## Previous Release: 2.60.5150.150 (May 2026)
 
 > Changes since version 2.60.5142.201
 

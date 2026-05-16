@@ -25,6 +25,19 @@ interface AuthSessionRepository {
         userAgent: String? = null,
     )
 
+    /**
+     * S0211: dedup-aware save. Computes identity from [cookies] for known platforms;
+     * if an existing account is found for (host, identity) → reuses its accountId.
+     * Otherwise generates a new UUID. Returns the accountId that was used, or `null`
+     * when the call was rejected (blank host or empty cookies).
+     */
+    suspend fun saveSessionFromWebView(
+        host: String,
+        displayName: String,
+        cookies: List<HttpCookie>,
+        userAgent: String? = null,
+    ): String?
+
     suspend fun deleteAccount(host: String, accountId: String)
 
     /** S0182: returns the User-Agent captured when the cookies were saved, or null. */

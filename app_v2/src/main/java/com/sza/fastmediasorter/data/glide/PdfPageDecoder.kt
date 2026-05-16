@@ -4,10 +4,12 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import com.sza.fastmediasorter.FastMediaSorterApp
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.resource.SimpleResource
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -22,6 +24,10 @@ import java.io.IOException
  * - Generates thumbnails with proper aspect ratio
  */
 class PdfPageDecoder : ResourceDecoder<File, Bitmap> {
+
+    private val decodeFormatResolver by lazy {
+        FastMediaSorterApp.appContext.memoryPressureDecodeFormatResolver()
+    }
     
     override fun handles(source: File, options: Options): Boolean {
         // Only handle PDF files
@@ -66,7 +72,7 @@ class PdfPageDecoder : ResourceDecoder<File, Bitmap> {
             }
             
             // Create bitmap with calculated dimensions
-            val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+            val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, decodeFormatResolver.bitmapConfig())
             
             // Fill with white background (standard for PDFs)
             bitmap.eraseColor(Color.WHITE)

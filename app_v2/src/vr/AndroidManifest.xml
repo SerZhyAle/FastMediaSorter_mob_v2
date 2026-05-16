@@ -91,7 +91,7 @@
             android:name="com.sza.fastmediasorter.ui.main.MainActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|density|navigation|uiMode|fontScale"
             android:resizeableActivity="true"
-            tools:replace="android:configChanges,android:resizeableActivity">
+            tools:replace="android:configChanges">
             <layout
                 android:defaultWidth="1920dp"
                 android:defaultHeight="1080dp"
@@ -144,13 +144,13 @@
             android:name="com.sza.fastmediasorter.ui.settings.SettingsActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|density|navigation|uiMode|fontScale"
             android:resizeableActivity="true"
-            tools:replace="android:configChanges,android:resizeableActivity" />
+            tools:replace="android:configChanges" />
 
         <activity
             android:name="com.sza.fastmediasorter.ui.welcome.WelcomeActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|density|navigation|uiMode|fontScale"
             android:resizeableActivity="true"
-            tools:replace="android:configChanges,android:resizeableActivity" />
+            tools:replace="android:configChanges" />
 
     </application>
 

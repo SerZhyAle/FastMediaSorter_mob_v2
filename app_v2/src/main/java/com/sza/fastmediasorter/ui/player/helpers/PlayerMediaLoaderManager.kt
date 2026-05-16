@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
+import android.widget.Toast
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
@@ -22,6 +24,7 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -77,7 +80,9 @@ class PlayerMediaLoaderManager(
     private val credentialsRepository: NetworkCredentialsRepository? = null,
     private val cloudClients: Map<String, CloudStorageClient> = emptyMap(),
     // S0172: used to read/restore SFTP audio position before playback starts
-    private val playbackPositionRepository: PlaybackPositionRepository? = null
+    private val playbackPositionRepository: PlaybackPositionRepository? = null,
+    // S0213 Pillar A: cooldown tracker — short-circuits replay of paths that just failed to decode.
+    private val decoderFailureTracker: RecentDecoderFailureTracker,
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
@@ -186,6 +191,11 @@ class PlayerMediaLoaderManager(
      * Play video or audio file with comprehensive media type routing
      */
     fun playVideo(path: String) {
+        if (decoderFailureTracker.isInCooldown(path)) {
+            val remainingSec = (decoderFailureTracker.cooldownRemainingMs(path) / 1000L).toInt()
+            handleCooldownReentry(path, remainingSec)
+            return
+        }
         Timber.w("PlayerMediaLoaderManager.playVideo: START - path=$path")
         // Only cancel prefetch if the new file differs from what is being prefetched
         if (audioPrefetchPath != path) {
@@ -694,13 +704,23 @@ class PlayerMediaLoaderManager(
                 && viewModel.state.value.enablePersistentAudioPlayback
                 && viewModel.state.value.currentFile?.type == MediaType.AUDIO
 
+    private fun syncVideoPlaybackOrderMode() {
+        val repeatMode = if (viewModel.state.value.playbackOrderMode == PlaybackOrderMode.REPEAT_ONE) {
+            Player.REPEAT_MODE_ONE
+        } else {
+            Player.REPEAT_MODE_OFF
+        }
+        videoPlayerManager.setRepeatMode(repeatMode)
+    }
+
     /**
      * Play local video file (legacy method for compatibility)
      */
     fun playLocalVideo(path: String) {
         Timber.d("PlayerMediaLoaderManager.playLocalVideo: Delegating to VideoPlayerManager")
         videoPlayerManager.playLocalVideo(path, !viewModel.state.value.isPaused)
-        exoPlayerControlsManager.updateRepeatButtonIcon()
+        syncVideoPlaybackOrderMode()
+        exoPlayerControlsManager.updatePlaybackOrderButtonState()
     }
 
     /**
@@ -968,8 +988,9 @@ class PlayerMediaLoaderManager(
                         credentialsId = credId,
                         playWhenReady = !viewModel.state.value.isPaused,
                         onComplete = {
-                            // Update repeat button after player is created
-                            exoPlayerControlsManager.updateRepeatButtonIcon()
+                            // Fresh player instances must inherit the persisted playback-order mode.
+                            syncVideoPlaybackOrderMode()
+                            exoPlayerControlsManager.updatePlaybackOrderButtonState()
                         }
                     )
                 }
@@ -981,8 +1002,8 @@ class PlayerMediaLoaderManager(
                     credentialsId = resource?.credentialsId,
                     playWhenReady = !viewModel.state.value.isPaused,
                     onComplete = {
-                        // Update repeat button after player is created
-                        exoPlayerControlsManager.updateRepeatButtonIcon()
+                        syncVideoPlaybackOrderMode()
+                        exoPlayerControlsManager.updatePlaybackOrderButtonState()
                     }
                 )
             }
@@ -994,9 +1015,31 @@ class PlayerMediaLoaderManager(
                 credentialsId = null,
                 playWhenReady = !viewModel.state.value.isPaused,
                 onComplete = {
-                    exoPlayerControlsManager.updateRepeatButtonIcon()
+                    syncVideoPlaybackOrderMode()
+                    exoPlayerControlsManager.updatePlaybackOrderButtonState()
                 }
             )
+        }
+    }
+
+    /**
+     * S0213 Pillar A: a replay request landed on a path that just failed to decode and is still
+     * inside [RecentDecoderFailureTracker.DECODER_COOLDOWN_MS]. Behavior is context-dependent
+     * (see strategic spec ADR-4):
+     * - Slideshow / playlist (auto pacing) -> short toast and auto-skip to the next file.
+     * - Manual single-file replay -> hand off to UI layer via [VideoPlayerManager.PlayerCallback]
+     *   so a snackbar with an explicit "Skip" action can be shown; we do NOT auto-advance.
+     */
+    private fun handleCooldownReentry(path: String, remainingSec: Int) {
+        Timber.d("S0213: cooldown re-entry path=$path remainingSec=$remainingSec slideshow=${viewModel.state.value.isSlideShowActive}")
+        val isSlideshow = viewModel.state.value.isSlideShowActive
+        if (isSlideshow) {
+            Toast.makeText(activity, R.string.s0213_decoder_cooldown_skip, Toast.LENGTH_SHORT).show()
+            Timber.i("S0213 cooldown skip (slideshow): path=$path remainingSec=$remainingSec")
+            viewModel.nextFile(skipDocuments = true)
+        } else {
+            Timber.i("S0213 cooldown re-entry (manual): path=$path remainingSec=$remainingSec")
+            videoPlayerManager.playerCallback.onDecoderCooldownReentry(path, remainingSec)
         }
     }
 }

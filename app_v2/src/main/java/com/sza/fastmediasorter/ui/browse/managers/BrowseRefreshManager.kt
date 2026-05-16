@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncMediaStoreUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -26,13 +25,12 @@ import java.io.File
  *
  * Responsibilities:
  * - Optional hard reset of visible list before re-scan.
- * - Local resource pre-refresh maintenance (trash cleanup + MediaStore sync).
+ * - Local resource maintenance (MediaStore sync on reload; delegated trash cleanup elsewhere).
  * - Cache invalidation and forced resource reload.
  *
  * Extracted from BrowseViewModel (Wave 1 decomposition — IV.1).
  */
 class BrowseRefreshManager(
-    private val cleanupTrashFoldersUseCase: CleanupTrashFoldersUseCase,
     private val syncMediaStoreUseCase: SyncMediaStoreUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val cachedFileListRepository: CachedFileListRepository,
@@ -81,18 +79,6 @@ class BrowseRefreshManager(
                 }
             }
 
-            if (currentResource?.type == ResourceType.LOCAL) {
-                try {
-                    val rootDir = File(currentResource.path)
-                    Timber.i("BrowseRefreshManager.reload: cleaning .trash folders in '${currentResource.name}'")
-                    val deletedCount = cleanupTrashFoldersUseCase.cleanup(rootDir, maxAgeMs = 0L)
-                    Timber.i("BrowseRefreshManager.reload: deleted $deletedCount .trash folders")
-                } catch (e: Exception) {
-                    if (e is kotlinx.coroutines.CancellationException) throw e
-                    Timber.e(e, "BrowseRefreshManager.reload: failed to cleanup .trash folders")
-                }
-            }
-
             if (currentResource?.type == ResourceType.LOCAL && syncMediaStore) {
                 setIgnoringFileChanges(true)
                 try {
@@ -134,20 +120,16 @@ class BrowseRefreshManager(
 
     /**
      * Cleanup trash folders for [resource] on a background coroutine.
-     * LOCAL: removes `.trash_*` subdirectories older than [maxAgeMs].
+     * LOCAL: skipped so the periodic worker remains the only automatic finaliser.
      * Network (SMB/FTP/SFTP): delegates to [SmbOperationsUseCase.cleanupTrash].
      */
-    fun cleanupTrashOnBackground(resource: MediaResource, maxAgeMs: Long) {
+    fun cleanupTrashOnBackground(resource: MediaResource) {
         scope.launch(ioDispatcher) {
             try {
                 when (resource.type) {
                     ResourceType.LOCAL -> {
-                        val rootDir = java.io.File(resource.path)
-                        if (!rootDir.exists() || !rootDir.isDirectory) return@launch
-                        val deletedCount = cleanupTrashFoldersUseCase.cleanup(rootDir, maxAgeMs)
-                        if (deletedCount > 0) {
-                            Timber.i("BrowseRefreshManager: cleaned $deletedCount trash folders in '${resource.name}'")
-                        }
+                        // S0209: local reload/shutdown must not collapse the restore TTL window.
+                        Timber.d("BrowseRefreshManager: LOCAL trash cleanup skipped — periodic worker handles TTL cleanup")
                     }
                     else -> {
                         val credentialsId = resource.credentialsId

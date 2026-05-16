@@ -8,8 +8,8 @@ import android.util.LruCache
 
 object ExtensionThumbnailGenerator {
 
-    private const val DEFAULT_BITMAP_SIZE = 200
-    private val cache = LruCache<String, Bitmap>(120)
+    private const val DEFAULT_BITMAP_SIZE = 96
+    private val cache = LruCache<String, Bitmap>(30)
 
     fun generate(extension: String, size: Int = DEFAULT_BITMAP_SIZE): Bitmap {
         val normalized = extension.uppercase().take(5).ifBlank { "FILE" }
@@ -19,7 +19,7 @@ object ExtensionThumbnailGenerator {
         val bgColor = ThumbnailColorMapper.getColorForExtension(normalized)
         val textColor = ThumbnailColorMapper.getContrastingTextColor(bgColor)
 
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
         val canvas = Canvas(bitmap)
 
         val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

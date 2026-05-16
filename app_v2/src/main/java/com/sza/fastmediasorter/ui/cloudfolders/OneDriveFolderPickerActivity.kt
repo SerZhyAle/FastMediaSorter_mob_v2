@@ -26,6 +26,8 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
 
     private val viewModel: OneDriveFolderPickerViewModel by viewModels()
     private lateinit var folderAdapter: CloudFolderAdapter
+    // S0196 Phase 04: one-shot tag on the first non-empty folder list bind.
+    private var firstListBoundLogged = false
     private val keyboardDelegate = CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
         override fun activateFocused(): Boolean {
             // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
@@ -115,6 +117,12 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
 
             binding.cbAddAsDestination.isChecked = state.addAsDestination
             binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
+
+            // S0196 Phase 04: emit once after the first non-empty folder list is committed.
+            if (!firstListBoundLogged && state.folders.isNotEmpty()) {
+                firstListBoundLogged = true
+                Timber.d("OneDriveFolderPickerActivity: primaryContentBound itemCount=${state.folders.size}")
+            }
         }
 
         collectOnLifecycle(viewModel.events) { event ->

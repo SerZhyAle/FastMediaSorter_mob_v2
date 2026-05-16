@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.data.network.glide
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.sza.fastmediasorter.FastMediaSorterApp
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapResource
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.bumptech.glide.util.ByteBufferUtil
 import timber.log.Timber
 import java.io.IOException
@@ -19,6 +21,10 @@ import java.nio.ByteBuffer
 class SafeByteBufferBitmapDecoder(
     private val bitmapPool: BitmapPool
 ) : ResourceDecoder<SafeByteBuffer, Bitmap> {
+
+    private val decodeFormatResolver by lazy {
+        FastMediaSorterApp.appContext.memoryPressureDecodeFormatResolver()
+    }
 
     override fun handles(source: SafeByteBuffer, options: Options): Boolean {
         return true
@@ -66,7 +72,7 @@ class SafeByteBufferBitmapDecoder(
             val decodeOptions = BitmapFactory.Options().apply {
                 inJustDecodeBounds = false
                 inSampleSize = sampleSize
-                inPreferredConfig = Bitmap.Config.ARGB_8888
+                inPreferredConfig = decodeFormatResolver.bitmapConfig()
             }
             
             // Create new seekable stream for decode (supports progressive JPEG)

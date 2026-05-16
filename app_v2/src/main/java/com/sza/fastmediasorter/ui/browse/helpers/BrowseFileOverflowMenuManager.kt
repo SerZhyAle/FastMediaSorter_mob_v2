@@ -108,8 +108,8 @@ class BrowseFileOverflowMenuManager @Inject constructor(
      * Build the subset of player-panel commands applicable to a Browse-context file row,
      * using only [MediaFile] type and [AppSettings] flags (no PlayerState required).
      *
-     * Excluded (player-only, meaningless without an open player session):
-     * PLAYBACK_ORDER, FULLSCREEN, RANDOM, BLACK_SCREEN, UNDO, CAST, SLEEP_TIMER,
+    * Excluded (player-only, meaningless without an open player session):
+    * FULLSCREEN, RANDOM, BLACK_SCREEN, UNDO, CAST, SLEEP_TIMER,
      * ROTATION_TOGGLE, VR_3D, OPEN_IN_SEPARATE_WINDOW, SLIDESHOW.
      * Also excluded: DELETE and RENAME — already in the basic group above.
      *

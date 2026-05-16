@@ -8,6 +8,7 @@ import android.os.Environment
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -23,6 +24,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Handles all background initialization tasks for the application.
@@ -33,40 +38,52 @@ import timber.log.Timber
  * task actually runs. Each task dereferences `.get()` inside its own coroutine
  * body — never at construction time.
  */
-class AppStartupInitializer(
-    private val context: Context,
+@Singleton
+class AppStartupInitializer @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val settingsRepository: dagger.Lazy<SettingsRepository>,
     private val resourceRepository: dagger.Lazy<ResourceRepository>,
     private val playbackPositionRepository: dagger.Lazy<PlaybackPositionRepository>,
     private val thumbnailCacheRepository: dagger.Lazy<ThumbnailCacheRepository>,
-    private val applicationScope: CoroutineScope,
+    @ApplicationScope private val applicationScope: CoroutineScope,
     private val renameVirtualResourcesUseCase: dagger.Lazy<RenameVirtualResourcesUseCase>,
     private val inputBindingRepository: dagger.Lazy<InputBindingRepository>,
     private val defaultsMapLoader: dagger.Lazy<DefaultsMapLoader>,
 ) {
+
+    private val connectionThrottleManagerInitialized = AtomicBoolean(false)
     
     /**
      * Initialize all background tasks.
      * Should be called from Application.onCreate() after dependency injection.
      */
     fun initialize() {
+        // Glide still reads this SharedPreferences mirror during early disk-cache sizing,
+        // so it stays on the eager path while the heavier migrations move behind Phase 06.
         syncCacheSizeToSharedPreferences()
-        if (BuildConfig.DEBUG) logPermissionsStatus()
-        fixCloudResourcesWritableFlag()
-        fixLocalResourcesWritableFlag()
-        fixVirtualAggregateWritableFlag()
-        renameVirtualResourceNames()
-        cleanupPlaybackPositions()
-        migrateThumbnailCache()
-        cleanupOldThumbnails()
-        initializeConnectionThrottleManager()
-        if (ChromeOsCompat.isChromeOs(context)) applyDefaultsChromeOsOnStart()
     }
 
-    private fun applyDefaultsChromeOsOnStart() {
-        applicationScope.launch {
-            applyDefaultsChromeOsIfEmpty()
+    suspend fun runDeferredStartupTasks() {
+        if (BuildConfig.DEBUG) {
+            runDeferredTask("permissions-status") { logPermissionsStatus() }
         }
+        runDeferredTask("fix-cloud-writable-flag") { fixCloudResourcesWritableFlag() }
+        runDeferredTask("fix-local-writable-flag") { fixLocalResourcesWritableFlag() }
+        runDeferredTask("fix-virtual-writable-flag") { fixVirtualAggregateWritableFlag() }
+        runDeferredTask("rename-virtual-resources") { renameVirtualResourceNames() }
+        runDeferredTask("cleanup-playback-positions") { cleanupPlaybackPositions() }
+        runDeferredTask("migrate-thumbnail-cache") { migrateThumbnailCache() }
+        runDeferredTask("cleanup-old-thumbnails") { cleanupOldThumbnails() }
+        if (ChromeOsCompat.isChromeOs(context)) {
+            runDeferredTask("apply-chromeos-defaults") { applyDefaultsChromeOsIfEmpty() }
+        }
+        runDeferredTask("connection-throttle-bootstrap") { ensureConnectionThrottleManagerInitialized() }
+    }
+
+    private suspend fun runDeferredTask(label: String, block: suspend () -> Unit) {
+        runCatching { block() }
+            .onSuccess { Timber.i("AppStartupInitializer: deferred task complete — %s", label) }
+            .onFailure { Timber.e(it, "AppStartupInitializer: deferred task failed — %s", label) }
     }
 
     private suspend fun applyDefaultsChromeOsIfEmpty() {
@@ -271,23 +288,21 @@ class AppStartupInitializer(
      * Fix cloud resources: set isWritable = true for existing CLOUD resources.
      * Migration fix for older app versions.
      */
-    private fun fixCloudResourcesWritableFlag() {
-        applicationScope.launch {
-            try {
-                val repo = resourceRepository.get()
-                val resources = repo.getAllResources().first()
-                val cloudResources = resources.filter {
-                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.CLOUD && !it.isWritable
-                }
-                if (cloudResources.isNotEmpty()) {
-                    cloudResources.forEach { resource ->
-                        repo.updateResource(resource.copy(isWritable = true))
-                    }
-                    Timber.d("Fixed isWritable flag for ${cloudResources.size} cloud resources")
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to fix cloud resources isWritable flag")
+    private suspend fun fixCloudResourcesWritableFlag() {
+        try {
+            val repo = resourceRepository.get()
+            val resources = repo.getAllResources().first()
+            val cloudResources = resources.filter {
+                it.type == com.sza.fastmediasorter.domain.model.ResourceType.CLOUD && !it.isWritable
             }
+            if (cloudResources.isNotEmpty()) {
+                cloudResources.forEach { resource ->
+                    repo.updateResource(resource.copy(isWritable = true))
+                }
+                Timber.d("Fixed isWritable flag for ${cloudResources.size} cloud resources")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fix cloud resources isWritable flag")
         }
     }
     
@@ -297,25 +312,23 @@ class AppStartupInitializer(
      * overwriting it with the default (false). This restores the correct flag for LOCAL resources
      * that are not explicitly marked as read-only.
      */
-    private fun fixLocalResourcesWritableFlag() {
-        applicationScope.launch {
-            try {
-                val repo = resourceRepository.get()
-                val resources = repo.getAllResources().first()
-                val broken = resources.filter {
-                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
-                        && !it.isWritable
-                        && !it.isReadOnly
-                }
-                if (broken.isNotEmpty()) {
-                    broken.forEach { resource ->
-                        repo.updateResource(resource.copy(isWritable = true))
-                    }
-                    Timber.d("Fixed isWritable flag for ${broken.size} LOCAL resources")
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to fix local resources isWritable flag")
+    private suspend fun fixLocalResourcesWritableFlag() {
+        try {
+            val repo = resourceRepository.get()
+            val resources = repo.getAllResources().first()
+            val broken = resources.filter {
+                it.type == com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
+                    && !it.isWritable
+                    && !it.isReadOnly
             }
+            if (broken.isNotEmpty()) {
+                broken.forEach { resource ->
+                    repo.updateResource(resource.copy(isWritable = true))
+                }
+                Timber.d("Fixed isWritable flag for ${broken.size} LOCAL resources")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fix local resources isWritable flag")
         }
     }
 
@@ -324,42 +337,36 @@ class AppStartupInitializer(
      * that were provisioned with the old default (false).
      * Migration fix for S0130.
      */
-    private fun fixVirtualAggregateWritableFlag() {
-        applicationScope.launch {
-            try {
-                val repo = resourceRepository.get()
-                val resources = repo.getAllResources().first()
-                val broken = resources.filter {
-                    VirtualPathUtils.isAggregateVirtualPath(it.path) && !it.isWritable
-                }
-                if (broken.isNotEmpty()) {
-                    broken.forEach { resource ->
-                        repo.updateResource(resource.copy(isWritable = true))
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to fix aggregate virtual resources isWritable flag")
+    private suspend fun fixVirtualAggregateWritableFlag() {
+        try {
+            val repo = resourceRepository.get()
+            val resources = repo.getAllResources().first()
+            val broken = resources.filter {
+                VirtualPathUtils.isAggregateVirtualPath(it.path) && !it.isWritable
             }
+            if (broken.isNotEmpty()) {
+                broken.forEach { resource ->
+                    repo.updateResource(resource.copy(isWritable = true))
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fix aggregate virtual resources isWritable flag")
         }
     }
 
-    private fun renameVirtualResourceNames() {
-        applicationScope.launch {
-            renameVirtualResourcesUseCase.get().invoke()
-        }
+    private suspend fun renameVirtualResourceNames() {
+        renameVirtualResourcesUseCase.get().invoke()
     }
 
     /**
      * Cleanup playback positions by count limit on app start.
      */
-    private fun cleanupPlaybackPositions() {
-        applicationScope.launch {
-            try {
-                playbackPositionRepository.get().cleanupOldPositions()
-                Timber.d("Checked playback positions count limit")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to cleanup playback positions")
-            }
+    private suspend fun cleanupPlaybackPositions() {
+        try {
+            playbackPositionRepository.get().cleanupOldPositions()
+            Timber.d("Checked playback positions count limit")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to cleanup playback positions")
         }
     }
 
@@ -367,17 +374,15 @@ class AppStartupInitializer(
      * Migrate thumbnails from old cache directory to persistent storage.
      * One-time migration from cacheDir to filesDir.
      */
-    private fun migrateThumbnailCache() {
-        applicationScope.launch {
-            try {
-                val repo = thumbnailCacheRepository.get()
-                // Cast to implementation to access migration method
-                if (repo is com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl) {
-                    repo.migrateLegacyCache()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to migrate thumbnail cache")
+    private suspend fun migrateThumbnailCache() {
+        try {
+            val repo = thumbnailCacheRepository.get()
+            // Cast to implementation to access migration method
+            if (repo is com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl) {
+                repo.migrateLegacyCache()
             }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to migrate thumbnail cache")
         }
     }
     
@@ -385,23 +390,21 @@ class AppStartupInitializer(
      * Cleanup old thumbnail cache (>30 days) on app start, then enforce the user-configured
      * size limit via LRU eviction.
      */
-    private fun cleanupOldThumbnails() {
-        applicationScope.launch {
-            try {
-                val thumbnails = thumbnailCacheRepository.get()
-                val deletedByAge = thumbnails.cleanupOldThumbnails(30)
-                Timber.d("ThumbnailCache: age cleanup removed $deletedByAge entries")
+    private suspend fun cleanupOldThumbnails() {
+        try {
+            val thumbnails = thumbnailCacheRepository.get()
+            val deletedByAge = thumbnails.cleanupOldThumbnails(30)
+            Timber.d("ThumbnailCache: age cleanup removed $deletedByAge entries")
 
-                // Enforce size limit: use the same cacheSizeMb setting as Glide
-                val settings = settingsRepository.get().getSettings().first()
-                val limitBytes = settings.cacheSizeMb.toLong() * 1024L * 1024L
-                val deletedBySize = thumbnails.enforceSizeLimit(limitBytes)
-                if (deletedBySize > 0) {
-                    Timber.i("ThumbnailCache: evicted $deletedBySize entries to respect ${settings.cacheSizeMb}MB limit")
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to cleanup thumbnail cache")
+            // Enforce size limit: use the same cacheSizeMb setting as Glide
+            val settings = settingsRepository.get().getSettings().first()
+            val limitBytes = settings.cacheSizeMb.toLong() * 1024L * 1024L
+            val deletedBySize = thumbnails.enforceSizeLimit(limitBytes)
+            if (deletedBySize > 0) {
+                Timber.i("ThumbnailCache: evicted $deletedBySize entries to respect ${settings.cacheSizeMb}MB limit")
             }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to cleanup thumbnail cache")
         }
     }
 
@@ -409,7 +412,16 @@ class AppStartupInitializer(
      * Initialize ConnectionThrottleManager with saved settings.
      * Observes settings changes and updates network limit dynamically.
      */
-    private fun initializeConnectionThrottleManager() {
+    internal fun tryStartConnectionThrottleManagerInitialization(): Boolean {
+        return connectionThrottleManagerInitialized.compareAndSet(false, true)
+    }
+
+    private fun ensureConnectionThrottleManagerInitialized() {
+        // WHY: the deferred startup worker can be re-enqueued after process recreation, but the
+        // settings collector must remain single-shot or ConnectionThrottleManager would receive
+        // duplicate updates from parallel collectors.
+        if (!tryStartConnectionThrottleManagerInitialization()) return
+
         applicationScope.launch {
             try {
                 settingsRepository.get().getSettings()

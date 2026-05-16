@@ -61,9 +61,9 @@
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
-                android:src="@drawable/ic_repeat"
+                android:src="@drawable/ic_loop_list"
                 app:tint="@color/selector_player_button_tint"
-                android:contentDescription="@string/repeat"
+                android:contentDescription="@string/playback_order_menu_title"
                 android:nextFocusLeft="@id/btnPlaybackControl"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 

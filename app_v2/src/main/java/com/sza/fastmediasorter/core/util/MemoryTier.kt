@@ -11,7 +11,10 @@ import timber.log.Timber
  */
 enum class MemoryTier {
     /**
-     * Low-end devices: < 3GB RAM or marked as low-RAM by system.
+     * Low-end devices.
+     * Criteria: `isLowRamDevice` OR total RAM < 3 GB OR Java heap-limit <= 512 MB.
+     * Notes: heap-limit dominates physical RAM — Quest 3 and the canonical emulator both
+     * report `maxHeapMb == 512` exactly and therefore land in LOW after S0207 Phase 02.
      * - Force RGB_565 image format (50% memory per pixel)
      * - Disable animations
      * - Reduce thumbnail resolution
@@ -19,17 +22,20 @@ enum class MemoryTier {
      * - Replace heavy ripples with simple state drawables
      */
     LOW,
-    
+
     /**
-     * Standard devices: 3GB - 6GB RAM.
+     * Standard devices.
+     * Criteria: not LOW and not HIGH — i.e. total RAM >= 3 GB AND Java heap-limit > 512 MB,
+     * and total RAM < 6 GB (so HIGH is not reached).
      * - Default image loading strategy
      * - Standard animations
      * - Full feature set
      */
     STANDARD,
-    
+
     /**
-     * High-end devices: > 6GB RAM.
+     * High-end devices.
+     * Criteria: total RAM >= 6 GB AND Java heap-limit > 512 MB.
      * - High-quality image loading
      * - Full animations
      * - All features enabled
@@ -60,15 +66,34 @@ enum class MemoryTier {
             // Physical RAM alone is NOT sufficient to avoid OOM — heap limit is the real bottleneck.
             val maxHeapMb = Runtime.getRuntime().maxMemory() / 1024 / 1024
 
-            val tier = when {
-                isLowRamDevice || totalRamGb < 3.0 || maxHeapMb < 256 -> LOW
-                totalRamGb < 6.0 || maxHeapMb < 512 -> STANDARD
-                else -> HIGH
-            }
+            val tier = classify(
+                isLowRamDevice = isLowRamDevice,
+                totalRamGb = totalRamGb,
+                maxHeapMb = maxHeapMb,
+            )
 
             Timber.i("MemoryTier.detect: tier=$tier, totalRAM=${"%.2f".format(totalRamGb)}GB, heapMax=${maxHeapMb}MB, isLowRamDevice=$isLowRamDevice, API=${Build.VERSION.SDK_INT}")
 
             return tier
+        }
+
+        /**
+         * Pure classifier — exposed `internal` to support unit tests without
+         * requiring a real [Context] / [ActivityManager].
+         *
+         * S0207 Phase 02 contract:
+         * - heap-limit dominates physical RAM,
+         * - `maxHeapMb <= 512` => LOW (Quest 3, canonical emulator),
+         * - HIGH requires `totalRamGb >= 6.0` AND `maxHeapMb > 512`.
+         */
+        internal fun classify(
+            isLowRamDevice: Boolean,
+            totalRamGb: Double,
+            maxHeapMb: Long,
+        ): MemoryTier = when {
+            isLowRamDevice || totalRamGb < 3.0 || maxHeapMb <= 512 -> LOW
+            totalRamGb >= 6.0 && maxHeapMb > 512 -> HIGH
+            else -> STANDARD
         }
     }
 }

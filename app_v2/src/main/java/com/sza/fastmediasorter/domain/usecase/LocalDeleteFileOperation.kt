@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
+import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -11,128 +14,10 @@ import java.io.File
 internal class LocalDeleteFileOperation(
     private val context: Context,
     private val cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler,
-    private val smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
+    private val localOperationStrategy: LocalOperationStrategy,
 ) {
-
-    fun isSharedStorage(path: String): Boolean {
-        return path.startsWith("/storage/emulated/0/") &&
-               !path.contains("/Android/data/") &&
-               !path.contains("/Android/obb/")
-    }
-
-    suspend fun deleteViaMediaStore(filePath: String): Boolean = withContext(Dispatchers.IO) {
-        Timber.d("FileOperationUseCase.deleteViaMediaStore: ENTRY - filePath=$filePath, API=${Build.VERSION.SDK_INT}")
-        var cursor: android.database.Cursor? = null
-        try {
-            val file = File(filePath)
-            val mimeType = android.webkit.MimeTypeMap.getSingleton()
-                .getMimeTypeFromExtension(file.extension.lowercase()) ?: "*/*"
-
-            val collection = when {
-                mimeType.startsWith("image/") -> android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                mimeType.startsWith("video/") -> android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                mimeType.startsWith("audio/") -> android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                else -> null
-            }
-
-            if (collection == null) {
-                Timber.d("FileOperationUseCase: Non-media file ($mimeType), skipping MediaStore")
-                return@withContext file.delete()
-            }
-
-            val selection = "${android.provider.MediaStore.MediaColumns.DATA} = ?"
-            val selectionArgs = arrayOf(filePath)
-
-            cursor = context.contentResolver.query(
-                collection,
-                arrayOf(android.provider.MediaStore.MediaColumns._ID),
-                selection,
-                selectionArgs,
-                null
-            )
-
-            val count = cursor?.count ?: 0
-            Timber.d("FileOperationUseCase: MediaStore query for $filePath found $count rows in $collection")
-
-            if (cursor != null && cursor.moveToFirst()) {
-                val idColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.MediaColumns._ID)
-                val id = cursor.getLong(idColumn)
-                val contentUri = android.content.ContentUris.withAppendedId(collection, id)
-                cursor.close()
-                cursor = null
-
-                Timber.d("deleteViaMediaStore: Found file in MediaStore - ID=$id, contentUri=$contentUri")
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    try {
-                        Timber.d("deleteViaMediaStore: Android 11+ detected - calling createDeleteRequest for file: $filePath")
-                        val pendingIntent = android.provider.MediaStore.createDeleteRequest(
-                            context.contentResolver,
-                            listOf(contentUri)
-                        )
-
-                        Timber.i("deleteViaMediaStore: BATCH DELETE PERMISSION REQUEST CREATED - File: $filePath")
-                        throw FileOperationUseCase.BatchDeletePermissionRequiredException(pendingIntent, listOf(contentUri))
-                    } catch (e: FileOperationUseCase.BatchDeletePermissionRequiredException) {
-                        throw e
-                    } catch (e: Exception) {
-                        Timber.w(e, "FileOperationUseCase: createDeleteRequest failed, falling back to regular delete")
-                    }
-                }
-
-                try {
-                    val deletedRows = context.contentResolver.delete(contentUri, null, null)
-                    Timber.d("FileOperationUseCase: MediaStore delete result: $deletedRows rows deleted")
-
-                    if (deletedRows > 0) {
-                        return@withContext true
-                    }
-                } catch (securityException: SecurityException) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        val recoverableSecurityException = securityException as? android.app.RecoverableSecurityException
-                        if (recoverableSecurityException != null) {
-                            Timber.w("FileOperationUseCase: RecoverableSecurityException for $filePath - need user permission")
-                            throw recoverableSecurityException
-                        }
-                    }
-                    Timber.w(securityException, "FileOperationUseCase: SecurityException (non-recoverable) for $filePath")
-                }
-            } else {
-                Timber.w("FileOperationUseCase: File not found in MediaStore: $filePath")
-            }
-
-            if (file.exists() && file.delete()) {
-                Timber.d("FileOperationUseCase: Fallback File.delete() succeeded for $filePath")
-                return@withContext true
-            } else {
-                Timber.w("FileOperationUseCase: Fallback File.delete() failed for $filePath (exists=${file.exists()})")
-                return@withContext false
-            }
-        } catch (e: FileOperationUseCase.BatchDeletePermissionRequiredException) {
-            throw e
-        } catch (e: Exception) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                e is android.app.RecoverableSecurityException) {
-                Timber.i("FileOperationUseCase: Propagating RecoverableSecurityException to UI layer")
-                throw e
-            }
-
-            Timber.e(e, "FileOperationUseCase: MediaStore delete failed for: $filePath")
-
-            return@withContext try {
-                val file = File(filePath)
-                if (file.exists() && file.delete()) {
-                    Timber.d("FileOperationUseCase: Exception fallback File.delete() succeeded for $filePath")
-                    true
-                } else {
-                    false
-                }
-            } catch (e2: Exception) {
-                false
-            }
-        } finally {
-            cursor?.close()
-        }
+    private val localDeleteHandler = object : BaseFileOperationHandler(context) {
+        override fun getStrategies(): List<FileOperationStrategy> = listOf(localOperationStrategy)
     }
 
     suspend fun collectMediaStoreUris(files: List<File>): List<Uri> = withContext(Dispatchers.IO) {
@@ -147,7 +32,7 @@ internal class LocalDeleteFileOperation(
         for (file in files) {
             val filePath = file.absolutePath
 
-            if (!isSharedStorage(filePath)) continue
+            if (!localOperationStrategy.isSharedStoragePath(filePath)) continue
 
             try {
                 val mimeType = android.webkit.MimeTypeMap.getSingleton()
@@ -220,7 +105,7 @@ internal class LocalDeleteFileOperation(
         }
 
         if (otherFiles.isNotEmpty()) {
-            results.add(smbFileOperationHandler.executeDelete(operation.copy(files = otherFiles)))
+            results.add(localDeleteHandler.executeDelete(operation.copy(files = otherFiles)))
         }
 
         if (results.isEmpty()) {
@@ -235,18 +120,21 @@ internal class LocalDeleteFileOperation(
         var totalFailed = 0
         val allErrors = mutableListOf<String>()
         val allProcessedPaths = mutableListOf<String>()
+        val allSoftDeleteFallbackPaths = mutableListOf<String>()
 
         results.forEach { result ->
             when (result) {
                 is FileOperationResult.Success -> {
                     totalSuccess += result.processedCount
                     allProcessedPaths.addAll(result.copiedFilePaths)
+                    allSoftDeleteFallbackPaths.addAll(result.softDeleteFallbackPaths)
                 }
                 is FileOperationResult.PartialSuccess -> {
                     totalSuccess += result.processedCount
                     totalFailed += result.failedCount
                     allErrors.addAll(result.errors)
                     allProcessedPaths.addAll(result.deletedPaths)
+                    allSoftDeleteFallbackPaths.addAll(result.softDeleteFallbackPaths)
                 }
                 is FileOperationResult.Failure -> {
                     totalFailed += operation.files.size
@@ -257,9 +145,20 @@ internal class LocalDeleteFileOperation(
         }
 
         return@withContext if (totalFailed == 0) {
-            FileOperationResult.Success(totalSuccess, operation, allProcessedPaths)
+            FileOperationResult.Success(
+                totalSuccess,
+                operation,
+                allProcessedPaths,
+                softDeleteFallbackPaths = allSoftDeleteFallbackPaths,
+            )
         } else if (totalSuccess > 0) {
-            FileOperationResult.PartialSuccess(totalSuccess, totalFailed, allErrors, allProcessedPaths)
+            FileOperationResult.PartialSuccess(
+                totalSuccess,
+                totalFailed,
+                allErrors,
+                allProcessedPaths,
+                softDeleteFallbackPaths = allSoftDeleteFallbackPaths,
+            )
         } else {
             FileOperationResult.Failure(allErrors.joinToString("; "))
         }

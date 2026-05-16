@@ -123,15 +123,21 @@ foreach ($apk in $apkFiles) {
     $logEntry = "$timestamp | $flavor-$buildType-batch | $newName"
     Add-Content -Path $journalPath -Value $logEntry
     
-    # Zip with password and copy to Google Drive
+    # Copy raw APK to Google Drive AND create password-protected ZIP.
+    # Both raw .apk and .zip (password=1) must live on GD:
+    #   - raw .apk for recipients with normal security
+    #   - .zip for recipients whose security policy blocks .apk downloads
     $gdDir = "c:\GD\WORK\FastMediaSorter"
     if (!(Test-Path -Path $gdDir)) {
         New-Item -ItemType Directory -Path $gdDir | Out-Null
     }
-    
+
+    Copy-Item -Path $destPath -Destination "$gdDir\$newName" -Force
+    Write-Host "  -> Google Drive (raw): $newName" -ForegroundColor Gray
+
     $zipName = [System.IO.Path]::ChangeExtension($newName, ".zip")
     $zipPath = "$gdDir\$zipName"
-    
+
     # Use 7-Zip to create password-protected archive
     $7zipPath = "C:\Program Files\7-Zip\7z.exe"
     if (Test-Path -Path $7zipPath) {
@@ -139,7 +145,7 @@ foreach ($apk in $apkFiles) {
         # Write-Host "  -> Google Drive: $zipName (password: 1)" -ForegroundColor Cyan
     }
     else {
-        Write-Host "  -> Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
+        Write-Host "  -> Warning: 7-Zip not found. ZIP step skipped (raw APK still copied)." -ForegroundColor Yellow
     }
 
     # Copy APK to tc folder
@@ -189,9 +195,10 @@ if (Test-Path $wearApkRoot) {
         $logEntry = "$timestamp | wear-$buildType-batch | FastMediaSorter_wear_$buildType.apk"
         Add-Content -Path $journalPath -Value $logEntry
 
-        # Zip to Google Drive
+        # Copy raw APK to Google Drive AND create password-protected ZIP.
         $gdDir = "c:\GD\WORK\FastMediaSorter"
         if (!(Test-Path $gdDir)) { New-Item -ItemType Directory -Path $gdDir | Out-Null }
+        Copy-Item -Path $wearDest -Destination "$gdDir\FastMediaSorter_wear_$buildType.apk" -Force
         $7zipPath = "C:\Program Files\7-Zip\7z.exe"
         if (Test-Path $7zipPath) {
             & $7zipPath a -tzip -p1 "$gdDir\FastMediaSorter_wear_$buildType.zip" "$wearDest" | Out-Null

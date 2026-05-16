@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
@@ -37,7 +38,11 @@ import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
 import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
 import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
 import com.sza.fastmediasorter.ui.player.helpers.formatTime
-import com.sza.fastmediasorter.ui.player.helpers.logMemoryStats
+import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
+import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.memory.MemoryScenario
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.ui.player.helpers.playCloudVideo
 import com.sza.fastmediasorter.ui.player.helpers.playFtpVideo
 import com.sza.fastmediasorter.ui.player.helpers.playLocalVideoInternal
@@ -92,7 +97,13 @@ class VideoPlayerManager(
     internal val dropboxClient: DropboxClient,
     internal val playbackPositionRepository: PlaybackPositionRepository,
     internal val settingsRepository: SettingsRepository,
-    internal val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier
+    internal val panelStereoSingleEyeNotifier: PanelStereoSingleEyeNotifier,
+    // S0207 Phase 01: PRE_PLAY / AFTER_STATE_READY checkpoints emitted from playVideo / playerListener.
+    internal val memoryProbe: MemoryProbe,
+    // S0207 Phase 03: runtime scenario source of truth for browse/player memory defaults.
+    internal val memoryProfileCoordinator: MemoryProfileCoordinator,
+    // S0213 Pillar A: cooldown tracker consulted by PlayerMediaLoaderManager before replays.
+    internal val decoderFailureTracker: RecentDecoderFailureTracker,
 ) : DefaultLifecycleObserver {
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -117,6 +128,12 @@ class VideoPlayerManager(
         fun onBeforeVideoLoad(path: String) {}
         /** Fired once per video load when a stereo format is detected. Default no-op. */
         fun onStereoDetected(mode: StereoMode, forFilePath: String) {}
+        /**
+         * S0213 Pillar A: fired when a manual replay request hits a path that is still inside the
+         * decoder cooldown window (slideshow context auto-skips before this is reached). UI layer
+         * is expected to render a snackbar with a "Skip" action; default no-op for non-UI impls.
+         */
+        fun onDecoderCooldownReentry(path: String, remainingSec: Int) {}
     }
 
     /** Audio format information exposed via [getAudioFormat]. */
@@ -146,6 +163,19 @@ class VideoPlayerManager(
         internal const val CLOUD_MAX_BUFFER_MS = 45_000
         internal const val CLOUD_BUFFER_FOR_PLAYBACK_MS = 8_000
         internal const val CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 12_000
+
+        // Audio playback uses a smaller buffer than video — codec/decoder allocations are
+        // much lower, so large video-oriented buffers waste memory without audible benefit.
+        internal const val AUDIO_MIN_BUFFER_MS = 5_000
+        internal const val AUDIO_MAX_BUFFER_MS = 12_000
+        internal const val AUDIO_BUFFER_FOR_PLAYBACK_MS = 2_000
+        internal const val AUDIO_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 4_000
+
+        // Network audio still needs more cushion than local because protocol latency is higher.
+        internal const val AUDIO_NETWORK_MIN_BUFFER_MS = 10_000
+        internal const val AUDIO_NETWORK_MAX_BUFFER_MS = 20_000
+        internal const val AUDIO_NETWORK_BUFFER_FOR_PLAYBACK_MS = 4_000
+        internal const val AUDIO_NETWORK_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 6_000
 
         internal const val POSITION_SAVE_INTERVAL_MS = 15_000L
 
@@ -352,9 +382,17 @@ class VideoPlayerManager(
             when (playbackState) {
                 Player.STATE_READY -> {
                     Timber.d("VideoPlayerManager: Playback ready")
-                    logMemoryStats("AFTER STATE_READY")
+                    // S0207 Phase 01: post-ready memory checkpoint. scenarioTag is derived from the
+                    // current file path so audio vs video can be filtered in MEM_PROBE log lines.
+                    memoryProbe.record(
+                        MemoryCheckpoint.AFTER_STATE_READY,
+                        scenarioTag = currentFilePath?.let(::scenarioTagFor),
+                    )
                     playbackRetryCount = 0
                     currentFilePath?.let(VideoPlaybackFailureSessionCache::clear)
+                    // S0213 Pillar A: any source playing successfully proves the native graph
+                    // recovered, so prior cooldown entries are no longer needed.
+                    decoderFailureTracker.clearAll()
                     playerCallback.onBuffering(false)
                     playerCallback.onPlaybackReady()
                     startPlaybackHealthCheck()
@@ -432,6 +470,9 @@ class VideoPlayerManager(
             }
 
             if (isMediaCodecError) {
+                // S0213 Pillar A: arm cooldown so the very next replay of this same source is
+                // short-circuited by PlayerMediaLoaderManager before media3 rebuilds its graph.
+                currentFilePath?.let(decoderFailureTracker::markFailed)
                 Timber.w("VideoPlayerManager: MediaCodec error — errorCode=${error.errorCode}, cause=${error.cause?.javaClass?.simpleName}")
             } else {
                 Timber.e(error, "VideoPlayerManager: Playback error — errorCode=${error.errorCode}")
@@ -451,6 +492,9 @@ class VideoPlayerManager(
                 rendererType == C.TRACK_TYPE_AUDIO
             }
             if (isAudioRendererFailure) {
+                // S0213 Pillar A: 4003 audio-renderer failure is the canonical crash-loop entry —
+                // mark the source so retries are throttled even if the user dismisses our toast.
+                currentFilePath?.let(decoderFailureTracker::markFailed)
                 val savedPosition = exoPlayer?.currentPosition ?: 0L
                 Timber.w("VideoPlayerManager: Audio renderer failed (errorCode=${error.errorCode}) — disabling audio, resuming video at ${savedPosition}ms")
                 Toast.makeText(
@@ -529,6 +573,10 @@ class VideoPlayerManager(
         }
 
         override fun onRenderedFirstFrame() {
+            // S0196: primary-content timing probe — fires when ExoPlayer renders the first video
+            // frame to the surface. Phase 04 reads this tag from logcat as the "video firstContent"
+            // timestamp. Intentionally placed before early returns so all sources are covered.
+            Timber.d("VideoPlayerManager: onRenderedFirstFrame path=${currentFilePath ?: "(null)"}")
             val path = currentFilePath ?: return
             val callback = onFirstFrameReady ?: return
             // Poster extractor only supports local files — skip for network/cloud sources
@@ -671,7 +719,19 @@ class VideoPlayerManager(
         playerCallback.onBeforeVideoLoad(path)
         // Reset the panel single-eye toast one-shot for the new media session.
         panelStereoSingleEyeNotifier.resetForNewSession()
-        logMemoryStats("BEFORE playVideo")
+        val scenarioTag = scenarioTagFor(path)
+        val playbackScenario = if (scenarioTag == "audio") {
+            MemoryScenario.AUDIO_PLAYBACK
+        } else {
+            MemoryScenario.VIDEO_PLAYBACK
+        }
+        memoryProfileCoordinator.enter(playbackScenario)
+        if (playbackScenario == MemoryScenario.AUDIO_PLAYBACK) {
+            // Audio playback should not inherit browse thumbnails as warm image memory.
+            Glide.get(context).clearMemory()
+        }
+        // S0207 Phase 01: PRE_PLAY checkpoint — captures native heap right before ExoPlayer starts.
+        memoryProbe.record(MemoryCheckpoint.PRE_PLAY, scenarioTag = scenarioTag)
 
         // Reset effects-deferral gate for the new file — size will be reported
         // again via onVideoSizeChanged once the decoder decodes the first frame.
@@ -859,5 +919,16 @@ class VideoPlayerManager(
 
     override fun onResume(owner: LifecycleOwner) = lifecycleHelper.onResume()
 
-    override fun onDestroy(owner: LifecycleOwner) = lifecycleHelper.onDestroy()
+    override fun onDestroy(owner: LifecycleOwner) {
+        memoryProfileCoordinator.enter(MemoryScenario.IDLE)
+        lifecycleHelper.onDestroy()
+    }
+
+    // S0207 Phase 01: simple audio/video classifier for MEM_PROBE scenarioTag.
+    // The full scenario taxonomy is introduced by Phase 03 (memory-profile-abstraction);
+    // until then this two-bucket split is enough to filter audio-only sessions in logs.
+    private fun scenarioTagFor(path: String): String {
+        val ext = path.substringAfterLast('.', "").lowercase()
+        return if (ext in MediaTypeUtils.AUDIO_EXTENSIONS) "audio" else "video"
+    }
 }

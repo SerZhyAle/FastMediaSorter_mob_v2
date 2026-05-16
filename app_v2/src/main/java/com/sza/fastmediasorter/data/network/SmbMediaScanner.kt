@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -424,7 +425,7 @@ class SmbMediaScanner @Inject constructor(
                 is SmbResult.Success -> {
                     result.data.mapNotNull { fileInfo ->
                         if (!showHiddenFiles && fileInfo.name.startsWith(".")) return@mapNotNull null
-                        if (fileInfo.isDirectory && fileInfo.name.startsWith(".trash")) return@mapNotNull null
+                        if (fileInfo.isDirectory && TrashFolderContract.matchesTrashSegment(fileInfo.name)) return@mapNotNull null
 
                         if (fileInfo.isDirectory) {
                             // For directories, count immediate children

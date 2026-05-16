@@ -48,7 +48,11 @@ Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process.
 # --no-configuration-cache: Chaquopy 17.x is not configuration-cache-compatible (S0175).
-& $gradlew assembleNoLegalDebug --no-configuration-cache
+# -Pchaquopy.enabled=true: noLegal flavor REQUIRES the Chaquopy Python runtime.
+#   Passing the flag explicitly removes the dependency on a machine-local
+#   `chaquopy.enabled=true` line in `local.properties` (which is gitignored and
+#   may be commented out / absent on a fresh checkout).
+& $gradlew assembleNoLegalDebug "-Pchaquopy.enabled=true" --no-configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
@@ -108,6 +112,12 @@ $gdDir = "c:\GD\WORK\FastMediaSorter"
 if (!(Test-Path -Path $gdDir)) {
     New-Item -ItemType Directory -Path $gdDir | Out-Null
 }
+
+# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
+# Recipients with security policies that block APK downloads use the .zip copy;
+# the raw .apk lets fast paths skip the unzip step.
+Copy-Item -Path "$downloadsDir\$destName" -Destination "$gdDir\$destName" -Force
+Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
 
 $zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
 $zipPath = "$gdDir\$zipName"

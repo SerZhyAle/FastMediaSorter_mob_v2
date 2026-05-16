@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.snackbar.Snackbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
@@ -66,7 +67,37 @@ class PlayerDialogAndUiStateManager(
      * Required for updateBackgroundMusicTrackDisplay() delegation.
      */
     var audioSlideshowPhotoModeManager: AudioSlideshowPhotoModeManager? = null
-    
+
+    // ========================================
+    // S0213 Pillar A / Pillar C — Snackbars
+    // ========================================
+
+    /**
+     * S0213 Pillar A: show a snackbar telling the user the just-played file is in decoder cooldown.
+     * Manual single-file context only — the slideshow / playlist path auto-skips before getting here.
+     * The action button delegates to the supplied [onSkip] (typically `viewModel.nextFile`).
+     */
+    fun showDecoderCooldownSnackbar(remainingSec: Int, onSkip: () -> Unit) {
+        val message = activity.getString(R.string.s0213_decoder_cooldown_manual, remainingSec)
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+            .setAction(R.string.s0213_action_skip) { onSkip() }
+            .show()
+        Timber.i("S0213 cooldown snackbar shown: remainingSec=$remainingSec")
+    }
+
+    /**
+     * S0213 Pillar C: one-shot snackbar shown when MemoryEnduranceTracker emits verdict=FAIL or
+     * drift_from_baseline ≥ 50 %. Length INDEFINITE so the user must explicitly act. The "Close
+     * player" action delegates to [onClosePlayer] (typically `activity.finish()`).
+     */
+    fun showMemoryDegradationSnackbar(onClosePlayer: () -> Unit) {
+        Timber.d("S0213: memory degradation snackbar shown")
+        Snackbar.make(binding.root, R.string.s0213_memory_alert_message, Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.s0213_memory_alert_action) { onClosePlayer() }
+            .show()
+        Timber.i("S0213 memory degradation snackbar shown")
+    }
+
     // ========================================
     // Dialog Operations with Business Logic
     // ========================================

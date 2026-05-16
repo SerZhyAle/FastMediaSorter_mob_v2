@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -31,7 +32,8 @@ sealed class FileOperationResult {
         val operation: FileOperation,
         val copiedFilePaths: List<String> = emptyList(), // Paths of destination files for undo
         val skippedCount: Int = 0,
-        val skippedPaths: List<String> = emptyList()
+        val skippedPaths: List<String> = emptyList(),
+        val softDeleteFallbackPaths: List<String> = emptyList()
     ) : FileOperationResult()
     data class PartialSuccess(
         val processedCount: Int, 
@@ -39,7 +41,8 @@ sealed class FileOperationResult {
         val errors: List<String>,
         val deletedPaths: List<String> = emptyList(), // Paths of actually deleted/moved files
         val skippedCount: Int = 0,
-        val skippedPaths: List<String> = emptyList()
+        val skippedPaths: List<String> = emptyList(),
+        val softDeleteFallbackPaths: List<String> = emptyList()
     ) : FileOperationResult()
     data class Failure(
         val error: String,
@@ -88,18 +91,19 @@ class FileOperationUseCase @Inject constructor(
     private val smbFileOperationHandler: SmbFileOperationHandler,
     private val sftpFileOperationHandler: SftpFileOperationHandler,
     private val ftpFileOperationHandler: FtpFileOperationHandler,
-    private val cloudFileOperationHandler: CloudFileOperationHandler
+    private val cloudFileOperationHandler: CloudFileOperationHandler,
+    private val localOperationStrategy: LocalOperationStrategy,
 ) {
 
     private var lastOperation: OperationHistory? = null
 
-    private val deleteOp = LocalDeleteFileOperation(context, cloudFileOperationHandler, smbFileOperationHandler)
+    private val deleteOp = LocalDeleteFileOperation(context, cloudFileOperationHandler, localOperationStrategy)
     private val copyOp = LocalCopyFileOperation(context) { path -> scanNewFile(path) }
     private val moveOp = LocalMoveFileOperation(
         context,
         scanNewFile = { path -> scanNewFile(path) },
-        deleteViaMediaStore = { path -> deleteOp.deleteViaMediaStore(path) },
-        isSharedStorage = { path -> deleteOp.isSharedStorage(path) }
+        deleteViaMediaStore = { path -> localOperationStrategy.deleteViaMediaStore(path) },
+        isSharedStorage = { path -> localOperationStrategy.isSharedStoragePath(path) }
     )
     private val renameOp = LocalRenameFileOperation(context) { path -> scanNewFile(path) }
 

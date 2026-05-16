@@ -1,0 +1,63 @@
+Using the build cache is enabled, but no build caches are configured or enabled.
+
+> Configure project :app_v2
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: API 'applicationVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding 
+    android.newDsl=false
+to this project's gradle.properties file.
+For more information, see http://developer.android.com/build/r/new-dsl.
+
+To determine what is calling applicationVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+WARNING: API 'testVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding 
+    android.newDsl=false
+to this project's gradle.properties file.
+For more information, see http://developer.android.com/build/r/new-dsl.
+
+To determine what is calling testVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+WARNING: API 'unitTestVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding 
+    android.newDsl=false
+to this project's gradle.properties file.
+For more information, see http://developer.android.com/build/r/new-dsl.
+
+To determine what is calling unitTestVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+
+> Task :wear:preBuild UP-TO-DATE
+> Task :app_v2:preBuild UP-TO-DATE
+> Task :wear:preDebugBuild UP-TO-DATE
+> Task :app_v2:preStandardDebugBuild UP-TO-DATE
+> Task :wear:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app_v2:mergeStandardDebugNativeDebugMetadata NO-SOURCE
+> Task :wear:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app_v2:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :wear:generateDebugBuildConfig
+> Task :wear:generateDebugResources
+> Task :wear:packageDebugResources
+> Task :wear:processDebugNavigationResources
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
+> Task :app_v2:generateStandardDebugResources UP-TO-DATE
+> Task :wear:parseDebugLocalResources
+> Task :wear:generateDebugAssets UP-TO-DATE
+> Task :wear:javaPreCompileDebug
+> Task :wear:generateDebugRFile
+> Task :app_v2:mergeStandardDebugResources UP-TO-DATE
+> Task :app_v2:packageStandardDebugResources UP-TO-DATE
+> Task :wear:mergeDebugAssets
+> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
+> Task :app_v2:generateSafeArgsStandardDebug UP-TO-DATE
+> Task :app_v2:generateStandardDebugBuildConfig UP-TO-DATE
+> Task :app_v2:generateStandardDebugRFile UP-TO-DATE
+> Task :wear:kspDebugKotlin
+> Task :app_v2:kaptGenerateStubsStandardDebugKotlin

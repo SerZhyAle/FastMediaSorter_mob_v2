@@ -6,6 +6,7 @@ import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.FtpDataSourceFactory
@@ -57,10 +58,13 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
         credentials.password,
         context
     )
+    val isAudio = path.substringAfterLast('.', "").lowercase() in MediaTypeUtils.AUDIO_EXTENSIONS
 
     val loadControl = PrefetchLoadControlFactory.build(
         plan = activePrefetchPlan,
         useCloudDefaults = false,
+        isAudio = isAudio,
+        useNetworkAudioDefaults = isAudio,
         tag = "ftp"
     )
 

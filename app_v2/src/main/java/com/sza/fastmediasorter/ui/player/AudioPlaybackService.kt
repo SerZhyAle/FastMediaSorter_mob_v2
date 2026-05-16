@@ -131,7 +131,6 @@ class AudioPlaybackService : MediaSessionService() {
         } else {
             startForeground(MediaNotificationManager.NOTIFICATION_ID, placeholderNotification)
         }
-        Timber.d("S0172: AudioPlaybackService startForeground called in onCreate")
 
         // Set custom notification provider
         setMediaNotificationProvider(

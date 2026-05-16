@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S0192 Phase 02 — Draw editor settings dialog content view.
+    Hosted by DrawSettingsDialog as the body of an AlertDialog.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Brush size — continuous slider 1..36 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/draw_settings_brush_size"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <SeekBar
+            android:id="@+id/seek_brush_size"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="35" />
+
+        <TextView
+            android:id="@+id/label_brush_value"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="end"
+            android:text="12" />
+    </LinearLayout>
+
+    <!-- Text size — small / medium / large -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/draw_settings_text_size"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/radio_text_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radio_text_small"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/draw_settings_text_small" />
+
+        <RadioButton
+            android:id="@+id/radio_text_medium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/draw_settings_text_medium" />
+
+        <RadioButton
+            android:id="@+id/radio_text_large"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/draw_settings_text_large" />
+    </RadioGroup>
+
+    <!-- Opacity — 0/25/50/75/100 % (literal %, language neutral) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/draw_settings_opacity"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/radio_opacity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radio_op_0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0%" />
+
+        <RadioButton
+            android:id="@+id/radio_op_25"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="25%" />
+
+        <RadioButton
+            android:id="@+id/radio_op_50"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="50%" />
+
+        <RadioButton
+            android:id="@+id/radio_op_75"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="75%" />
+
+        <RadioButton
+            android:id="@+id/radio_op_100"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="100%" />
+    </RadioGroup>
+
+</LinearLayout>

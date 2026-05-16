@@ -61,12 +61,18 @@ class VideoPlayerManagerStateEndedTest {
             dropboxClient = mockk(relaxed = true),
             playbackPositionRepository = mockRepo,
             settingsRepository = mockSettings,
-            panelStereoSingleEyeNotifier = mockk(relaxed = true)
+            panelStereoSingleEyeNotifier = mockk(relaxed = true),
+            memoryProbe = mockk(relaxed = true),
+            memoryProfileCoordinator = mockk(relaxed = true),
+            decoderFailureTracker = mockk(relaxed = true),
         )
     }
 
     @After
     fun tearDown() {
+        if (::manager.isInitialized) {
+            manager.releasePlayer()
+        }
         Dispatchers.resetMain()
     }
 

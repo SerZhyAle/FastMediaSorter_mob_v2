@@ -27,13 +27,15 @@ import timber.log.Timber
  * Resets the video-effects pipeline so previously active effects are re-applied
  * to the fresh instance (avoids silent reset on config changes / player recreation).
  */
-internal fun VideoPlayerManager.createPlayer(playerView: PlayerView): ExoPlayer {
+internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Boolean = false): ExoPlayer {
     releasePlayer()
 
     val loadControl = PrefetchLoadControlFactory.build(
         plan = activePrefetchPlan,
         useCloudDefaults = false,
-        tag = "createPlayer"
+        isAudio = isAudio,
+        useNetworkAudioDefaults = false,
+        tag = if (isAudio) "createPlayer-audio" else "createPlayer"
     )
 
     val audioAttributes = AudioAttributes.Builder()
@@ -151,34 +153,7 @@ internal fun VideoPlayerManager.brightnessAdjustmentToProgress(adjustment: Float
     ((adjustment.coerceIn(-1f, 1f) * VideoPlayerManager.DEFAULT_BRIGHTNESS_PROGRESS) +
         VideoPlayerManager.DEFAULT_BRIGHTNESS_PROGRESS).toInt()
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Memory diagnostics
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Logs current heap and native memory usage for debugging OOM / memory-leak investigations.
- * @param logContext Contextual label for log filtering (e.g., "BEFORE playVideo").
- */
-internal fun VideoPlayerManager.logMemoryStats(logContext: String) {
-    try {
-        val runtime = Runtime.getRuntime()
-
-        val totalMemory = runtime.totalMemory() / (1024 * 1024)
-        val freeMemory = runtime.freeMemory() / (1024 * 1024)
-        val maxMemory = runtime.maxMemory() / (1024 * 1024)
-        val usedMemory = totalMemory - freeMemory
-        val percentUsed = (usedMemory * 100) / maxMemory
-
-        val nativeHeapSize = android.os.Debug.getNativeHeapSize() / (1024 * 1024)
-        val nativeHeapAllocated = android.os.Debug.getNativeHeapAllocatedSize() / (1024 * 1024)
-        val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
-
-        Timber.i(
-            "MEMORY_DEBUG [$logContext] | " +
-                "Heap: ${usedMemory}MB/${maxMemory}MB (${percentUsed}%) | " +
-                "Native: ${nativeHeapAllocated}MB/${nativeHeapSize}MB (free: ${nativeHeapFree}MB)"
-        )
-    } catch (e: Exception) {
-        Timber.w(e, "MEMORY_DEBUG: Failed to log memory stats (VideoPlayer)")
-    }
-}
+// S0207 Phase 01: the former `MEMORY_DEBUG` extension was replaced by the `MemoryProbe`
+// channel (`memoryProbe.record(MemoryCheckpoint.PRE_PLAY / AFTER_STATE_READY)`) at the
+// VideoPlayerManager call sites. The dedicated extension lived here only to keep
+// VideoPlayerManager smaller; with the unified probe channel it is no longer needed.

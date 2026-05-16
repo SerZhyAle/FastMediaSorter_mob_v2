@@ -6,12 +6,12 @@ import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
@@ -68,6 +68,7 @@ class DualSurfaceStaticImageRenderer(
         !com.sza.fastmediasorter.BuildConfig.SUPPORT_VR_PLAYER
 
     private val appContext = surfaceA.context.applicationContext
+    private val decodeFormatResolver by lazy { appContext.memoryPressureDecodeFormatResolver() }
     private val maxLoadDimension = if (memoryTier == MemoryTier.LOW) 2048 else 4096
     private val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
 
@@ -282,9 +283,7 @@ class DualSurfaceStaticImageRenderer(
             panelStereoSingleEyeNotifier?.notifyIfFirstThisSession(appContext)
         }
 
-        if (memoryTier == MemoryTier.LOW) {
-            glideRequest.format(DecodeFormat.PREFER_RGB_565)
-        }
+        glideRequest.format(decodeFormatResolver.decodeFormat())
 
         glideRequest.listener(object : RequestListener<Drawable> {
             override fun onLoadFailed(
@@ -398,9 +397,10 @@ class DualSurfaceStaticImageRenderer(
                 .diskCacheStrategy(DiskCacheStrategy.DATA)
                 .override(preloadMaxDimension, preloadMaxDimension)
 
-            if (memoryTier == MemoryTier.LOW) {
-                request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
-            }
+            request.set(
+                com.bumptech.glide.load.Option.memory("decodeFormat"),
+                decodeFormatResolver.decodeFormat(),
+            )
 
             request.submit().get()
         }

@@ -105,7 +105,6 @@ class LinkDownloadWorker @AssistedInject constructor(
                 } catch (e: Exception) {
                     Timber.w(e, "LinkDownloadWorker: setForeground failed (non-fatal)")
                 }
-                Timber.d("S0202: LinkDownloadWorker single-mode foreground started url=%s", url)
                 ensureActive()
                 coordinator.handle(url!!, progressCallbacks(), accountId)
             }
@@ -235,20 +234,33 @@ class LinkDownloadWorker @AssistedInject constructor(
                     )
             }
             is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly -> {
-                // Worker cannot show dialogs. Check dismissed status:
-                // - if user previously said "don't ask" for this host — post a quiet failure notification.
-                // - otherwise — post a heads-up sign-in notification so user can tap and re-auth.
-                if (isDismissedHost) {
-                    builder
-                        .setContentTitle(context.getString(R.string.link_download_notif_title_done))
-                        .setContentText(context.getString(R.string.link_download_notif_text_failed))
-                } else {
-                    builder
-                        .setContentTitle(context.getString(R.string.link_download_notif_title_sign_in_needed))
-                        .setContentText(
-                            context.getString(R.string.link_download_notif_text_sign_in_needed, result.host),
-                        )
-                        .addAction(buildSignInAction(result.originalUrl))
+                // S0211: worker cannot show dialogs. Three branches:
+                // - extractor already ran with a valid stored session (hadExistingSession) — honest
+                //   notice, no Sign-In CTA. Mirrors LinkAutoDownloadResultPresenter.presentSocialPreviewOnly.
+                // - "don't ask" recorded for this host — quiet failure notification.
+                // - no session yet — heads-up sign-in notification with re-auth CTA.
+                when {
+                    result.hadExistingSession -> {
+                        Timber.d("S0211: LinkDownloadWorker notify preview-only-signed-in host=%s", result.host)
+                        builder
+                            .setContentTitle(context.getString(R.string.link_download_notif_title_done))
+                            .setContentText(
+                                context.getString(R.string.link_download_notif_text_preview_only_signed_in),
+                            )
+                    }
+                    isDismissedHost -> {
+                        builder
+                            .setContentTitle(context.getString(R.string.link_download_notif_title_done))
+                            .setContentText(context.getString(R.string.link_download_notif_text_failed))
+                    }
+                    else -> {
+                        builder
+                            .setContentTitle(context.getString(R.string.link_download_notif_title_sign_in_needed))
+                            .setContentText(
+                                context.getString(R.string.link_download_notif_text_sign_in_needed, result.host),
+                            )
+                            .addAction(buildSignInAction(result.originalUrl))
+                    }
                 }
             }
             is LinkAutoDownloadCoordinator.Result.Failed -> {

@@ -224,29 +224,6 @@ class FtpFileOperationHandler @Inject constructor(
         }
     }
 
-    override suspend fun createTrashFolder(firstFilePath: String): String? {
-        val normalized = normalizeNetworkPath(firstFilePath)
-        if (!normalized.startsWith("ftp:", ignoreCase = true)) {
-            return super.createTrashFolder(firstFilePath)
-        }
-
-        val parentDir = normalized.substringBeforeLast('/', missingDelimiterValue = "")
-        if (parentDir.isEmpty()) return null
-
-        val trashDirPath = "$parentDir/.trash_${System.currentTimeMillis()}"
-        val connectionInfo = parseFtpPath(trashDirPath) ?: return null
-
-        val createResult = ftpClient.createDirectoryWithNewConnection(
-            connectionInfo.host,
-            connectionInfo.port,
-            connectionInfo.username,
-            connectionInfo.password,
-            connectionInfo.remotePath
-        )
-
-        return if (createResult.isSuccess) trashDirPath else null
-    }
-
     override suspend fun moveToTrash(sourcePath: String, trashPath: String, fileName: String): Result<Unit> {
         val source = normalizeNetworkPath(sourcePath)
         val trash = normalizeNetworkPath(trashPath)

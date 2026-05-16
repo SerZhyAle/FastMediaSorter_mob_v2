@@ -80,6 +80,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private var setupStartUptimeMs: Long = 0L
     private var actionBarSizePx = 0
     private var statusBarInsetPx = 0
+    // S0196 Phase 04: one-shot tag emitted after the first preferences page is laid out.
+    private var firstPageRenderedLogged = false
     
     companion object {
         /** Intent extra: Long — pre-select this resource as source in the new scheduled operation dialog. */
@@ -178,6 +180,16 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
         setupGlobalSearch()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${SettingsSearchRegistry.entries.size} search entries)")
+
+        // S0196 Phase 04 measurement hook: posted AFTER the conditional setCurrentItem posts
+        // above, so it fires once the initial tab fragment is laid out — "primary content
+        // rendered" for the settings surface.
+        binding.viewPager.post {
+            if (!firstPageRenderedLogged) {
+                firstPageRenderedLogged = true
+                Timber.d("SettingsActivity: primaryContentBound tab=${binding.viewPager.currentItem}")
+            }
+        }
 
         if (BuildConfig.DEBUG) {
             binding.root.post {

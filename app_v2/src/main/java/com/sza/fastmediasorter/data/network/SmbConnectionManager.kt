@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import timber.log.Timber
 import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -53,6 +54,7 @@ class SmbConnectionManager @Inject constructor(
     private val playbackTracker: SmbPlaybackConnectionTracker,
     private val reachabilityGate: NetworkReachabilityGate,
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
+    private val idleDisconnectPolicy: IdleDisconnectPolicy,
 ) {
     
     init {
@@ -111,6 +113,7 @@ class SmbConnectionManager @Inject constructor(
         // S0061 Phase 02: idle threshold after which a quick health probe is run before reuse.
         // 30 s is cheap (local state only) and catches servers that close idle TCP after 1-2 minutes.
         private const val IDLE_HEALTH_RECHECK_MS = 30_000L
+        private const val IDLE_TIMEOUT_MS = 30_000L
 
         // Timeout degradation tracking
         private const val TIMEOUT_WARNING_THRESHOLD = 5
@@ -133,6 +136,7 @@ class SmbConnectionManager @Inject constructor(
     // ConnectionConsumer are now top-level types in that file.
     private val pool = SmbConnectionPool()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
+    private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
 
     // S0061 Phase 01: health probe wired here; invoked in Phase 02.
     private val healthProbe = SmbConnectionHealthProbe()
@@ -267,6 +271,8 @@ class SmbConnectionManager @Inject constructor(
             username = connectionInfo.username,
             domain = connectionInfo.domain
         )
+        val idleTransportKey = rememberTransportKey(key)
+        idleDisconnectPolicy.touch(idleTransportKey)
         
         // Reset timeout counter and connections after idle period
         val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation
@@ -309,6 +315,9 @@ class SmbConnectionManager @Inject constructor(
             
             try {
                 val result = block(pooled.share)
+                if (result is SmbResult.Success) {
+                    armIdleTransport(idleTransportKey, key)
+                }
                 onSuccess()
                 return@withPermit result
             } catch (e: CancellationException) {
@@ -369,6 +378,9 @@ class SmbConnectionManager @Inject constructor(
 
                 try {
                     val result = block(newPooled.share)
+                    if (result is SmbResult.Success) {
+                        armIdleTransport(idleTransportKey, key)
+                    }
                     onSuccess()
                     return@withPermit result
                 } finally {
@@ -698,6 +710,7 @@ class SmbConnectionManager @Inject constructor(
      * Delegated to [SmbConnectionPool] which owns the lifecycle.
      */
     private fun removeConnection(key: ConnectionKey) {
+        disarmIdleTransport(key)
         pool.removeAndCloseSync(key)
     }
     
@@ -712,6 +725,9 @@ class SmbConnectionManager @Inject constructor(
      * Close all pooled connections asynchronously — delegated to [SmbConnectionPool].
      */
     private fun closeAllConnections() {
+        // WHY: when the pool is force-closed or reset, stale idle callbacks must not race later
+        // and try to close already-evicted SMBJ sessions a second time.
+        disarmAllIdleTransports()
         pool.closeAll()
     }
 
@@ -735,6 +751,7 @@ class SmbConnectionManager @Inject constructor(
             username = connectionInfo.username,
             domain = connectionInfo.domain
         )
+        disarmIdleTransport(key)
         val stale = pool.remove(key) ?: return
         Timber.d("SmbConnectionManager: Invalidating stale ExoPlayer connection for ${connectionInfo.server}")
         // Close all layers so SMBJ's internal connection cache is also purged.
@@ -887,6 +904,8 @@ class SmbConnectionManager @Inject constructor(
             username = connectionInfo.username,
             domain = connectionInfo.domain
         )
+        val idleTransportKey = rememberTransportKey(key)
+        idleDisconnectPolicy.touch(idleTransportKey)
         
         // Try pooled connection first.
         // Only reuse if the pool entry was created on the PLAYER path — scanner-sourced
@@ -897,6 +916,7 @@ class SmbConnectionManager @Inject constructor(
         if (pooled != null && pooled.consumer == ConnectionConsumer.PLAYER
             && healthProbe.isAlive(pooled) && isConnectionValid(pooled)) {
             pooled.lastUsed = System.currentTimeMillis()
+            armIdleTransport(idleTransportKey, key)
             Timber.d("SmbConnectionManager: Reusing pooled connection for ExoPlayer")
             return pooled
         }
@@ -952,6 +972,7 @@ class SmbConnectionManager @Inject constructor(
                 )
                 pool.put(key, newPooled)
 
+                armIdleTransport(idleTransportKey, key)
                 onSuccess()
                 return newPooled
             } catch (e: Exception) {
@@ -996,5 +1017,30 @@ class SmbConnectionManager @Inject constructor(
     fun close() {
         closeAllConnections()
         resetClients()
+    }
+
+    private fun rememberTransportKey(key: ConnectionKey): String {
+        return transportKey(key).also(trackedTransportKeys::add)
+    }
+
+    private fun transportKey(key: ConnectionKey): String {
+        return "smb@${key.server}:${key.port}:${key.shareName}:${key.username}:${key.domain}"
+    }
+
+    private fun armIdleTransport(transportKey: String, key: ConnectionKey) {
+        idleDisconnectPolicy.arm(transportKey, IDLE_TIMEOUT_MS) {
+            pool.removeAndCloseAsync(key)
+        }
+    }
+
+    private fun disarmIdleTransport(key: ConnectionKey) {
+        val transportKey = transportKey(key)
+        idleDisconnectPolicy.disarm(transportKey)
+        trackedTransportKeys.remove(transportKey)
+    }
+
+    private fun disarmAllIdleTransports() {
+        trackedTransportKeys.forEach(idleDisconnectPolicy::disarm)
+        trackedTransportKeys.clear()
     }
 }

@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.data.model
 
-import org.json.JSONArray
-import org.json.JSONObject
+import com.google.gson.Gson
 
 /**
  * Metadata for files stored in .trash folder.
  * Stores information needed to restore deleted files.
+ *
+ * Serialized/deserialized via Gson so it works in both production and JVM unit tests.
+ * Field names map directly to JSON keys — do not rename without a migration path.
  */
 data class TrashMetadata(
     val originalPath: String,           // Full path where file was located
@@ -18,42 +20,23 @@ data class TrashMetadata(
     /**
      * Serialize metadata to JSON string.
      */
-    fun toJson(): String {
-        val json = JSONObject()
-        json.put("originalPath", originalPath)
-        json.put("resourceId", resourceId)
-        json.put("resourceType", resourceType)
-        json.put("deletionTimestamp", deletionTimestamp)
-        json.put("isDirectory", isDirectory)
-        
-        val filesArray = JSONArray()
-        deletedFiles.forEach { filesArray.put(it) }
-        json.put("deletedFiles", filesArray)
-        
-        return json.toString(2) // Pretty print with indent
-    }
+    fun toJson(): String = gson.toJson(this)
 
     companion object {
+        private val gson = Gson()
+
         /**
          * Deserialize metadata from JSON string.
+         * Throws if the JSON is malformed or required fields are missing.
          */
         fun fromJson(json: String): TrashMetadata {
-            val jsonObject = JSONObject(json)
-            
-            val filesArray = jsonObject.getJSONArray("deletedFiles")
-            val filesList = mutableListOf<String>()
-            for (i in 0 until filesArray.length()) {
-                filesList.add(filesArray.getString(i))
-            }
-            
-            return TrashMetadata(
-                originalPath = jsonObject.getString("originalPath"),
-                resourceId = jsonObject.getLong("resourceId"),
-                resourceType = jsonObject.getString("resourceType"),
-                deletedFiles = filesList,
-                deletionTimestamp = jsonObject.getLong("deletionTimestamp"),
-                isDirectory = jsonObject.optBoolean("isDirectory", false)
-            )
+            val metadata = gson.fromJson(json, TrashMetadata::class.java)
+                ?: throw IllegalArgumentException("JSON deserialized to null")
+            // Validate required fields so callers get a clear error instead of silent nulls.
+            requireNotNull(metadata.originalPath) { "originalPath missing" }
+            requireNotNull(metadata.resourceType) { "resourceType missing" }
+            requireNotNull(metadata.deletedFiles) { "deletedFiles missing" }
+            return metadata
         }
     }
 }

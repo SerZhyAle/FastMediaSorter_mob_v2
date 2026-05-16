@@ -221,6 +221,26 @@ Do NOT use `npm install -g maestro-cli`.
 
 ---
 
+### KAPT Stall Recovery
+
+If `:app_v2:kaptGenerateStubsStandardDebugKotlin` or `:app_v2:kaptStandardDebugKotlin` hangs with no output for several minutes during a targeted validation command (`:app_v2:compileStandardDebugKotlin`, `:app_v2:testStandardDebugUnitTest`, per-class test run), the build is not failing — it stalls silently, so `build-debug.PS1` cannot auto-retry. Abort the stalled invocation and use the targeted recovery:
+
+```powershell
+# Stop daemons, clear only kapt/kotlin/executionHistory volatile state, retry once with --no-daemon
+pwsh -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
+
+# Recover without auto-retry, then run any command manually
+pwsh -File scripts/utils/recover-kapt-stall.ps1
+.\gradlew.bat :app_v2:testStandardDebugUnitTest --no-daemon
+
+# Cold-start fallback if even the targeted retry stalls again
+.\scripts\builders\clean-gradle-caches.ps1
+```
+
+`recover-kapt-stall.ps1` removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, and `.gradle/<ver>/executionHistory` only — it does NOT wipe `.gradle/` or `app_v2/build/`. Reach for `clean-gradle-caches.ps1` only when the targeted path fails twice.
+
+---
+
 ### Dev Log (Mandatory After Every Change)
 
 After every code or config change, run:

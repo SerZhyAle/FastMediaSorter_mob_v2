@@ -7,6 +7,7 @@ import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
+import com.sza.fastmediasorter.data.network.IdleDisconnectPolicy
 import com.sza.fastmediasorter.data.network.SmbConnectionManager
 import com.sza.fastmediasorter.data.network.SmbPlaybackConnectionTracker
 import com.sza.fastmediasorter.data.network.exceptions.NetworkConnectionLostException
@@ -72,6 +73,7 @@ class SmbConnectionManagerTest {
             mockk<SmbPlaybackConnectionTracker>(relaxed = true),
             mockReachabilityGate,
             dagger.Lazy { mockk(relaxed = true) },
+            mockk<IdleDisconnectPolicy>(relaxed = true),
         )
     }
     

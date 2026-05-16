@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.data.observer.MediaFileObserver
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
@@ -73,8 +74,8 @@ class BrowseFileObserverManager(
                             Timber.d("FileObserver: ignoring deleted event (programmatic): $fileName")
                             return
                         }
-                        if (fileName.startsWith(".trash_")) {
-                            Timber.d("FileObserver: ignoring trash folder deletion: $fileName")
+                        if (TrashFolderContract.matchesTrashSegment(fileName)) {
+                            Timber.d("FileObserver: ignoring trash container deletion: $fileName")
                             return
                         }
                         Timber.i("FileObserver: external file deleted: $fileName")
@@ -88,8 +89,8 @@ class BrowseFileObserverManager(
                             Timber.d("FileObserver: ignoring created event (programmatic): $fileName")
                             return
                         }
-                        if (fileName.startsWith(".trash_")) {
-                            Timber.d("FileObserver: ignoring trash folder creation: $fileName")
+                        if (TrashFolderContract.matchesTrashSegment(fileName)) {
+                            Timber.d("FileObserver: ignoring trash container creation: $fileName")
                             return
                         }
                         Timber.i("FileObserver: external file created: $fileName")

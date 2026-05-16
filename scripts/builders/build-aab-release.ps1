@@ -101,11 +101,32 @@ if (-not $apkPath) {
     Write-Host "APK size: $apkSize MB" -ForegroundColor Cyan
 }
 
-# Try to copy to Google Drive if path exists
+# Copy raw AAB+APK to Google Drive AND create password-protected ZIP.
+# Both raw files and the ZIP must be present on GD:
+#   - raw .aab/.apk for direct download by recipients with normal security
+#   - .zip with password=1 for recipients whose security policy blocks .apk downloads
 $gdPath = "c:\GD\WORK\FastMediaSorter"
-if (Test-Path -Path $gdPath) {
+if (-not (Test-Path -Path $gdPath)) {
     try {
-        # Create ZIP with password protection if 7z is available
+        New-Item -ItemType Directory -Path $gdPath | Out-Null
+    }
+    catch {
+        Write-Host "Warning: Google Drive folder not available ($gdPath) — GD copy + ZIP skipped." -ForegroundColor Yellow
+        $gdPath = $null
+    }
+}
+
+if ($gdPath) {
+    try {
+        # Always copy raw artifacts first — survives even if 7-Zip is missing.
+        Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.aab") -Force
+        Write-Host "AAB copied to $gdPath" -ForegroundColor Green
+        if ($destApkPath -and (Test-Path -Path $destApkPath)) {
+            Copy-Item -Path $destApkPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.apk") -Force
+            Write-Host "APK copied to $gdPath" -ForegroundColor Green
+        }
+
+        # Then attempt password-protected ZIP.
         $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
         if (Test-Path -Path $sevenZipPath) {
             $zipPath = Join-Path $gdPath "FastMediaSorter_standard_release.zip"
@@ -127,27 +148,17 @@ if (Test-Path -Path $gdPath) {
             Pop-Location
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "AAB+APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Green
-                # Write-Host "Password: 1" -ForegroundColor Yellow
             }
             else {
-                Write-Host "Warning: Failed to create password-protected ZIP" -ForegroundColor Yellow
-                Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.aab") -Force
-                if (Test-Path -Path $destApkPath) {
-                    Copy-Item -Path $destApkPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.apk") -Force
-                }
-                Write-Host "AAB+APK copied to Google Drive (unprotected): $gdPath" -ForegroundColor Green
+                Write-Host "Warning: Failed to create password-protected ZIP (raw files still copied above)" -ForegroundColor Yellow
             }
         }
         else {
-            Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.aab") -Force
-            if (Test-Path -Path $destApkPath) {
-                Copy-Item -Path $destApkPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.apk") -Force
-            }
-            Write-Host "AAB+APK copied to Google Drive: $gdPath" -ForegroundColor Green
+            Write-Host "Warning: 7-Zip not found. ZIP step skipped (raw files still copied above)." -ForegroundColor Yellow
         }
     }
     catch {
-        Write-Host "Warning: Failed to copy to Google Drive: $_" -ForegroundColor Yellow
+        Write-Host "Warning: Failed to publish to Google Drive: $_" -ForegroundColor Yellow
     }
 }
 

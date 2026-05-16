@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.network.helpers
 
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
@@ -102,8 +103,7 @@ class SmbDirectoryScanner(
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L // FILE_ATTRIBUTE_DIRECTORY = 0x10
                 
                 if (isDirectory) {
-                    // Skip trash folders created by soft-delete
-                    if (fileInfo.fileName.startsWith(".trash")) continue
+                    if (TrashFolderContract.matchesTrashSegment(fileInfo.fileName)) continue
                     
                     // Recursively scan subdirectory in parallel (launched in coroutineScope)
                     this.launch(smbDispatcher) {
@@ -212,8 +212,7 @@ class SmbDirectoryScanner(
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
                 if (!isDirectory) continue // Skip files in second pass
                 
-                // Skip trash folders created by soft-delete
-                if (fileInfo.fileName.startsWith(".trash")) continue
+                if (TrashFolderContract.matchesTrashSegment(fileInfo.fileName)) continue
                 
                 val fullPath = if (dirPath.isEmpty()) {
                     fileInfo.fileName
@@ -407,7 +406,7 @@ class SmbDirectoryScanner(
             
             val directories = allItems.filter {
                 it.fileName != "." && it.fileName != ".." && (it.fileAttributes and 0x10 != 0L) &&
-                !it.fileName.startsWith(".trash") // Skip trash folders created by soft-delete
+                !TrashFolderContract.matchesTrashSegment(it.fileName)
             }.sortedBy { it.fileName.lowercase() }
             
             // Process files first
@@ -476,8 +475,7 @@ class SmbDirectoryScanner(
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
                 
                 if (isDirectory) {
-                    // Skip trash folders
-                    if (fileInfo.fileName.startsWith(".trash")) continue
+                    if (TrashFolderContract.matchesTrashSegment(fileInfo.fileName)) continue
                     
                     val fullPath = if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}"
                     count = countDirectoryRecursive(share, fullPath, extensions, maxCount, count)

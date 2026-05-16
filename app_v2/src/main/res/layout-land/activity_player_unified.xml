@@ -13,9 +13,6 @@
 
             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 
-                <!-- S0104: Playback order mode button (AUDIO/VIDEO only) -->
-                <ImageButton android:id="@+id/btnPlaybackOrderCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/playback_order_menu_title" android:src="@drawable/ic_loop_list" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
-
                 <!-- S0050: Black Screen mode button (AUDIO/VIDEO; visible when showBlackScreenButton=true) -->
                 <ImageButton android:id="@+id/btnBlackScreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/black_screen_button_title" android:src="@drawable/ic_black_screen" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
@@ -91,6 +88,17 @@
                 <ImageButton android:id="@+id/btnSaveFrameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_save_frame" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 
                 <ImageButton android:id="@+id/btnPrintCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_print" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/menu_print" />
+
+                <!-- S0217: inline image-edit commands (was overflow-only until barCapable flipped) -->
+                <ImageButton android:id="@+id/btnOpenInSeparateWindowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_open_in_browse" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/action_open_in_separate_window" />
+
+                <ImageButton android:id="@+id/btnCropCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_crop" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/menu_crop" />
+
+                <ImageButton android:id="@+id/btnCropToFileCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_crop_to_file" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/menu_crop_to_file" />
+
+                <ImageButton android:id="@+id/btnCompressCopyCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_compress" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/menu_compress_copy" />
+
+                <ImageButton android:id="@+id/btnDrawOverlayCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_draw_overlay" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@string/menu_draw_overlay" />
 
                 <ImageButton android:id="@+id/btnUndoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_undo" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:background="?attr/selectableItemBackgroundBorderless" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:contentDescription="@null" />
 

@@ -23,6 +23,8 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
@@ -121,6 +123,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var shareResultPresenter: LinkAutoDownloadResultPresenter
 
+    // S0207 Phase 01: MAIN_DRAWN memory checkpoint emitter.
+    @Inject
+    lateinit var memoryProbe: MemoryProbe
+
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
@@ -138,6 +144,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         super.onCreate(savedInstanceState)
+
+        // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen.
+        // BaseActivity.onCreate has already called setContentView(binding.root) by the time we
+        // return from super.onCreate(), so binding.root is attached and post() runs after layout.
+        binding.root.post { memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN) }
 
         // Log config changes to detect unexpected recreations
         Timber.d("MainActivity.onCreate: savedInstanceState=${savedInstanceState != null}, isChangingConfigurations=$isChangingConfigurations")

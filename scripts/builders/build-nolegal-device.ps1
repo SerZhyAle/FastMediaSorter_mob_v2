@@ -52,7 +52,10 @@ Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process.
 # --no-configuration-cache: Chaquopy 17.x is not configuration-cache-compatible (S0175).
-& $gradlew assembleNoLegalDebug --no-configuration-cache
+# -Pchaquopy.enabled=true: noLegal flavor REQUIRES the Chaquopy Python runtime.
+#   Passing the flag explicitly removes the dependency on a machine-local
+#   `chaquopy.enabled=true` line in `local.properties` (gitignored, may be absent).
+& $gradlew assembleNoLegalDebug "-Pchaquopy.enabled=true" --no-configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
@@ -118,3 +121,37 @@ $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $logEntry = "$timestamp | nolegal-debug-device | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
+
+# Zip with password and copy to Google Drive
+$gdDir = "c:\GD\WORK\FastMediaSorter"
+if (!(Test-Path -Path $gdDir)) {
+    New-Item -ItemType Directory -Path $gdDir | Out-Null
+}
+
+# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
+# Recipients with security policies that block APK downloads use the .zip copy;
+# the raw .apk lets fast paths skip the unzip step.
+Copy-Item -Path "$downloadsDir\$destName" -Destination "$gdDir\$destName" -Force
+Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
+
+$zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
+$zipPath = "$gdDir\$zipName"
+
+# Use 7-Zip to create password-protected archive
+$7zipPath = "C:\Program Files\7-Zip\7z.exe"
+if (Test-Path -Path $7zipPath) {
+    if (Test-Path -Path $zipPath) {
+        Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
+    }
+    & $7zipPath a -y -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
+    }
+    else {
+        Write-Host "Warning: 7-Zip archive creation failed with exit code $LASTEXITCODE" -ForegroundColor Yellow
+    }
+}
+else {
+    Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
+    Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+}

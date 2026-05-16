@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -89,8 +90,7 @@ class FtpMediaScanner @Inject constructor(
             // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
             val isAllFilesMode = supportedTypes.size >= 7
             filesResult.getOrNull()?.mapNotNull { ftpFile ->
-                // Skip trash folders created by soft-delete
-                if (ftpFile.name.startsWith(".trash")) {
+                if (TrashFolderContract.matchesTrashSegment(ftpFile.name)) {
                     return@mapNotNull null
                 }
                 
@@ -377,8 +377,7 @@ class FtpMediaScanner @Inject constructor(
                 }
 
                 if (ftpFile.isDirectory) {
-                    // Skip .trash directories
-                    if (fileName.startsWith(".trash")) {
+                    if (TrashFolderContract.matchesTrashSegment(fileName)) {
                         return@mapNotNull null
                     }
 
@@ -545,7 +544,7 @@ class FtpMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         showHiddenFiles: Boolean
     ): MediaFile? {
-        if (ftpFile.name.startsWith(".trash")) return null
+        if (TrashFolderContract.matchesTrashSegment(ftpFile.name)) return null
         if (!showHiddenFiles && ftpFile.name.startsWith(".")) return null
 
         val isAllFilesMode = supportedTypes.size >= 7

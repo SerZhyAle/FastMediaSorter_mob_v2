@@ -159,6 +159,14 @@ class PlayerPlaybackCallbackImpl(
     // Resets in onBeforeVideoLoad() so each new file gets one toast chance.
     private var stereoToastShownForCurrentFile = false
 
+    override fun onDecoderCooldownReentry(path: String, remainingSec: Int) {
+        // S0213 Pillar A: route manual decoder-cooldown re-entry to the snackbar (with Skip action).
+        if (activity.isDestroyed || activity.isFinishing) return
+        activity.dialogAndUiStateManager.showDecoderCooldownSnackbar(remainingSec) {
+            viewModel.nextFile(skipDocuments = true)
+        }
+    }
+
     override fun onStereoDetected(mode: StereoMode, forFilePath: String) {
         // Pass auto-detected mode to ViewModel; it will only apply if user is still on AUTO.
         viewModel.setAutoDetectedStereoMode(mode, forFilePath)

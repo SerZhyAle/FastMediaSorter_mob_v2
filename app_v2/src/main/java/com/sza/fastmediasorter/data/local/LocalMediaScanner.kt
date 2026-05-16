@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
@@ -430,8 +431,8 @@ class LocalMediaScanner @Inject constructor(
 
         visibleChildren.mapNotNull { file ->
             if (file.isDirectory) {
-                // Skip .trash directories
-                if (file.name.startsWith(".trash")) return@mapNotNull null
+                // Keep recognised trash containers out of normal folder listings.
+                if (TrashFolderContract.matchesTrashSegment(file.name)) return@mapNotNull null
                 MediaFile(
                     name = file.name,
                     path = file.absolutePath,
@@ -476,8 +477,7 @@ class LocalMediaScanner @Inject constructor(
             visibleChildren.mapNotNull { file ->
                 val name = file.name ?: return@mapNotNull null
                 if (file.isDirectory) {
-                    // Skip .trash directories
-                    if (name.startsWith(".trash")) return@mapNotNull null
+                    if (TrashFolderContract.matchesTrashSegment(name)) return@mapNotNull null
                     MediaFile(
                         name = name,
                         path = file.uri.toString(),
@@ -575,8 +575,7 @@ class LocalMediaScanner @Inject constructor(
                         val isDirectory = mime == DocumentsContract.Document.MIME_TYPE_DIR
 
                         if (isDirectory) {
-                            // Skip .trash directories
-                            if (name.startsWith(".trash")) continue
+                            if (TrashFolderContract.matchesTrashSegment(name)) continue
                             if (scanSubdirectories) {
                                 val subFolderUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, docId)
                                 foldersToScan.add(subFolderUri)
@@ -675,7 +674,7 @@ class LocalMediaScanner @Inject constructor(
         while (queue.isNotEmpty()) {
             val curr = queue.removeFirst()
             curr.listFiles().forEach {
-                if (it.isDirectory && it.name?.startsWith(".trash") != true) queue.add(it)
+                if (it.isDirectory && it.name?.let(TrashFolderContract::matchesTrashSegment) != true) queue.add(it)
                 else if (it.isFile) result.add(it)
             }
         }
@@ -689,7 +688,7 @@ class LocalMediaScanner @Inject constructor(
         while (queue.isNotEmpty()) {
              val curr = queue.removeFirst()
              curr.listFiles()?.forEach { 
-                 if (it.isDirectory && !it.name.startsWith(".trash")) queue.add(it)
+                 if (it.isDirectory && !TrashFolderContract.matchesTrashSegment(it.name)) queue.add(it)
                  else if (it.isFile) result.add(it)
              }
         }

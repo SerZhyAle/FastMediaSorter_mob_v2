@@ -68,6 +68,26 @@
 .\gradlew.bat lintStandardDebug
 ```
 
+### KAPT stall recovery (targeted validation only)
+
+Symptom: `:app_v2:kaptGenerateStubsStandardDebugKotlin` or `:app_v2:kaptStandardDebugKotlin` hangs with no output for several minutes while running a targeted validation command such as `:app_v2:compileStandardDebugKotlin` or `:app_v2:testStandardDebugUnitTest`. The build does not fail, so `build-debug.PS1`'s failure-driven auto-retry does not engage.
+
+Fallback path — abort the stalled invocation, then:
+
+```powershell
+# 1. Clean only volatile kapt/kotlin/executionHistory dirs and retry once with --no-daemon.
+pwsh -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
+
+# 2. Or recover and retry manually (omit -Task to skip the auto-retry).
+pwsh -File scripts/utils/recover-kapt-stall.ps1
+.\gradlew.bat :app_v2:testStandardDebugUnitTest --no-daemon
+
+# 3. Last resort if the targeted retry stalls again — full wipe (forces a cold rebuild).
+.\scripts\builders\clean-gradle-caches.ps1
+```
+
+`recover-kapt-stall.ps1` is the targeted scalpel: it stops daemons, removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, and `.gradle/<ver>/executionHistory`. `clean-gradle-caches.ps1` nukes everything (`.gradle/`, `build/`, `app_v2/build/`) and is the cold-start option.
+
 ## STRING RESOURCE TOOLING
 
 ```powershell
@@ -247,3 +267,69 @@ ready. The task split is the decisive co-requisite that makes the category safe.
 An even earlier theory — that FOCUSED requires forwarding a
 `com.oculus.vrshell.launch_id` extra — was disproved by intent dumps (the key was
 never present) and has been removed from the codebase; do not re-introduce it.
+
+## Release Signing Fingerprint (GitHub Store)
+
+Spec S0214 — github-store-publication. Once the project ships its first
+release through GitHub Store, every subsequent release must be signed with
+the same key. If the SHA-256 fingerprint of the new APK does not match the
+fingerprint GitHub Store recorded on first install, every user with the
+app installed loses auto-update silently: the store flags the new release
+as untrusted and falls back to manual install. To prevent that:
+
+### What the pin protects
+
+The pinned fingerprint is the contract between this repo and every device
+that installed FastMediaSorter via GitHub Store. Auto-update through the
+store's Shizuku / Sui / Dhizuku silent-install paths depends on the
+fingerprint staying constant. Any deviation breaks updates en masse.
+
+### Where the pin lives
+
+`scripts/release/expected-signing-fingerprint.txt` — single uppercase
+colon-separated SHA-256 line (32 bytes). Comments above explain capture
+time, source APK, and keystore alias.
+
+### How the publisher uses it
+
+`scripts/release/publish-github-release.ps1` extracts the SHA-256
+fingerprint from each staged APK via `apksigner verify --print-certs`
+between the staging and release-create steps. A mismatch is a hard abort
+with `expected: …` / `actual: …` in the error message — the publisher
+exits non-zero before any GitHub-side mutation. The check runs regardless
+of `-DryRun`.
+
+### Rotation procedure (only when legitimately required)
+
+Legitimate rotation reasons: keystore lost, mandated key change, compromise.
+Aesthetic re-keying is **not** legitimate — never rotate just to "freshen
+up" the signing config.
+
+User-facing consequence is non-negotiable: **every existing GitHub Store
+user must reinstall the app from scratch**. Auto-update through the store
+will stop working until they do. Plan a rotation around a release where
+that cost is acceptable.
+
+Steps:
+
+1. Produce a new keystore (out-of-band; document the new alias in
+   `local.properties` and any signing config that lives outside the repo).
+2. Build a release APK with the new keystore (`a.ps1 r` / `a.ps1 vr`).
+3. Capture the new SHA-256 via `apksigner verify --print-certs <new-apk>`,
+   format as uppercase colon-separated 32-byte form.
+4. Update `scripts/release/expected-signing-fingerprint.txt` with the new
+   fingerprint and refresh the comment header (capture date, source APK,
+   keystore alias).
+5. Add an explicit `## Note: signing-key rotation` subsection to
+   `docs/WHATS_NEW.md` for the release that rotates the key, with a
+   one-line "users must reinstall via direct download" instruction.
+6. Run the publisher: `pwsh -File scripts/release/publish-github-release.ps1`
+   from the release worktree on `main`. The Assert-ExpectedFingerprint gate
+   will now pass against the new pin.
+7. Append an ADR-style entry inside this section recording: rotation date,
+   reason, old fingerprint, new fingerprint, release tag that contained
+   the rotation.
+
+### ADR log
+
+_(no rotations have happened yet — first entry will land here.)_
