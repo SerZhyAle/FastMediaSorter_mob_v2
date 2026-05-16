@@ -10395,3 +10395,4 @@ Format: | datetime | file | target | description |
 | 2026-05-16 04:04:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0219.phase01.step01.3` | Unwrap uploadFile(ByteArray): remove broad Exception catch [branch: DEBUG-v002] |
 | 2026-05-16 04:05:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0219.phase01.step01.4` | Unwrap uploadFile(InputStream): remove broad Exception catch [branch: DEBUG-v002] |
 | 2026-05-16 04:06:04 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0219.phase01.step01.5` | Tighten exists: keep point-catch for SSH_FX_NO_SUCH_FILE only; other errors propagate [branch: DEBUG-v002] |
+| 2026-05-16 04:27:35 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.5160.425 — plateau merge from DEBUG-v002 [branch: DEBUG-v002] |
