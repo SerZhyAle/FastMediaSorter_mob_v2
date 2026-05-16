@@ -49,6 +49,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         if (exactCookies.isNotEmpty()) return host
 
         // eTLD+1 fallback — scan all accounts for a matching registrable domain.
+        Timber.d("S0176: exact lookup empty for host=%s — attempting eTLD+1 fallback", host)
         val reg = registrableDomainOrNull(host) ?: return null
         val match = if (accountId != null) {
             cookieStore.listAllAccounts()
@@ -71,6 +72,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // S0190: optional audioOnly hint is propagated from canonicalize() — true for
     // YouTube Music share URLs so the downstream extractor picks an audio-only format.
     private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean = false): String? {
+        Timber.d("S0176: applySessionContext entry host=%s accountId=%s", host, accountId ?: "auto")
         val resolvedHost = resolveSessionHost(host, accountId) ?: return null
         val cookies = when {
             accountId != null -> cookieStore.loadForAccount(resolvedHost, accountId)
