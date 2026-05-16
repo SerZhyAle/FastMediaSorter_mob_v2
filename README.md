@@ -12,13 +12,13 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-## What's New in v2.60.5150.150 (May 2026)
+## What's New in v2.60.5160.425 (May 2026)
 
 **New:**
-Big Buttons Mode refined (100dp controls, adaptive 5..10 slots), slideshow auto-stop on network loss, Permissions button relocated, device summary in settings.
+Draw editor v2 (oval/text tools, 16-color palette, in-place save, Google Keep export), file size shown in browse list rows.
 
 **Fixed:**
-Toolbar overlap with status bar on Android 8.x car head units, NetworkLifecycleBootstrapper background-thread crash, SFTP teardown log noise, Big Buttons audio overflow menu sizing.
+Image-edit toolbar buttons no longer hidden in overflow for image viewer, spurious sign-in prompt during link downloads eliminated.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
