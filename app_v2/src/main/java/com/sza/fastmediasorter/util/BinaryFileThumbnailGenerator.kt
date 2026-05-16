@@ -22,7 +22,7 @@ import timber.log.Timber
 class BinaryFileThumbnailGenerator(private val context: Context) {
     
     // LRU cache for generated thumbnails (key: "ext-type-size")
-    private val cache = LruCache<String, Bitmap>(50)
+    private val cache = LruCache<String, Bitmap>(20)
     
     /**
      * Generate thumbnail for binary file
@@ -44,7 +44,7 @@ class BinaryFileThumbnailGenerator(private val context: Context) {
         
         Timber.d("Generating new thumbnail for extension=$extension, type=$type, size=$size")
         
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
         val canvas = Canvas(bitmap)
         
         // Get gradient colors based on extension palette (SPEC_07)

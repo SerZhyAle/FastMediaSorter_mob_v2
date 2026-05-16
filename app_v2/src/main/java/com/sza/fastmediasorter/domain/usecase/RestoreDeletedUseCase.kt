@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.model.TrashMetadata
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
@@ -37,7 +38,7 @@ class RestoreDeletedUseCase @Inject constructor(
         Timber.d("RestoreDeletedUseCase: Restoring from .trash at: $currentPath")
         
         try {
-            val trashBasePath = "$currentPath/.trash"
+            val trashBasePath = TrashFolderContract.buildContainerPath(currentPath)
             
             // Determine strategy based on path
             val strategy = when {
@@ -162,16 +163,14 @@ class RestoreDeletedUseCase @Inject constructor(
                 val result = strategy.listFiles(trashBasePath)
                 val files = result.getOrNull() ?: return null
                 
-                // Filter for timestamp folders (numeric names)
-                // paths are full paths/URIs. We need the last segment.
+                // Filter for snapshot directories whose name parses via the contract.
                 val timestampFolders = files.filter { path ->
-                    val name = getNameFromPath(path)
-                    name.toLongOrNull() != null
+                    TrashFolderContract.parseSnapshotTimestamp(getNameFromPath(path)) != null
                 }
-                
-                // Find max timestamp
+
+                // Find max timestamp via the contract parser.
                 timestampFolders.maxByOrNull { path ->
-                    getNameFromPath(path).toLong()
+                    TrashFolderContract.parseSnapshotTimestamp(getNameFromPath(path)) ?: Long.MIN_VALUE
                 }
             } else {
                 null
@@ -183,7 +182,9 @@ class RestoreDeletedUseCase @Inject constructor(
     }
     
     private fun getNameFromPath(path: String): String {
-        return path.trimEnd('/').substringAfterLast('/')
+        // Host-side tests and Windows tooling surface backslash-separated absolute paths.
+        // Normalize first so snapshot-name parsing remains consistent with Android/runtime paths.
+        return path.replace('\\', '/').trimEnd('/').substringAfterLast('/')
     }
 
     /**

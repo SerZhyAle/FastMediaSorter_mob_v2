@@ -58,6 +58,9 @@ class EpubViewerManager(
     // EPUB state
     private var currentBook: Book? = null
     private var currentChapterIndex = 0
+    // S0196 Phase 04: one-shot tag emitted when the first EPUB chapter finishes loading in
+    // the WebView — "primary content rendered" for the StandalonePlayer docs branch.
+    private var firstChapterRenderedLogged = false
     var chapterCount = 0
     private var currentEpubFile: File? = null
     private var currentEpubPath: String? = null // Original file path for position saving
@@ -859,6 +862,11 @@ class EpubViewerManager(
                     binding.progressBar.isVisible = false
                 }
                 Timber.d("EPUB: WebView finished loading chapter")
+                // S0196 Phase 04: emit once on the first chapter render.
+                if (!firstChapterRenderedLogged) {
+                    firstChapterRenderedLogged = true
+                    Timber.d("EpubViewerManager: firstChapterRendered chapter=$currentChapterIndex chapterCount=$chapterCount")
+                }
             }
 
             override fun shouldInterceptRequest(

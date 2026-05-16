@@ -724,7 +724,7 @@
     <string name="clear_trash">Очистити кошик</string>
     <string name="clear_trash_confirm_title">Очистити кошик?</string>
     <string name="clear_trash_confirm_message">Це остаточно видалить %d папок кошика та всі файли всередині них. Скасувати дію буде неможливо.</string>
-    <string name="trash_cleared">Успішно видалено папок кошика: %d</string>
+    <string name="trash_cleared">Папок кошика видалено: %d</string>
     <string name="trash_clear_failed">Не вдалося очистити кошик: %s</string>
     <string name="add_to_destinations">Додати до швидкого сортування</string>
     <string name="back">Назад</string>
@@ -1562,6 +1562,13 @@
     <string name="warning_low_memory_playback">Мало пам\'яті — відтворення може не запуститись.</string>
     <string name="warning_audio_format_unsupported">Аудіоформат не підтримується — відтворення без звуку</string>
 
+    <!-- S0213: захист відтворення відео від OOM — cooldown декодера та сповіщення про пам\'ять -->
+    <string name="s0213_decoder_cooldown_skip">Пропускаємо попередній файл — декодер не впорався.</string>
+    <string name="s0213_decoder_cooldown_manual">Цей файл щойно не зміг розкодуватися. Спробуйте через %1$d с або пропустіть.</string>
+    <string name="s0213_action_skip">Пропустити</string>
+    <string name="s0213_memory_alert_message">Пам\'яті залишилося мало. Закрити плеєр, щоб звільнити ресурси.</string>
+    <string name="s0213_memory_alert_action">Закрити плеєр</string>
+
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Ви впевнені, що хочете очистити кеш додатку?</string>
     <string name="delete_resource_title">Видалити ресурс</string>
@@ -1774,7 +1781,7 @@
     <string name="use_trash_summary">Переміщати видалені файли до .trash замість остаточного видалення. Дозволяє відновити до закриття ресурсу.</string>
     <string name="disable_trash_warning">Файли будуть видалятися остаточно без можливості відновлення</string>
     <string name="tooltip_use_trash_title">Видалення до кошика</string>
-    <string name="tooltip_use_trash_message">При увімкненій опції видалені локальні файли переміщуються до прихованої папки .trash і можуть бути відновлені через Undo. При вимкненій — файли видаляються негайно і місце звільняється одразу. Мережеві та хмарні файли завжди видаляються остаточно.</string>
+    <string name="tooltip_use_trash_message">При ввімкненій опції видалені локальні файли переміщуються до прихованої папки .trash і можуть бути відновлені через Undo. На Android 12+ для деяких спільних папок потрібен доступ MANAGE_MEDIA; без нього кошик може перейти на остаточне видалення. При вимкненій — файли видаляються негайно і місце звільняється одразу. Мережеві та хмарні файли завжди видаляються остаточно.</string>
 
     <string name="folder_selection_limitations">⚠️ Обмежений доступ до тек\n\nБез дозволу \"Доступ до всіх файлів\" ви можете вибрати лише стандартні теки Android.\n\nЩоб вибрати будь-яку теку на пристрої, будь ласка, надайте дозвіл коли буде запропоновано.</string>
     <!-- Media Settings Categories -->
@@ -3452,4 +3459,26 @@
     <string name="rotation_toggle_sensor_on_desc">Поворот екрана: розблоковано</string>
     <string name="rotation_toggle_sensor_off_desc">Поворот екрана: заблоковано</string>
     <string name="keybinding_label_view_rotation_toggle">Поворот екрана</string>
+    <string name="delete_trash_unavailable_fallback_to_hard_delete">Кошик недоступний для частини файлів — видалені остаточно.</string>
+    <string name="link_download_notif_text_preview_only_signed_in">Не вдалося отримати вміст сторінки. Вхід в акаунт не потрібен.</string>
+    <string name="draw_settings_title">Налаштування малювання</string>
+    <string name="draw_settings_brush_size">Розмір пензля</string>
+    <string name="draw_settings_text_size">Розмір тексту</string>
+    <string name="draw_settings_text_small">Малий</string>
+    <string name="draw_settings_text_medium">Середній</string>
+    <string name="draw_settings_text_large">Великий</string>
+    <string name="draw_settings_opacity">Прозорість</string>
+    <string name="draw_tool_oval">Овал</string>
+    <string name="draw_tool_text">Текст</string>
+    <string name="draw_text_input_hint">Введіть текст</string>
+    <string name="draw_overflow_keep">Надіслати до Google Keep</string>
+    <string name="draw_keep_not_installed">Google Keep не встановлено</string>
+    <string name="draw_tool_selector_cd">Вибрати інструмент</string>
+    <string name="draw_overflow_undo_last">Скасувати останнє</string>
+    <string name="draw_overflow_undo_all">Скасувати все</string>
+    <string name="draw_overflow_save_new">Зберегти як новий файл</string>
+    <string name="draw_overflow_settings">Налаштування</string>
+    <string name="draw_color_custom_cd">Довільний колір</string>
+    <string name="draw_save_ok_toast">Збережено</string>
+    <string name="draw_save_failed_toast">Не вдалося зберегти</string>
 </resources>

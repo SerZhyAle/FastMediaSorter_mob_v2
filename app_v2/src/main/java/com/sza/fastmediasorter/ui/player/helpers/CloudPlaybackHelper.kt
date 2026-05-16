@@ -5,6 +5,7 @@ import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.core.util.PathUtils
 import com.sza.fastmediasorter.data.cloud.datasource.CloudDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
@@ -23,6 +24,7 @@ import timber.log.Timber
  */
 internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenReady: Boolean) {
     val fileId = path.substringAfterLast("/")
+    val isAudio = path.substringAfterLast('.', "").lowercase() in MediaTypeUtils.AUDIO_EXTENSIONS
     if (fileId.isEmpty() || fileId == path) {
         Timber.e("VideoPlayerManager: Invalid cloud path, no fileId")
         playerCallback.showError(context.getString(R.string.error_invalid_path))
@@ -41,8 +43,10 @@ internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenRea
 
     val loadControl = PrefetchLoadControlFactory.build(
         plan = activePrefetchPlan,
-        useCloudDefaults = true,
-        tag = "cloud"
+        useCloudDefaults = !isAudio,
+        isAudio = isAudio,
+        useNetworkAudioDefaults = isAudio,
+        tag = if (isAudio) "cloud-audio" else "cloud"
     )
 
     val audioAttributes = AudioAttributes.Builder()

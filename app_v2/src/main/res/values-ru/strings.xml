@@ -730,7 +730,7 @@
     <string name="clear_trash">Очистить корзину</string>
     <string name="clear_trash_confirm_title">Очистить корзину?</string>
     <string name="clear_trash_confirm_message">Это окончательно удалит %d папок корзины и все файлы внутри них. Отменить действие будет невозможно.</string>
-    <string name="trash_cleared">Успешно удалено папок корзины: %d</string>
+    <string name="trash_cleared">Папок корзины удалено: %d</string>
     <string name="trash_clear_failed">Не удалось очистить корзину: %s</string>
     <string name="add_to_destinations">Добавить в быструю сортировку</string>
     <string name="back">Назад</string>
@@ -1573,6 +1573,13 @@
     <string name="warning_low_memory_playback">Мало памяти — воспроизведение может не запуститься.</string>
     <string name="warning_audio_format_unsupported">Аудиоформат не поддерживается — воспроизведение без звука</string>
 
+    <!-- S0213: защита воспроизведения видео от OOM — cooldown декодера и уведомление о памяти -->
+    <string name="s0213_decoder_cooldown_skip">Пропускаем предыдущий файл — декодер не справился.</string>
+    <string name="s0213_decoder_cooldown_manual">Этот файл только что не смог раскодироваться. Попробуйте через %1$d с или пропустите.</string>
+    <string name="s0213_action_skip">Пропустить</string>
+    <string name="s0213_memory_alert_message">Памяти осталось мало. Закройте плеер, чтобы освободить ресурсы.</string>
+    <string name="s0213_memory_alert_action">Закрыть плеер</string>
+
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Вы уверены, что хотите очистить кэш приложения?</string>
     <string name="delete_resource_title">Удалить ресурс</string>
@@ -1752,7 +1759,7 @@
     <string name="use_trash_summary">Перемещать удалённые файлы в .trash вместо окончательного удаления. Позволяет восстановить до закрытия ресурса.</string>
     <string name="disable_trash_warning">Файлы будут удаляться окончательно без возможности восстановления</string>
     <string name="tooltip_use_trash_title">Удаление в корзину</string>
-    <string name="tooltip_use_trash_message">При включённой опции удалённые локальные файлы перемещаются в скрытую папку .trash и могут быть восстановлены через Undo. При выключённой — файлы удаляются немедленно и место освобождается сразу. Сетевые и облачные файлы всегда удаляются окончательно.</string>
+    <string name="tooltip_use_trash_message">При включённой опции удалённые локальные файлы перемещаются в скрытую папку .trash и могут быть восстановлены через Undo. На Android 12+ для некоторых общих папок нужен доступ MANAGE_MEDIA; без него корзина может перейти на окончательное удаление. При выключённой — файлы удаляются немедленно и место освобождается сразу. Сетевые и облачные файлы всегда удаляются окончательно.</string>
 
     <!-- Folder Selection & Permissions -->
     <string name="all_files_access_required">Требуется полный доступ к папкам</string>
@@ -3491,4 +3498,26 @@
     <string name="rotation_toggle_sensor_on_desc">Поворот экрана: разблокирован</string>
     <string name="rotation_toggle_sensor_off_desc">Поворот экрана: заблокирован</string>
     <string name="keybinding_label_view_rotation_toggle">Поворот экрана</string>
+    <string name="delete_trash_unavailable_fallback_to_hard_delete">Корзина недоступна для части файлов — удалены без возможности восстановления.</string>
+    <string name="link_download_notif_text_preview_only_signed_in">Не удалось извлечь содержимое страницы. Вход в аккаунт не требуется.</string>
+    <string name="draw_settings_title">Настройки рисования</string>
+    <string name="draw_settings_brush_size">Размер кисти</string>
+    <string name="draw_settings_text_size">Размер текста</string>
+    <string name="draw_settings_text_small">Маленький</string>
+    <string name="draw_settings_text_medium">Средний</string>
+    <string name="draw_settings_text_large">Большой</string>
+    <string name="draw_settings_opacity">Прозрачность</string>
+    <string name="draw_tool_oval">Овал</string>
+    <string name="draw_tool_text">Текст</string>
+    <string name="draw_text_input_hint">Введите текст</string>
+    <string name="draw_overflow_keep">Отправить в Google Keep</string>
+    <string name="draw_keep_not_installed">Google Keep не установлен</string>
+    <string name="draw_tool_selector_cd">Выбрать инструмент</string>
+    <string name="draw_overflow_undo_last">Отменить последнее</string>
+    <string name="draw_overflow_undo_all">Отменить всё</string>
+    <string name="draw_overflow_save_new">Сохранить в новый файл</string>
+    <string name="draw_overflow_settings">Настройки</string>
+    <string name="draw_color_custom_cd">Пользовательский цвет</string>
+    <string name="draw_save_ok_toast">Сохранено</string>
+    <string name="draw_save_failed_toast">Не удалось сохранить</string>
 </resources>

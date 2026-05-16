@@ -113,6 +113,7 @@ class BrowseDeleteManager(
 
             var totalFileCount = 0
             var dirDeleteError: String? = null
+            var softDeleteFallbackCount = 0
 
             // --- Delete regular files ---
             if (filesToDelete.isNotEmpty()) {
@@ -124,8 +125,9 @@ class BrowseDeleteManager(
                 when (val result = fileOperationUseCase.execute(deleteOperation)) {
                     is FileOperationResult.Success -> {
                         totalFileCount += result.processedCount
+                        softDeleteFallbackCount += result.softDeleteFallbackPaths.size
                         Timber.i("BrowseDeleteManager: deleted ${result.processedCount} files")
-                        if (effectiveSoftDelete) {
+                        if (effectiveSoftDelete && result.softDeleteFallbackPaths.isEmpty()) {
                             val undoOp = UndoOperation(
                                 type = FileOperationType.DELETE,
                                 sourceFiles = fileItems.map { it.path } + unresolvedFilePaths,
@@ -138,6 +140,7 @@ class BrowseDeleteManager(
                     }
                     is FileOperationResult.PartialSuccess -> {
                         totalFileCount += result.processedCount
+                        softDeleteFallbackCount += result.softDeleteFallbackPaths.size
                         Timber.w("BrowseDeleteManager: partial delete ${result.processedCount}/${filesToDelete.size}")
                     }
                     is FileOperationResult.Failure -> {
@@ -206,9 +209,13 @@ class BrowseDeleteManager(
                     )
                 )
             } else {
-                val msg = context.getString(R.string.deleted_n_files, totalFileCount.coerceAtLeast(
-                    if (dirItems.isNotEmpty() && filesToDelete.isEmpty()) dirItems.size else totalFileCount
-                ))
+                val msg = if (softDeleteFallbackCount > 0) {
+                    context.getString(R.string.delete_trash_unavailable_fallback_to_hard_delete)
+                } else {
+                    context.getString(R.string.deleted_n_files, totalFileCount.coerceAtLeast(
+                        if (dirItems.isNotEmpty() && filesToDelete.isEmpty()) dirItems.size else totalFileCount
+                    ))
+                }
                 sendEvent(BrowseEvent.ShowMessage(msg))
             }
 

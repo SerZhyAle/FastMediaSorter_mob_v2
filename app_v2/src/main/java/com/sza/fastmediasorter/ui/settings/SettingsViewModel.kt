@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
+import com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -60,6 +61,7 @@ class SettingsViewModel @Inject constructor(
     val importSettingsUseCase: ImportSettingsUseCase,
     val resetSmbConnectionsUseCase: ResetSmbConnectionsUseCase,
     private val syncNetworkResourcesUseCase: SyncNetworkResourcesUseCase,
+    private val cleanupTrashFoldersUseCase: CleanupTrashFoldersUseCase,
     private val workManagerScheduler: WorkManagerScheduler,
     private val getDeviceStorageUseCase: GetDeviceStorageUseCase
 ) : ViewModel() {
@@ -310,16 +312,18 @@ class SettingsViewModel @Inject constructor(
     fun clearAllTrash(context: Context) {
         viewModelScope.launch {
             android.widget.Toast.makeText(context, R.string.deleting_files, android.widget.Toast.LENGTH_SHORT).show()
-            var cleanedCount = 0
-            withContext(Dispatchers.IO) {
-                resources.value.forEach { resource ->
+            val cleanedCount = withContext(Dispatchers.IO) {
+                resources.value
+                    .filter { it.type == ResourceType.LOCAL }
+                    .sumOf { resource ->
                     try {
-                        val trashDir = java.io.File("${resource.path}/.trash")
-                        if (trashDir.exists() && trashDir.isDirectory && trashDir.deleteRecursively()) {
-                            cleanedCount++
-                        }
-                    } catch (_: Exception) { }
-                }
+                        // Manual clear must reuse the same contract + legacy migration path as the worker.
+                        cleanupTrashFoldersUseCase.cleanup(java.io.File(resource.path), maxAgeMs = 0L)
+                    } catch (e: Exception) {
+                        Timber.w(e, "SettingsViewModel: Failed to clear trash for ${resource.path}")
+                        0
+                    }
+                    }
             }
             android.widget.Toast.makeText(context, context.getString(R.string.trash_cleared, cleanedCount), android.widget.Toast.LENGTH_SHORT).show()
         }

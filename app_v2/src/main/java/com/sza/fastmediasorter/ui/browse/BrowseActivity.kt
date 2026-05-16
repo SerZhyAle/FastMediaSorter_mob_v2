@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse
 
 import android.Manifest
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import com.bumptech.glide.Glide
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -22,7 +24,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
+import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.memory.MemoryProbe
+import com.sza.fastmediasorter.core.memory.MemoryScenario
 import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -102,6 +106,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     // S0207 Phase 01: BROWSE_OPENED memory checkpoint emitter.
     @Inject lateinit var memoryProbe: MemoryProbe
+    @Inject lateinit var memoryProfileCoordinator: MemoryProfileCoordinator
 
     private var showVideoThumbnails = true
     private var showPdfThumbnails = false
@@ -109,6 +114,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private var lastSubmittedSortMode: com.sza.fastmediasorter.domain.model.SortMode? = null
     // S0028: per-window resume state isolation
     private var windowId: String = ResumeStateRepository.WINDOW_ID_MAIN
+    // S0196 Phase 04 measurement hook: one-shot tag emitted on the first non-empty list bind so
+    // perf traces can mark "primary content rendered" for the browse surface.
+    private var firstListBoundLogged = false
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
@@ -310,6 +318,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.mediaFileAdapter.submitList(state.mediaFiles) {
                     if (isSortingSubmit) viewModel.clearSorting()
                     initializer.listSubmitManager.onListSubmitted(state)
+                    // S0196 Phase 04: emit once after the first non-empty list is committed.
+                    if (!firstListBoundLogged && state.mediaFiles.isNotEmpty()) {
+                        firstListBoundLogged = true
+                        Timber.d("BrowseActivity: primaryContentBound itemCount=${state.mediaFiles.size}")
+                    }
                 }
             }
             // Update drag handle visibility whenever sort mode changes
@@ -420,6 +433,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (viewModel.state.value.resource?.type != null) {
             initializer.mediaStoreObserver.start(viewModel.state.value.resource?.type)
         }
+        memoryProfileCoordinator.enter(MemoryScenario.BROWSE_LIST)
     }
 
     override fun onPause() {
@@ -432,6 +446,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             initializer.blackScreenManager.hide()
         }
         viewModel.cancelBackgroundThumbnailLoading()
+        memoryProfileCoordinator.enter(MemoryScenario.IDLE)
+        // Leaving browse is the cheapest stable release point for thumbnail-heavy memory.
+        runCatching {
+            Glide.get(applicationContext).trimMemory(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
+        }.onFailure { error ->
+            Timber.w(error, "BrowseActivity: best-effort Glide trim failed on pause")
+        }
     }
 
     override fun onStop() {

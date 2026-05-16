@@ -82,7 +82,7 @@ This document is the canonical inventory of all user-facing features implemented
 
 ## 3. File Operations
 
-- **Flexible deleting**: Move files to a recoverable Trash bin or permanently delete them immediately.
+- **Flexible deleting**: Move files to a recoverable Trash bin or permanently delete them immediately. After deletion to Trash, files remain recoverable for up to 5 minutes before a background cleanup removes them permanently.
 - **Standalone player renaming**: Rename files directly from the "Open with" standalone player using DocumentsContract or ContentResolver.
 - **Operation undo**: Revert the last copy, move, or delete action with a single tap.
 - **Safe Mode**: Enable mandatory confirmation dialogs before moving or deleting files globally.
@@ -119,7 +119,7 @@ This document is the canonical inventory of all user-facing features implemented
 - **Augmented Reality translation**: Translated text blocks are drawn directly over their original positions on the image.
 - **Send to Google Lens**: Quickly bridge any photo to the external Google Lens app.
 - **Crop & Compressed copy**: Save cropped fragments or 70% compressed JPEG copies natively via the overflow menu.
-- **Draw annotations**: Draw with brushes or shapes and save the merged annotations as a new file.
+- **Draw annotations**: Brush, rectangle, oval, eraser, and text tools with a 16-color custom palette and adjustable brush size, text size, and opacity. Save back to the original file or to a new file, undo the last or all changes, and send the merged drawing to Google Keep.
 - **Immersive Draw and Crop**: System bars hide automatically during editing for a full-screen workspace.
 
 ## 6. GIF Viewer

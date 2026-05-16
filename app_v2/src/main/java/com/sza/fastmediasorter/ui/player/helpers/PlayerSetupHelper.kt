@@ -27,13 +27,15 @@ import timber.log.Timber
  * Resets the video-effects pipeline so previously active effects are re-applied
  * to the fresh instance (avoids silent reset on config changes / player recreation).
  */
-internal fun VideoPlayerManager.createPlayer(playerView: PlayerView): ExoPlayer {
+internal fun VideoPlayerManager.createPlayer(playerView: PlayerView, isAudio: Boolean = false): ExoPlayer {
     releasePlayer()
 
     val loadControl = PrefetchLoadControlFactory.build(
         plan = activePrefetchPlan,
         useCloudDefaults = false,
-        tag = "createPlayer"
+        isAudio = isAudio,
+        useNetworkAudioDefaults = false,
+        tag = if (isAudio) "createPlayer-audio" else "createPlayer"
     )
 
     val audioAttributes = AudioAttributes.Builder()

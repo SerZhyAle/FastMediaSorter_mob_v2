@@ -41,6 +41,9 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             panelStereoSingleEyeNotifier = activity.panelStereoSingleEyeNotifier,
             // S0207 Phase 01: forwarded for PRE_PLAY / AFTER_STATE_READY MEM_PROBE checkpoints.
             memoryProbe = activity.memoryProbe,
+            memoryProfileCoordinator = activity.memoryProfileCoordinator,
+            // S0213 Pillar A: cooldown tracker for decoder-failure replay throttling.
+            decoderFailureTracker = activity.recentDecoderFailureTracker,
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
         }

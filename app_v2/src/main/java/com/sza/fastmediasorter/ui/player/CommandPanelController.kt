@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -89,7 +88,6 @@ class CommandPanelController(
         fun on3dVrToggleClicked()
         fun onBlackScreenClicked()
         fun onOpenInSeparateWindowClicked()
-        fun onPlaybackOrderClicked()
         fun onCropClicked()
         fun onCropToFileClicked()
         fun onCompressCopyClicked()
@@ -150,11 +148,6 @@ class CommandPanelController(
             callback.onPreviousClicked()
         }
 
-        binding.btnPlaybackOrderCmd.setOnClickListener {
-            Timber.d("CommandPanelController: btnPlaybackOrderCmd clicked")
-            callback.onPlaybackOrderClicked()
-        }
-
         binding.btnRandomCmd.setOnClickListener {
             Timber.d("CommandPanelController: btnRandomCmd clicked")
             callback.onRandomClicked()
@@ -194,7 +187,24 @@ class CommandPanelController(
         safeViews.btnPrintCmd.setOnClickListener {
             callback.onPrintClicked()
         }
-        
+
+        // S0217: inline click listeners for image-edit commands (parity with overflow menu)
+        safeViews.btnOpenInSeparateWindowCmd.setOnClickListener {
+            callback.onOpenInSeparateWindowClicked()
+        }
+        safeViews.btnCropCmd.setOnClickListener {
+            callback.onCropClicked()
+        }
+        safeViews.btnCropToFileCmd.setOnClickListener {
+            callback.onCropToFileClicked()
+        }
+        safeViews.btnCompressCopyCmd.setOnClickListener {
+            callback.onCompressCopyClicked()
+        }
+        safeViews.btnDrawOverlayCmd.setOnClickListener {
+            callback.onDrawOverlayClicked()
+        }
+
         safeViews.btnUndoCmd.setOnClickListener {
             callback.onUndoClicked()
         }
@@ -414,7 +424,6 @@ class CommandPanelController(
             latestBigButtonsBarCommands = emptyList()
 
             // Group 1: inside HorizontalScrollView (Previous/Next set in common section)
-            binding.btnPlaybackOrderCmd.isVisible = (currentFile.type == MediaType.AUDIO || currentFile.type == MediaType.VIDEO)
             binding.btnRandomCmd.isVisible = showRandomNavigation
             binding.btnDeleteCmd.isVisible = canWrite && state.allowDelete
             binding.btnFavorite.isVisible = lastKnownFavoriteVisible
@@ -471,6 +480,16 @@ class CommandPanelController(
                 safeViews.btnGoogleLensImageCmd.isVisible = false
             }
             safeViews.btnPrintCmd.isVisible = isPdf || isText || isImage
+            // S0217: image-edit commands are now bar-capable; expose them inline in landscape on the same
+            // per-type rules used by buildActiveCommands (static bitmap only; CROP additionally requires write).
+            val isStaticBitmap = isImage &&
+                !currentFile.name.lowercase().endsWith(".gif") &&
+                !currentFile.name.lowercase().endsWith(".apng")
+            safeViews.btnOpenInSeparateWindowCmd.isVisible = lastKnownAllowSeparateWindow
+            safeViews.btnCropCmd.isVisible = isStaticBitmap && canWrite && !isReadOnly
+            safeViews.btnCropToFileCmd.isVisible = isStaticBitmap
+            safeViews.btnCompressCopyCmd.isVisible = isStaticBitmap
+            safeViews.btnDrawOverlayCmd.isVisible = isStaticBitmap
             // S0129: expose overflow-only commands (barCapable=false) in landscape via the ⋯ button
             val landscapeOverflowCmds = planner.buildActiveCommands(
                 state, canWrite, canRead, isWifiConnected(binding.root.context),
@@ -753,7 +772,6 @@ class CommandPanelController(
         // Navigation
         binding.btnBack,
         binding.btnPreviousCmd,
-        binding.btnPlaybackOrderCmd,
         binding.btnRandomCmd,
         binding.btnNextCmd,
         // File operations
@@ -985,7 +1003,6 @@ class CommandPanelController(
     private fun getOverflowableButtons(): List<View> {
         val list = mutableListOf<View>(
             // Group 1: high-priority adaptive buttons
-            binding.btnPlaybackOrderCmd,
             binding.btnDeleteCmd,
             binding.btnFavorite,
             binding.btnShareCmd,
@@ -1003,6 +1020,12 @@ class CommandPanelController(
             safeViews.btnEditCmd,
             safeViews.btnSaveFrameCmd,
             safeViews.btnPrintCmd,
+            // S0217: image-edit inline buttons + open-in-separate-window
+            safeViews.btnOpenInSeparateWindowCmd,
+            safeViews.btnCropCmd,
+            safeViews.btnCropToFileCmd,
+            safeViews.btnCompressCopyCmd,
+            safeViews.btnDrawOverlayCmd,
             safeViews.btnUndoCmd,
             safeViews.btnGoogleLensPdfCmd,
             safeViews.btnOcrPdfCmd,
@@ -1045,7 +1068,6 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.CAST -> safeViews.btnCastCmd
             CommandPanelLayoutPlanner.PlayerCommand.LYRICS -> safeViews.btnLyricsCmd
             CommandPanelLayoutPlanner.PlayerCommand.BLACK_SCREEN -> binding.btnBlackScreenCmd
-            CommandPanelLayoutPlanner.PlayerCommand.PLAYBACK_ORDER -> binding.btnPlaybackOrderCmd
             CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER -> binding.btnSleepTimerCmd
             CommandPanelLayoutPlanner.PlayerCommand.SEARCH_YOUTUBE_MUSIC -> safeViews.btnSearchYoutubeMusicCmd
             CommandPanelLayoutPlanner.PlayerCommand.ROTATION_TOGGLE -> safeViews.btnRotationToggleCmd
@@ -1068,6 +1090,12 @@ class CommandPanelController(
             CommandPanelLayoutPlanner.PlayerCommand.OCR_IMAGE -> safeViews.btnOcrImageCmd
             CommandPanelLayoutPlanner.PlayerCommand.GOOGLE_LENS_IMAGE -> safeViews.btnGoogleLensImageCmd
             CommandPanelLayoutPlanner.PlayerCommand.PRINT -> safeViews.btnPrintCmd
+            // S0217: image-edit commands now bar-capable; map to dedicated inline buttons.
+            CommandPanelLayoutPlanner.PlayerCommand.OPEN_IN_SEPARATE_WINDOW -> safeViews.btnOpenInSeparateWindowCmd
+            CommandPanelLayoutPlanner.PlayerCommand.CROP -> safeViews.btnCropCmd
+            CommandPanelLayoutPlanner.PlayerCommand.CROP_TO_FILE -> safeViews.btnCropToFileCmd
+            CommandPanelLayoutPlanner.PlayerCommand.COMPRESS_COPY -> safeViews.btnCompressCopyCmd
+            CommandPanelLayoutPlanner.PlayerCommand.DRAW_OVERLAY -> safeViews.btnDrawOverlayCmd
             CommandPanelLayoutPlanner.PlayerCommand.VR_3D ->
                 if (BuildConfig.SUPPORT_VR_PLAYER) safeViews.btn3dVrCmd else null
             else -> null // Overflow-only commands have no bar view
@@ -1134,24 +1162,6 @@ class CommandPanelController(
                 if (sensorEnabled) R.string.rotation_toggle_sensor_on_desc
                 else R.string.rotation_toggle_sensor_off_desc
             )
-    }
-
-    fun updatePlaybackOrderButtonIcon(mode: PlaybackOrderMode) {
-        val iconRes = when (mode) {
-            PlaybackOrderMode.LOOP_LIST    -> R.drawable.ic_loop_list
-            PlaybackOrderMode.PLAY_THROUGH -> R.drawable.ic_arrow_downward
-            PlaybackOrderMode.SHUFFLE      -> R.drawable.ic_random_nav
-            PlaybackOrderMode.REPEAT_ONE   -> R.drawable.ic_repeat_one
-        }
-        binding.btnPlaybackOrderCmd.setImageResource(iconRes)
-        val modeLabel = binding.root.context.getString(when (mode) {
-            PlaybackOrderMode.LOOP_LIST    -> R.string.playback_order_loop_list
-            PlaybackOrderMode.PLAY_THROUGH -> R.string.playback_order_play_through
-            PlaybackOrderMode.SHUFFLE      -> R.string.playback_order_shuffle
-            PlaybackOrderMode.REPEAT_ONE   -> R.string.playback_order_repeat_one
-        })
-        binding.btnPlaybackOrderCmd.contentDescription =
-            binding.root.context.getString(R.string.playback_order_button_desc, modeLabel)
     }
 
     private fun bigButtonsFixedButtons(): List<View> = listOf(

@@ -63,11 +63,16 @@ class VideoPlayerManagerStateEndedTest {
             settingsRepository = mockSettings,
             panelStereoSingleEyeNotifier = mockk(relaxed = true),
             memoryProbe = mockk(relaxed = true),
+            memoryProfileCoordinator = mockk(relaxed = true),
+            decoderFailureTracker = mockk(relaxed = true),
         )
     }
 
     @After
     fun tearDown() {
+        if (::manager.isInitialized) {
+            manager.releasePlayer()
+        }
         Dispatchers.resetMain()
     }
 

@@ -20,7 +20,20 @@ import timber.log.Timber
  */
 internal object PrefetchLoadControlFactory {
 
-    fun build(plan: PrefetchPlan?, useCloudDefaults: Boolean = false, tag: String = ""): PauseAwareLoadControl {
+    internal data class LegacyBufferDurations(
+        val minMs: Int,
+        val maxMs: Int,
+        val playbackMs: Int,
+        val rebufferMs: Int,
+    )
+
+    fun build(
+        plan: PrefetchPlan?,
+        useCloudDefaults: Boolean = false,
+        isAudio: Boolean = false,
+        useNetworkAudioDefaults: Boolean = false,
+        tag: String = "",
+    ): PauseAwareLoadControl {
         val minMs: Int
         val maxMs: Int
         val playbackMs: Int
@@ -35,20 +48,29 @@ internal object PrefetchLoadControlFactory {
                 "PrefetchLoadControl[%s]: plan viability=%s min=%dms max=%dms rebuffer=%dms",
                 tag, plan.viability, minMs, maxMs, rebufferMs
             )
-        } else if (useCloudDefaults) {
-            minMs = VideoPlayerManager.CLOUD_MIN_BUFFER_MS
-            maxMs = VideoPlayerManager.CLOUD_MAX_BUFFER_MS
-            playbackMs = VideoPlayerManager.CLOUD_BUFFER_FOR_PLAYBACK_MS
-            rebufferMs = VideoPlayerManager.CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            Timber.d("PrefetchLoadControl[%s]: fallback cloud defaults", tag)
         } else {
-            minMs = VideoPlayerManager.MIN_BUFFER_MS
-            maxMs = VideoPlayerManager.MAX_BUFFER_MS
-            playbackMs = VideoPlayerManager.BUFFER_FOR_PLAYBACK_MS
-            rebufferMs = VideoPlayerManager.BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
-            // WHY S0168 §5.4: fallback to standard defaults means no PrefetchPlan was
-            // delivered before createPlayer() — elevate to W for visibility in log analysis.
-            Timber.w("PrefetchLoadControl[%s]: fallback standard defaults", tag)
+            val legacy = legacyBufferDurations(
+                useCloudDefaults = useCloudDefaults,
+                isAudio = isAudio,
+                useNetworkAudioDefaults = useNetworkAudioDefaults,
+            )
+            minMs = legacy.minMs
+            maxMs = legacy.maxMs
+            playbackMs = legacy.playbackMs
+            rebufferMs = legacy.rebufferMs
+
+            when {
+                isAudio && useNetworkAudioDefaults ->
+                    Timber.d("PrefetchLoadControl[%s]: fallback network-audio defaults", tag)
+                isAudio ->
+                    Timber.d("PrefetchLoadControl[%s]: fallback local-audio defaults", tag)
+                useCloudDefaults ->
+                    Timber.d("PrefetchLoadControl[%s]: fallback cloud defaults", tag)
+                else ->
+                    // WHY S0168 §5.4: fallback to standard defaults means no PrefetchPlan was
+                    // delivered before createPlayer() — elevate to W for visibility in log analysis.
+                    Timber.w("PrefetchLoadControl[%s]: fallback standard defaults", tag)
+            }
         }
 
         val defaultLoadControl = DefaultLoadControl.Builder()
@@ -56,5 +78,38 @@ internal object PrefetchLoadControlFactory {
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
         return PauseAwareLoadControl(defaultLoadControl)
+    }
+
+    internal fun legacyBufferDurations(
+        useCloudDefaults: Boolean,
+        isAudio: Boolean,
+        useNetworkAudioDefaults: Boolean,
+    ): LegacyBufferDurations {
+        return when {
+            isAudio && useNetworkAudioDefaults -> LegacyBufferDurations(
+                minMs = VideoPlayerManager.AUDIO_NETWORK_MIN_BUFFER_MS,
+                maxMs = VideoPlayerManager.AUDIO_NETWORK_MAX_BUFFER_MS,
+                playbackMs = VideoPlayerManager.AUDIO_NETWORK_BUFFER_FOR_PLAYBACK_MS,
+                rebufferMs = VideoPlayerManager.AUDIO_NETWORK_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
+            )
+            isAudio -> LegacyBufferDurations(
+                minMs = VideoPlayerManager.AUDIO_MIN_BUFFER_MS,
+                maxMs = VideoPlayerManager.AUDIO_MAX_BUFFER_MS,
+                playbackMs = VideoPlayerManager.AUDIO_BUFFER_FOR_PLAYBACK_MS,
+                rebufferMs = VideoPlayerManager.AUDIO_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
+            )
+            useCloudDefaults -> LegacyBufferDurations(
+                minMs = VideoPlayerManager.CLOUD_MIN_BUFFER_MS,
+                maxMs = VideoPlayerManager.CLOUD_MAX_BUFFER_MS,
+                playbackMs = VideoPlayerManager.CLOUD_BUFFER_FOR_PLAYBACK_MS,
+                rebufferMs = VideoPlayerManager.CLOUD_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
+            )
+            else -> LegacyBufferDurations(
+                minMs = VideoPlayerManager.MIN_BUFFER_MS,
+                maxMs = VideoPlayerManager.MAX_BUFFER_MS,
+                playbackMs = VideoPlayerManager.BUFFER_FOR_PLAYBACK_MS,
+                rebufferMs = VideoPlayerManager.BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
+            )
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.memory
 
 import android.os.Debug
+import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,6 +28,8 @@ import javax.inject.Singleton
 class MemoryProbeImpl @Inject constructor() : MemoryProbe {
 
     override fun record(checkpoint: MemoryCheckpoint, scenarioTag: String?) {
+        // S0207: debug-builds only — no measurement cost in release per strategic §3.1 item 4.
+        if (!BuildConfig.DEBUG) return
         val runtime = Runtime.getRuntime()
         val totalMb = runtime.totalMemory() / BYTES_PER_MB
         val freeMb = runtime.freeMemory() / BYTES_PER_MB

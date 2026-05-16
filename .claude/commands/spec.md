@@ -4,24 +4,32 @@ Write a strategic specification: product-level *what* and *why*, in Russian, wit
 
 ## Usage
 
-```text
-/spec <roadmap-id> <short-name>
-/spec <roadmap-id> <short-name> --priority N
-```
-
-If `<roadmap-id>` or `<short-name>` is missing, or if the first argument is neither `ad-hoc` nor a roadmap id like `X.11`, stop and return:
+Three accepted invocation forms — all valid, all proceed to spec writing:
 
 ```text
-Usage error: /spec <roadmap-id|ad-hoc> <short-name> [--priority N]
-Example: /spec X.11 background-thumbnail-preload
+/spec <roadmap-id> <short-name> [--priority N]   # strict: roadmap entry
+/spec ad-hoc <short-name> [--priority N]         # strict: ad-hoc with explicit slug
+/spec <free-form feature description>            # permissive: any text describing the feature
 ```
 
-Do not allocate a ticket id until both arguments are valid.
+The permissive form is the default for anyone typing a request in natural language. The skill never refuses input that is recognizable as a feature description — see Process step 1 for normalization.
+
+**Only refuse** when the input is genuinely unusable:
+
+- Empty (no arguments at all) — print short usage hint and stop.
+- A single token that is neither a known roadmap id nor a slug-shaped word AND carries no descriptive content (e.g. `/spec ?`, `/spec help`) — print short usage hint and stop.
+
+Do not reject input merely because it does not match the strict `<roadmap-id> <short-name>` pattern. Reword it (Process step 1), confirm the inferred slug in the final chat output, and proceed. Do not ask the user to choose between candidate slugs — pick one deterministically and move on. If the user dislikes the slug they will say so; bureaucratic preflight prompts are not allowed.
+
+Examples — all valid:
 
 - `/spec X.11 background-thumbnail-preload`
 - `/spec III.12 standalone-player-playlist`
 - `/spec ad-hoc player-keybinding-remapping`
 - `/spec ad-hoc bugfix-camera-capture-crash --priority 95`
+- `/spec Browse video files. In list. Information right on the file line. Close to resolution and time lenght I need to add the size of file`
+- `/spec добавить размер файла в строку видео рядом с разрешением и длительностью`
+- `/spec fix: camera capture crashes on Android 14`
 
 Output file: `PLAN/Sxxxx_<short-name>.md` (the `Sxxxx` ticket id is allocated by `scripts/spec_catalog/insert.ps1` — see "Spec Catalog hooks" below). No `_spec_` segment in the filename. Tactical folder created separately by `/spec-tech` at `PLAN/Sxxxx_<short-name>/`.
 
@@ -29,7 +37,32 @@ Output file: `PLAN/Sxxxx_<short-name>.md` (the `Sxxxx` ticket id is allocated by
 
 ## Process
 
-**1 — Parse arguments.** Extract ID (`X.11` or `ad-hoc`) and short name. Auto-derive priority from slug if `--priority` not supplied:
+**1 — Parse and normalize input.** Resolve the invocation into three internal variables: `roadmapId` (string), `shortName` (kebab-case slug), and optional `freeformDescription` (original user text — used to seed §1 of the spec when present).
+
+Apply the rules in order, take the first match:
+
+1. **Strict roadmap form** — first token matches `^([0-9]+|[IVX]+)(\.[0-9]+)*$` (e.g. `X.11`, `III.12`, `4.7`) AND second token is a kebab-case slug `^[a-z0-9][a-z0-9-]*$`. Set `roadmapId = <token1>`, `shortName = <token2>`. No `freeformDescription`.
+2. **Strict ad-hoc form** — first token is literally `ad-hoc` AND second token is a kebab-case slug. Set `roadmapId = "ad-hoc"`, `shortName = <token2>`. No `freeformDescription`.
+3. **Single slug form** — exactly one token, kebab-case slug. Set `roadmapId = "ad-hoc"`, `shortName = <token1>`. No `freeformDescription`.
+4. **Free-form form** — anything else that is not a refusal case (see Usage). Treat the entire raw input as the feature description:
+   - Set `roadmapId = "ad-hoc"`.
+   - Set `freeformDescription` = the full original text, verbatim (preserve original language — Russian, English, mixed).
+   - Derive `shortName` deterministically from the description:
+     - Translate / transliterate to English (Russian → English) using the lightest reasonable mapping; pick the 2–5 most content-bearing nouns/verbs.
+     - Lowercase, replace non-`[a-z0-9]+` with `-`, collapse multiple `-`, trim leading/trailing `-`.
+     - Cap at 5 hyphen-separated words and 60 characters total. Truncate at word boundary.
+     - Detect intent prefix: if description contains explicit fix/crash/bug wording (English `fix`, `bug`, `crash`, `error`, `broken`; Russian `исправить`, `падает`, `ошибка`, `краш`) → prepend `bugfix-` (avoid double prefix).
+     - Detect intent prefix: if description contains hotfix wording (English `hotfix`, `urgent`, `release blocker`; Russian `срочно`, `блокер`) → prepend `hotfix-`.
+   - Example: `Browse video files. In list ... add the size of file` → `shortName = "video-list-file-size"`.
+   - Example: `fix camera capture crash on Android 14` → `shortName = "bugfix-camera-capture-crash"`.
+   - Example: `добавить размер файла в строку видео` → `shortName = "video-row-file-size"`.
+
+Refusal cases (return short usage hint, allocate no id):
+
+- Zero arguments.
+- A single token that is neither a known roadmap id pattern nor a slug-shaped word AND has no semantic content (e.g. `?`, `help`, `usage`).
+
+After normalization, auto-derive priority from `shortName` if `--priority` not supplied:
 
 | Slug pattern | Default priority |
 |--------------|:----------------:|
@@ -38,6 +71,8 @@ Output file: `PLAN/Sxxxx_<short-name>.md` (the `Sxxxx` ticket id is allocated by
 | anything else | 50 |
 
 `--priority N` overrides (0..100).
+
+**When `freeformDescription` is set:** carry it into Process step 5 — §1 (Problem) of the strategic spec must paraphrase the user's original wording as the primary problem statement (translated to Russian if originally English). Do not discard the user's phrasing in favor of a fully reinterpreted version; the user's words are the requirement.
 
 **2 — Read context.**
 

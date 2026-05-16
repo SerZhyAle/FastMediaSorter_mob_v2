@@ -2,6 +2,7 @@
 
 package com.sza.fastmediasorter.data.remote.ftp
 
+import com.sza.fastmediasorter.data.network.IdleDisconnectPolicy
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,6 +15,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,17 +31,22 @@ import javax.inject.Singleton
 class FtpClient @Inject constructor(
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
+    private val idleDisconnectPolicy: IdleDisconnectPolicy,
 ) {
 
     private var ftpClient: FTPClient? = null
     private val mutex = Any()
+    private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
+
+    @Volatile
+    private var currentTransportKey: String? = null
 
     companion object {
         private const val CONNECT_TIMEOUT = 10000
         private const val SOCKET_TIMEOUT = 30000
         private const val KEEPALIVE_TIMEOUT = 15L
         private const val MAX_CONCURRENT_CONNECTIONS = 10
-        private const val IDLE_TIMEOUT_MS = 25000L
+        private const val IDLE_TIMEOUT_MS = 30_000L
     }
 
     private val exoPlayerPool = FtpExoPlayerPool()
@@ -52,7 +59,14 @@ class FtpClient @Inject constructor(
     fun getConnectionForExoPlayer(connectionInfo: FtpExoPlayerPool.FtpConnectionInfo): FtpExoPlayerPool.ExoPlayerFtpConnection {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("FTP")
-        return exoPlayerPool.getConnectionForExoPlayer(connectionInfo)
+        val transportKey = transportKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
+        trackedTransportKeys.add(transportKey)
+        idleDisconnectPolicy.touch(transportKey)
+        return exoPlayerPool.getConnectionForExoPlayer(connectionInfo).also {
+            idleDisconnectPolicy.arm(transportKey, IDLE_TIMEOUT_MS) {
+                cleanupIdleFtpConnections()
+            }
+        }
     }
 
     fun releaseExoPlayerConnection(client: FTPClient?) =
@@ -80,6 +94,9 @@ class FtpClient @Inject constructor(
             client.defaultTimeout = SOCKET_TIMEOUT
             client.setDataTimeout(SOCKET_TIMEOUT)
             client.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
+            // S0212: encoding MUST be set before connect — Apache Commons Net
+            // captures the control-channel encoding inside _connectAction_().
+            client.applyUtf8Encoding()
             client.connect(host, port)
             val replyCode = client.replyCode
             if (!FTPReply.isPositiveCompletion(replyCode)) {
@@ -94,8 +111,11 @@ class FtpClient @Inject constructor(
             }
             client.enterLocalPassiveMode()
             client.setFileType(FTP.BINARY_FILE_TYPE)
-            client.controlEncoding = "UTF-8"
+            // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
+            client.enableUtf8Mode()
             ftpClient = client
+            rememberTransportKey(transportKey(host, port, username))
+            armCurrentTransport()
             Timber.d("FTP connected to $host:$port (hasUser=${username.isNotBlank()}, passive mode)")
             Result.success(Unit)
         } catch (e: IOException) {
@@ -109,8 +129,13 @@ class FtpClient @Inject constructor(
         }
     }
 
-    suspend fun disconnect() = withContext(Dispatchers.IO) {
+    suspend fun disconnect() = disconnectInternal(disarmTrackedTimers = true)
+
+    private suspend fun disconnectInternal(disarmTrackedTimers: Boolean) = withContext(Dispatchers.IO) {
         try {
+            if (disarmTrackedTimers) {
+                disarmTrackedTransports()
+            }
             ftpClient?.let { client ->
                 if (client.isConnected) {
                     val originalTimeout = client.soTimeout
@@ -136,6 +161,7 @@ class FtpClient @Inject constructor(
             Timber.w(e, "FTP disconnect error (non-critical)")
         } finally {
             ftpClient = null
+            currentTransportKey = null
         }
     }
 
@@ -148,58 +174,74 @@ class FtpClient @Inject constructor(
     suspend fun listFilesWithMetadata(
         remotePath: String = "/",
         recursive: Boolean = true
-    ): Result<List<FTPFile>> = connectedOps.listFilesWithMetadata(remotePath, recursive)
+    ): Result<List<FTPFile>> = withTrackedConnectedOperation {
+        connectedOps.listFilesWithMetadata(remotePath, recursive)
+    }
 
     suspend fun listFilesWithMetadataPaged(
         remotePath: String = "/",
         offset: Int = 0,
         limit: Int = 50,
         recursive: Boolean = true
-    ): Result<List<FTPFile>> = connectedOps.listFilesWithMetadataPaged(remotePath, offset, limit, recursive)
+    ): Result<List<FTPFile>> = withTrackedConnectedOperation {
+        connectedOps.listFilesWithMetadataPaged(remotePath, offset, limit, recursive)
+    }
 
     suspend fun listFiles(remotePath: String = "/"): Result<List<String>> =
-        connectedOps.listFiles(remotePath)
+        withTrackedConnectedOperation { connectedOps.listFiles(remotePath) }
 
     suspend fun readFileBytes(
         remotePath: String,
         maxBytes: Long = Long.MAX_VALUE
-    ): Result<ByteArray> = connectedOps.readFileBytes(remotePath, maxBytes)
+    ): Result<ByteArray> = withTrackedConnectedOperation {
+        connectedOps.readFileBytes(remotePath, maxBytes)
+    }
 
     suspend fun readFileBytesRange(
         remotePath: String,
         offset: Long,
         length: Long
-    ): Result<ByteArray> = connectedOps.readFileBytesRange(remotePath, offset, length)
+    ): Result<ByteArray> = withTrackedConnectedOperation {
+        connectedOps.readFileBytesRange(remotePath, offset, length)
+    }
 
     suspend fun downloadFile(
         remotePath: String,
         outputStream: OutputStream,
         fileSize: Long = 0L,
         progressCallback: ByteProgressCallback? = null
-    ): Result<Unit> = connectedOps.downloadFile(remotePath, outputStream, fileSize, progressCallback)
+    ): Result<Unit> = withTrackedConnectedOperation {
+        connectedOps.downloadFile(remotePath, outputStream, fileSize, progressCallback)
+    }
 
     suspend fun uploadFile(
         remotePath: String,
         inputStream: InputStream,
         fileSize: Long = 0L,
         progressCallback: ByteProgressCallback? = null
-    ): Result<Unit> = connectedOps.uploadFile(remotePath, inputStream, fileSize, progressCallback)
+    ): Result<Unit> = withTrackedConnectedOperation {
+        connectedOps.uploadFile(remotePath, inputStream, fileSize, progressCallback)
+    }
 
-    suspend fun deleteFile(remotePath: String): Result<Unit> = connectedOps.deleteFile(remotePath)
+    suspend fun deleteFile(remotePath: String): Result<Unit> = withTrackedConnectedOperation {
+        connectedOps.deleteFile(remotePath)
+    }
 
-    suspend fun deleteDirectory(remotePath: String): Result<Unit> = connectedOps.deleteDirectory(remotePath)
+    suspend fun deleteDirectory(remotePath: String): Result<Unit> = withTrackedConnectedOperation {
+        connectedOps.deleteDirectory(remotePath)
+    }
 
     suspend fun renameFile(oldPath: String, newName: String): Result<Unit> =
-        connectedOps.renameFile(oldPath, newName)
+        withTrackedConnectedOperation { connectedOps.renameFile(oldPath, newName) }
 
     suspend fun moveFile(oldPath: String, newPath: String): Result<Unit> =
-        connectedOps.moveFile(oldPath, newPath)
+        withTrackedConnectedOperation { connectedOps.moveFile(oldPath, newPath) }
 
     suspend fun createDirectory(remotePath: String): Result<Unit> =
-        connectedOps.createDirectory(remotePath)
+        withTrackedConnectedOperation { connectedOps.createDirectory(remotePath) }
 
     suspend fun directoryExists(remotePath: String): Result<Boolean> =
-        connectedOps.directoryExists(remotePath)
+        withTrackedConnectedOperation { connectedOps.directoryExists(remotePath) }
 
     // endregion
 
@@ -291,4 +333,37 @@ class FtpClient @Inject constructor(
     ): Result<InputStream> = FtpStandaloneOperations.openInputStream(host, port, username, password, remotePath)
 
     // endregion
+
+    private fun transportKey(host: String, port: Int, username: String): String {
+        return "ftp@$host:$port:$username"
+    }
+
+    private fun rememberTransportKey(transportKey: String) {
+        trackedTransportKeys.add(transportKey)
+        currentTransportKey = transportKey
+    }
+
+    private fun armCurrentTransport() {
+        currentTransportKey?.let { transportKey ->
+            idleDisconnectPolicy.arm(transportKey, IDLE_TIMEOUT_MS) {
+                disconnect()
+            }
+        }
+    }
+
+    private suspend fun <T> withTrackedConnectedOperation(
+        block: suspend () -> Result<T>,
+    ): Result<T> {
+        currentTransportKey?.let(idleDisconnectPolicy::touch)
+        val result = block()
+        if (result.isSuccess) {
+            armCurrentTransport()
+        }
+        return result
+    }
+
+    private fun disarmTrackedTransports() {
+        trackedTransportKeys.forEach(idleDisconnectPolicy::disarm)
+        trackedTransportKeys.clear()
+    }
 }

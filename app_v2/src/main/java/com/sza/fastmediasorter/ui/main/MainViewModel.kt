@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.DedupAuthAccountsUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
@@ -110,6 +111,7 @@ class MainViewModel @Inject constructor(
     private val provisionDownloadsDestinationUseCase: ProvisionDownloadsDestinationUseCase,
     private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
     private val migrateS0059UseCase: MigrateS0059UseCase,
+    private val dedupAuthAccountsUseCase: DedupAuthAccountsUseCase,
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
@@ -163,6 +165,8 @@ class MainViewModel @Inject constructor(
             }
             migrateCameraResourceUseCase()
             migrateS0059UseCase()
+            runCatching { dedupAuthAccountsUseCase() }
+                .onFailure { Timber.w(it, "S0211: DedupAuthAccountsUseCase failed") }
             // Backfill icon ids for resources that existed before S0034 (DB v25 → v26 migration)
             resourceRepository.backfillMissingIcons { path, profileName, typeName ->
                 val profile = runCatching {

@@ -1,0 +1,31 @@
+FastMediaSorter is an Android tool for organizing media files across local storage, network shares and cloud services in one place. It combines a file browser, image viewer, video and audio player, slideshow, PDF and EPUB reader, OCR and translation — without forcing you to install separate apps for each source.
+
+What it can do:
+
+• Connect local folders, SMB/CIFS shares, FTP, SFTP, Google Drive, OneDrive and Dropbox side by side.
+• Browse with thumbnails, advanced sort and filters, multi-select, drag-to-reorder, full keyboard and gamepad navigation.
+• Copy, move, rename and delete across protocols, including cross-cloud transfers with progress and ETA. Move to Trash with a 5-minute recovery window.
+• Image viewer with rotation, color filters, OCR and AR-style translation overlay, draw annotations, crop and compressed copy.
+• Video player on ExoPlayer (Media3) with Picture-in-Picture, sleep timer, per-file position memory, 3D/stereo and 360° detection.
+• Audio player with background playback, lyrics search, album art lookup, visualizers and Chromecast output.
+• Slideshow with background music, time interval per resource, video-to-end mode, configurable transitions.
+• PDF and EPUB readers with TTS, themes, search and in-place translation.
+• Text editor with charset detection, markdown rendering and syntax highlight.
+• Home-screen widgets: resource launch, continue reading, random music, camera photos. Quick Settings audio tile for background playback control.
+• Settings search across every entry. Comprehensive keyboard, TV remote and gamepad shortcuts.
+
+Non-free dependencies in this build (declared via Anti-Features):
+
+This is the STANDARD edition, published as-is on IzzyOnDroid. It depends on proprietary SDKs to deliver some of its features:
+
+• Google Drive, OneDrive and Dropbox cloud integration (proprietary SDKs).
+• Google Cast (Chromecast output) — proprietary SDK.
+• ML Kit Translation, Text Recognition and Language Identification — Google on-device proprietary libraries.
+• Google Play Services (auth and wearable bridge for the Wear OS companion).
+• Google Play In-App Review.
+
+All of the above are optional inside the app — local, SMB, FTP, SFTP usage, the image, video, audio, PDF and EPUB viewers, OCR via Tesseract and the slideshow all work without ever calling a proprietary service.
+
+Free components used by the app: Tesseract OCR, SMBJ, JSch (SFTP), Apache Commons Net (FTP), ExoPlayer / Media3, Glide, OkHttp, BouncyCastle, Markwon, EPUB4j. The application source code is published under Apache License 2.0.
+
+Source code and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2

@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.data.link.auth.AccountNameHintExtractor
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.net.HttpCookie
-import java.util.UUID
 
 @AndroidEntryPoint
 class WebViewAuthDialogFragment : DialogFragment() {
@@ -198,23 +197,30 @@ class WebViewAuthDialogFragment : DialogFragment() {
                     !hint.isNullOrBlank() -> hint
                     else -> defaultAccountName
                 }
-                val accountId = UUID.randomUUID().toString()
                 // S0182: pin the WebView's User-Agent at login time. Re-played later by
                 // yt-dlp/OkHttp on every cookie-bearing request so the same `sessionid`
                 // never appears under more than one UA.
                 val capturedUa = webView?.settings?.userAgentString?.takeIf { it.isNotBlank() }
-                viewModel.saveSession(targetHost, accountId, displayName, cookies, capturedUa)
-                scrubWebViewState()
-                Timber.i(
-                    "[S0166] browser login saved: account=%s host=%s",
-                    displayName,
-                    targetHost,
-                )
-                Timber.d(
-                    "S0155: WebView auth saved host=%s accountId=%s ua=%s",
-                    targetHost, accountId, capturedUa?.take(60) ?: "(none)"
-                )
-                emitResultAndDismiss(saved = true, accountId = accountId)
+                // S0211: dedup-aware save — reuses existing accountId when the cookie set
+                // yields a known platform identity matching a stored record.
+                viewModel.saveSessionFromWebView(
+                    host = targetHost,
+                    displayName = displayName,
+                    cookies = cookies,
+                    userAgent = capturedUa,
+                ) { savedAccountId ->
+                    scrubWebViewState()
+                    Timber.i(
+                        "[S0166] browser login saved: account=%s host=%s",
+                        displayName,
+                        targetHost,
+                    )
+                    Timber.d(
+                        "S0155: WebView auth saved host=%s accountId=%s ua=%s",
+                        targetHost, savedAccountId ?: "(null)", capturedUa?.take(60) ?: "(none)"
+                    )
+                    emitResultAndDismiss(saved = savedAccountId != null, accountId = savedAccountId)
+                }
             }
             .setNegativeButton(android.R.string.cancel) { _, _ ->
                 emitResultAndDismiss(saved = false)

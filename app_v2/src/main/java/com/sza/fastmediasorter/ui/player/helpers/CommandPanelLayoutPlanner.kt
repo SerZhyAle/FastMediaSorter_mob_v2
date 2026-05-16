@@ -36,12 +36,10 @@ class CommandPanelLayoutPlanner {
         // Short label for Big Buttons Mode top-panel display. 0 = use titleResId at runtime.
         val shortTitleResId: Int = 0
     ) {
-        // ── Group 1 : high-priority adaptive commands (priorities 5–70) ───────────
+        // ── Group 1 : high-priority adaptive commands (priorities 10–70) ──────────
         // Lowest priority numbers = first on bar (leftmost), last to overflow.
         // Previous/Next are fixed right anchors — not in this group.
 
-        PLAYBACK_ORDER(5, R.id.menu_playback_order, true, R.string.playback_order_menu_title, 0,
-            R.string.big_btn_short_playback_order),
         DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete,
             R.string.big_btn_short_delete),
         FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline,
@@ -156,14 +154,15 @@ class CommandPanelLayoutPlanner {
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).
         PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
         // S0028: multi-window — overflow-only; shown only when VR+setting allows it
-        OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, false,
+        OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, true,
             R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse),
         // S0106: Image crop & compress (IMAGE only — static formats JPEG/PNG/WebP)
-        CROP(620, R.id.menu_crop, false, R.string.menu_crop, R.drawable.ic_crop),
-        CROP_TO_FILE(630, R.id.menu_crop_to_file, false, R.string.menu_crop_to_file, R.drawable.ic_crop_to_file),
-        COMPRESS_COPY(640, R.id.menu_compress_copy, false, R.string.menu_compress_copy, R.drawable.ic_compress),
+        // S0217: bar-capable; inline when planner has room, otherwise spills to overflow.
+        CROP(620, R.id.menu_crop, true, R.string.menu_crop, R.drawable.ic_crop),
+        CROP_TO_FILE(630, R.id.menu_crop_to_file, true, R.string.menu_crop_to_file, R.drawable.ic_crop_to_file),
+        COMPRESS_COPY(640, R.id.menu_compress_copy, true, R.string.menu_compress_copy, R.drawable.ic_compress),
         // S0107: Draw overlay — annotate static images (IMAGE only, not GIF/APNG)
-        DRAW_OVERLAY(650, R.id.menu_draw_overlay, false, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay);
+        DRAW_OVERLAY(650, R.id.menu_draw_overlay, true, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay);
     }
 
     data class LayoutResult(
@@ -202,7 +201,6 @@ class CommandPanelLayoutPlanner {
 
         return buildList {
             // ── Group 1 : high-priority adaptive buttons ──────────────────────────────
-            if (isAudio || isVideo) add(PlayerCommand.PLAYBACK_ORDER)
             if (canWrite && state.allowDelete) add(PlayerCommand.DELETE)
             if (showFavorite) add(PlayerCommand.FAVORITE)
             add(PlayerCommand.SHARE)

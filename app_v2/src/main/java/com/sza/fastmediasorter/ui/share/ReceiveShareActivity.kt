@@ -266,45 +266,75 @@ class ReceiveShareActivity : AppCompatActivity() {
         val loginUrl = resource?.loginUrl ?: url
         // S0170 BUG-1: once shown, never re-escalate for this Activity instance regardless of outcome.
         authOfferShown = true
-        Timber.i("[S0166] auth dialog shown: type=%s account=unknown host=%s", dialogType, host)
-        MaterialAlertDialogBuilder(this@ReceiveShareActivity)
-            .setTitle(getString(R.string.auth_offer_dialog_title, displayLabel))
-            .setMessage(getString(R.string.auth_offer_dialog_message, displayLabel))
-            .setCancelable(false)
-            .setPositiveButton(R.string.auth_offer_dialog_add) { _, _ ->
-                Timber.i("[S0166] auth accepted: type=%s host=%s", dialogType, host)
-                supportFragmentManager.setFragmentResultListener(
-                    WebViewAuthDialogFragment.RESULT_KEY,
-                    this@ReceiveShareActivity,
-                ) { _, bundle ->
-                    supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
-                    // S0155: use the accountId the fragment just created — avoids passing
-                    // null when accounts went from 0→1 (root cause of the bug in on-device test).
-                    val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
-                    Timber.d("S0155: offerAuthThenDownload resuming with accountId=%s", savedAccountId)
-                    // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
-                    // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
-                    processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
+        // S0211: resolve the existing account for [host] async, then build the dialog
+        // with a named-account title when found. Falls back to the generic offer wording
+        // when no record exists for the host.
+        lifecycleScope.launch {
+            val existing = runCatching {
+                authSessionRepository.listAccountsForHost(host)
+                    .filter { !it.isDismissed && it.cookieCount > 0 }
+                    .maxByOrNull { it.lastUsedAt ?: java.time.Instant.MIN }
+            }.getOrNull()
+            val resolvedName = existing?.displayName?.trim()?.takeIf { it.isNotBlank() }
+            Timber.d(
+                "S0211: ReceiveShareActivity.offerAuthThenDownload resolvedName=%s host=%s",
+                resolvedName ?: "<none>", host,
+            )
+            Timber.i(
+                "[S0166] auth dialog shown: type=%s account=%s host=%s",
+                dialogType, resolvedName ?: "none", host,
+            )
+            val title: String
+            val message: String
+            val positiveLabelRes: Int
+            if (resolvedName != null) {
+                title = getString(R.string.s0155_reauth_title, resolvedName)
+                message = getString(R.string.s0155_reauth_message, resolvedName)
+                positiveLabelRes = R.string.s0155_reauth_positive
+            } else {
+                title = getString(R.string.auth_offer_dialog_title, displayLabel)
+                message = getString(R.string.auth_offer_dialog_message, displayLabel)
+                positiveLabelRes = R.string.auth_offer_dialog_add
+            }
+            MaterialAlertDialogBuilder(this@ReceiveShareActivity)
+                .setTitle(title)
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton(positiveLabelRes) { _, _ ->
+                    Timber.i("[S0166] auth accepted: type=%s host=%s", dialogType, host)
+                    supportFragmentManager.setFragmentResultListener(
+                        WebViewAuthDialogFragment.RESULT_KEY,
+                        this@ReceiveShareActivity,
+                    ) { _, bundle ->
+                        supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
+                        // S0155: use the accountId the fragment just created — avoids passing
+                        // null when accounts went from 0→1 (root cause of the bug in on-device test).
+                        val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
+                        Timber.d("S0155: offerAuthThenDownload resuming with accountId=%s", savedAccountId)
+                        // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
+                        // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
+                        processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
+                    }
+                    WebViewAuthDialogFragment.newInstance(loginUrl)
+                        .show(supportFragmentManager, "s0157_webview_auth_offer")
                 }
-                WebViewAuthDialogFragment.newInstance(loginUrl)
-                    .show(supportFragmentManager, "s0157_webview_auth_offer")
-            }
-            .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
-                Timber.i("[S0166] auth dismissed (no record created): type=%s host=%s", dialogType, host)
-                // Skip for now — no dismissal recorded; offer will appear again next time the link is shared.
-                // S0170 BUG-1: isAuthRetry=true — do not re-escalate within this share session.
-                processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
-            }
-            .setNegativeButton(R.string.s0157_auth_offer_dismiss_always) { _, _ ->
-                Timber.i("[S0166] auth dismissed with rejection record created: type=%s host=%s", dialogType, host)
-                // S0170 BUG-1: await markDismissed before re-running the pipeline — otherwise the
-                // escalation block can read a stale isDismissedForHost() and loop once.
-                lifecycleScope.launch {
-                    authSessionRepository.markDismissed(host)
+                .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
+                    Timber.i("[S0166] auth dismissed (no record created): type=%s host=%s", dialogType, host)
+                    // Skip for now — no dismissal recorded; offer will appear again next time the link is shared.
+                    // S0170 BUG-1: isAuthRetry=true — do not re-escalate within this share session.
                     processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
                 }
-            }
-            .show()
+                .setNegativeButton(R.string.s0157_auth_offer_dismiss_always) { _, _ ->
+                    Timber.i("[S0166] auth dismissed with rejection record created: type=%s host=%s", dialogType, host)
+                    // S0170 BUG-1: await markDismissed before re-running the pipeline — otherwise the
+                    // escalation block can read a stale isDismissedForHost() and loop once.
+                    lifecycleScope.launch {
+                        authSessionRepository.markDismissed(host)
+                        processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
+                    }
+                }
+                .show()
+        }
     }
 
     /**
@@ -390,7 +420,6 @@ class ReceiveShareActivity : AppCompatActivity() {
         val workName = uniqueWorkNameFor(url)
         WorkManager.getInstance(this)
             .enqueueUniqueWork(workName, ExistingWorkPolicy.KEEP, request)
-        Timber.d("S0202: ReceiveShareActivity enqueued worker url=%s accountId=%s retry=%s", url, accountId, isAuthRetry)
 
         val workId = request.id
         WorkManager.getInstance(this)

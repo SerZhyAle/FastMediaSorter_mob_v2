@@ -7,7 +7,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -62,6 +65,8 @@ class SftpConnectionPool {
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
     private val poolMutex = Mutex()
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Volatile
+    private var sweepJob: Job? = null
 
     /** ExoPlayer-facing wrapper. Both [session] and [channel] are owned by the pool — do not close. */
     data class ExoPlayerConnection(val session: Session, val channel: ChannelSftp)
@@ -98,7 +103,6 @@ class SftpConnectionPool {
                     // S0205: skip retry when the coroutine is being cancelled — "inputstream is
                     // closed" can arrive from ConnectionThrottle teardown, not only dead TCP.
                     if (isDeadTransportException(e)) {
-                        Timber.d("S0205: withConnection dead-transport branch, checking liveness before retry")
                         ensureActive() // throws CancellationException if scope is being cancelled
                         Timber.w("SFTP [FILE_OPS] dead transport detected (${e.message}), reconnecting")
                         removeChannel(pooled, pc.channel)
@@ -162,6 +166,7 @@ class SftpConnectionPool {
         key: ConnectionKey,
         info: SftpClient.SftpConnectionInfo
     ): PooledConnection {
+        ensurePeriodicSweepRunning()
         poolMutex.lock()
         try {
             val existing = pooledSessions[key]
@@ -245,6 +250,38 @@ class SftpConnectionPool {
         }
     }
 
+    private fun ensurePeriodicSweepRunning() {
+        if (sweepJob?.isActive == true) return
+        synchronized(this) {
+            if (sweepJob?.isActive == true) return
+            sweepJob = cleanupScope.launch {
+                while (isActive) {
+                    delay(IDLE_TIMEOUT_MS)
+                    Timber.d("SftpConnectionPool.periodicSweep: tick")
+                    runCatching { cleanupIdleConnections() }
+                        .onFailure { Timber.w(it, "SftpConnectionPool.periodicSweep: cleanup failed") }
+                }
+            }
+        }
+    }
+
+    private fun stopPeriodicSweep() {
+        synchronized(this) {
+            sweepJob?.cancel()
+            sweepJob = null
+        }
+    }
+
+    internal fun isPeriodicSweepActive(): Boolean = sweepJob?.isActive == true
+
+    internal fun startPeriodicSweepForTest() {
+        ensurePeriodicSweepRunning()
+    }
+
+    internal fun stopPeriodicSweepForTest() {
+        stopPeriodicSweep()
+    }
+
     // ── Blocking path (ExoPlayer / PLAYBACK) ────────────────────────────────────────────────────
 
     @Throws(IOException::class)
@@ -298,6 +335,7 @@ class SftpConnectionPool {
         key: ConnectionKey,
         info: SftpClient.SftpConnectionInfo
     ): PooledConnection {
+        ensurePeriodicSweepRunning()
         // Synchronized on pooledSessions to avoid TOCTOU on session creation from the blocking path
         synchronized(pooledSessions) {
             val existing = pooledSessions[key]
@@ -424,6 +462,7 @@ class SftpConnectionPool {
     suspend fun disconnectAll() {
         poolMutex.lock()
         try {
+            stopPeriodicSweep()
             pooledSessions.values.forEach { pooled ->
                 try {
                     pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
@@ -513,7 +552,7 @@ class SftpConnectionPool {
         private const val MAX_CHANNELS_PER_SESSION = 5   // total across all purposes (Research #1)
         private const val MAX_PLAYBACK_CHANNELS = 1      // reserved for ExoPlayer streaming
         private const val MAX_FILE_OPS_CHANNELS = 4      // for suspend file operations
-        private const val IDLE_TIMEOUT_MS = 25_000L
+        private const val IDLE_TIMEOUT_MS = 30_000L
 
         /**
          * Lowercase substrings of IOException messages that indicate a dead JSch transport

@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.content.ContentUris
 import android.provider.MediaStore
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
@@ -23,9 +24,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
 ) : MediaStoreRepository {
 
     private fun isTrashPath(path: String): Boolean {
-        val normalized = path.replace('\\', '/')
-        val segments = normalized.split('/')
-        return segments.any { it.startsWith(".trash") }
+        return TrashFolderContract.containsTrashSegment(path)
     }
 
     private fun buildSelectionForAllowedTypes(allowedTypes: Set<MediaType>): String? {

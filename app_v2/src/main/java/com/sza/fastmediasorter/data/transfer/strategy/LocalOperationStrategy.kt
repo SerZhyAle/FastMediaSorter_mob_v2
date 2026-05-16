@@ -13,6 +13,11 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+class TrashRenameUnavailableException(
+    val sourcePath: String,
+    val reason: String,
+) : Exception("Trash rename unavailable for $sourcePath: $reason")
+
 /**
  * Strategy for local file system operations.
  * Handles standard file:// and local path operations.
@@ -80,6 +85,17 @@ class LocalOperationStrategy @Inject constructor(
                 Timber.d("LocalOperationStrategy: Moved ${sourceFile.name} via rename")
                 return@withContext Result.success(Unit)
             }
+
+            if (isSharedStoragePath(source) &&
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
+                !hasManageMediaPermission()
+            ) {
+                // Copy+delete cannot remove the original here and would leave a phantom duplicate.
+                throw TrashRenameUnavailableException(
+                    sourcePath = source,
+                    reason = "shared storage on API ${android.os.Build.VERSION.SDK_INT} without MANAGE_MEDIA"
+                )
+            }
             
             // Fallback: copy + delete
             val copyResult = copyFile(source, destination, overwrite = true, progressCallback = null)
@@ -93,6 +109,8 @@ class LocalOperationStrategy @Inject constructor(
             
             Timber.d("LocalOperationStrategy: Moved ${sourceFile.name} via copy+delete")
             Result.success(Unit)
+        } catch (e: TrashRenameUnavailableException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "LocalOperationStrategy: Move failed - $source -> $destination")
             Result.failure(e)
@@ -110,9 +128,7 @@ class LocalOperationStrategy @Inject constructor(
             
             // Android 10+ (Scoped Storage): For shared storage, use MediaStore
             // For app-private storage (like cache), use File.delete()
-            val isSharedStorage = path.startsWith("/storage/emulated/0/") && 
-                                 !path.contains("/Android/data/") &&
-                                !path.contains("/Android/obb/")
+            val isSharedStorage = isSharedStoragePath(path)
             
             if (isSharedStorage && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                 // Use MediaStore to delete from shared storage
@@ -142,16 +158,12 @@ class LocalOperationStrategy @Inject constructor(
         }
     }
     
-    private suspend fun deleteViaMediaStore(filePath: String): Boolean = withContext(Dispatchers.IO) {
+    internal suspend fun deleteViaMediaStore(filePath: String): Boolean = withContext(Dispatchers.IO) {
         Timber.d("LocalOperationStrategy.deleteViaMediaStore: ENTRY - filePath=$filePath, API=${android.os.Build.VERSION.SDK_INT}")
         
         // Check for MANAGE_MEDIA permission (Android 12+ / API 31+) - allows direct deletion without dialogs
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            val hasManageMedia = try {
-                context.checkSelfPermission(android.Manifest.permission.MANAGE_MEDIA) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            } catch (e: Exception) {
-                false
-            }
+            val hasManageMedia = hasManageMediaPermission()
             
             if (hasManageMedia) {
                 Timber.d("LocalOperationStrategy: MANAGE_MEDIA granted, using direct File.delete()")
@@ -532,6 +544,20 @@ class LocalOperationStrategy @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "LocalOperationStrategy: getDirectoryInfo failed - $path")
             Result.failure(e)
+        }
+    }
+
+    internal fun isSharedStoragePath(path: String): Boolean {
+        return path.startsWith("/storage/emulated/0/") &&
+            !path.contains("/Android/data/") &&
+            !path.contains("/Android/obb/")
+    }
+
+    private fun hasManageMediaPermission(): Boolean {
+        return try {
+            context.checkSelfPermission(android.Manifest.permission.MANAGE_MEDIA) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } catch (e: Exception) {
+            false
         }
     }
 }

@@ -9,9 +9,13 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.google.android.material.color.DynamicColors
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
+import com.sza.fastmediasorter.core.init.FirstFrameSignal
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
@@ -19,6 +23,7 @@ import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.worker.DeferredStartupWorker
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
@@ -33,6 +38,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -99,8 +105,23 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var memoryProbe: MemoryProbe
 
+    @Inject
+    lateinit var startupInitializer: dagger.Lazy<AppStartupInitializer>
+
+    // S0213 Pillar B: OOM-safe wrapper installed into media3 logging at process start so a
+    // near-OOM stacktrace stringification cannot itself become a fatal crash.
+    @Inject
+    lateinit var media3Logger: com.sza.fastmediasorter.core.logging.Media3OomSafeLogger
+
+    // S0213 Pillar C: release-safe signal channel wired into MemoryEnduranceTracker at process
+    // start so verdict=FAIL / drift ≥ 50 % events reach the player UI in production builds.
+    @Inject
+    lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
+
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private val firstFrameSignal by lazy(LazyThreadSafetyMode.NONE) { FirstFrameSignal() }
     
     // Track if app is in foreground
     @Volatile
@@ -108,6 +129,16 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        // S0213 Pillar B: install OOM-safe media3 logger BEFORE any media3 component is touched.
+        // Timber was planted earlier in attachBaseContext via LoggingHelper.initialize(), so the
+        // fallback Timber.w in the logger has a working sink.
+        androidx.media3.common.util.Log.setLogger(media3Logger)
+        Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed (S0213)")
+
+        // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so
+        // verdict=FAIL events reach the player UI even in non-DEBUG builds.
+        com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker.wireDegradationSignal(memoryDegradationSignal)
 
         // Material You: apply wallpaper-based dynamic colors on Android 12+
         DynamicColors.applyToActivitiesIfAvailable(this)
@@ -136,6 +167,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 isInForeground = true
                 Timber.d("App moved to FOREGROUND")
                 onAppForegrounded()
+                firstFrameSignal.signal()
             }
         })
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
@@ -149,44 +181,6 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
-        // Clear failed video thumbnail cache on app start (off main thread)
-        applicationScope.launch(Dispatchers.IO) {
-            NetworkFileDataFetcher.clearFailedVideoCache()
-        }
-        
-        // Clear translation cache on app start
-        com.sza.fastmediasorter.core.cache.TranslationCacheManager.clearAll()
-        
-        // Clean up orphaned temp files (ML-007) — handles crashes that prevented cleanup
-        applicationScope.launch(Dispatchers.IO) {
-            tempFileManager.get().cleanupOldTempFiles(24 * 60 * 60 * 1000L) // 24 hours max age
-            Timber.d("App startup: cleaned up old orphaned temp files")
-        }
-
-        // S0139: one-shot backfill of empty SMB credential shareName from resource path.
-        // Idempotent — flag-gated; runs only once per install/upgrade.
-        applicationScope.launch(Dispatchers.IO) {
-            runCatching { backfillSmbCredentialShareNameUseCase.get().invoke() }
-                .onFailure { Timber.e(it, "S0139: backfill launch failed") }
-        }
-
-        // S0133: reconcile system component state (share-sheet aliases, primary-player aliases) with DataStore.
-        // Idempotent — safe on every process start; restores registration after reinstall / clear-data.
-        applicationScope.launch {
-            runCatching {
-                com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
-                    .apply(applicationContext, settingsRepository.get())
-            }.onFailure { Timber.e(it, "S0133: bootstrap failed") }
-        }
-
-        // S0195: NetworkStateMonitor.start() and SMB reset-callback registration moved
-        // into NetworkLifecycleBootstrapper — fired on first remote use.
-
-        // Log Glide disk cache status at startup (off main thread)
-        applicationScope.launch(Dispatchers.IO) {
-            CacheStatusHelper.logGlideDiskCacheStatus(this@FastMediaSorterApp)
-        }
-        
         // Initialise Cast SDK early so device discovery begins before PlayerActivity opens.
         // Skipped on flavors without Cast support (VR — Horizon OS has no Google Play Services Cast module).
         if (BuildConfig.SUPPORT_CAST) {
@@ -199,38 +193,35 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
-        
-        // Log detailed app startup information
-        logAppStartupInfo()
 
         // Warn if the previous session ended with a crash (user should export logs)
         if (LoggingHelper.hasPreviousCrash()) {
             Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH — use 'Export debug logs' to collect reports ===")
         }
 
-        // Initialize all background tasks
-        val startupInitializer = AppStartupInitializer(
-            context = applicationContext,
-            settingsRepository = settingsRepository,
-            resourceRepository = resourceRepository,
-            playbackPositionRepository = playbackPositionRepository,
-            thumbnailCacheRepository = thumbnailCacheRepository,
-            applicationScope = applicationScope,
-            renameVirtualResourcesUseCase = renameVirtualResourcesUseCase,
-            inputBindingRepository = inputBindingRepository,
-            defaultsMapLoader = defaultsMapLoader,
-        )
-        startupInitializer.initialize()
+        // Keep only the genuinely early startup work here. Heavier maintenance tasks move behind
+        // the shared first-frame/deferred-worker gate so cold start stays off the critical path.
+        startupInitializer.get().initialize()
+
+        applicationScope.launch(Dispatchers.IO) {
+            firstFrameSignal.await(timeoutMs = 60_000)
+            com.sza.fastmediasorter.core.cache.TranslationCacheManager.clearAll()
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            firstFrameSignal.await(timeoutMs = 60_000)
+            logAppStartupInfo()
+        }
         
         // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)
         // WorkManager periodic cleanup disabled - unnecessary with sync cleanup
         // Left for potential future background tasks (e.g., network resource sync)
         
-        // Defer WorkManager scheduling to background with delay to avoid blocking app startup
-        // WorkManager initialization is expensive (~100-200ms), defer until after UI is rendered
+        // Phase 06: anchor startup scheduling on the shared first-frame signal instead of a
+        // hard-coded delay so every deferred startup path follows the same gate.
         applicationScope.launch(Dispatchers.IO) {
             try {
-                kotlinx.coroutines.delay(2000) // Wait for UI to render first
+                firstFrameSignal.await(timeoutMs = 60_000)
                 val settings = settingsRepository.get().getSettings().first()
                 logSettingsInfo(settings)
                 // Sync the synchronous SP mirror so the player picks the right controls layout
@@ -255,6 +246,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 scheduler.scheduleOrphanCleanup()
                 // Retry any OAuth token revocations that failed during sign-out (B5-T3)
                 scheduler.schedulePendingRevocation()
+                enqueueDeferredStartupWorker()
                 // Streaming-offload cache GC (spec §5.7). TTL pulled from settings; 0 = off.
                 scheduler.scheduleStreamingCacheGc(settings.streamingCacheTtlDays)
                 // Reschedule all enabled scheduled file operations (survived force-stop / app update)
@@ -270,6 +262,18 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0207 Phase 01: APP_STARTED memory probe — last call in onCreate so the
         // measurement reflects the post-init state of the process.
         memoryProbe.record(MemoryCheckpoint.APP_STARTED)
+    }
+
+    private fun enqueueDeferredStartupWorker() {
+        val request = OneTimeWorkRequestBuilder<DeferredStartupWorker>()
+            .setInitialDelay(30, TimeUnit.SECONDS)
+            .build()
+        WorkManager.getInstance(this).enqueueUniqueWork(
+            DeferredStartupWorker.WORK_NAME,
+            ExistingWorkPolicy.KEEP,
+            request,
+        )
+        Timber.i("FastMediaSorterApp: deferred startup worker enqueued")
     }
 
     private fun setupDebugStrictMode() {

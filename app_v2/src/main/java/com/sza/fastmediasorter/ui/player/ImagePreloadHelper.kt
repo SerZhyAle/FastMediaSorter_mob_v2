@@ -3,9 +3,9 @@ package com.sza.fastmediasorter.ui.player
 import android.net.Uri
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
@@ -45,6 +45,7 @@ class ImagePreloadHelper(
     }
 
     private val preloadJobs: MutableMap<String, Job> = mutableMapOf()
+    private val decodeFormatResolver by lazy { binding.root.context.memoryPressureDecodeFormatResolver() }
 
     val prefetchQueue: PriorityPrefetchQueue = PriorityPrefetchQueue(
         isCongested = { getResourceKey()?.let { ConnectionThrottleManager.isCongested(it) } ?: false }
@@ -168,8 +169,10 @@ class ImagePreloadHelper(
                     .signature(ObjectKey(cacheKey))
                     .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .override(preloadMaxDimension, preloadMaxDimension)
-                if (memoryTier == MemoryTier.LOW)
-                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                request.set(
+                    com.bumptech.glide.load.Option.memory("decodeFormat"),
+                    decodeFormatResolver.decodeFormat(),
+                )
                 request.submit().get()
             }
             Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")
@@ -203,8 +206,10 @@ class ImagePreloadHelper(
                     .signature(ObjectKey(cacheKey))
                     .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .override(preloadMaxDimension, preloadMaxDimension)
-                if (memoryTier == MemoryTier.LOW)
-                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                request.set(
+                    com.bumptech.glide.load.Option.memory("decodeFormat"),
+                    decodeFormatResolver.decodeFormat(),
+                )
                 request.submit().get()
             }
             Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")
@@ -226,8 +231,10 @@ class ImagePreloadHelper(
                     .signature(ObjectKey(cacheKey))
                     .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .override(preloadMaxDimension, preloadMaxDimension)
-                if (memoryTier == MemoryTier.LOW)
-                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                request.set(
+                    com.bumptech.glide.load.Option.memory("decodeFormat"),
+                    decodeFormatResolver.decodeFormat(),
+                )
                 request.submit().get()
             }
             Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")

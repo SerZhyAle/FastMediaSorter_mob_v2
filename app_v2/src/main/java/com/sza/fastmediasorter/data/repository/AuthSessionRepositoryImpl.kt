@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository
 
+import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
@@ -50,6 +51,32 @@ class AuthSessionRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             store.saveForAccount(host, accountId, displayName, cookies, userAgent)
             refreshFlows()
+        }
+    }
+
+    override suspend fun saveSessionFromWebView(
+        host: String,
+        displayName: String,
+        cookies: List<HttpCookie>,
+        userAgent: String?,
+    ): String? {
+        Timber.d("S0211: AuthSessionRepositoryImpl.saveSessionFromWebView host=%s cookies=%d", host, cookies.size)
+        if (host.isBlank() || cookies.isEmpty()) {
+            Timber.i("AuthSessionRepositoryImpl: skipped empty webview save host=%s", host)
+            return null
+        }
+        return withContext(Dispatchers.IO) {
+            val identity = AccountIdentityExtractor.extract(host, cookies)
+            val reusedId = identity?.let { store.findAccountIdByIdentity(host, it) }
+            val accountId = reusedId ?: java.util.UUID.randomUUID().toString()
+            store.saveForAccount(host, accountId, displayName, cookies, userAgent)
+            refreshFlows()
+            val maskedIdentity = identity?.let { it.take(4) + "***" } ?: "<none>"
+            Timber.i(
+                "S0211: webview save host=%s reused=%s identity=%s accountId=%s",
+                host, reusedId != null, maskedIdentity, accountId,
+            )
+            accountId
         }
     }
 

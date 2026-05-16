@@ -783,7 +783,7 @@ Close the player and try again.</string>
     <string name="clear_trash">Clear Trash</string>
     <string name="clear_trash_confirm_title">Clear Trash Folders?</string>
     <string name="clear_trash_confirm_message">This will permanently delete %d trash folder(s) and all files inside them. This action cannot be undone.</string>
-    <string name="trash_cleared">Successfully deleted %d trash folder(s)</string>
+    <string name="trash_cleared">Trash folders removed: %d</string>
     <string name="trash_clear_failed">Failed to clear trash: %s</string>
     <string name="add_to_destinations">Add to Quick Sort</string>
     <string name="back">Back</string>
@@ -1867,6 +1867,13 @@ Close the player and try again.</string>
     <string name="warning_low_memory_playback">Low memory — video playback may fail.</string>
     <string name="warning_audio_format_unsupported">Audio format not supported — playing without sound</string>
 
+    <!-- S0213: video playback OOM hardening — cooldown after decoder error, low-memory alert -->
+    <string name="s0213_decoder_cooldown_skip">Skipping the previous file — the decoder couldn’t handle it.</string>
+    <string name="s0213_decoder_cooldown_manual">This file just failed to decode. Try again in %1$d s, or skip.</string>
+    <string name="s0213_action_skip">Skip</string>
+    <string name="s0213_memory_alert_message">Memory is running low. Closing the player will free resources.</string>
+    <string name="s0213_memory_alert_action">Close player</string>
+
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Are you sure you want to clear the app cache?</string>
     <string name="delete_resource_title">Delete Resource</string>
@@ -2123,7 +2130,7 @@ Close the player and try again.</string>
     <string name="use_trash_summary">Move deleted files to .trash instead of permanent deletion. Allows recovery before closing resource.</string>
     <string name="disable_trash_warning">Files will be permanently deleted without recovery option</string>
     <string name="tooltip_use_trash_title">Move to trash</string>
-    <string name="tooltip_use_trash_message">When enabled, deleted local files are moved to a hidden .trash folder and can be recovered via Undo. When disabled, files are permanently deleted immediately and disk space is freed at once. Network and cloud files are always deleted permanently.</string>
+    <string name="tooltip_use_trash_message">When enabled, deleted local files are moved to a hidden .trash folder and can be recovered via Undo. On Android 12+, some shared folders need MANAGE_MEDIA; without it, Trash may fall back to permanent deletion. When disabled, files are permanently deleted immediately and disk space is freed at once. Network and cloud files are always deleted permanently.</string>
     <!-- Media Settings Categories -->
     <string name="settings_category_images">Images</string>
     <string name="settings_category_video">Video</string>
@@ -3543,6 +3550,28 @@ Close the player and try again.</string>
     <string name="rotation_toggle_sensor_on_desc">Screen rotation: unlocked</string>
     <string name="rotation_toggle_sensor_off_desc">Screen rotation: locked</string>
     <string name="keybinding_label_view_rotation_toggle">Screen Rotation</string>
+    <string name="delete_trash_unavailable_fallback_to_hard_delete">Trash is unavailable for some files — they were deleted permanently.</string>
+    <string name="link_download_notif_text_preview_only_signed_in">Couldn\'t extract page content. No sign-in needed.</string>
+    <string name="draw_settings_title">Draw settings</string>
+    <string name="draw_settings_brush_size">Brush size</string>
+    <string name="draw_settings_text_size">Text size</string>
+    <string name="draw_settings_text_small">Small</string>
+    <string name="draw_settings_text_medium">Medium</string>
+    <string name="draw_settings_text_large">Large</string>
+    <string name="draw_settings_opacity">Opacity</string>
+    <string name="draw_tool_oval">Oval</string>
+    <string name="draw_tool_text">Text</string>
+    <string name="draw_text_input_hint">Enter text</string>
+    <string name="draw_overflow_keep">Send to Google Keep</string>
+    <string name="draw_keep_not_installed">Google Keep is not installed</string>
+    <string name="draw_tool_selector_cd">Select tool</string>
+    <string name="draw_overflow_undo_last">Undo last</string>
+    <string name="draw_overflow_undo_all">Undo all</string>
+    <string name="draw_overflow_save_new">Save to new file</string>
+    <string name="draw_overflow_settings">Settings</string>
+    <string name="draw_color_custom_cd">Custom color</string>
+    <string name="draw_save_ok_toast">Saved</string>
+    <string name="draw_save_failed_toast">Failed to save</string>
 </resources>
 
 

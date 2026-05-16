@@ -113,6 +113,12 @@ if (!(Test-Path -Path $gdDir)) {
     New-Item -ItemType Directory -Path $gdDir | Out-Null
 }
 
+# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
+# Recipients with security policies that block APK downloads use the .zip copy;
+# the raw .apk lets fast paths skip the unzip step.
+Copy-Item -Path "$downloadsDir\$destName" -Destination "$gdDir\$destName" -Force
+Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
+
 $zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
 $zipPath = "$gdDir\$zipName"
 

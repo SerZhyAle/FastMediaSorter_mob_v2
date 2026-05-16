@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0192 Phase 03 — Text tool icon (block T glyph) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Horizontal bar (top) -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M4,4 L20,4 L20,7 L4,7 Z" />
+    <!-- Vertical bar (centre) -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M10,4 L14,4 L14,20 L10,20 Z" />
+</vector>

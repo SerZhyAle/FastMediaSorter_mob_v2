@@ -45,13 +45,6 @@
         android:title="@string/random_file_description"
         app:showAsAction="never" />
 
-    <!-- S0104: Playback order mode (AUDIO/VIDEO only) -->
-    <item
-        android:id="@+id/menu_playback_order"
-        android:icon="@drawable/ic_loop_list"
-        android:title="@string/playback_order_menu_title"
-        app:showAsAction="never" />
-
     <!-- S0050: Black Screen mode (AUDIO/VIDEO only) -->
     <item
         android:id="@+id/menu_black_screen"

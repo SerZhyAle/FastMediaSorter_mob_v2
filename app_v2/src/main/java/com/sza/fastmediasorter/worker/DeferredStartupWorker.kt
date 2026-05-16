@@ -1,0 +1,66 @@
+package com.sza.fastmediasorter.worker
+
+import android.content.Context
+import androidx.hilt.work.HiltWorker
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
+import com.sza.fastmediasorter.core.init.AppStartupInitializer
+import com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
+import com.sza.fastmediasorter.core.util.CacheStatusHelper
+import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.transfer.TempFileManager
+import com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import timber.log.Timber
+
+/**
+ * Best-effort Phase 06 startup maintenance worker.
+ *
+ * Finite cleanup/migration tasks run sequentially here. The ConnectionThrottleManager collector is
+ * bootstrapped indirectly through [AppStartupInitializer.runDeferredStartupTasks], which launches
+ * that long-lived settings flow into the application scope exactly once.
+ */
+@HiltWorker
+class DeferredStartupWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val appStartupInitializer: dagger.Lazy<AppStartupInitializer>,
+    private val settingsRepository: dagger.Lazy<SettingsRepository>,
+    private val tempFileManager: dagger.Lazy<TempFileManager>,
+    private val backfillSmbCredentialShareNameUseCase: dagger.Lazy<BackfillSmbCredentialShareNameUseCase>,
+) : CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result {
+        runTask("clear-failed-video-cache") {
+            NetworkFileDataFetcher.clearFailedVideoCache()
+        }
+        runTask("cleanup-old-temp-files") {
+            tempFileManager.get().cleanupOldTempFiles(24 * 60 * 60 * 1000L)
+        }
+        runTask("backfill-smb-credential-share-name") {
+            backfillSmbCredentialShareNameUseCase.get().invoke()
+        }
+        runTask("default-player-state-bootstrap") {
+            DefaultPlayerStateBootstrapper.apply(applicationContext, settingsRepository.get())
+        }
+        runTask("log-glide-disk-cache-status") {
+            CacheStatusHelper.logGlideDiskCacheStatus(applicationContext)
+        }
+        runTask("run-app-startup-initializer-deferred-tasks") {
+            appStartupInitializer.get().runDeferredStartupTasks()
+        }
+        return Result.success()
+    }
+
+    private suspend fun runTask(label: String, block: suspend () -> Unit) {
+        runCatching { block() }
+            .onSuccess { Timber.i("DeferredStartupWorker: completed %s", label) }
+            .onFailure { Timber.e(it, "DeferredStartupWorker: failed %s", label) }
+    }
+
+    companion object {
+        const val WORK_NAME = "deferred_startup"
+    }
+}

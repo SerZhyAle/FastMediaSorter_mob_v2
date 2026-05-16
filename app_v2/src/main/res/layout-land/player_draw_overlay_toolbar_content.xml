@@ -1,154 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0107: Draw overlay toolbar — landscape variant (vertical strip on right edge) -->
+<!--
+    S0192 Phase 05 — Draw overlay toolbar v2 (landscape).
+    Vertical strip on the right edge; same id-set as portrait.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawOverlayToolbar"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:layout_gravity="end"
     android:background="#CC000000"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="8dp"
     android:visibility="gone">
 
-    <!-- Column 1: Color palette (vertical) -->
-    <LinearLayout
+    <ImageButton
+        android:id="@+id/btn_draw_tool_selector"
+        android:layout_width="@dimen/player_cmd_button_size"
+        android:layout_height="@dimen/player_cmd_button_size"
+        android:layout_gravity="center_horizontal"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/draw_tool_selector_cd"
+        android:padding="8dp"
+        android:src="@drawable/ic_draw_overlay"
+        android:tint="#FFFFFFFF" />
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <!-- Colour swatches column -->
+    <View
+        android:id="@+id/color_black"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/draw_color_swatch_selected"
+        android:backgroundTint="#FF000000"
+        android:clickable="true"
+        android:contentDescription="@null"
+        android:focusable="true" />
+
+    <View
+        android:id="@+id/color_white"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/draw_color_swatch_selected"
+        android:backgroundTint="#FFFFFFFF"
+        android:clickable="true"
+        android:contentDescription="@null"
+        android:focusable="true" />
+
+    <View
+        android:id="@+id/color_red"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/draw_color_swatch_selected"
+        android:backgroundTint="#FFE53935"
+        android:clickable="true"
+        android:contentDescription="@null"
+        android:focusable="true" />
+
+    <View
+        android:id="@+id/color_custom"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/draw_color_swatch_selected"
+        android:backgroundTint="#FFE53935"
+        android:clickable="true"
+        android:contentDescription="@string/draw_color_custom_cd"
+        android:focusable="true" />
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <!-- Action buttons column -->
+    <ImageButton
+        android:id="@+id/btn_draw_close"
+        android:layout_width="@dimen/player_cmd_button_size"
+        android:layout_height="@dimen/player_cmd_button_size"
+        android:layout_gravity="center_horizontal"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/cancel"
+        android:padding="8dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:tint="#FFFFFFFF" />
+
+    <ImageButton
+        android:id="@+id/btn_draw_overflow"
+        android:layout_width="@dimen/player_cmd_button_size"
+        android:layout_height="@dimen/player_cmd_button_size"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/draw_overflow_settings"
+        android:padding="8dp"
+        android:src="@android:drawable/ic_menu_more"
+        android:tint="#FFFFFFFF" />
+
+    <Button
+        android:id="@+id/btn_draw_save"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <View
-            android:id="@+id/color_white"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/draw_color_swatch"
-            android:backgroundTint="#FFFFFFFF"
-            android:clickable="true"
-            android:contentDescription="@null"
-            android:focusable="true" />
-
-        <View
-            android:id="@+id/color_black"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/draw_color_swatch"
-            android:backgroundTint="#FF000000"
-            android:clickable="true"
-            android:contentDescription="@null"
-            android:focusable="true" />
-
-        <View
-            android:id="@+id/color_gray"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/draw_color_swatch"
-            android:backgroundTint="#FF808080"
-            android:clickable="true"
-            android:contentDescription="@null"
-            android:focusable="true" />
-
-        <View
-            android:id="@+id/color_red"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/draw_color_swatch"
-            android:backgroundTint="#FFE53935"
-            android:clickable="true"
-            android:contentDescription="@null"
-            android:focusable="true" />
-
-        <View
-            android:id="@+id/color_blue"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/draw_color_swatch"
-            android:backgroundTint="#FF1E88E5"
-            android:clickable="true"
-            android:contentDescription="@null"
-            android:focusable="true" />
-
-        <View
-            android:id="@+id/color_green"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/draw_color_swatch"
-            android:backgroundTint="#FF43A047"
-            android:clickable="true"
-            android:contentDescription="@null"
-            android:focusable="true" />
-
-        <View
-            android:id="@+id/color_yellow"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/draw_color_swatch"
-            android:backgroundTint="#FFFDD835"
-            android:clickable="true"
-            android:contentDescription="@null"
-            android:focusable="true" />
-
-    </LinearLayout>
-
-    <!-- Column 2: Tool buttons + action buttons (vertical) -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_marginStart="8dp"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <ImageButton
-            android:id="@+id/btn_draw_tool_brush"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/draw_overlay_toolbar_brush"
-            android:padding="8dp"
-            android:src="@drawable/ic_draw_overlay"
-            android:tint="#FFFFFFFF" />
-
-        <ImageButton
-            android:id="@+id/btn_draw_tool_rect"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:layout_marginTop="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/draw_overlay_toolbar_rect"
-            android:padding="8dp"
-            android:src="@drawable/ic_draw_rect"
-            android:tint="#FFFFFFFF" />
-
-        <ImageButton
-            android:id="@+id/btn_draw_tool_eraser"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:layout_marginTop="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/draw_overlay_toolbar_eraser"
-            android:padding="8dp"
-            android:src="@drawable/ic_eraser"
-            android:tint="#FFFFFFFF" />
-
-        <Button
-            android:id="@+id/btn_draw_cancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/cancel" />
-
-        <Button
-            android:id="@+id/btn_draw_save"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/draw_overlay_save_button" />
-
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:text="@string/draw_overlay_save_button" />
 
 </LinearLayout>

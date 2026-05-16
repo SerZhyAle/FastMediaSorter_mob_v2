@@ -93,9 +93,17 @@ class PlayerDeleteUndoCoordinator(
                 when (val result = fileOperationUseCase.execute(deleteOperation)) {
                     is FileOperationResult.Success,
                     is FileOperationResult.PartialSuccess -> {
+                        val softDeleteFallbackUsed = when (result) {
+                            is FileOperationResult.Success -> result.softDeleteFallbackPaths.isNotEmpty()
+                            is FileOperationResult.PartialSuccess -> result.softDeleteFallbackPaths.isNotEmpty()
+                            is FileOperationResult.Failure -> false
+                            is FileOperationResult.AuthenticationRequired -> false
+                            is FileOperationResult.PermissionRequired -> false
+                        }
+
                         sendEvent(PlayerViewModel.PlayerEvent.FileModified(currentFile.path))
 
-                        if (settings.enableUndo && effectiveSoftDelete) {
+                        if (settings.enableUndo && effectiveSoftDelete && !softDeleteFallbackUsed) {
                             val trashPaths = when (result) {
                                 is FileOperationResult.Success -> result.copiedFilePaths
                                 is FileOperationResult.PartialSuccess -> emptyList()
@@ -113,6 +121,12 @@ class PlayerDeleteUndoCoordinator(
                             )
                             saveUndoOperation(undoOp)
                             sendEvent(PlayerViewModel.PlayerEvent.ShowUndoSnackbar(undoOp))
+                        } else if (softDeleteFallbackUsed) {
+                            sendEvent(
+                                PlayerViewModel.PlayerEvent.ShowMessage(
+                                    context.getString(R.string.delete_trash_unavailable_fallback_to_hard_delete)
+                                )
+                            )
                         }
 
                         val updatedFiles = stateFlow.value.files.toMutableList()

@@ -19,6 +19,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.io.OutputStream
+import java.util.concurrent.ConcurrentHashMap
 import java.util.Vector
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -79,6 +80,7 @@ data class SftpFileListing(
 class SftpClient @Inject constructor(
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
+    private val idleDisconnectPolicy: com.sza.fastmediasorter.data.network.IdleDisconnectPolicy,
 ) {
 
     companion object {
@@ -87,7 +89,7 @@ class SftpClient @Inject constructor(
         private const val MAX_CONCURRENT_CONNECTIONS = 15 // Increased for channel pooling
         private const val MAX_CHANNELS_PER_SESSION = 5 // Max channels per session
         // Connection pool settings
-        private const val IDLE_TIMEOUT_MS = 25000L // 25 seconds (slightly longer than SOCKET_TIMEOUT)
+        private const val IDLE_TIMEOUT_MS = 30_000L
     }
 
     data class SftpConnectionInfo(
@@ -100,6 +102,7 @@ class SftpClient @Inject constructor(
     )
 
     private val pool = SftpConnectionPool()
+    private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
 
     /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     private suspend fun <T> withConnection(
@@ -108,7 +111,13 @@ class SftpClient @Inject constructor(
     ): Result<T> {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
-        return pool.withConnection(info, block)
+        val transportKey = rememberTransportKey(info)
+        idleDisconnectPolicy.touch(transportKey)
+        val result = pool.withConnection(info, block)
+        if (result.isSuccess) {
+            armTransport(info)
+        }
+        return result
     }
 
     // ExoPlayer connection management lives in SftpConnectionPool.
@@ -117,11 +126,18 @@ class SftpClient @Inject constructor(
     fun getConnectionForExoPlayer(connectionInfo: SftpConnectionInfo): SftpConnectionPool.ExoPlayerConnection {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
-        return pool.getConnectionForExoPlayer(connectionInfo)
+        val transportKey = rememberTransportKey(connectionInfo)
+        idleDisconnectPolicy.touch(transportKey)
+        return pool.getConnectionForExoPlayer(connectionInfo).also {
+            armTransport(connectionInfo)
+        }
     }
 
     /** S0067: close all pooled SFTP sessions (UI lifecycle hook). */
-    suspend fun disconnectAllPool() = pool.disconnectAll()
+    suspend fun disconnectAllPool() {
+        disarmAllTrackedTransports()
+        pool.disconnectAll()
+    }
 
     fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) = pool.releaseExoPlayerConnection(channel, broken)
 
@@ -137,22 +153,20 @@ class SftpClient @Inject constructor(
         recursive: Boolean = true,
         includeDirectories: Boolean = false
     ): Result<List<SftpFileListing>> = withConnection(connectionInfo) { channel ->
+        Timber.d("S0219: SftpClient.listFiles unwrapped path entered for $remotePath")
+        // S0219: SftpException/IOException now propagate so SftpConnectionPool runs the
+        // dead-transport retry (S0147). CancellationException re-throw is preserved
+        // explicitly per S0205 to keep the intent visible at the call site.
         try {
             val allFiles = mutableListOf<SftpFileListing>()
-            
             if (recursive) {
                 listFilesRecursive(channel, remotePath, allFiles)
             } else {
                 listFilesSingleLevel(channel, remotePath, allFiles, includeDirectories)
             }
-            
             Result.success(allFiles)
         } catch (e: CancellationException) {
-            // Navigation away from the screen cancels the listing scope — expected, not a failure.
             throw e
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP list files failed")
-            Result.failure(e)
         }
     }
 
@@ -274,7 +288,6 @@ class SftpClient @Inject constructor(
             } catch (e: IOException) {
                 // S0205: IOException on intentional teardown (e.g. ConnectionThrottle ON_STOP) is
                 // expected — W level only. E level is reserved for non-IO logic failures.
-                Timber.d("S0205: readFileBytes IOException path — ${e.message}")
                 Timber.w("SFTP read file bytes interrupted (io): ${e.message} | $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
@@ -290,7 +303,7 @@ class SftpClient @Inject constructor(
         
         return if (firstResult.isFailure && shouldRetry) {
             Timber.d("SFTP: Invalidating connection and retrying: $remotePath")
-            pool.invalidate(connectionInfo)
+            disconnectTransport(connectionInfo)
             
             withConnection(connectionInfo) { channel ->
                 try {
@@ -376,7 +389,7 @@ class SftpClient @Inject constructor(
 
         return if (firstResult.isFailure && shouldRetry) {
             Timber.d("SFTP: Invalidating connection and retrying readFileBytesRange: $remotePath")
-            pool.invalidate(connectionInfo)
+            disconnectTransport(connectionInfo)
             
             withConnection(connectionInfo) { channel ->
                 try {
@@ -422,7 +435,7 @@ class SftpClient @Inject constructor(
         for (attempt in 0..retryDelaysMs.size) {
             if (attempt > 0) {
                 Timber.d("SFTP [FILE_OPS] download retry $attempt/${retryDelaysMs.size} for $remotePath")
-                pool.invalidate(connectionInfo)
+                disconnectTransport(connectionInfo)
                 if (outputStream is java.io.ByteArrayOutputStream) outputStream.reset()
                 delay(retryDelaysMs[attempt - 1])
             }
@@ -477,21 +490,16 @@ class SftpClient @Inject constructor(
         remotePath: String,
         data: ByteArray
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        try {
-            // Ensure parent directory exists
-            val parentDir = remotePath.substringBeforeLast('/', "")
-            if (parentDir.isNotEmpty()) {
-                ensureDirectoryExists(channel, parentDir)
-            }
-            
-            data.inputStream().use { inputStream ->
-                channel.put(inputStream, remotePath)
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP upload file failed: $remotePath")
-            Result.failure(e)
+        Timber.d("S0219: SftpClient.uploadFile(bytes) unwrapped path entered for $remotePath")
+        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        val parentDir = remotePath.substringBeforeLast('/', "")
+        if (parentDir.isNotEmpty()) {
+            ensureDirectoryExists(channel, parentDir)
         }
+        data.inputStream().use { inputStream ->
+            channel.put(inputStream, remotePath)
+        }
+        Result.success(Unit)
     }
 
     // Upload file to SFTP server from InputStream
@@ -502,26 +510,21 @@ class SftpClient @Inject constructor(
         fileSize: Long = 0,
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        try {
-            // Ensure parent directory exists
-            val parentDir = remotePath.substringBeforeLast('/', "")
-            if (parentDir.isNotEmpty()) {
-                ensureDirectoryExists(channel, parentDir)
-            }
-            
-            // Use OutputStream to support progress callback
-            channel.put(remotePath).use { outputStream ->
-                if (progressCallback != null && fileSize > 0) {
-                    inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
-                } else {
-                    inputStream.copyTo(outputStream)
-                }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP upload file failed: $remotePath")
-            Result.failure(e)
+        Timber.d("S0219: SftpClient.uploadFile(stream) unwrapped path entered for $remotePath")
+        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        val parentDir = remotePath.substringBeforeLast('/', "")
+        if (parentDir.isNotEmpty()) {
+            ensureDirectoryExists(channel, parentDir)
         }
+        // Use OutputStream to support progress callback
+        channel.put(remotePath).use { outputStream ->
+            if (progressCallback != null && fileSize > 0) {
+                inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
+            } else {
+                inputStream.copyTo(outputStream)
+            }
+        }
+        Result.success(Unit)
     }
 
     // Get file attributes
@@ -529,19 +532,17 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<SftpFileAttributes> = withConnection(connectionInfo) { channel ->
-        try {
-            val attrs = channel.stat(remotePath)
-            val attributes = SftpFileAttributes(
+        Timber.d("S0219: SftpClient.stat unwrapped path entered for $remotePath")
+        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        val attrs = channel.stat(remotePath)
+        Result.success(
+            SftpFileAttributes(
                 size = attrs.size,
                 modifiedDate = attrs.mTime * 1000L,
                 accessDate = attrs.aTime * 1000L,
                 isDirectory = attrs.isDir
             )
-            Result.success(attributes)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP stat failed: $remotePath")
-            Result.failure(e)
-        }
+        )
     }
 
     // Check if path exists
@@ -549,20 +550,16 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Boolean> = withConnection(connectionInfo) { channel ->
+        Timber.d("S0219: SftpClient.exists unwrapped path entered for $remotePath")
+        // S0219: only SSH_FX_NO_SUCH_FILE is a benign protocol response (path missing).
+        // All other SftpException ids, any IOException, and CancellationException propagate
+        // so SftpConnectionPool can run the dead-transport retry (S0147) and coroutine
+        // cancellation stays cooperative (S0205).
         try {
-            try {
-                channel.stat(remotePath)
-                Result.success(true)
-            } catch (e: com.jcraft.jsch.SftpException) {
-                if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                    Result.success(false)
-                } else {
-                    throw e
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP exists check failed: $remotePath")
-            Result.failure(e)
+            channel.stat(remotePath)
+            Result.success(true)
+        } catch (e: SftpException) {
+            if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) Result.success(false) else throw e
         }
     }
 
@@ -571,13 +568,10 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        try {
-            channel.mkdir(remotePath)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP mkdir failed: $remotePath")
-            Result.failure(e)
-        }
+        Timber.d("S0219: SftpClient.mkdir unwrapped path entered for $remotePath")
+        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        channel.mkdir(remotePath)
+        Result.success(Unit)
     }
 
     // Delete file
@@ -585,13 +579,10 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        try {
-            channel.rm(remotePath)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP delete file failed: $remotePath")
-            Result.failure(e)
-        }
+        Timber.d("S0219: SftpClient.deleteFile unwrapped path entered for $remotePath")
+        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        channel.rm(remotePath)
+        Result.success(Unit)
     }
 
     // Delete directory recursively
@@ -599,31 +590,28 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        try {
-            // Helper function for recursion within the same channel
-            fun deleteRecursive(path: String) {
-                @Suppress("UNCHECKED_CAST")
-                val files = channel.ls(path) as Vector<ChannelSftp.LsEntry>
-                
-                files.forEach { entry ->
-                    if (entry.filename == "." || entry.filename == "..") return@forEach
-                    
-                    val fullPath = "$path/${entry.filename}"
-                    if (entry.attrs.isDir) {
-                        deleteRecursive(fullPath)
-                    } else {
-                        channel.rm(fullPath)
-                    }
+        Timber.d("S0219: SftpClient.deleteDirectory unwrapped path entered for $remotePath")
+        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        // Helper function for recursion within the same channel
+        fun deleteRecursive(path: String) {
+            @Suppress("UNCHECKED_CAST")
+            val files = channel.ls(path) as Vector<ChannelSftp.LsEntry>
+
+            files.forEach { entry ->
+                if (entry.filename == "." || entry.filename == "..") return@forEach
+
+                val fullPath = "$path/${entry.filename}"
+                if (entry.attrs.isDir) {
+                    deleteRecursive(fullPath)
+                } else {
+                    channel.rm(fullPath)
                 }
-                channel.rmdir(path)
             }
-            
-            deleteRecursive(remotePath)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP delete directory failed: $remotePath")
-            Result.failure(e)
+            channel.rmdir(path)
         }
+
+        deleteRecursive(remotePath)
+        Result.success(Unit)
     }
 
     // Rename/move file or directory
@@ -632,13 +620,10 @@ class SftpClient @Inject constructor(
         oldPath: String,
         newPath: String
     ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        try {
-            channel.rename(oldPath, newPath)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP rename failed: $oldPath -> $newPath")
-            Result.failure(e)
-        }
+        Timber.d("S0219: SftpClient.rename unwrapped path entered for $oldPath -> $newPath")
+        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        channel.rename(oldPath, newPath)
+        Result.success(Unit)
     }
 
     // Rename file (convenience method)
@@ -661,7 +646,10 @@ class SftpClient @Inject constructor(
     suspend fun getFileAttributes(connectionInfo: SftpConnectionInfo, remotePath: String) = stat(connectionInfo, remotePath)
 
     // Disconnect all sessions (e.g. on app shutdown)
-    suspend fun disconnectAll() = pool.disconnectAll()
+    suspend fun disconnectAll() {
+        disarmAllTrackedTransports()
+        pool.disconnectAll()
+    }
 
     suspend fun testConnection(host: String, port: Int = 22, username: String, password: String): Result<Unit> =
         SftpConnectionTester.testConnection(host, port, username, password)
@@ -680,7 +668,47 @@ class SftpClient @Inject constructor(
     suspend fun openInputStream(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<java.io.InputStream> = pool.openInputStream(connectionInfo, remotePath)    
+    ): Result<java.io.InputStream> {
+        val transportKey = rememberTransportKey(connectionInfo)
+        idleDisconnectPolicy.touch(transportKey)
+        val result = pool.openInputStream(connectionInfo, remotePath)
+        if (result.isSuccess) {
+            armTransport(connectionInfo)
+        }
+        return result
+    }
     // Create directory on SFTP server
+
+    private fun transportKey(connectionInfo: SftpConnectionInfo): String {
+        return "sftp@${connectionInfo.host}:${connectionInfo.port}:${connectionInfo.username}"
+    }
+
+    private fun rememberTransportKey(connectionInfo: SftpConnectionInfo): String {
+        return transportKey(connectionInfo).also(trackedTransportKeys::add)
+    }
+
+    private fun armTransport(connectionInfo: SftpConnectionInfo) {
+        val transportKey = rememberTransportKey(connectionInfo)
+        idleDisconnectPolicy.arm(transportKey, IDLE_TIMEOUT_MS) {
+            disconnectTransport(connectionInfo, disarm = false)
+        }
+    }
+
+    private suspend fun disconnectTransport(
+        connectionInfo: SftpConnectionInfo,
+        disarm: Boolean = true,
+    ) {
+        val transportKey = transportKey(connectionInfo)
+        if (disarm) {
+            idleDisconnectPolicy.disarm(transportKey)
+        }
+        trackedTransportKeys.remove(transportKey)
+        pool.invalidate(connectionInfo)
+    }
+
+    private fun disarmAllTrackedTransports() {
+        trackedTransportKeys.forEach(idleDisconnectPolicy::disarm)
+        trackedTransportKeys.clear()
+    }
 
 }

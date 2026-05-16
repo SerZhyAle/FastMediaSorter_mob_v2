@@ -2,6 +2,7 @@
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
 **📖 Другие языки:** [🇺🇸 English](README.md) | [🇺🇦 Українська](README_UK.md)
 
@@ -71,6 +72,12 @@ FastMediaSorter v2 доступен в **4 различных версиях** �
 ## Скачать 📥
 
 📲 **[Скачать в Google Play](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter)**
+
+<a href="https://github-store.org/app?repo=SerZhyAle/FastMediaSorter_mob_v2">
+  <img src="https://raw.githubusercontent.com/OpenHub-Store/GitHub-Store/main/media-resources/ghs_download_badge.png" alt="Get it on GitHub Store" height="80" />
+</a>
+
+Доступно в GitHub Store — установка и обновление прямо из релизов на GitHub.
 
 **Скомпилированные APK файлы НЕ хранятся в этом GitHub репозитории.** Все сборки доступны в **Google Drive**:
 

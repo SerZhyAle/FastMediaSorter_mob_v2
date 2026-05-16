@@ -53,10 +53,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
         ) { _ ->
             // User returned from "Install unknown apps" Settings screen.
             if (context.packageManager.canRequestPackageInstalls()) {
-                Timber.d("S0183: permission granted via Settings — triggering install")
                 pendingFile?.let { triggerInstall(it) }
-            } else {
-                Timber.d("S0183: permission still denied after Settings return")
             }
             pendingFile = null
         }
@@ -66,14 +63,8 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
         ) { result ->
             val act = activityRef.get() ?: return@registerForActivityResult
             val msgRes = when (result.resultCode) {
-                Activity.RESULT_OK -> {
-                    Timber.d("S0183: APK install completed — RESULT_OK")
-                    R.string.s0183_apk_install_success
-                }
-                Activity.RESULT_CANCELED -> {
-                    Timber.d("S0183: APK install cancelled by user — RESULT_CANCELED")
-                    R.string.s0183_apk_install_cancelled
-                }
+                Activity.RESULT_OK -> R.string.s0183_apk_install_success
+                Activity.RESULT_CANCELED -> R.string.s0183_apk_install_cancelled
                 else -> {
                     Timber.w("S0183: APK install failed — resultCode=${result.resultCode}")
                     R.string.s0183_apk_install_failed
@@ -97,7 +88,6 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
     }
 
     private fun showInstallMenu(file: MediaFile, onDismiss: () -> Unit) {
-        Timber.d("S0183: showInstallMenu — entry point, file=${file.name}")
         // Dismiss the bottom sheet immediately — install flow continues independently.
         onDismiss()
 
@@ -108,10 +98,8 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
         }
 
         if (context.packageManager.canRequestPackageInstalls()) {
-            Timber.d("S0183: permission already granted — triggering install directly")
             triggerInstall(file)
         } else {
-            Timber.d("S0183: REQUEST_INSTALL_PACKAGES not granted — showing rationale")
             pendingFile = file
             AlertDialog.Builder(act)
                 .setTitle(R.string.s0183_apk_install_rationale_title)
@@ -149,7 +137,6 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 putExtra(Intent.EXTRA_RETURN_RESULT, true)
             }
-            Timber.d("S0183: launching ACTION_VIEW(apk) for ${file.name}")
             installLauncher?.launch(intent)
         } catch (e: Exception) {
             Timber.e(e, "S0183: failed to launch APK install for ${file.name}")

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.browse.undo
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -144,7 +145,7 @@ class BrowseUndoManager(
     
     /**
      * Undo DELETE: Restore files from trash folder.
-     * Trash folder pattern: .trash_{timestamp}/
+     * Trash container name: .trash (canonical) or .trash_{timestamp} (legacy).
      */
     private suspend fun undoDeleteOperation(operation: UndoOperation) {
         val paths = operation.copiedFiles
@@ -152,13 +153,13 @@ class BrowseUndoManager(
             callbacks.showMessage(context.getString(R.string.no_files_to_restore))
             return
         }
-        
+
         // Extract trash directories from beginning of path list
         val trashDirs = mutableListOf<File>()
         var idx = 0
         while (idx < paths.size) {
             val candidate = File(paths[idx])
-            if (candidate.exists() && candidate.isDirectory && candidate.name.startsWith(".trash_")) {
+            if (candidate.exists() && candidate.isDirectory && TrashFolderContract.matchesTrashSegment(candidate.name)) {
                 trashDirs.add(candidate)
                 idx++
             } else {

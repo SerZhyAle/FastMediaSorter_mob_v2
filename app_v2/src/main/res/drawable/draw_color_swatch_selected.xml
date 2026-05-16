@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S0192 Phase 05 — Color swatch selector drawable.
+    The fill colour is applied at runtime via backgroundTintList; this drawable
+    only governs the ring/border that distinguishes the active swatch.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Selected state — thick white ring -->
+    <item android:state_selected="true">
+        <shape android:shape="oval">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="3dp"
+                android:color="#FFFFFFFF" />
+        </shape>
+    </item>
+    <!-- Default state — thin translucent ring -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="1dp"
+                android:color="#80FFFFFF" />
+        </shape>
+    </item>
+</selector>

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -109,6 +110,26 @@ class EncryptedCookieStore @Inject constructor(
         if (throwable is kotlinx.coroutines.CancellationException) throw throwable
         LinkDownloadTrace.verbose("fallback=cookie-store-empty reason=${throwable::class.simpleName}")
         emptyList()
+    }
+
+    /**
+     * S0211: lookup helper for dedup-aware save. For [host] iterate over stored active
+     * accounts, extract the platform identity from each cookie set via
+     * [AccountIdentityExtractor], return the first accountId whose extracted identity
+     * matches [identity]. Returns `null` when no record matches or inputs are blank.
+     */
+    fun findAccountIdByIdentity(host: String, identity: String): String? {
+        if (host.isBlank() || identity.isBlank()) return null
+        val prefix = "$ACCT_PREFIX$host:"
+        return prefs.all.keys.asSequence()
+            .filter { it.startsWith(prefix) }
+            .mapNotNull { key -> loadAccountEntry(host, key.removePrefix(prefix)) }
+            .filter { it.type == TYPE_ACTIVE && it.cookieCount > 0 }
+            .firstOrNull { entry ->
+                val cookies = loadForAccount(host, entry.accountId)
+                AccountIdentityExtractor.extract(host, cookies) == identity
+            }
+            ?.accountId
     }
 
     fun saveForAccount(

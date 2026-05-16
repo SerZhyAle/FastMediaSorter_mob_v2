@@ -52,6 +52,8 @@ object AdapterFileInfoFormatter {
         }
 
         val legacyInfo = buildLegacyFileInfo(file)
+        // S0210: trailing size segment for rich rows; hidden when size unknown (FTP, partial metadata).
+        val sizeSegment = if (file.size > 0) formatFileSize(file.size) else null
 
         return when (file.type) {
             MediaType.AUDIO -> {
@@ -63,8 +65,9 @@ object AdapterFileInfoFormatter {
                         !file.artist.isNullOrBlank() -> file.artist
                         else -> file.title ?: file.name
                     }
-                    if (duration != null) "$audioTitle • $duration" else audioTitle
+                    listOfNotNull(audioTitle, duration, sizeSegment).joinToString(" • ")
                 } else {
+                    // legacyInfo already contains size — do not append sizeSegment here to avoid duplication.
                     if (duration != null) "$legacyInfo • $duration" else legacyInfo
                 }
             }
@@ -72,14 +75,14 @@ object AdapterFileInfoFormatter {
             MediaType.VIDEO -> {
                 val resolution = if (file.width != null && file.height != null) "${file.width}x${file.height}" else null
                 val duration = formatDuration(file.duration)
-                val parts = listOfNotNull(resolution, duration)
+                val parts = listOfNotNull(resolution, duration, sizeSegment)
                 if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
             }
 
             MediaType.IMAGE, MediaType.GIF -> {
                 val resolution = if (file.width != null && file.height != null) "${file.width}x${file.height}" else null
                 val dateTaken = file.exifDateTime?.let { DateFormat.format("yy-MM-dd HH:mm", Date(it)).toString() }
-                val parts = listOfNotNull(resolution, dateTaken)
+                val parts = listOfNotNull(resolution, dateTaken, sizeSegment)
                 if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
             }
 

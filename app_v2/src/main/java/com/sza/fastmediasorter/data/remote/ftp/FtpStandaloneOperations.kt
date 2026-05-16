@@ -38,6 +38,8 @@ object FtpStandaloneOperations {
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             val testClient = FTPClient().apply { applyTimeouts() }
+            // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+            testClient.applyUtf8Encoding()
 
             testClient.connect(host, port)
 
@@ -57,7 +59,8 @@ object FtpStandaloneOperations {
             }
 
             testClient.enterLocalPassiveMode()
-            testClient.controlEncoding = "UTF-8" // ensure non-ASCII filenames are not garbled
+            // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
+            testClient.enableUtf8Mode()
             testClient.listFiles("/")
 
             testClient.logout()
@@ -85,6 +88,8 @@ object FtpStandaloneOperations {
         @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val tempClient = FTPClient().apply { applyTimeouts() }
+        // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+        tempClient.applyUtf8Encoding()
         try {
             tempClient.connect(host, port)
 
@@ -105,7 +110,8 @@ object FtpStandaloneOperations {
 
             tempClient.enterLocalPassiveMode()
             tempClient.setFileType(FTP.BINARY_FILE_TYPE)
-            tempClient.controlEncoding = "UTF-8"
+            // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
+            tempClient.enableUtf8Mode()
 
             val parentDir = remotePath.substringBeforeLast('/', "")
             if (parentDir.isNotEmpty()) {
@@ -215,14 +221,19 @@ object FtpStandaloneOperations {
         maxBytes: Long = Long.MAX_VALUE
     ): Result<ByteArray> = executeWithNewConnection(host, port, username, password) { client ->
         try {
+            // S0206: bounded path is split out so readBoundedAndAbort can own ABOR +
+            // completePendingCommand. Full-read path (no limit) retains original contract.
+            if (maxBytes < Long.MAX_VALUE) {
+                Timber.d("S0206: standalone FTP bounded read entry (passive) path=$remotePath cap=$maxBytes")
+                val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                val stream = client.retrieveFileStream(remotePath)
+                    ?: throw SocketTimeoutException("Failed to open stream (force retry)")
+                val result = stream.use { readBoundedAndAbort(client, it, maxBytesInt, "standalone.readFileBytes(passive)") }
+                Timber.d("FTP standalone bounded read: ${result.bytes.size}b from $remotePath (abort=${result.abortInvoked}, completeOk=${result.completeOk})")
+                return@executeWithNewConnection Result.success(result.bytes)
+            }
             val bytes = client.retrieveFileStream(remotePath)?.use { stream ->
-                if (maxBytes < Long.MAX_VALUE) {
-                    val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                    val allBytes = stream.readBytes()
-                    if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
-                } else {
-                    stream.readBytes()
-                }
+                stream.readBytes()
             }
 
             if (bytes != null) {
@@ -237,14 +248,21 @@ object FtpStandaloneOperations {
             Timber.w(e, "FTP passive mode timeout/error, switching to active mode")
             client.enterLocalActiveMode()
             try {
+                // S0206: same bounded/full-read split for active mode fallback.
+                if (maxBytes < Long.MAX_VALUE) {
+                    Timber.d("S0206: standalone FTP bounded read entry (active) path=$remotePath cap=$maxBytes")
+                    val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                    val stream = client.retrieveFileStream(remotePath)
+                        ?: return@executeWithNewConnection Result.failure(
+                            IOException("Failed to open file stream (active mode): $remotePath")
+                        )
+                    val result = stream.use { readBoundedAndAbort(client, it, maxBytesInt, "standalone.readFileBytes(active)") }
+                    Timber.d("FTP standalone bounded read (active): ${result.bytes.size}b from $remotePath (abort=${result.abortInvoked}, completeOk=${result.completeOk})")
+                    return@executeWithNewConnection Result.success(result.bytes)
+                }
+                // Full-read path (no limit).
                 val bytes = client.retrieveFileStream(remotePath)?.use { stream ->
-                    if (maxBytes < Long.MAX_VALUE) {
-                        val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                        val allBytes = stream.readBytes()
-                        if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
-                    } else {
-                        stream.readBytes()
-                    }
+                    stream.readBytes()
                 } ?: return@executeWithNewConnection Result.failure(
                     IOException("Failed to open file stream (active mode): $remotePath")
                 )
@@ -297,6 +315,8 @@ object FtpStandaloneOperations {
         remotePath: String
     ): Result<InputStream> = withContext(Dispatchers.IO) {
         val tempClient = FTPClient().apply { applyTimeouts() }
+        // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+        tempClient.applyUtf8Encoding()
         try {
             tempClient.connect(host, port)
 
@@ -317,7 +337,8 @@ object FtpStandaloneOperations {
 
             tempClient.enterLocalPassiveMode()
             tempClient.setFileType(FTP.BINARY_FILE_TYPE)
-            tempClient.controlEncoding = "UTF-8"
+            // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
+            tempClient.enableUtf8Mode()
 
             val stream = tempClient.retrieveFileStream(remotePath)
             if (stream == null) {
@@ -384,6 +405,8 @@ object FtpStandaloneOperations {
         block: (FTPClient) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
         val tempClient = FTPClient().apply { applyTimeouts() }
+        // S0212: encoding MUST be set before connect — see FtpEncodingSupport.
+        tempClient.applyUtf8Encoding()
         try {
             tempClient.connect(host, port)
 
@@ -404,7 +427,8 @@ object FtpStandaloneOperations {
 
             tempClient.enterLocalPassiveMode()
             tempClient.setFileType(FTP.BINARY_FILE_TYPE)
-            tempClient.controlEncoding = "UTF-8"
+            // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
+            tempClient.enableUtf8Mode()
 
             block(tempClient)
         } catch (e: Exception) {

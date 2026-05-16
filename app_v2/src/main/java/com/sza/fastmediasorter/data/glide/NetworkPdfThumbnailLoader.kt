@@ -17,6 +17,7 @@ import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -119,6 +120,7 @@ private class NetworkPdfDataFetcher(
     
     @Volatile
     private var isCancelled = false
+    private val decodeFormatResolver by lazy { context.memoryPressureDecodeFormatResolver() }
     private var tempFile: File? = null
     
     companion object {
@@ -441,7 +443,7 @@ private class NetworkPdfDataFetcher(
                 targetHeight = (targetWidth / pageAspectRatio).toInt()
             }
             
-            val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+            val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, decodeFormatResolver.bitmapConfig())
             bitmap.eraseColor(Color.WHITE)
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             

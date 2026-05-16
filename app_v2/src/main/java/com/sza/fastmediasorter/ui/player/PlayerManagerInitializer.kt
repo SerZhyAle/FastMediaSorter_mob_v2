@@ -215,14 +215,19 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             imageCropManager = activity.imageCropManager,
         )
         // S0107: Draw overlay manager; S0162: pass rotation manager for ADR-4 exit restore
+        // S0192 Phase 05: add Keep export dependency + base-bitmap provider
         activity.imageDrawOverlayManager = com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager(
             activity = activity,
             imageContainer = activity.activityBinding.photoDualSurfaceContainer!!,
             screenRotationManager = activity.screenRotationManager,
-            hasAccelerometer = activity.hasAccelerometer
+            hasAccelerometer = activity.hasAccelerometer,
+            keepExportHelper = activity.drawKeepExportHelper
         )
+        activity.imageDrawOverlayManager.baseBitmapProvider = { activity.viewModel.currentDisplayedBitmap }
         activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
         activity.setupDrawOverlaySaveCallback()
+        // S0192 Phase 06 — wire in-place save callback for the `[Save]` button
+        activity.setupDrawOverlayInPlaceSaveCallback()
         activity.immersiveModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager(
             activity = activity,
             safeViews = com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews(activity.activityBinding)
@@ -784,6 +789,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             callback = object : ExoPlayerControlsManager.ExoPlayerControlsCallback {
                 override fun onPreviousFile() = activity.navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = activity.navigationManager.navigateNextFromControl()
+                override fun onPlaybackOrderClicked() = activity.onPlaybackOrderClicked()
+                override fun getPlaybackOrderMode() = activity.viewModel.state.value.playbackOrderMode
                 override fun showPlaybackControlDialog() = activity.dialogHelper.showPlaybackControlDialog()
                 override fun onSeekForward(seconds: Int) {
                     if (activity.isAudioServiceActive) {
@@ -989,7 +996,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 "onedrive" to activity.oneDriveClient,
                 "dropbox" to activity.dropboxClient
             ),
-            playbackPositionRepository = activity.playbackPositionRepository
+            playbackPositionRepository = activity.playbackPositionRepository,
+            // S0213 Pillar A: cooldown gate at playVideo entry — short-circuits decoder-error replays.
+            decoderFailureTracker = activity.recentDecoderFailureTracker,
         )
     }
 

@@ -379,12 +379,16 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
         binding.root.setBackgroundResource(pageBackgrounds[backgroundIndex])
     }
 
+    @Suppress("DEPRECATION")
     private fun onWelcomeLanguageSelected(code: String) {
         LocaleHelper.saveLanguage(this, code)
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
             // API < 33: LocaleManager is unavailable — recreate Activity manually.
             // overridePendingTransition(0, 0) called after recreate() suppresses the
             // default enter animation of the new Activity instance.
+            // S0218: API < 33 < 34, so overrideActivityTransition (API 34+) is unreachable
+            // here; overridePendingTransition is the only valid call on this branch.
+            // @Suppress("DEPRECATION") on the function silences the unavoidable warning.
             recreate()
             overridePendingTransition(0, 0)
         }

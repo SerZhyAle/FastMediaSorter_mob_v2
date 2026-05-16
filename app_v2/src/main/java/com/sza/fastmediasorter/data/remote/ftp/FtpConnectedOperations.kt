@@ -133,40 +133,48 @@ class FtpConnectedOperations(
                 )
                 val bytes = try {
                     client.retrieveFileStream(remotePath)?.use { inputStream ->
-                        val bytes = if (maxBytes < Long.MAX_VALUE) {
+                        // S0206: readBoundedAndAbort reads exactly maxBytesInt bytes, sends ABOR
+                        // if cap is reached, and calls completePendingCommand internally.
+                        // Full-read path (no limit) retains original byte-for-byte contract.
+                        if (maxBytes < Long.MAX_VALUE) {
+                            Timber.d("S0206: pooled FTP bounded read entry (passive) path=$remotePath cap=$maxBytes")
                             val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                            val allBytes = inputStream.readBytes()
-                            if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
+                            val result = readBoundedAndAbort(client, inputStream, maxBytesInt, "readFileBytes(passive)")
+                            Timber.d("FTP bounded read: ${result.bytes.size}b from $remotePath (abort=${result.abortInvoked}, completeOk=${result.completeOk})")
+                            result.bytes
                         } else {
-                            inputStream.readBytes()
+                            val allBytes = inputStream.readBytes()
+                            if (!safeCompletePendingCommand(client, "readFileBytes(passive)")) {
+                                return@withContext Result.failure(
+                                    IOException("FTP command failed after retrieving file")
+                                )
+                            }
+                            Timber.d("FTP read ${allBytes.size} bytes from $remotePath")
+                            allBytes
                         }
-                        if (!safeCompletePendingCommand(client, "readFileBytes(passive)")) {
-                            return@withContext Result.failure(
-                                IOException("FTP command failed after retrieving file")
-                            )
-                        }
-                        Timber.d("FTP read ${bytes.size} bytes from $remotePath")
-                        bytes
                     } ?: return@withContext Result.failure(IOException("Failed to open file stream: $remotePath"))
                 } catch (e: SocketTimeoutException) {
                     Timber.w(e, "FTP passive mode timeout during read, switching to active mode")
                     client.enterLocalActiveMode()
                     Timber.d("FTP retrying read in active mode: $remotePath")
                     try {
+                        // S0206: same bounded-read logic for active mode fallback.
                         client.retrieveFileStream(remotePath)?.use { inputStream ->
-                            val bytes = if (maxBytes < Long.MAX_VALUE) {
+                            if (maxBytes < Long.MAX_VALUE) {
+                                Timber.d("S0206: pooled FTP bounded read entry (active) path=$remotePath cap=$maxBytes")
                                 val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                                val allBytes = inputStream.readBytes()
-                                if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
+                                val result = readBoundedAndAbort(client, inputStream, maxBytesInt, "readFileBytes(active)")
+                                Timber.d("FTP bounded read (active): ${result.bytes.size}b from $remotePath (abort=${result.abortInvoked}, completeOk=${result.completeOk})")
+                                result.bytes
                             } else {
-                                inputStream.readBytes()
+                                val allBytes = inputStream.readBytes()
+                                if (!safeCompletePendingCommand(client, "readFileBytes(active)")) {
+                                    return@withContext Result.failure(
+                                        IOException("FTP command failed after retrieving file (active mode)")
+                                    )
+                                }
+                                allBytes
                             }
-                            if (!safeCompletePendingCommand(client, "readFileBytes(active)")) {
-                                return@withContext Result.failure(
-                                    IOException("FTP command failed after retrieving file (active mode)")
-                                )
-                            }
-                            bytes
                         } ?: return@withContext Result.failure(IOException("Failed to open file stream (active mode): $remotePath"))
                     } finally {
                         try {

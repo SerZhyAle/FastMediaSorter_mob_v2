@@ -10,7 +10,6 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -18,6 +17,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -123,6 +123,7 @@ class ImageLoadingManager(
 
     private var dynamicBackgroundProcessor: DynamicBackgroundProcessor? = null
     private var isDynamicBackgroundEnabled: Boolean = false
+    private val decodeFormatResolver by lazy { binding.root.context.memoryPressureDecodeFormatResolver() }
     private val staticImageRenderer: StaticImageRenderer = DualSurfaceStaticImageRenderer(
         surfaceA = binding.photoView,
         surfaceB = binding.photoViewSurfaceB,
@@ -749,14 +750,16 @@ class ImageLoadingManager(
             .priority(Priority.IMMEDIATE)
         
         // Apply memory-aware optimizations for LOW tier devices
-        val optimizedRequest = if (memoryTier == MemoryTier.LOW) {
-            Timber.d("ImageLoadingManager: Applying LOW memory tier optimizations - RGB_565, no animation, reduced resolution")
-            glideRequest
-                .format(DecodeFormat.PREFER_RGB_565)  // 50% memory per pixel
-                .dontAnimate()  // Disable animations to save memory
-        } else {
-            glideRequest
-        }
+        val optimizedRequest = glideRequest
+            .format(decodeFormatResolver.decodeFormat())
+            .let { request ->
+                if (memoryTier == MemoryTier.LOW) {
+                    Timber.d("ImageLoadingManager: Applying LOW tier animation safeguards and reduced resolution")
+                    request.dontAnimate()
+                } else {
+                    request
+                }
+            }
         
         // Apply size limit if loadFullSizeImages is false (limit to 1920px max dimension)
         // For LOW tier, always limit size regardless of loadFullSize setting
@@ -856,14 +859,16 @@ class ImageLoadingManager(
             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
         
         // Apply memory-aware optimizations for LOW tier devices
-        val optimizedRequest = if (memoryTier == MemoryTier.LOW) {
-            Timber.d("ImageLoadingManager: Applying LOW memory tier optimizations - RGB_565, no animation")
-            glideRequest
-                .format(DecodeFormat.PREFER_RGB_565)  // 50% memory per pixel
-                .dontAnimate()  // Disable animations to save memory
-        } else {
-            glideRequest
-        }
+        val optimizedRequest = glideRequest
+            .format(decodeFormatResolver.decodeFormat())
+            .let { request ->
+                if (memoryTier == MemoryTier.LOW) {
+                    Timber.d("ImageLoadingManager: Applying LOW tier animation safeguards")
+                    request.dontAnimate()
+                } else {
+                    request
+                }
+            }
         
         // Apply size limit if loadFullSizeImages is false
         // For LOW tier, always limit size regardless of loadFullSize setting
@@ -974,14 +979,16 @@ class ImageLoadingManager(
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
         
         // Apply memory-aware optimizations for LOW tier devices
-        val optimizedRequest = if (memoryTier == MemoryTier.LOW) {
-            Timber.d("ImageLoadingManager: Applying LOW memory tier optimizations - RGB_565, no animation")
-            glideRequest
-                .format(DecodeFormat.PREFER_RGB_565)  // 50% memory per pixel
-                .dontAnimate()  // Disable animations to save memory
-        } else {
-            glideRequest
-        }
+        val optimizedRequest = glideRequest
+            .format(decodeFormatResolver.decodeFormat())
+            .let { request ->
+                if (memoryTier == MemoryTier.LOW) {
+                    Timber.d("ImageLoadingManager: Applying LOW tier animation safeguards")
+                    request.dontAnimate()
+                } else {
+                    request
+                }
+            }
         
         // Apply size limit if loadFullSizeImages is false
         // For LOW tier, always limit size regardless of loadFullSize setting

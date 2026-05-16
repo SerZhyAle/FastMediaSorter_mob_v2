@@ -18,6 +18,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
@@ -48,6 +49,10 @@ class AdapterThumbnailLoader(
     private val getShowPdfThumbnails: () -> Boolean,
     private val getBinaryGenerator: () -> BinaryFileThumbnailGenerator?
 ) {
+
+    private val decodeFormatResolver by lazy {
+        com.sza.fastmediasorter.FastMediaSorterApp.appContext.memoryPressureDecodeFormatResolver()
+    }
 
     companion object {
         const val CACHED_THUMBNAIL_SIZE = 300
@@ -187,7 +192,7 @@ class AdapterThumbnailLoader(
     }
 
     fun createExtensionBitmap(extension: String): Bitmap =
-        ExtensionThumbnailGenerator.generate(extension, 200)
+        ExtensionThumbnailGenerator.generate(extension)
 
     fun createPlaceholderDrawable(file: MediaFile, resources: Resources): BitmapDrawable =
         BitmapDrawable(resources, createExtensionBitmap(getPlaceholderExtension(file)))
@@ -256,6 +261,7 @@ class AdapterThumbnailLoader(
                 Glide.with(context)
                     .asBitmap()
                     .load(epubFile)
+                    .format(decodeFormatResolver.decodeFormat())
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
@@ -281,6 +287,7 @@ class AdapterThumbnailLoader(
                 val builder = Glide.with(context)
                     .asBitmap()
                     .load(networkData)
+                    .format(decodeFormatResolver.decodeFormat())
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
@@ -333,6 +340,7 @@ class AdapterThumbnailLoader(
                 Glide.with(context)
                     .asBitmap()
                     .load(pdfFile)
+                    .format(decodeFormatResolver.decodeFormat())
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
@@ -373,6 +381,7 @@ class AdapterThumbnailLoader(
                         size = file.size,
                         createdDate = file.createdDate
                     ))
+                    .format(decodeFormatResolver.decodeFormat())
                     .apply(RequestOptions().set(
                         com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
                         largePdfThumbnails
@@ -439,6 +448,7 @@ class AdapterThumbnailLoader(
                         loadFullImage = false,
                         cloudProvider = provider
                     ))
+                    .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.HIGH)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .onlyRetrieveFromCache(isScrolling)
@@ -461,6 +471,7 @@ class AdapterThumbnailLoader(
                         size = file.size,
                         createdDate = file.createdDate
                     ))
+                    .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.HIGH)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
@@ -501,6 +512,7 @@ class AdapterThumbnailLoader(
                 }
                 val localImageBuilder = Glide.with(context)
                     .load(data)
+                    .format(decodeFormatResolver.decodeFormat())
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .priority(Priority.HIGH)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -549,6 +561,7 @@ class AdapterThumbnailLoader(
                         loadFullImage = false,
                         cloudProvider = provider
                     ))
+                    .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.NORMAL)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .onlyRetrieveFromCache(isScrolling)
@@ -589,6 +602,7 @@ class AdapterThumbnailLoader(
                         size = file.size,
                         createdDate = file.createdDate
                     ))
+                    .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.NORMAL)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
@@ -635,6 +649,7 @@ class AdapterThumbnailLoader(
                 }
                 val localVideoBuilder = Glide.with(context)
                     .load(data)
+                    .format(decodeFormatResolver.decodeFormat())
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .priority(Priority.NORMAL)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)

@@ -41,26 +41,97 @@ $ProjectRoot = $PSScriptRoot
 
 # Script mapping
 $scripts = @{
-    'r'    = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @() }
-    'vr'   = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @() }
-    'vrd'  = @{ Path = 'scripts\builders\build-vr-debug.ps1'; Args = @() }
-    'ivr'  = @{ Path = 'scripts\builders\install-vr-release-to-device.ps1'; Args = @() }
-    'ivrd' = @{ Path = 'scripts\builders\install-vr-debug-to-device.ps1'; Args = @() }
-    'dc'  = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
-    'd'   = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @() }
-    'db'  = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @('-SkipZip') }
-    'cd'  = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
-    'cdb' = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @('-SkipZip') }
-    'cls' = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @() }
-    'c'   = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @() }
-    'ch'  = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @() }
-    's'   = @{ Path = 'scripts\utils\setup_test_media.ps1'; Args = @() }
+    'r'         = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @() }
+    'vr'        = @{ Path = 'scripts\builders\build-vr-release.ps1'; Args = @() }
+    'vrd'       = @{ Path = 'scripts\builders\build-vr-debug.ps1'; Args = @() }
+    'ivr'       = @{ Path = 'scripts\builders\install-vr-release-to-device.ps1'; Args = @() }
+    'ivrd'      = @{ Path = 'scripts\builders\install-vr-debug-to-device.ps1'; Args = @() }
+    'dc'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
+    'd'         = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @() }
+    'db'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @('-SkipZip') }
+    'cd'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
+    'cdb'       = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @('-SkipZip') }
+    'cls'       = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @() }
+    'c'         = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @() }
+    'ch'        = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @() }
+    's'         = @{ Path = 'scripts\utils\setup_test_media.ps1'; Args = @() }
     'b'         = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
     'bp'        = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
     'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
     'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @() }
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @() }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @() }
+}
+
+function Set-ChaquopyLocalState {
+    param(
+        [Parameter(Mandatory = $true)]
+        [bool]$Enabled
+    )
+
+    $localPropertiesPath = Join-Path $ProjectRoot 'local.properties'
+    if (-not (Test-Path $localPropertiesPath)) {
+        Write-Host "Warning: local.properties not found, skipping Chaquopy toggle." -ForegroundColor Yellow
+        return
+    }
+
+    $desiredLine = if ($Enabled) { 'chaquopy.enabled=true' } else { '# chaquopy.enabled=true' }
+    $lines = Get-Content -Path $localPropertiesPath
+    $updatedLines = New-Object System.Collections.Generic.List[string]
+    $foundChaquopyLine = $false
+
+    foreach ($line in $lines) {
+        if ($line -match '^[ \t]*#?[ \t]*chaquopy\.enabled\s*=.*$') {
+            if (-not $foundChaquopyLine) {
+                $updatedLines.Add($desiredLine)
+                $foundChaquopyLine = $true
+            }
+            continue
+        }
+
+        $updatedLines.Add($line)
+    }
+
+    if (-not $foundChaquopyLine) {
+        if (-not $Enabled) {
+            return
+        }
+
+        if ($updatedLines.Count -gt 0 -and $updatedLines[$updatedLines.Count - 1] -ne '') {
+            $updatedLines.Add('')
+        }
+
+        $updatedLines.Add('# S0174: Enable Chaquopy Python plugin for noLegal flavor builds.')
+        $updatedLines.Add('# Required whenever :app_v2:compileNoLegal* tasks are in scope (IDE sync, assembleNoLegal*).')
+        $updatedLines.Add('# Without this, com.chaquo.python.* is not on the classpath and noLegal fails to compile.')
+        $updatedLines.Add($desiredLine)
+    }
+
+    $currentContent = Get-Content -Path $localPropertiesPath -Raw
+    $updatedContent = ($updatedLines -join [Environment]::NewLine)
+    if ($updatedContent -ne $currentContent.TrimEnd("`r", "`n")) {
+        $writeError = $null
+        for ($attempt = 1; $attempt -le 5; $attempt++) {
+            try {
+                # Android Studio / Gradle can briefly probe local.properties, so tolerate
+                # a short transient lock instead of failing the launcher immediately.
+                Set-Content -Path $localPropertiesPath -Value $updatedContent -Encoding utf8NoBOM
+                $writeError = $null
+                break
+            }
+            catch {
+                $writeError = $_
+                [System.Threading.Thread]::Sleep(200)
+            }
+        }
+
+        if ($null -ne $writeError) {
+            throw $writeError
+        }
+
+        $stateLabel = if ($Enabled) { 'ON' } else { 'OFF' }
+        Write-Host "Chaquopy local toggle: $stateLabel" -ForegroundColor DarkGray
+    }
 }
 
 # Validate command
@@ -91,6 +162,26 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray
     Write-Host "Example: .\a.ps1 d" -ForegroundColor Gray
     exit 1
+}
+
+# Keep local.properties aligned with the launcher command so IDE sync and manual builds
+# follow the same noLegal-vs-non-noLegal Chaquopy state between invocations.
+$chaquopyLocalState = switch ($Command) {
+    'nd' { $true }
+    'nl' { $true }
+    'd' { $false }
+    'db' { $false }
+    'dc' { $false }
+    'cd' { $false }
+    'cdb' { $false }
+    'r' { $false }
+    'vr' { $false }
+    'vrd' { $false }
+    default { $null }
+}
+
+if ($null -ne $chaquopyLocalState) {
+    Set-ChaquopyLocalState -Enabled $chaquopyLocalState
 }
 
 # Get script path
@@ -135,8 +226,8 @@ if ($releaseCommands -contains $Command) {
             $syncLines = Get-Content $syncManifest | Where-Object { $_ -notmatch '^\s*#' -and $_.Trim() -ne '' }
             foreach ($relPath in $syncLines) {
                 $relPath = $relPath.Trim()
-                $srcFile  = Join-Path $ProjectRoot $relPath
-                $dstFile  = Join-Path $worktreePath $relPath
+                $srcFile = Join-Path $ProjectRoot $relPath
+                $dstFile = Join-Path $worktreePath $relPath
                 if (Test-Path $srcFile) {
                     $dstDir = Split-Path $dstFile -Parent
                     if (-not (Test-Path $dstDir)) {
@@ -144,7 +235,8 @@ if ($releaseCommands -contains $Command) {
                     }
                     Copy-Item -Path $srcFile -Destination $dstFile -Force
                     Write-Host "  synced: $relPath" -ForegroundColor DarkGray
-                } else {
+                }
+                else {
                     Write-Host "  skipped (not found): $relPath" -ForegroundColor DarkYellow
                 }
             }
@@ -164,20 +256,20 @@ if ($releaseCommands -contains $Command) {
         # Mirror DOWNLOADS from worktree to local dev directory
         if ($buildExit -eq 0) {
             $worktreeDownloads = Join-Path $worktreePath "DOWNLOADS"
-            $localDownloads    = Join-Path $ProjectRoot  "DOWNLOADS"
+            $localDownloads = Join-Path $ProjectRoot  "DOWNLOADS"
             if (Test-Path $worktreeDownloads) {
                 if (-not (Test-Path $localDownloads)) {
                     New-Item -ItemType Directory -Path $localDownloads | Out-Null
                 }
                 # Copy all build artifacts (overwrite) — skip the journal so we append below
                 Get-ChildItem -Path $worktreeDownloads -File |
-                    Where-Object { $_.Name -ne "builds_versions.lst" } |
-                    ForEach-Object {
-                        Copy-Item -Path $_.FullName -Destination (Join-Path $localDownloads $_.Name) -Force
-                    }
+                Where-Object { $_.Name -ne "builds_versions.lst" } |
+                ForEach-Object {
+                    Copy-Item -Path $_.FullName -Destination (Join-Path $localDownloads $_.Name) -Force
+                }
                 # Append only the last journal line (most recent build entry) to local journal
                 $worktreeJournal = Join-Path $worktreeDownloads "builds_versions.lst"
-                $localJournal    = Join-Path $localDownloads    "builds_versions.lst"
+                $localJournal = Join-Path $localDownloads    "builds_versions.lst"
                 if (Test-Path $worktreeJournal) {
                     $lastEntry = Get-Content $worktreeJournal | Select-Object -Last 1
                     if ($lastEntry) {

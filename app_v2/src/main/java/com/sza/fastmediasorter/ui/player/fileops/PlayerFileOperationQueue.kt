@@ -233,7 +233,6 @@ class PlayerFileOperationQueue(
                         // Re-invoking the use case would fail with "local file does not
                         // exist" because the upload completed before PermissionRequired
                         // was returned. Emit success and exit without restarting.
-                        Timber.d("S0154: batch-delete permission granted for ${op.sourcePath} — emitting Succeeded without restarting use case")
                         _events.emit(PlayerFileOperationEvent.Succeeded(op, 1))
                         return
                     }

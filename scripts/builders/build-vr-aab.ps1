@@ -110,11 +110,32 @@ $logEntry = "$timestamp | vr-release-aab | FastMediaSorter_vr_release.aab ($aabS
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
-# Try to copy to Google Drive if path exists
+# Copy raw AAB+APK to Google Drive AND create password-protected ZIP.
+# Both raw files and the ZIP must be present on GD:
+#   - raw .aab/.apk for direct download by recipients with normal security
+#   - .zip with password=1 for recipients whose security policy blocks .apk downloads
 $gdPath = "c:\GD\WORK\FastMediaSorter"
-if (Test-Path -Path $gdPath) {
+if (-not (Test-Path -Path $gdPath)) {
     try {
-        # Create ZIP with password protection if 7z is available
+        New-Item -ItemType Directory -Path $gdPath | Out-Null
+    }
+    catch {
+        Write-Host "Warning: Google Drive folder not available ($gdPath) — GD copy + ZIP skipped." -ForegroundColor Yellow
+        $gdPath = $null
+    }
+}
+
+if ($gdPath) {
+    try {
+        # Always copy raw artifacts first — survives even if 7-Zip is missing.
+        Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_vr_release.aab") -Force
+        Write-Host "AAB copied to $gdPath" -ForegroundColor Green
+        if ($destApkPath -and (Test-Path -Path $destApkPath)) {
+            Copy-Item -Path $destApkPath -Destination (Join-Path $gdPath "FastMediaSorter_vr_release.apk") -Force
+            Write-Host "APK copied to $gdPath" -ForegroundColor Green
+        }
+
+        # Then attempt password-protected ZIP.
         $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
         if (Test-Path -Path $sevenZipPath) {
             $zipPath = Join-Path $gdPath "FastMediaSorter_vr_release.zip"
@@ -125,12 +146,24 @@ if (Test-Path -Path $gdPath) {
             }
             Write-Host "Creating password-protected ZIP..." -ForegroundColor Yellow
             Push-Location $downloadsDir
-            & $sevenZipPath a -tzip -p1 "$zipPath" "FastMediaSorter_vr_release.aab" "FastMediaSorter_vr_release.apk" | Out-Null
+            $filesToZip = @("FastMediaSorter_vr_release.aab")
+            if (Test-Path "FastMediaSorter_vr_release.apk") {
+                $filesToZip += "FastMediaSorter_vr_release.apk"
+            }
+            & $sevenZipPath a -tzip -p1 -mem=AES256 $zipPath @filesToZip | Out-Null
             Pop-Location
-            Write-Host "Archived to Google Drive: $zipPath" -ForegroundColor Cyan
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "AAB+APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
+            }
+            else {
+                Write-Host "Warning: 7-Zip exit $LASTEXITCODE while creating $zipPath (raw files still copied above)" -ForegroundColor Yellow
+            }
+        }
+        else {
+            Write-Host "Warning: 7-Zip not found. ZIP step skipped (raw files still copied above)." -ForegroundColor Yellow
         }
     }
     catch {
-        Write-Host "Warning: Failed to copy to Google Drive - $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "Warning: Failed to publish to Google Drive: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }

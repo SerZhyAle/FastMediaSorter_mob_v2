@@ -90,6 +90,10 @@ class PdfViewerManager(
     
     // Page render job for cancellation on rapid navigation (C2 fix)
     private var pageRenderJob: Job? = null
+
+    // S0196 Phase 04: one-shot tag emitted when the first PDF page bitmap is pushed to
+    // the PhotoView — "primary content rendered" for the StandalonePlayer docs branch.
+    private var firstPageRenderedLogged = false
     
     // Single-thread dispatcher for PdfRenderer (non-thread-safe API)
     private val pdfDispatcher = Dispatchers.IO.limitedParallelism(1)
@@ -1157,10 +1161,16 @@ class PdfViewerManager(
                     currentPageBitmap?.recycle()
                     
                     binding.photoView.setImageBitmap(bitmap)
-                    
+
+                    // S0196 Phase 04: emit once on the first successful page push to the view.
+                    if (!firstPageRenderedLogged) {
+                        firstPageRenderedLogged = true
+                        Timber.d("PdfViewerManager: firstPageRendered index=$index pageCount=$pdfPageCount")
+                    }
+
                     // Apply color filter (night mode / sepia)
                     binding.photoView.colorFilter = PdfColorConversion.getColorFilter(currentColorMode)
-                    
+
                     // Store bitmap for translation
                     currentPageBitmap = bitmap
 

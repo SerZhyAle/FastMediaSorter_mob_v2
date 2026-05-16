@@ -47,10 +47,17 @@ function Get-Layer([string]$relPath) {
     return 'other'
 }
 
-function Get-PrimaryName([string]$content, [string]$fileName) {
-    $m = [regex]::Match($content, '(?m)^\s*(?:(?:abstract|open|sealed|data|inner|internal|private|public|final|annotation)\s+)*(?:class|object|interface|enum\s+class)\s+([A-Z][A-Za-z0-9_]*)')
-    if ($m.Success) { return $m.Groups[1].Value }
-    return [System.IO.Path]::GetFileNameWithoutExtension($fileName)
+function Get-TopLevelClasses([string]$content) {
+    # Returns ordered list of @{ Name; DeclIndex } for each top-level (column 0)
+    # class/object/interface/enum declaration. The leading '^' in multiline mode
+    # forbids leading whitespace, so nested/indented declarations are excluded
+    # and naturally remain inside their enclosing class's scope.
+    $result = New-Object System.Collections.ArrayList
+    $pattern = '(?m)^(?:(?:abstract|open|sealed|data|inner|internal|private|public|final|annotation)\s+)*(?:class|object|interface|enum\s+class)\s+([A-Z][A-Za-z0-9_]*)'
+    foreach ($m in [regex]::Matches($content, $pattern)) {
+        [void]$result.Add([PSCustomObject]@{ Name = $m.Groups[1].Value; DeclIndex = $m.Index })
+    }
+    return ,$result
 }
 
 function Get-Functions([string]$content) {
@@ -146,49 +153,73 @@ foreach ($file in $ktFiles) {
     if (-not $srcRoot) { continue }
     $rel = $file.FullName.Substring($srcRoot.Length + 1) -replace '\\', '/'
     $layer = Get-Layer $rel
-    $className = Get-PrimaryName $content $file.Name
-    $funcs = Get-Functions $content
-    $injected = Get-Injected $content
-    $sideEffects = Get-SideEffects $content
-    $record = [ordered]@{
-        path = $rel
-        class = $className
-        layer = $layer
-        loc = $loc
-        lastTouched = Get-LastTouched $file.FullName $Root
-        noFlavors = @()
-        injected = $injected
-        hasTests = Test-HasTests $file.FullName
-        coroutines = Test-Coroutines $content
-        usesTimber = Test-Timber $content
-        sideEffects = $sideEffects
-        userFeedback = Test-UserFeedback $content
-        status = 'unknown'
-        role = ''
-        functions = $funcs
+    $lastTouched = Get-LastTouched $file.FullName $Root
+    $hasTests = Test-HasTests $file.FullName
+
+    # One catalogue record per top-level class. Without this split, files that
+    # declare multiple top-level classes (e.g. a lightweight exception + a
+    # primary strategy/manager) collapse into a single record whose `class`
+    # field names the first detected class but whose `functions` list belongs
+    # to all of them. That made manual role/status updates unsafe and gave
+    # consumers misleading class ownership.
+    $topClasses = Get-TopLevelClasses $content
+    if ($topClasses.Count -eq 0) {
+        $topClasses = @([PSCustomObject]@{
+            Name = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+            DeclIndex = 0
+        })
     }
 
-    $key = "$rel::$className"
-    if ($existing.ContainsKey($key)) {
-        $old = $existing[$key]
-        if ($old.noFlavors) { $record.noFlavors = $old.noFlavors }
-        if ($old.status)    { $record.status    = $old.status }
-        if ($old.role)      { $record.role      = $old.role }
-        $oldDescs = @{}
-        if ($old.functions) {
-            foreach ($of in $old.functions) {
-                if ($of.description) { $oldDescs[$of.name] = $of.description }
-            }
-        }
-        for ($i = 0; $i -lt $record.functions.Count; $i++) {
-            $fn = $record.functions[$i].name
-            if ($oldDescs.ContainsKey($fn)) {
-                $record.functions[$i].description = $oldDescs[$fn]
-            }
-        }
-    }
+    for ($ci = 0; $ci -lt $topClasses.Count; $ci++) {
+        $className = $topClasses[$ci].Name
+        $scopeStart = $topClasses[$ci].DeclIndex
+        $scopeEnd = if ($ci + 1 -lt $topClasses.Count) { $topClasses[$ci + 1].DeclIndex } else { $content.Length }
+        $scope = $content.Substring($scopeStart, $scopeEnd - $scopeStart)
 
-    [void]$records.Add($record)
+        $funcs = Get-Functions $scope
+        $injected = Get-Injected $scope
+        $sideEffects = Get-SideEffects $scope
+
+        $record = [ordered]@{
+            path = $rel
+            class = $className
+            layer = $layer
+            loc = $loc
+            lastTouched = $lastTouched
+            noFlavors = @()
+            injected = $injected
+            hasTests = $hasTests
+            coroutines = Test-Coroutines $scope
+            usesTimber = Test-Timber $scope
+            sideEffects = $sideEffects
+            userFeedback = Test-UserFeedback $scope
+            status = 'unknown'
+            role = ''
+            functions = $funcs
+        }
+
+        $key = "$rel::$className"
+        if ($existing.ContainsKey($key)) {
+            $old = $existing[$key]
+            if ($old.noFlavors) { $record.noFlavors = $old.noFlavors }
+            if ($old.status)    { $record.status    = $old.status }
+            if ($old.role)      { $record.role      = $old.role }
+            $oldDescs = @{}
+            if ($old.functions) {
+                foreach ($of in $old.functions) {
+                    if ($of.description) { $oldDescs[$of.name] = $of.description }
+                }
+            }
+            for ($i = 0; $i -lt $record.functions.Count; $i++) {
+                $fn = $record.functions[$i].name
+                if ($oldDescs.ContainsKey($fn)) {
+                    $record.functions[$i].description = $oldDescs[$fn]
+                }
+            }
+        }
+
+        [void]$records.Add($record)
+    }
 }
 
 $sorted = $records | Sort-Object -Property @{Expression={$_.layer}}, @{Expression={$_.path}}
@@ -202,4 +233,4 @@ $outDir = Split-Path $OutFile -Parent
 if (-not (Test-Path $outDir)) { New-Item -Path $outDir -ItemType Directory -Force | Out-Null }
 $lines | Set-Content -Path $OutFile -Encoding UTF8
 
-Write-Host "Scanned module '$Module': $($records.Count) files -> $OutFile"
+Write-Host "Scanned module '$Module': $($ktFiles.Count) files, $($records.Count) records -> $OutFile"

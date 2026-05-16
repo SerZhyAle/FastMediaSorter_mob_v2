@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.widget.ImageButton
-import androidx.media3.common.Player
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -14,15 +14,15 @@ import com.sza.fastmediasorter.utils.UserActionLogger
  * 
  * Responsibilities:
  * - Setup custom navigation buttons (previous/next file)
- * - Setup repeat mode button with icon updates
+ * - Setup playback-order button with icon updates
  * - Setup unified playback control button
  * - Setup rewind/forward buttons for audiobook mode
- * - Update repeat button icon based on player state
+ * - Update the playback-order button from PlayerState
  * 
  * Custom controls in ExoPlayer controller overlay:
  * - exo_prev_file: Navigate to previous file
  * - exo_next_file: Navigate to next file
- * - exo_repeat: Toggle repeat mode (OFF -> ONE -> OFF)
+ * - exo_repeat: Cycle playback order modes
  * - btnPlaybackControl: Open unified Control dialog
  * - btnRewind10: Seek backward 10 seconds (audiobook)
  * - btnForward30: Seek forward 30 seconds (audiobook)
@@ -36,6 +36,8 @@ class ExoPlayerControlsManager(
     interface ExoPlayerControlsCallback {
         fun onPreviousFile()
         fun onNextFile()
+        fun onPlaybackOrderClicked()
+        fun getPlaybackOrderMode(): PlaybackOrderMode
         fun showPlaybackControlDialog()
         fun onSeekForward(seconds: Int)
         fun onSeekBackward(seconds: Int)
@@ -63,18 +65,11 @@ class ExoPlayerControlsManager(
             callback.onNextFile()
         }
         
-        // Setup repeat mode button
+        // Reuse the existing repeat slot as the single playback-order entry point.
         val repeatButton = binding.playerView.findViewById<ImageButton>(R.id.exo_repeat)
         repeatButton?.setOnClickListener {
-            videoPlayerManager.getPlayer()?.let { player ->
-                val newRepeatMode = when (player.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
-                    Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                    else -> Player.REPEAT_MODE_OFF
-                }
-                videoPlayerManager.setRepeatMode(newRepeatMode)
-                updateRepeatButtonIcon()
-            }
+            UserActionLogger.logButtonClick("PlaybackOrder", "ExoPlayerControlsManager")
+            callback.onPlaybackOrderClicked()
         }
         
         // Consolidate speed/audio/subtitle actions behind a single bottom-bar entry point.
@@ -99,35 +94,21 @@ class ExoPlayerControlsManager(
             callback.onSeekForward(10)
         }
         
-        // Initial repeat button state
-        updateRepeatButtonIcon()
+        // Initial playback-order button state
+        updatePlaybackOrderButtonState()
     }
     
     /**
-     * Update repeat button icon based on current player repeat mode.
-     * 
-     * Icon states:
-     * - REPEAT_MODE_OFF: ic_repeat with 50% alpha (dimmed)
-     * - REPEAT_MODE_ONE: ic_repeat_one with 100% alpha
-     * 
-     * Call this after:
-     * - Player initialization
-     * - Repeat mode change
-     * - Loading new video/audio file
+     * Update the bottom-bar playback-order button from the shared playback-order state.
      */
-    fun updateRepeatButtonIcon() {
+    fun updatePlaybackOrderButtonState() {
         val repeatButton = binding.playerView.findViewById<ImageButton>(R.id.exo_repeat)
-        videoPlayerManager.getPlayer()?.let { player ->
-            val iconRes = when (player.repeatMode) {
-                Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                else -> R.drawable.ic_repeat
-            }
-            repeatButton?.setImageResource(iconRes)
-            
-            // Visual feedback: dim icon when repeat is OFF
-            val alpha = if (player.repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1.0f
-            repeatButton?.alpha = alpha
-        }
+        val uiState = callback.getPlaybackOrderMode().toPlaybackOrderUiState()
+        repeatButton?.setImageResource(uiState.iconResId)
+        repeatButton?.alpha = 1.0f
+        val modeLabel = binding.root.context.getString(uiState.labelResId)
+        repeatButton?.contentDescription =
+            binding.root.context.getString(R.string.playback_order_button_desc, modeLabel)
     }
 
     /**

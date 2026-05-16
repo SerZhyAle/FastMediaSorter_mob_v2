@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S0192 Phase 05 — Tool selector popup menu (Brush / Rectangle / Oval / Eraser / Text) -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/draw_tool_brush"
+        android:icon="@drawable/ic_draw_overlay"
+        android:iconTint="#FFFFFF"
+        android:title="@string/draw_overlay_toolbar_brush" />
+    <item
+        android:id="@+id/draw_tool_rect"
+        android:icon="@drawable/ic_draw_rect"
+        android:iconTint="#FFFFFF"
+        android:title="@string/draw_overlay_toolbar_rect" />
+    <item
+        android:id="@+id/draw_tool_oval"
+        android:icon="@drawable/ic_draw_oval"
+        android:iconTint="#FFFFFF"
+        android:title="@string/draw_tool_oval" />
+    <item
+        android:id="@+id/draw_tool_eraser"
+        android:icon="@drawable/ic_eraser"
+        android:iconTint="#FFFFFF"
+        android:title="@string/draw_overlay_toolbar_eraser" />
+    <item
+        android:id="@+id/draw_tool_text"
+        android:icon="@drawable/ic_draw_text"
+        android:iconTint="#FFFFFF"
+        android:title="@string/draw_tool_text" />
+</menu>

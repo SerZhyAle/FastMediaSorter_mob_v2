@@ -296,7 +296,6 @@ class BrowseViewModel @Inject constructor(
 
     // --- Refresh/reload flow (delegated to BrowseRefreshManager) ---
     private val refreshManager = com.sza.fastmediasorter.ui.browse.managers.BrowseRefreshManager(
-        cleanupTrashFoldersUseCase = cleanupTrashFoldersUseCase,
         syncMediaStoreUseCase = syncMediaStoreUseCase,
         smbOperationsUseCase = smbOperationsUseCase,
         cachedFileListRepository = cachedFileListRepository,
@@ -436,7 +435,7 @@ class BrowseViewModel @Inject constructor(
         ioDispatcher = ioDispatcher,
         browseStateDataStore = browseStateDataStore,
         unifiedCache = unifiedCache,
-        cleanupTrash = { resource -> refreshManager.cleanupTrashOnBackground(resource, maxAgeMs = 0L) }
+        cleanupTrash = { resource -> refreshManager.cleanupTrashOnBackground(resource) }
     )
 
     // --- Manual-order ordering (delegated to BrowseManualOrderCoordinator) ---

@@ -7,6 +7,8 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
+import com.sza.fastmediasorter.data.transfer.strategy.TrashRenameUnavailableException
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
@@ -109,6 +111,7 @@ abstract class BaseFileOperationHandler(
         val errors = mutableListOf<String>()
         val deletedPaths = mutableListOf<String>()
         val trashedPaths = mutableListOf<String>()
+        val softDeleteFallbackPaths = mutableListOf<String>()
         var successCount = 0
 
         val filesByParent = operation.files.groupBy { file ->
@@ -131,7 +134,7 @@ abstract class BaseFileOperationHandler(
             if (operation.softDelete) {
                 try {
                     val timestamp = System.currentTimeMillis()
-                    val batchTrash = "$parentPath/.trash/$timestamp"
+                    val batchTrash = TrashFolderContract.buildSnapshotPath(parentPath, timestamp)
                     val strategy = getStrategyForPath(parentPath)
                     if (strategy != null) {
                         if (strategy.createDirectory(batchTrash).isSuccess) {
@@ -160,17 +163,33 @@ abstract class BaseFileOperationHandler(
                 val filePath = getSafePath(file)
                 val fileName = extractFileName(filePath, file.name)
                 try {
-                    val result = if (trashFolderCreated && currentTrashPath != null)
-                        moveToTrash(filePath, "$currentTrashPath/$fileName", fileName)
-                    else deleteFile(filePath)
+                    val softDeleteAttempted = trashFolderCreated && currentTrashPath != null
+                    var hardDeleteFallbackUsed = false
+                    val result = if (softDeleteAttempted) {
+                        try {
+                            moveToTrash(filePath, "$currentTrashPath/$fileName", fileName)
+                        } catch (e: TrashRenameUnavailableException) {
+                            hardDeleteFallbackUsed = true
+                            deleteFile(filePath)
+                        }
+                    } else {
+                        deleteFile(filePath)
+                    }
                     result.fold(
                         onSuccess = {
-                            if (trashFolderCreated && currentTrashPath != null) trashedPaths.add(filePath)
-                            else deletedPaths.add(filePath)
+                            if (softDeleteAttempted && !hardDeleteFallbackUsed) {
+                                trashedPaths.add(filePath)
+                            } else {
+                                deletedPaths.add(filePath)
+                            }
+                            if (hardDeleteFallbackUsed) {
+                                softDeleteFallbackPaths.add(filePath)
+                            }
                             successCount++
                         },
                         onFailure = { error ->
-                            errors.add("Failed to ${if (trashFolderCreated) "trash" else "delete"} ${file.name}: ${error.message}")
+                            val action = if (softDeleteAttempted && !hardDeleteFallbackUsed) "trash" else "delete"
+                            errors.add("Failed to $action ${file.name}: ${error.message}")
                         }
                     )
                 } catch (e: Exception) {
@@ -181,7 +200,7 @@ abstract class BaseFileOperationHandler(
         }
 
         val resultPaths = if (operation.softDelete && trashedPaths.isNotEmpty()) trashedPaths else deletedPaths
-        return@withContext buildDeleteResult(successCount, operation, resultPaths, errors)
+        return@withContext buildDeleteResult(successCount, operation, resultPaths, errors, softDeleteFallbackPaths)
     }
     
     protected open suspend fun copyFile(sourcePath: String, destPath: String, overwrite: Boolean, progressCallback: ByteProgressCallback?): Result<String> {
@@ -254,13 +273,6 @@ abstract class BaseFileOperationHandler(
         }
     }
     
-    protected open suspend fun createTrashFolder(firstFilePath: String): String? {
-        if (!firstFilePath.contains("/")) return null
-        val trashDirPath = "${firstFilePath.substringBeforeLast('/')}/.trash_${System.currentTimeMillis()}"
-        getStrategyForPath(trashDirPath) ?: return null
-        return trashDirPath
-    }
-
     protected suspend fun deleteWithSaf(contentUri: String): Boolean {
         return com.sza.fastmediasorter.utils.SafHelper.deleteContentUri(
             context, contentUri, "BaseFileOperationHandler"
@@ -385,10 +397,26 @@ abstract class BaseFileOperationHandler(
         }
     }
 
-    protected fun buildDeleteResult(successCount: Int, operation: FileOperation.Delete, deletedPaths: List<String>, errors: List<String>): FileOperationResult {
+    protected fun buildDeleteResult(
+        successCount: Int,
+        operation: FileOperation.Delete,
+        deletedPaths: List<String>,
+        errors: List<String>,
+        softDeleteFallbackPaths: List<String> = emptyList(),
+    ): FileOperationResult {
         return when {
-            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
-            successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
+            successCount == operation.files.size -> FileOperationResult.Success(
+                successCount,
+                operation,
+                deletedPaths,
+                softDeleteFallbackPaths = softDeleteFallbackPaths,
+            )
+            successCount > 0 -> FileOperationResult.PartialSuccess(
+                successCount,
+                errors.size,
+                errors,
+                softDeleteFallbackPaths = softDeleteFallbackPaths,
+            )
             else -> {
                 FileOperationResult.Failure(
                     error = context.getString(R.string.all_delete_operations_failed),

@@ -311,7 +311,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
     ) {
         if (!bigButtonsMode) return
 
-        val rowHeight = context.resources.getDimensionPixelSize(R.dimen.player_big_button_height)
+        val rowHeight = context.resources.getDimensionPixelSize(R.dimen.player_big_button_overflow_row_height)
         val dp16 = (16 * context.resources.displayMetrics.density).toInt()
         val dp12 = (12 * context.resources.displayMetrics.density).toInt()
         val dp24 = (24 * context.resources.displayMetrics.density).toInt()
