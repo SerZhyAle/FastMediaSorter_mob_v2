@@ -7,21 +7,12 @@
     android:fillViewport="false"
     tools:ignore="NestedWeights">
 
-    <!-- Content-width cap: max 600dp centered per Material3 list pattern (S0125 §3.2) -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Full-width content to match other Settings pages (Playback, General); 600dp M3 cap removed per user UX preference -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="@dimen/settings_fragment_padding"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_default="spread"
-            app:layout_constraintWidth_max="600dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/settings_fragment_padding">
 
             <!-- SAFETY & CONFIRMATION SECTION -->
             <com.google.android.material.card.MaterialCardView
@@ -790,7 +781,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
 </ScrollView>

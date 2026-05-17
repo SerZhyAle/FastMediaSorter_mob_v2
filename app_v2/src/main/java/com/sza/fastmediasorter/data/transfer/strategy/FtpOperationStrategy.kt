@@ -207,11 +207,10 @@ class FtpOperationStrategy @Inject constructor(
         resourceId: Long
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("S0189: FtpOperationStrategy.createTextFile parent=$parentPath name=$fileName resource=$resourceId")
+            Timber.d("S0189: FtpOperationStrategy.createTextFile parent=$parentPath name=$fileName resource=$resourceId (deferred)")
+            // S0189: defer file creation — see SmbOperationStrategy.createTextFile.
             val dir = stagingDir.ensureDirectory()
             val localFile = File(dir, "${resourceId}_${fileName}")
-            localFile.createNewFile()
-            localFile.writeText(content, Charsets.UTF_8)
             stagingRegistry.register(localFile, resourceId, parentPath, fileName)
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {

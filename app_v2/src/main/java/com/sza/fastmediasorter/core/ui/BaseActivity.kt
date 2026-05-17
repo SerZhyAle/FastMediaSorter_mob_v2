@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.ui
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
@@ -273,13 +274,20 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     protected open fun getInitialFocusView(): View? = null
 
     /**
-     * True when the app is running on a TV device (Android TV / Google TV).
-     * Uses [Configuration.UI_MODE_TYPE_TELEVISION] — available since API 8; safe at minSdk 26.
+     * True when the app is running on a TV device (Android TV / Google TV / Fire TV).
      *
-     * Note: large-screen phones or tablets connected to an external monitor do NOT set
-     * UI_MODE_TYPE_TELEVISION — the check does not produce false positives for those cases.
+     * Uses the dual-check recommended by `developer.android.com/training/tv/get-started/hardware`:
+     * - Primary: `PackageManager.FEATURE_LEANBACK` — system feature declared by genuine TV ROMs.
+     * - Secondary: `Configuration.UI_MODE_TYPE_TELEVISION` — covers older / non-Leanback TV systems.
+     *
+     * Why both: `FEATURE_LEANBACK` is more resistant to "fake TV" boxes and phones with HDMI-out
+     * that mis-report UI mode; `UI_MODE_TYPE_TELEVISION` catches stripped-down TV systems that omit
+     * Leanback. Either positive signal is enough.
      */
-    protected fun isTvDevice(): Boolean =
-        (resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
+    protected fun isTvDevice(): Boolean {
+        val hasLeanback = packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+        val isTvUiMode = (resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
             Configuration.UI_MODE_TYPE_TELEVISION
+        return hasLeanback || isTvUiMode
+    }
 }

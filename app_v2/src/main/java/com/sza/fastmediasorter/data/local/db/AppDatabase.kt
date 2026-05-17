@@ -25,7 +25,7 @@ import com.sza.fastmediasorter.data.input.InputBindingEntity
         StreamingCacheEntry::class,
         InputBindingEntity::class
     ],
-    version = 29,
+    version = 30,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -678,6 +678,22 @@ abstract class AppDatabase : RoomDatabase() {
                 if (!hasColumn(db, "resources", "needs_sign_in")) {
                     db.execSQL("ALTER TABLE resources ADD COLUMN needs_sign_in INTEGER NOT NULL DEFAULT 0")
                 }
+            }
+        }
+
+        /**
+         * S0236: normalize legacy cloud:/<provider>/<id> resource paths to cloud://<provider>/<id>.
+         * Early builds produced the single-slash form; current readers (CloudMediaScanner,
+         * CleanupOrphanedTempFilesUseCase) only accept the double-slash form, so a stale row left
+         * a Google Drive resource visibly empty until this migration ran. Idempotent — touches
+         * only rows in the legacy shape, leaves canonical and non-cloud paths untouched.
+         */
+        val MIGRATION_29_30 = object : Migration(29, 30) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "UPDATE resources SET path = REPLACE(path, 'cloud:/', 'cloud://') " +
+                        "WHERE path LIKE 'cloud:/_%' AND path NOT LIKE 'cloud://%'"
+                )
             }
         }
 

@@ -725,7 +725,12 @@ class BrowseViewModel @Inject constructor(
 
     fun openFile(file: com.sza.fastmediasorter.domain.model.MediaFile, approximatePosition: Int = 0) = fileOpenManager.openFile(file, approximatePosition)
 
-    fun deleteSelectedFiles() = deleteManager.deleteSelectedFiles()
+    /**
+     * Delete files. When [overridePaths] is non-null, deletes those exact paths instead
+     * of the global multiselect (used by the per-file overflow menu).
+     */
+    fun deleteSelectedFiles(overridePaths: Set<String>? = null) =
+        deleteManager.deleteSelectedFiles(overridePaths)
 
     fun onDeletePermissionGranted() = deleteManager.onDeletePermissionGranted()
 

@@ -467,10 +467,6 @@ class BrowseResourceLoadManager(
 
             override fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean): List<MediaFile> =
                 this@BrowseResourceLoadManager.sortFiles(files, sortMode, forceSort)
-
-            override suspend fun onScanMetadataErrors(count: Int) {
-                sendEvent(BrowseEvent.ShowMetadataWarning(count))
-            }
         }
 
         val currentState = stateFlow.value

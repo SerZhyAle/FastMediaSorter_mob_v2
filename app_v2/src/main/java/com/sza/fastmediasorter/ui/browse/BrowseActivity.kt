@@ -227,6 +227,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         return ActivityBrowseBinding.inflate(layoutInflater)
     }
 
+    // S0230 Phase 02 — TV initial focus on the file list so the first D-pad press lands on a row.
+    override fun getInitialFocusView(): android.view.View = binding.rvMediaFiles
+
     override fun setupViews() {
         com.sza.fastmediasorter.ui.browse.managers.BrowseEdgeToEdgeHelper.apply(binding)
         com.sza.fastmediasorter.utils.GlideCacheStats.reset()

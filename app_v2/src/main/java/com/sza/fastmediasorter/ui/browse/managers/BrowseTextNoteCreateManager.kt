@@ -49,10 +49,8 @@ class BrowseTextNoteCreateManager(
 
             withContext(Dispatchers.Main) {
                 result.onSuccess { createdPath ->
-                    reloadResource()
-                    sendEvent(BrowseEvent.ShowMessage(
-                        context.getString(R.string.msg_text_note_created, name)
-                    ))
+                    // S0189: defer-creation contract — no file on disk yet, so no list reload
+                    // and no "created" toast. Both fire on actual Save (TextEditorSaveFlow).
                     notifyCreatedForOpen(createdPath)
                 }.onFailure { error ->
                     Timber.e(error, "BrowseTextNoteCreateManager.createTextNote: FAILED name=$name")

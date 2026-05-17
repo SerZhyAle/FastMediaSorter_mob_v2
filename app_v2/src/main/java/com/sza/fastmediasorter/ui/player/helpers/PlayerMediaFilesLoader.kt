@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -50,6 +51,7 @@ class PlayerMediaFilesLoader(
     private val favoritesUseCase: FavoritesUseCase,
     private val googleDriveClient: GoogleDriveRestClient,
     private val cachedFileListRepository: CachedFileListRepository,
+    private val textNoteStagingRegistry: TextNoteStagingRegistry,
     private val stateFlow: StateFlow<PlayerViewModel.PlayerState>,
     private val updateState: ((PlayerViewModel.PlayerState) -> PlayerViewModel.PlayerState) -> Unit,
     private val sendEvent: (PlayerViewModel.PlayerEvent) -> Unit,
@@ -156,6 +158,48 @@ class PlayerMediaFilesLoader(
                 if (resource == null) {
                     sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.resource_not_found)))
                     sendEvent(PlayerViewModel.PlayerEvent.FinishActivity)
+                    setLoading(false)
+                    return@launch
+                }
+
+                // S0189: short-circuit for staged text notes. The newly-created note lives in the local
+                // Downloads/FastMediaSorter/notes staging directory while its target resource is a
+                // network/cloud source (SMB/FTP/SFTP/Cloud). Running the resource's scanner over the
+                // local staging path returns 0 files (e.g. SmbMediaScanner: "Invalid SMB path format")
+                // and the activity would then exit with "No media files found". Build a single-file
+                // entry directly from the staged file so the editor opens with one writable item.
+                val stagedNote = initialFilePath?.let { path ->
+                    runCatching { textNoteStagingRegistry.lookup(java.io.File(path)) }.getOrNull()
+                }
+                if (stagedNote != null) {
+                    Timber.d("S0189: PlayerMediaFilesLoader staged-note bypass path=${stagedNote.localFile.absolutePath} resource=${resource.id} kind=${stagedNote.kind} fileExists=${stagedNote.localFile.exists()}")
+                    val fileExists = stagedNote.localFile.exists()
+                    val stagedFile = MediaFile(
+                        name = stagedNote.intendedName,
+                        path = stagedNote.localFile.absolutePath,
+                        type = MediaType.TEXT,
+                        size = if (fileExists) stagedNote.localFile.length() else 0L,
+                        createdDate = if (fileExists) stagedNote.localFile.lastModified() else System.currentTimeMillis(),
+                        lastModified = if (fileExists) stagedNote.localFile.lastModified() else System.currentTimeMillis(),
+                        resourceId = resource.id,
+                    )
+                    val currentSettings = settingsRepository.getSettings().first()
+                    val showCommandPanel = when {
+                        resource.showCommandPanel == null -> currentSettings.defaultShowCommandPanel
+                        resource.showCommandPanel == false && currentSettings.defaultShowCommandPanel -> currentSettings.defaultShowCommandPanel
+                        else -> resource.showCommandPanel
+                    }
+                    updateState {
+                        it.copy(
+                            files = listOf(stagedFile),
+                            currentIndex = 0,
+                            resource = resource,
+                            slideShowInterval = resource.slideshowInterval * 1000L,
+                            showCommandPanel = showCommandPanel,
+                            isSlideShowActive = false,
+                            isPaused = true,
+                        )
+                    }
                     setLoading(false)
                     return@launch
                 }

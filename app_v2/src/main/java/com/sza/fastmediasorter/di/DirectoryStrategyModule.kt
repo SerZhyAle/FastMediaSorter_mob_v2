@@ -44,8 +44,9 @@ object DirectoryStrategyModule {
     @IntoMap
     @StringKey("local")
     fun provideLocalDirectoryStrategy(
-        @ApplicationContext context: Context
-    ): FileOperationStrategy = LocalOperationStrategy(context)
+        @ApplicationContext context: Context,
+        stagingRegistry: TextNoteStagingRegistry,
+    ): FileOperationStrategy = LocalOperationStrategy(context, stagingRegistry)
 
     @Provides
     @Singleton

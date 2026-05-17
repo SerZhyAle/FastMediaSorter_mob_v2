@@ -30,7 +30,7 @@ object ConnectionThrottleManager {
      */
     enum class ProtocolLimits(val maxConcurrent: Int, val minConcurrent: Int) {
         LOCAL(24, 24),        // No throttling for local files
-        SMB(2, 1),            // Reduced from 3→2: further limit to prevent ArrayIndexOutOfBoundsException
+        SMB(8, 2),            // S0237 §6.1: raised from 2→8 (min 1→2); typical home NAS tolerates this comfortably. Speed-test override still applies on top.
         SFTP(3, 1),           // Increased from 2→3: channel pooling prevents race conditions
         FTP(2, 1),            // Reduced from 3→2: align with SMB for consistency
         CLOUD(8, 3)           // Cloud APIs usually handle batching well
@@ -54,8 +54,9 @@ object ConnectionThrottleManager {
     private val semaphoreLocks = ConcurrentHashMap<String, Any>()
     
     // User defined limit for network protocols (SMB, FTP, SFTP)
-    // Reduced default from 2 to match new base limits
-    private var userDefinedNetworkLimit: Int = 2
+    // S0237 §6.1: raised default from 2→8 to match SMB base bump.
+    // Mirrored in `ScanConcurrencyConfig.SMB_DEFAULT_LIMIT` — keep all three in sync.
+    private var userDefinedNetworkLimit: Int = 8
     
     // Cache for speed test recommended threads per resource
     private val recommendedThreadsCache = ConcurrentHashMap<String, Int>()

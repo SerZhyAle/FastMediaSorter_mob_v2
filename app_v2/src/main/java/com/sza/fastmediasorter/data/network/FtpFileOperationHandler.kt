@@ -48,7 +48,7 @@ class FtpFileOperationHandler @Inject constructor(
     private val ftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(FtpOperationStrategy(context, ftpClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter), destinationClassifier = destinationClassifier, enableAtomic = true)
     private val smbStrategy: FileOperationStrategy = AtomicFileOperationStrategy(SmbOperationStrategy(context, smbClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter), destinationClassifier = destinationClassifier, enableAtomic = true)
     private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(SftpOperationStrategy(context, sftpClient, credentialsRepository, stagingDir, stagingRegistry, destinationClassifier, destinationWriter), destinationClassifier = destinationClassifier, enableAtomic = true)
-    private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(LocalOperationStrategy(context), destinationClassifier = destinationClassifier, enableAtomic = true)
+    private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(LocalOperationStrategy(context, stagingRegistry), destinationClassifier = destinationClassifier, enableAtomic = true)
 
     override fun getStrategies(): List<FileOperationStrategy> {
         return listOf(ftpStrategy, smbStrategy, sftpStrategy, localStrategy)

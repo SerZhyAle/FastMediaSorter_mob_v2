@@ -216,20 +216,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             && AudioPlaybackService.currentResourceId > 0L) {
             Timber.d("MainActivity: service active on fresh launch — restoring PlayerActivity (resourceId=${AudioPlaybackService.currentResourceId})")
             binding.root.post {
-                val playerIntent = PlayerActivity.createIntent(
+                // Audio playback is inherently a 2D surface — bypass the per-flavor
+                // PLAYER_ACTIVITY_CLASS override so noLegal/vr open the 2D PlayerActivity
+                // directly instead of routing through VrPlayerActivity → «VR Headset Required».
+                val playerIntent = PlayerActivity.createPanelIntent(
                     context = this,
                     resourceId = AudioPlaybackService.currentResourceId,
                     initialIndex = AudioPlaybackService.currentInitialIndex,
                     skipAvailabilityCheck = true
                 )
-                if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
-                    // FLAG_ACTIVITY_REORDER_TO_FRONT is meaningless once enterImmersive
-                    // forces a fresh task via FLAG_ACTIVITY_NEW_TASK, so skip it here.
-                    VrTaskTransition.enterImmersive(this, playerIntent)
-                } else {
-                    playerIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    startActivity(playerIntent)
-                }
+                playerIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                startActivity(playerIntent)
             }
             // MainActivity continues loading as the back-stack root; do NOT finish().
         }
@@ -372,12 +369,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
         Timber.d("openAudioPlayerFromNotification: resourceId=$resourceId index=$index")
-        val playerIntent = PlayerActivity.createIntent(this, resourceId, index, skipAvailabilityCheck = true)
-        if (VrTaskTransition.shouldEnterImmersiveTask(playerIntent)) {
-            VrTaskTransition.enterImmersive(this, playerIntent)
-        } else {
-            startActivity(playerIntent)
-        }
+        // Audio playback is inherently a 2D surface — use createPanelIntent so noLegal/vr
+        // bypass the PLAYER_ACTIVITY_CLASS override (would otherwise hit VrPlayerActivity
+        // → «VR Headset Required» on phones).
+        val playerIntent = PlayerActivity.createPanelIntent(this, resourceId, index, skipAvailabilityCheck = true)
+        startActivity(playerIntent)
     }
 
     override fun onResumeWithViews() {
@@ -775,7 +771,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
                 is MainEvent.NavigateToPlayerRandomMusic -> {
-                    val intent = PlayerActivity.createIntent(
+                    // Random music is audio playback — always 2D, never VR.
+                    // Use createPanelIntent so noLegal/vr bypass the PLAYER_ACTIVITY_CLASS
+                    // override and avoid the «VR Headset Required» fallback on phones.
+                    val intent = PlayerActivity.createPanelIntent(
                         this@MainActivity,
                         event.resourceId,
                         initialIndex = 0,
@@ -783,13 +782,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         isPlaying = true,
                         shuffleOnStart = true
                     )
-                    if (VrTaskTransition.shouldEnterImmersiveTask(intent)) {
-                        VrTaskTransition.enterImmersive(this@MainActivity, intent)
-                    } else {
-                        startActivity(intent)
-                        @Suppress("DEPRECATION")
-                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                    }
+                    startActivity(intent)
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
                 is MainEvent.NavigateToEditResource -> {
                     // Check if resource has PIN protection before editing

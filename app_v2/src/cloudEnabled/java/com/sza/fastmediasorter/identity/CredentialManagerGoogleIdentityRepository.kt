@@ -6,6 +6,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.GetCredentialProviderConfigurationException
 import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -221,6 +222,13 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         return when (t) {
             is GetCredentialCancellationException -> IdentitySignInResult.Cancelled
             is NoCredentialException -> IdentitySignInResult.Failed(IdentityFailureReason.PlayServicesOutdated, t)
+            // Safety net: GMS-level SERVICE_VERSION_UPDATE_REQUIRED leaks through Credential Manager
+            // as this provider-config exception with the misleading "no provider dependencies found"
+            // message. The gmsGuard() should normally catch it earlier, but fall through here when
+            // the cached status is stale (e.g. GMS updated mid-session). Without this branch the
+            // user sees a generic UnknownError CTA instead of the actionable "Update Play Services".
+            is GetCredentialProviderConfigurationException ->
+                IdentitySignInResult.Failed(IdentityFailureReason.PlayServicesOutdated, t)
             is GetCredentialException -> IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, t)
             else -> IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, t)
         }
@@ -235,19 +243,29 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
      *   error dialog still routes the user to a sensible CTA via [GmsAvailabilityChecker] elsewhere).
      * - `OK`              → null (proceed to Credential Manager).
      *
-     * `GmsAvailabilityChecker.check()` is invoked once at process start in `FastMediaSorterApp`,
-     * so the cached status is reliable by the time the user can tap the sign-in button.
+     * Re-evaluates against [GmsAvailabilityChecker.MIN_GMS_VERSION_FOR_CREDENTIAL_MANAGER] on every
+     * sign-in attempt, because:
+     *   1. The cached status from `FastMediaSorterApp` uses the default `play-services-auth` baseline,
+     *      which returns SUCCESS for GMS versions Credential Manager actually rejects (observed on
+     *      emulator AVDs pinned to GMS 21.x while Credential Manager requires 23.08.15+).
+     *   2. GMS can be updated via Play Store between process start and the user tapping sign-in.
      */
-    private fun gmsGuard(): IdentityFailureReason? = when {
-        GmsAvailabilityChecker.needsUpdate -> {
-            Timber.w("Sign-in aborted: Google Play Services update required")
-            IdentityFailureReason.PlayServicesOutdated
+    private fun gmsGuard(): IdentityFailureReason? {
+        GmsAvailabilityChecker.recheckFor(
+            appContext,
+            GmsAvailabilityChecker.MIN_GMS_VERSION_FOR_CREDENTIAL_MANAGER
+        )
+        return when {
+            GmsAvailabilityChecker.needsUpdate -> {
+                Timber.w("Sign-in aborted: Google Play Services update required")
+                IdentityFailureReason.PlayServicesOutdated
+            }
+            GmsAvailabilityChecker.isUnavailable -> {
+                Timber.w("Sign-in aborted: Google Play Services unavailable on this device")
+                IdentityFailureReason.UnknownError
+            }
+            else -> null
         }
-        GmsAvailabilityChecker.isUnavailable -> {
-            Timber.w("Sign-in aborted: Google Play Services unavailable on this device")
-            IdentityFailureReason.UnknownError
-        }
-        else -> null
     }
 
     // endregion

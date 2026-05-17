@@ -83,7 +83,9 @@ class PlayerViewModel @Inject constructor(
     private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
     private val prefetchPolicyManager: PrefetchPolicyManager,
     private val streamOffloadUseCase: StreamOffloadUseCase,
-    private val streamingCacheRepository: StreamingCacheRepository
+    private val streamingCacheRepository: StreamingCacheRepository,
+    // S0189: lookup for newly-created staged text notes (Downloads/FastMediaSorter/notes/)
+    private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -300,6 +302,7 @@ class PlayerViewModel @Inject constructor(
         favoritesUseCase = favoritesUseCase,
         googleDriveClient = googleDriveClient,
         cachedFileListRepository = cachedFileListRepository,
+        textNoteStagingRegistry = textNoteStagingRegistry,
         stateFlow = state,
         updateState = { update -> updateState(update) },
         sendEvent = { event -> sendEvent(event) },

@@ -254,7 +254,9 @@ data class MediaFile(
     // Cloud display metadata (for CLOUD resources)
     val cloudDisplayPath: String? = null, // Human-readable cloud path (folders + file name)
     val cloudItemId: String? = null, // Provider-specific internal file/folder ID
-    val attributes: FileAttributes? = null // Read-only/hidden attributes (where the source reports them)
+    val attributes: FileAttributes? = null, // Read-only/hidden attributes (where the source reports them)
+    // S0237: metadata enrichment lifecycle marker. COMPLETE keeps legacy/cached records compatible.
+    val metadataState: MetadataState = MetadataState.COMPLETE
 )
 
 /**

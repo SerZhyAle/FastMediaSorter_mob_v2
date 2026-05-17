@@ -139,11 +139,11 @@ class SmbOperationStrategy @Inject constructor(
         resourceId: Long
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("S0189: SmbOperationStrategy.createTextFile parent=$parentPath name=$fileName resource=$resourceId")
+            Timber.d("S0189: SmbOperationStrategy.createTextFile parent=$parentPath name=$fileName resource=$resourceId (deferred)")
+            // S0189: defer file creation — only register intent. Disk write happens on first Save
+            // (handled by SaveTextNoteUseCase). Cancel before save leaves no file on disk.
             val dir = stagingDir.ensureDirectory()
             val localFile = File(dir, "${resourceId}_${fileName}")
-            localFile.createNewFile()
-            localFile.writeText(content, Charsets.UTF_8)
             stagingRegistry.register(localFile, resourceId, parentPath, fileName)
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {

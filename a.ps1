@@ -11,6 +11,7 @@
     vrd  - Build VR Debug APK
     ivr  - Install VR Release APK on device (no launch — use Quest Library)
     ivrd - Install VR Debug APK on device (no launch — use Quest Library)
+    ivn  - Install noLegal Debug APK on device (no launch)
     dc   - Build Debug Clean
     d    - Build Debug
     db   - Build Debug (without zip)
@@ -46,6 +47,7 @@ $scripts = @{
     'vrd'       = @{ Path = 'scripts\builders\build-vr-debug.ps1'; Args = @() }
     'ivr'       = @{ Path = 'scripts\builders\install-vr-release-to-device.ps1'; Args = @() }
     'ivrd'      = @{ Path = 'scripts\builders\install-vr-debug-to-device.ps1'; Args = @() }
+    'ivn'       = @{ Path = 'scripts\builders\install-nolegal-debug-to-device.ps1'; Args = @() }
     'dc'        = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
     'd'         = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @() }
     'db'        = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @('-SkipZip') }
@@ -144,6 +146,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  vrd  - Build VR Debug APK" -ForegroundColor Cyan
     Write-Host "  ivr  - Install VR Release APK on device (NO launch — use Quest Library)" -ForegroundColor Cyan
     Write-Host "  ivrd - Install VR Debug APK on device (NO launch — use Quest Library)" -ForegroundColor Cyan
+    Write-Host "  ivn  - Install noLegal Debug APK on device (NO launch)" -ForegroundColor Cyan
     Write-Host "  dc   - Build Debug Clean" -ForegroundColor Cyan
     Write-Host "  d    - Build Debug" -ForegroundColor Cyan
     Write-Host "  db   - Build Debug without zip" -ForegroundColor Cyan

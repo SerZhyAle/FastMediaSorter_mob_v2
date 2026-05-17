@@ -131,13 +131,14 @@ class PlayerBindingSafeViews(
     val etTextContent: EditText get() = required(R.id.etTextContent)
     // S0189: scroll container that hosts etTextContent in edit mode
     val textEditScrollView: ScrollView get() = required(R.id.textEditScrollView)
-    // S0189: 5-action editor panel replacing the legacy 2-button row
-    val textEditorActionPanel: LinearLayout get() = required(R.id.textEditorActionPanel)
-    val btnTextEditorSave: MaterialButton get() = required(R.id.btnTextEditorSave)
-    val btnTextEditorSaveClose: MaterialButton get() = required(R.id.btnTextEditorSaveClose)
-    val btnTextEditorSaveSend: MaterialButton get() = required(R.id.btnTextEditorSaveSend)
-    val btnTextEditorSendKeep: MaterialButton get() = required(R.id.btnTextEditorSendKeep)
-    val btnTextEditorCancel: MaterialButton get() = required(R.id.btnTextEditorCancel)
+    // S0189: 5-action editor buttons. Now live inside [editorToolbar] (top bar) instead of the
+    // former bottom action panel — that panel was removed because the soft keyboard covered it
+    // during edit. The dirty-state tint is applied to [editorToolbar] itself via actionPanelManager.
+    val btnTextEditorSave: ImageButton get() = required(R.id.btnTextEditorSave)
+    val btnTextEditorSaveClose: ImageButton get() = required(R.id.btnTextEditorSaveClose)
+    val btnTextEditorSaveSend: ImageButton get() = required(R.id.btnTextEditorSaveSend)
+    val btnTextEditorSendKeep: ImageButton get() = required(R.id.btnTextEditorSendKeep)
+    val btnTextEditorCancel: ImageButton get() = required(R.id.btnTextEditorCancel)
 
     // Page navigation
     val textPageNavigation: LinearLayout get() = required(R.id.textPageNavigation)
@@ -248,23 +249,20 @@ val ActivityPlayerUnifiedBinding.etTextContent: EditText
 val ActivityPlayerUnifiedBinding.textEditScrollView: ScrollView
     get() = requiredFromRoot(R.id.textEditScrollView)
 
-// S0189: 5-action editor panel extension properties
-val ActivityPlayerUnifiedBinding.textEditorActionPanel: LinearLayout
-    get() = requiredFromRoot(R.id.textEditorActionPanel)
-
-val ActivityPlayerUnifiedBinding.btnTextEditorSave: MaterialButton
+// S0189: 5-action editor buttons (moved into editorToolbar — see safeViews property docs).
+val ActivityPlayerUnifiedBinding.btnTextEditorSave: ImageButton
     get() = requiredFromRoot(R.id.btnTextEditorSave)
 
-val ActivityPlayerUnifiedBinding.btnTextEditorSaveClose: MaterialButton
+val ActivityPlayerUnifiedBinding.btnTextEditorSaveClose: ImageButton
     get() = requiredFromRoot(R.id.btnTextEditorSaveClose)
 
-val ActivityPlayerUnifiedBinding.btnTextEditorSaveSend: MaterialButton
+val ActivityPlayerUnifiedBinding.btnTextEditorSaveSend: ImageButton
     get() = requiredFromRoot(R.id.btnTextEditorSaveSend)
 
-val ActivityPlayerUnifiedBinding.btnTextEditorSendKeep: MaterialButton
+val ActivityPlayerUnifiedBinding.btnTextEditorSendKeep: ImageButton
     get() = requiredFromRoot(R.id.btnTextEditorSendKeep)
 
-val ActivityPlayerUnifiedBinding.btnTextEditorCancel: MaterialButton
+val ActivityPlayerUnifiedBinding.btnTextEditorCancel: ImageButton
     get() = requiredFromRoot(R.id.btnTextEditorCancel)
 
 val ActivityPlayerUnifiedBinding.textPageNavigation: LinearLayout

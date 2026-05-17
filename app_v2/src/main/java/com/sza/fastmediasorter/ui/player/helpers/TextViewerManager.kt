@@ -49,7 +49,10 @@ class TextViewerManager(
     private val callback: TextViewerCallback,
     private val translationManager: TranslationManager,
     // S0189 Phase 06: orchestrates save-with-rename dialog; null = fallback to legacy saveEditedText()
-    private val saveFlow: TextEditorSaveFlow? = null
+    private val saveFlow: TextEditorSaveFlow? = null,
+    // S0189: registry of deferred new-note intents. Non-null in panel PlayerActivity,
+    // null in StandalonePlayerActivity (which never creates notes).
+    private val textNoteStagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry? = null,
 ) {
 
     companion object {
@@ -71,6 +74,8 @@ class TextViewerManager(
         fun exitFullscreenMode()
         fun setTouchZonesEnabled(enabled: Boolean)
         fun showEncodingDialog()
+        // S0189: invoked by Save & Close to return the user to Browse with the new file.
+        fun finishActivity()
     }
 
     private var currentFile: MediaFile? = null
@@ -125,7 +130,8 @@ class TextViewerManager(
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
     private val actionPanelManager: TextEditorActionPanelManager by lazy {
         TextEditorActionPanelManager(
-            panel = safeViews.textEditorActionPanel,
+            // S0189: dirty-state tint applies to the top editor toolbar (action buttons live there now).
+            panel = safeViews.editorToolbar,
             btnSave = safeViews.btnTextEditorSave,
             btnSaveClose = safeViews.btnTextEditorSaveClose,
             btnSaveSend = safeViews.btnTextEditorSaveSend,
@@ -260,34 +266,55 @@ class TextViewerManager(
         // S0189: 5-action panel — replaces the former 2-button row
         actionPanelManager.setup(object : TextEditorActionPanelManager.ActionPanelCallbacks {
             override fun onSave() {
-                Timber.d("S0189: TextViewerManager.onSave")
+                Timber.d("S0189: TextViewerManager.onSave dirty=${dirtyTracker.isDirty.value}")
                 val flow = saveFlow
                 val localFile = currentLocalFile
+                val capturedContent = safeViews.etTextContent.text.toString()
                 if (flow != null && localFile != null) {
                     flow.commit(
                         currentLocalFile = localFile,
-                        currentName = localFile.name,
-                        currentContent = safeViews.etTextContent.text.toString(),
-                        afterSave = { _ -> /* stay in edit mode; content already persisted */ }
+                        currentName = saveDialogDefaultName(localFile),
+                        currentContent = capturedContent,
+                        afterSave = { outcome ->
+                            cacheNewlySavedNote(outcome, capturedContent)
+                            // S0189: reset dirty-state — Save & Close on a clean buffer must skip
+                            // the redundant re-save (which would orphan a file in the staging dir).
+                            dirtyTracker.markClean(capturedContent)
+                        }
                     )
                 } else {
                     saveEditedText()
+                    dirtyTracker.markClean(capturedContent)
                 }
             }
             override fun onSaveAndClose() {
-                Timber.d("S0189: TextViewerManager.onSaveAndClose")
+                Timber.d("S0189: TextViewerManager.onSaveAndClose dirty=${dirtyTracker.isDirty.value}")
                 val flow = saveFlow
                 val localFile = currentLocalFile
+                val capturedContent = safeViews.etTextContent.text.toString()
+                // S0189: if the buffer is already clean (user did Save then Save & Close), skip the
+                // duplicate save and just return to Browse. Avoids orphan staging files and the
+                // "blank viewer after save" state when the activity stayed open.
+                if (!dirtyTracker.isDirty.value) {
+                    Timber.d("S0189: TextViewerManager.onSaveAndClose — clean, finishing without save")
+                    callback.finishActivity()
+                    return
+                }
                 if (flow != null && localFile != null) {
                     flow.commit(
                         currentLocalFile = localFile,
-                        currentName = localFile.name,
-                        currentContent = safeViews.etTextContent.text.toString(),
-                        afterSave = { _ -> exitEditMode() }
+                        currentName = saveDialogDefaultName(localFile),
+                        currentContent = capturedContent,
+                        afterSave = { outcome ->
+                            cacheNewlySavedNote(outcome, capturedContent)
+                            dirtyTracker.markClean(capturedContent)
+                            callback.finishActivity()
+                        }
                     )
                 } else {
                     saveEditedText()
-                    exitEditMode()
+                    dirtyTracker.markClean(capturedContent)
+                    callback.finishActivity()
                 }
             }
             override fun onSaveAndSend() {
@@ -298,9 +325,10 @@ class TextViewerManager(
                 if (flow != null && localFile != null) {
                     flow.commit(
                         currentLocalFile = localFile,
-                        currentName = localFile.name,
+                        currentName = saveDialogDefaultName(localFile),
                         currentContent = capturedContent,
                         afterSave = { outcome ->
+                            cacheNewlySavedNote(outcome, capturedContent)
                             val shareFile = java.io.File(outcome.finalPath)
                             val uri = androidx.core.content.FileProvider.getUriForFile(
                                 context,
@@ -345,6 +373,19 @@ class TextViewerManager(
             }
             override fun onCancel() {
                 Timber.d("S0189: TextViewerManager.onCancel — dropping unsaved edits")
+                // S0189: if this was a deferred new-note that auto-save already flushed to disk,
+                // delete the file and drop the registry entry so Cancel leaves no trace.
+                val localFile = currentLocalFile
+                if (localFile != null) {
+                    val stagedNote = textNoteStagingRegistry?.lookup(localFile)
+                    if (stagedNote != null) {
+                        if (localFile.exists()) {
+                            val deleted = localFile.delete()
+                            Timber.d("S0189: TextViewerManager.onCancel deleted=$deleted file=${localFile.absolutePath}")
+                        }
+                        textNoteStagingRegistry.unregister(localFile)
+                    }
+                }
                 exitEditMode()
             }
         })
@@ -700,20 +741,50 @@ class TextViewerManager(
                     BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
             }
             try {
-                val file = try {
-                    networkFileManager.prepareFileForRead(mediaFile)
-                } catch (e: Exception) {
+                // S0189: a new note may be registered as deferred — the file is created on first
+                // Save, not when the editor opens. Skip the not-found error in that case and
+                // render an empty buffer; auto-open edit mode is the next step.
+                val deferredStaged = textNoteStagingRegistry?.lookup(java.io.File(mediaFile.path))
+                val file = if (deferredStaged != null) {
+                    Timber.d("S0189: TextViewerManager deferred-note open path=${mediaFile.path} kind=${deferredStaged.kind} exists=${deferredStaged.localFile.exists()}")
+                    deferredStaged.localFile
+                } else {
+                    try {
+                        networkFileManager.prepareFileForRead(mediaFile)
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            binding.progressBar.isVisible = false
+                            callback.showError(context.getString(R.string.text_file_load_failed))
+                        }
+                        return@launch
+                    }
+                }
+
+                if (!file.exists() && deferredStaged == null) {
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        callback.showError(context.getString(R.string.text_file_load_failed))
+                        callback.showError(context.getString(R.string.text_file_not_found))
                     }
                     return@launch
                 }
 
                 if (!file.exists()) {
+                    // Deferred new note — render an empty buffer without the pager (no bytes to page).
+                    currentLocalFile = file
+                    originalTextWithoutNumbers = ""
+                    val settings = settingsRepository.getSettings().first()
+                    markdownRendered = settings.markdownRendered
+                    syntaxHighlightingEnabled = settings.syntaxHighlighting
+                    currentReaderTheme = resolveTheme(settings.textReaderTheme)
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        callback.showError(context.getString(R.string.text_file_not_found))
+                        renderPageContent("", settings.showTextLineNumbers, 1)
+                        safeViews.textPageNavigation.isVisible = false
+                        safeViews.tvTextEncodingIndicator.text = Charsets.UTF_8.name()
+                        if (autoOpenEditMode) {
+                            autoOpenEditMode = false
+                            enterEditMode(autoOpen = true)
+                        }
                     }
                     return@launch
                 }
@@ -1054,7 +1125,9 @@ class TextViewerManager(
         startLineNumber: Int
     ) {
         if (pageText.isEmpty()) {
-            safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
+            // S0189: leave the viewer blank for empty files (new notes start blank). The
+            // previous "File is empty" placeholder leaked into the editor as initial text.
+            safeViews.tvTextContent.text = ""
             return
         }
 
@@ -1177,6 +1250,45 @@ class TextViewerManager(
 
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(safeViews.etTextContent, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    /**
+     * S0189: after a successful Save of a new note, append the resulting file directly to
+     * [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager] for its resource. Browse's
+     * onResume → syncWithCache picks it up without triggering a full network rescan.
+     *
+     * Skipped for non-staged edits (the file already exists in the resource list).
+     */
+    private fun cacheNewlySavedNote(outcome: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase.SaveOutcome, content: String) {
+        val resourceId = currentFile?.resourceId ?: return
+        val previousLocalFile = currentLocalFile ?: return
+        // Only act for a deferred-staged note. For arbitrary text-file edits the cache list
+        // already contains this file — adding again would create a duplicate.
+        textNoteStagingRegistry?.lookup(previousLocalFile) ?: return
+        val newFile = com.sza.fastmediasorter.domain.model.MediaFile(
+            name = outcome.finalName,
+            path = outcome.finalPath,
+            type = com.sza.fastmediasorter.domain.model.MediaType.TEXT,
+            size = content.toByteArray(Charsets.UTF_8).size.toLong(),
+            createdDate = System.currentTimeMillis(),
+            lastModified = System.currentTimeMillis(),
+            resourceId = resourceId,
+        )
+        com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.addFile(resourceId, newFile)
+        Timber.d("S0189: TextViewerManager.cacheNewlySavedNote added ${newFile.path} to resource $resourceId cache")
+    }
+
+    /**
+     * S0189: pre-fill name for the save-with-rename dialog.
+     *
+     * Network staging files are stored on disk as `<resourceId>_<intendedName>` to keep entries
+     * unique inside the shared `Downloads/FastMediaSorter/notes/` directory; without this lookup
+     * the resource-id prefix leaks into the SMB/FTP/SFTP/Cloud upload as the final filename.
+     * Falls back to the on-disk name for non-registered (already-saved or arbitrary) text files.
+     */
+    private fun saveDialogDefaultName(localFile: java.io.File): String {
+        val stagedNote = textNoteStagingRegistry?.lookup(localFile)
+        return stagedNote?.intendedName ?: localFile.name
     }
 
     private fun exitEditMode() {

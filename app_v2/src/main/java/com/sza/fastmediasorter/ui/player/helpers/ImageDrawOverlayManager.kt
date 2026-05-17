@@ -135,7 +135,6 @@ class ImageDrawOverlayManager(
 
     fun enterDrawMode() {
         if (isDrawModeActive) return
-        Timber.d("S0192: enterDrawMode")
         isDrawModeActive = true
         // S0192 Phase 02 — restore last used color from persistent prefs
         selectedColorArgb = DrawEditorPrefs.getLastColor(activity)
@@ -239,9 +238,14 @@ class ImageDrawOverlayManager(
      * Layout contract (portrait + landscape mirror each other):
      *   btn_draw_tool_selector — opens R.menu.menu_draw_tool_selector
      *   color_black / color_white / color_red / color_custom — 4 swatches
+     *   btn_draw_overflow — opens R.menu.menu_draw_overflow (Save / Save as.. /
+     *       Undo last / Undo all / Settings / Send to Google Keep)
      *   btn_draw_close — exit Draw Mode without saving
-     *   btn_draw_overflow — opens R.menu.menu_draw_overflow
-     *   btn_draw_save — triggers save (legacy "save as new" routing until Phase 06)
+     *
+     * Phase 06 revision: the standalone in-place save button was removed; both
+     * save modes now live inside the overflow popup. This eliminates the visual
+     * duplicate with "Save to new file" that the user reported on 2026-05-17 and
+     * collapses the toolbar from two rows to one.
      */
     fun bindToolbar(root: View) {
         toolbarRoot = root
@@ -263,7 +267,6 @@ class ImageDrawOverlayManager(
                         com.sza.fastmediasorter.R.id.draw_tool_text -> DrawTool.TEXT
                         else -> return@setOnMenuItemClickListener false
                     }
-                    Timber.d("S0192: tool selector -> $tool")
                     selectedTool = tool
                     selectorBtn.setImageResource(iconForTool(tool))
                     true
@@ -319,17 +322,27 @@ class ImageDrawOverlayManager(
                     ?.isEnabled = hasActions
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
-                        com.sza.fastmediasorter.R.id.draw_overflow_undo_last -> {
-                            drawCanvasView?.undoLast(); true
-                        }
-                        com.sza.fastmediasorter.R.id.draw_overflow_undo_all -> {
-                            drawCanvasView?.undoAll(); true
+                        com.sza.fastmediasorter.R.id.draw_overflow_save_inplace -> {
+                            // Phase 06 — in-place overwrite. The activity-side
+                            // callback writes back to the current file and shows
+                            // a success/failure toast; no filename prompt under
+                            // any circumstances.
+                            val overlay = drawCanvasView?.getBitmap()
+                                ?: return@setOnMenuItemClickListener true
+                            inPlaceSaveCallback?.onInPlaceSaveRequested(overlay)
+                            true
                         }
                         com.sza.fastmediasorter.R.id.draw_overflow_save_new -> {
                             val overlay = drawCanvasView?.getBitmap()
                                 ?: return@setOnMenuItemClickListener true
                             handleSaveRequest(overlay)
                             true
+                        }
+                        com.sza.fastmediasorter.R.id.draw_overflow_undo_last -> {
+                            drawCanvasView?.undoLast(); true
+                        }
+                        com.sza.fastmediasorter.R.id.draw_overflow_undo_all -> {
+                            drawCanvasView?.undoAll(); true
                         }
                         com.sza.fastmediasorter.R.id.draw_overflow_settings -> {
                             DrawSettingsDialog(activity).show()
@@ -346,17 +359,6 @@ class ImageDrawOverlayManager(
             }
         }
 
-        // ── Save button — in-place overwrite (Phase 06) ─────────────────
-        //
-        // The activity-side callback handles the read-only / non-local silent
-        // fallback per ADR-4 — that decision is data-layer territory and
-        // cannot be evaluated inside the manager.
-        root.findViewById<android.widget.Button>(com.sza.fastmediasorter.R.id.btn_draw_save)
-            ?.setOnClickListener {
-                val overlay = drawCanvasView?.getBitmap() ?: return@setOnClickListener
-                inPlaceSaveCallback?.onInPlaceSaveRequested(overlay)
-            }
-
         updateToolbarSelection(root)
     }
 
@@ -366,7 +368,6 @@ class ImageDrawOverlayManager(
      * [baseBitmapProvider]. Failures show the existing save-failed toast.
      */
     private fun launchKeepExport() {
-        Timber.d("S0192: launchKeepExport")
         val baseBitmap = baseBitmapProvider() ?: run {
             android.widget.Toast.makeText(
                 activity,
@@ -426,7 +427,6 @@ class ImageDrawOverlayManager(
      * Persists the choice and refreshes the toolbar selection ring.
      */
     private fun setActiveColor(argb: Int) {
-        Timber.d("S0192: setActiveColor argb=#%08X".format(argb))
         selectedColorArgb = argb
         DrawEditorPrefs.setLastColor(activity, argb)
         toolbarRoot?.let { updateToolbarSelection(it) }
@@ -646,13 +646,11 @@ class ImageDrawOverlayManager(
         }
 
         fun undoLast() {
-            Timber.d("S0192: undoLast (stack size before=${actions.size})")
             actions.removeLastOrNull()
             invalidate()
         }
 
         fun undoAll() {
-            Timber.d("S0192: undoAll (stack size before=${actions.size})")
             actions.clear()
             invalidate()
         }
@@ -667,7 +665,6 @@ class ImageDrawOverlayManager(
          * paint-ready text size from prefs.
          */
         private fun promptTextEntry(tapX: Float, tapY: Float) {
-            Timber.d("S0192: promptTextEntry at ($tapX,$tapY)")
             val editText = android.widget.EditText(activity).apply {
                 setSingleLine(true)
                 hint = activity.getString(R.string.draw_text_input_hint)

@@ -704,6 +704,9 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
     // S0189 Phase 06: save text note with rename dialog + network upload
     @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
 
+    // S0189: registry for deferred new-note creations (consulted by TextViewerManager on load/cancel)
+    @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.TextNoteStagingRegistry
+
     // S0192 Phase 05 — Google Keep export, invoked from the draw editor overflow menu.
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
 
@@ -718,7 +721,6 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
         imageDrawOverlayManager.inPlaceSaveCallback =
             object : com.sza.fastmediasorter.ui.player.helpers.ImageDrawOverlayManager.DrawOverlayInPlaceSaveCallback {
                 override fun onInPlaceSaveRequested(overlayBitmap: android.graphics.Bitmap) {
-                    Timber.d("S0192: onInPlaceSaveRequested")
                     val baseBitmap = viewModel.currentDisplayedBitmap ?: run {
                         Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
                         return
@@ -733,21 +735,13 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                     } else {
                         android.graphics.Bitmap.CompressFormat.PNG
                     }
-                    val isReadOnly = viewModel.state.value.resource?.isReadOnly ?: false
-                    val isLocalFile = currentFile.path.startsWith("/")
 
-                    // ADR-4: silent fallback for read-only / non-local resources.
-                    // Route through the existing handleSaveRequest pipeline (file-name dialog → save-as-new).
-                    if (isReadOnly || !isLocalFile) {
-                        Timber.d("S0192: in-place save fallback (isReadOnly=$isReadOnly, isLocalFile=$isLocalFile) -> save-as-new")
-                        imageDrawOverlayManager.getOverlayBitmap()?.let { _ ->
-                            // Re-enter the legacy save path; handleSaveRequest will prompt
-                            // for a filename and then dispatch to saveCallback.
-                            imageDrawOverlayManager.exitDrawMode(save = true)
-                        }
-                        return
-                    }
-
+                    // "Save" always attempts in-place overwrite of currentFile.
+                    // No filename dialog under any circumstances — the prompt-based
+                    // "Save as.." flow is a separate command (draw_overflow_save_new).
+                    // If the write fails (read-only resource, cloud/SMB write denied,
+                    // permission revoked), we surface a single failure toast and stay
+                    // in draw mode so the user can decide what to do next.
                     val displayRect = activityBinding.photoView.displayRect
 
                     lifecycleScope.launch {
@@ -756,7 +750,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
                         )
                         val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
                         val bytes = mergeResult.getOrElse { e ->
-                            Timber.e(e, "S0192: overlay merge failed (in-place)")
+                            Timber.e(e, "Draw overlay merge failed (in-place save)")
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(this@PlayerActivity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
                             }
@@ -765,10 +759,18 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
 
                         val writeOk = withContext(Dispatchers.IO) {
                             try {
-                                java.io.FileOutputStream(java.io.File(currentFile.path)).use { it.write(bytes) }
+                                val path = currentFile.path
+                                if (path.startsWith("content://")) {
+                                    val uri = android.net.Uri.parse(path)
+                                    val stream = contentResolver.openOutputStream(uri, "wt")
+                                        ?: return@withContext false
+                                    stream.use { it.write(bytes) }
+                                } else {
+                                    java.io.FileOutputStream(java.io.File(path)).use { it.write(bytes) }
+                                }
                                 true
                             } catch (e: Throwable) {
-                                Timber.e(e, "S0192: in-place write failed for ${currentFile.path}")
+                                Timber.e(e, "Draw overlay in-place write failed for ${currentFile.path}")
                                 false
                             }
                         }
@@ -1440,6 +1442,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             initialFilePath: String? = null,
             isPlaying: Boolean? = null,
             isSlideshowEnabled: Boolean = false,
+            shuffleOnStart: Boolean = false,
             detectedStereoMode: StereoMode? = null,
         ): Intent = Intent(context, PlayerActivity::class.java).apply {
             putExtra("resourceId", resourceId)
@@ -1448,6 +1451,7 @@ open class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), Player
             initialFilePath?.let { putExtra("initialFilePath", it) }
             isPlaying?.let { putExtra("resumeIsPlaying", it) }
             if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
+            if (shuffleOnStart) putExtra("shuffleOnStart", true)
             detectedStereoMode?.let { putExtra(EXTRA_DETECTED_STEREO_MODE, it.name) }
         }
     }

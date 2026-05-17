@@ -65,7 +65,7 @@ class SftpFileOperationHandler @Inject constructor(
     )
 
     private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
-        LocalOperationStrategy(context),
+        LocalOperationStrategy(context, stagingRegistry),
         destinationClassifier = destinationClassifier,
         enableAtomic = true
     )

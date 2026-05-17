@@ -54,7 +54,6 @@ class BrowseLoadingManager(
         suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>)
         fun startFileObserver()
         fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean): List<MediaFile>
-        suspend fun onScanMetadataErrors(count: Int) = Unit
     }
     
     /**
@@ -163,10 +162,6 @@ class BrowseLoadingManager(
 
             override fun shouldStop(): Boolean {
                 return shouldStopScan.get()
-            }
-
-            override suspend fun onMetadataErrors(errorCount: Int) {
-                if (errorCount > 0) callbacks.onScanMetadataErrors(errorCount)
             }
         }
         

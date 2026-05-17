@@ -141,10 +141,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 descriptionRes = R.string.welcome_description_1,
                 detailDescriptionRes = R.string.welcome_description_1_details,
                 featureCards = listOf(
+                    // Row 1 in 3-col grid: content + two storage origins
                     FeatureCard(R.drawable.ic_image, R.string.welcome_feature_photos),
+                    FeatureCard(R.drawable.ic_resource_local, R.string.welcome_feature_local_folders),
+                    FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network),
+                    // Row 2 in 3-col grid: cloud storage + two actions
                     FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud),
                     FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_sorting),
-                    FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network)
+                    FeatureCard(R.drawable.ic_slideshow, R.string.welcome_feature_slideshow)
                 ),
                 showLanguagePicker = true,
                 onLanguageSelected = ::onWelcomeLanguageSelected,
@@ -528,9 +532,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
                 } else false
             }
             TvNavAction.Select -> {
-                // Activate the visible forward-navigation button so D-pad center works like a tap.
+                // S0230 device-test 2026-05-17: if a focusable interactive view (button,
+                // toggle) already owns focus — typing ENTER / DPAD_CENTER must activate
+                // THAT view via Android's default focus->click path. Only when no
+                // interactive view is focused (or only a scroll-host) do we synthesise
+                // a click on the visible primary CTA, so D-pad users can advance the
+                // slider without manually focusing the bottom-right Next button first.
+                val focused = currentFocus
+                val focusIsButton = focused is android.widget.Button ||
+                    focused is com.google.android.material.button.MaterialButton
                 when {
                     binding.fragmentContainerWelcome.isVisible -> false
+                    focusIsButton -> false
                     binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
                     binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }
                     else -> false
@@ -542,6 +555,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>(), PermissionsManag
             }
             // Up/Down have no meaning on the slider — let Android handle focus traversal.
             TvNavAction.Up, TvNavAction.Down -> false
+            // Media transport and hardware buttons (car wheel, headset, volume, search, menu)
+            // are not meaningful on the welcome slider — let the system handle them natively
+            // (e.g. hardware volume keys must reach AudioManager).
+            is TvNavAction.Media, is TvNavAction.Hardware -> false
         }
     }
 

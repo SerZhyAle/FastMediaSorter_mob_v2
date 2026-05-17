@@ -25,7 +25,6 @@ class DrawSettingsDialog(
 ) {
 
     fun show() {
-        Timber.d("S0192: DrawSettingsDialog.show")
         val view = LayoutInflater.from(activity).inflate(R.layout.dialog_draw_settings, null, false)
 
         // ── Brush size ────────────────────────────────────────────────────

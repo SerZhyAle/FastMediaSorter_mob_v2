@@ -115,12 +115,16 @@ class BrowseEventHandler(
                 }
             }
             is BrowseEvent.NavigateToTextEditor -> {
-                // S0189: open text file in edit mode — bypasses normal file-index resolution
+                // S0189: open text file in edit mode — bypasses normal file-index resolution.
+                // Use createPanelIntent to target the 2D PlayerActivity directly: TEXT is never a
+                // VR-eligible surface, so we must not route through the per-flavor
+                // BuildConfig.PLAYER_ACTIVITY_CLASS override (which on noLegal/vr resolves to
+                // VrPlayerActivity and triggers the «VR Headset Required» fallback on phones).
                 val activityHost = activity as? ComponentActivity ?: run {
                     Timber.e("BrowseEventHandler: activity is not ComponentActivity, cannot launch text editor")
                     return
                 }
-                val playerIntent = PlayerActivity.createIntent(
+                val playerIntent = PlayerActivity.createPanelIntent(
                     activity,
                     event.resourceId,
                     initialFilePath = event.filePath,
@@ -181,12 +185,6 @@ class BrowseEventHandler(
             }
             is BrowseEvent.ScrollToFile -> {
                 onScrollToFile?.invoke(event.fileName)
-            }
-            is BrowseEvent.ShowMetadataWarning -> {
-                val msg = activity.getString(R.string.smb_metadata_errors_warning, event.errorCount)
-                com.google.android.material.snackbar.Snackbar
-                    .make(activity.findViewById(android.R.id.content), msg, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
-                    .show()
             }
             is BrowseEvent.ShowLocalNetworkPermissionRequired -> {
                 showLocalNetworkPermissionRationale()

@@ -18,11 +18,22 @@ import javax.inject.Singleton
 @Singleton
 class TextNoteStagingRegistry @Inject constructor() {
 
+    /**
+     * S0189: distinguishes how a note's bytes reach their final destination.
+     *
+     * - [NETWORK_STAGED]: `localFile` lives in `Downloads/FastMediaSorter/notes/` and must be
+     *   uploaded to `targetParentPath` (smb://, ftp://, sftp://, cloud://) on save.
+     * - [LOCAL_DEFERRED]: `localFile` is the final target inside a LOCAL resource directory.
+     *   No upload step; on save the file is written directly to this path.
+     */
+    enum class Kind { NETWORK_STAGED, LOCAL_DEFERRED }
+
     data class StagedNote(
         val localFile: File,
         val targetResourceId: Long,
         val targetParentPath: String,
-        val intendedName: String
+        val intendedName: String,
+        val kind: Kind = Kind.NETWORK_STAGED,
     )
 
     private val registry = ConcurrentHashMap<String, StagedNote>()
@@ -31,11 +42,12 @@ class TextNoteStagingRegistry @Inject constructor() {
         file: File,
         targetResourceId: Long,
         targetParentPath: String,
-        intendedName: String
+        intendedName: String,
+        kind: Kind = Kind.NETWORK_STAGED,
     ) {
-        val entry = StagedNote(file, targetResourceId, targetParentPath, intendedName)
+        val entry = StagedNote(file, targetResourceId, targetParentPath, intendedName, kind)
         registry[file.absolutePath] = entry
-        Timber.d("S0189: TextNoteStagingRegistry.register $file -> resource=$targetResourceId path=$targetParentPath")
+        Timber.d("S0189: TextNoteStagingRegistry.register $file -> resource=$targetResourceId path=$targetParentPath kind=$kind")
     }
 
     fun unregister(file: File): StagedNote? =

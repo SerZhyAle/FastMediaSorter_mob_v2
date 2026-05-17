@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
-import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -11,18 +11,21 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * S0189: manages the 5-action editor panel (Save, Save & Close, Save & Send, Send to Keep, Cancel)
- * and the dirty-state background tint on the panel container.
+ * S0189: manages the 5-action editor buttons (Save, Save & Close, Save & Send, Send to Keep,
+ * Cancel) and the dirty-state background tint on the [panel] container.
+ *
+ * The buttons now live inside the top [editorToolbar] (moved up from the former bottom action
+ * panel so the soft keyboard does not cover them). [panel] is the LinearLayout that hosts them.
  *
  * Extracted from [TextViewerManager] to keep TextViewerManager under the 1500-LOC limit.
  */
 class TextEditorActionPanelManager(
     private val panel: LinearLayout,
-    private val btnSave: MaterialButton,
-    private val btnSaveClose: MaterialButton,
-    private val btnSaveSend: MaterialButton,
-    private val btnSendKeep: MaterialButton,
-    private val btnCancel: MaterialButton,
+    private val btnSave: ImageButton,
+    private val btnSaveClose: ImageButton,
+    private val btnSaveSend: ImageButton,
+    private val btnSendKeep: ImageButton,
+    private val btnCancel: ImageButton,
     private val keepChecker: GoogleKeepAvailabilityChecker,
     private val dirtyTracker: TextEditorDirtyStateTracker,
     private val coroutineScope: CoroutineScope
@@ -40,7 +43,9 @@ class TextEditorActionPanelManager(
     }
 
     private val dirtyBackground = android.graphics.Color.parseColor("#992C2C")  // warm red — clearly different from default panel
-    private val cleanBackground = android.graphics.Color.TRANSPARENT
+    // S0189: remember the panel's original background so we can restore it on clean state
+    // (toolbar background is a colour resource — TRANSPARENT would lose it).
+    private val originalBackground = panel.background
 
     /**
      * Wire click listeners and query Keep availability.
@@ -74,7 +79,11 @@ class TextEditorActionPanelManager(
         // Observe dirty-state and tint the panel accordingly
         coroutineScope.launch {
             dirtyTracker.isDirty.collectLatest { dirty ->
-                panel.setBackgroundColor(if (dirty) dirtyBackground else cleanBackground)
+                if (dirty) {
+                    panel.setBackgroundColor(dirtyBackground)
+                } else {
+                    panel.background = originalBackground
+                }
             }
         }
     }
@@ -92,6 +101,6 @@ class TextEditorActionPanelManager(
      */
     fun onExitEditMode() {
         dirtyTracker.detach()
-        panel.setBackgroundColor(cleanBackground)
+        panel.background = originalBackground
     }
 }

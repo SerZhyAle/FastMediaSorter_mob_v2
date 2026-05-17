@@ -63,8 +63,16 @@ import javax.inject.Inject
  *   ExoPlayer (inherited) → videoSurfaceBridge.surface → SurfaceTexture → OES texture →
  *   VrStereoRenderer.renderEye() UV-crops per eye → OpenXR compositor.
  *
- * On a phone (no XR runtime), falls back to VrPhoneFallbackActivity. Per S0033 Phase 05,
- * render-pipeline / session-lifecycle / command-routing logic lives in helpers/Vr*Manager.kt.
+ * On a phone (no XR runtime):
+ *   - noLegal flavor (single APK for Quest + phones, S0156 ADR-8) silently re-targets the
+ *     intent at the 2D [PlayerActivity], preserving all extras. The user sees a normal
+ *     standard player as if VR routing had never happened.
+ *   - vr flavor (Quest-only) falls back to [VrPhoneFallbackActivity] which advises installing
+ *     the standard edition — the appropriate semantics for a Quest-targeted APK installed on
+ *     a phone by mistake.
+ *
+ * Per S0033 Phase 05, render-pipeline / session-lifecycle / command-routing logic lives in
+ * helpers/Vr*Manager.kt.
  */
 @AndroidEntryPoint
 class VrPlayerActivity : PlayerActivity() {
@@ -235,8 +243,25 @@ class VrPlayerActivity : PlayerActivity() {
         Timber.i("VrPlayerActivity: isXrRuntimeAvailable=%b", xrAvailable)
         if (!xrAvailable) {
             super.onCreate(savedInstanceState)
-            Timber.w("VrPlayerActivity: no XR runtime — falling back to phone screen")
-            startActivity(Intent(this, VrPhoneFallbackActivity::class.java))
+            if (BuildConfig.IS_NO_LEGAL_FLAVOR) {
+                // noLegal is a single APK targeting both Quest and phones (S0156 ADR-8).
+                // On a phone without OpenXR there is no separate «standard edition» to
+                // install — noLegal IS the standard alternative. Silently re-dispatch the
+                // intent at the 2D PlayerActivity, preserving all extras (resourceId,
+                // initialFilePath, EXTRA_TEXT_EDIT_MODE_ON_OPEN, slideshow_mode, …). This
+                // catches any future entry point that routes through PLAYER_ACTIVITY_CLASS
+                // without per-call gating.
+                Timber.w("VrPlayerActivity: no XR runtime — noLegal flavor, re-dispatching as 2D PlayerActivity")
+                val panelIntent = Intent(intent).apply {
+                    setClass(this@VrPlayerActivity, PlayerActivity::class.java)
+                }
+                startActivity(panelIntent)
+            } else {
+                // vr flavor is Quest-only; installation on a phone is a user mistake.
+                // Show the «install standard edition» advisory.
+                Timber.w("VrPlayerActivity: no XR runtime — vr flavor, falling back to phone screen")
+                startActivity(Intent(this, VrPhoneFallbackActivity::class.java))
+            }
             finish()
             return
         }

@@ -927,6 +927,7 @@ Close the player and try again.</string>
     <string name="welcome_feature_slideshow">Slideshow</string>
     <string name="welcome_feature_gif">GIF Viewer</string>
     <string name="welcome_feature_network">Network Sources</string>
+    <string name="welcome_feature_local_folders">Local Folders</string>
     <string name="welcome_feature_cloud_sync">Cloud Sync</string>
     <string name="welcome_feature_widgets">Home Widgets</string>
     <string name="welcome_feature_scheduled_ops">Scheduled Tasks</string>
@@ -1186,7 +1187,6 @@ Close the player and try again.</string>
     <string name="draw_overlay_toolbar_brush">Brush</string>
     <string name="draw_overlay_toolbar_rect">Rectangle</string>
     <string name="draw_overlay_toolbar_eraser">Eraser</string>
-    <string name="draw_overlay_save_button">Save as new file</string>
     <string name="draw_overlay_filename_hint">File name</string>
     <string name="draw_overlay_saved_to_downloads">Saved to Downloads: %s</string>
     <string name="draw_overlay_save_failed">Couldn\'t save the drawing. Try again.</string>
@@ -1866,7 +1866,6 @@ Close the player and try again.</string>
     <string name="error_loading_media">Error loading file, skipping</string>
     <string name="video_playback_failed_with_name">Could not play: %1$s</string>
     <string name="video_playback_failed_session_warning">This file could not be played earlier in this session.</string>
-    <string name="warning_low_memory_playback">Low memory — video playback may fail.</string>
     <string name="warning_audio_format_unsupported">Audio format not supported — playing without sound</string>
 
     <!-- S0213: video playback OOM hardening — cooldown after decoder error, low-memory alert -->
@@ -3374,8 +3373,6 @@ Close the player and try again.</string>
     <string name="reset_cancel_button">Cancel</string>
     <!-- Conflict label in capture dialog -->
     <string name="keybinding_capture_conflict">Already bound to: %s</string>
-    <!-- S0017: shown after SMB scan when metadata extraction failed for some files -->
-    <string name="smb_metadata_errors_warning">%d file(s) indexed without metadata (read error)</string>
 
     <!-- S0050: Black Screen mode settings -->
     <string name="settings_black_screen_button_title">Show \"Black Screen\" button</string>
@@ -3588,7 +3585,8 @@ Close the player and try again.</string>
     <string name="draw_tool_selector_cd">Select tool</string>
     <string name="draw_overflow_undo_last">Undo last</string>
     <string name="draw_overflow_undo_all">Undo all</string>
-    <string name="draw_overflow_save_new">Save to new file</string>
+    <string name="draw_overflow_save_inplace">Save</string>
+    <string name="draw_overflow_save_new">Save as..</string>
     <string name="draw_overflow_settings">Settings</string>
     <string name="draw_color_custom_cd">Custom color</string>
     <string name="draw_save_ok_toast">Saved</string>
